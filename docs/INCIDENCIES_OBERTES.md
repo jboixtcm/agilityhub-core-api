@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.3 · 30-09-2026** (v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.4 · 01-10-2026** (v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -60,6 +60,25 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-48 | 30-09 | api (seguiment) | Nits de la ronda 5 d'E6-T03: l'estat que es desa per a la resposta repetida d'una clau és una còpia escrita a mà del `@ResponseStatus` de cada ruta, i un Javadoc mal tallat | Baixa | oberta — passada de correccions |
 | INC-49 | 30-09 | api (consola, idempotència) | `IdempotencyFilter` pren el club del `clubId` del JWT i respon `NO_MEMBERSHIP` sense: una ruta de consola amb clau (`POST /platform/clubs/{clubId}/jobs/{name}/trigger`) cridada amb un token de plataforma queda refusada abans del handler (nota 2 d'E5-T29, llegida al codi) | Mitjana | oberta — per a E10 (S17, consola) |
 | INC-50 | 30-09 | api (processos, proves) | Nits de la ronda 2 d'E5-T29: un reintent d'un llançament manual pot deixar l'execució sense `JOB_TRIGGERED` si la primera escriptura de l'auditoria va fallar; la vida de 24 h de la clau és definida dues vegades; l'etiqueta T-09-30 dels tests de cerca no té cap asserció de tenant | Baixa | oberta — passada de correccions |
+| INC-51 | 01-10 | api (seguiment, contracte) | Menors de la revisió d'E6-T06 (la cerca de D14 sense projecció i amb llistes `$in` sense límit, les proves d'aïllament de tenant de la cerca i dels recomptes, `FOLLOWUP.searchable`, l'etiqueta d'un abonat esborrat als valors del filtre, els scripts de l'evidència) i la pregunta 1 d'E6-W05 (`POST /tasks` pot respondre `409 INVALID_STATE` sense declarar-lo) | Baixa | oberta — E11-T02 |
+
+---
+
+## INC-51 · Menors de la revisió d'E6-T06 i el `409` no declarat de `POST /tasks` (api)
+
+**Gravetat**: baixa. Res no falla avui a l'escala d'un club.
+
+**Origen**: `roadmap/reviews/E6-T06-20260930-2241-claude.md` (api) i la pregunta 1 de l'informe d'E6-W05 (web); verificació de l'organitzador de l'1-10 (decisió E80).
+
+**Què cal fer**:
+1. **La cerca de D14** (`FollowupCensusAdapter`, `FollowupService.search`, `TaskRepository.idsContaining`): cada `q` fa quatre exploracions amb regex sense àncora i sense projecció (els documents d'abonat sencers), i els ids trobats entren al `$match` com a llistes `$in` sense límit; es repeteix a cada pàgina i a cada `filter-values`. Proposta: una sola consulta de gossos amb `$or` (nom i nota), projeccions només d'`_id` (i del nom per als abonats), i una INC nova si D14 creix (índex o cerca de text).
+2. **Aïllament de tenant a les dades** (AGENTS regla 4): les proves noves de la cerca i dels recomptes no comproven que el club `s10f-b` (gos «Aliè», tasca «Aliena») en quedi fora. Una asserció a cada prova.
+3. **`FOLLOWUP.searchable`** llista etiquetes (`memberName`, `dogName`, `text`) que no són camps de `followup_items`: un conjunt de dades sense `withSearch` buscaria en camps inexistents. Fallar de seguida, o un Javadoc que ho digui.
+4. **L'etiqueta d'un abonat esborrat** als valors del filtre `memberId` és l'id intern (com a `/training-bookings/filter-values`). Proposta: una etiqueta neutra i traduïda a totes dues rutes.
+5. **L'evidència**: els scripts que generen els resums dels logs `08` i `11` no són al repo, i l'`exit` dels logs `07` i `10` queda fora del fitxer.
+6. **`POST /tasks`** pot respondre `409 INVALID_STATE` (una pujada caducada, `AttachmentService.claim`) i el contracte només hi declara `IDEMPOTENCY_KEY_REUSED`. Proposta: declarar-lo i donar-li un `details.reason` propi (per exemple `UPLOAD_EXPIRED`), perquè el client el distingeixi de `READMISSION_PENDING`.
+
+**On mirar**: la revisió citada; `FollowupIT` (línies 810-918); `AttachmentService.java:145`, `TaskService.java:54`.
 
 ---
 

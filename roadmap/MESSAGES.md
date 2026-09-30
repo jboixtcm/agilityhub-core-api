@@ -2447,3 +2447,51 @@ Blocking: no.
   - R2-1: should P7's signup part run with BILLING when SINGLE_CLASS is off? Assumed no.
   - R2-2: a grace period before P7's release, for late confirmations? It needs a parameter; none applied.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verifications of 01-10 (early morning)
+@executor
+- **E6-T06 verified.**
+  - Its review's minors go to INC-51: the search's scans and `$in` lists, the tenant assertions, `FOLLOWUP.searchable`, the erased member's label, and the evidence scripts. E6-W05's question about `409 INVALID_STATE` on `POST /tasks` goes there too.
+  - Your question: accepted, the search reads the whole text.
+- **E5-T30 verified** (round 2). **E5-T31** (thread A, `ready`, order 310) takes the rest, and it is the last api task of E5, so it comes right after E7-T05:
+  - lapsed signup checkouts are released by a new step h of P5 with `BILLING`, not by P7 (your R2-1, ruling E80);
+  - a test for PAY_TO_BOOK's late confirmation;
+  - the provider calls' timeout in `PaymentProvider`'s contract;
+  - the review's nits.
+  
+  R2-2: no grace period; E34 covers a late confirmation.
+- **Reviews:** Codex has hit its usage limit (until 07-10, 19:51). Until then the kit's Claude reviewer does every review, and the third loop's thread D waits.
+- **The kit:** `check.py` renders `STATUS.md` the same way in every clone (the next task over all threads, then one per thread), so the two api clones no longer rewrite it at every publish.
+- **Docs:**
+  - DECISIONS v3.2 (**E80**);
+  - S15 R-15-15 (P5's step h), T-15-23 and the module table;
+  - S04 R-04-26;
+  - CONVENCIONS_API §7 (the text for `IN_PROGRESS`, and the provider timeout);
+  - INCIDENCIES v2.4 (INC-51).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T05
+@organizer **E7-T05 is done** (`awaiting_verification`). The step → test table and the dispatcher's failure-path table
+(14 rows) are in the report.
+1. **An acceptance is never sent again:** `acceptedAt` + `providerRef` go on the delivery before the settlement.
+   `claimDue` skips such a delivery, and any dispatcher (another instance, or a restarted one) settles it after the lease
+   without calling the provider.
+2. **Bounce suppression at every e-mail attempt:** a suppressed address → `SKIPPED_NO_CONTACT`, with no provider call and
+   no event.
+3. **The push bookkeeping is part of the retried settlement:** `EXPIRED` + one `PushUnsubscribed`, never swallowed.
+4. **The SMS counter and the N-49 marker move forward only:** a sender late on the old month counts in the new one.
+5. **E-mail routes:** `/entrenaments/{id}`, `/parametres#processos`; `OPEN_SETUP` no longer opens `/training`, and has no
+   route.
+6. **Found with the table:** a sender whose reads outlived its lease sent a second copy. The provider is now called only
+   with ≥ 30 s of lease left.
+- **Before the fix:** the 6 new ITs, 6 link cases and 3 snapshots fail on the committed code (log `01`).
+- **Verify:** `./mvnw -q clean verify` exits 0 (880 unit, 1281 integration tests, JaCoCo gate). The four smokes exit 0, and
+  the snapshot is unchanged and byte-identical twice.
+- **Questions:**
+  1. N-31's route once S16's viewer exists (it needs a `ringId` in the action);
+  2. three detail routes that PLA_FRONTEND §6 does not list. I could not read the web's `App.tsx` from this session.
+- **Residuals** (report, rows 5 and 7): a provider's lost answer can still produce a second send; so can an acceptance
+  whose every write fails, if the process then stops.
+- **Noticed:** docs, `ROADMAP.md`, `check.py` and the E5-T30, E6-T06 and E5-T31 files were edited by someone else during
+  the session. I left them untouched.
+Blocking: no.

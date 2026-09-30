@@ -773,6 +773,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E7-T05: notification engine hardening (the four majors and the minor of E7-T02's round-2 review, and the dispatcher's
+  failure-path table).
+  - An e-mail, SMS or push the provider accepted is never sent again, whatever happens to its settlement (R-11-09). The
+    acceptance goes on the delivery at once (`acceptedAt`, `providerRef`), `claimDue` never claims it again, and any
+    dispatcher — another instance, or a new one after a restart — settles it with that acceptance once its lease expired.
+  - Before every e-mail attempt, retries included, the address is checked against both bounce marks (the contact's
+    `bounced`, the account's `emailStatus`); a suppressed one ends `SKIPPED_NO_CONTACT` without a provider call (R-11-08).
+  - A push subscription's bookkeeping of the push service's answer — `lastSuccessAt`, the failure count, and on `GONE` or a
+    3rd failure its `EXPIRED` with `PushUnsubscribed` — is part of the retried settlement; its failure is never swallowed
+    (R-11-07).
+  - The monthly SMS counter and the N-49 marker only move forward: a sender late on the old month counts in the new one
+    and never restarts it, and its old-month notice never moves the marker back (R-11-06).
+  - A provider call is made only while at least 30 s of the claim's lease are left, so a sender whose preparation outlived
+    its lease never sends what another dispatcher claimed since (found with the failure-path table).
+  - The e-mails' deep links follow the web's routes (ruling E72): a training booking opens `/entrenaments/{id}`, N-42 opens
+    `/parametres#processos`, and N-31's `OPEN_SETUP` no longer opens `/training` (no button).
 - E7-T03 round 2: the first use of a template survives a concurrent first use (a `WriteConflict` is read again and
   retried, not raised to the engine; CI of `ca83d97`, T-11-31).
 - E5-T30: signup checkout hardening (the three findings of E5-T28's round-2 review, and the failure paths behind them).

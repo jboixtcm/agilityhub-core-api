@@ -93,6 +93,7 @@ Added 30-09 (verification of E7-T02's round 2, ruling E72): **E7-T05** (notifica
 Added 30-09, afternoon (verification of the web's E6-W02, ruling E74): **E6-T05** (`HistoryItem.activityId`, so that screen 25 links an activity row to the activity's page) runs after E5-T28; the web adopts it in E6-W04 step 0b.
 
 Added 30-09, evening (verifications of E5-T28's round 2, E5-T29 and the web's E6-W03, ruling E75): **E5-T30** (signup checkout hardening: a lost answer's retry sends the provider exactly the first request, a late completion needs every row still pending, a released partial row keeps its payment history, and the checkout's failure-path table) runs after E5-T28; **E6-T06** (`GET /followup/filter-values`, a follow-up list that searches, `InstructorWeek.trainingSlotMinutes`) runs after E6-T05; the web adopts it in E6-W04 step 0c.
+Added 01-10 (verification of E5-T30's round 2, ruling E80): **E5-T31** (lapsed signup checkouts released by a new step h of P5 with `BILLING` instead of P7, a test for PAY_TO_BOOK's late confirmation, the provider calls' timeout in `PaymentProvider`'s contract, the review's nits) is the last api task of E5.
 
 Added 30-09, night (verifications of E5-T29's round 2, E7-T03 and the web's E7-W01, ruling E76): E7-T03's round 2 also publishes `GET /members/{id}/notification-preferences` (D10's block) and the details of the messaging errors (D9).
 
@@ -102,13 +103,13 @@ Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) w
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
 - [x] E5-T01…T20 verified; CI green at `924303e`…`be2f4a8`.
-- [ ] E5-T21…E5-T30 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 30-09: E5-T21…E5-T29 verified; E5-T30 open.
+- [ ] E5-T21…E5-T31 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 01-10: E5-T21…E5-T30 verified; E5-T31 open (ruling E80).
 - [ ] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock).
 
 ### Gate E6 (back — organizer)
 - [ ] `bin/e6-smoke` green twice: the sheet from 21 and from D12 (same `PUT`, replayed with the same `Idempotency-Key`), «ha avisat» frees the seat and notifies the waitlist (N-15), a no-show → N-19 once (P3), `class-finishing` at +15 min (P8), the history states on 25.
 - [ ] Tasks with attachments readable by the member and the instructor; D14 unread per account; the week-agenda PDF.
-- [ ] E6-T01…T06 verified, CI green, snapshot staged (E6-W01…W04). — organizer 30-09: E6-T01…T05 verified; E6-T06 open.
+- [x] E6-T01…T06 verified, CI green, snapshot staged (E6-W01…W04). — organizer 01-10: E6-T06 verified; its minors are INC-51.
 
 ### Gate E7 (back — organizer; real SMS and push on devices are release items, A31)
 - [ ] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report).

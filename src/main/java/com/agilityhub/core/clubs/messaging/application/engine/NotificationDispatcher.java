@@ -51,44 +51,58 @@ import org.springframework.transaction.support.TransactionTemplate;
  * (`claimToken`, `claimedUntil`), so two instances never send it twice (T-11-30). An attempt has two separate parts: the
  * provider call, outside any Mongo transaction (decision E13), and the settlement of what it produced, one short
  * transaction with its events (AGENTS rule 8). A settlement that fails is written again with the same outcome, never by a
- * new provider call: an accepted message is never sent twice (E7-T02 round 2).
+ * new provider call: an accepted message is never sent twice (E7-T02 round 2, E7-T05).
  *
  * <ul>
  * <li>before each attempt, retries included, every owner of the notification's event must still find it deliverable
  * ({@link NotificationFactsPort#deliverable}); otherwise → `SKIPPED_STALE` and nothing is sent (S10 R-10-10: an N-20
  * retried after the dog changed hands never reaches its previous owner);</li>
+ * <li>EMAIL (R-11-08, E7-T05): before each attempt, retries included, the address is checked against both bounce marks
+ * ({@link EmailSuppression}); a suppressed one → `SKIPPED_NO_CONTACT`, as a delivery resolved without an address: no
+ * provider call, no event;</li>
  * <li>accepted → `SENT` (`providerRef`, `sentAt`, `attempts++`) + `NotificationSent`; when the SendGrid webhook already moved
  * the delivery to `DELIVERED` or `FAILED` while the call was in flight, that final state stays and the settlement only
  * records `providerRef`, `sentAt` and the attempt (R-11-08, as E1's `finish()`);</li>
  * <li>retryable → back to `QUEUED`, `attempts++`, `nextAttemptAt` = now + 1, 5, 15, 60 min ({@link RetryPolicy}); the 5th
  * failure, or a non-retryable one → `FAILED` + `NotificationFailed`;</li>
- * <li>SMS (R-11-06): the club-local month's counter is reserved first; at `messaging.sms.monthlyCap` one transaction writes
- * `SKIPPED_CAP`, an EMAIL forced to every address of the recipient that neither bounce mark suppresses
- * ({@link EmailSuppression}) and that has no live EMAIL delivery (a conditional insert: one per address, whoever settles
- * which phone), and — the first time in the month — the marker with `SmsCapReached{month, cap}` (N-49); an SMS the
- * non-production guard refuses → `SKIPPED_NOT_ALLOWED`; `SENT` is terminal at R1 (no delivery callback);</li>
+ * <li>SMS (R-11-06): the club-local month's counter is reserved first (in a later month when another sender already began
+ * it, {@link ClubSmsUsage.Reservation}); at `messaging.sms.monthlyCap` one transaction writes `SKIPPED_CAP`, an EMAIL forced
+ * to every address of the recipient that neither bounce mark suppresses ({@link EmailSuppression}) and that has no live
+ * EMAIL delivery (a conditional insert: one per address, whoever settles which phone), and — the first time in the month
+ * — the marker with `SmsCapReached{month, cap}` (N-49); an SMS the non-production guard refuses → `SKIPPED_NOT_ALLOWED`;
+ * `SENT` is terminal at R1 (no delivery callback);</li>
  * <li>PUSH (R-11-07): a subscription that is no longer `ACTIVE`, or that is not the recipient account's, → `FAILED` without a
  * call (E76); `GONE` → `FAILED`, subscription `EXPIRED` + `PushUnsubscribed`, never retried; `RETRYABLE` → retried;
- * `FAILED` → `FAILED`, and the 3rd consecutive failure of a subscription expires it.</li>
+ * `FAILED` → `FAILED`, and the 3rd consecutive failure of a subscription expires it. The subscription's bookkeeping of
+ * the answer (`lastSuccessAt`, the failure count, the expiry and its event) is part of the settlement's transaction
+ * (E7-T05).</li>
  * </ul>
  *
- * <p>A settlement is retried {@value #SETTLE_ATTEMPTS} times (a write conflict with another dispatcher or the webhook, a
- * failed outbox write). An accepted one that still fails waits in this instance and is written again before the next
- * claims, while its lease keeps other dispatchers away; any other outcome is left to its lease: nothing was sent, and the
- * poll attempts it again when the lease expires.</p>
+ * <p>An accepted attempt is recorded before its settlement (E7-T05): one small update writes `acceptedAt` and the
+ * `providerRef` on the claimed delivery and renews its lease. {@link NotificationRepository#claimDue} never claims such a
+ * delivery again; once its lease expires, any dispatcher (this one, another instance, or this one after a restart) claims
+ * it with {@link NotificationRepository#claimAccepted} and settles it with the stored acceptance, without a provider
+ * call. A settlement is retried {@value #SETTLE_ATTEMPTS} times (a write conflict with another dispatcher or the webhook,
+ * a failed outbox write). One that still fails and carries a provider's answer (an acceptance, a push service's answer)
+ * waits in this instance and is written again before the next claims; any other outcome is left to its lease: nothing
+ * was sent, and the poll attempts it again when the lease expires. A provider call is made only while the lease has at
+ * least {@link #PROVIDER_WINDOW} left, so a sender whose preparation outlasted its lease never sends what another one
+ * has claimed since.</p>
  */
 public class NotificationDispatcher {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationDispatcher.class);
     static final Duration LEASE = Duration.ofMinutes(2);
+    /** The lease a provider call needs: twice the providers' own bound (5 s to connect + 10 s for the answer). */
+    static final Duration PROVIDER_WINDOW = Duration.ofSeconds(30);
     static final int POLL_BATCH = 200, PUSH_FAILURES_TO_EXPIRE = 3, SETTLE_ATTEMPTS = 5;
     static final String STALE = "No longer relevant to its recipient", CAP_REACHED = "SMS monthly cap reached", NOT_ALLOWED = "Not in SMS_ALLOWED_NUMBERS",
-            EXPIRED = "Push subscription expired", OTHER_OWNER = "Push subscription of another account";
+            EXPIRED = "Push subscription expired", OTHER_OWNER = "Push subscription of another account", SUPPRESSED = "Email address suppressed";
     private final NotificationRepository notifications; private final PushSubscriptionRepository subscriptions; private final EmailSender email;
     private final SmsSender sms; private final PushSender push; private final ClubConfigService configs; private final ClubEmailSettings emailSettings;
     private final ClubSmsUsage usage; private final NotificationEmailRenderer emails; private final UnsubscribeTokens unsubscribes;
     private final MemberDirectoryPort members; private final NotificationAccounts accounts; private final EventPublisher events; private final TransactionTemplate transactions;
     private final List<NotificationFactsPort> owners; private final Clock clock; private final String platformFrom;
-    /** Accepted sends whose settlement kept failing: written again before the next claims (their lease keeps others away). */
+    /** Settlements with a provider's answer that kept failing: written again before the next claims, while their token still holds the lease. */
     private final Queue<Settling> unsettled = new ConcurrentLinkedQueue<>();
 
     public NotificationDispatcher(NotificationRepository notifications, PushSubscriptionRepository subscriptions, EmailSender email, SmsSender sms,
@@ -101,40 +115,49 @@ public class NotificationDispatcher {
         this.clock = clock; this.platformFrom = platformFrom;
     }
 
-    /** The inline trigger: every due delivery of these notifications of the current club. Outside any transaction. */
+    /**
+     * The inline trigger: every due delivery of these notifications of the current club, and any accepted one of them whose
+     * settlement is still pending past its lease. Outside any transaction.
+     */
     public int dispatch(Collection<String> notificationIds) {
         settleWaiting();
         int sent = 0;
         for (String id : new java.util.LinkedHashSet<>(notificationIds)) {
-            for (int guard = 0; guard < 1000; guard++) {
-                String token = UUID.randomUUID().toString();
-                var claimed = notifications.claimDue(id, clock.instant(), LEASE, token);
-                if (claimed.isEmpty()) { break; }
-                process(claimed.get(), token);
-                sent++;
-            }
+            sent += claimAll((now, token) -> notifications.claimAccepted(id, now, LEASE, token), false, Integer.MAX_VALUE);
+            sent += claimAll((now, token) -> notifications.claimDue(id, now, LEASE, token), false, Integer.MAX_VALUE);
         }
         return sent;
     }
 
-    /** The 5-second poll (R-11-09): due deliveries of every club, retries included. */
+    /** The 5-second poll (R-11-09): the accepted deliveries left unsettled past their lease, then the due ones of every club, retries included. */
     @Scheduled(fixedDelayString = "${notifications.dispatcher.poll-millis:5000}")
     public int poll() {
         settleWaiting();
-        int sent = 0;
-        for (; sent < POLL_BATCH; sent++) {
+        int sent = claimAll((now, token) -> notifications.claimAccepted(null, now, LEASE, token), true, POLL_BATCH);
+        return sent + claimAll((now, token) -> notifications.claimDue(null, now, LEASE, token), true, POLL_BATCH - sent);
+    }
+    private interface Claim { java.util.Optional<Notification> next(Instant now, String token); }
+    private int claimAll(Claim claim, boolean openTenant, int limit) {
+        int processed = 0;
+        for (int guard = 0; processed < limit && guard < 1000; guard++) {
             String token = UUID.randomUUID().toString();
-            var claimed = notifications.claimDue(null, clock.instant(), LEASE, token);
+            var claimed = claim.next(clock.instant(), token);
             if (claimed.isEmpty()) { break; }
-            try (var tenant = TenantContext.open(claimed.get().clubId())) { process(claimed.get(), token); }
+            if (openTenant) { try (var tenant = TenantContext.open(claimed.get().clubId())) { process(claimed.get(), token); } }
+            else { process(claimed.get(), token); }
+            processed++;
         }
-        return sent;
+        return processed;
     }
 
-    /** One attempt of a claimed delivery: the provider call, then its settlement (never the call again). */
+    /**
+     * One claimed delivery: an attempt (the provider call, its acceptance recorded at once, then the settlement — never the
+     * call again), or the settlement of an acceptance recorded by an earlier claim.
+     */
     private void process(Notification notification, String token) {
         var delivery = notification.deliveries().stream().filter(d -> token.equals(d.claimToken())).findFirst().orElse(null);
         if (delivery == null) { return; }
+        if (delivery.acceptedAt() != null) { settle(new Settling(notification, delivery, token, Outcome.recorded(delivery))); return; }
         Outcome outcome;
         try { outcome = attempt(notification, delivery); }
         catch (RuntimeException failure) {
@@ -142,29 +165,66 @@ public class NotificationDispatcher {
             LOG.warn("Notification delivery failed notificationId={} channel={} error={}", notification.id(), delivery.channel(), failure.getClass().getSimpleName());
             outcome = Outcome.of(SendResult.retryable(failure.getClass().getSimpleName()));
         }
+        if (outcome.abandoned()) {
+            LOG.warn("Notification attempt abandoned: its lease ends too soon notificationId={} channel={}", notification.id(), delivery.channel());
+            return;
+        }
+        if (outcome.accepted()) {
+            outcome = outcome.at(clock.instant());
+            record(new Settling(notification, delivery, token, outcome));
+        }
         settle(new Settling(notification, delivery, token, outcome));
     }
 
     private Outcome attempt(Notification notification, Notification.Delivery delivery) {
         if (!deliverable(notification, delivery)) { return Outcome.status(DeliveryStatus.SKIPPED_STALE, STALE); }
+        if (delivery.channel() == NotificationChannel.EMAIL && suppressed(notification, delivery.target())) {
+            return Outcome.status(DeliveryStatus.SKIPPED_NO_CONTACT, SUPPRESSED);
+        }
         return switch (delivery.channel()) {
-            case EMAIL -> Outcome.of(sendEmail(notification, delivery));
+            case EMAIL -> sendEmail(notification, delivery);
             case SMS -> sendSms(notification, delivery);
             case PUSH -> sendPush(notification, delivery);
             case APP -> Outcome.status(DeliveryStatus.DELIVERED, null);
         };
     }
+    /** The claim still covers a provider call: at least {@link #PROVIDER_WINDOW} of the lease is left. */
+    private boolean leaseCoversCall(Notification.Delivery delivery) {
+        return delivery.claimedUntil() != null && clock.instant().plus(PROVIDER_WINDOW).isBefore(delivery.claimedUntil());
+    }
 
-    private SendResult sendEmail(Notification notification, Notification.Delivery delivery) {
+    private Outcome sendEmail(Notification notification, Notification.Delivery delivery) {
         var settings = emailSettings.get(notification.clubId(), platformFrom);
         String origin = emailSettings.appOrigin(notification.clubId()).orElse(null);
         String memberId = notification.recipient() == null ? null : notification.recipient().memberId();
         String unsubscribe = origin != null && memberId != null ? origin + "/comunicats/baixa?t=" + unsubscribes.issue(notification.clubId(), memberId) : null;
         var tags = new LinkedHashMap<String, String>(); tags.put("clubId", notification.clubId()); tags.put("notificationId", notification.id());
-        var result = email.send(emails.render(notification, delivery.target(), settings, app -> emailSettings.appOrigin(notification.clubId(), app).orElse(null),
-                unsubscribe, tags));
-        if (result.sent()) { return SendResult.accepted(result.providerMessageId()); }
-        return emailRetryable(result.error()) ? SendResult.retryable(result.error()) : SendResult.failed(result.error());
+        var message = emails.render(notification, delivery.target(), settings, app -> emailSettings.appOrigin(notification.clubId(), app).orElse(null), unsubscribe, tags);
+        if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
+        var result = email.send(message);
+        if (result.sent()) { return Outcome.of(SendResult.accepted(result.providerMessageId())); }
+        return Outcome.of(emailRetryable(result.error()) ? SendResult.retryable(result.error()) : SendResult.failed(result.error()));
+    }
+    /**
+     * R-11-08 at every attempt: the address is suppressed when either mark says so ({@link EmailSuppression#suppressed}) — the
+     * recipient's member contact (by member, else by account; without one, the club's members that have the address, those
+     * the webhook marks) and the recipient account's `emailStatus` on its login address.
+     */
+    private boolean suppressed(Notification notification, String address) {
+        var recipient = notification.recipient();
+        var contact = contact(recipient);
+        var holders = contact != null ? List.of(contact) : members.findAll(members.membersWithEmail(address));
+        String accountId = contact != null && contact.accountId() != null ? contact.accountId() : recipient == null ? null : recipient.accountId();
+        var account = accountId == null ? null : accounts.find(accountId).orElse(null);
+        return EmailSuppression.suppressed(address, holders, account);
+    }
+    /** The recipient's member contact: by member, else by account (`null` for an applicant or an admin without a member record). */
+    private MemberContact contact(Notification.Recipient recipient) {
+        if (recipient == null) { return null; }
+        MemberContact contact = null;
+        if (recipient.memberId() != null) { contact = members.find(recipient.memberId()).orElse(null); }
+        if (contact == null && recipient.accountId() != null) { contact = members.byAccount(recipient.accountId()).orElse(null); }
+        return contact;
     }
     /**
      * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx other than 429 (a
@@ -181,12 +241,15 @@ public class NotificationDispatcher {
         var config = configs.get(notification.clubId());
         var month = YearMonth.from(clock.instant().atZone(java.time.ZoneId.of(config.club().timeZone())));
         long cap = Objects.requireNonNullElse(config.get("messaging.sms.monthlyCap", Integer.class), 0);
-        if (!usage.reserve(notification.clubId(), month, cap)) { return Outcome.cap(month, cap); }
+        var reservation = usage.reserve(notification.clubId(), month, cap);
+        if (!reservation.granted()) { return Outcome.cap(reservation.month(), cap); }
+        Runnable release = () -> quietly("SMS reservation release", () -> usage.release(notification.clubId(), reservation.month()));
+        if (!leaseCoversCall(delivery)) { release.run(); return Outcome.ABANDONED; }
         var tags = Map.of("clubId", notification.clubId(), "notificationId", notification.id());
         SendResult result;
         try { result = sms.send(new SmsMessage(delivery.target(), Objects.toString(notification.smsBody(), ""), config.get("messaging.sms.senderId", String.class), tags)); }
         catch (RuntimeException failure) { result = SendResult.retryable(failure.getClass().getSimpleName()); }
-        if (!result.ok()) { quietly("SMS reservation release", () -> usage.release(notification.clubId(), month)); }
+        if (!result.ok()) { release.run(); }
         if (result.refusedByGuard()) { return Outcome.status(DeliveryStatus.SKIPPED_NOT_ALLOWED, NOT_ALLOWED); }
         return Outcome.of(result);
     }
@@ -198,32 +261,37 @@ public class NotificationDispatcher {
         String recipient = notification.recipient() == null ? null : notification.recipient().accountId();
         if (!subscription.accountId().equals(recipient)) { return Outcome.status(DeliveryStatus.FAILED, OTHER_OWNER); }
         String url = notification.action() == null ? "/notificacions" : "/notificacions?id=" + notification.id();
-        var result = push.send(subscription, new PushPayload(notification.id(), notification.title(), notification.body(),
-                notification.icon() == null ? null : notification.icon().name(), url, notification.code()));
-        // The subscription's bookkeeping never turns the push service's answer into another attempt.
+        var payload = new PushPayload(notification.id(), notification.title(), notification.body(), notification.icon() == null ? null : notification.icon().name(),
+                url, notification.code());
+        if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
+        var result = push.send(subscription, payload);
+        // The subscription's bookkeeping of the answer is the settlement's (E7-T05): it never turns the answer into another attempt.
+        var answer = new PushAnswer(subscription.id(), result.status());
         return switch (result.status()) {
-            case OK -> {
-                quietly("push subscription success", () -> subscriptions.pushed(subscription.id(), clock.instant()));
-                yield Outcome.of(SendResult.accepted(null));
-            }
-            case GONE -> {
-                quietly("push subscription expiry", () -> expire(subscription));
-                yield Outcome.status(DeliveryStatus.FAILED, result.error());
-            }
+            case OK -> Outcome.of(SendResult.accepted(null)).with(answer);
+            case GONE -> Outcome.status(DeliveryStatus.FAILED, result.error()).with(answer);
             case RETRYABLE -> Outcome.of(SendResult.retryable(result.error()));
-            case FAILED -> {
-                quietly("push subscription failure", () -> { if (subscriptions.failed(subscription.id()) >= PUSH_FAILURES_TO_EXPIRE) { expire(subscription); } });
-                yield Outcome.of(SendResult.failed(result.error()));
-            }
+            case FAILED -> Outcome.of(SendResult.failed(result.error())).with(answer);
         };
     }
-    private void expire(PushSubscription subscription) {
-        transactions.executeWithoutResult(tx -> {
-            if (subscriptions.expire(subscription.id(), clock.instant())) {
-                events.publish(new MessagingEvent(MessagingEvent.Kind.PushUnsubscribed, subscription.clubId(), subscription.id(), clock.instant(),
-                        Map.of("accountId", subscription.accountId(), "endpoint", subscription.endpointHash()), null, null, DomainEvent.Origin.SYSTEM));
-            }
-        });
+    /**
+     * R-11-07 in the settlement's transaction: `lastSuccessAt` for an accepted push; `GONE` → the subscription `EXPIRED` +
+     * `PushUnsubscribed`; a `FAILED` counts one consecutive failure, and the 3rd expires it the same way.
+     */
+    private void bookkeeping(PushAnswer answer, Instant at) {
+        switch (answer.status()) {
+            case OK -> subscriptions.pushed(answer.subscriptionId(), at);
+            case GONE -> expire(answer.subscriptionId(), at);
+            case FAILED -> { if (subscriptions.failed(answer.subscriptionId()) >= PUSH_FAILURES_TO_EXPIRE) { expire(answer.subscriptionId(), at); } }
+            case RETRYABLE -> { }
+        }
+    }
+    private void expire(String subscriptionId, Instant at) {
+        var subscription = subscriptions.findById(subscriptionId).orElse(null);
+        if (subscription != null && subscriptions.expire(subscriptionId, at)) {
+            events.publish(new MessagingEvent(MessagingEvent.Kind.PushUnsubscribed, subscription.clubId(), subscription.id(), at,
+                    Map.of("accountId", subscription.accountId(), "endpoint", subscription.endpointHash()), null, null, DomainEvent.Origin.SYSTEM));
+        }
     }
     private static void quietly(String what, Runnable step) {
         try { step.run(); }
@@ -234,16 +302,53 @@ public class NotificationDispatcher {
 
     /**
      * What one attempt produced: a provider's answer (`result`), a status reached without one (`status`, `error`), or the SMS
-     * cap of `capMonth` (`cap`).
+     * cap of `capMonth` (`cap`); `acceptedAt`, the moment an accepted answer arrived; `push`, the subscription's bookkeeping of
+     * a push service's answer. {@link #ABANDONED}: no provider call and nothing to write.
      */
-    record Outcome(SendResult result, DeliveryStatus status, String error, YearMonth capMonth, long cap) {
-        static Outcome of(SendResult result) { return new Outcome(result, null, null, null, 0); }
-        static Outcome status(DeliveryStatus status, String error) { return new Outcome(null, status, error, null, 0); }
-        static Outcome cap(YearMonth month, long cap) { return new Outcome(null, DeliveryStatus.SKIPPED_CAP, CAP_REACHED, month, cap); }
+    record Outcome(SendResult result, DeliveryStatus status, String error, YearMonth capMonth, long cap, Instant acceptedAt, PushAnswer push) {
+        static final Outcome ABANDONED = new Outcome(null, null, null, null, 0, null, null);
+        static Outcome of(SendResult result) { return new Outcome(result, null, null, null, 0, null, null); }
+        static Outcome status(DeliveryStatus status, String error) { return new Outcome(null, status, error, null, 0, null, null); }
+        static Outcome cap(YearMonth month, long cap) { return new Outcome(null, DeliveryStatus.SKIPPED_CAP, CAP_REACHED, month, cap, null, null); }
+        /** The acceptance an earlier claim recorded on the delivery (`acceptedAt`, `providerRef`): settled, never sent again. */
+        static Outcome recorded(Notification.Delivery delivery) {
+            var push = delivery.channel() == NotificationChannel.PUSH ? new PushAnswer(delivery.target(), PushResult.Status.OK) : null;
+            return new Outcome(SendResult.accepted(delivery.providerRef()), null, null, null, 0, delivery.acceptedAt(), push);
+        }
+        Outcome with(PushAnswer answer) { return new Outcome(result, status, error, capMonth, cap, acceptedAt, answer); }
+        Outcome at(Instant at) { return new Outcome(result, status, error, capMonth, cap, at, push); }
         boolean accepted() { return result != null && result.ok(); }
+        boolean abandoned() { return result == null && status == null; }
+        /** An answer the delivery's state depends on: written again, never asked again, while this instance holds the lease. */
+        boolean keepsAnswer() { return accepted() || push != null; }
     }
+    /** A push service's answer for one subscription (R-11-07). */
+    record PushAnswer(String subscriptionId, PushResult.Status status) { }
     /** An outcome to write: the claimed delivery (as claimed) and its lease token. */
     private record Settling(Notification notification, Notification.Delivery delivery, String token, Outcome outcome) { }
+
+    /**
+     * E7-T05 (R-11-09): the provider accepted — `acceptedAt` and the reference go on the claimed delivery at once, in their own
+     * small update (retried like a settlement), so that no claim sends it again whatever happens to the settlement. When even
+     * this write fails, the acceptance lives in this instance only (`unsettled`), under the lease of its claim.
+     */
+    private void record(Settling s) {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                if (!notifications.markAccepted(s.notification().id(), s.token(), s.outcome().result().providerRef(), s.outcome().acceptedAt(), LEASE)) {
+                    LOG.warn("Notification acceptance found its lease lost notificationId={} channel={}", s.notification().id(), s.delivery().channel());
+                }
+                return;
+            } catch (RuntimeException failure) {
+                if (attempt >= SETTLE_ATTEMPTS) {
+                    LOG.warn("Notification acceptance could not be recorded notificationId={} channel={} error={}", s.notification().id(), s.delivery().channel(),
+                            failure.getClass().getSimpleName());
+                    return;
+                }
+                pause();
+            }
+        }
+    }
 
     private void settle(Settling settling) {
         for (int attempt = 1; ; attempt++) {
@@ -252,14 +357,14 @@ public class NotificationDispatcher {
                 if (attempt >= SETTLE_ATTEMPTS) {
                     LOG.warn("Notification settlement failed notificationId={} channel={} accepted={} error={}", settling.notification().id(),
                             settling.delivery().channel(), settling.outcome().accepted(), failure.getClass().getSimpleName());
-                    if (settling.outcome().accepted()) { unsettled.add(settling); }
+                    if (settling.outcome().keepsAnswer()) { unsettled.add(settling); }
                     return;
                 }
                 pause();
             }
         }
     }
-    /** The accepted sends a previous settlement could not write, once each; those that fail again keep waiting. */
+    /** The settlements with a provider's answer a previous try could not write, once each; those that fail again keep waiting. */
     private void settleWaiting() {
         for (int waiting = unsettled.size(); waiting > 0; waiting--) {
             var settling = unsettled.poll();
@@ -273,17 +378,25 @@ public class NotificationDispatcher {
         catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
     }
 
-    /** The settlement's transaction; after an accepted send's commit, the owner's `sent` hook (outside any transaction). */
+    /**
+     * The settlement's transaction: the delivery, its event and — while the claim is still this token's — the push
+     * subscription's bookkeeping of the answer; after an accepted send's commit, the owner's `sent` hook (outside any
+     * transaction).
+     */
     private void write(Settling s) {
         var outcome = s.outcome();
-        Boolean accepted = transactions.execute(tx -> {
-            if (outcome.capMonth() != null) { capReached(s); return false; }
-            if (outcome.result() == null) { status(s, outcome.status(), outcome.error()); return false; }
-            if (outcome.accepted()) { return accepted(s, outcome.result().providerRef()); }
-            failed(s, outcome.result());
-            return false;
+        var settlement = transactions.execute(tx -> {
+            NotificationRepository.Settlement settled;
+            if (outcome.capMonth() != null) { settled = capReached(s); }
+            else if (outcome.result() == null) { settled = status(s, outcome.status(), outcome.error()); }
+            else if (outcome.accepted()) { settled = accepted(s, outcome.result().providerRef()); }
+            else { settled = failed(s, outcome.result()); }
+            if (outcome.push() != null && settled != NotificationRepository.Settlement.LOST) {
+                bookkeeping(outcome.push(), outcome.acceptedAt() != null ? outcome.acceptedAt() : clock.instant());
+            }
+            return settled;
         });
-        if (Boolean.TRUE.equals(accepted)) {
+        if (outcome.accepted() && settlement != null && settlement != NotificationRepository.Settlement.LOST) {
             var owner = owner(s.notification());
             if (owner != null) {
                 try { owner.sent(view(s.notification()), s.delivery().channel().name()); }
@@ -292,31 +405,34 @@ public class NotificationDispatcher {
         }
     }
 
-    /** Accepted: `SENT` + `NotificationSent`, or the webhook's final state kept with the acceptance's data; `false` when the lease was lost. */
-    private boolean accepted(Settling s, String providerRef) {
-        Instant now = clock.instant(); int attempts = s.delivery().attempts() + 1;
+    /**
+     * Accepted: `SENT` + `NotificationSent`, or the webhook's final state kept with the acceptance's data. `sentAt` is the
+     * moment the provider accepted, also when the settlement is written later.
+     */
+    private NotificationRepository.Settlement accepted(Settling s, String providerRef) {
+        Instant sentAt = s.outcome().acceptedAt() != null ? s.outcome().acceptedAt() : clock.instant(); int attempts = s.delivery().attempts() + 1;
         var settlement = notifications.settleClaim(s.notification().id(), s.token(), update -> {
-            update.set("deliveries.$.status", DeliveryStatus.SENT.name()).set("deliveries.$.attempts", attempts).set("deliveries.$.sentAt", now).set("deliveries.$.lastError", null);
+            update.set("deliveries.$.status", DeliveryStatus.SENT.name()).set("deliveries.$.attempts", attempts).set("deliveries.$.sentAt", sentAt).set("deliveries.$.lastError", null);
             if (providerRef != null) { update.set("deliveries.$.providerRef", providerRef); }
         }, update -> {
-            update.set("deliveries.$.attempts", attempts).set("deliveries.$.sentAt", now);
+            update.set("deliveries.$.attempts", attempts).set("deliveries.$.sentAt", sentAt);
             if (providerRef != null) { update.set("deliveries.$.providerRef", providerRef); }
         });
-        if (settlement == NotificationRepository.Settlement.MOVED) { publish(s, NotificationEvent.Kind.NotificationSent, now); }
-        return settlement != NotificationRepository.Settlement.LOST;
+        if (settlement == NotificationRepository.Settlement.MOVED) { publish(s, NotificationEvent.Kind.NotificationSent, sentAt); }
+        return settlement;
     }
 
     /** R-11-09: retried with backoff, or failed for good. A delivery the webhook moved meanwhile keeps its state. */
-    private void failed(Settling s, SendResult result) {
+    private NotificationRepository.Settlement failed(Settling s, SendResult result) {
         Instant now = clock.instant(); int attempts = s.delivery().attempts() + 1;
         var next = RetryPolicy.nextAttempt(attempts, result.retryable(), now);
-        if (next.isEmpty()) { status(s, DeliveryStatus.FAILED, result.error()); return; }
-        notifications.settleClaim(s.notification().id(), s.token(), update -> update.set("deliveries.$.attempts", attempts)
+        if (next.isEmpty()) { return status(s, DeliveryStatus.FAILED, result.error()); }
+        return notifications.settleClaim(s.notification().id(), s.token(), update -> update.set("deliveries.$.attempts", attempts)
                 .set("deliveries.$.nextAttemptAt", next.get()).set("deliveries.$.lastError", result.error()), update -> { });
     }
 
     /** A final or skipped status (with its event when the delivery was attempted). */
-    private void status(Settling s, DeliveryStatus status, String error) {
+    private NotificationRepository.Settlement status(Settling s, DeliveryStatus status, String error) {
         Instant now = clock.instant(); int attempts = s.delivery().attempts() + 1;
         boolean attempted = status == DeliveryStatus.SENT || status == DeliveryStatus.FAILED;
         var settlement = notifications.settleClaim(s.notification().id(), s.token(), update -> {
@@ -327,6 +443,7 @@ public class NotificationDispatcher {
             if (status.skipped()) { update.set("deliveries.$.lastError", error); }
         }, update -> { if (attempted) { update.set("deliveries.$.attempts", attempts); } });
         if (settlement == NotificationRepository.Settlement.MOVED && status == DeliveryStatus.FAILED) { publish(s, NotificationEvent.Kind.NotificationFailed, now); }
+        return settlement;
     }
 
     /**
@@ -334,11 +451,11 @@ public class NotificationDispatcher {
      * address that neither bounce mark suppresses), `NotificationQueued{EMAIL}` when one was added, and the month's first-notice
      * marker with `SmsCapReached{month, cap}` (N-49 once per month). The recipient is read first, before any write.
      */
-    private void capReached(Settling s) {
+    private NotificationRepository.Settlement capReached(Settling s) {
         var addresses = forcedAddresses(s.notification());
         var settlement = notifications.settleClaim(s.notification().id(), s.token(),
                 update -> update.set("deliveries.$.status", DeliveryStatus.SKIPPED_CAP.name()).set("deliveries.$.lastError", CAP_REACHED), update -> { });
-        if (settlement != NotificationRepository.Settlement.MOVED) { return; }
+        if (settlement != NotificationRepository.Settlement.MOVED) { return settlement; }
         Instant now = clock.instant(); boolean queued = false;
         for (String address : addresses) {
             queued |= notifications.addEmailIfAbsent(s.notification().id(), new Notification.Delivery(NotificationChannel.EMAIL, address, DeliveryStatus.QUEUED, 0, now,
@@ -351,14 +468,12 @@ public class NotificationDispatcher {
             events.publish(new MessagingEvent(MessagingEvent.Kind.SmsCapReached, s.notification().clubId(), s.notification().clubId(), now,
                     Map.of("month", s.outcome().capMonth().toString(), "cap", s.outcome().cap()), null, null, DomainEvent.Origin.SYSTEM));
         }
+        return settlement;
     }
     /** The recipient's addresses for the forced e-mail: every one neither bounce mark suppresses ({@link EmailSuppression}). */
     private List<String> forcedAddresses(Notification notification) {
         var recipient = notification.recipient();
-        if (recipient == null) { return List.of(); }
-        MemberContact contact = null;
-        if (recipient.memberId() != null) { contact = members.find(recipient.memberId()).orElse(null); }
-        if (contact == null && recipient.accountId() != null) { contact = members.byAccount(recipient.accountId()).orElse(null); }
+        var contact = contact(recipient);
         if (contact == null) { return List.of(); }
         String accountId = contact.accountId() != null ? contact.accountId() : recipient.accountId();
         var account = accountId == null ? null : accounts.find(accountId).orElse(null);

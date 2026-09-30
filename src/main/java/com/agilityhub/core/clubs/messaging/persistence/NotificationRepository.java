@@ -42,6 +42,8 @@ public class NotificationRepository extends TenantRepository<Notification> {
         indexes.ensureIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("readAt", ASC).named("notification_club_recipient_read"));
         indexes.ensureIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("notification_club_created"));
         indexes.ensureIndex(new Index().on("deliveries.status", ASC).on("deliveries.nextAttemptAt", ASC).named("notification_delivery_due"));
+        indexes.ensureIndex(new Index().on("deliveries.acceptedAt", ASC).named("notification_delivery_accepted")
+                .partial(PartialIndexFilter.of(Criteria.where("deliveries.acceptedAt").exists(true))));
     }
 
     // Explicit SYSTEM operations allow null clubId; ordinary inherited methods always require a tenant.
@@ -123,22 +125,47 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     /**
      * The dispatcher's claim (S11 R-11-09, T-11-30): one atomic `findAndModify` of a notification with a `QUEUED` delivery to a
-     * known target, due (`nextAttemptAt ≤ now`) and not leased by another sender; the delivery gets `claimToken` and
+     * known target, due (`nextAttemptAt ≤ now`), not leased by another sender and not accepted by a provider already
+     * (`acceptedAt`, E7-T05: such a delivery is only settled, {@link #claimAccepted}); the delivery gets `claimToken` and
      * `claimedUntil = now + lease`. `notificationId = null` claims any due delivery of any club (the 5-second poll, no
      * tenant: each claimed document names its club); SYSTEM rows (their own synchronous path) are never claimed.
      */
     public Optional<Notification> claimDue(String notificationId, Instant now, java.time.Duration lease, String token) {
-        var due = Criteria.where("status").is("QUEUED").and("target").ne(null).and("nextAttemptAt").lte(now)
+        var due = Criteria.where("status").is("QUEUED").and("target").ne(null).and("nextAttemptAt").lte(now).and("acceptedAt").is(null)
                 .orOperator(Criteria.where("claimedUntil").is(null), Criteria.where("claimedUntil").lte(now));
-        var query = Query.query(Criteria.where("deliveries").elemMatch(due).and("category").ne("SYSTEM"));
+        return claim(Query.query(Criteria.where("deliveries").elemMatch(due).and("category").ne("SYSTEM")), notificationId, now, lease, token);
+    }
+    /**
+     * E7-T05 (R-11-09): the claim of a delivery the provider accepted whose settlement never completed — its sender's
+     * settlement kept failing, or the sender stopped — once its lease expired. The claimant settles it with the stored
+     * acceptance and never calls the provider again. Any status: a webhook may have moved it meanwhile (the settlement then
+     * keeps that state).
+     */
+    public Optional<Notification> claimAccepted(String notificationId, Instant now, java.time.Duration lease, String token) {
+        var accepted = Criteria.where("acceptedAt").ne(null).and("claimToken").ne(null).and("claimedUntil").lte(now);
+        return claim(Query.query(Criteria.where("deliveries.acceptedAt").exists(true).and("deliveries").elemMatch(accepted).and("category").ne("SYSTEM")),
+                notificationId, now, lease, token);
+    }
+    private Optional<Notification> claim(Query query, String notificationId, Instant now, java.time.Duration lease, String token) {
         if (notificationId != null) { query.addCriteria(Criteria.where("_id").is(notificationId).and("clubId").is(TenantContext.require())); }
         var update = new Update().set("deliveries.$.claimToken", token).set("deliveries.$.claimedUntil", now.plus(lease));
         return Optional.ofNullable(mongo.findAndModify(query, update,
                 org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true), Notification.class));
     }
-    /** Writes the outcome of a claimed delivery (found by its lease token) and releases the lease; `false` if the lease was lost. */
+    /**
+     * E7-T05 (R-11-09): the provider accepted the claimed delivery's attempt. One small update, outside the settlement's
+     * transaction and before it: `acceptedAt`, the `providerRef` when there is one, and the lease renewed from `at`. From then
+     * on {@link #claimDue} never claims the delivery again; `false` when the lease is no longer this token's.
+     */
+    public boolean markAccepted(String id, String token, String providerRef, Instant at, java.time.Duration lease) {
+        var update = new Update().set("deliveries.$.acceptedAt", at).set("deliveries.$.claimedUntil", at.plus(lease));
+        if (providerRef != null) { update.set("deliveries.$.providerRef", providerRef); }
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("deliveries").elemMatch(Criteria.where("claimToken").is(token))), update, Notification.class)
+                .getModifiedCount() == 1;
+    }
+    /** Writes the outcome of a claimed delivery (found by its lease token) and releases the lease and any acceptance mark; `false` if the lease was lost. */
     public boolean settle(String id, String token, Consumer<Update> outcome) {
-        var update = new Update().unset("deliveries.$.claimToken").unset("deliveries.$.claimedUntil");
+        var update = new Update().unset("deliveries.$.claimToken").unset("deliveries.$.claimedUntil").unset("deliveries.$.acceptedAt");
         outcome.accept(update);
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("deliveries.claimToken").is(token)), update, Notification.class).getModifiedCount() == 1;
     }
@@ -152,7 +179,7 @@ public class NotificationRepository extends TenantRepository<Notification> {
      * when the lease is no longer this token's (nothing written).
      */
     public Settlement settleClaim(String id, String token, Consumer<Update> outcome, Consumer<Update> kept) {
-        var queued = new Update().unset("deliveries.$.claimToken").unset("deliveries.$.claimedUntil"); outcome.accept(queued);
+        var queued = new Update().unset("deliveries.$.claimToken").unset("deliveries.$.claimedUntil").unset("deliveries.$.acceptedAt"); outcome.accept(queued);
         var stillQueued = Query.query(Criteria.where("_id").is(id).and("deliveries").elemMatch(Criteria.where("claimToken").is(token).and("status").is("QUEUED")));
         if (mongo.updateFirst(stillQueued, queued, Notification.class).getModifiedCount() == 1) { return Settlement.MOVED; }
         return settle(id, token, kept) ? Settlement.KEPT : Settlement.LOST;

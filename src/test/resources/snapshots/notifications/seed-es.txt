@@ -199,8 +199,8 @@ email.html.sha256: 7db5697fe1a67d2e
 ## N-31 MEMBER
 title: Recorrido nuevo en la pista
 body: Hay un recorrido nuevo en la pista Central.
-email.text: Recorrido nuevo en la pista⏎⏎Hay un recorrido nuevo en la pista Central.⏎⏎Abre la app: https://app.example.test/training⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
-email.html.sha256: 6c553c9d3e830a53
+email.text: Recorrido nuevo en la pista⏎⏎Hay un recorrido nuevo en la pista Central.⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
+email.html.sha256: 13eb41a6c57cf600
 
 ## N-32a MEMBER
 title: Actividad publicada

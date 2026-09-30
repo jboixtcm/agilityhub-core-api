@@ -263,9 +263,9 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 2L);
         // T-11-07: 999 sends, 1000 is the cap (a cap of 0 sends nothing).
         usageOf(CLUB, 202611, 999);
-        assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 1000)).isTrue(); assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 1000)).isFalse();
+        assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 1000).granted()).isTrue(); assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 1000).granted()).isFalse();
         assertThat(usage.sent(CLUB, YearMonth.of(2026, 11))).isEqualTo(1000); assertThat(usage.sent(CLUB, YearMonth.of(2026, 10))).isZero();
-        assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 0)).isFalse();
+        assertThat(usage.reserve(CLUB, YearMonth.of(2026, 11), 0).granted()).isFalse();
         usage.release(CLUB, YearMonth.of(2026, 11)); assertThat(usage.sent(CLUB, YearMonth.of(2026, 11))).isEqualTo(999);
         assertThat(usage.firstCapNotice(CLUB, YearMonth.of(2026, 11))).isTrue(); assertThat(usage.firstCapNotice(CLUB, YearMonth.of(2026, 11))).isFalse();
         assertThat(usage.sent("club-without-usage", YearMonth.of(2026, 11))).isZero();
@@ -626,6 +626,294 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(sms.messages()).isEmpty(); assertThat(push.sent()).isEmpty();
         // Idempotent: nothing is left to convert or to close.
         assertThat(run("--apply")).doesNotContain("e7t02-");
+    }
+
+    // ---- E7-T05: E7-T02's round-2 review (the dispatcher's failure paths).
+
+    /** A new N-09 to the member (each level change is its own occurrence). */
+    private Notification levelNotice(String memberId, String dogId) {
+        var before = stored(CLUB, "N-09").stream().map(Notification::id).collect(java.util.stream.Collectors.toSet());
+        levelChange(memberId, dogId);
+        return stored(CLUB, "N-09").stream().filter(n -> !before.contains(n.id()) && memberId.equals(n.recipient().memberId())).findFirst().orElseThrow();
+    }
+    /** The delivery of `channel` as stored (with the fields the dispatcher writes on it). */
+    private Document storedDelivery(String notificationId, String channel) {
+        return mongo.getCollection("notifications").find(new Document("_id", notificationId)).first().getList("deliveries", Document.class).stream()
+                .filter(d -> channel.equals(d.getString("channel"))).findFirst().orElseThrow();
+    }
+    private List<Document> events(String type, String aggregateId) {
+        return outbox(CLUB, type).stream().filter(e -> aggregateId.equals(e.getString("aggregateId"))).toList();
+    }
+    /** The SendGrid webhook over the suite's in-memory census, so that a hard bounce marks the member the dispatcher reads. */
+    private com.agilityhub.core.clubs.messaging.application.SendGridWebhookService webhookOverPorts() {
+        return new com.agilityhub.core.clubs.messaging.application.SendGridWebhookService(notifications, receipts, accounts, events,
+                new org.springframework.transaction.support.TransactionTemplate(transactions), clock, ports, ports);
+    }
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.clubs.messaging.persistence.SendGridWebhookReceiptRepository receipts;
+
+    /**
+     * E7-T05 step 1 (review #1, R-11-09): the provider accepts, and the settlement keeps failing past the claim's lease (here
+     * its `NotificationSent` outbox write). The acceptance is recorded on the delivery at once (`acceptedAt`, `providerRef`), so
+     * the second dispatcher that polls once the lease expired claims the delivery only to settle it: no second provider call
+     * while the database still fails, and the delivery ends `SENT` (the acceptance's `sentAt`, one `NotificationSent`) once it
+     * answers. The first dispatcher's own waiting settlement then finds its lease taken and writes nothing. Before the fix the
+     * acceptance lived only in the first dispatcher's memory, and the second one sent the e-mail again.
+     */
+    @Test void R_11_09_anAcceptanceWhoseSettlementOutlivesItsLeaseIsSettledByTheNextDispatcherWithoutASecondSend() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var n = levelNotice("member-marc", "dog-ares");
+        var down = new FailingOutbox(events, "NotificationSent", Integer.MAX_VALUE);
+        var first = dispatcher(sms, ports, usage, down);
+        clock.advance(Duration.ofMinutes(1));
+        Instant acceptedAt = clock.instant();
+        assertThat(dispatch(first, n)).isEqualTo(1);
+        assertThat(down.failed).hasValue(NotificationDispatcher.SETTLE_ATTEMPTS);
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        // The lease expires while the database still fails: the second dispatcher's poll sends nothing.
+        clock.advance(NotificationDispatcher.LEASE);
+        var second = dispatcher(sms, ports, usage, down);
+        second.poll();
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        var waiting = storedDelivery(n.id(), "EMAIL");
+        assertThat(waiting.getString("status")).isEqualTo("QUEUED"); assertThat(waiting.getString("providerRef")).startsWith("mail-");
+        assertThat(waiting.getDate("acceptedAt").toInstant()).isEqualTo(acceptedAt); assertThat(waiting.getInteger("attempts")).isEqualTo(1);
+        // The database answers: the waiting settlement is written with the provider's answer.
+        down.left.set(0);
+        second.poll();
+        first.poll();
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.attempts()).isEqualTo(2); assertThat(d.sentAt()).isEqualTo(acceptedAt);
+            assertThat(d.providerRef()).isEqualTo(waiting.getString("providerRef")); assertThat(d.claimToken()).isNull(); assertThat(d.lastError()).isNull();
+        });
+        assertThat(storedDelivery(n.id(), "EMAIL")).doesNotContainKey("acceptedAt");
+        assertThat(events("NotificationSent", n.id())).hasSize(1);
+        clock.advance(Duration.ofHours(2));
+        assertThat(dispatch(second, n) + dispatch(first, n)).isZero();
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+    }
+
+    /**
+     * E7-T05 step 1: the same after the dispatcher is replaced — a new bean with empty memory, as after a restart. While the
+     * first dispatcher's lease holds, the new one claims nothing; once it expired, the new one settles the recorded
+     * acceptance without calling the provider: Marc's e-mail ends `SENT` with the acceptance's reference and time. Pau's was
+     * delivered (webhook) before any settlement: that state stays and the settlement only adds the acceptance (R-11-08), with
+     * no `NotificationSent`. Before the fix the new dispatcher sent Marc's e-mail again.
+     */
+    @Test void R_11_09_anAcceptanceSurvivesTheDispatchersReplacement() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var marc = levelNotice("member-marc", "dog-ares");
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var pau = levelNotice("member-pau", "dog-nit");
+        var stopped = dispatcher(sms, ports, usage, new FailingOutbox(events, "NotificationSent", Integer.MAX_VALUE));
+        clock.advance(Duration.ofMinutes(1));
+        Instant acceptedAt = clock.instant();
+        assertThat(dispatch(stopped, marc) + dispatch(stopped, pau)).isEqualTo(2);
+        assertThat(mail.sent).extracting(EmailMessage::to).containsExactly("marc@example.test", "pau@example.test");
+        String reference = storedDelivery(marc.id(), "EMAIL").getString("providerRef");
+        webhooks.accept("sg-e7t05-delivered", "delivered", pau.id(), CLUB, "pau@example.test");
+        // The instance restarts: a new dispatcher, a healthy outbox, nothing in memory.
+        var restarted = dispatcher(sms);
+        assertThat(dispatch(restarted, marc) + dispatch(restarted, pau)).isZero();
+        clock.advance(NotificationDispatcher.LEASE);
+        dispatch(restarted, marc); dispatch(restarted, pau);
+        assertThat(mail.sent).extracting(EmailMessage::to).containsExactly("marc@example.test", "pau@example.test");
+        assertThat(reference).startsWith("mail-");
+        assertThat(delivery(reload(marc), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.attempts()).isEqualTo(2); assertThat(d.sentAt()).isEqualTo(acceptedAt);
+            assertThat(d.providerRef()).isEqualTo(reference); assertThat(d.claimToken()).isNull();
+        });
+        assertThat(events("NotificationSent", marc.id())).hasSize(1);
+        assertThat(delivery(reload(pau), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.DELIVERED); assertThat(d.attempts()).isEqualTo(2); assertThat(d.sentAt()).isEqualTo(acceptedAt);
+            assertThat(d.providerRef()).startsWith("mail-"); assertThat(d.claimToken()).isNull(); assertThat(d.claimedUntil()).isNull();
+        });
+        assertThat(storedDelivery(pau.id(), "EMAIL")).doesNotContainKey("acceptedAt");
+        assertThat(events("NotificationSent", pau.id())).isEmpty();
+        clock.advance(Duration.ofHours(2));
+        assertThat(dispatch(restarted, marc) + dispatch(stopped, marc)).isZero();
+        assertThat(mail.sent).hasSize(2);
+    }
+
+    /**
+     * E7-T05 step 2 (review #2, R-11-08): a hard bounce stops, at their next attempt, the e-mails to that address that are
+     * already queued and the pending retries: the dispatcher checks both bounce marks before every e-mail attempt. Three N-09
+     * to Marc: a retry pending after a 503, and two queued; the first queued one is sent and hard-bounces (webhook) → the
+     * second and the retry end `SKIPPED_NO_CONTACT`, as a delivery resolved without an address: no provider call, no
+     * `NotificationSent` nor `NotificationFailed`. The account's mark alone (a SYSTEM e-mail bounced Pau's login address)
+     * stops a retry too. Before the fix both were sent to the bounced address.
+     */
+    @Test void R_11_08_aHardBounceStopsTheQueuedEmailsAndThePendingRetriesToThatAddress() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var retry = levelNotice("member-marc", "dog-ares");
+        assertThat(delivery(reload(retry), NotificationChannel.EMAIL)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1); });
+        var inline = engine;
+        engine = engine(idleDispatcher());
+        var first = levelNotice("member-marc", "dog-ares"); var second = levelNotice("member-marc", "dog-ares");
+        assertThat(dispatch(dispatcher, first)).isEqualTo(1);
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        webhookOverPorts().accept("sg-e7t05-bounce", "bounce", first.id(), CLUB, "marc@example.test", "bounce");
+        assertThat(delivery(reload(first), NotificationChannel.EMAIL).status()).isEqualTo(DeliveryStatus.FAILED);
+        assertThat(ports.find("member-marc").orElseThrow().emails()).singleElement().satisfies(e -> assertThat(e.bounced()).isTrue());
+        assertThat(dispatch(dispatcher, second)).isEqualTo(1);
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(dispatch(dispatcher, retry)).isEqualTo(1);
+        for (var n : List.of(second, retry)) {
+            assertThat(delivery(reload(n), NotificationChannel.EMAIL)).as(n.id()).satisfies(d -> {
+                assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_NO_CONTACT); assertThat(d.lastError()).isEqualTo("Email address suppressed");
+                assertThat(d.attempts()).isEqualTo(n == retry ? 1 : 0); assertThat(d.claimToken()).isNull(); assertThat(d.sentAt()).isNull();
+            });
+            assertThat(events("NotificationSent", n.id())).isEmpty(); assertThat(events("NotificationFailed", n.id())).isEmpty();
+        }
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        clock.advance(Duration.ofHours(2)); assertThat(dispatch(dispatcher, second) + dispatch(dispatcher, retry)).isZero();
+        // The account's mark alone: Pau's only address is his login address, which a SYSTEM e-mail bounced after his notice was queued.
+        String login = accountEmail("account-pau");
+        ports.update("member-pau", c -> InMemoryMessagingPorts.with(c, null, null, List.of(new com.agilityhub.core.clubs.messaging.application.ports.MemberContact.Email(login, false)), null));
+        engine = inline;
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var pau = levelNotice("member-pau", "dog-nit");
+        assertThat(delivery(reload(pau), NotificationChannel.EMAIL)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.target()).isEqualTo(login); });
+        accounts.markEmailStatus("account-pau", login, com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus.BOUNCED);
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(dispatch(dispatcher, pau)).isEqualTo(1);
+        assertThat(delivery(reload(pau), NotificationChannel.EMAIL).status()).isEqualTo(DeliveryStatus.SKIPPED_NO_CONTACT);
+        assertThat(mail.to(login)).isEmpty();
+    }
+
+    /**
+     * E7-T05 step 3 (review #3, R-11-07): on `GONE` the subscription's `EXPIRED` and its `PushUnsubscribed` are written by the
+     * settlement's transaction, which keeps the push service's answer. (1) The `PushUnsubscribed` outbox write fails once →
+     * the settlement is written again with the same answer: one call to the push service, the delivery `FAILED`, the
+     * subscription `EXPIRED` with exactly one `PushUnsubscribed`. (2) The failure outlasts the settlement's attempts → the
+     * answer waits in the dispatcher and is written before its next claims: still one call. Before the fix the expiry ran
+     * apart and its failure was swallowed: the subscription stayed `ACTIVE`, and nothing would ever expire it.
+     */
+    @Test void R_11_07_aGoneAnswersExpiryIsPartOfTheRetriedSettlementAndIsNeverLost() {
+        var startsAt = Instant.parse("2026-10-08T16:50:00Z");
+        engine = engine(idleDispatcher());
+        java.util.function.IntFunction<Notification> remind = i -> {
+            ports.activeBookings.put("booking-" + i, startsAt);
+            deliver(CLUB, "ReminderDue", Map.of("bookingId", "booking-" + i, "memberId", "member-laura", "dogId", "dog-duna", "startsAt", startsAt.toString()));
+            return reload(stored(CLUB, "N-13").stream().filter(n -> n.dedupKey().equals("N-13:booking-" + i)).findFirst().orElseThrow());
+        };
+        java.util.function.Function<String, PushSubscription> subscription = id -> mongo.findById(id, PushSubscription.class);
+        var counted = new CountingPush(push);
+        // (1) One failure.
+        subscribe(CLUB, "subscription-gone-1", "account-laura");
+        var once = remind.apply(1);
+        assertThat(delivery(once, NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.target()).isEqualTo("subscription-gone-1"); });
+        push.answer(PushResult.of(PushResult.Status.GONE, "Push HTTP 410"));
+        var outbox = new FailingOutbox(events, "PushUnsubscribed", 1);
+        dispatch(dispatcher(sms, ports, usage, outbox, counted), once);
+        assertThat(outbox.failed).hasValue(1); assertThat(counted.calls).hasValue(1);
+        assertThat(subscription.apply("subscription-gone-1").status()).isEqualTo(PushSubscription.Status.EXPIRED);
+        assertThat(events("PushUnsubscribed", "subscription-gone-1")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("accountId", "account-laura").containsEntry("endpoint", subscription.apply("subscription-gone-1").endpointHash()));
+        assertThat(delivery(reload(once), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.lastError()).isEqualTo("Push HTTP 410"); assertThat(d.attempts()).isEqualTo(1); });
+        assertThat(events("NotificationFailed", once.id())).hasSize(1);
+        clock.advance(Duration.ofHours(1)); dispatch(dispatcher(sms, ports, usage, events, counted), once);
+        assertThat(counted.calls).hasValue(1);
+        // (2) The failure outlasts the settlement's attempts.
+        subscribe(CLUB, "subscription-gone-2", "account-laura");
+        var later = remind.apply(2);
+        assertThat(delivery(later, NotificationChannel.PUSH).target()).isEqualTo("subscription-gone-2");
+        push.answer(PushResult.of(PushResult.Status.GONE, "Push HTTP 404"));
+        var down = new FailingOutbox(events, "PushUnsubscribed", NotificationDispatcher.SETTLE_ATTEMPTS);
+        var patient = dispatcher(sms, ports, usage, down, counted);
+        dispatch(patient, later);
+        assertThat(down.failed).hasValue(NotificationDispatcher.SETTLE_ATTEMPTS); assertThat(counted.calls).hasValue(2);
+        assertThat(subscription.apply("subscription-gone-2").status()).isEqualTo(PushSubscription.Status.ACTIVE);
+        assertThat(delivery(reload(later), NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.claimToken()).isNotNull(); });
+        assertThat(dispatch(patient, later)).isZero();
+        assertThat(subscription.apply("subscription-gone-2").status()).isEqualTo(PushSubscription.Status.EXPIRED);
+        assertThat(events("PushUnsubscribed", "subscription-gone-2")).hasSize(1);
+        assertThat(delivery(reload(later), NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.claimToken()).isNull(); });
+        assertThat(counted.calls).hasValue(2);
+    }
+
+    /**
+     * E7-T05 step 4 (review #4, R-11-06): the monthly counter and the notice marker only move forward. November (club-local)
+     * began: another sender counted 5 SMS and wrote November's N-49 marker. A sender that computed October reaches
+     * `reserve()` now → it counts in November (6) and never restarts October over November; its October `firstCapNotice` is
+     * refused and November's marker stays, so November gets no second N-49. At November's cap the late sender is refused
+     * too, and through the dispatcher its SMS is `SKIPPED_CAP` with `SmsCapReached{2026-11}`. Before the fix the late
+     * reservation overwrote November with October/1 (the next November send restarted it again, so the cap no longer held),
+     * and the late notice moved the marker back to October.
+     */
+    @Test void R_11_06_aSenderLateOnTheOldMonthNeverMovesTheCounterNorTheNoticeMarkerBack() {
+        var october = YearMonth.of(2026, 10); var november = YearMonth.of(2026, 11);
+        usageOf(CLUB, 202611, 5);
+        assertThat(usage.firstCapNotice(CLUB, november)).isTrue();
+        var late = usage.reserve(CLUB, october, 1000);
+        assertThat(late).isEqualTo(new ClubSmsUsage.Reservation(november, true));
+        assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 6L).containsEntry("smsCapNoticeMonth", 202611L);
+        assertThat(usage.firstCapNotice(CLUB, october)).isFalse(); assertThat(usage.firstCapNotice(CLUB, november)).isFalse();
+        assertThat(usage(CLUB)).containsEntry("smsCapNoticeMonth", 202611L);
+        // A failed late send gives back its reservation in the month it was counted in.
+        usage.release(CLUB, late.month());
+        assertThat(usage.sent(CLUB, november)).isEqualTo(5);
+        // The cap still holds, whichever month the sender computed.
+        usageOf(CLUB, 202611, 999);
+        assertThat(usage.reserve(CLUB, october, 1000)).isEqualTo(new ClubSmsUsage.Reservation(november, true));
+        assertThat(usage.reserve(CLUB, october, 1000)).isEqualTo(new ClubSmsUsage.Reservation(november, false));
+        assertThat(usage.reserve(CLUB, november, 1000)).isEqualTo(new ClubSmsUsage.Reservation(november, false));
+        assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 1000L);
+        // Through the dispatcher: its clock still reads 23:59:59 on 31 October in Madrid, a second behind the sender that began November.
+        clock.setInstant(Instant.parse("2026-10-31T22:59:59Z"));
+        classSession(CLUB, "e7t05-class", "2026-11-02T18:50", List.of("instructor-marta"));
+        deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t05-class", "reason", "DELETED", "adminText", "x", "affected", affected("member-marc", "dog-ares", "b1")));
+        assertThat(delivery(reload(memberNotice("N-08a", "member-marc")), NotificationChannel.SMS).status()).isEqualTo(DeliveryStatus.SKIPPED_CAP);
+        assertThat(sms.messages()).isEmpty();
+        assertThat(outbox(CLUB, "SmsCapReached")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("month", "2026-11"));
+        assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 1000L).containsEntry("smsCapNoticeMonth", 202611L);
+    }
+
+    /**
+     * E7-T05 step 6 (a row of the failure-path table): an attempt whose preparation outlived its claim's lease never calls the
+     * provider. The first dispatcher's `deliverable` read stalls past its lease; meanwhile a second dispatcher claims the
+     * delivery and sends it. When the first one resumes, less than {@code PROVIDER_WINDOW} of its lease is left, so it
+     * abandons the attempt: one e-mail and, for an SMS, one message counted once (the abandoned reservation is given back).
+     * Before the fix the first dispatcher sent a second e-mail and a second SMS.
+     */
+    @Test void R_11_09_anAttemptWhoseLeaseRanOutBeforeTheProviderCallNeverSends() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var n = levelNotice("member-marc", "dog-ares");
+        classSession(CLUB, "e7t02-class-a", "2026-10-08T18:50", List.of("instructor-marta"));
+        engine = engine(idleDispatcher());
+        deliver(CLUB, "ClassCancelledByClub", Map.of("classId", "e7t02-class-a", "reason", "DELETED", "adminText", "x", "affected", affected("member-pau", "dog-nit", "b1")));
+        var cancelled = memberNotice("N-08a", "member-pau");
+        var reads = new ArrayList<String>(); var stallOn = new String[] {"EMAIL"}; var stalled = new java.util.concurrent.atomic.AtomicBoolean();
+        var other = new NotificationDispatcher[1];
+        owners = List.of(new NotificationFactsPort() {
+            @Override public Set<String> eventTypes() { return Set.of("DogLevelChanged", "ClassCancelledByClub"); }
+            @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) { return Optional.empty(); }
+            @Override public boolean deliverable(StoredNotification notification, String channel) {
+                reads.add(notification.code() + " " + channel);
+                // The first read of the channel stalls past the lease, while the other dispatcher claims the delivery and sends it.
+                if (channel.equals(stallOn[0]) && stalled.compareAndSet(false, true)) {
+                    clock.advance(NotificationDispatcher.LEASE);
+                    other[0].dispatch(List.of(notification.notificationId()));
+                }
+                return true;
+            }
+        });
+        var slow = dispatcher(sms); other[0] = dispatcher(sms);
+        clock.advance(Duration.ofMinutes(1));
+        dispatch(slow, n);
+        assertThat(reads).containsExactly("N-09 EMAIL", "N-09 EMAIL");
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.attempts()).isEqualTo(2); assertThat(d.claimToken()).isNull(); });
+        assertThat(events("NotificationSent", n.id())).hasSize(1);
+        // The SMS: the abandoned attempt gives its reservation back.
+        mail.sent.clear(); reads.clear(); stallOn[0] = "SMS"; stalled.set(false);
+        dispatch(slow, cancelled);
+        assertThat(reads).filteredOn(read -> read.endsWith("SMS")).containsExactly("N-08a SMS", "N-08a SMS");
+        assertThat(sms.messages()).extracting(m -> m.to()).containsExactly("+34600000004");
+        assertThat(delivery(reload(cancelled), NotificationChannel.SMS).status()).isEqualTo(DeliveryStatus.SENT);
+        assertThat(usage(CLUB)).containsEntry("smsSentMonth", 1L);
+        assertThat(mail.to("pau@example.test")).hasSize(1);
     }
 
     private String run(String... arguments) {

@@ -199,8 +199,8 @@ email.html.sha256: 7a260d39e09403ea
 ## N-31 MEMBER
 title: New course on the ring
 body: There is a new course on the Central ring.
-email.text: New course on the ring⏎⏎There is a new course on the Central ring.⏎⏎Open the app: https://app.example.test/training⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 171230d926090baf
+email.text: New course on the ring⏎⏎There is a new course on the Central ring.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 0b8dcd6e121851a4
 
 ## N-32a MEMBER
 title: Activity published

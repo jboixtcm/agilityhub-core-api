@@ -5,6 +5,7 @@ import com.agilityhub.core.clubs.messaging.application.EmailSender;
 import com.agilityhub.core.clubs.messaging.application.MessagingNotificationFacts;
 import com.agilityhub.core.clubs.messaging.application.integrations.FakePushSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.FakeSmsSender;
+import com.agilityhub.core.clubs.messaging.application.integrations.PushSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.SmsSender;
 import com.agilityhub.core.clubs.messaging.application.ports.InMemoryMessagingPorts;
 import com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort;
@@ -98,8 +99,20 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
     NotificationDispatcher dispatcher(SmsSender smsSender) { return dispatcher(smsSender, ports, usage, events); }
     /** A dispatcher over other doubles: the member directory, the SMS counter or the outbox (the failure-injection tests of round 2). */
     NotificationDispatcher dispatcher(SmsSender smsSender, MemberDirectoryPort members, ClubSmsUsage smsUsage, EventPublisher outbox) {
-        return new NotificationDispatcher(notifications, subscriptions, mail, smsSender, push, configs, emailSettings, smsUsage, emails, unsubscribes, members, accounts,
+        return dispatcher(smsSender, members, smsUsage, outbox, push);
+    }
+    /** …and over another push sender (E7-T05: a double that counts every call to the push service, whatever it answers). */
+    NotificationDispatcher dispatcher(SmsSender smsSender, MemberDirectoryPort members, ClubSmsUsage smsUsage, EventPublisher outbox, PushSender pushSender) {
+        return new NotificationDispatcher(notifications, subscriptions, mail, smsSender, pushSender, configs, emailSettings, smsUsage, emails, unsubscribes, members, accounts,
                 outbox, new TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
+    }
+    /** The push service double seen through a counter of its calls (`FakePushSender.sent()` lists only the accepted ones). */
+    static final class CountingPush implements PushSender {
+        final PushSender delegate; final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+        CountingPush(PushSender delegate) { this.delegate = delegate; }
+        @Override public com.agilityhub.core.clubs.messaging.application.integrations.PushResult send(PushSubscription subscription,
+                com.agilityhub.core.clubs.messaging.application.integrations.PushPayload payload) { calls.incrementAndGet(); return delegate.send(subscription, payload); }
+        @Override public String publicKey() { return delegate.publicKey(); }
     }
     /** A dispatcher whose inline trigger does nothing: the engine stores the deliveries due, and the test dispatches them. */
     NotificationDispatcher idleDispatcher() {

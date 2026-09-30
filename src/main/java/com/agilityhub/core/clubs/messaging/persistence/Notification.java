@@ -59,13 +59,15 @@ public record Notification(@Id String id, String clubId, String code, Notificati
     public record Action(NotificationActionType type, Map<String, String> params) { }
     /**
      * One delivery per channel and destination (each phone, each push subscription); `APP` is born `DELIVERED` in the engine.
-     * `claimToken`/`claimedUntil` are the dispatcher's lease while it sends (never read by the API).
+     * `claimToken`/`claimedUntil` are the dispatcher's lease while it sends (never read by the API). `acceptedAt` marks an
+     * attempt the provider accepted whose settlement is still pending (E7-T05): written with `providerRef` right after the
+     * provider's answer, removed by the settlement; a delivery that carries it is never sent again, only settled.
      */
     public record Delivery(NotificationChannel channel, String target, DeliveryStatus status, int attempts, Instant nextAttemptAt, String providerRef,
-            String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt, String claimToken, Instant claimedUntil) {
+            String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt, String claimToken, Instant claimedUntil, Instant acceptedAt) {
         public Delivery(NotificationChannel channel, String target, DeliveryStatus status, int attempts, Instant nextAttemptAt, String providerRef,
                 String lastError, Instant sentAt, Instant deliveredAt, Instant failedAt) {
-            this(channel, target, status, attempts, nextAttemptAt, providerRef, lastError, sentAt, deliveredAt, failedAt, null, null);
+            this(channel, target, status, attempts, nextAttemptAt, providerRef, lastError, sentAt, deliveredAt, failedAt, null, null, null);
         }
     }
     /** The compatibility block's status, the same values as {@link DeliveryStatus}. */

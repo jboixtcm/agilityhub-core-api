@@ -1,0 +1,39 @@
+E7-T05 · test summary of `./mvnw -q clean verify` (log 02, exit 0), read from target/surefire-reports and
+target/failsafe-reports right after the run, and the JaCoCo figures from target/site/jacoco/jacoco.csv.
+
+surefire: tests=880 failures=0 errors=0 skipped=0
+  NotificationEmailRendererTest: tests=4 failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest: tests=3 failures=0 errors=0 skipped=0      (snapshots regenerated: N-31's e-mail loses /training)
+  NotificationLinksTest: tests=40 failures=0 errors=0 skipped=0            (changed: step 5)
+  MessagingDocumentsTest: tests=5 failures=0 errors=0 skipped=0
+failsafe: tests=1281 failures=0 errors=0 skipped=0
+  SendGridWebhookIT: tests=12 failures=0 errors=0 skipped=0
+  NotificationDispatcherIT: tests=20 failures=0 errors=0 skipped=0         (6 new: steps 1 (×2), 2, 3, 4, 6; T_11_07 adapted)
+  NotificationEngineIT: tests=13 failures=0 errors=0 skipped=0
+  E7PersistenceIT: tests=9 failures=0 errors=0 skipped=0
+
+JaCoCo (the gate passed: verify exit 0)
+com.agilityhub.core.clubs.messaging.application.engine lines 98.6% branches 89.5%
+com.agilityhub.core.clubs.messaging.domain lines 100.0% branches 97.5%
+com.agilityhub.core.clubs.messaging.persistence lines 99.6% branches 92.1%
+com.agilityhub.core.platform.application lines 99.2% branches 93.2%
+  NotificationLinks lines 46/46 branches 68/68
+  EmailSuppression lines 10/10 branches 20/24
+  NotificationDispatcher lines 217/225 branches 156/196
+  NotificationRepository lines 106/106 branches 52/54
+  ClubSmsUsage lines 25/25 branches 17/20
+
+Before the fix (log 01: the committed main code of HEAD 5adf71a restored with `git show HEAD:<file> > <file>`, plus one
+signature shim so that the new tests compile — `ClubSmsUsage.reserve` returning `Reservation(askedMonth, <old boolean>)` —
+then the new code copied back; `-Dmaven.test.failure.ignore=true`):
+surefire: NotificationLinksTest 40 tests, 6 failures; NotificationSeedSnapshotTest 3 tests, 3 failures
+failsafe: NotificationDispatcherIT 20 tests, 6 failures (the 6 new ones; the 14 others pass on the old code)
+  R_11_09_anAcceptanceWhoseSettlementOutlivesItsLeaseIsSettledByTheNextDispatcherWithoutASecondSend:676  Expected size: 1 but was: 2 (a second e-mail)
+  R_11_09_anAcceptanceSurvivesTheDispatchersReplacement:719  ["marc@…", "pau@…", "marc@…"] (Marc's e-mail sent again)
+  R_11_08_aHardBounceStopsTheQueuedEmailsAndThePendingRetriesToThatAddress:761  expected: SKIPPED_NO_CONTACT but was: SENT
+  R_11_07_aGoneAnswersExpiryIsPartOfTheRetriedSettlementAndIsNeverLost:809  expected: EXPIRED but was: ACTIVE
+  R_11_06_aSenderLateOnTheOldMonthNeverMovesTheCounterNorTheNoticeMarkerBack:849  expected Reservation[2026-11, true] but was Reservation[2026-10, true]
+  R_11_09_anAttemptWhoseLeaseRanOutBeforeTheProviderCallNeverSends:905  Expected size: 1 but was: 2 (a second e-mail)
+  NotificationLinksTest rows 6, 7 (/training?trainingBookingId=…), 14 (OPEN_SETUP → /training), 37, 38 (OPEN_JOBS → /tauler)
+  and R_11_11_everyActionOfTheCatalogHasAMemberOrStaffRouteAndValuesAreEncoded ([N-31 MEMBER OPEN_SETUP])
+  NotificationSeedSnapshotTest ×3: N-31's e-mail text still carries «https://app.example.test/training»
