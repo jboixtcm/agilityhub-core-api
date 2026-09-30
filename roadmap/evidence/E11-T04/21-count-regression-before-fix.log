@@ -1,0 +1,20 @@
+test_E11_T04_counts_cover_user_collections_without_internal_cluster_keys (test_backup.BackupSafetyTest) ... FAIL
+
+======================================================================
+FAIL: test_E11_T04_counts_cover_user_collections_without_internal_cluster_keys (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 30, in test_E11_T04_counts_cover_user_collections_without_internal_cluster_keys
+    self.assertEqual({'admin.system.users': 3, 'fictional.empty': 0, 'fictional.rows': 7}, backup.counts(client))
+AssertionError: {'admin.system.users': 3, 'fictional.empty': 0, 'fictional.rows': 7} != {'admin.system.keys': 3, 'admin.system.users': 3, 'ficti[31 chars]': 7}
+- {'admin.system.users': 3, 'fictional.empty': 0, 'fictional.rows': 7}
++ {'admin.system.keys': 3,
++  'admin.system.users': 3,
++  'fictional.empty': 0,
++  'fictional.rows': 7}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (failures=1)
+before-fix test exit 1

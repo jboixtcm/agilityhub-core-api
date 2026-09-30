@@ -1,0 +1,111 @@
+heavy.sh: the previous holder (pid 72757) is gone - taking the lock over
+COMMAND docker compose ... build backup minio
+COMMAND docker compose ... up -d --wait --wait-timeout 420
+Image caddy:2.10.2-alpine Pulling 
+ 4f4fb700ef54 Pulling fs layer 0B
+ 44ebfda0e505 Pulling fs layer 0B
+ d741ee1608f3 Pulling fs layer 0B
+ 5b34d3207db0 Pulling fs layer 0B
+ 20c15ff4d113 Pulling fs layer 0B
+ 4f4fb700ef54 Already exists 0B
+ 4f4fb700ef54 Pull complete 0B
+ 20c15ff4d113 Downloading 1.049MB
+ 5b34d3207db0 Download complete 0B
+ 20c15ff4d113 Downloading 2.097MB
+ 20c15ff4d113 Downloading 3.146MB
+ 20c15ff4d113 Downloading 3.146MB
+ 44ebfda0e505 Downloading 1.049MB
+ 20c15ff4d113 Downloading 4.194MB
+ 20c15ff4d113 Downloading 5.243MB
+ 44ebfda0e505 Downloading 1.049MB
+ 44ebfda0e505 Downloading 2.097MB
+ 20c15ff4d113 Downloading 6.291MB
+ 44ebfda0e505 Download complete 0B
+ 20c15ff4d113 Downloading 6.291MB
+ d741ee1608f3 Downloading 1.049MB
+ 20c15ff4d113 Downloading 7.34MB
+ d741ee1608f3 Downloading 1.049MB
+ 20c15ff4d113 Downloading 8.389MB
+ d741ee1608f3 Downloading 1.049MB
+ 20c15ff4d113 Downloading 8.389MB
+ 20c15ff4d113 Downloading 9.437MB
+ d741ee1608f3 Downloading 2.097MB
+ d741ee1608f3 Downloading 2.097MB
+ 20c15ff4d113 Downloading 10.49MB
+ d741ee1608f3 Downloading 3.146MB
+ 20c15ff4d113 Downloading 11.53MB
+ d741ee1608f3 Downloading 3.146MB
+ 20c15ff4d113 Downloading 12.58MB
+ d741ee1608f3 Download complete 0B
+ 20c15ff4d113 Downloading 12.58MB
+ d741ee1608f3 Extracting 1B
+ 20c15ff4d113 Download complete 0B
+ d741ee1608f3 Extracting 1B
+ d741ee1608f3 Extracting 1B
+ d741ee1608f3 Extracting 1B
+ d741ee1608f3 Extracting 1B
+ d741ee1608f3 Extracting 1B
+ 44ebfda0e505 Extracting 1B
+ d741ee1608f3 Pull complete 0B
+ 4f1e1d83ff54 Download complete 0B
+ e58667701644 Download complete 0B
+ 5b34d3207db0 Pull complete 0B
+ 44ebfda0e505 Pull complete 0B
+ 20c15ff4d113 Extracting 1B
+ 20c15ff4d113 Pull complete 0B
+ Image caddy:2.10.2-alpine Pulled 
+ Volume e11-t04-a044b17c_mailbox Creating 
+ Volume e11-t04-a044b17c_caddy-config Creating 
+ Volume e11-t04-a044b17c_caddy-config Creating 
+ Volume e11-t04-a044b17c_mailbox Creating 
+ Volume e11-t04-a044b17c_exports Creating 
+ Volume e11-t04-a044b17c_exports Creating 
+ Volume e11-t04-a044b17c_attachments Creating 
+ Volume e11-t04-a044b17c_attachments Creating 
+ Volume e11-t04-a044b17c_minio-data Creating 
+ Volume e11-t04-a044b17c_minio-data Creating 
+ Volume e11-t04-a044b17c_mongo-data Creating 
+ Volume e11-t04-a044b17c_mongo-data Creating 
+ Volume e11-t04-a044b17c_caddy-data Creating 
+ Volume e11-t04-a044b17c_caddy-data Creating 
+ Volume e11-t04-a044b17c_minio-data Created 
+ Volume e11-t04-a044b17c_minio-data Created 
+ Container e11-t04-a044b17c-minio-1 Creating 
+ Volume e11-t04-a044b17c_attachments Created 
+ Volume e11-t04-a044b17c_attachments Created 
+ Volume e11-t04-a044b17c_exports Created 
+ Volume e11-t04-a044b17c_exports Created 
+ Volume e11-t04-a044b17c_mongo-data Created 
+ Volume e11-t04-a044b17c_mongo-data Created 
+ Container e11-t04-a044b17c-mongo-1 Creating 
+ Volume e11-t04-a044b17c_caddy-data Created 
+ Volume e11-t04-a044b17c_caddy-data Created 
+ Volume e11-t04-a044b17c_caddy-config Created 
+ Volume e11-t04-a044b17c_caddy-config Created 
+ Volume e11-t04-a044b17c_mailbox Created 
+ Volume e11-t04-a044b17c_mailbox Created 
+ Container e11-t04-a044b17c-minio-1 Created 
+ Container e11-t04-a044b17c-mongo-1 Created 
+ Container e11-t04-a044b17c-seed-1 Creating 
+ Container e11-t04-a044b17c-seed-1 Created 
+ Container e11-t04-a044b17c-core-1 Creating 
+ Container e11-t04-a044b17c-core-1 Created 
+ Container e11-t04-a044b17c-caddy-1 Creating 
+ Container e11-t04-a044b17c-caddy-1 Created 
+ Container e11-t04-a044b17c-mongo-1 Starting 
+ Container e11-t04-a044b17c-minio-1 Starting 
+ Container e11-t04-a044b17c-minio-1 Started 
+ Container e11-t04-a044b17c-mongo-1 Started 
+ Container e11-t04-a044b17c-mongo-1 Waiting 
+ Container e11-t04-a044b17c-mongo-1 Error dependency mongo failed to start
+dependency failed to start: container e11-t04-a044b17c-mongo-1 is unhealthy
+mongo: mongo-1  | {"t":{"$date":"2026-09-30T19:55:42.985+00:00"},"s":"I",  "c":"ACCESS",   "id":20254,   "ctx":"main","msg":"Read security file failed","attr":{"error":{"code":30,"codeName":"InvalidPath","errmsg":"Error reading file /run/mongo-key/keyfile: Permission denied"}}}
+mongo: mongo-1  | {"t":{"$date":"2026-09-30T19:55:43.276+00:00"},"s":"I",  "c":"ACCESS",   "id":20254,   "ctx":"main","msg":"Read security file failed","attr":{"error":{"code":30,"codeName":"InvalidPath","errmsg":"Error reading file /run/mongo-key/keyfile: Permission denied"}}}
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 209, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 114, in main
+    raise RuntimeError('Local stack failed readiness')
+RuntimeError: Local stack failed readiness

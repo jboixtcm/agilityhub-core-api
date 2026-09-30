@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E11-T04: production Compose with authenticated MongoDB 7, private Core and Caddy's same-site SPA proxies;
+  internal-CA local rehearsal with a fictional seed and MinIO; age-encrypted S3 backups, scoped 30-day retention
+  and isolated restore/count verification. `docs/DEPLOY.md` now includes the release/rollback runbook,
+  environment and key inventory, daily cron, rotation/recovery limits, logs and the D+7 checklist.
+  Club-domain on-demand TLS fails closed pending E10-T02's approval endpoint; real deployment remains E12-T01.
 - E7-T03 (S11 WP-11-C): the S11 routes of E7-T01 are served, except `POST /message-templates/{id}/send` (E7-T04).
   - D9 templates: the list in D9's order with the counts per category, the code's variables labelled in the admin's
     language and `lastChange`; `CUSTOM` creation; the save with `version`, the R-11-12 validations and the statuses of

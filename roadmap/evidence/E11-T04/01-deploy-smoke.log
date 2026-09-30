@@ -1,0 +1,14 @@
+heavy.sh: the previous holder (pid 71891) is gone - taking the lock over
+COMMAND docker compose ... build backup
+ Image agilityhub-backup:e11-t04 Building 
+failed to update builder last activity time: open /Users/jordib/.docker/buildx/activity/.tmp-default3108852261: operation not permitted
+
+
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 208, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 95, in main
+    raise RuntimeError('Backup image build failed')
+RuntimeError: Backup image build failed

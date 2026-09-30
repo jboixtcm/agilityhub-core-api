@@ -1,0 +1,11 @@
+test_E11_T04_counts_cover_user_collections_without_internal_cluster_keys (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_dump_failure_unlocks_and_never_uploads_or_prunes (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_named_archive_cannot_escape_prefix (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_no_archive_is_an_error (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_retention_paginates_and_only_deletes_expired_backup_objects (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_upload_failure_does_not_prune_and_source_is_already_unlocked (test_backup.BackupSafetyTest) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.134s
+
+OK

@@ -1,0 +1,62 @@
+heavy.sh: the previous holder (pid 75913) is gone - taking the lock over
+COMMAND docker compose ... build backup minio
+COMMAND docker compose ... up -d --wait --wait-timeout 420
+Volume e11-t04-cd490e1c_exports Creating 
+ Volume e11-t04-cd490e1c_mailbox Creating 
+ Volume e11-t04-cd490e1c_mongo-data Creating 
+ Volume e11-t04-cd490e1c_mongo-data Creating 
+ Volume e11-t04-cd490e1c_mailbox Creating 
+ Volume e11-t04-cd490e1c_caddy-data Creating 
+ Volume e11-t04-cd490e1c_caddy-data Creating 
+ Volume e11-t04-cd490e1c_caddy-config Creating 
+ Volume e11-t04-cd490e1c_caddy-config Creating 
+ Volume e11-t04-cd490e1c_attachments Creating 
+ Volume e11-t04-cd490e1c_exports Creating 
+ Volume e11-t04-cd490e1c_minio-data Creating 
+ Volume e11-t04-cd490e1c_attachments Creating 
+ Volume e11-t04-cd490e1c_minio-data Creating 
+ Volume e11-t04-cd490e1c_caddy-config Created 
+ Volume e11-t04-cd490e1c_caddy-config Created 
+ Volume e11-t04-cd490e1c_mongo-data Created 
+ Volume e11-t04-cd490e1c_mongo-data Created 
+ Container e11-t04-cd490e1c-mongo-1 Creating 
+ Volume e11-t04-cd490e1c_minio-data Created 
+ Volume e11-t04-cd490e1c_minio-data Created 
+ Container e11-t04-cd490e1c-minio-1 Creating 
+ Volume e11-t04-cd490e1c_attachments Created 
+ Volume e11-t04-cd490e1c_attachments Created 
+ Volume e11-t04-cd490e1c_mailbox Created 
+ Volume e11-t04-cd490e1c_mailbox Created 
+ Volume e11-t04-cd490e1c_exports Created 
+ Volume e11-t04-cd490e1c_exports Created 
+ Volume e11-t04-cd490e1c_caddy-data Created 
+ Volume e11-t04-cd490e1c_caddy-data Created 
+ Container e11-t04-cd490e1c-minio-1 Created 
+ Container e11-t04-cd490e1c-mongo-1 Created 
+ Container e11-t04-cd490e1c-seed-1 Creating 
+ Container e11-t04-cd490e1c-seed-1 Created 
+ Container e11-t04-cd490e1c-core-1 Creating 
+ Container e11-t04-cd490e1c-core-1 Created 
+ Container e11-t04-cd490e1c-caddy-1 Creating 
+ Container e11-t04-cd490e1c-caddy-1 Created 
+ Container e11-t04-cd490e1c-mongo-1 Starting 
+ Container e11-t04-cd490e1c-minio-1 Starting 
+ Container e11-t04-cd490e1c-minio-1 Started 
+ Container e11-t04-cd490e1c-mongo-1 Started 
+ Container e11-t04-cd490e1c-mongo-1 Waiting 
+ Container e11-t04-cd490e1c-mongo-1 Healthy 
+ Container e11-t04-cd490e1c-seed-1 Starting 
+ Container e11-t04-cd490e1c-seed-1 Started 
+ Container e11-t04-cd490e1c-mongo-1 Waiting 
+ Container e11-t04-cd490e1c-seed-1 Waiting 
+ Container e11-t04-cd490e1c-mongo-1 Healthy 
+ Container e11-t04-cd490e1c-seed-1 Error service "seed" didn't complete successfully: exit 1
+service "seed" didn't complete successfully: exit 1
+seed: seed-1  | HOST_RESERVED {}
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 242, in <module>
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 117, in main
+    print(f'{service}: {line[:350]}', flush=True)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Local stack failed readiness

@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 !.env.consumer.example
+!deploy/.env.prod.example
 *.pem
 *.key
 *.p12

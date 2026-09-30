@@ -1,0 +1,165 @@
+name: agilityhub-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
+services:
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    entrypoint: [bash, /opt/deploy/mongo-entrypoint.sh]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?Set MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD}
+      MONGO_REPLICA_KEY: ${MONGO_REPLICA_KEY:?Set MONGO_REPLICA_KEY}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-agilityhub}
+      MONGODB_USERNAME: ${MONGODB_USERNAME:?Set MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD:?Set MONGODB_PASSWORD}
+      MONGO_BACKUP_USERNAME: ${MONGO_BACKUP_USERNAME:?Set MONGO_BACKUP_USERNAME}
+      MONGO_BACKUP_PASSWORD: ${MONGO_BACKUP_PASSWORD:?Set MONGO_BACKUP_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-entrypoint.sh:/opt/deploy/mongo-entrypoint.sh:ro
+      - ./mongo-health.js:/opt/deploy/mongo-health.js:ro
+    tmpfs: [/run/mongo-key:mode=0700]
+    healthcheck:
+      test: [CMD, mongosh, --quiet, /opt/deploy/mongo-health.js]
+      interval: 5s
+      timeout: 10s
+      start_period: 30s
+      retries: 24
+    logging: *logging
+
+  core:
+    image: ghcr.io/jboixtcm/agilityhub-core-api:${IMAGE_TAG:?Set IMAGE_TAG to a reviewed sha tag}
+    restart: unless-stopped
+    environment: &core-environment
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: "8080"
+      MONGODB_HOST: mongo
+      MONGODB_PORT: "27017"
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-agilityhub}
+      MONGODB_REPLICA_SET: rs0
+      MONGODB_AUTH_DATABASE: admin
+      MONGODB_USERNAME: ${MONGODB_USERNAME:?Set MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD:?Set MONGODB_PASSWORD}
+      TRUSTED_PROXY_PATTERN: ${TRUSTED_PROXY_PATTERN:?Set TRUSTED_PROXY_PATTERN}
+      AUTH_ISSUER: ${AUTH_ISSUER:-https://id.agilitydoghub.com}
+      PLATFORM_PRIVACY_POLICY_VERSION: ${PLATFORM_PRIVACY_POLICY_VERSION:-v1}
+      PLATFORM_PRIVACY_POLICY_URL: ${PLATFORM_PRIVACY_POLICY_URL:-https://id.agilitydoghub.com/privacy}
+      OIDC_MASTER_KEY: ${OIDC_MASTER_KEY:?Set OIDC_MASTER_KEY}
+      OIDC_LEARN_CLIENT_SECRET: ${OIDC_LEARN_CLIENT_SECRET:?Set OIDC_LEARN_CLIENT_SECRET}
+      OIDC_LOGIN_URL: ${OIDC_LOGIN_URL:-https://id.agilitydoghub.com/login}
+      OIDC_ID_WEB_REDIRECT_URI: ${OIDC_ID_WEB_REDIRECT_URI:-https://id.agilitydoghub.com/oidc/callback}
+      OIDC_ID_WEB_LOGOUT_URI: ${OIDC_ID_WEB_LOGOUT_URI:-https://id.agilitydoghub.com/}
+      OIDC_CLUBS_APP_REDIRECT_URI: ${OIDC_CLUBS_APP_REDIRECT_URI:-https://clubs.agilitydoghub.com/oidc/callback}
+      OIDC_CLUBS_APP_LOGOUT_URI: ${OIDC_CLUBS_APP_LOGOUT_URI:-https://clubs.agilitydoghub.com/}
+      OIDC_CLUBS_ADMIN_REDIRECT_URI: ${OIDC_CLUBS_ADMIN_REDIRECT_URI:-https://clubsadmin.agilitydoghub.com/oidc/callback}
+      OIDC_CLUBS_ADMIN_LOGOUT_URI: ${OIDC_CLUBS_ADMIN_LOGOUT_URI:-https://clubsadmin.agilitydoghub.com/}
+      OIDC_AR_APP_REDIRECT_URI: ${OIDC_AR_APP_REDIRECT_URI:-https://ar.agilitydoghub.com/oidc/callback}
+      OIDC_AR_APP_LOGOUT_URI: ${OIDC_AR_APP_LOGOUT_URI:-https://ar.agilitydoghub.com/}
+      OIDC_LEARN_REDIRECT_URI: ${OIDC_LEARN_REDIRECT_URI:-https://learn.agilitydoghub.com/oidc/callback}
+      OIDC_LEARN_LOGOUT_URI: ${OIDC_LEARN_LOGOUT_URI:-https://learn.agilitydoghub.com/}
+      CORS_PLATFORM_HOSTS: ${CORS_PLATFORM_HOSTS:-id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:?Set SENDGRID_API_KEY}
+      MAIL_FROM_PLATFORM: ${MAIL_FROM_PLATFORM:?Set MAIL_FROM_PLATFORM}
+      SENDGRID_WEBHOOK_PUBLIC_KEY: ${SENDGRID_WEBHOOK_PUBLIC_KEY:?Set SENDGRID_WEBHOOK_PUBLIC_KEY}
+      EMAIL_UNSUBSCRIBE_KEY: ${EMAIL_UNSUBSCRIBE_KEY:?Set EMAIL_UNSUBSCRIBE_KEY}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:?Set TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:?Set TWILIO_AUTH_TOKEN}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID:-}
+      SMS_ALLOWED_NUMBERS: ${SMS_ALLOWED_NUMBERS:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:?Set VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:?Set VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:?Set VAPID_SUBJECT}
+      SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY:?Set SIGNUP_CAPABILITY_KEY}
+      BOOKING_CALENDAR_KEY: ${BOOKING_CALENDAR_KEY:?Set BOOKING_CALENDAR_KEY}
+      MIGRATION_BANK_KEY: ${MIGRATION_BANK_KEY:-}
+      EXPORT_S3_BUCKET: ${EXPORT_S3_BUCKET:?Set EXPORT_S3_BUCKET}
+      EXPORT_S3_REGION: ${EXPORT_S3_REGION:?Set EXPORT_S3_REGION}
+      EXPORT_S3_ENDPOINT: ${EXPORT_S3_ENDPOINT:-}
+      EXPORT_S3_ACCESS_KEY: ${EXPORT_S3_ACCESS_KEY:?Set EXPORT_S3_ACCESS_KEY}
+      EXPORT_S3_SECRET_KEY: ${EXPORT_S3_SECRET_KEY:?Set EXPORT_S3_SECRET_KEY}
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:?Set ATTACHMENT_S3_BUCKET}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:?Set ATTACHMENT_S3_REGION}
+      ATTACHMENT_S3_ENDPOINT: ${ATTACHMENT_S3_ENDPOINT:-}
+      ATTACHMENT_S3_ACCESS_KEY: ${ATTACHMENT_S3_ACCESS_KEY:?Set ATTACHMENT_S3_ACCESS_KEY}
+      ATTACHMENT_S3_SECRET_KEY: ${ATTACHMENT_S3_SECRET_KEY:?Set ATTACHMENT_S3_SECRET_KEY}
+      SHARED_SCHEDULING_ENABLED: ${SHARED_SCHEDULING_ENABLED:-true}
+      CORE_CONCURRENCY_LOCALLANES: ${CORE_CONCURRENCY_LOCALLANES:-true}
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:8080/api/v1/health]
+      interval: 5s
+      timeout: 3s
+      start_period: 60s
+      retries: 24
+    depends_on:
+      mongo:
+        condition: service_healthy
+    logging: *logging
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+      CADDY_LOCAL_OPTIONS: ""
+      ID_HOST: ${ID_HOST:-id.agilitydoghub.com}
+      CLUBS_HOST: ${CLUBS_HOST:-clubs.agilitydoghub.com}
+      ADMIN_HOST: ${ADMIN_HOST:-clubsadmin.agilitydoghub.com}
+      CORE_HOST: ${CORE_HOST:-core.agilitydoghub.com}
+      # Space-separated verified admin aliases; other approved aliases serve clubs.
+      CLUB_ADMIN_HOSTS: ${CLUB_ADMIN_HOSTS:-unused.invalid}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${ID_DIST_DIR:?Set ID_DIST_DIR}:/srv/id:ro
+      - ${CLUBS_DIST_DIR:?Set CLUBS_DIST_DIR}:/srv/clubs:ro
+      - ${ADMIN_DIST_DIR:?Set ADMIN_DIST_DIR}:/srv/clubsadmin:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      default:
+        ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.240.10}
+    depends_on:
+      core:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:2019/config/]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    logging: *logging
+
+  backup:
+    profiles: [ops]
+    image: agilityhub-backup:e11-t04
+    build: ./backup
+    # Decrypted dumps, keys and a restore database disappear with this container.
+    tmpfs: [/work:mode=0700]
+    environment:
+      MONGO_BACKUP_USERNAME: ${MONGO_BACKUP_USERNAME:?Set MONGO_BACKUP_USERNAME}
+      MONGO_BACKUP_PASSWORD: ${MONGO_BACKUP_PASSWORD:?Set MONGO_BACKUP_PASSWORD}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-mongo/}
+      BACKUP_S3_REGION: ${BACKUP_S3_REGION:-eu-west-3}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY:-}
+      BACKUP_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY:-}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    logging: *logging
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${DEPLOY_SUBNET:-172.30.240.0/24}
+
+volumes:
+  mongo-data:
+  caddy-data:
+  caddy-config:

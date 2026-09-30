@@ -1,0 +1,70 @@
+{
+    email {$ACME_EMAIL}
+    {$CADDY_LOCAL_OPTIONS}
+    on_demand_tls {
+        # Caddy sends ?domain=; S17 specifies ?host=. Translate privately.
+        ask http://127.0.0.1:9080/ask
+    }
+}
+
+(api_proxy) {
+    @backend path /api/* /oauth2/* /.well-known/* /connect/logout
+    handle @backend {
+        reverse_proxy core:8080
+    }
+}
+
+(spa) {
+    import api_proxy
+    handle {
+        root * {args[0]}
+        try_files {path} /index.html
+        header /index.html Cache-Control "no-cache"
+        file_server
+    }
+}
+
+{$ID_HOST} {
+    import spa /srv/id
+}
+{$CLUBS_HOST} {
+    import spa /srv/clubs
+}
+{$ADMIN_HOST} {
+    import spa /srv/clubsadmin
+}
+{$CORE_HOST} {
+    @private path /internal/* /actuator/*
+    respond @private 404
+    reverse_proxy core:8080
+}
+
+# Never published by Compose; the API endpoint is pending E10-T02.
+http://127.0.0.1:9080 {
+    @ask path /ask
+    handle @ask {
+        rewrite * /internal/domains/allowed?host={query.domain}
+        reverse_proxy core:8080
+    }
+    respond 404
+}
+
+https:// {
+    tls {
+        on_demand
+    }
+    import api_proxy
+    @club_admin host {$CLUB_ADMIN_HOSTS}
+    handle @club_admin {
+        root * /srv/clubsadmin
+        try_files {path} /index.html
+        header /index.html Cache-Control "no-cache"
+        file_server
+    }
+    handle {
+        root * /srv/clubs
+        try_files {path} /index.html
+        header /index.html Cache-Control "no-cache"
+        file_server
+    }
+}

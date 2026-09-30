@@ -1,0 +1,16 @@
+COMMAND docker compose ... build backup
+COMMAND docker compose ... up -d --wait --wait-timeout 420
+Image minio/minio:RELEASE.2025-04-22T22-12-26Z Pulling 
+ Image caddy:2.10.2-alpine Pulling 
+ Image minio/minio:RELEASE.2025-04-22T22-12-26Z Error pull access denied for minio/minio, repository does not exist or may require 'docker login'
+ Image caddy:2.10.2-alpine Interrupted 
+Error response from daemon: pull access denied for minio/minio, repository does not exist or may require 'docker login'
+Error response from daemon: No such image: caddy:2.10.2-alpine
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 209, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 114, in main
+    raise RuntimeError('Local stack failed readiness')
+RuntimeError: Local stack failed readiness

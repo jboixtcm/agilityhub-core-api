@@ -1,5 +1,367 @@
 # Deployment recipes
 
+## Release runbook (E11-T04; local proof now, E12-T01 executes the release)
+
+The release topology is `deploy/compose.prod.yaml`: one authenticated MongoDB 7
+replica set (`rs0`), one Core image selected by `IMAGE_TAG`, and Caddy. Only Caddy
+publishes ports (80, 443 TCP/UDP). Mongo, Core, management and Caddy's admin/ask
+listeners stay private. Each of the three front hosts mounts its own built `dist`
+directory and proxies `/api/*`, `/oauth2/*`, `/.well-known/*` and `/connect/logout`
+to the same Core process. The original Host and host-only cookies survive.
+
+Requirements: Docker, Compose **2.24.4+** (the local override uses `!override`),
+Python 3 and curl on the operator host; outbound access to GHCR, Docker Hub,
+Debian/Ubuntu package repositories and PyPI when building the backup tool.
+`deploy/.env.prod.example` is a complete placeholder inventory, not usable
+credentials. Keep the populated file outside the checkout, mode 0600. Pass it
+with `--env-file`; never paste `compose config` output from a populated file into
+logs, tickets or evidence. It expands secrets. Core gets only its own credentials;
+the backup principal and encryption identity go only to the `ops` service.
+
+### Prepare and deploy
+
+1. At E12-T01, provision the dedicated droplet, firewall 80/443 plus restricted
+   SSH, DNS for the four fixed hosts, disk/backup monitoring and private S3
+   buckets. Select a free Docker subnet. Set `CADDY_IPV4_ADDRESS` inside it and
+   `TRUSTED_PROXY_PATTERN` to that **exact** address, escaped as a Java regex.
+   Retain the same IP across updates. Do not trust the whole Internet or forward
+   arbitrary client `X-Forwarded-*` values. Confirm no other proxy is in front;
+   adding one requires its own reviewed trust configuration.
+2. Record the reviewed current and previous `sha-…` image tags and matching web
+   artifact versions. Pull the target, copy all three built SPAs to versioned
+   release directories and set `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR`.
+   Verify each contains `index.html`. The checked-in `deploy/local/*/index.html`
+   files are proof fixtures, never the release apps. GHCR access uses the recipe
+   below; registry credentials remain in the host credential store.
+3. Populate the environment inventory below, including stable backed-up keys.
+   Generate distinct Mongo root/app/backup passwords; `MONGO_REPLICA_KEY` is
+   base64 of 512 random bytes. Keep it stable on this one-node set. On a new
+   volume Mongo's official entrypoint creates the root account, and the health
+   bootstrap creates `rs0`, the app account (`readWrite` on its database only)
+   and backup account (`backup` plus `hostManager`, needed for `fsync`). Existing
+   users are **never reset from env**; a stale app/backup password fails health.
+4. From the installed checkout, set the non-secret file path below. Validate
+   without printing resolved credentials, build the ops image once, and on an
+   existing deployment take and verify a pre-deploy backup. Do not run the local
+   override or demo seed on the release host.
+
+   ```sh
+   export DEPLOY_ENV_FILE=/etc/agilityhub/core.env
+   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml config --quiet
+   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml build backup
+   bin/backup-mongo
+   bin/restore-mongo --verify
+   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml pull core caddy mongo
+   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420
+   ```
+
+5. Smoke the deployed hosts: HTTPS health returns `UP`; each club host's
+   `/api/v1/branding` identifies its intended tenant; all three SPAs load and
+   deep links work; sign in and refresh once on a front host. Check the rotated
+   `ah_refresh` has no Domain, with HttpOnly/Secure/SameSite=Strict and
+   `Path=/oauth2/token`, and no refresh token is in JSON. Check the real provider
+   flows listed below and one scheduler run. Keep responses containing tokens,
+   cookies or personal data out of the operational log.
+6. Release rollback: restore the previous `IMAGE_TAG` **and** previous three
+   `*_DIST_DIR` values, then repeat `pull core`, `up -d --wait` and the smoke.
+   Never use `down -v` on a release. If the new version changed persisted data
+   incompatibly, an image rollback alone is unsafe: keep writers stopped and
+   use the verified database recovery procedure below. Record the chosen
+   recovery point and any data after it that must be reconciled.
+
+The prod profile is intentionally strict about provider configuration. This task
+proves the topology with the local adapters; real production-profile provider
+startup and E8 payments remain release prerequisites, not claimed by the proof.
+
+### Local rehearsal, including required failures
+
+```sh
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke
+# Select an already available compatible published image tag if needed:
+# .../heavy.sh bin/deploy-smoke --image-tag sha-<reviewed-commit>
+```
+
+`bin/deploy-smoke` creates a random Compose project, free loopback ports, a private
+temporary env file and generated keys. It builds the backup helper and **local-only**
+MinIO, applies the fictional Cànic/demo seed, validates Caddy, trusts the copied
+Caddy root CA explicitly (no `curl -k`), checks health, branding, all three mounted
+HTML fixtures/deep links, login/refresh rotation and rejection of the reused
+cookie. It checks unauthenticated Mongo reads fail, then backs up to private MinIO
+and restores latest and named archives. Missing encryption key/bucket, tampering
+and a restore without `--verify` must fail. The project, volumes, plaintext and
+credentials are removed even after a failed assertion. Other stacks are untouched.
+
+MinIO's former Docker Hub/Quay images were unavailable during this proof.
+`deploy/local/Dockerfile.minio` builds the pinned
+[upstream release](https://github.com/minio/minio/releases/tag/RELEASE.2025-10-15T17-29-55Z)
+from a checksum-verified source archive. This dependency is internal to the
+fictional local proof, with no published MinIO ports. Production uses S3 directly.
+
+Manual local configuration uses the same base file plus
+`-f deploy/compose.prod.local.yaml`, `DEPLOY_LOCAL=1`, its own `COMPOSE_PROJECT_NAME`
+and env file, generated credentials and `LOCAL_MONGODB_URI` with URL-encoded
+username/password and `authSource=admin&replicaSet=rs0&directConnection=true`.
+The `*.localhost` hosts use Caddy's internal CA. `local_certs` and local providers
+exist only in the override. This proves static serving, not a browser test of the
+real web artifacts; the release smoke must use their actual builds.
+
+The normal domain-admission policy rejects localhost (`HOST_RESERVED`). The
+local-only `local-hosts` one-shot fixture therefore maps the two seeded
+`*.example.test` domain records to `clubs.localhost`/`clubsadmin.localhost` and
+activates that fictional club **before Core starts**. Only `id.localhost` is a
+global CORS host in this rehearsal. This fixture is absent from production;
+public club domains must pass E10 verification, with no direct database mapping.
+
+### Daily encrypted backup, retention and recovery
+
+`bin/backup-mongo` takes no arguments and can reach only this Compose project's
+`mongo` service. `bin/restore-mongo --verify [object-key]` accepts no destination
+URI and never restores over a running source. Both resolve `DEPLOY_ENV_FILE`
+(default `deploy/.env.prod`) and optional `COMPOSE_PROJECT_NAME`/`DEPLOY_LOCAL`.
+Missing key or bucket fails in host preflight before creating a container, dump or
+object. Exit **0** means success; **2** is host configuration/usage failure;
+**1** is a runtime failure (Docker may return its own nonzero startup status).
+Alert on **every nonzero exit**, and on the absence of a daily `BACKUP_OK`.
+
+The helper validates the age identity and S3 destination, then briefly locks the
+source's writes with `fsync`, counts each restorable collection and runs a full
+authenticated `mongodump --oplog --gzip`. It unlocks in `finally` before encryption
+or upload. This deliberate write pause makes the source count manifest and dump
+describe the same point in time. Schedule away from booking opening; monitor the
+duration. `mongodump` has a 15-minute ceiling; errors and SIGTERM release the lock.
+Host power loss or SIGKILL can bypass cleanup: alert if writes stall, stop any
+remaining backup container and, after confirming no backup is still active, run
+`db.fsyncUnlock()` in an authenticated operator session. Never blindly unlock
+another operator's maintenance lock. Run only one backup at a time (cron `flock`).
+
+The packed dump and manifest are authenticated/encrypted with **age**, using
+`BACKUP_ENCRYPTION_KEY` (an `AGE-SECRET-KEY-1…` identity) from the environment.
+Generate one privately with `age-keygen`; preserve its secret line in the env
+file and in separate encrypted key escrow. Never store it in the backup bucket.
+Plaintext, tool credential files and the verifier database live only in the ops
+container's `/work` tmpfs (allow enough RAM/swap for dump, tar and restore).
+Provision encrypted host swap or disable swap. Mongo tool output is suppressed
+because its errors can contain document values; public logs contain collection
+counts and object keys only. Container inspection is privileged and exposes env.
+
+The S3 principal needs ListBucket (restricted to `BACKUP_S3_PREFIX`) and
+Get/Put/DeleteObject in that prefix. The bucket
+must already exist. Deny public access, use TLS to S3, and restrict this principal
+independently of export/attachment credentials. Only objects named
+`<prefix><UTC timestamp>-<random id>.tar.age` are candidates for retention.
+After a successful upload and size check, objects older than
+`BACKUP_RETENTION_DAYS` (30 by default, by S3 LastModified) are deleted; an upload
+failure never triggers retention. On a versioned bucket, configure noncurrent
+version expiry/abort-incomplete-multipart lifecycle too: delete markers alone do
+not remove old versions. Media buckets keep their separate versioning policy.
+
+Daily Linux cron on a host configured to **UTC** (02:15 UTC, no DST gap; dedicated
+operator, directory/log/lock writable, mail or monitoring
+hook configured for failure; **A13 supersedes ADR-003's older weekly wording**):
+
+```cron
+15 2 * * * cd /opt/agilityhub/core && DEPLOY_ENV_FILE=/etc/agilityhub/core.env /usr/bin/flock -n /var/lock/agilityhub-backup.lock bin/backup-mongo >> /var/log/agilityhub-backup.log 2>&1
+```
+
+`--verify` downloads the latest completed object (or the specified key), fully
+authenticates/decrypts it before extraction, rejects unexpected tar members, and
+runs `mongorestore --oplogReplay --stopOnError` in a **temporary standalone Mongo
+inside the disposable ops container**, bound only to its loopback. TTL is disabled
+there so expired historical rows cannot disappear during comparison. Every
+restorable source collection, including admin users/roles, must have the same
+count and the collection sets must match. `local` (replication) and `config`
+(ephemeral sessions/transactions), `admin.system.keys` (internal cluster-time
+keys regenerated by Mongo), views and `system.profile` are excluded from
+the count comparison. Index definitions/data are restored by mongorestore;
+count equality is not a byte-for-byte content or index equivalence claim. The
+manifest is the **source at backup time**, not today's changing live database.
+
+Disaster recovery at E12: stop Core/writers; retain the damaged volume; download
+the selected archive with the backup S3 principal into private recovery storage;
+decrypt with the escrowed identity (`age -d -i <private-identity-file>`), inspect
+the tar's two expected members, then restore `dump.archive.gz` with
+`mongorestore --gzip --archive=<file> --oplogReplay --stopOnError` into a **new**
+isolated Mongo 7 volume. First run the supplied `--verify` on that object. Restore
+the deployment secrets from escrow (especially OIDC/bank keys), initialize the
+replacement replica set/authentication and verify its users before attaching the
+new volume to the release Compose project. Restore media/versioned objects to the
+same recovery point as needed, start Core and perform the deployment smoke.
+This promotion is an operator-controlled release action; the script only verifies
+in isolation. Do not clone production personal data into shared staging.
+
+Backups contain Mongo data/users/index metadata, **not** `dist`, Docker volumes,
+Caddy private keys or the environment file. Retain versioned web/image artifacts;
+back up Caddy's persistent data/config and the env/key escrow separately with
+encryption. An archive without its OIDC/bank/backup keys is not a recovery plan.
+
+### Keys and provider rotation
+
+- Before any rotation: verified backup, encrypted escrow of old/new values,
+  dependent clients identified, and one operator-controlled maintenance window.
+  Never change two independent encryption keys at once.
+- `OIDC_MASTER_KEY` encrypts the persisted signing ring, including RSA private
+  signing keys. **There is no implemented master-key re-encryption procedure**:
+  replacing it strands the ring. Retain it on normal deployments; a compromise
+  requires a reviewed migration and forced reauthentication. Access signing-key
+  rollover uses the application's ring/rotation mechanism, retaining old public
+  keys through token expiry; do not delete `signing_keys` or confuse that rollover
+  with changing the master key. Restore tests must retain the master key separately.
+- `MIGRATION_BANK_KEY` protects imported bank data. No online re-encryption tool
+  is provided here: keep the old key until all records and retained backups can
+  be read by a reviewed migration. Never rotate it by just editing env.
+- Changing `SIGNUP_CAPABILITY_KEY` invalidates outstanding signup capabilities
+  and encrypted replay records; `BOOKING_CALENDAR_KEY` invalidates sent calendar
+  links; `EMAIL_UNSUBSCRIBE_KEY` invalidates outstanding 30-day unsubscribe links.
+  Schedule/reissue the affected links and restart Core/CLI together.
+- VAPID keys are a pair. Changing them invalidates browser subscriptions; deploy
+  the new public key, require re-subscription, and verify actual delivery. The
+  public key is not a secret. Do not confuse it with SendGrid's public webhook
+  verification key, which must match the provider's active event signature.
+- Mongo app/backup/root passwords: change the relevant stored Mongo user with an
+  authenticated administrative session, update its env value and recreate its
+  consumers in the same window. Bootstrap does not rotate existing passwords.
+  Root rotation needs the old root login; replica key-file rotation requires a
+  coordinated Mongo restart. Smoke auth and take a new verified backup afterward.
+- SendGrid/Twilio/S3 credentials: provision a replacement with the same least
+  privileges, update and recreate consumers, prove a delivery/read/write, then
+  revoke the old credential. Retain SendGrid webhook verification overlap only
+  if supported by the provider/application. Rotate the Learn secret in concert
+  with Learn (A30: it remains unconnected until the SaaS phase).
+- Backup age identity: install the new identity for new backups, verify one,
+  keep every old identity in escrow until every archive encrypted for it has
+  expired. Select the matching identity through a private env file to verify an
+  old named archive. Retention must not remove the only usable recovery point.
+
+### Logs and D+7 support
+
+`docker compose … logs --since 1h core` and `… mongo`/`… caddy` are the container
+logs. Production services use Docker json-file rotation, **5 × 10 MB per
+container** (size-based, no promised number of days). Caddy access logging is
+off: query strings can contain signed capabilities. Do not enable header/body or
+DEBUG logging on live identity/payment traffic. Keep the cron log outside the
+repo, mode 0600; configure daily logrotate with 30 compressed files and an
+alerting collector for failures before rotation. The Mongo audit/event retention
+is governed by the existing product parameters, not these Docker settings.
+
+At D0 and each day through D+7: confirm public HTTPS health and certificate dates;
+check successful login and refresh on the front hosts; inspect Mongo/disk/memory
+and backup duration, age of the last successful backup and nonzero cron exits;
+verify a backup on D0 and D+7; check queues/scheduler failed runs and delivery
+outcomes (not merely provider acceptance); exercise signup/booking/cancellation,
+object upload/download/export and the enabled payment paths with approved test
+accounts; review tenant/role isolation and support reports; keep the previous
+release and matching artifacts ready. Record owners and evidence without personal
+data, credentials or signed URLs.
+
+### Release prerequisites and club domains
+
+E12-T01 still owns SSH/firewall, real DNS/automatic public HTTPS, actual SPA
+builds, GHCR release credentials, provider accounts/verified senders, S3 IAM/CORS,
+Twilio recipients, VAPID delivery, SendGrid webhook signatures, E8 Stripe keys
+and per-club webhook endpoints, bank settings/legal approval, and a real recovery
+rehearsal on the droplet. This local task neither accesses nor deploys production.
+
+**«Alta d'un domini de club» (E10-T03)** waits for E10-T02's
+`GET /internal/domains/allowed?host=`. Caddy's on-demand TLS uses a private ask
+bridge that translates its native `domain` query to `host` and forwards to
+`http://core:8080/internal/domains/allowed`. Only a successful backend approval
+allows issuance; the absent route currently fails closed. The bridge binds to
+loopback inside Caddy and the core public host refuses `/internal/*`.
+Register/verify ownership and the club's role-specific hosts and OIDC callbacks
+before pointing CNAME records here. Add verified **admin** aliases to the
+space-separated `CLUB_ADMIN_HOSTS` and recreate Caddy; other approved aliases
+serve the member SPA. Check branding, SPA selection, HTTPS, cookie refresh and
+revocation after each change. Do not enable an unconditional `ask` responder.
+See [Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls).
+
+### Environment inventory (source, purpose and rotation)
+
+Every interpolated variable in the deployment examples appears below. Required
+credentials are operator/provider values, never the placeholder text. Public keys
+and URIs are included because they must remain consistent across recovery.
+
+| Variables | Purpose, source and rotation |
+|---|---|
+| `IMAGE_TAG` | Reviewed GHCR `sha-…` tag from a green publish. Change to deploy/rollback together with web artifacts. |
+| `MONGO_ROOT_USERNAME`, `MONGO_ROOT_PASSWORD` | Dedicated bootstrap/operations account, generated by the operator; update stored user and env together. Never used by Core. |
+| `MONGODB_DATABASE` | Application database name chosen for this deployment; changing selects another database, it does not migrate data. |
+| `MONGODB_USERNAME`, `MONGODB_PASSWORD` | Generated least-privilege application login in `admin`; rotate stored user and recreate Core together. |
+| `MONGO_BACKUP_USERNAME`, `MONGO_BACKUP_PASSWORD` | Separate generated backup/hostManager login; rotate stored user and backup env together. |
+| `MONGO_REPLICA_KEY` | Base64 512 random bytes, operator-generated replica-set shared secret; Mongo recreates a private 0400 key file on tmpfs. Coordinated restart to rotate. |
+| `DEPLOY_SUBNET`, `CADDY_IPV4_ADDRESS`, `TRUSTED_PROXY_PATTERN` | Operator-selected free bridge subnet, fixed proxy IP and exact escaped Java regex; update together and re-check forwarded scheme/address. |
+| `AUTH_ISSUER` | Stable public ID HTTPS origin from the approved DNS plan. Changing invalidates issuer validation and client discovery. |
+| `PLATFORM_PRIVACY_POLICY_VERSION`, `PLATFORM_PRIVACY_POLICY_URL` | Approved legal version and public URL; changing the version requires renewed consent. |
+| `OIDC_MASTER_KEY` | Base64 32 random bytes generated once and escrowed; encrypts persisted RSA signing keys. No replacement without a reviewed re-encryption migration. |
+| `OIDC_LEARN_CLIENT_SECRET` | Generated shared client secret configured in Learn and Core; rotate together. A30 leaves Learn unconnected, but prod configuration still requires a value. |
+| `OIDC_LOGIN_URL` | ID SPA login URL on the issuer origin; update with the ID web build/DNS. |
+| `OIDC_ID_WEB_REDIRECT_URI`, `OIDC_ID_WEB_LOGOUT_URI` | Exact registered ID callback and logout URI from the ID deployment. Coordinate URI changes with clients. |
+| `OIDC_CLUBS_APP_REDIRECT_URI`, `OIDC_CLUBS_APP_LOGOUT_URI` | Exact member SPA callback/logout URI from its deployment. Coordinate URI changes with clients. |
+| `OIDC_CLUBS_ADMIN_REDIRECT_URI`, `OIDC_CLUBS_ADMIN_LOGOUT_URI` | Exact admin SPA callback/logout URI from its deployment. Coordinate URI changes with clients. |
+| `OIDC_AR_APP_REDIRECT_URI`, `OIDC_AR_APP_LOGOUT_URI` | Exact AR callback/logout URI from its client configuration; keep the existing defaults until that deployment is ready. |
+| `OIDC_LEARN_REDIRECT_URI`, `OIDC_LEARN_LOGOUT_URI` | Exact Learn callback/logout URI; activate only when A30 permits the connection. |
+| `CORS_PLATFORM_HOSTS` | Comma-separated exact platform hosts from DNS/client inventory; no wildcard. Front SPAs use same-origin proxies. |
+| `SENDGRID_API_KEY` | SendGrid restricted mail-send credential; provision replacement, prove delivery, revoke old. |
+| `MAIL_FROM_PLATFORM` | SendGrid-verified platform sender address; change only after sender-domain verification. |
+| `SENDGRID_WEBHOOK_PUBLIC_KEY` | SendGrid Event Webhook verification public key (base64 DER/PEM); coordinate with provider signing-key change and verify a signed event. |
+| `EMAIL_UNSUBSCRIBE_KEY` | Base64 32 random bytes; HMAC for 30-day unsubscribe links. Rotation invalidates outstanding links. |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio account/auth credentials from its console; validate replacement before revoking the old token. |
+| `TWILIO_MESSAGING_SERVICE_SID` | Optional Twilio service ID; blank uses the club sender. Change with provider configuration. |
+| `SMS_ALLOWED_NUMBERS` | Outside prod, allowed tester numbers only; empty means no real sends. Never populate with demo numbers. Not a prod recipient filter. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Generated P-256 pair in base64url; rotate as a pair and re-subscribe all browsers. Escrow private half. |
+| `VAPID_SUBJECT` | Operator contact, `mailto:`/`https:`, supplied to push providers; update if contact changes. |
+| `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
+| `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
+| `MIGRATION_BANK_KEY` | Base64 32 random bytes for imported IBAN encryption; preserve for every retained record/backup, re-encrypt before rotation. |
+| `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
+| `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |
+| `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ENDPOINT` | Private attachment bucket/region; optional HTTPS endpoint. Preserve objects and signed upload CORS when moving. |
+| `ATTACHMENT_S3_ACCESS_KEY`, `ATTACHMENT_S3_SECRET_KEY` | Restricted attachment/signup key pair (permissions below); rotate after real PUT/HEAD/GET/cleanup verification. |
+| `SHARED_SCHEDULING_ENABLED` | `true` for the single release Core instance; maintenance can disable it temporarily. Restore it and check runs afterward. |
+| `CORE_CONCURRENCY_LOCALLANES` | `true` for R1; infrastructure switch explained below, no secret or regular rotation. |
+| `ACME_EMAIL` | Operator contact for Caddy/ACME certificate notifications; keep monitored. |
+| `ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`, `CORE_HOST` | Four approved public DNS hostnames; default ADR-003 domains. DNS/certificate/client change, not a key rotation. |
+| `CLUB_ADMIN_HOSTS` | Space-separated verified club admin aliases for SPA selection; default `unused.invalid`. Coordinate E10 domain verification/Caddy recreation. |
+| `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned built SPA dist folders. Switch all with the matching backend tag; retain previous paths for rollback. |
+| `BACKUP_ENCRYPTION_KEY` | Private native age identity generated with `age-keygen`; separate encrypted escrow. Keep old identities through archive expiry. |
+| `BACKUP_S3_BUCKET`, `BACKUP_S3_REGION`, `BACKUP_S3_ENDPOINT` | Pre-provisioned private backup bucket/region; optional HTTPS endpoint. Local override alone uses `http://minio:9000`. |
+| `BACKUP_S3_PREFIX` | Deployment-specific nonempty relative prefix ending in `/` (default `mongo/`); restrict IAM and retention to it. |
+| `BACKUP_S3_ACCESS_KEY`, `BACKUP_S3_SECRET_KEY` | Dedicated backup Get/Put/Delete/List principal from S3 provisioning; rotate after a new backup and verified restore. |
+| `BACKUP_RETENTION_DAYS` | Integer 1..36500, default 30. Operator retention policy; existing objects older than the new cutoff are removed after the next upload. |
+| `DEPLOY_ENV_FILE`, `COMPOSE_PROJECT_NAME` | Operator host settings: private env-file path and optional isolated Compose project name. Set the same values for backup and deployment. |
+| `DEPLOY_LOCAL` | Host runner switch (`1`) for the fictional override only; never set in release cron. |
+| `LOCAL_MONGODB_URI`, `LOCAL_HTTP_PORT`, `LOCAL_HTTPS_PORT`, `SEED_PASSWORD` | Local-only authenticated URI, loopback ports and fictional seed credential generated by the smoke. No release values. |
+
+Fixed wiring in the production Compose (not additional operator choices):
+`SPRING_PROFILES_ACTIVE=prod`, `SERVER_PORT=8080`, `MONGODB_HOST=mongo`,
+`MONGODB_PORT=27017`, `MONGODB_REPLICA_SET=rs0`, `MONGODB_AUTH_DATABASE=admin`;
+Mongo's `MONGO_INITDB_ROOT_USERNAME`/`MONGO_INITDB_ROOT_PASSWORD` receive the root
+values above. `CADDY_LOCAL_OPTIONS` is empty in production. The local override
+sets it to `local_certs`, changes `SPRING_PROFILES_ACTIVE` and
+`SPRING_DATA_MONGODB_URI`, uses `MAIL_LOCAL_DIRECTORY`, `EXPORT_LOCAL_DIRECTORY`
+and `ATTACHMENT_LOCAL_DIRECTORY`, and supplies MinIO's
+`MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD` from the generated S3 credentials.
+`BUILDX_CONFIG` in the smoke is a disposable build-metadata directory, not a key.
+
+Existing non-release options mentioned elsewhere in this document remain:
+`EXPORT_SIGNING_KEY` (optional local export signatures, base64 32+ bytes; rotation
+invalidates old links), `MIGRATION_ANONYMIZE_KEY` (one-use 32+ character HMAC secret
+for the offline anonymizer, retain only if deterministic re-anonymization is
+needed), `MONGODB_TEST_URI` (isolated test only), `CONSUMER_ENV_FILE`,
+`CONSUMER_DATABASE`, `CONSUMER_PORT`, `CONSUMER_SCHEDULING_ENABLED`,
+`CONSUMER_LOG_LEVEL`, `CORE_IMAGE`, `MONGO_PORT` (consumer/development tooling,
+not the production compose), and `OIDC_SMOKE_BASE_URL`, `OIDC_SMOKE_EMAIL`,
+`OIDC_SMOKE_PASSWORD` (fictional manual smoke only). Do not inherit any of these
+consumer/test settings into release Core.
+
+**Provider settings not yet implemented:** this checkout has no Stripe or Sentry
+environment contract. E8/release must document the actual Stripe API credential,
+per-club webhook signing secrets, storage/encryption and rotation before enabling
+CARD/Stripe, and the chosen Sentry DSN if deployed. Do not invent `STRIPE_*` or
+`SENTRY_*` env names here and assume the API reads them. RSA OIDC signing keys
+live encrypted in Mongo, not in a separate env variable. Cloud/SSH/GHCR keys are
+host credentials, provisioned and rotated by their respective providers and kept
+out of the Core container.
+
 ## Run the published image (E1-T14)
 
 Requirements: Docker with Compose v2.20+, `curl`, and access to the private GHCR
