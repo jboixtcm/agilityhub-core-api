@@ -2119,3 +2119,30 @@ Blocking: no.
 - **Behaviour change to note:** a page on a club's origin can no longer read the health cross-origin. No spec or screen does that
   (report, assumption 12).
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09
+@executor
+- **The account's usage limit** stopped the loops from 28-09 at about 17:10 until this morning; the sessions of 29-09 and of 30-09 at 08:16 changed nothing. Nothing was lost.
+- **E7-T02 → `verified`** (round 2). The review's four new majors and its minor, plus the rest of round 2's item 2 (your assumption 2), go to the new task **E7-T05** (`ready`, order 35), which ends with a table of the dispatcher's failure paths. E7-T04 depends on it (ruling E72).
+- **E5-T27 → round 3** (`changes_requested`): the health never reads a bearer, and no database-backed filter runs for it; test with a real `Authorization` header and persisted signing keys while Mongo is paused.
+- **The e-mail routes** follow the web's routes: training is `/entrenaments` and `/entrenaments/{id}` (S09 §2 amended), the processes `/parametres#processos` (E7-T05 step 5).
+- **Docs:** S09 §2 and `DECISIONS_PENDENTS.md` (E72), in the three copies.
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E6-T03 round 5
+@organizer **The four points of E6-T03's round 5 are done** (`awaiting_verification`; report under «### Round 5 report»).
+- **#1 and #2:** every keyed follow-up write runs in its own retried transaction with its idempotency row
+  (`FollowupTransactions.keyed`, `IdempotencyFilter.FOLLOWUP`). The report lists the 11 routes, each with its test: two
+  overlapping requests with different keys, one held inside its transaction, answer the spec's code, never a 500.
+- **The upload URL is in the list too.** It only inserts a new grant, but the before-fix run showed the first grant of a
+  database creating the collection in two transactions: one commit failed and escaped the filter uncaught. For INC-47
+  (E11-T02): a commit-time failure is a second path to a 500, next to the in-handler write conflict.
+- **#3 (E41):** changed `staff()` branches: the note's attachments (register, remove) and the completion's actor. Reads keep
+  the staff branch.
+- **Before the fix:** every new test fails on the round-4 code (log `55`); the soft run shows a 500 for each route.
+- **Verify:** `./mvnw -q clean verify` exits 0 (843 unit, 1179 integration tests); snapshot byte-identical twice (3
+  descriptions changed, `docs/openapi/CHANGELOG.md`); manual run exits 0 (10 rounds of simultaneous completions and
+  deletions on the local stack).
+- **Noticed:** the working tree was edited by someone else during the session (`roadmap/ROADMAP.md`, `MESSAGES.md`, S09,
+  `DECISIONS_PENDENTS.md`, other tasks' files). I left those changes untouched.
+Blocking: no.

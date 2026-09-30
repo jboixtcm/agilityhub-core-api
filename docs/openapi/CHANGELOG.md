@@ -2,6 +2,21 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E6-T03 round 5 · follow-up writes under concurrency, dual-role owners (E41)
+
+**0 operations added or removed, 3 changed (descriptions only); 0 schemas changed.** Same requests and answers.
+- **`POST /tasks/{id}/completion`**: an account with MEMBER and a staff role completes its own dog's task as the member
+  (`doneBy.role = MEMBER`, the member's first name and gender) and another member's as staff (S01 R-01-07, rulings
+  E41/E71). The second of two simultaneous completions is `422 TASK_ALREADY_DONE` with or without an `Idempotency-Key`.
+- **`POST /attachments`** and **`DELETE /attachments/{id}`**, `INSTRUCTOR_NOTE`: such an account that owns the dog
+  registers and removes its own note's files (it was 403); staff otherwise still get 403. Two simultaneous
+  registrations on one entity are serialized (at the limit, the second is `ATTACHMENT_LIMIT_REACHED`); the second of
+  two simultaneous removals is `404`.
+- Not in the document (INC-47): every keyed follow-up write (`POST /tasks`, `DELETE /tasks/{id}`, the completion and
+  the reopening, `POST /attachments/upload-url`, `POST /attachments`, `DELETE /attachments/{id}`, `POST
+  /followup/{id}/read`, `POST /followup/read-all`, `PUT /dogs/{id}/observations`) retries a Mongo write conflict in its
+  own transaction and answers the spec's code, never `500`. A stored `204` is replayed without `Content-Type`.
+
 ## 2026-09-30 · E5-T27 round 2 · the cancellation's origin, public file sandbox, health CORS
 
 **0 operations added or removed, 1 changed (description only); 0 schemas changed.**

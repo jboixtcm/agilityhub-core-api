@@ -746,6 +746,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `gender` on N-21/N-22, `decision`, `source`, `member_first_name` and `dog_name` on N-28. The parity tests have no
     proposal left to pin.
   - Round 1's evidence logs lose their trailing whitespace.
+- E6-T03 round 5 (review of 28-09 15:34, INC-47, ruling E41/E71): the keyed follow-up writes never answer 500 under
+  concurrency, and a dual-role owner takes the member branch.
+  - Every keyed follow-up write runs in its own Mongo transaction retried whole on a write conflict
+    (`FollowupTransactions.keyed`), with its idempotency row inside it: the task's creation, completion, reopening and
+    deletion, the attachments' upload URL, registration and removal, and the read marks (`IdempotencyFilter.FOLLOWUP`, next
+    to round 4's observations). Two requests with different keys that meet on one document answer the spec's code: one 200
+    and one `422 TASK_ALREADY_DONE` for two completions (T-10-25), `TASK_NOT_DONE`, `404`, `ATTACHMENT_ENTITY_MISMATCH`,
+    `ATTACHMENT_LIMIT_REACHED`, or both succeed (read marks, registrations with room, upload URLs). A stored `204` is
+    replayed without `Content-Type`.
+  - An account with MEMBER and a staff role that owns the dog registers and removes its own note's files (it got 403) and
+    completes its own dog's task as the member (`doneBy.role = MEMBER`); on another member's dog it stays staff.
 - E6-T03 round 4 (review of 28-09 10:28): concurrent observation saves answer 409, and the note consumer deduplicates by
   `eventId`.
   - `PUT /dogs/{id}/observations` runs in its own Mongo transaction, retried whole on a write conflict

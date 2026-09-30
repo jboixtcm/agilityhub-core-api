@@ -58,8 +58,16 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     /** S10 R-10-04 (E6-T02): the attendance save retries inside its seat-lock transaction and stores its 200 there. */
     static final java.util.regex.Pattern ATTENDANCE = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
-    /** S10 R-10-12 (E6-T03 round 4): the observations save retries a write conflict inside its own transaction and stores its 200 there. */
-    static final java.util.regex.Pattern OBSERVATIONS = java.util.regex.Pattern.compile("/api/v1/dogs/[^/]+/observations");
+    /**
+     * S10 R-10-10 to R-10-13 (E6-T03 rounds 4 and 5, INC-47), `METHOD path`: the keyed follow-up writes retry a write conflict
+     * inside their own transaction (`FollowupTransactions`) and store their answer there: the observations save, the task's
+     * creation, deletion, completion and reopening, the attachments' upload URL, registration and removal, and the read
+     * marks. The upload URL only inserts a new grant, but the first grant of a database creates the grants' collection,
+     * which two transactions cannot both do (a write conflict at commit).
+     */
+    static final java.util.regex.Pattern FOLLOWUP = java.util.regex.Pattern.compile("PUT /api/v1/dogs/[^/]+/observations|POST /api/v1/tasks"
+            + "|DELETE /api/v1/tasks/[^/]+|POST /api/v1/tasks/[^/]+/(completion|reopening)|POST /api/v1/attachments(/upload-url)?|DELETE /api/v1/attachments/[^/]+"
+            + "|POST /api/v1/followup/[^/]+/read|POST /api/v1/followup/read-all");
 
     /**
      * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header
@@ -149,23 +157,26 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // S08 confirmation and claim replay their business conflicts too (R-08-08: «també si va ser 409»).
         // S09 bookings and cancellations retry DuplicateKey/WriteConflict inside their own transaction (R-09-06) and replay likewise.
         // S10 R-10-04: the attendance save retries inside its seat-lock transaction and stores its 200 there too.
+        // S10 R-10-10 to R-10-13: the keyed follow-up writes ({@link #FOLLOWUP}) do the same in FollowupTransactions.
         boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim")
                 || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation")
                 || "PUT".equals(request.getMethod()) && ATTENDANCE.matcher(path).matches();
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
         // so two concurrent submissions give one 201 and one 422, never a 500.
         boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");
-        // S10 R-10-12 (E6-T03 round 4): two observation saves of one version give one 200 and one 409 STALE_VERSION, never a
-        // 500; like the signup, an error releases the key.
-        boolean observations = "PUT".equals(request.getMethod()) && OBSERVATIONS.matcher(path).matches();
-        if (bookings || signup || observations || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S10 (E6-T03 rounds 4 and 5, INC-47): two keyed follow-up writes that meet on one document answer the spec's conflict
+        // code (STALE_VERSION, TASK_ALREADY_DONE, NOT_FOUND, …) or both succeed, never a 500; like the signup, an error releases the key.
+        boolean followup = FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
+        if (bookings || signup || followup || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;
             var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
                     () -> records.lock(record), (status, bytes) -> {
-                        records.complete(record, status, anonymous ? capabilities.seal(bytes, record.id()) : bytes, Map.of("Content-Type", List.of("application/json"),
-                                "Content-Language", List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag())));
+                        // A 204 (a follow-up DELETE or read mark) has no body and so no Content-Type, as the request transaction's path stores it.
+                        var language = List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag());
+                        records.complete(record, status, anonymous ? capabilities.seal(bytes, record.id()) : bytes, bytes.length == 0
+                                ? Map.of("Content-Language", language) : Map.of("Content-Type", List.of("application/json"), "Content-Language", language));
                         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
                                 new org.springframework.transaction.support.TransactionSynchronization() {
                                     @Override public void afterCommit() { completed.set(true); }

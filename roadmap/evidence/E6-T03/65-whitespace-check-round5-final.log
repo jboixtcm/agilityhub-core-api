@@ -1,0 +1,22 @@
+$ git diff --check -> exit 0
+  (no output)
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/52-before-fix-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/53-before-fix-round5-final.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/54-before-fix-round5-final.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/55-before-fix-round5-final.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/56-openapi-snapshot-round5-run1.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/57-openapi-snapshot-round5-run2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/58-clean-verify-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/59-test-summary-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/60-coverage-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/61-manual-run-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/62-diff-check-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/63-whitespace-check-round5.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/64-diff-check-round5-final.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/65-whitespace-check-round5-final.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/before-fix-round5.py -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/sanitize-round5.py -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/tasks/E7-T05.md -> exit 1 clean
+$ git diff --no-index --check /dev/null src/main/java/com/agilityhub/core/clubs/followup/api/KeyedAnswers.java -> exit 1 clean
+$ git diff --no-index --check /dev/null src/test/java/com/agilityhub/core/shared/api/IdempotencyFilterFollowupRoutesTest.java -> exit 1 clean
+new files: 19, with whitespace problems: 0

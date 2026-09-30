@@ -11,7 +11,9 @@ CLASSES = ["TaskService", "AttachmentService", "FollowupService", "FollowupProje
            # round 3 (28-09): the per-attempt relevance hook of the S11 dispatcher.
            "NotificationDispatcher", "NotificationFactsPort",
            # round 4 (28-09): the observations save in its own retried transaction; the note consumer's eventId.
-           "IdempotencyFilter"]
+           "IdempotencyFilter",
+           # round 5 (30-09): every keyed follow-up write in its own retried transaction; ruling E41 (the owner's member branch).
+           "KeyedAnswers"]
 totals, classes = {}, {}
 with open("target/site/jacoco/jacoco.csv", encoding="utf-8") as source:
     for row in csv.DictReader(source):

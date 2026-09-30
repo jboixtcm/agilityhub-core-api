@@ -285,8 +285,12 @@ class E6ContractIT extends AbstractIntegrationTest {
         // The S03/S07 purposes keep their E3-T03 roles: an instructor alone gets no DOG_DOCUMENT upload, staff register no member note.
         error(as(post("/api/v1/attachments/upload-url").contentType("application/json")
                 .content("{\"purpose\":\"DOG_DOCUMENT\",\"fileName\":\"a.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":4}"), "INSTRUCTOR"), 403, "FORBIDDEN");
-        error(as(post("/api/v1/attachments").contentType("application/json")
-                .content("{\"entityType\":\"INSTRUCTOR_NOTE\",\"entityId\":\"e6-dog-a\",\"fileKey\":\"k\",\"name\":\"a.pdf\"}"), "MEMBER", "ADMIN"), 403, "FORBIDDEN");
+        String note = "{\"entityType\":\"INSTRUCTOR_NOTE\",\"entityId\":\"e6-dog-a\",\"fileKey\":\"k\",\"name\":\"a.pdf\"}";
+        error(as(post("/api/v1/attachments").contentType("application/json").content(note), "ADMIN"), 403, "FORBIDDEN");
+        // E6-T03 round 5 (ruling E41, E71): MEMBER + ADMIN owning the dog takes the member branch; past the guards, a key never uploaded is not
+        // found. The same token on another member's dog is staff: 403.
+        error(as(post("/api/v1/attachments").contentType("application/json").content(note), "MEMBER", "ADMIN"), 404, "NOT_FOUND");
+        error(as(post("/api/v1/attachments").contentType("application/json").content(note.replace("e6-dog-a", "e6-dog-b")), "MEMBER", "ADMIN"), 403, "FORBIDDEN");
         // Reading: DOG_OBSERVATIONS never for the member (404); removal of a member note by staff → 403.
         error(as(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a"), "MEMBER"), 404, "NOT_FOUND");
         served(as(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a"), "INSTRUCTOR"), 200);

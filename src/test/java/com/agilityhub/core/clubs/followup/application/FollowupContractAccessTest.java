@@ -156,6 +156,35 @@ class FollowupContractAccessTest {
         for (String id : List.of("a-gone", "a-odd", "a-missing")) { assertThatThrownBy(() -> access.removableAttachment(staff, id)).as(id).hasMessage("NOT_FOUND"); }
     }
 
+    /**
+     * E6-T03 round 5 (S01 R-01-07, ruling E41; E71 for S10): a staff token that also has MEMBER, whose member owns the dog,
+     * takes the member branch on that dog: it removes its own note's attachment. On another member's dog, on a dog the club
+     * does not know, or without the MEMBER role, it stays staff, and a note refuses it (403). Before the fix every staff
+     * token was refused on a note.
+     */
+    @Test void R_01_07_aStaffTokenWithMemberActsOnItsOwnDogAsTheMember() {
+        dogs();
+        when(census.ownerOf("dog-b")).thenReturn(Optional.of("member-b"));
+        var dual = new FollowupContractAccess.Caller("member-a", true, false);
+        when(attachments.findById("a-note")).thenReturn(Optional.of(attachment("a-note", "INSTRUCTOR_NOTE", "dog-a", null)));
+        when(attachments.findById("a-note-b")).thenReturn(Optional.of(attachment("a-note-b", "INSTRUCTOR_NOTE", "dog-b", null)));
+        when(attachments.findById("a-obs")).thenReturn(Optional.of(attachment("a-obs", "DOG_OBSERVATIONS", "dog-a", null)));
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("x", null, "ROLE_INSTRUCTOR", "ROLE_MEMBER"));
+        assertThat(access.owner(dual, "dog-a")).isEqualTo(new FollowupContractAccess.Caller("member-a", false, false));
+        for (String dog : List.of("dog-b", "dog-x")) { assertThat(access.owner(dual, dog)).as(dog).isSameAs(dual); }
+        assertThat(access.owner(owner, "dog-a")).as("a member already takes the member branch").isSameAs(owner);
+        assertThat(access.owner(staff, "dog-a")).as("no member claim").isSameAs(staff);
+        access.removableAttachment(dual, "a-note");
+        assertThatThrownBy(() -> access.removableAttachment(dual, "a-note-b")).hasMessage("FORBIDDEN");
+        access.removableAttachment(dual, "a-obs");
+        // A token without MEMBER is staff only, even with the owner's member claim (R-01-07: MEMBER opens the member routes).
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("x", null, "ROLE_INSTRUCTOR"));
+        assertThat(access.owner(dual, "dog-a")).isSameAs(dual);
+        assertThatThrownBy(() -> access.removableAttachment(dual, "a-note")).hasMessage("FORBIDDEN");
+        SecurityContextHolder.clearContext();
+        assertThat(access.owner(dual, "dog-a")).isSameAs(dual);
+    }
+
     @Test void T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort() {
         var params = new LinkedMultiValueMap<String, String>();
         params.add("filter", "kind:eq:TASK"); params.add("filter", "unread:eq:true"); params.add("sort", "activityAt,desc");

@@ -9,11 +9,9 @@ import com.agilityhub.core.clubs.followup.domain.FollowupKind;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.CurrentUser;
-import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.application.contract.ListContract;
 import com.agilityhub.core.shared.application.lists.SparseItems;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,14 +58,10 @@ public class FollowupController {
         // E6-T03 round 4 (R-10-12): the save, its audit and outbox rows and the stored 200 of the key commit together, in a
         // transaction retried whole on a write conflict. Two saves of one version: the loser's retry re-reads
         // remarksMeta.version and answers 409 STALE_VERSION, never a 500.
-        return transactions.run(() -> {
-            IdempotentOperation.lock();
+        return transactions.keyed(200, () -> {
             var saved = observations.save(id, request.text(), request.version(), by);
-            var result = new Observations(saved.text() == null ? "" : saved.text(), saved.updatedAt(), saved.updatedByName(), saved.version());
-            try { IdempotentOperation.complete(200, mapper.writeValueAsBytes(result)); }
-            catch (JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
-            return result;
-        });
+            return new Observations(saved.text() == null ? "" : saved.text(), saved.updatedAt(), saved.updatedByName(), saved.version());
+        }, KeyedAnswers.json(mapper));
     }
 
     @GetMapping("/api/v1/followup")
@@ -109,8 +103,9 @@ public class FollowupController {
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void readFollowupItem(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
-        access.followupItem(id);
-        followup.read(id, me());
+        // E6-T03 round 5 (INC-47): the caller's read mark is one document; two clicks at once (different keys) both answer 204,
+        // the second one's transaction running again on the first one's write.
+        transactions.keyedNoContent(() -> { access.followupItem(id); followup.read(id, me()); });
     }
 
     @PostMapping("/api/v1/followup/read-all")
@@ -120,6 +115,6 @@ public class FollowupController {
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void readAllFollowup(@RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
-        followup.readAll(me());
+        transactions.keyedNoContent(() -> followup.readAll(me()));
     }
 }

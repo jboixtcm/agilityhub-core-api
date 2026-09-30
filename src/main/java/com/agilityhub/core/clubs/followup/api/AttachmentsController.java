@@ -2,12 +2,13 @@ package com.agilityhub.core.clubs.followup.api;
 
 import com.agilityhub.core.clubs.followup.application.AttachmentService;
 import com.agilityhub.core.clubs.followup.application.FollowupContractAccess;
+import com.agilityhub.core.clubs.followup.application.FollowupTransactions;
 import com.agilityhub.core.clubs.followup.domain.AttachmentEntityType;
-import com.agilityhub.core.identity.application.IdentityTransactions;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.domain.ApiException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,14 +30,17 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * Signed-URL attachments (CONVENCIONS_API §5): the S03/S07 purposes, the member's INSTRUCTOR_NOTE (E2-T06/E3-T03) and,
  * since E6-T03, the S10 purposes TASK and DOG_OBSERVATIONS (INSTRUCTOR/ADMIN, TASKS): registration, the entity list and
  * the removal (R-10-11), all on the same {@link AttachmentService}. The impersonation token acts as the member: accepted
- * where the member may act, IMPERSONATION_DENIED on the staff entities.
+ * where the member may act, IMPERSONATION_DENIED on the staff entities. An account with MEMBER and a staff role acts on its
+ * own dog's note as the member (S01 R-01-07, ruling E41). The upload URL, the registration and the removal run in
+ * {@link FollowupTransactions#keyed} (E6-T03 round 5), retried whole on a write conflict.
  */
 @RestController
 public class AttachmentsController {
     static final Set<String> STAFF_PURPOSES = Set.of("TASK", "DOG_OBSERVATIONS");
-    private final AttachmentService attachments; private final IdentityTransactions transactions; private final FollowupContractAccess access;
-    public AttachmentsController(AttachmentService attachments, IdentityTransactions transactions, FollowupContractAccess access) {
-        this.attachments = attachments; this.transactions = transactions; this.access = access;
+    private final AttachmentService attachments; private final FollowupTransactions transactions; private final FollowupContractAccess access;
+    private final ObjectMapper mapper;
+    public AttachmentsController(AttachmentService attachments, FollowupTransactions transactions, FollowupContractAccess access, ObjectMapper mapper) {
+        this.attachments = attachments; this.transactions = transactions; this.access = access; this.mapper = mapper;
     }
     public record UploadRequest(@NotBlank @Schema(allowableValues = {"DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT",
             "TASK", "DOG_OBSERVATIONS"}) String purpose,
@@ -65,21 +69,27 @@ public class AttachmentsController {
     public AttachmentService.Upload upload(@Valid @RequestBody UploadRequest request, @AuthenticationPrincipal Jwt jwt) {
         if (STAFF_PURPOSES.contains(request.purpose())) { access.staffWriter(access.caller(jwt.getClaimAsString("memberId"))); }
         else if (!anyRole("ADMIN", "MEMBER")) { throw new ApiException(FORBIDDEN); }
-        return attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes());
+        // E6-T03 round 5 (INC-47): a new grant each time, but the first grant of a database creates the grants' collection,
+        // and a second transaction doing the same meets a write conflict: retried, never a 500.
+        return transactions.keyed(201, () -> attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes()),
+                KeyedAnswers.json(mapper));
     }
     @PostMapping("/api/v1/attachments")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED,
             IMPERSONATION_DENIED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE, VALIDATION_ERROR})
-    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; staff → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. Two simultaneous registrations on one entity are serialized: at the limit, the second → ATTACHMENT_LIMIT_REACHED. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "201", description = "Attachment with signed download URL", content = @io.swagger.v3.oas.annotations.media.Content(schema = @Schema(implementation = AttachmentResponse.class))))
     public Map<String,Object> add(@Valid @RequestBody AttachmentRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
+        var caller = access.caller(jwt.getClaimAsString("memberId"));
         if (STAFF_PURPOSES.contains(request.entityType())) {
-            access.writableEntity(access.caller(jwt.getClaimAsString("memberId")), AttachmentEntityType.valueOf(request.entityType()), request.entityId());
-        } else if (access.caller(jwt.getClaimAsString("memberId")).staff()) { throw new ApiException(FORBIDDEN); }
-        return transactions.run(() -> attachments.add(request.entityType(), request.entityId(), request.fileKey(), request.name()));
+            access.writableEntity(caller, AttachmentEntityType.valueOf(request.entityType()), request.entityId());
+        } else if (access.owner(caller, request.entityId()).staff()) { throw new ApiException(FORBIDDEN); }
+        // E6-T03 round 5 (INC-47): the registration and its stored 201 commit together, retried whole on a write conflict
+        // (the entity's lock): two registrations on one entity never answer 500.
+        return transactions.keyed(201, () -> attachments.add(request.entityType(), request.entityId(), request.fileKey(), request.name()), KeyedAnswers.json(mapper));
     }
     @GetMapping("/api/v1/attachments")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
@@ -98,12 +108,14 @@ public class AttachmentsController {
     @RequiresModule(Module.TASKS)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, IMPERSONATION_DENIED})
-    @Operation(summary = "removeAttachment", description = "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token, audited; staff → 403). R-10-11: removal = removedAt + removedByAccountId (AttachmentRemoved, a task's attachmentCount − 1); the file stays until the GDPR erasure; the attachment leaves the lists. Same Idempotency-Key → the same 204; a removed one → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
+    @Operation(summary = "removeAttachment", description = "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403). R-10-11: removal = removedAt + removedByAccountId (AttachmentRemoved, a task's attachmentCount − 1); the file stays until the GDPR erasure; the attachment leaves the lists. Same Idempotency-Key → the same 204; a removed one → 404, also for the second of two simultaneous removals. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "204", description = "void", content = @io.swagger.v3.oas.annotations.media.Content))
     public void removeAttachment(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey,
             @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        attachments.remove(access.removableAttachment(access.caller(jwt.getClaimAsString("memberId")), id));
+        var caller = access.caller(jwt.getClaimAsString("memberId"));
+        // Round 5: the second of two removals with different keys re-reads the attachment removed → 404, never a 500.
+        transactions.keyedNoContent(() -> attachments.remove(access.removableAttachment(caller, id)));
     }
     /** The §6 `Attachment` of an {@link AttachmentService} view. */
     static AttachmentResponse response(Map<String, Object> view) {

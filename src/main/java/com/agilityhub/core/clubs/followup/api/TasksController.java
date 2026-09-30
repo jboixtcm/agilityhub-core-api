@@ -11,6 +11,7 @@ import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.contract.AllowsImpersonation;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.domain.ApiException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,9 +38,10 @@ public class TasksController {
     static final String STAFF = "hasAnyRole('ADMIN','INSTRUCTOR')";
     static final String GUARDS = " Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.";
     private final FollowupContractAccess access; private final TaskService tasks; private final FollowupActors actors; private final AttachmentService attachments;
-    private final FollowupTransactions transactions;
-    public TasksController(FollowupContractAccess access, TaskService tasks, FollowupActors actors, AttachmentService attachments, FollowupTransactions transactions) {
-        this.access = access; this.tasks = tasks; this.actors = actors; this.attachments = attachments; this.transactions = transactions;
+    private final FollowupTransactions transactions; private final ObjectMapper mapper;
+    public TasksController(FollowupContractAccess access, TaskService tasks, FollowupActors actors, AttachmentService attachments, FollowupTransactions transactions,
+            ObjectMapper mapper) {
+        this.access = access; this.tasks = tasks; this.actors = actors; this.attachments = attachments; this.transactions = transactions; this.mapper = mapper;
     }
     private FollowupContractAccess.Caller caller(Jwt jwt) { return access.caller(jwt.getClaimAsString("memberId")); }
     private com.agilityhub.core.clubs.followup.persistence.Task.Actor actor(FollowupContractAccess.Caller caller, Jwt jwt) {
@@ -79,7 +81,11 @@ public class TasksController {
         access.tenant();
         var caller = caller(jwt);
         access.dog(caller, request.dogId());
-        return view(tasks.create(request.dogId(), request.text(), request.attachmentIds(), actor(caller, jwt)), caller);
+        var by = actor(caller, jwt);
+        // E6-T03 round 5 (INC-47): the task, its uploads, its D14 row, the outbox and the stored 201 commit together, retried
+        // whole on a write conflict. Two creations naming one upload: the loser's retry finds it attached to the other task
+        // (ATTACHMENT_ENTITY_MISMATCH) and leaves no task.
+        return transactions.keyed(201, () -> view(tasks.create(request.dogId(), request.text(), request.attachmentIds(), by), caller), KeyedAnswers.json(mapper));
     }
 
     @GetMapping("/api/v1/tasks/{id}")
@@ -113,20 +119,28 @@ public class TasksController {
     public void deleteTask(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey,
             @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        var caller = caller(jwt);
-        tasks.delete(access.task(caller, id), actor(caller, jwt));
+        var caller = caller(jwt); var actor = actor(caller, jwt);
+        // Round 5: two deletions with different keys → one 204; the other's retry finds the task deleted → 404.
+        transactions.keyedNoContent(() -> tasks.delete(access.task(caller, id), actor));
     }
 
     @PostMapping("/api/v1/tasks/{id}/completion")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, TASK_ALREADY_DONE})
-    @Operation(summary = "completeTask", description = "Roles: MEMBER owner of the dog (also the impersonation token, audited DOG_UPDATED with origin BACKOFFICE; a family-group dog → 404), INSTRUCTOR, ADMIN. PENDING → DONE with doneAt and doneBy {role, displayName, gender}; the D14 row gets completedAt (not activityAt); TaskCompleted → N-21 to every active instructor. Already DONE → TASK_ALREADY_DONE (422), also for the second of two simultaneous calls; deleted → 404. No body." + GUARDS,
+    @Operation(summary = "completeTask", description = "Roles: MEMBER owner of the dog (also the impersonation token, audited DOG_UPDATED with origin BACKOFFICE; a family-group dog → 404), INSTRUCTOR, ADMIN. An account with MEMBER and a staff role completes its own dog's task as the member (doneBy role MEMBER) and another member's as staff (S01 R-01-07). PENDING → DONE with doneAt and doneBy {role, displayName, gender}; the D14 row gets completedAt (not activityAt); TaskCompleted → N-21 to every active instructor. Already DONE → TASK_ALREADY_DONE (422), also for the second of two simultaneous calls, with or without an Idempotency-Key; deleted → 404. No body." + GUARDS,
             responses = @ApiResponse(responseCode = "200", description = "Task", useReturnTypeSchema = true))
     public Task completeTask(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        var caller = caller(jwt); var actor = actor(caller, jwt);
-        return view(transactions.run(() -> tasks.complete(access.task(caller, id), actor)), caller);
+        var caller = caller(jwt);
+        // E6-T03 round 5 (T-10-25, INC-47): with or without a key, the completion and its stored 200 commit in a transaction
+        // retried whole on a write conflict: the second of two simultaneous completions re-reads DONE → 422, never a 500.
+        return transactions.keyed(200, () -> {
+            var task = access.task(caller, id);
+            // Ruling E41 (E71 for S10): an account with MEMBER and a staff role completes its own dog's task as the member.
+            var by = access.owner(caller, task.dogId());
+            return view(tasks.complete(task, actor(by, jwt)), caller);
+        }, KeyedAnswers.json(mapper));
     }
 
     @PostMapping("/api/v1/tasks/{id}/reopening")
@@ -137,7 +151,8 @@ public class TasksController {
     public Task reopenTask(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         var caller = caller(jwt); var actor = actor(caller, jwt);
-        return view(transactions.run(() -> tasks.reopen(access.task(caller, id), actor)), caller);
+        // Round 5: the second of two simultaneous reopenings re-reads PENDING → 422 TASK_NOT_DONE, never a 500.
+        return transactions.keyed(200, () -> view(tasks.reopen(access.task(caller, id), actor), caller), KeyedAnswers.json(mapper));
     }
 
     private Task view(com.agilityhub.core.clubs.followup.persistence.Task task, FollowupContractAccess.Caller caller) { return views(List.of(task), caller).getFirst(); }

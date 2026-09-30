@@ -88,6 +88,8 @@ Added 26-09 (global audit of E0–E5 and of the E5–E8 task files; `docs/INCIDE
 
 Added 27-09 (verifications of E5-T26…E7-T01 and of the web's E5-W01…E5-W03, rulings E61–E67): **E5-T29** (the back office's contract gaps found by the web — the registrants' `displayState` and level, the staff waitlist's «{guia} + {gos}», a training booking's end and member number, a class booking's description and ring, a block's ring, `filter-values` for three lists — and `nextBookableAt` as the start of the next booking week) runs after E5-T28; the web adopts it in E5-W05.
 
+Added 30-09 (verification of E7-T02's round 2, ruling E72): **E7-T05** (notification engine hardening: an accepted send survives a failed settlement and a restart, bounce suppression at every e-mail attempt, a push expiry that is never lost, a monthly SMS counter that never goes back, the web's e-mail routes, and the dispatcher's failure-path table). E7-T04 now depends on it.
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
@@ -104,7 +106,7 @@ Added 27-09 (verifications of E5-T26…E7-T01 and of the web's E5-W01…E5-W03, 
 - [ ] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report).
 - [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead.
 - [ ] Legacy SMS/PUSH intents converted to `SKIPPED_STALE`; `SMS_ALLOWED_NUMBERS` guard proven outside `prod`.
-- [ ] E7-T01…T04 verified, CI green, snapshot staged (E7-W01…W03).
+- [ ] E7-T01…T05 verified, CI green, snapshot staged (E7-W01…W03).
 
 ### Gate E8 (back — organizer; bank acceptance of the pain.008, the bookkeeper's acceptance of the accounting export and daily backups are release items, @jordi)
 - [ ] `bin/e8-smoke` green twice: simulation → run → XSD-valid XML equal to the golden file → mark returned → rollback → re-run with the same numbers; both `billing.cashInvoicing` branches and both `collectionDayOfMonth` semantics tested (A28/A29).

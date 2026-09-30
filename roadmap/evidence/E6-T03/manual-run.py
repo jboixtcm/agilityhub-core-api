@@ -9,7 +9,9 @@ D14 page and unread counts of two accounts before and after one read-all, and th
 Round 2 (27-09): the note row and the D14 page show `authorGender`, `TaskCreated` shows its `textExcerpt`, and the D14 page
 limit (size 50 → 200, size 200 → 400 INVALID_FILTER). Round 3 (28-09): this run's `MemberNoteChanged` carries the
 `author` snapshot and the MEMBER_NOTE row equals it. Round 4 (28-09): rounds of two simultaneous observation saves of one
-version (one 200 and one 409 STALE_VERSION each, never a 500). Ids are truncated to 8 characters in the output.
+version (one 200 and one 409 STALE_VERSION each, never a 500). Round 5 (30-09): rounds of two simultaneous keyed
+completions of one task (one 200 and one 422 TASK_ALREADY_DONE each) and two simultaneous keyed deletions (one 204 and
+one 404), never a 500. Ids are truncated to 8 characters in the output.
 """
 import concurrent.futures
 import importlib.machinery
@@ -57,21 +59,42 @@ def upload(s, access, purpose, name, mime, size, directory):
     return grant["fileKey"]
 
 
-def save_observations(s, access, dog_id, text, version, tag, barrier):
-    """One `PUT /dogs/{id}/observations` with its own key and its own private files (s.call shares one request and one
-    response file, so two threads cannot use it); the token stays in stdin, as in s.call. Waits on `barrier` first."""
-    payload, response = s.private / f"r4-request-{tag}", s.private / f"r4-response-{tag}"
-    payload.write_text(json.dumps(dict(text=text, version=version)))
-    headers = ["User-Agent: AgilityHub-E5-Smoke", "Host: " + s.host, "Authorization: Bearer " + access, "Idempotency-Key: " + str(uuid.uuid4()),
-               "Content-Type: application/json"]
-    config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(s.base + "/api/v1/dogs/" + dog_id + "/observations")
+def keyed(s, access, method, path, body, tag, barrier):
+    """One request with its own `Idempotency-Key` and its own private files (s.call shares one request and one response
+    file, so two threads cannot use it); the token stays in stdin, as in s.call. Waits on `barrier` first."""
+    payload, response = s.private / f"request-{tag}", s.private / f"response-{tag}"
+    headers = ["User-Agent: AgilityHub-E5-Smoke", "Host: " + s.host, "Authorization: Bearer " + access, "Idempotency-Key: " + str(uuid.uuid4())]
+    data = []
+    if body is not None:
+        payload.write_text(json.dumps(body))
+        headers.append("Content-Type: application/json")
+        data = ["--data-binary", "@" + str(payload)]
+    config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(s.base + path)
     barrier.wait(timeout=60)
-    result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--request", "PUT", "--data-binary", "@" + str(payload),
+    result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--request", method, *data,
                              "--output", str(response), "--write-out", "%{http_code}", "--config", "-"], input=config, cwd=ROOT, env=s.env, text=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    e5.require(result.returncode == 0, f"curl PUT observations failed (exit {result.returncode})")
-    data = response.read_text()
-    return int(result.stdout), (json.loads(data) if data else {})
+    e5.require(result.returncode == 0, f"curl {method} {path} failed (exit {result.returncode})")
+    answer = response.read_text() if response.exists() else ""
+    return int(result.stdout), (json.loads(answer) if answer else {})
+
+
+def save_observations(s, access, dog_id, text, version, tag, barrier):
+    """Round 4: one `PUT /dogs/{id}/observations` with its own key."""
+    return keyed(s, access, "PUT", "/api/v1/dogs/" + dog_id + "/observations", dict(text=text, version=version), "r4-" + tag, barrier)
+
+
+def together(s, requests, tag):
+    """Round 5: the requests `(access, method, path, body)` at once (a thread barrier), each with its own key; their answers in order."""
+    barrier = threading.Barrier(len(requests))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(requests)) as pool:
+        calls = [pool.submit(keyed, s, access, method, path, body, f"r5-{tag}-{i}", barrier) for i, (access, method, path, body) in enumerate(requests)]
+        return [call.result(timeout=120) for call in calls]
+
+
+def outcome(answers):
+    """Sorted `status` / `status CODE` of the answers."""
+    return sorted(f"{status} {body['code']}" if status >= 400 and body.get("code") else str(status) for status, body in answers)
 
 
 def main():
@@ -217,6 +240,28 @@ def main():
             print(f"  concurrent observation saves: {ROUNDS} rounds, answers {outcomes}; DogUpdated rows +{len(events) - events_before}; card version {card['version']}", flush=True)
             e5.require(card["version"] == version + 1, "one change per round")
             print(f"PASS round 4: {ROUNDS} x (200, 409 STALE_VERSION), no 500", flush=True)
+
+            # 9. Round 5 (review #1, T-10-25, INC-47): the member and the instructor complete one new task at the same time, each
+            # with her own Idempotency-Key, ROUNDS times: one 200 and one 422 TASK_ALREADY_DONE per round, never a 500, and one
+            # TaskCompleted per task. Then the instructor and the admin delete that task at the same time: one 204 and one 404.
+            # The interleaving is not controlled here (FollowupIT holds one request inside its transaction); this checks the
+            # real stack's answers.
+            created, completions, deletions = [], [], []
+            for round_number in range(1, ROUNDS + 1):
+                task_id = s.call("POST", "/api/v1/tasks", 201, access=instructor, idempotent=True, quiet=True,
+                                 body=dict(dogId=dog["id"], text=f"Tasca simultània {round_number}"))["id"]
+                created.append(task_id)
+                completion = "/api/v1/tasks/" + task_id + "/completion"
+                completions.append(outcome(together(s, [(member, "POST", completion, None), (instructor, "POST", completion, None)], f"c{round_number}")))
+                e5.require(completions[-1] == ["200", "422 TASK_ALREADY_DONE"], f"round {round_number}: completions {completions[-1]}")
+                deletion = "/api/v1/tasks/" + task_id
+                deletions.append(outcome(together(s, [(instructor, "DELETE", deletion, None), (admin, "DELETE", deletion, None)], f"d{round_number}")))
+                e5.require(deletions[-1] == ["204", "404 NOT_FOUND"], f"round {round_number}: deletions {deletions[-1]}")
+            completed = e5.wait(lambda: (lambda r: r if len(r) == ROUNDS else None)(outbox(["TaskCompleted"], created)), "TaskCompleted rows missing")
+            deleted = e5.wait(lambda: (lambda r: r if len(r) == ROUNDS else None)(outbox(["TaskDeleted"], created)), "TaskDeleted rows missing")
+            print(f"  simultaneous keyed completions: {ROUNDS} rounds, answers {completions}; TaskCompleted rows {len(completed)} for {len(created)} tasks", flush=True)
+            print(f"  simultaneous keyed deletions: {ROUNDS} rounds, answers {deletions}; TaskDeleted rows {len(deleted)}", flush=True)
+            print(f"PASS round 5: {ROUNDS} x (200, 422 TASK_ALREADY_DONE) and {ROUNDS} x (204, 404 NOT_FOUND), no 500", flush=True)
             print("PASS E6-T03 manual run", flush=True)
         finally:
             s.cleanup()

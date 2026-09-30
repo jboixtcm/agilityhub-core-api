@@ -1,0 +1,123 @@
+restored HEAD (round 4) in the copies: AttachmentsController.java, FollowupContractAccess.java, FollowupController.java, FollowupTransactions.java, IdempotencyFilter.java, TasksController.java
+removed from the copies (new in round 5): KeyedAnswers.java
+HEAD test versions (they use the new API): FollowupContractAccessTest.java, FollowupTransactionsTest.java; left out: IdempotencyFilterFollowupRoutesTest.java
+$ (cd target/before-fix-e6t03-r5 && ./mvnw -q verify -Dtest=FollowupTransactionsTest,FollowupContractAccessTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT,E6ContractIT -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 30, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.30 s <<< FAILURE! -- in com.agilityhub.core.configuration.E6ContractIT
+[ERROR] com.agilityhub.core.configuration.E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration -- Time elapsed: 0.682 s <<< FAILURE!
+[ERROR] Tests run: 24, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 6.643 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.227 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_01_07_anInstructorWhoIsAMemberTakesTheMemberBranchOnHisOwnDog -- Time elapsed: 0.073 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500 -- Time elapsed: 0.078 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.075 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500 -- Time elapsed: 0.082 s <<< FAILURE!
+--- run A: per test (surefire + failsafe XML of the copy), with the failure message
+ok     FollowupContractAccessTest.T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort
+ok     FollowupContractAccessTest.T_10_15_aDeletedTaskIsNotFoundForStaffToo
+ok     FollowupContractAccessTest.R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId
+ok     FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks
+ok     FollowupContractAccessTest.T_10_16_attachmentRolesFollowTheirEntity
+ok     FollowupContractAccessTest.T_10_22_callerIsTheMemberTheImpersonatedMemberOrUnimpersonatedStaff
+ok     FollowupTransactionsTest.T_10_25_aConflictIsRetriedWholeAndOtherFailuresAreNot
+ok     FollowupTransactionsTest.T_10_25_insideAnotherTransactionTheWorkRunsOnceAsIs
+ok     FollowupIT.R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500
+ok     FollowupIT.T_10_21_d14PagesHoldAtMost50Rows
+ok     FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch
+FAILED FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       Expecting actual: ["500 INTERNAL_ERROR", "201"] to contain exactly (and in same order): ["201", "201"] but some elements were not found: ["201"] and others were not expected: ["500 INTERNAL_ERROR"]
+FAILED FollowupIT.R_01_07_anInstructorWhoIsAMemberTakesTheMemberBranchOnHisOwnDog
+       [POST /attachments {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"1226c59f-e620-4660-843b-2b31f431eaa3"}] expected: 201 but was: 403
+ok     FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications
+FAILED FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500
+       Expecting actual: ["500 INTERNAL_ERROR", "200"] to contain exactly in any order: ["200", "422 TASK_ALREADY_DONE"] elements not found: ["422 TASK_ALREADY_DONE"] and elements not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner
+ok     FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow
+ok     FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued
+ok     FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21
+ok     FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner
+ok     FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken
+FAILED FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       Expecting actual: ["201", "500 INTERNAL_ERROR"] to contain exactly in any order: ["201", "422 ATTACHMENT_ENTITY_MISMATCH"] elements not found: ["422 ATTACHMENT_ENTITY_MISMATCH"] and elements not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409
+FAILED FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500
+       Expecting actual: ["204", "500 INTERNAL_ERROR"] to contain exactly (and in same order): ["204", "204"] but some elements were not found: ["204"] and others were not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion
+ok     FollowupIT.T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead
+ok     FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer
+ok     FollowupIT.T_10_18_theTaskFollowsATransferredDog
+ok     FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText
+ok     FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+ok     FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne
+ok     FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles
+FAILED E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration
+       [POST /api/v1/attachments {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"c6e21d63-3e83-4c2f-8d47-8e166db103e1"}] expected: 404 but was: 403
+ok     E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand
+ok     E6ContractIT.T_10_21_undeclaredFiltersAndSortsAreInvalidBeforeTheStub
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[1]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[2]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[3]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[4]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[5]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[6]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[7]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[8]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[9]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[10]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[11]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[12]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[13]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[14]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[15]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[16]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[17]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[18]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[19]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[20]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[21]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[22]
+ok     E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+ok     E6ContractIT.T_10_21_theStubsWriteNothing
+ok     E6ContractIT.T_10_22_impersonationIsAcceptedOnlyOnHistoryTaskListCompletionAndTheMemberAttachments
+ok     E6ContractIT.T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose
+ok     E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesServeTheMemberRoleRefuseStaffOnlyTokensAndOtherMembersSeeNothingOfTheirs
+$ (cd target/before-fix-e6t03-r5-soft && ./mvnw -q verify -Dtest=NoUnitTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT#T_10_25_twoOverlapping*+R_10_10_overlapping*+T_10_16_overlapping*+T_10_18_T_10_06_overlapping* -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 4, Failures: 3, Errors: 1, Skipped: 0, Time elapsed: 8.686 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.264 s <<< ERROR!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500 -- Time elapsed: 0.841 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.420 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500 -- Time elapsed: 0.241 s <<< FAILURE!
+--- run B: per test (surefire + failsafe XML of the copy), with the failure message
+ERROR  FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       org.springframework.transaction.TransactionSystemException: Could not commit Mongo transaction for session [ClientSessionImpl@6c078d66 id = {"id": {"$binary": {"base64": "r0pK30fORma7D6cw+HZRBw==", "subType": "04"}}}, causallyConsistent = true, txActive = false, txNumber = 2, closed = false, clusterTime = {"clusterTime": {"$time
+FAILED FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500
+       Multiple Failures (2 failures) -- failure 1 -- Expecting actual: ["500 INTERNAL_ERROR", "200"] to contain exactly in any order: ["200", "422 TASK_ALREADY_DONE"] elements not found: ["422 TASK_ALREADY_DONE"] and elements not expected: ["500 INTERNAL_ERROR"] at FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskA
+       9
+       8
+       6) -- failure 2 -- [the write conflict was retried] Expecting actual: 0.0 to be greater than: 0.0 at FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500(FollowupIT.java:987)
+FAILED FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       Multiple Failures (6 failures) -- failure 1 -- Expecting actual: ["500 INTERNAL_ERROR", "201"] to contain exactly in any order: ["201", "422 ATTACHMENT_ENTITY_MISMATCH"] elements not found: ["422 ATTACHMENT_ENTITY_MISMATCH"] and elements not expected: ["500 INTERNAL_ERROR"] at FollowupIT.R_10_10_overlappingTaskWritesWithDifferen
+       1
+       0
+       1
+       4) -- failure 2 -- Expecting actual: 0.0 to be greater than: 0.0 at FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500(FollowupIT.java:
+       1
+       0
+       1
+       4) -- failure 3 -- Expecting actual: ["500 INTERNAL_ERROR", "200"] to contain exactly in any order: ["200", "422 TASK_NOT_DONE"] elements not found: ["422 TASK_NOT_DONE"] and elements not expected: ["500 INTERNAL_ERROR"] at FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500(FollowupIT.java:
+       1
+       0
+       3
+FAILED FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500
+       Multiple Failures (6 failures) -- failure 1 -- Expecting actual: ["500 INTERNAL_ERROR", "204"] to contain exactly (and in same order): ["204", "204"] but some elements were not found: ["204"] and others were not expected: ["500 INTERNAL_ERROR"] at FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500(F
+       1
+       0
+       9
+       3) -- failure 2 -- Expecting actual: 0.0 to be greater than: 0.0 at FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500(FollowupIT.java:
+       1
+       0
+       9
+       3) -- failure 3 -- Expecting actual: ["f715c9cd-9f40-365a-8161-161b59982b31"] to contain exactly in any order: ["d6cfd93f-e5a1-3f23-abe5-e66f1f01b2fb", "f715c9cd-9f40-365a-8161-161b59982b31"] but could not find the following elements: ["d6cfd93f-e5a1-3f23-abe5-e66f1f01b2fb"] at FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOn
+       1
+       0
+       9

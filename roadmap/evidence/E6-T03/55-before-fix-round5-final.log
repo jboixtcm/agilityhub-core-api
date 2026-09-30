@@ -1,0 +1,124 @@
+restored HEAD (round 4) in the copies: AttachmentsController.java, FollowupContractAccess.java, FollowupController.java, FollowupTransactions.java, IdempotencyFilter.java, TasksController.java
+removed from the copies (new in round 5): KeyedAnswers.java
+HEAD test versions (they use the new API): FollowupContractAccessTest.java, FollowupTransactionsTest.java; left out: IdempotencyFilterFollowupRoutesTest.java
+$ (cd target/before-fix-e6t03-r5 && ./mvnw -q verify -Dtest=FollowupTransactionsTest,FollowupContractAccessTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT,E6ContractIT -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 30, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 12.05 s <<< FAILURE! -- in com.agilityhub.core.configuration.E6ContractIT
+[ERROR] com.agilityhub.core.configuration.E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration -- Time elapsed: 0.681 s <<< FAILURE!
+[ERROR] Tests run: 24, Failures: 4, Errors: 1, Skipped: 0, Time elapsed: 7.386 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.173 s <<< ERROR!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_01_07_anInstructorWhoIsAMemberTakesTheMemberBranchOnHisOwnDog -- Time elapsed: 0.101 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500 -- Time elapsed: 0.112 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.072 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500 -- Time elapsed: 0.104 s <<< FAILURE!
+--- run A: per test (surefire + failsafe XML of the copy), with the failure message
+ok     FollowupContractAccessTest.T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort
+ok     FollowupContractAccessTest.T_10_15_aDeletedTaskIsNotFoundForStaffToo
+ok     FollowupContractAccessTest.R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId
+ok     FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks
+ok     FollowupContractAccessTest.T_10_16_attachmentRolesFollowTheirEntity
+ok     FollowupContractAccessTest.T_10_22_callerIsTheMemberTheImpersonatedMemberOrUnimpersonatedStaff
+ok     FollowupTransactionsTest.T_10_25_aConflictIsRetriedWholeAndOtherFailuresAreNot
+ok     FollowupTransactionsTest.T_10_25_insideAnotherTransactionTheWorkRunsOnceAsIs
+ok     FollowupIT.R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500
+ok     FollowupIT.T_10_21_d14PagesHoldAtMost50Rows
+ok     FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch
+ERROR  FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       org.springframework.transaction.TransactionSystemException: Could not commit Mongo transaction for session [ClientSessionImpl@20f176d8 id = {"id": {"$binary": {"base64": "iSzMcSigQFyU7RrvVkuFWA==", "subType": "04"}}}, causallyConsistent = true, txActive = false, txNumber = 129, closed = false, clusterTime = {"clusterTime": {"$timestamp": {"t": 1790763268, "i": 96}}, "signature": {"hash": {"$binary
+FAILED FollowupIT.R_01_07_anInstructorWhoIsAMemberTakesTheMemberBranchOnHisOwnDog
+       [POST /attachments {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"90bc1ceb-63bc-48dc-9922-37177b3fac58"}] expected: 201 but was: 403
+ok     FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications
+FAILED FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500
+        Expecting actual: ["200", "500 INTERNAL_ERROR"] to contain exactly in any order: ["200", "422 TASK_ALREADY_DONE"] elements not found: ["422 TASK_ALREADY_DONE"] and elements not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner
+ok     FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow
+ok     FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued
+ok     FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21
+ok     FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner
+ok     FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken
+FAILED FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+        Expecting actual: ["201", "500 INTERNAL_ERROR"] to contain exactly in any order: ["201", "422 ATTACHMENT_ENTITY_MISMATCH"] elements not found: ["422 ATTACHMENT_ENTITY_MISMATCH"] and elements not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409
+FAILED FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500
+        Expecting actual: ["500 INTERNAL_ERROR", "204"] to contain exactly (and in same order): ["204", "204"] but some elements were not found: ["204"] and others were not expected: ["500 INTERNAL_ERROR"]
+ok     FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion
+ok     FollowupIT.T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead
+ok     FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer
+ok     FollowupIT.T_10_18_theTaskFollowsATransferredDog
+ok     FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText
+ok     FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+ok     FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne
+ok     FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles
+FAILED E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration
+       [POST /api/v1/attachments {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"fa2eb9d7-7eda-47e5-88cc-b33975b3b041"}] expected: 404 but was: 403
+ok     E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand
+ok     E6ContractIT.T_10_21_undeclaredFiltersAndSortsAreInvalidBeforeTheStub
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[1]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[2]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[3]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[4]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[5]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[6]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[7]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[8]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[9]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[10]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[11]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[12]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[13]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[14]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[15]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[16]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[17]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[18]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[19]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[20]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[21]
+ok     E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[22]
+ok     E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+ok     E6ContractIT.T_10_21_theStubsWriteNothing
+ok     E6ContractIT.T_10_22_impersonationIsAcceptedOnlyOnHistoryTaskListCompletionAndTheMemberAttachments
+ok     E6ContractIT.T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose
+ok     E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesServeTheMemberRoleRefuseStaffOnlyTokensAndOtherMembersSeeNothingOfTheirs
+$ (cd target/before-fix-e6t03-r5-soft && ./mvnw -q verify -Dtest=NoUnitTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT#T_10_25_twoOverlapping*+R_10_10_overlapping*+T_10_16_overlapping*+T_10_18_T_10_06_overlapping* -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 9.908 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.943 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500 -- Time elapsed: 0.507 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500 -- Time elapsed: 0.393 s <<< FAILURE!
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500 -- Time elapsed: 0.209 s <<< FAILURE!
+--- run B: per test (surefire + failsafe XML of the copy), with the failure message
+FAILED FollowupIT.T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       Multiple Failures (12 failures)
+       - line 1068 `soft.assertThat(outcomes(grants)).containsExactly("201", "201"); soft.assertThat(grants.retries()).isPositive();`: Expecting actual: ["500 UNCAUGHT TransactionSystemException", "201"] to contain exactly (and in same order): ["201", "201"] but some elements were not found: ["201"] and others were not expected: ["500 UNCAUGHT TransactionSystemException"]
+       - line 1068 `soft.assertThat(outcomes(grants)).containsExactly("201", "201"); soft.assertThat(grants.retries()).isPositive();`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1078 `soft.assertThat(outcomes(removed)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); soft.assertThat(removed.retries())`: Expecting actual: ["204", "500 INTERNAL_ERROR"] to contain exactly in any order: ["204", "404 NOT_FOUND"] elements not found: ["404 NOT_FOUND"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 1078 `soft.assertThat(outcomes(removed)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); soft.assertThat(removed.retries())`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1082 `soft.assertThat(outcomes(both)).containsExactly("201", "201"); soft.assertThat(both.retries()).isPositive();`: Expecting actual: ["201", "500 INTERNAL_ERROR"] to contain exactly (and in same order): ["201", "201"] but some elements were not found: ["201"] and others were not expected: ["500 INTERNAL_ERROR"]
+       - line 1082 `soft.assertThat(outcomes(both)).containsExactly("201", "201"); soft.assertThat(both.retries()).isPositive();`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1083 `soft.assertThat(task(id).getInteger("attachmentCount")).isEqualTo(2);`: expected: 2 but was: 1
+       - line 1087 `soft.assertThat(outcomes(limit)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_LIMIT_REACHED"); soft.assertThat(limit`: Expecting actual: ["500 INTERNAL_ERROR", "201"] to contain exactly in any order: ["201", "422 ATTACHMENT_LIMIT_REACHED"] elements not found: ["422 ATTACHMENT_LIMIT_REACHED"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 1087 `soft.assertThat(outcomes(limit)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_LIMIT_REACHED"); soft.assertThat(limit`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1088 `soft.assertThat(mapper.readTree(limit.with(422).getContentAsString()).path("details").path("max").asInt()).isEqualTo(max`: expected: 2 but was: 0
+       - line 1089 `soft.assertThat(task(id).getInteger("attachmentCount")).isEqualTo(max).isEqualTo(3); soft.assertThat(eventsOf("Attachmen`: expected: 3 but was: 2
+       - line 1089 `soft.assertThat(task(id).getInteger("attachmentCount")).isEqualTo(max).isEqualTo(3); soft.assertThat(eventsOf("Attachmen`: Expected size: 4 but was: 3 in: [{"_class"="com.agilityhub.core.shared.persistence.DomainEventRecord", "_id"="da77fe4c-82d9-4a95-b0e0-cb073d5b5857", "actorAccountId"="s10f-estel", "aggregateId"="031ca391-37cd-48bf-8f11-3eeb53698163", "aggregateType"="Attachment", "attempts"=0, "clubId"="s10f-a", "ev
+FAILED FollowupIT.T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500
+       Multiple Failures (2 failures)
+       - line 995 `soft.assertThat(outcomes(completed)).containsExactlyInAnyOrder("200", "422 TASK_ALREADY_DONE");`: Expecting actual: ["500 INTERNAL_ERROR", "200"] to contain exactly in any order: ["200", "422 TASK_ALREADY_DONE"] elements not found: ["422 TASK_ALREADY_DONE"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 996 `soft.assertThat(completed.retries()).as("the write conflict was retried").isPositive();`: [the write conflict was retried] Expecting actual: 0.0 to be greater than: 0.0
+FAILED FollowupIT.R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500
+       Multiple Failures (6 failures)
+       - line 1023 `soft.assertThat(outcomes(created)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_ENTITY_MISMATCH"); soft.assertThat(c`: Expecting actual: ["201", "500 INTERNAL_ERROR"] to contain exactly in any order: ["201", "422 ATTACHMENT_ENTITY_MISMATCH"] elements not found: ["422 ATTACHMENT_ENTITY_MISMATCH"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 1023 `soft.assertThat(outcomes(created)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_ENTITY_MISMATCH"); soft.assertThat(c`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1041 `soft.assertThat(outcomes(reopened)).containsExactlyInAnyOrder("200", "422 TASK_NOT_DONE"); soft.assertThat(reopened.retr`: Expecting actual: ["200", "500 INTERNAL_ERROR"] to contain exactly in any order: ["200", "422 TASK_NOT_DONE"] elements not found: ["422 TASK_NOT_DONE"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 1041 `soft.assertThat(outcomes(reopened)).containsExactlyInAnyOrder("200", "422 TASK_NOT_DONE"); soft.assertThat(reopened.retr`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1045 `soft.assertThat(outcomes(deleted)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); soft.assertThat(deleted.retries())`: Expecting actual: ["500 INTERNAL_ERROR", "204"] to contain exactly in any order: ["204", "404 NOT_FOUND"] elements not found: ["404 NOT_FOUND"] and elements not expected: ["500 INTERNAL_ERROR"]
+       - line 1045 `soft.assertThat(outcomes(deleted)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); soft.assertThat(deleted.retries())`: Expecting actual: 0.0 to be greater than: 0.0
+FAILED FollowupIT.T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500
+       Multiple Failures (6 failures)
+       - line 1104 `soft.assertThat(outcomes(read)).containsExactly("204", "204"); soft.assertThat(read.retries()).isPositive();`: Expecting actual: ["500 INTERNAL_ERROR", "204"] to contain exactly (and in same order): ["204", "204"] but some elements were not found: ["204"] and others were not expected: ["500 INTERNAL_ERROR"]
+       - line 1104 `soft.assertThat(outcomes(read)).containsExactly("204", "204"); soft.assertThat(read.retries()).isPositive();`: Expecting actual: 0.0 to be greater than: 0.0
+       - line 1106 `soft.assertThat(mongo.findOne(mark, Document.class, "followup_read_marks").getList("readItemIds", String.class)).contain`: Expecting actual: ["8c87ab3e-2673-318f-8d22-0ee41d372dee"] to contain exactly in any order: ["479355ff-ecfd-32b4-a4e0-c13a3484acde", "8c87ab3e-2673-318f-8d22-0ee41d372dee"] but could not find the following elements: ["479355ff-ecfd-32b4-a4e0-c13a3484acde"]
+       - line 1107 `soft.assertThat(unread("estel")).isZero();`: expected: 0 but was: 1
+       - line 1111 `soft.assertThat(outcomes(all)).containsExactly("204", "204"); soft.assertThat(all.retries()).isPositive();`: Expecting actual: ["500 INTERNAL_ERROR", "204"] to contain exactly (and in same order): ["204", "204"] but some elements were not found: ["204"] and others were not expected: ["500 INTERNAL_ERROR"]
+       - line 1111 `soft.assertThat(outcomes(all)).containsExactly("204", "204"); soft.assertThat(all.retries()).isPositive();`: Expecting actual: 0.0 to be greater than: 0.0

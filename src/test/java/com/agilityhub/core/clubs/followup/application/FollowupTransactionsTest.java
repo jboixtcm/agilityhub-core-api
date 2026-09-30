@@ -1,7 +1,9 @@
 package com.agilityhub.core.clubs.followup.application;
 
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TransactionRetries;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
@@ -11,9 +13,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * T-10-25 (R-10-10): the non-keyed follow-up writes (edit, completion, reopening) run in one transaction retried whole
- * on a write conflict, so the loser of two simultaneous completions re-reads the task and answers TASK_ALREADY_DONE;
- * any other failure is not retried, and exhausted retries answer 409 STALE_VERSION.
+ * T-10-25 (R-10-10): the follow-up writes run in one transaction retried whole on a write conflict, so the loser of two
+ * simultaneous completions re-reads the task and answers TASK_ALREADY_DONE; any other failure is not retried, and
+ * exhausted retries answer 409 STALE_VERSION. A keyed write keeps its idempotency row in that transaction (round 5).
  */
 class FollowupTransactionsTest {
     /** A transaction manager without a database: begin, commit and rollback do nothing. */
@@ -36,6 +38,27 @@ class FollowupTransactionsTest {
         assertThat(once).hasValue(1);
         assertThatThrownBy(() -> transactions.run(() -> { throw new DuplicateKeyException("always"); })).hasMessage("STALE_VERSION");
         assertThat(retries.exhaustions("followup")).isEqualTo(1);
+    }
+
+    /**
+     * E6-T03 round 5 (INC-47): a keyed write locks its key's row first and stores the answer of the attempt that commits, in
+     * that attempt; a conflict runs the lock and the work again. Without a key (no operation open) the work runs alone.
+     */
+    @Test void T_10_25_aKeyedWriteLocksItsKeyAndStoresTheAnswerOfTheAttemptThatCommits() {
+        var calls = new ArrayList<String>();
+        try (var scope = IdempotentOperation.open(() -> calls.add("lock"), (status, body) -> calls.add(status + " [" + new String(body) + "]"))) {
+            var attempts = new AtomicInteger();
+            assertThat(transactions.keyed(200, () -> {
+                calls.add("work " + attempts.incrementAndGet());
+                if (attempts.get() < 2) { throw new DuplicateKeyException("fictional conflict"); }
+                return "done";
+            }, String::getBytes)).isEqualTo("done");
+            transactions.keyedNoContent(() -> calls.add("read"));
+        }
+        assertThat(calls).containsExactly("lock", "work 1", "lock", "work 2", "200 [done]", "lock", "read", "204 []");
+        calls.clear();
+        assertThat(transactions.keyed(201, () -> { calls.add("alone"); return "created"; }, String::getBytes)).isEqualTo("created");
+        assertThat(calls).containsExactly("alone");
     }
 
     @Test void T_10_25_insideAnotherTransactionTheWorkRunsOnceAsIs() {

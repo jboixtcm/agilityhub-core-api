@@ -59,6 +59,19 @@ public class FollowupContractAccess {
                 .anyMatch(granted -> granted.getAuthority().equals("ROLE_ADMIN") || granted.getAuthority().equals("ROLE_INSTRUCTOR"));
         return new Caller(impersonated ? user.impersonation().memberId() : memberClaim, staff, impersonated);
     }
+    /**
+     * S01 R-01-07 (ruling E41; E71 for S10, E6-T03 round 5): the roles are a union, and an account's own actions go through the
+     * member branch. A staff caller whose token also has MEMBER, and whose member owns the dog, acts on it as that member (the
+     * note's attachments, the completion). Another member's dog, or a token without MEMBER, keeps the staff branch.
+     */
+    public Caller owner(Caller caller, String dogId) {
+        if (!caller.staff() || caller.memberId() == null || !memberRole()) { return caller; }
+        return census.ownerOf(dogId).filter(caller.memberId()::equals).isPresent() ? new Caller(caller.memberId(), false, false) : caller;
+    }
+    private static boolean memberRole() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream().anyMatch(granted -> granted.getAuthority().equals("ROLE_MEMBER"));
+    }
     /** TASK and DOG_OBSERVATIONS are written by INSTRUCTOR/ADMIN only (R-10-11): the impersonation token is IMPERSONATION_DENIED. */
     public void staffWriter(Caller caller) {
         if (caller.impersonated()) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
@@ -101,13 +114,17 @@ public class FollowupContractAccess {
         tasksModule();
         entity(caller, type, entityId);
     }
-    /** `DELETE /attachments/{id}`: live attachment of this club; TASK/DOG_OBSERVATIONS by staff, INSTRUCTOR_NOTE by the owner (also impersonated). */
+    /**
+     * `DELETE /attachments/{id}`: live attachment of this club; TASK/DOG_OBSERVATIONS by staff, INSTRUCTOR_NOTE by the owner
+     * (also impersonated, or with a staff role next to MEMBER, {@link #owner}).
+     */
     public com.agilityhub.core.clubs.followup.persistence.Attachment removableAttachment(Caller caller, String id) {
         var attachment = attachments.findById(id).filter(a -> a.removedAt() == null).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var type = type(attachment.entityType());
-        if (type.staffOnly()) { staffWriter(caller); }
-        else if (caller.staff()) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        entity(caller, type, attachment.entityId());
+        var acting = type.staffOnly() ? caller : owner(caller, attachment.entityId());
+        if (type.staffOnly()) { staffWriter(acting); }
+        else if (acting.staff()) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        entity(acting, type, attachment.entityId());
         return attachment;
     }
     private void entity(Caller caller, AttachmentEntityType type, String entityId) {

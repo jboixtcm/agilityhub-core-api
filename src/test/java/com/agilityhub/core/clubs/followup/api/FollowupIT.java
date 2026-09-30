@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
@@ -48,7 +49,11 @@ class FollowupIT extends AbstractIntegrationTest {
     static final List<String> DATA = List.of("tasks", "attachments", "attachment_uploads", "attachment_write_locks", "followup_items", "followup_read_marks", "members", "dogs",
             "family_groups", "memberships", "levels", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records", "bookings");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
-    @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;
+    @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher; @Autowired TransactionTemplate tx;
+    /** Round 5: holds the first text edit at its outbox row (a spy that otherwise publishes as the bean does). */
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean EventPublisher events;
+    /** Round 5: holds the first keyed write at its stored answer, the last step of its transaction. */
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.shared.persistence.IdempotencyRepository idempotency;
     @Autowired EmailSender email; @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.MemberNoteChanged") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> noteConsumer;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.DogTransferred") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> transferConsumer;
@@ -899,6 +904,248 @@ class FollowupIT extends AbstractIntegrationTest {
         assertThat(unread("estel")).as("Estel's read mark survives the replay").isZero(); assertThat(unread("marc")).isEqualTo(1);
         assertThat(followup("estel").path("items")).singleElement().satisfies(item -> assertThat(item.path("unread").asBoolean()).isFalse());
         assertThat(mongo.findById(noteRow, Document.class, "followup_items")).isEqualTo(stored);
+    }
+
+    // ---------------------------------------------------------------- round 5: overlapping writes with different keys (INC-47), ruling E41
+
+    /** A point inside a request's transaction, after its writes: {@code park} holds the first request that reaches it. */
+    interface Hold { void install(Runnable park); }
+    /** The key's stored answer: the last step of a keyed write's transaction (before round 5, of the filter's own transaction). */
+    Hold atStoredAnswer() {
+        return park -> doAnswer(call -> { park.run(); return call.callRealMethod(); }).when(idempotency).complete(any(), anyInt(), any(), any());
+    }
+    /** The outbox row of an event of {@code type}: the text edit is not keyed (its `version` is), so it stores no answer. */
+    Hold atEvent(String type) {
+        return park -> doAnswer(call -> { if (type.equals(call.<DomainEvent>getArgument(0).type())) { park.run(); } return call.callRealMethod(); })
+                .when(events).publish(any());
+    }
+    /** Two requests sent at once: their answers in the order given, and the follow-up transactions retried meanwhile. */
+    record Overlap(List<org.springframework.mock.web.MockHttpServletResponse> responses, double retries) {
+        org.springframework.mock.web.MockHttpServletResponse with(int status) { return responses.stream().filter(r -> r.getStatus() == status).findFirst().orElseThrow(); }
+    }
+    MockHttpServletRequestBuilder keyed(HttpMethod method, String path, Object body, RequestPostProcessor auth, String key) throws Exception {
+        var request = request(method, "/api/v1" + path).header("Host", HOST).with(auth).header("Idempotency-Key", key);
+        if (body != null) { request.contentType("application/json").content(mapper.writeValueAsBytes(body)); }
+        return request;
+    }
+    MockHttpServletRequestBuilder keyed(HttpMethod method, String path, Object body, RequestPostProcessor auth) throws Exception { return keyed(method, path, body, auth, key()); }
+    /**
+     * Sends the requests at once. The first to reach {@code hold} waits there, its writes done and its transaction open, until
+     * another one has met those writes and retried its transaction (the fix), or has answered (before the fix, a 500 for the
+     * write conflict; or because nothing conflicts). Then it commits, and the others finish. When every request answers
+     * without reaching the hold (before the fix, both refused), their answers are returned as they are.
+     */
+    Overlap overlapping(Hold hold, MockHttpServletRequestBuilder... requests) throws Exception {
+        var held = new CountDownLatch(1); var release = new CountDownLatch(1); var gate = new java.util.concurrent.atomic.AtomicBoolean();
+        hold.install(() -> {
+            if (!gate.compareAndSet(false, true)) { return; }
+            held.countDown();
+            try { if (!release.await(30, TimeUnit.SECONDS)) { throw new IllegalStateException("the held request was never released"); } }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+        });
+        double retried = retries.retries("followup");
+        var pool = Executors.newFixedThreadPool(requests.length);
+        try {
+            var answers = new ArrayList<Future<org.springframework.mock.web.MockHttpServletResponse>>();
+            for (var request : requests) { answers.add(pool.submit(() -> mvc.perform(request).andReturn().getResponse())); }
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+            while (held.getCount() > 0 && !answers.stream().allMatch(Future::isDone) && System.nanoTime() < deadline) { Thread.sleep(2); }
+            assertThat(held.getCount() == 0 || answers.stream().allMatch(Future::isDone)).as("one request reached its hold, or every one answered").isTrue();
+            deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+            while (retries.retries("followup") <= retried && answers.stream().noneMatch(Future::isDone) && System.nanoTime() < deadline) { Thread.sleep(2); }
+            release.countDown();
+            var responses = new ArrayList<org.springframework.mock.web.MockHttpServletResponse>();
+            for (var answer : answers) { responses.add(answer.get(60, TimeUnit.SECONDS)); }
+            return new Overlap(responses, retries.retries("followup") - retried);
+        } finally { release.countDown(); pool.shutdownNow(); }
+    }
+    /** `status`, or `status CODE` for an error with a body. */
+    List<String> outcomes(Overlap overlap) throws Exception {
+        var outcomes = new ArrayList<String>();
+        for (var response : overlap.responses()) {
+            String body = response.getContentAsString();
+            outcomes.add(response.getStatus() + (response.getStatus() >= 400 && !body.isEmpty() ? " " + code(mapper.readTree(body)) : ""));
+        }
+        return outcomes;
+    }
+
+    /**
+     * Round 5 review #1 (T-10-25, R-10-10, INC-47): Laura and Estel complete one task at the same time, each with her own
+     * `Idempotency-Key`. The first completion is held at its stored answer, inside its transaction; the other one meets its
+     * write (a Mongo write conflict), runs its transaction again once the first has committed, re-reads DONE and answers
+     * 422 TASK_ALREADY_DONE: one TaskCompleted and one N-21 per active instructor. Before the fix the keyed completion ran in
+     * the idempotency filter's transaction, which never retries: 500 INTERNAL_ERROR.
+     */
+    @Test void T_10_25_twoOverlappingKeyedCompletionsGiveOne200AndOneTaskAlreadyDoneNeverA500() throws Exception {
+        String id = createTask("estel", "s10f-d-duna", "Practiqueu el balancí", null, 201).path("id").asText();
+        double exhausted = retries.exhaustions("followup");
+        var keys = Map.of("laura", key(), "estel", key());
+        var completed = overlapping(atStoredAnswer(), keyed(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("laura"), keys.get("laura")),
+                keyed(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("estel"), keys.get("estel")));
+        assertThat(outcomes(completed)).containsExactlyInAnyOrder("200", "422 TASK_ALREADY_DONE");
+        assertThat(completed.retries()).as("the write conflict was retried").isPositive();
+        assertThat(retries.exhaustions("followup")).as("the 422 is the re-read state, not the attempts running out").isEqualTo(exhausted);
+        assertThat(eventsOf("TaskCompleted")).hasSize(1); assertThat(task(id).getString("state")).isEqualTo("DONE");
+        // The winner's key replays its 200 (stored by the attempt that committed); the loser's error released its key.
+        String winner = completed.responses().get(0).getStatus() == 200 ? "laura" : "estel", loser = winner.equals("laura") ? "estel" : "laura";
+        assertThat(call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as(winner), 200, keys.get(winner)))
+                .isEqualTo(mapper.readTree(completed.with(200).getContentAsString()));
+        assertThat(code(call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as(loser), 422, keys.get(loser)))).isEqualTo("TASK_ALREADY_DONE");
+        assertThat(eventsOf("TaskCompleted")).hasSize(1);
+        dispatch(); dispatch();
+        assertThat(notifications("N-21")).hasSize(3);
+    }
+
+    /**
+     * Round 5 #2 (R-10-10, INC-47): the task's other writes, two at a time with different keys, the first held after its writes:
+     * - two creations naming one upload → one 201 and one 422 ATTACHMENT_ENTITY_MISMATCH (the loser's retry finds the file
+     *   attached to the other task) and one task;
+     * - two text edits of one version (not keyed: the `version` is their idempotency, S10 §6, and the keys are ignored) →
+     *   one 200 and one 409 STALE_VERSION;
+     * - two reopenings → one 200 and one 422 TASK_NOT_DONE; two deletions → one 204 and one 404.
+     * Before the fix the keyed ones ran in the filter's transaction and answered 500 for the write conflict.
+     */
+    @Test void R_10_10_overlappingTaskWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500() throws Exception {
+        String video = upload(as("estel"), "TASK", "vídeo_balancí.mp4", "video/mp4", "%PDF fictional".getBytes());
+        var created = overlapping(atStoredAnswer(),
+                keyed(HttpMethod.POST, "/tasks", Map.of("dogId", "s10f-d-duna", "text", "Mireu el vídeo", "attachmentIds", List.of(video)), as("estel")),
+                keyed(HttpMethod.POST, "/tasks", Map.of("dogId", "s10f-d-duna", "text", "Mireu el vídeo i practiqueu-ho", "attachmentIds", List.of(video)), as("estel")));
+        assertThat(outcomes(created)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_ENTITY_MISMATCH"); assertThat(created.retries()).isPositive();
+        var task = mapper.readTree(created.with(201).getContentAsString());
+        String id = task.path("id").asText();
+        assertThat(count("tasks", new Criteria())).isEqualTo(1); assertThat(count("followup_items", new Criteria())).isEqualTo(1);
+        assertThat(eventsOf("TaskCreated")).hasSize(1); assertThat(eventsOf("AttachmentAdded")).hasSize(1);
+        assertThat(task.path("attachments").findValuesAsText("id")).containsExactly(video);
+        assertThat(mongo.findById(video, Document.class, "attachments").getString("entityId")).isEqualTo(id);
+
+        var edited = overlapping(atEvent("TaskUpdated"), keyed(HttpMethod.PATCH, "/tasks/" + id, Map.of("text", "Text de l'Estel", "version", 0), as("estel")),
+                keyed(HttpMethod.PATCH, "/tasks/" + id, Map.of("text", "Text d'en Marc", "version", 0), as("marc")));
+        assertThat(outcomes(edited)).containsExactlyInAnyOrder("200", "409 STALE_VERSION"); assertThat(edited.retries()).isPositive();
+        assertThat(eventsOf("TaskUpdated")).hasSize(1);
+        assertThat(task(id).getString("text")).isEqualTo(mapper.readTree(edited.with(200).getContentAsString()).path("text").asText());
+        assertThat(task(id).get("version", Number.class).longValue()).isEqualTo(1);
+
+        call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("laura"), 200);
+        var reopened = overlapping(atStoredAnswer(), keyed(HttpMethod.POST, "/tasks/" + id + "/reopening", null, as("estel")),
+                keyed(HttpMethod.POST, "/tasks/" + id + "/reopening", null, as("marc")));
+        assertThat(outcomes(reopened)).containsExactlyInAnyOrder("200", "422 TASK_NOT_DONE"); assertThat(reopened.retries()).isPositive();
+        assertThat(eventsOf("TaskReopened")).hasSize(1); assertThat(task(id).getString("state")).isEqualTo("PENDING");
+
+        var deleted = overlapping(atStoredAnswer(), keyed(HttpMethod.DELETE, "/tasks/" + id, null, as("estel")), keyed(HttpMethod.DELETE, "/tasks/" + id, null, as("admin")));
+        assertThat(outcomes(deleted)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); assertThat(deleted.retries()).isPositive();
+        assertThat(eventsOf("TaskDeleted")).hasSize(1); assertThat(row(id).getBoolean("hidden")).isTrue();
+    }
+
+    MockHttpServletRequestBuilder register(String taskId, String fileKey) throws Exception {
+        return keyed(HttpMethod.POST, "/attachments", Map.of("entityType", "TASK", "entityId", taskId, "fileKey", fileKey, "name", "foto.pdf"), as("estel"));
+    }
+    /**
+     * Round 5 #2 (R-10-11, INC-47): the attachments' writes, two at a time with different keys, the first held at its stored answer:
+     * - two upload URLs insert two grants; on a database without the grants' collection both transactions create it, and
+     *   one meets a write conflict (at commit): it runs again, and both answer 201 with their own key;
+     * - two removals of one attachment → one 204 and one 404, one AttachmentRemoved, attachmentCount − 1 once;
+     * - two registrations on one task meet on the entity's lock: both 201 with room, and at the limit one 201 and one 422
+     *   ATTACHMENT_LIMIT_REACHED {max}.
+     * Each phase starts from a state written without overlap, so it stands alone.
+     * Before the fix these ran in the filter's transaction: a 500 for the write conflict, or an uncaught commit failure.
+     */
+    @Test void T_10_16_overlappingAttachmentWritesWithDifferentKeysAnswerTheirConflictCodeNeverA500() throws Exception {
+        byte[] pdf = "%PDF fictional".getBytes();
+        mongo.dropCollection("attachment_uploads");
+        var grants = overlapping(atStoredAnswer(),
+                keyed(HttpMethod.POST, "/attachments/upload-url", Map.of("purpose", "TASK", "fileName", "a.pdf", "mimeType", "application/pdf", "sizeBytes", pdf.length), as("estel")),
+                keyed(HttpMethod.POST, "/attachments/upload-url", Map.of("purpose", "TASK", "fileName", "b.pdf", "mimeType", "application/pdf", "sizeBytes", pdf.length), as("estel")));
+        assertThat(outcomes(grants)).containsExactly("201", "201"); assertThat(grants.retries()).isPositive();
+        var fileKeys = new HashSet<String>(); for (var response : grants.responses()) { fileKeys.add(mapper.readTree(response.getContentAsString()).path("fileKey").asText()); }
+        assertThat(fileKeys).hasSize(2);
+
+        String id = createTask("estel", "s10f-d-duna", "Amb fotos", null, 201).path("id").asText();
+        var files = new ArrayList<String>();
+        for (int i = 0; i <= 4; i++) { files.add(upload(as("estel"), "TASK", "foto" + i + ".pdf", "application/pdf", pdf)); }
+        call(HttpMethod.POST, "/attachments", Map.of("entityType", "TASK", "entityId", id, "fileKey", files.get(4), "name", "foto4.pdf"), as("estel"), 201, key());
+        var removed = overlapping(atStoredAnswer(), keyed(HttpMethod.DELETE, "/attachments/" + files.get(4), null, as("estel")),
+                keyed(HttpMethod.DELETE, "/attachments/" + files.get(4), null, as("admin")));
+        assertThat(outcomes(removed)).containsExactlyInAnyOrder("204", "404 NOT_FOUND"); assertThat(removed.retries()).isPositive();
+        assertThat(eventsOf("AttachmentRemoved")).hasSize(1); assertThat(task(id).getInteger("attachmentCount")).isZero();
+
+        var both = overlapping(atStoredAnswer(), register(id, files.get(0)), register(id, files.get(1)));
+        assertThat(outcomes(both)).containsExactly("201", "201"); assertThat(both.retries()).isPositive();
+        assertThat(task(id).getInteger("attachmentCount")).isEqualTo(2);
+        int max = task(id).getInteger("attachmentCount") + 1; // room for exactly one more
+        parameter("files.maxAttachmentsPerEntity", max);
+        var limit = overlapping(atStoredAnswer(), register(id, files.get(2)), register(id, files.get(3)));
+        assertThat(outcomes(limit)).containsExactlyInAnyOrder("201", "422 ATTACHMENT_LIMIT_REACHED"); assertThat(limit.retries()).isPositive();
+        assertThat(mapper.readTree(limit.with(422).getContentAsString()).path("details").path("max").asInt()).isEqualTo(max);
+        assertThat(task(id).getInteger("attachmentCount")).isEqualTo(max).isEqualTo(3); assertThat(eventsOf("AttachmentAdded")).hasSize(4);
+    }
+
+    /**
+     * Round 5 #2 (R-10-13, INC-47): an account's read marks are one document. Estel reads two rows at once, then marks
+     * everything read twice at once, each request with its own key: every answer is 204, both rows end read, and the second
+     * request's transaction ran again on the first one's write. Before the fix the second answered 500.
+     */
+    @Test void T_10_18_T_10_06_overlappingReadMarksOfOneAccountAllAnswer204NeverA500() throws Exception {
+        createTask("marc", "s10f-d-duna", "Tasca d'en Marc per a la Duna", null, 201);
+        createTask("marc", "s10f-d-toby", "Tasca d'en Marc per al Toby", null, 201);
+        var rows = followup("estel").path("items").findValuesAsText("id");
+        assertThat(rows).hasSize(2); assertThat(unread("estel")).isEqualTo(2);
+        var read = overlapping(atStoredAnswer(), keyed(HttpMethod.POST, "/followup/" + rows.get(0) + "/read", null, as("estel")),
+                keyed(HttpMethod.POST, "/followup/" + rows.get(1) + "/read", null, as("estel")));
+        assertThat(outcomes(read)).containsExactly("204", "204"); assertThat(read.retries()).isPositive();
+        var mark = Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s10f-estel"));
+        assertThat(mongo.findOne(mark, Document.class, "followup_read_marks").getList("readItemIds", String.class)).containsExactlyInAnyOrderElementsOf(rows);
+        assertThat(unread("estel")).isZero();
+
+        clock.setInstant(NOW.plusSeconds(60));
+        var all = overlapping(atStoredAnswer(), keyed(HttpMethod.POST, "/followup/read-all", null, as("estel")), keyed(HttpMethod.POST, "/followup/read-all", null, as("estel")));
+        assertThat(outcomes(all)).containsExactly("204", "204"); assertThat(all.retries()).isPositive();
+        var marked = mongo.findOne(mark, Document.class, "followup_read_marks");
+        assertThat(marked.getList("readItemIds", String.class)).isEmpty(); assertThat(marked.getDate("readAllAt").toInstant()).isEqualTo(NOW.plusSeconds(60));
+        assertThat(count("followup_read_marks", new Criteria())).isEqualTo(1);
+        assertThat(unread("estel")).isZero(); assertThat(unread("nuria")).isEqualTo(2);
+    }
+
+    /** A token of `s10f-<id>` with its member claim and the given roles. */
+    RequestPostProcessor token(String id, String... roles) {
+        var authorities = Arrays.stream(roles).map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                .toArray(org.springframework.security.core.GrantedAuthority[]::new);
+        return jwt().jwt(j -> j.subject("s10f-" + id).claim("clubId", CLUB).claim("memberId", "s10f-m-" + id).claim("name", id + " Example")).authorities(authorities);
+    }
+    /**
+     * Round 5 #3 (S01 R-01-07, ruling E41; E71 for S10): Pau is an instructor and a member, and owns Nit. On Nit he takes the
+     * member branch: he attaches a file to his own note and removes it (201, 204), and completing Nit's task records him as
+     * the member (doneBy MEMBER, «Pau», MALE). On Laura's Duna, or with an instructor-only token, he is staff: a member's
+     * note refuses him (403) and his completion is an instructor's. Before the fix every staff token got 403 on a note.
+     */
+    @Test void R_01_07_anInstructorWhoIsAMemberTakesTheMemberBranchOnHisOwnDog() throws Exception {
+        person("pau", "INSTRUCTOR", "Pau", "MALE", "ca");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s10f-pau")), new Update().set("roles", List.of("INSTRUCTOR", "MEMBER")), "memberships");
+        dog("s10f-d-nit", "s10f-m-pau", "Nit", "ACTIVE");
+        var pau = token("pau", "ROLE_INSTRUCTOR", "ROLE_MEMBER"); var pauInstructor = token("pau", "ROLE_INSTRUCTOR");
+        byte[] pdf = "%PDF fictional".getBytes();
+        String own = upload(pau, "INSTRUCTOR_NOTE", "foto_nit.pdf", "application/pdf", pdf);
+        assertThat(call(HttpMethod.POST, "/attachments", Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "s10f-d-nit", "fileKey", own, "name", "foto_nit.pdf"),
+                pau, 201, key()).path("id").asText()).isEqualTo(own);
+        assertThat(mongo.findById(own, Document.class, "attachments").getString("uploadedByAccountId")).isEqualTo("s10f-pau");
+        String other = upload(pau, "INSTRUCTOR_NOTE", "foto_duna.pdf", "application/pdf", pdf);
+        assertThat(code(call(HttpMethod.POST, "/attachments", Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "s10f-d-duna", "fileKey", other, "name", "foto_duna.pdf"),
+                pau, 403, key()))).as("another member's dog").isEqualTo("FORBIDDEN");
+        assertThat(code(call(HttpMethod.POST, "/attachments", Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "s10f-d-nit", "fileKey", other, "name", "foto_nit.pdf"),
+                pauInstructor, 403, key()))).as("a token without MEMBER").isEqualTo("FORBIDDEN");
+        assertThat(call(HttpMethod.GET, "/attachments?entityType=INSTRUCTOR_NOTE&entityId=s10f-d-nit", null, pau, 200).path("items").findValuesAsText("id")).containsExactly(own);
+        String laurasNote = upload(as("laura"), "INSTRUCTOR_NOTE", "foto_laura.pdf", "application/pdf", pdf);
+        call(HttpMethod.POST, "/attachments", Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "s10f-d-duna", "fileKey", laurasNote, "name", "foto_laura.pdf"), as("laura"), 201);
+        assertThat(code(call(HttpMethod.DELETE, "/attachments/" + laurasNote, null, pau, 403, key()))).isEqualTo("FORBIDDEN");
+        assertThat(code(call(HttpMethod.DELETE, "/attachments/" + own, null, pauInstructor, 403, key()))).isEqualTo("FORBIDDEN");
+        call(HttpMethod.DELETE, "/attachments/" + own, null, pau, 204, key());
+        assertThat(mongo.findById(own, Document.class, "attachments").getString("removedByAccountId")).isEqualTo("s10f-pau");
+        // The completion: his own dog's task as the member, another member's dog's as an instructor.
+        String nits = createTask("estel", "s10f-d-nit", "Practiqueu la zona de contacte", null, 201).path("id").asText();
+        String dunas = createTask("estel", "s10f-d-duna", "Practiqueu el balancí", null, 201).path("id").asText();
+        var mine = call(HttpMethod.POST, "/tasks/" + nits + "/completion", null, pau, 200).path("doneBy");
+        assertThat(mine.path("role").asText()).isEqualTo("MEMBER"); assertThat(mine.path("displayName").asText()).isEqualTo("Pau");
+        assertThat(mine.path("gender").asText()).isEqualTo("MALE");
+        assertThat(call(HttpMethod.POST, "/tasks/" + dunas + "/completion", null, pau, 200).path("doneBy").path("role").asText()).isEqualTo("INSTRUCTOR");
     }
 
     // ---------------------------------------------------------------- the port of the sheet and the card, TASKS off (T-10-33)

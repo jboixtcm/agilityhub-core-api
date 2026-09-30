@@ -1,8 +1,10 @@
 package com.agilityhub.core.clubs.followup.application;
 
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -10,11 +12,11 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * The follow-up writes without an `Idempotency-Key` (the text edit, the completion and the reopening) run in one Mongo
- * transaction retried whole on a write conflict: two simultaneous completions give one 200 and one TASK_ALREADY_DONE
- * (T-10-25). The observations save (`PUT /dogs/{id}/observations`, keyed) runs here too, with its idempotency row
- * (`IdempotentOperation`), so two saves of one version give one 200 and one STALE_VERSION (R-10-12, E6-T03 round 4). The
- * other keyed routes already run inside the idempotency filter's transaction and are not retried here.
+ * Each write of the follow-up routes (tasks, attachment registrations and removals, read marks, observations) runs in one Mongo transaction retried
+ * whole on a write conflict: two simultaneous completions give
+ * one 200 and one TASK_ALREADY_DONE (T-10-25), two edits of one version one 200 and one STALE_VERSION. The text edit is not
+ * keyed (its `version` is its idempotency, S10 §6). The keyed writes ({@link #keyed}) are left to this transaction by the
+ * idempotency filter (`IdempotencyFilter.FOLLOWUP`, E6-T03 rounds 4 and 5, INC-47), with their idempotency row inside it.
  */
 @Component
 public class FollowupTransactions {
@@ -38,4 +40,21 @@ public class FollowupTransactions {
             }
         }
     }
+
+    /**
+     * A keyed write (E6-T03 round 5): the `Idempotency-Key`'s row is locked first and stores `status` and the answer's bytes
+     * last, in the attempt that commits. Two requests with different keys that meet on one document: the loser's attempt
+     * runs again, re-reads, and answers the spec's code for the conflict (or succeeds), never a 500. Without a key, the
+     * row calls do nothing.
+     */
+    public <T> T keyed(int status, Supplier<T> work, Function<T, byte[]> answer) {
+        return run(() -> {
+            IdempotentOperation.lock();
+            T result = work.get();
+            IdempotentOperation.complete(status, answer.apply(result));
+            return result;
+        });
+    }
+    /** A keyed write answered `204` (no body). */
+    public void keyedNoContent(Runnable work) { keyed(204, () -> { work.run(); return null; }, none -> new byte[0]); }
 }
