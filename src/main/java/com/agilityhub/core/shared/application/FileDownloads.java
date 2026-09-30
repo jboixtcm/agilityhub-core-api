@@ -17,4 +17,7 @@ public final class FileDownloads {
 
     /** An image other than an SVG is shown (`inline`), so that an `<img>` of another origin displays it. */
     public static boolean shownInline(MediaType type) { return "image".equals(type.getType()) && !type.isWildcardSubtype() && !svg(type); }
+
+    /** A PDF: the browser's viewer does not render it under `sandbox`, and its scripts run inside the viewer (ruling E71). */
+    public static boolean pdf(MediaType type) { return MediaType.APPLICATION_PDF.equalsTypeAndSubtype(type); }
 }

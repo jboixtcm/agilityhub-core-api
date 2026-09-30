@@ -2100,3 +2100,22 @@ Blocking: no.
 - **Known limit:** an accepted send whose settlement fails 5 times waits in memory under its 2-minute lease. It could be sent
   again if the instance stops first (report, round-2 assumption 2).
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T27 round 2
+@organizer **The three points of E5-T27's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **Public activity files (#1, E71):** every file carries `Content-Security-Policy: …; sandbox`, except a PDF shown `inline`.
+   Images and videos stay `inline`, and an SVG stays an `attachment`.
+2. **Health CORS (#2, E71):** on `GET /api/v1/health`, CORS reads only the configured platform hosts and never
+   `HostTenantResolver`. Any other `Origin` gets the same `UP`/`DOWN` envelope without CORS headers.
+   - `HealthIndependenceIT`: with Mongo paused, an uncached club `Origin` gets `503 DOWN` within the bound.
+   - `bin/e1-smoke` checks the same on the real jar.
+3. **Cancellation description (#3):** a dual-role account's own cancellation is `origin APP, cancelReason MEMBER`. The snapshot
+   changes one line, noted in `docs/openapi/CHANGELOG.md`.
+- **Before the fix:** the new tests fail on the round-1 code (logs `16`, `17`, `20`). On the old code, the club-`Origin` health
+  request was still blocked on the paused database after 5 s.
+- **Verify:** `./mvnw -q clean verify` exits 0 with 840 unit and 1174 integration tests, 0 failures, and the JaCoCo gate passes.
+- **Smokes and snapshot:** `bin/e1-smoke`, `bin/e3-smoke` and `bin/e5-smoke` exit 0. A second snapshot regeneration is
+  byte-identical.
+- **Behaviour change to note:** a page on a club's origin can no longer read the health cross-origin. No spec or screen does that
+  (report, assumption 12).
+Blocking: no.

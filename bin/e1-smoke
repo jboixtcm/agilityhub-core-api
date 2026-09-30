@@ -378,12 +378,19 @@ def main():
                 started_at = time.monotonic()
                 down, _ = api.call("/api/v1/health", 503)
                 elapsed = time.monotonic() - started_at
+                # E5-T27 round 2 (review #2, ruling E71): a club Origin never sends the health to the database through CORS.
+                started_at = time.monotonic()
+                down_origin, origin_headers = api.call("/api/v1/health", 503, origin="https://uncached-club.example.test")
+                elapsed_origin = time.monotonic() - started_at
             finally:
                 command(unpause, env=env)
             require(down == dict(status="DOWN", version=up["version"], builtAt=up["builtAt"]), "Health DOWN must keep the envelope")
             require(elapsed < 3, "Health must answer within its 1 s bound")
+            require(down_origin == down and elapsed_origin < 3, "Health with a club Origin must answer DOWN within its bound")
+            require(origin_headers.get("Access-Control-Allow-Origin") is None, "Health must not allow a club Origin")
             eventually(lambda: api.call("/api/v1/health")[0].get("status") == "UP", "Health did not recover", 60)
-            print(f"PASS health with Mongo paused -> 503 {{status: DOWN}} in {elapsed:.1f} s; 200 UP again once Mongo answers", flush=True)
+            print(f"PASS health with Mongo paused -> 503 {{status: DOWN}} in {elapsed:.1f} s, also with an uncached club Origin "
+                  f"in {elapsed_origin:.1f} s (no CORS headers); 200 UP again once Mongo answers", flush=True)
             print("E1 smoke passed. Staging/real delivery and the Learn adapter remain separate gate evidence.", flush=True)
         finally:
             if app is not None:

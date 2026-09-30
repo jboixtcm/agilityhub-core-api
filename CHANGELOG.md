@@ -725,6 +725,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     meets a concurrent booking ends SUCCEEDED after a retry.
   - Signed downloads (ruling E61): an SVG is always an `attachment` (also on the public activity file route), every
     signed download carries `Content-Security-Policy: …; sandbox`, and CORS exposes `Content-Disposition`.
+  - Round 2 (review of 28-09 14:59, ruling E71):
+    - The public activity file route sandboxes every file except a PDF shown `inline` (images and videos `inline`, an
+      SVG as an `attachment`).
+    - The health never reaches the database through CORS: on `GET /api/v1/health` only the configured platform hosts are
+      allowed, another origin gets the same `UP`/`DOWN` envelope without CORS headers.
+    - `POST /bookings/{id}/cancellation` describes a dual-role account's own cancellation as `origin APP` (not MEMBER).
 - E7-T01 round 2 (review of 27-09 14:39, ruling E66): the S11 contract's four corrections.
   - `POST /email-unsubscribes` publishes `security: []` (it inherited the global bearer); `E7ContractIT` asserts the
     effective requirement of every S11 operation in the live document and the committed snapshot.

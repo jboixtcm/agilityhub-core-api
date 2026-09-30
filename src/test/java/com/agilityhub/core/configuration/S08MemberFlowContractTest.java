@@ -88,6 +88,19 @@ class S08MemberFlowContractTest {
         assertThat(codes(confirm.at("/responses/409"))).contains("IDEMPOTENCY_KEY_REUSED");
     }
 
+    /**
+     * E5-T27 round 2 (review #3; R-08-19, R-01-07): a dual-role account's own cancellation is published with `origin APP` (MEMBER is its
+     * cancelReason and actor role, never an origin); another member's booking is the instructor's (`origin INSTRUCTOR`).
+     */
+    @Test void R_08_19_T_08_26_theOwnCancellationOfADualRoleAccountIsPublishedWithOriginApp() {
+        var description = operation("/api/v1/bookings/{id}/cancellation", "post").path("description").asText();
+        assertThat(description).contains("as a member (origin APP, cancelReason MEMBER; R-08-19)")
+                .contains("as an instructor (origin INSTRUCTOR)").doesNotContain("origin MEMBER");
+        var origins = new ArrayList<String>();
+        document.path("paths").forEach(item -> item.forEach(op -> { if (op.path("description").asText().contains("origin MEMBER")) { origins.add(op.path("operationId").asText()); } }));
+        assertThat(origins).as("operations publishing origin MEMBER").isEmpty();
+    }
+
     /** Step 7 (`CATALEG_ERRORS.md` and R-08-10, amended 26-09): `BOOKING_NOT_CANCELLABLE` is published as 422, never as 409. */
     @Test void R_08_10_T_08_18_bookingNotCancellableIsPublishedAs422Only() {
         var cancellation = operation("/api/v1/bookings/{id}/cancellation", "post").path("responses");

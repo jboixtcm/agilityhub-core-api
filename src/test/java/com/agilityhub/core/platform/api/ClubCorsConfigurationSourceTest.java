@@ -29,4 +29,28 @@ class ClubCorsConfigurationSourceTest {
         request.removeHeader("Origin"); request.addHeader("Origin", "ftp://id.example.test");
         assertThat(cors.getCorsConfiguration(request).getAllowedOrigins()).isNull();
     }
+
+    /** E5-T27 round 2 (review #2, ruling E71): the health's CORS reads the platform hosts only; a club origin is never looked up. */
+    @Test void E71_theHealthAllowsThePlatformHostsWithoutEverReadingTheClubs() {
+        for (boolean local : new boolean[]{false, true}) {
+            var repository = mock(ClubRepository.class);
+            var cors = new ClubCorsConfigurationSource(new HostTenantResolver(repository), List.of("id.example.test"), local);
+            var request = new MockHttpServletRequest("GET", "/api/v1/health");
+            request.addHeader("Origin", "https://id.example.test");
+            var platform = cors.getCorsConfiguration(request);
+            assertThat(platform.getAllowedOrigins()).containsExactly("https://id.example.test");
+            assertThat(platform.getAllowCredentials()).isFalse();
+            for (String origin : new String[]{"https://app.example.test", "http://pending.example.test:5173", "https://id.example.test/path", "null"}) {
+                request.removeHeader("Origin"); request.addHeader("Origin", origin);
+                assertThat(cors.getCorsConfiguration(request)).as(origin).isNull();
+            }
+            request.removeHeader("Origin");
+            assertThat(cors.getCorsConfiguration(request)).isNull();
+            verifyNoInteractions(repository);
+            var branding = new MockHttpServletRequest("GET", "/api/v1/branding");
+            branding.addHeader("Origin", "https://app.example.test");
+            assertThat(cors.getCorsConfiguration(branding).getAllowedOrigins()).isNull();
+            if (local) { verify(repository).findByAnyHost("app.example.test"); } else { verify(repository).findByHost("app.example.test"); }
+        }
+    }
 }

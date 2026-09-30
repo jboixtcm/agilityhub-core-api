@@ -35,7 +35,10 @@ public, global and tenant-free. The image's `HEALTHCHECK` (`curl -f` on that rou
 and both compose files are unchanged, so a container whose database stops
 answering turns unhealthy after the HEALTHCHECK retries, and healthy again once
 MongoDB answers. A load balancer or uptime check on this route reads a `503` as
-"the API cannot serve requests", not as a crash.
+"the API cannot serve requests", not as a crash. The route never reads the
+database for anything else, not even CORS (ruling E71): it allows the platform
+hosts of `CORS_PLATFORM_HOSTS` only, and answers any other `Origin` with the same
+envelope and no CORS headers.
 
 If the stored CLI credential cannot pull packages, use a classic PAT with
 `read:packages` and repository/package access via `docker login --password-stdin`.

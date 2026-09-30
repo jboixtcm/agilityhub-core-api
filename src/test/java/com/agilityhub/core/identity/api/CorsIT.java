@@ -40,6 +40,21 @@ class CorsIT extends IdentityIntegrationSupport {
         }
     }
 
+    /**
+     * E5-T27 round 2 (review #2, ruling E71): the health's CORS reads the configured platform hosts only. A verified club origin is
+     * not looked up there: the health answers without CORS headers (a probe needs none), and every other route keeps the club's CORS.
+     */
+    @Test void T_01_25_E71_theHealthAllowsOnlyThePlatformOriginsAndOtherRoutesKeepTheClubOrigin() throws Exception {
+        String club = "https://" + HOST, platform = "https://clubs.agilitydoghub.com";
+        mvc.perform(get("/api/v1/health").header("Origin", club)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP")).andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+        mvc.perform(get("/api/v1/health").header("Origin", platform)).andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", platform))
+                .andExpect(header().doesNotExist("Access-Control-Allow-Credentials"));
+        mvc.perform(get("/api/v1/branding").header("Host", HOST).header("Origin", club)).andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", club));
+    }
+
     @Test void T_01_25_domainRemovalInvalidatesCachedCorsPermissionAndNonCorsCallsStillWork() throws Exception {
         mvc.perform(get("/api/v1/branding").header("Host", HOST)).andExpect(status().isOk())
                 .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));

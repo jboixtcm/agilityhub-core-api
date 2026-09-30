@@ -65,7 +65,8 @@ public class PublicActivitiesController {
             var type=com.agilityhub.core.shared.application.FileDownloads.type(file.mimeType());boolean svg=com.agilityhub.core.shared.application.FileDownloads.svg(type);
             var answer=org.springframework.http.ResponseEntity.ok().contentType(type).header("Cache-Control","no-store")
                     .header("Content-Disposition",(svg?org.springframework.http.ContentDisposition.attachment():org.springframework.http.ContentDisposition.inline()).filename(file.name()).build().toString());
-            if(svg) answer.header("Content-Security-Policy",com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD);
+            // E5-T27 round 2 (ruling E71, CONVENCIONS_API §5): every public file is sandboxed except a PDF shown inline.
+            if(!com.agilityhub.core.shared.application.FileDownloads.pdf(type)) answer.header("Content-Security-Policy",com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD);
             return answer.body(new org.springframework.core.io.InputStreamResource(attachments.openLocal(file.fileKey(),expires,signature).content()));
         }
     }

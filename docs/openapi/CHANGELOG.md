@@ -2,6 +2,20 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E5-T27 round 2 · the cancellation's origin, public file sandbox, health CORS
+
+**0 operations added or removed, 1 changed (description only); 0 schemas changed.**
+- **`POST /bookings/{id}/cancellation`**, description (review #3, R-08-19): a dual-role account's own cancellation has
+  `origin APP` and `cancelReason MEMBER` (MEMBER was never an origin; the round-1 text said «origin MEMBER»); another
+  member's booking is cancelled as an instructor (`origin INSTRUCTOR`). Same request and answers.
+- Not in the document:
+  - `GET /public/{clubSlug}/activities/{slug}/files/{fileId}` (review #1, ruling E71, CONVENCIONS_API §5): every file
+    carries `Content-Security-Policy: …; sandbox` (images and videos `inline`, an SVG as an `attachment`), except a PDF
+    shown `inline`, which keeps the api's policy without `sandbox`.
+  - `GET /health` (review #2, ruling E71): CORS allows the configured platform hosts only (`CORS_PLATFORM_HOSTS`) and
+    never looks a club's domain up in the database; another origin gets the same `UP`/`DOWN` envelope without CORS
+    headers. Every other route keeps the club's CORS.
+
 ## 2026-09-28 · E5-T27 · audit corrections (identity, security, shared): launchUrl, health DOWN, keyed PUT/DELETE, dual roles
 
 **0 operations added or removed, 6 changed; 0 schemas added or removed, 2 changed.** The web must regenerate its client.

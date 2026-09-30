@@ -17,9 +17,20 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
     }
 
     @Override public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-        var configuration = new CorsConfiguration();
         String origin = request.getHeader("Origin");
-        if (allowed(origin)) { configuration.setAllowedOrigins(List.of(origin)); }
+        // E5-T27 round 2 (review #2, ruling E71): the health never reaches the database, not even to resolve CORS. Only the configured
+        // platform hosts are allowed there; any other origin gets no CORS processing, so the probe still answers its UP/DOWN envelope.
+        if (health(request)) { return platform(origin) ? configuration(origin) : null; }
+        return configuration(allowed(origin) ? origin : null);
+    }
+
+    private static boolean health(HttpServletRequest request) {
+        return request.getRequestURI().substring(request.getContextPath().length()).equals("/api/v1/health");
+    }
+
+    private CorsConfiguration configuration(String allowedOrigin) {
+        var configuration = new CorsConfiguration();
+        if (allowedOrigin != null) { configuration.setAllowedOrigins(List.of(allowedOrigin)); }
         configuration.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Accept-Language",
                 "Idempotency-Key", "If-Match", "If-None-Match"));
@@ -31,15 +42,25 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
     }
 
     private boolean allowed(String origin) {
-        if (origin == null) { return false; }
+        String host = host(origin);
+        return host != null && (platformHosts.contains(host) || hosts.isCorsHost(host, local));
+    }
+
+    private boolean platform(String origin) {
+        String host = host(origin);
+        return host != null && platformHosts.contains(host);
+    }
+
+    /** The origin's host when the origin is well formed (scheme, port, no path/query/fragment/user info); otherwise null. */
+    private String host(String origin) {
+        if (origin == null) { return null; }
         try {
             URI uri = URI.create(origin);
             if (uri.getHost() == null || uri.getRawUserInfo() != null || !uri.getRawPath().isEmpty()
-                    || uri.getRawQuery() != null || uri.getRawFragment() != null) { return false; }
-            if (!("https".equals(uri.getScheme()) || local && "http".equals(uri.getScheme()))) { return false; }
-            if (!local && uri.getPort() != -1 && uri.getPort() != 443) { return false; }
-            String host = uri.getHost().toLowerCase(java.util.Locale.ROOT);
-            return platformHosts.contains(host) || hosts.isCorsHost(host, local);
-        } catch (IllegalArgumentException invalid) { return false; }
+                    || uri.getRawQuery() != null || uri.getRawFragment() != null) { return null; }
+            if (!("https".equals(uri.getScheme()) || local && "http".equals(uri.getScheme()))) { return null; }
+            if (!local && uri.getPort() != -1 && uri.getPort() != 443) { return null; }
+            return uri.getHost().toLowerCase(java.util.Locale.ROOT);
+        } catch (IllegalArgumentException invalid) { return null; }
     }
 }

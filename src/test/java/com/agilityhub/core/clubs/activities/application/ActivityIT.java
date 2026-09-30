@@ -269,6 +269,32 @@ class ActivityIT extends ActivityFixtures {
         call("DELETE","/activities/"+id+"/image",null,"admin","ADMIN",204);
         mvc.perform(get(path)).andExpect(status().isNotFound());
     }
+    /**
+     * E5-T27 round 2 (review #1, ruling E71, CONVENCIONS_API §5): every public activity file carries `Content-Security-Policy: sandbox`
+     * (images and videos `inline`, an SVG as an `attachment`), except a PDF shown `inline`, which the browser's viewer would not render.
+     */
+    @Test void T_07_20_E71_publicFilesAreSandboxedExceptAPdfShownInline() throws Exception {
+        var a=published(3,false);String id=a.path("id").asText(),slug=a.path("slug").asText();
+        String png=upload("ACTIVITY_IMAGE","image/png");
+        call("PUT","/activities/"+id+"/image",Map.of("fileKey",png,"name","Example image"),"admin","ADMIN",200);
+        String pdf=upload("ACTIVITY_DOCUMENT","application/pdf"),video=upload("ACTIVITY_DOCUMENT","video/mp4");
+        call("POST","/activities/"+id+"/documents",Map.of("fileKey",pdf,"name","Example document"),"admin","ADMIN",201);
+        call("POST","/activities/"+id+"/documents",Map.of("fileKey",video,"name","Example video"),"admin","ADMIN",201);
+        assertPublicFile(slug,png,"image/png","inline",true);
+        assertPublicFile(slug,video,"video/mp4","inline",true);
+        assertPublicFile(slug,pdf,"application/pdf","inline",false);
+        String svg=upload("ACTIVITY_IMAGE","image/svg+xml");
+        call("PUT","/activities/"+id+"/image",Map.of("fileKey",svg,"name","Example vector"),"admin","ADMIN",200);
+        assertPublicFile(slug,svg,"image/svg+xml","attachment",true);
+    }
+    private void assertPublicFile(String slug,String fileKey,String type,String disposition,boolean sandbox) throws Exception {
+        var redirect=mvc.perform(get("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+fileKey)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
+        var file=mvc.perform(get(java.net.URI.create(redirect))).andExpect(status().isOk()).andExpect(content().contentType(type))
+                .andExpect(content().bytes(new byte[]{1,2,3,4})).andReturn().getResponse();
+        assertThat(file.getHeader("Content-Disposition")).as(type).startsWith(disposition+";");
+        assertThat(file.getHeaders("Content-Security-Policy")).as(type).singleElement()
+                .satisfies(policy -> assertThat(policy.contains("sandbox")).as("%s sandboxed",type).isEqualTo(sandbox));
+    }
     @Test void T_07_21_universalListsFilterSortAndExportWithoutLeakingFields() throws Exception {
         String id=published(5,false).path("id").asText();register(id,"m0",false,201);
         assertThat(call("GET","/activities?filter=registrationOpen:eq:true",null,"admin","ADMIN",200).path("totalItems").asInt()).isEqualTo(1);

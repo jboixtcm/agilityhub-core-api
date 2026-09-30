@@ -39,6 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class HealthIndependenceIT {
     // Separate storage proves startup and every probe work before any club/account is seeded.
     @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
+    /** Club web origins: resolving one for CORS would query the clubs collection. The outage test uses its own, never cached. */
+    static final String CLUB_ORIGIN = "https://app.health-club.example.test";
+    static final String OUTAGE_CLUB_ORIGIN = "https://app.outage-club.example.test";
+    /** One of the configured platform hosts (`core.security.cors.platform-hosts`), allowed without the database. */
+    static final String PLATFORM_ORIGIN = "https://id.agilitydoghub.com";
     @DynamicPropertySource static void database(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("health_empty"));
     }
@@ -65,6 +70,11 @@ class HealthIndependenceIT {
                                     .authorities(() -> "ROLE_" + role)))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
         }
+        // E5-T27 round 2 (review #2, ruling E71): CORS on the health reads the configured platform hosts only, never a club's domains.
+        mvc.perform(get("/api/v1/health").header("Origin", CLUB_ORIGIN)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP")).andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+        mvc.perform(get("/api/v1/health").header("Origin", PLATFORM_ORIGIN)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP")).andExpect(header().string("Access-Control-Allow-Origin", PLATFORM_ORIGIN));
         mvc.perform(post("/api/v1/health").header("Host", "unknown.example.test")
                         .header("Idempotency-Key", "ignored-for-health"))
                 .andExpect(status().isMethodNotAllowed()).andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
@@ -106,6 +116,18 @@ class HealthIndependenceIT {
             assertThat(elapsed).as("the ping is bounded to 1 s").isLessThan(3000);
             String traceId = RequestTraceFilter.traceId(result.getRequest());
             assertThat(output.getAll()).contains("Health DOWN").contains("traceId=" + traceId);
+            // E5-T27 round 2 (review #2, ruling E71): an Origin never sends the health to the database through CORS. A club origin whose
+            // host is not cached gets the DOWN envelope within the bound (no CORS headers); a platform origin also gets its CORS header.
+            for (String origin : new String[]{OUTAGE_CLUB_ORIGIN, PLATFORM_ORIGIN}) {
+                started = System.nanoTime();
+                var answer = withinFiveSeconds(get("/api/v1/health").header("Origin", origin)).getResponse();
+                elapsed = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+                assertThat(answer.getStatus()).as(origin).isEqualTo(503);
+                assertThat(new com.fasterxml.jackson.databind.ObjectMapper().readTree(answer.getContentAsString()).path("status").asText())
+                        .as(origin).isEqualTo("DOWN");
+                assertThat(elapsed).as("%s: the ping is bounded to 1 s", origin).isLessThan(3000);
+                assertThat(answer.getHeader("Access-Control-Allow-Origin")).as(origin).isEqualTo(origin.equals(PLATFORM_ORIGIN) ? origin : null);
+            }
         } finally {
             docker.unpauseContainerCmd(MONGO.getContainerId()).exec();
         }
@@ -116,6 +138,14 @@ class HealthIndependenceIT {
         }
         assertThat(status).as("UP again once the database answers").isEqualTo(200);
         verifyNoInteractions(accounts, locales, hosts);
+    }
+
+    /** Runs the request on its own thread, so that a request stuck on the paused database fails the test instead of hanging it. */
+    private org.springframework.test.web.servlet.MvcResult withinFiveSeconds(
+            org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request) throws Exception {
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try { return executor.submit(() -> mvc.perform(request).andReturn()).get(5, java.util.concurrent.TimeUnit.SECONDS); }
+        finally { executor.shutdownNow(); }
     }
 
     private void assertEmpty() {
