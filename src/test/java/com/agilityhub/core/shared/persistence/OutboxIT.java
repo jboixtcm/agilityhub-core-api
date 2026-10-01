@@ -3,9 +3,11 @@ package com.agilityhub.core.shared.persistence;
 import com.agilityhub.core.shared.application.DomainEventHandler;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.application.OutboxDispatcher;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.shared.domain.events.ClubConfigChanged;
 import com.agilityhub.core.support.AbstractIntegrationTest;
+import com.agilityhub.core.support.ConcurrencySupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
@@ -23,7 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
 
@@ -224,6 +228,68 @@ class OutboxIT extends AbstractIntegrationTest {
         assertThat(delivered).hasValue(1);
         assertThat(record(ours).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
     }
+    private void write(String effectId) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(effectId)), new Update().inc("writes", 1), "outbox_effects");
+    }
+    private long writes(String effectId) {
+        return ((Number) mongo.getCollection("outbox_effects").find(new Document("_id", effectId)).first().get("writes")).longValue();
+    }
+
+    /**
+     * E7-T04 round 3 (S11 T-11-31; CI red at `b786a0c` on a `WriteConflict` nobody retried): a consumer whose transaction
+     * meets another writer's open transaction (a write conflict, 112) runs again in the same dispatch after the shared
+     * backoff. Its record is published at its first claim, the consumer's write is stored once, and the retry is counted
+     * under `outbox`. Before the fix the record failed and waited a whole second for the next claim, and no retry was counted.
+     */
+    @Test void T_11_31_aConsumerThatMeetsAnotherWritersOpenTransactionRunsAgainInTheSameDispatch() throws Exception {
+        String id = publish("club-a");
+        mongo.insert(new Document("_id", "shared-effect").append("clubId", "club-a").append("writes", 0), "outbox_effects");
+        var calls = new AtomicInteger();
+        var dispatcher = dispatcher(Map.of("consumer", handler((eventId, event) -> { calls.incrementAndGet(); write("shared-effect"); })), 10);
+        var retries = new TransactionRetries(metrics);
+        try (var held = new ConcurrencySupport.HeldTransaction(transactions, "club-a", () -> write("shared-effect"));
+             var thread = Executors.newSingleThreadExecutor()) {
+            var dispatching = thread.submit(dispatcher::dispatch);
+            ConcurrencySupport.awaitRetry(retries, OutboxDispatcher.RETRY_CONTEXT, 0);
+            held.commit();
+            dispatching.get(10, TimeUnit.SECONDS);
+        }
+        assertThat(record(id).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
+        assertThat(record(id).attempts()).isEqualTo(1);
+        assertThat(record(id).error()).isNull();
+        assertThat(calls.get()).isGreaterThanOrEqualTo(2);
+        assertThat(writes("shared-effect")).as("the held write and the consumer's, once").isEqualTo(2);
+        assertThat(retries.retries(OutboxDispatcher.RETRY_CONTEXT, "write_conflict")).isGreaterThanOrEqualTo(1);
+        assertThat(retries.exhaustions(OutboxDispatcher.RETRY_CONTEXT)).isZero();
+    }
+
+    /**
+     * E7-T04 round 3: a conflict that outlasts {@link OutboxDispatcher#CONFLICT_ATTEMPTS} attempts ends the dispatch of the
+     * record like any other failure (it backs off one second, counted as exhausted), and the next claim after it delivers.
+     * A failure that is no conflict is never retried in the dispatch ({@link #E0_T04_retryRollsBackHandlerWritesAndSkipsAlreadyProcessedConsumers}).
+     */
+    @Test void T_11_31_aConflictThatOutlastsTheAttemptsBacksOffAndTheNextClaimDelivers() throws Exception {
+        String id = publish("club-a");
+        mongo.insert(new Document("_id", "shared-effect").append("clubId", "club-a").append("writes", 0), "outbox_effects");
+        var calls = new AtomicInteger();
+        var dispatcher = dispatcher(Map.of("consumer", handler((eventId, event) -> { calls.incrementAndGet(); write("shared-effect"); })), 10);
+        var retries = new TransactionRetries(metrics);
+        try (var held = new ConcurrencySupport.HeldTransaction(transactions, "club-a", () -> write("shared-effect"))) {
+            dispatcher.dispatch();
+            assertThat(calls).hasValue(OutboxDispatcher.CONFLICT_ATTEMPTS);
+            assertThat(retries.retries(OutboxDispatcher.RETRY_CONTEXT)).isEqualTo(OutboxDispatcher.CONFLICT_ATTEMPTS - 1);
+            assertThat(retries.exhaustions(OutboxDispatcher.RETRY_CONTEXT)).isEqualTo(1);
+            assertThat(record(id).status()).isEqualTo(DomainEventRecord.Status.PENDING);
+            assertThat(record(id).nextAttemptAt()).isEqualTo(clock.instant().plusSeconds(1));
+            assertThat(record(id).error()).isEqualTo("IllegalStateException");
+            held.commit();
+        }
+        clock.advance(Duration.ofSeconds(1)); dispatcher.dispatch();
+        assertThat(record(id).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
+        assertThat(record(id).attempts()).isEqualTo(2);
+        assertThat(writes("shared-effect")).isEqualTo(2);
+    }
+
     @Test void E0_T04_crashedClaimsCannotRetryForever() {
         String id = publish("club-a");
         records.claim(clock.instant());

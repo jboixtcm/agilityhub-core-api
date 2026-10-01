@@ -6,6 +6,7 @@ import com.agilityhub.core.platform.persistence.audit.AuditRepository;
 import com.agilityhub.core.shared.application.TenantContext;
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -37,26 +38,26 @@ public class AuditWriter {
      */
     public void write(AuditCommand command, String origin) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
-                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null);
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null, null);
     }
 
     /**
-     * A change a system process makes on its own, outside any request (E7-T06, ruling E81: the start-up template upgrade):
-     * the actor is the process — `actorName` = `process` (`system:…`), role `SYSTEM`, no account — and the origin `SYSTEM`,
-     * so the entity's «last change» names it.
+     * A change a system process makes on its own, outside any request (E7-T06; ruling E83, which clarifies E81: the start-up
+     * template upgrade): written like the other system entries — no account, `actorName = null`, `actorRole = SYSTEM`, origin
+     * `SYSTEM` — with the process in `details.job` (S14 §3: «`SYSTEM` porta `job` a `details`»), so D9 shows its system label.
      */
     public void writeAsSystem(AuditCommand command, String process) {
         requireText(process, "Audit process is required");
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
                 AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), "SYSTEM",
-                new AuditActor(null, process, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()));
+                new AuditActor(null, null, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()), Map.of("job", process));
     }
 
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null, null); }
+               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null, null, null); }
 
     private void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes, String origin, AuditActor system) {
+               List<AuditChange> changes, String origin, AuditActor system, Map<String, Object> details) {
         Objects.requireNonNull(action, "Audit action is required");
         requireText(entityType, "Audit entity type is required");
         requireText(entityId, "Audit entity id is required");
@@ -66,7 +67,8 @@ public class AuditWriter {
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
-                auditOrigin(origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name()));
+                auditOrigin(origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name()),
+                details);
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }

@@ -34,7 +34,9 @@ import com.agilityhub.core.platform.support.PlatformFixtures;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.application.IcuMessageSource;
 import com.agilityhub.core.shared.application.NotificationAccounts;
+import com.agilityhub.core.shared.application.OutboxDispatcher;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,6 +78,7 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
     @Autowired AccountRepository accountRepository; @Autowired EventPublisher events; @Autowired PlatformTransactionManager transactions;
     @Autowired ClubEmailSettings emailSettings; @Autowired ClubSmsUsage usage; @Autowired NotificationEmailRenderer emails; @Autowired UnsubscribeTokens unsubscribes;
     @Autowired SchedulingNotificationFacts scheduling; @Autowired com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository announcements;
+    @Autowired TransactionRetries retries;
     final ScriptedEmail mail = new ScriptedEmail();
     final FakeSmsSender sms = new FakeSmsSender();
     final FakePushSender push = new FakePushSender(null);
@@ -194,11 +197,19 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         mongo.insert(subscription); return subscription;
     }
 
-    /** The outbox delivery of one event: inside a transaction, the sends right after its commit (as `OutboxDispatcher` does). */
-    void deliver(String eventId, String clubId, String type, Map<String, Object> payload) {
+    /**
+     * The outbox delivery of one event as `OutboxDispatcher` runs a consumer: inside a transaction, run again after a conflict
+     * with the dispatcher's own retry ({@link OutboxDispatcher#CONFLICT_ATTEMPTS}, E7-T04 round 3), the sends right after its commit.
+     */
+    void deliver(String eventId, String clubId, String type, Map<String, Object> payload) { deliver(eventId, clubId, type, payload, failure -> { }); }
+    /** …with {@code failures} told of every failure the engine meets in an attempt that rolls back (T-11-31: where the conflicts are). */
+    void deliver(String eventId, String clubId, String type, Map<String, Object> payload, java.util.function.Consumer<RuntimeException> failures) {
         var envelope = new NotificationEventEnvelope(null, type, clubId, "Aggregate", Optional.ofNullable(payload.get("classId")).map(Object::toString).orElse("aggregate-a"),
                 clock.instant(), payload, "account-admin", null, DomainEvent.Origin.BACKOFFICE);
-        new TransactionTemplate(transactions).executeWithoutResult(tx -> engine.handle(eventId, envelope));
+        retries.inTransaction(OutboxDispatcher.RETRY_CONTEXT, OutboxDispatcher.CONFLICT_ATTEMPTS, new TransactionTemplate(transactions), tx -> {
+            try { engine.handle(eventId, envelope); }
+            catch (RuntimeException failure) { failures.accept(failure); throw failure; }
+        });
     }
     String deliver(String clubId, String type, Map<String, Object> payload) { String id = UUID.randomUUID().toString(); deliver(id, clubId, type, payload); return id; }
     /**

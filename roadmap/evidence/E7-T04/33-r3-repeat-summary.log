@@ -1,0 +1,42 @@
+command (each run): ./mvnw -Dtest=NoSuchUnitTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=NotificationEngineIT,OutboxIT -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true -DargLine=-XX:ActiveProcessorCount=2 verify
+run 01: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-01.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.14 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.909 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 106, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=106}, deliveries whose attempts ran out 0, redelivered 0
+run 02: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-02.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.09 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.248 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 100, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=100}, deliveries whose attempts ran out 0, redelivered 0
+run 03: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-03.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.08 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.674 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 102, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=102}, deliveries whose attempts ran out 0, redelivered 0
+run 04: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-04.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.83 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.188 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 103, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=103}, deliveries whose attempts ran out 0, redelivered 0
+run 05: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-05.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.72 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.612 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 100, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=100}, deliveries whose attempts ran out 0, redelivered 0
+run 06: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-06.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.00 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.661 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 101, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=101}, deliveries whose attempts ran out 0, redelivered 0
+run 07: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-07.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.63 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.628 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 100, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=100}, deliveries whose attempts ran out 0, redelivered 0
+run 08: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-08.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.34 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.609 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 100, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=100}, deliveries whose attempts ran out 0, redelivered 0
+run 09: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-09.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.08 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.870 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 100, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=100}, deliveries whose attempts ran out 0, redelivered 0
+run 10: exit 0 · BUILD SUCCESS · Integration JVM availableProcessors=2 · 33-r3-repeat-10.log
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.94 s -- NotificationEngineIT
+  Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.648 s -- OutboxIT
+  T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 101, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=101}, deliveries whose attempts ran out 0, redelivered 0
+10 of 10 runs green

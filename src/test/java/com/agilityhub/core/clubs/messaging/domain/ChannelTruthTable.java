@@ -142,7 +142,7 @@ public final class ChannelTruthTable {
                 case PUSH -> {
                     if (!modules.push()) { out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_MODULE_OFF)); }
                     // `pushClubNews` = false: a CLUB_NEWS notice, or an announcement (N-24) of any category (R-11-13, ruling E82).
-                    else if (member && (spec.category() == NotificationCategory.CLUB_NEWS || spec.code().equals("N-24")) && !pushClubNews) {
+                    else if (member && (spec.category() == NotificationCategory.CLUB_NEWS || spec.code().equals(NotificationCatalog.ANNOUNCEMENT)) && !pushClubNews) {
                         out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_BY_PREFERENCE));
                     }
                     else if (hasAccount) { SUBSCRIPTIONS.forEach(s -> out.add(new ChannelResolver.Planned(PUSH, s, QUEUED))); }

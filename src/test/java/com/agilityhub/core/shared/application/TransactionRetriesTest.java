@@ -2,10 +2,16 @@ package com.agilityhub.core.shared.application;
 
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.UncategorizedMongoDbException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -37,5 +43,56 @@ class TransactionRetriesTest {
     @Test void R_07_08_R_08_07_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds() {
         var drawn = new HashSet<Long>(); for (int i = 0; i < 2000; i++) { drawn.add(TransactionRetries.jitter()); }
         assertThat(drawn).allSatisfy(wait -> assertThat(wait).isBetween(50L, 150L)).contains(50L, 150L);
+    }
+
+    /** A transaction template over a manager that does nothing: the unit runs, its exception rolls nothing back. */
+    private static TransactionTemplate transactions() { return new TransactionTemplate(org.mockito.Mockito.mock(PlatformTransactionManager.class)); }
+
+    /**
+     * E7-T04 round 3 (S11 T-11-31): the outbox's consumer transaction runs again after a conflict, waiting the shared backoff
+     * before each retry, counted under its context; a unit that ends well after two conflicts is no exhaustion.
+     */
+    @Test void T_11_31_aUnitThatMeetsConflictsRunsAgainAfterTheSharedBackoff() {
+        var registry = new SimpleMeterRegistry(); var retries = new TransactionRetries(registry);
+        var runs = new AtomicInteger(); var pauses = new ArrayList<Long>();
+        retries.inTransaction("outbox", 5, transactions(), status -> {
+            if (runs.incrementAndGet() <= 2) { throw new UncategorizedMongoDbException("wrapped", mongo(112, "TransientTransactionError")); }
+        }, pauses::add);
+        assertThat(runs).hasValue(3);
+        assertThat(pauses).hasSize(2).allSatisfy(wait -> assertThat(wait).isBetween(50L, 150L));
+        assertThat(retries.retries("outbox", "write_conflict")).isEqualTo(2);
+        assertThat(retries.exhaustions("outbox")).isZero();
+    }
+
+    /** …the last conflict is rethrown once the attempts run out (counted as exhausted); any other failure at once, never retried. */
+    @Test void T_11_31_theLastConflictIsRethrownAndAnyOtherFailureIsNeverRetried() {
+        var retries = new TransactionRetries(new SimpleMeterRegistry());
+        var runs = new AtomicInteger();
+        var conflict = new DuplicateKeyException("E11000 notification_dedup");
+        assertThatThrownBy(() -> retries.inTransaction("outbox", 3, transactions(), status -> { runs.incrementAndGet(); throw conflict; }, wait -> { }))
+                .isSameAs(conflict);
+        assertThat(runs).hasValue(3);
+        assertThat(retries.retries("outbox", "duplicate_key")).isEqualTo(2);
+        assertThat(retries.exhaustions("outbox")).isEqualTo(1);
+        runs.set(0);
+        var other = new IllegalStateException("handler failure");
+        assertThatThrownBy(() -> retries.inTransaction("outbox", 3, transactions(), status -> { runs.incrementAndGet(); throw other; }, wait -> { })).isSameAs(other);
+        assertThat(runs).hasValue(1);
+        assertThat(retries.retries("outbox")).isEqualTo(2);
+    }
+
+    /** …and inside an outer transaction the unit joins it and runs once: the outer owner retries the whole transaction. */
+    @Test void T_11_31_insideAnOuterTransactionTheUnitRunsOnce() {
+        var retries = new TransactionRetries(new SimpleMeterRegistry());
+        var runs = new AtomicInteger();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            assertThatThrownBy(() -> retries.inTransaction("outbox", 5, transactions(), status -> {
+                runs.incrementAndGet(); throw new UncategorizedMongoDbException("wrapped", mongo(112, null));
+            }, wait -> { })).isInstanceOf(UncategorizedMongoDbException.class);
+        } finally { TransactionSynchronizationManager.setActualTransactionActive(false); }
+        assertThat(runs).hasValue(1);
+        assertThat(retries.retries("outbox")).isZero();
+        assertThat(retries.exhaustions("outbox")).isZero();
     }
 }

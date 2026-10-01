@@ -1,0 +1,31 @@
+PASS working tree image built
+$ bin/core club:apply seeds/club-canic.yaml   # run 1
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+$ bin/core club:apply seeds/club-canic.yaml   # run 2
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+$ bin/core seed:demo --club=canic --seed=42   # run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  384 changes (demo planning, week start 2026-10-05)
+$ bin/core seed:demo --club=canic --seed=42   # run 2
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+Counts (demo planning run): {"messagingContacts": 2, "messagingProfiles": 3, "messagingBounces": 1, "pushSubscriptions": 1, "customTemplates": 1}
+Seed diff of the preference profiles (seeds/demo-canic.yaml `messaging`; ordinal 14 = member.10@):
+  ordinal 14 (member number 15): contact e-mails 1 (bounced []), phones 1, push devices 1, preferences {"emailByCategory": {"CLUB_CHANGES": true, "CLUB_NEWS": true, "OPERATIONAL": false, "PERSONAL": true}, "pushClubNews": true, "reminderMinutesBefore": 120}
+  ordinal 15 (member number 16): contact e-mails 1 (bounced []), phones 1, push devices 0, preferences {"emailByCategory": {"CLUB_CHANGES": false, "CLUB_NEWS": true, "OPERATIONAL": false, "PERSONAL": true}, "pushClubNews": true, "reminderMinutesBefore": null}
+  ordinal 16 (member number 17): contact e-mails 1 (bounced []), phones 2, push devices 0, preferences {}
+  ordinal 17 (member number 18): contact e-mails 2 (bounced ['demo.canic.antic@ (seed)']), phones 1, push devices 0, preferences {}
+  ordinal 18 (member number 19): contact e-mails 1 (bounced []), phones 1, push devices 0, preferences {"emailByCategory": {"CLUB_CHANGES": true, "CLUB_NEWS": true, "OPERATIONAL": false, "PERSONAL": true}, "pushClubNews": false, "reminderMinutesBefore": null}
+CUSTOM templates: [{"category": "CLUB_NEWS", "status": "ACTIVE", "title": {"ca": "Comunicat del club", "es": "Comunicado del club"}}]
+PASS the plain seed:demo applies the E7-T04 preference profiles and the CUSTOM template; the second runs report 0 changes
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

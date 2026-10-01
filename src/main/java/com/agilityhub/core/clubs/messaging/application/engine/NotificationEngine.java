@@ -137,7 +137,12 @@ public class NotificationEngine {
                 if (template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
             } else {
                 template = templates.asSent(trigger.text("batchId"), facts.get().templateId()).orElse(null);
-                if (template == null) { continue; }
+                if (template == null) {
+                    // A batch stored before E7-T04's round 2 has no frozen copy: nothing rather than today's text, and it is said
+                    // (round 2 assumption R2-2; review nit #1 of round 3). Ids only.
+                    LOG.warn("Announcement batch without its frozen template; nothing sent batchId={} templateId={}", trigger.text("batchId"), facts.get().templateId());
+                    continue;
+                }
             }
             List<Notification> built = relevant(spec, trigger) ? build(spec, trigger, facts.get(), template, config) : stale(spec, trigger, facts.get(), template);
             var stored = store(spec, trigger, built);

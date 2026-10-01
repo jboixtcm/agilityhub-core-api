@@ -30,6 +30,15 @@ CLASSES = [
     # Round 2
     "com.agilityhub.core.clubs.bookings.api.WeekOpeningJobIT",
     "com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest",
+    # Round 3
+    "com.agilityhub.core.shared.persistence.OutboxIT",
+    "com.agilityhub.core.shared.application.TransactionRetriesTest",
+    "com.agilityhub.core.platform.application.audit.AuditWriterTest",
+    "com.agilityhub.core.clubs.messaging.application.MessagingE7T06UnitTest",
+    "com.agilityhub.core.clubs.messaging.application.engine.TemplateUpgradeIT",
+    "com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT",
+    "com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT",
+    "com.agilityhub.core.platform.api.AuditQueriesIT",
 ]
 # Round 2: the JaCoCo line/branch coverage (target/site/jacoco/jacoco.csv) of the packages the round touches; the build's
 # PACKAGE rule asks domain/application ≥ 85 % lines and ≥ 80 % branches, api ≥ 70 % lines.
@@ -41,6 +50,9 @@ PACKAGES = [
     "com.agilityhub.core.clubs.common.application",
     "com.agilityhub.core.clubs.bookings.application",
     "com.agilityhub.core.shared.domain.events",
+    # Round 3
+    "com.agilityhub.core.shared.application",
+    "com.agilityhub.core.platform.application.audit",
 ]
 
 

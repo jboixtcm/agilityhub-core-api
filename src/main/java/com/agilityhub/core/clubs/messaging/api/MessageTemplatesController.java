@@ -42,6 +42,8 @@ public class MessageTemplatesController {
     static final String STUB = " Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.";
     static final String TENANT = " Tenant comes from the JWT.";
     static final String ROLES = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). ";
+    /** Ruling E83 (S11 §10, R-11-12): what the engine reads is what D9 stores. */
+    static final String GENDER_KEYS = "The keys of a {gender, select, …} are stored in lower case (female, male, other: the gender the engine renders). ";
     private final MessagingContractAccess access; private final MessageTemplateService templates; private final TemplatePreviewService previews;
     private final IcuMessageSource messages; private final AnnouncementService announcements;
 
@@ -74,7 +76,7 @@ public class MessageTemplatesController {
             + "(the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422, "
             + "ChannelNotAllowedDetails {audience, channel, cells}); an active SMS cell needs smsBody (≤ 160 GSM-7 rendered with the preview data set). "
             + "TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails (details.field, e.g. body.ca). "
-            + "MessageTemplateChanged and CATALOG_CHANGED audit." + TENANT,
+            + GENDER_KEYS + "MessageTemplateChanged and CATALOG_CHANGED audit." + TENANT,
             responses = @ApiResponse(responseCode = "201", description = "MessageTemplateDetail", useReturnTypeSchema = true))
     public MessageTemplateDetail createMessageTemplate(@Valid @RequestBody MessageTemplateCreateRequest request) {
         return detail(templates.create(new MessageTemplateService.Create(request.category(),
@@ -98,8 +100,8 @@ public class MessageTemplatesController {
             + "e-mail only, E76) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails); CHANNEL_NOT_ALLOWED carries "
             + "ChannelNotAllowedDetails; TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails. The texts are the "
             + "club's languages (a template stored in other languages too is shown and saved in the club's). With SMS off the SMS cells are kept as "
-            + "stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; the next notification "
-            + "uses the saved text (no template cache)." + TENANT,
+            + "stored. A stale version → STALE_VERSION. " + GENDER_KEYS + "MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; "
+            + "the next notification uses the saved text (no template cache)." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "MessageTemplateDetail", useReturnTypeSchema = true))
     public MessageTemplateDetail updateMessageTemplate(@PathVariable String id, @Valid @RequestBody MessageTemplateUpdateRequest request) {
         return detail(templates.update(id, new MessageTemplateService.Update(new MessageTemplateService.Texts(request.title(), request.body(), request.smsBody()),
@@ -110,7 +112,8 @@ public class MessageTemplatesController {
     @ContractErrors({VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR, NOT_FOUND})
     @Operation(summary = "previewMessageTemplate", description = ROLES + "[Vista prèvia] of the saved texts or of an unsaved draft, in one of the club's "
             + "locales, with the fictional data of that locale; SMS length and segments after transliteration; an unknown variable and an SMS over 160 "
-            + "characters are warnings (the variable renders empty). sendTest («envia prova») also delivers the rendering once to the acting admin's own "
+            + "characters are warnings (the variable renders empty). A draft is rendered as a save would store it (gender select keys in lower case). "
+            + "sendTest («envia prova») also delivers the rendering once to the acting admin's own "
             + "account (APP and its e-mail, never SMS, never anybody else), stored in the log. Writes nothing else." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "TemplatePreview", useReturnTypeSchema = true))
     public TemplatePreview previewMessageTemplate(@PathVariable String id, @Valid @RequestBody TemplatePreviewRequest request) {

@@ -31,12 +31,14 @@ public class TemplateProvider {
     private final MessageTemplateRepository templates; private final MessageTemplateSeed seeds; private final Clock clock;
     private final TransactionTemplate own, outside; private final AnnouncementRepository announcements;
 
-    public TemplateProvider(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions) {
-        this(templates, seeds, clock, transactions, null);
-    }
+    /**
+     * `announcements` is required (E7-T04 round 3, review nit #2): without it {@link #asSent} could find no batch and every
+     * announcement would be dropped without an error.
+     */
     public TemplateProvider(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions,
             AnnouncementRepository announcements) {
-        this.templates = templates; this.seeds = seeds; this.clock = clock; this.announcements = announcements;
+        this.templates = templates; this.seeds = seeds; this.clock = clock;
+        this.announcements = java.util.Objects.requireNonNull(announcements, "the announcements repository is required");
         this.own = new TransactionTemplate(transactions); own.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.outside = new TransactionTemplate(transactions); outside.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
@@ -47,7 +49,7 @@ public class TemplateProvider {
      * unknown one or a batch of another template is none.
      */
     public Optional<MessageTemplate> asSent(String batchId, String templateId) {
-        if (batchId == null || templateId == null || announcements == null) { return Optional.empty(); }
+        if (batchId == null || templateId == null) { return Optional.empty(); }
         return announcements.findById(batchId).filter(batch -> batch.template() != null && templateId.equals(batch.template().id()))
                 .map(batch -> batch.template().asTemplate(batch.clubId()));
     }

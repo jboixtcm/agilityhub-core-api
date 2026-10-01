@@ -7,6 +7,7 @@ import com.agilityhub.core.clubs.messaging.application.engine.TemplateSampleData
 import com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
 import com.agilityhub.core.clubs.messaging.domain.NotificationAudience;
+import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
 import com.agilityhub.core.clubs.messaging.domain.NotificationCategory;
 import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.SmsText;
@@ -66,9 +67,10 @@ public class TemplatePreviewService {
         if (locale == null || !config.club().locales().contains(locale)) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "locale")); }
         var template = templates.find(id);
         var rules = templates.rules(template.kind(), template.code(), template.category());
-        String title = draft == null ? text(template.title(), locale, config) : draft.title();
-        String body = draft == null ? text(template.body(), locale, config) : draft.body();
-        String sms = draft == null ? (template.smsBody() == null ? null : text(template.smsBody(), locale, config)) : blankToNull(draft.smsBody());
+        // An unsaved draft is previewed as a save would store it: `gender` select keys in lower case (ruling E83).
+        String title = draft == null ? text(template.title(), locale, config) : TemplateUpgrade.lowerGenderKeys(draft.title());
+        String body = draft == null ? text(template.body(), locale, config) : TemplateUpgrade.lowerGenderKeys(draft.body());
+        String sms = draft == null ? (template.smsBody() == null ? null : text(template.smsBody(), locale, config)) : TemplateUpgrade.lowerGenderKeys(blankToNull(draft.smsBody()));
         var unknown = new LinkedHashSet<String>();
         for (var field : new String[][] {{"title", title}, {"body", body}, {"smsBody", sms}}) {
             if (field[1] == null) { continue; }
@@ -114,7 +116,7 @@ public class TemplatePreviewService {
      */
     private Notification notification(MessageTemplate template, ClubConfig config, String locale, TemplateRenderer.Rendered rendered, Map<String, Object> values,
             NotificationAudience audience, Notification.Recipient recipient, String dedupKey, List<Notification.Delivery> deliveries) {
-        String code = template.kind() == TemplateKind.CATALOG ? template.code() : "N-24";
+        String code = template.kind() == TemplateKind.CATALOG ? template.code() : NotificationCatalog.ANNOUNCEMENT;
         var type = template.kind() == TemplateKind.CATALOG && dedupKey == null ? MessageTemplateService.spec(template.code()).action(NotificationAudience.MEMBER) : null;
         var action = type == null ? null : new Notification.Action(type, SAMPLE_PARAMS);
         String id = UUID.randomUUID().toString();

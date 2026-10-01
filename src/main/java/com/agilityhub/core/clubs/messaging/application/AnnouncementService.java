@@ -3,6 +3,7 @@ package com.agilityhub.core.clubs.messaging.application;
 import com.agilityhub.core.clubs.messaging.application.ports.MemberContact;
 import com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort;
 import com.agilityhub.core.clubs.messaging.domain.MessagingEvent;
+import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
 import com.agilityhub.core.clubs.messaging.domain.TemplateKind;
 import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
 import com.agilityhub.core.clubs.messaging.persistence.Announcement;
@@ -44,7 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class AnnouncementService {
-    static final String N24 = "N-24";
     private final MessageTemplateRepository templates; private final AnnouncementRepository announcements; private final MemberDirectoryPort members;
     private final EventPublisher events; private final Clock clock;
 
@@ -94,7 +94,7 @@ public class AnnouncementService {
     /** N-24 or an active `CUSTOM` template of the club; an archived one is gone for D9 and for the send dialog. */
     MessageTemplate sendable(String templateId) {
         var template = templates.findById(templateId).filter(t -> t.status() != TemplateStatus.ARCHIVED).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        boolean eligible = template.kind() == TemplateKind.CUSTOM || N24.equals(template.code());
+        boolean eligible = template.kind() == TemplateKind.CUSTOM || NotificationCatalog.ANNOUNCEMENT.equals(template.code());
         if (!eligible || template.status() != TemplateStatus.ACTIVE || !template.enabled()) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
         return template;
     }

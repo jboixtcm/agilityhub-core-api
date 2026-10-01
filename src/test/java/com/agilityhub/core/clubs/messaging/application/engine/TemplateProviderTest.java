@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.messaging.application.engine;
 
 import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
+import com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplateRepository;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -27,8 +28,9 @@ import static org.mockito.Mockito.*;
  */
 class TemplateProviderTest {
     private final MessageTemplateRepository templates = mock(MessageTemplateRepository.class);
+    private final AnnouncementRepository batches = mock(AnnouncementRepository.class);
     private final TemplateProvider provider = new TemplateProvider(templates, MessageTemplateSeed.load(), Clock.fixed(Instant.parse("2026-10-05T08:00:00Z"), ZoneOffset.UTC),
-            mock(PlatformTransactionManager.class));
+            mock(PlatformTransactionManager.class), batches);
     private static RuntimeException writeConflict() { return new UncategorizedMongoDbException("Write conflict", new MongoException(112, "WriteConflict")); }
 
     @Test void T_11_31_aWriteConflictOnTheFirstUseReadsTheWinnersTemplateOnceItIsCommitted() {
@@ -79,12 +81,11 @@ class TemplateProviderTest {
     /**
      * E7-T04 round 2 (R-11-13, ruling E82): a batch renders the copy of its template it froze at the send — the version and the
      * texts of then, sendable even when the template is disabled or archived now; another template's id, an unknown batch or
-     * none is nothing, and the current template is never read.
+     * none is nothing, and the current template is never read. Round 3 (review nit #2): a provider without the announcements
+     * repository cannot be built, so no wiring can drop every announcement silently.
      */
     @Test void R_11_13_aBatchRendersTheTemplateItFroze() {
-        var batches = mock(com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository.class);
-        var withBatches = new TemplateProvider(templates, MessageTemplateSeed.load(), Clock.fixed(Instant.parse("2026-10-05T08:00:00Z"), ZoneOffset.UTC),
-                mock(PlatformTransactionManager.class), batches);
+        var withBatches = provider;
         try (var tenant = TenantContext.open("club-a")) {
             var sent = new MessageTemplate("template-24", "club-a", "N-24", com.agilityhub.core.clubs.messaging.domain.TemplateKind.CATALOG,
                     com.agilityhub.core.clubs.messaging.domain.NotificationCategory.CLUB_NEWS, new com.agilityhub.core.shared.domain.LocalizedText(java.util.Map.of("ca", "Festa"), "ca"),
@@ -102,8 +103,9 @@ class TemplateProviderTest {
                     "template-24", null, "MEMBERS", List.of(), null, List.of("member-a"), 1, "admin", null)));
             assertThat(withBatches.asSent("batch-old", "template-24")).isEmpty();
             assertThat(withBatches.asSent(null, "template-24")).isEmpty();
-            assertThat(provider.asSent("batch-1", "template-24")).isEmpty();
             verifyNoInteractions(templates);
         }
+        assertThatThrownBy(() -> new TemplateProvider(templates, MessageTemplateSeed.load(), Clock.systemUTC(), mock(PlatformTransactionManager.class), null))
+                .isInstanceOf(NullPointerException.class).hasMessageContaining("announcements");
     }
 }

@@ -2,12 +2,17 @@ package com.agilityhub.core.shared.application;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Metrics of the retried Mongo transactions (S07 R-07-08, S08 R-08-07, S09 R-09-06): `core.transactions.retries`
  * {context, cause} counts every retry after a `WriteConflict` / `TransientTransactionError` / `DuplicateKey`, and
- * `core.transactions.exhausted` {context} every request that ran out of attempts (answered `409 STALE_VERSION`).
+ * `core.transactions.exhausted` {context} every request that ran out of attempts (answered `409 STALE_VERSION`; an outbox
+ * record backs off and is redelivered instead, context `outbox`).
  * They show in production how often the Mongo mechanisms are reached, and let the tests prove they ran.
  */
 @Component
@@ -54,6 +59,30 @@ public class TransactionRetries {
     public interface Backoff { void pause(long millis) throws InterruptedException; }
     /** 50–150 ms, uniformly: the randomised backoff of every retried writer (S05, S06, S07, S08 and S09; E5-T21). */
     public static long jitter() { return java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151); }
+
+    /**
+     * One unit of work in a transaction of its own, run again whole after a conflict ({@link #conflict}): at most
+     * {@code attempts} times, waiting the shared {@link #jitter()} before each retry. Every retry is counted under
+     * {@code context}; the last conflict is rethrown and counted as exhausted. Inside an outer transaction the unit joins it
+     * and runs once: a conflict aborts the whole outer transaction, so its owner retries (E7-T04 round 3: the outbox
+     * dispatcher's consumer transactions, S11 T-11-31).
+     */
+    public void inTransaction(String context, int attempts, TransactionTemplate transactions, Consumer<TransactionStatus> unit) {
+        inTransaction(context, attempts, transactions, unit, Thread::sleep);
+    }
+    void inTransaction(String context, int attempts, TransactionTemplate transactions, Consumer<TransactionStatus> unit, Backoff backoff) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) { transactions.executeWithoutResult(unit); return; }
+        for (int attempt = 1; ; attempt++) {
+            try { transactions.executeWithoutResult(unit); return; }
+            catch (RuntimeException failure) {
+                if (!conflict(failure)) { throw failure; }
+                if (attempt >= attempts) { exhausted(context); throw failure; }
+                retried(context, failure);
+                try { backoff.pause(jitter()); }
+                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw failure; }
+            }
+        }
+    }
 
     /** A Mongo `TransientTransactionError` or `WriteConflict` anywhere in the cause chain: the whole unit of work may run again. */
     public static boolean transientFailure(Throwable failure) {

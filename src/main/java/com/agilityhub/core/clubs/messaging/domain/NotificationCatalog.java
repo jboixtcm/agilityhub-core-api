@@ -82,8 +82,13 @@ public final class NotificationCatalog {
         required.removeAll(EMAIL_COPY_VARIABLES.getOrDefault(spec.code(), Set.of()));
         return Collections.unmodifiableSet(required);
     }
+    /**
+     * N-24, the announcement (S11 R-11-13): the one code «Enviar comunicat» sends, under which a `CUSTOM` template is sent and
+     * whose PUSH `pushClubNews` turns off whatever the category (ruling E82). One constant (E7-T04 round 3, review nit #3).
+     */
+    public static final String ANNOUNCEMENT = "N-24";
     /** R-11-12 `CUSTOM` templates: the member variables, the list of N-24, the code that carries them (§7, R-11-13). */
-    public static List<String> customTemplateVariables() { return templateVariables(BY_CODE.get("N-24")); }
+    public static List<String> customTemplateVariables() { return templateVariables(BY_CODE.get(ANNOUNCEMENT)); }
     /** R-11-12 caps of a `CUSTOM` template (sent to members only, S11 §13-6): the category's `MEMBER` caps; none for staff. */
     public static Set<NotificationChannel> customCaps(NotificationCategory category, NotificationAudience audience) {
         return audience == MEMBER ? caps(category, audience) : Set.of();

@@ -100,7 +100,8 @@ shown and saved in the club's languages. A seed text prints only its code's vari
 names of its `select`/`plural` choices (E7-T06). Templates an earlier version stored are brought up to date at the API's
 start-up (E7-T06): a template the club never edited follows the current seed (E81); an edited one keeps the club's words in
 every language it stores, with only the corrections (lower-case `gender` keys, N-02 without its link sentence, N-08b without
-`{class_description}`), and each change is a `MessageTemplateChanged` and an audit entry by `system:template-upgrade`.
+`{class_description}`), and each change is a `MessageTemplateChanged` and an audit entry of a system process (E83: no
+account, role `SYSTEM`, `details.job = template-upgrade`). D9's save stores `gender` keys in lower case itself (E83).
 `club:apply` itself never rewrites a stored template.
 **The `es` and `en` texts are translations of the same content and are reviewed before go-live** (S11 §8). Staff copy
 (`notif.N-xx.staff.*`) is product copy in `messages_*` and never part of the seed.

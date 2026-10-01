@@ -1,0 +1,149 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 13 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 52 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ agilityhub-core-api ---
+[INFO] Building jar: /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.5.16:repackage (repackage) @ agilityhub-core-api ---
+[INFO] Replacing main artifact /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar.original
+[INFO] 
+[INFO] --- failsafe:3.5.6:integration-test (default) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+08:47:20.290 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT]: NotificationEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+08:47:20.537 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+08:47:20.665 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+08:47:20.667 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+08:47:20.674 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+08:47:20.831 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+08:47:21.077 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+08:47:21.079 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+08:47:21.099 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+08:47:21.489 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+08:47:21.580 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+08:47:21.707 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 268dec3c0c4c266c298b743fad20fce078795eea6e4d83b2f8af71530aa454c5
+08:47:22.071 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.581983S
+08:47:22.078 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+08:47:22.078 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+08:47:22.079 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+08:47:22.079 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+08:47:22.182 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: a46d8aa3f4783fd0e171a7eaf155eed49535d394470e970b6a9be8bedbe321ed
+08:47:23.098 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT1.0185S
+Integration JVM availableProcessors=2
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-01T08:47:24.445+02:00  INFO 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : Starting NotificationEngineIT using Java 21.0.12.1 with PID 84358 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-01T08:47:24.446+02:00  INFO 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : The following 1 profile is active: "test"
+2026-10-01T08:47:26.398+02:00  INFO 84358 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-01T08:47:26.678+02:00  INFO 84358 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 262 ms. Found 0 MongoDB repository interfaces.
+2026-10-01T08:47:27.582+02:00  INFO 84358 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5dc7881d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@590336ed, com.mongodb.Jep395RecordCodecProvider@1c97c3bb, com.mongodb.KotlinCodecProvider@68fc1e7f]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52128], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@99af41d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-01T08:47:27.594+02:00  INFO 84358 --- [agilityhub-core-api] [localhost:52128] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52128, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=19405708, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=a46d8aa3f478:27017, hosts=[a46d8aa3f478:27017], passives=[], arbiters=[], primary='a46d8aa3f478:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abe01faad93f0b38a12626f, counter=6}, lastWriteDate=Thu Oct 01 08:47:23 CEST 2026, lastUpdateTimeNanos=443864709398625}
+2026-10-01T08:47:32.286+02:00  INFO 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : Started NotificationEngineIT in 8.081 seconds (process running for 12.509)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 101, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=101}, deliveries whose attempts ran out 0, redelivered 0
+E5-T07 outbox backlog discarded before NotificationEngineIT: 300 PENDING records (more than one dispatch() batch)
+E7-T03 R2 one variable list N-09: [dog_name, level_name, dog_name_article, club_name] → Values: dog_name=Lluna | level_name=C | dog_name_article=Lluna | club_name=Club Agility Exemple.
+E7-T03 R2 one variable list N-02: [member_first_name, gender, club_name] → Values: member_first_name=Anna | gender=female | club_name=Club Agility Exemple.
+2026-10-01T08:47:36.231+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-10-01T08:47:36.232+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-10-01T08:47:36.232+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-10-01T08:47:36.232+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-10-01T08:47:36.234+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-10-01T08:47:36.234+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-10-01T08:47:36.234+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-10-01T08:47:36.234+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-10-01T08:47:36.292+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-10-01T08:47:36.292+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-10-01T08:47:36.292+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-10-01T08:47:36.292+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-10-01T08:47:36.293+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-10-01T08:47:36.293+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-10-01T08:47:36.293+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-10-01T08:47:36.293+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-10-01T08:47:36.507+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-32b has no value for state
+2026-10-01T08:47:36.508+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-32b has no value for state
+2026-10-01T08:47:36.911+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngine    : Inline notification dispatch failed; the poll retries it error=IllegalStateException
+2026-10-01T08:47:37.112+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngine    : Announcement batch without its frozen template; nothing sent batchId=e7t04-batch-old templateId=6abe0209fbbe1ac6d2b3fecc
+2026-10-01T08:47:37.466+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-10-01T08:47:37.467+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-10-01T08:47:37.485+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-10-01T08:47:37.485+02:00  WARN 84358 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.00 s -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+[INFO] Running com.agilityhub.core.shared.persistence.OutboxIT
+2026-10-01T08:47:38.237+02:00  INFO 84358 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.shared.persistence.OutboxIT]: OutboxIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T08:47:38.326+02:00  INFO 84358 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.persistence.OutboxIT
+2026-10-01T08:47:38.454+02:00  WARN 84358 --- [agilityhub-core-api] [           main] i.m.core.instrument.MeterRegistry        : This Gauge has been already registered (MeterId{name='outbox.pending', tags=[]}), the registration will be ignored. Note that subsequent logs will be logged at debug level.
+db.domain_events.getIndexes(): [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{publishedAt=1}}, name=outbox_retention, expireAfterSeconds=7776000}}, Document{{v=2, key=Document{{status=1, nextAttemptAt=1}}, name=outbox_dispatch}}, Document{{v=2, key=Document{{clubId=1, aggregateType=1, aggregateId=1}}, name=outbox_aggregate}}]
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.661 s -- in com.agilityhub.core.shared.persistence.OutboxIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- failsafe:3.5.6:verify (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- jacoco:0.8.14:report (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] 
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  27.228 s
+[INFO] Finished at: 2026-10-01T08:47:43+02:00
+[INFO] ------------------------------------------------------------------------

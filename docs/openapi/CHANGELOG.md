@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E7-T04 round 3 · D9 stores `gender` select keys in lower case (ruling E83)
+
+**Descriptions only; no schema, status or path changed.** `POST /message-templates`, `PUT /message-templates/{id}`: the keys of a
+`{gender, select, …}` are stored in lower case (`FEMALE {…}` → `female {…}`), the gender the engine renders (S11 §10,
+R-11-12), so D9 shows the saved text with lower-case keys after a save. `POST /message-templates/{id}/preview`: a draft is
+rendered as a save would store it. Also visible without a contract change: the start-up template upgrade's audit entries now
+have `actorName = null` (role `SYSTEM`, `details.job = template-upgrade`), so `lastChange.actorName` is `null` for them (the
+schema already allows it), and its `MessageTemplateChanged` has no `actorAccountId`.
+
 ## 2026-10-01 · E8-T01 · the S12 and S13 contract: billing, payments, packs, inactivity and leave (web E8-W* build mocks-first)
 
 **57 operations added (36 S12, 21 S13) on 50 new paths; 2 operations changed; 135 schemas added, 2 changed; 1 security scheme

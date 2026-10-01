@@ -14,12 +14,23 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class OutboxDispatcher {
+    /**
+     * E7-T04 round 3 (S11 T-11-31; CI red at `b786a0c`): a consumer's transaction that meets another writer runs again in the
+     * same dispatch, after the shared backoff, at most this many times ({@link TransactionRetries#inTransaction}). Two
+     * `ReminderDue` of one booking insert the same N-13 `dedupKey` (unique `{clubId, dedupKey}`): the one that loses gets a
+     * `WriteConflict` (112) while the other is open, and then finds the stored notice. Once these attempts run out, the record
+     * backs off like any other failure and a later dispatch delivers it again (R-11-09).
+     */
+    public static final int CONFLICT_ATTEMPTS = 5;
+    /** The `context` tag of the outbox's retries in `core.transactions.retries` and `core.transactions.exhausted`. */
+    public static final String RETRY_CONTEXT = "outbox";
     private final OutboxRepository records;
     private final Map<String, DomainEventHandler<?>> handlers;
     private final TransactionTemplate transactions;
     private final ObjectMapper mapper;
     private final Clock clock;
     private final int maxAttempts;
+    private final TransactionRetries retries;
 
     public OutboxDispatcher(OutboxRepository records, Map<String, DomainEventHandler<?>> handlers,
                             TransactionTemplate transactions, ObjectMapper mapper, Clock clock,
@@ -31,6 +42,7 @@ public class OutboxDispatcher {
         this.mapper = mapper;
         this.clock = clock;
         this.maxAttempts = maxAttempts;
+        this.retries = new TransactionRetries(metrics);
         Gauge.builder("outbox.pending", records, r -> r.count(DomainEventRecord.Status.PENDING)).register(metrics);
         Gauge.builder("outbox.failed", records, r -> r.count(DomainEventRecord.Status.FAILED)).register(metrics);
     }
@@ -47,7 +59,7 @@ public class OutboxDispatcher {
                             .encodeToString(entry.getKey().getBytes(StandardCharsets.UTF_8));
                     var handler = entry.getValue();
                     if (handler.eventType().equals(record.type()) && !record.processedAt().containsKey(consumer)) {
-                        transactions.executeWithoutResult(status -> {
+                        retries.inTransaction(RETRY_CONTEXT, CONFLICT_ATTEMPTS, transactions, status -> {
                             records.lock(record, clock.instant());
                             deliver(handler, record);
                             records.processed(record, consumer, clock.instant());

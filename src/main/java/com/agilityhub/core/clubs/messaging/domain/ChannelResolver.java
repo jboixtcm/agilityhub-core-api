@@ -107,9 +107,8 @@ public final class ChannelResolver {
      * `CUSTOM` template of another category) whatever its category (S11 R-11-13, ruling E82).
      */
     static boolean pushClubNews(NotificationSpec spec) {
-        return spec.category() == NotificationCategory.CLUB_NEWS || ANNOUNCEMENT.equals(spec.code());
+        return spec.category() == NotificationCategory.CLUB_NEWS || NotificationCatalog.ANNOUNCEMENT.equals(spec.code());
     }
-    static final String ANNOUNCEMENT = "N-24";
 
     private static boolean on(Map<NotificationChannel, Boolean> row, java.util.Set<NotificationChannel> caps, NotificationChannel channel) {
         return caps.contains(channel) && Boolean.TRUE.equals(row.get(channel));

@@ -58,6 +58,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     creates (CI `75635df`: `WeekOpeningJobIT` saw it as an N-33 PUSH `SENT`).
   - `bin/e7-smoke [--image]`, the gate E7 (back) rehearsal, with a SendGrid bounce signed by a key generated for the run.
   - Docs: README «E7», `seeds/README.md`, `docs/DEPLOY.md` (missing-credential behaviour, gate E7 checklist).
+  - Round 3 (CI red at `b786a0c`, T-11-31): the outbox dispatcher runs a consumer's transaction again after a conflict
+    (`WriteConflict`, duplicate key, `TransientTransactionError`), at most 5 attempts with the shared 50–150 ms backoff,
+    counted as `core.transactions.retries{context=outbox}`; then the record backs off as before. The conflict was two
+    `ReminderDue` of one booking inserting the same N-13 `dedupKey`.
+  - Round 3 (ruling E83): D9 stores the keys of a `{gender, select, …}` in lower case (save and draft preview), so the
+    start-up upgrade has nothing to correct after a save. The upgrade's `MessageTemplateChanged` has no `actorAccountId`,
+    and its audit entry has `actorName = null`, role `SYSTEM`, and the process in `details.job` (`template-upgrade`). Audit
+    entries gain the optional `details` the audit list already projected. An announcement batch without its frozen
+    template logs a WARN; `TemplateProvider` requires the announcements repository; one constant for N-24.
 
 - E11-T04: production Compose with authenticated MongoDB 7, private Core and Caddy's same-site SPA proxies;
   internal-CA local rehearsal with a fictional seed and MinIO; age-encrypted S3 backups, scoped 30-day retention

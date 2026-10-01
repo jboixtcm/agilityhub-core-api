@@ -53,14 +53,18 @@ import org.springframework.stereotype.Service;
  * </ul>
  * A template is written only when a text changes, conditionally on the version read (a D9 save in between wins; the template
  * is read again and upgraded from there), with `MessageTemplateChanged{id, diff}` and the `CATALOG_CHANGED` audit in the same
- * transaction, both by the actor {@value #ACTOR} (S11 §4: D9's «last change» names it). Idempotent: an up-to-date template is
+ * transaction, both written as a system process (ruling E83: no account, origin `SYSTEM`, the process in the entry's
+ * `details.job`; D9's «last change» shows its system label). Idempotent: an up-to-date template is
  * never written. A template, or a whole club, that fails is logged (ids only) and counted, and the others go on: the API always
  * starts. Nothing brings the old texts back: the lazy seed, `club:apply` and «Restaura el text per defecte» store the current seed.
  */
 @Service
 public class TemplateUpgrade implements SmartInitializingSingleton {
     private static final Logger LOG = LoggerFactory.getLogger(TemplateUpgrade.class);
+    /** The template's `updatedBy` after an upgrade (like the engine's `system:notification-engine` on a first use). */
     static final String ACTOR = "system:template-upgrade";
+    /** The process, in its audit entry's `details.job` (ruling E83: no account and no actor name, role and origin `SYSTEM`). */
+    static final String PROCESS = "template-upgrade";
     static final int ATTEMPTS = 3;
     /** The `gender` select of a text: its keys follow (S11 §10: `female`, `male`, `other`). */
     private static final Pattern GENDER_SELECT = Pattern.compile("\\{\\s*gender\\s*,\\s*select\\s*,");
@@ -186,13 +190,17 @@ public class TemplateUpgrade implements SmartInitializingSingleton {
                 template.smsBody(), template.icon(), template.color(), template.matrix(), template.enabled(), template.mandatory(), template.customized(),
                 template.status(), template.version(), template.createdAt(), template.createdBy(), clock.instant(), ACTOR);
     }
-    /** S11 §4 (E81): `MessageTemplateChanged{id, diff}` and `CATALOG_CHANGED`, the same before/after as a D9 save, by {@value #ACTOR}. */
+    /**
+     * S11 §4 (E81): `MessageTemplateChanged{id, diff}` and `CATALOG_CHANGED`, the same before/after as a D9 save. Ruling E83 (it
+     * clarifies E81's «actor `system:template-upgrade`»): like the other system processes, the event has no `actorAccountId` and
+     * the origin `SYSTEM`, and the audit entry no account and no `actorName`, role `SYSTEM`, with {@value #PROCESS} in `details.job`.
+     */
     private void changed(MessageTemplate before, MessageTemplate after) {
         var from = MessageTemplateService.snapshot(before); var to = MessageTemplateService.snapshot(after);
         var payload = new LinkedHashMap<String, Object>(); payload.put("id", after.id()); payload.put("diff", TemplateDiff.between(from, to));
-        events.publish(new MessagingEvent(MessagingEvent.Kind.MessageTemplateChanged, after.clubId(), after.id(), clock.instant(), payload, ACTOR, null,
+        events.publish(new MessagingEvent(MessagingEvent.Kind.MessageTemplateChanged, after.clubId(), after.id(), clock.instant(), payload, null, null,
                 DomainEvent.Origin.SYSTEM));
-        audit.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, MessageTemplateService.ENTITY, after.id(), null, from, to, null), ACTOR);
+        audit.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, MessageTemplateService.ENTITY, after.id(), null, from, to, null), PROCESS);
     }
 
     /**

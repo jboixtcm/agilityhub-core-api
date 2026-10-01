@@ -260,7 +260,7 @@ public class MessageTemplateService {
         });
         var push = EnumSet.noneOf(NotificationAudience.class);
         if (config.modules().contains(Module.PUSH)) {
-            push.addAll(template.kind() == TemplateKind.CATALOG ? spec(template.code()).push() : spec("N-24").push());
+            push.addAll(template.kind() == TemplateKind.CATALOG ? spec(template.code()).push() : spec(NotificationCatalog.ANNOUNCEMENT).push());
         }
         var variables = template.kind() == TemplateKind.CATALOG ? NotificationCatalog.templateVariables(spec(template.code())) : NotificationCatalog.customTemplateVariables();
         var seed = detail && template.kind() == TemplateKind.CATALOG ? seed(template.code(), config) : null;
@@ -307,13 +307,19 @@ public class MessageTemplateService {
     private static String title(MessageTemplate template, ClubConfig config) {
         return template.title().withDefaultLocale(config.club().defaultLocale()).resolve(Locale.ROOT).value();
     }
-    /** Blank translations dropped, the rest stripped. */
+    /**
+     * Blank translations dropped, the rest stripped, and the keys of every `{gender, select, …}` in lower case (E7-T06 round 2
+     * review #1, ruling E83; S11 §10): the engine gives `gender` in lower case, so `FEMALE {…}` is stored `female {…}`, with
+     * the function the start-up upgrade uses ({@link TemplateUpgrade#lowerGenderKeys}), which then finds nothing to correct.
+     */
     static Texts clean(Texts texts) {
         return new Texts(clean(texts.title()), clean(texts.body()), clean(texts.smsBody()));
     }
     private static Map<String, String> clean(Map<String, String> values) {
         var kept = new LinkedHashMap<String, String>();
-        if (values != null) { values.forEach((locale, text) -> { if (locale != null && text != null && !text.isBlank()) { kept.put(locale, text.strip()); } }); }
+        if (values != null) {
+            values.forEach((locale, text) -> { if (locale != null && text != null && !text.isBlank()) { kept.put(locale, TemplateUpgrade.lowerGenderKeys(text.strip())); } });
+        }
         return kept;
     }
     private static LocalizedText text(Map<String, String> values, ClubConfig config) {

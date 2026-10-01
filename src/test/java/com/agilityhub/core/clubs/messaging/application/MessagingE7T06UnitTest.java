@@ -9,6 +9,7 @@ import com.agilityhub.core.clubs.messaging.domain.TemplateColor;
 import com.agilityhub.core.clubs.messaging.domain.TemplateIcon;
 import com.agilityhub.core.clubs.messaging.domain.TemplateKind;
 import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
+import com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplateRepository;
 import com.agilityhub.core.platform.application.ClubConfig;
@@ -189,12 +190,13 @@ class MessagingE7T06UnitTest {
      * Round 2 (review #2, ruling E81): one club never stops the start-up — a club whose configuration fails and a club whose
      * templates cannot be read are logged and counted, the other clubs are upgraded, and the start-up hook returns; even a
      * failure to list the clubs is only logged. Round 2 (review #4): every write publishes `MessageTemplateChanged` and audits
-     * `CATALOG_CHANGED` by `system:template-upgrade`; nothing when nothing changes.
+     * `CATALOG_CHANGED` as a system process (ruling E83: no account in the event, the process `template-upgrade` in the audit
+     * entry's `details.job`); nothing when nothing changes.
      */
     @Test void E7_T06_aConcurrentSaveAFailedWriteAFailingClubAndACommandNeverStopTheStartUp() {
         var repository = mock(MessageTemplateRepository.class); var configs = mock(ClubConfigService.class);
         var events = mock(EventPublisher.class); var audit = mock(AuditWriter.class);
-        var provider = new TemplateProvider(repository, MessageTemplateSeed.load(), CLOCK, null);
+        var provider = new TemplateProvider(repository, MessageTemplateSeed.load(), CLOCK, null, mock(AnnouncementRepository.class));
         var e7t02 = template("N-02", TemplateKind.CATALOG, text("ca", "{gender, select, FEMALE {Benvinguda} other {Benvingut}}!"), text("ca", "Validada. Entra al teu compte amb aquest enllaç."),
                 false, TemplateStatus.ACTIVE);
         // A D9 save between the read and the write: STALE_VERSION, read again (now edited), corrected from there.
@@ -231,11 +233,11 @@ class MessagingE7T06UnitTest {
         verify(events, times(1)).publish(event.capture());
         assertThat(event.getValue()).isInstanceOfSatisfying(MessagingEvent.class, e -> {
             assertThat(e.kind()).isEqualTo(MessagingEvent.Kind.MessageTemplateChanged); assertThat(e.aggregateId()).isEqualTo(e7t02.id());
-            assertThat(e.actorAccountId()).isEqualTo("system:template-upgrade"); assertThat(e.origin()).isEqualTo(DomainEvent.Origin.SYSTEM);
+            assertThat(e.actorAccountId()).isNull(); assertThat(e.origin()).isEqualTo(DomainEvent.Origin.SYSTEM);
             assertThat(e.payload()).containsEntry("id", e7t02.id()).extractingByKey("diff").asInstanceOf(InstanceOfAssertFactories.MAP).containsOnlyKeys("title", "body");
         });
         var entry = ArgumentCaptor.forClass(AuditCommand.class);
-        verify(audit, times(1)).writeAsSystem(entry.capture(), eq("system:template-upgrade"));
+        verify(audit, times(1)).writeAsSystem(entry.capture(), eq("template-upgrade"));
         assertThat(entry.getValue().action()).isEqualTo(AuditAction.CATALOG_CHANGED); assertThat(entry.getValue().entityId()).isEqualTo(e7t02.id());
         // The start-up hook never throws: a failing club, and even the clubs that cannot be listed, only log.
         upgrade.afterSingletonsInstantiated();
@@ -263,7 +265,8 @@ class MessagingE7T06UnitTest {
      */
     @Test void E7_T06_nothingToCorrectIsNeverWrittenAndALanguageTheClubRemovedStays() {
         var repository = mock(MessageTemplateRepository.class); var events = mock(EventPublisher.class); var audit = mock(AuditWriter.class);
-        var upgrade = new TemplateUpgrade(repository, new TemplateProvider(repository, MessageTemplateSeed.load(), CLOCK, null), mock(ClubConfigService.class),
+        var upgrade = new TemplateUpgrade(repository, new TemplateProvider(repository, MessageTemplateSeed.load(), CLOCK, null, mock(AnnouncementRepository.class)),
+                mock(ClubConfigService.class),
                 transactions(), events, audit, CLOCK, "");
         var current = template("N-09", TemplateKind.CATALOG, seed("N-09").title(), seed("N-09").body(), false, TemplateStatus.ACTIVE);
         var edited = new MessageTemplate("t-N-09-edited", "club", "N-09", TemplateKind.CATALOG, current.category(), text("ca", "Nou nivell", "es", "Nuevo nivel", "en", "Our new level"),
@@ -280,7 +283,7 @@ class MessagingE7T06UnitTest {
      * hidden second variable list. N-32c's `date` is a row variable since round 2 (P1, ruling E81), never a seed argument.
      */
     @Test void E7_T06_seedArgumentsAreTheSeedsSelectorsOnly() {
-        var provider = new TemplateProvider(null, MessageTemplateSeed.load(), CLOCK, null);
+        var provider = new TemplateProvider(null, MessageTemplateSeed.load(), CLOCK, null, mock(AnnouncementRepository.class));
         var service = new MessageTemplateService(null, provider, null, null, null, null, null, CLOCK, null);
         assertThat(service.seedArguments("N-01")).containsExactly("has_upfront");
         assertThat(service.seedArguments("N-15")).containsExactly("mode");

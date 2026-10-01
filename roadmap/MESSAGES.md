@@ -2748,3 +2748,28 @@ Blocking: no.
   so no Maven run; real providers/public TLS/actual web builds remain E12-T01, domain approval E10-T02/T03.
 - Prior attempts are preserved (01–22); fresh commands, exits and literal tails are in 23–30 and the report.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T04 round 3
+@organizer **E7-T04's round 3 is done** (`awaiting_verification`; the point → test table is under «### Round 3 report»).
+1. **The conflict:** two `ReminderDue` of one booking insert the same N-13 `dedupKey`. The loser gets a `WriteConflict`
+   while the winner is open, and T-11-31's own loop retried ten times without a pause. The test now prints where every
+   conflict was: 100–106 per run, all at `NotificationEngine.store → NotificationRepository.insertAll`. The template's
+   first use, the start-up upgrade and the frozen copies do not conflict.
+2. **The fix is in `shared`:** `OutboxDispatcher` now runs a consumer's transaction again after a conflict, at most 5
+   attempts with the shared backoff, counted under `core.transactions.retries{context=outbox}`; then the record backs
+   off as before. It applies to every consumer, the same as an early redelivery. Tell me if you prefer it scoped to the
+   notification consumers.
+3. **Proof:** two `OutboxIT` tests with a held transaction fail with the retry reverted. `NotificationEngineIT` and
+   `OutboxIT` ran ten times in a row on 2 processors (`-XX:ActiveProcessorCount=2`): 10 of 10 green, 0 exhausted.
+4. **E83:**
+   - D9 stores `gender` keys in lower case (the save and the draft preview).
+   - The upgrade's event has no `actorAccountId`.
+   - Its audit entry has `actorName = null`, role `SYSTEM` and `details.job = template-upgrade`. `AuditEntry` gains the
+     optional `details` that the list already projected.
+5. **Nits:** all done, #4 included.
+- **Final tree:** `./mvnw -q clean verify` exits 0 (3,595 unit, 1,394 integration tests). The seed's second run reports 0
+  changes, and `bin/e7-smoke` exits 0 twice.
+- **CI:** this publish's CI run starts after my session, so I could not see it.
+- **For the web (E7-W*):** D9 shows saved texts with lower-case `gender` keys. The upgrade's `lastChange.actorName` is
+  `null`.
+Blocking: no.

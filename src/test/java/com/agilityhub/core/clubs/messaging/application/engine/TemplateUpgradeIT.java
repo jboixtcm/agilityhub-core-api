@@ -40,6 +40,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
@@ -51,11 +52,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * template (a woman greeted «Benvingut», the empty link, the PUT refused), runs the start-up hook, then: D9's GET and an
  * unchanged PUT answer 200, a delivery to a `FEMALE` member reads «Benvinguda», no N-02 delivery has a link sentence, an
  * edited template keeps the club's words in every language it stores (also one the club removed), each change is a
- * `MessageTemplateChanged` and an audit entry by `system:template-upgrade` (nothing when nothing changes), and a club that
- * fails never stops the others nor the start-up. The club (`e7t02-engine`) is a `ca/es` club.
+ * `MessageTemplateChanged` and an audit entry of a system process (ruling E83: no account, the process in `details.job`;
+ * nothing when nothing changes), and a club that fails never stops the others nor the start-up. The club (`e7t02-engine`)
+ * is a `ca/es` club.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class TemplateUpgradeIT extends EngineFixtures {
+    /** The upgraded template's `updatedBy`. */
     static final String ACTOR = "system:template-upgrade";
     /** E7-T02's N-02, `messages_{ca,es,en}.properties` of `ca83d97^` (`notif.N-02.title|body`). */
     static final Map<String, String> E7T02_N02_TITLE = texts("{gender, select, FEMALE {Benvinguda} other {Benvingut}}, {member_first_name}!",
@@ -153,20 +156,25 @@ class TemplateUpgradeIT extends EngineFixtures {
     List<Document> audits(MessageTemplate template) {
         return mongo.find(Query.query(Criteria.where("entityType").is("MessageTemplate").and("entityId").is(template.id())), Document.class, "audit_entries");
     }
-    /** One `MessageTemplateChanged` and one `CATALOG_CHANGED` by the upgrade, with the stored texts before and after; D9's «last change» names it. */
+    /**
+     * One `MessageTemplateChanged` and one `CATALOG_CHANGED` by the upgrade, with the stored texts before and after, written as
+     * a system process (ruling E83, E7-T04 round 3): the event without `actorAccountId`, origin `SYSTEM`; the entry without
+     * account or `actorName`, role and origin `SYSTEM`, `details.job = template-upgrade`; D9's «last change» has no name.
+     */
     void changedByTheUpgrade(String clubId, MessageTemplate template, String field) throws Exception {
         assertThat(changes(template)).as(template.code() + " event").singleElement().satisfies(event -> {
-            assertThat(event.getString("actorAccountId")).isEqualTo(ACTOR); assertThat(event.getString("origin")).isEqualTo("SYSTEM");
+            assertThat(event.containsKey("actorAccountId") ? event.get("actorAccountId") : null).isNull(); assertThat(event.getString("origin")).isEqualTo("SYSTEM");
             var payload = event.get("payload", Document.class);
             assertThat(payload.getString("id")).isEqualTo(template.id());
             assertThat(payload.get("diff", Document.class).get(field, Document.class)).containsOnlyKeys("before", "after");
         });
         assertThat(audits(template)).as(template.code() + " audit").singleElement().satisfies(entry -> {
-            assertThat(entry.getString("action")).isEqualTo("CATALOG_CHANGED"); assertThat(entry.getString("actorName")).isEqualTo(ACTOR);
+            assertThat(entry.getString("action")).isEqualTo("CATALOG_CHANGED"); assertThat(entry.get("actorName")).isNull(); assertThat(entry.get("actorAccountId")).isNull();
+            assertThat(entry.get("details", Document.class)).isEqualTo(new Document("job", "template-upgrade"));
             assertThat(entry.getString("actorRole")).isEqualTo("SYSTEM"); assertThat(entry.getString("origin")).isEqualTo("SYSTEM"); assertThat(entry.getString("clubId")).isEqualTo(clubId);
         });
         var last = detail(clubId, template).path("lastChange");
-        assertThat(last.path("actorName").asText()).isEqualTo(ACTOR); assertThat(last.path("action").asText()).isEqualTo("CATALOG_CHANGED");
+        assertThat(last.hasNonNull("actorName")).as(last.toString()).isFalse(); assertThat(last.path("action").asText()).isEqualTo("CATALOG_CHANGED");
     }
 
     /**
@@ -278,6 +286,37 @@ class TemplateUpgradeIT extends EngineFixtures {
         for (var notice : List.of(laura, marc, other)) { noLinkSentence(notice); }
         assertThat(upgrade.upgradeAll().corrected()).isZero();
         System.out.println("E7-T06 step 1, edited: " + laura.title() + " | " + laura.body() + " · round 1: " + other.body());
+    }
+
+    /**
+     * E7-T06's round-2 review #1, fixed in E7-T04 round 3 (ruling E83; S11 §10, R-11-12). D9 stores the keys of a
+     * `{gender, select, …}` in lower case, with the upgrade's own function. A PUT with `FEMALE`/`MALE` stores
+     * `female`/`male`. The preview of the saved text, and of the same unsaved draft, renders the female form for the data
+     * set's Laura, and so does Laura's notice. The next start-up has nothing to correct, so it writes, publishes and audits
+     * nothing. Before the fix the PUT stored `FEMALE`, the preview and the notice read «Benvingut/da», and the next start-up
+     * rewrote the club's text.
+     */
+    @Test void E7_T04_D9StoresGenderKeysInLowerCaseAndThePreviewRendersTheFemaleForm() throws Exception {
+        MessageTemplate n02;
+        try (var tenant = TenantContext.open(CLUB)) { n02 = templates.forCode(NotificationCatalog.byCode("N-02").orElseThrow(), List.of("ca", "es"), "ca"); }
+        String upper = "{gender, select, FEMALE {Benvinguda} MALE {Benvingut} other {Benvingut/da}} a [[club_name]], [[member_first_name]]!";
+        var title = new LinkedHashMap<String, String>();
+        title.put("ca", upper); title.put("es", "{gender, select, FEMALE {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!");
+        getThenPut(CLUB, n02, title, null, 200);
+        assertThat(reread(n02).title().values()).isEqualTo(Map.of("ca", "{gender, select, female {Benvinguda} male {Benvingut} other {Benvingut/da}} a [[club_name]], [[member_first_name]]!",
+                "es", "{gender, select, female {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!"));
+        String welcomeLaura = "Benvinguda a Club Agility Exemple, Laura!";
+        assertThat(call(admin(post("/api/v1/message-templates/" + n02.id() + "/preview").content("{\"locale\":\"ca\"}"), CLUB), 200).path("title").asText())
+                .isEqualTo(welcomeLaura);
+        var draft = mapper.createObjectNode(); draft.put("locale", "ca");
+        draft.putObject("draft").put("title", upper).put("body", reread(n02).body().values().get("ca"));
+        assertThat(call(admin(post("/api/v1/message-templates/" + n02.id() + "/preview").content(draft.toString()), CLUB), 200).path("title").asText())
+                .isEqualTo(welcomeLaura);
+        assertThat(welcome(CLUB, "member-laura").title()).isEqualTo(welcomeLaura);
+        var saved = reread(n02); int events = changes(n02).size(), entries = audits(n02).size();
+        upgrade.upgradeAll();
+        assertThat(reread(n02).version()).isEqualTo(saved.version()); assertThat(reread(n02).title().values()).isEqualTo(saved.title().values());
+        assertThat(changes(n02)).hasSize(events); assertThat(audits(n02)).hasSize(entries);
     }
 
     /**

@@ -1,5 +1,9 @@
 package com.agilityhub.core.clubs.messaging.application.engine;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.agilityhub.core.clubs.messaging.application.ports.InMemoryMessagingPorts;
 import com.agilityhub.core.clubs.messaging.application.ports.MemberContact;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
@@ -9,10 +13,13 @@ import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
 import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.TemplateKind;
 import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
+import com.agilityhub.core.clubs.messaging.persistence.Announcement;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.shared.application.OutboxDispatcher;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.domain.LocalizedText;
@@ -21,7 +28,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -183,27 +193,38 @@ class NotificationEngineIT extends EngineFixtures {
         assertThat(channels(training)).containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "PUSH:SKIPPED_NO_CONTACT");
     }
 
+    /**
+     * T-11-31 (R-11-09). E7-T04 round 3: CI was red at `b786a0c`. The test's own loop delivered again ten times without
+     * pausing, and one delivery lost all ten attempts while its twin's transaction was still open. Now every delivery goes
+     * through the outbox's own retry ({@link #deliver}, {@code OutboxDispatcher.CONFLICT_ATTEMPTS}): the delivery that loses
+     * the race on `{clubId, dedupKey}` meets a `WriteConflict` while the other is open, rolls back, waits the shared backoff
+     * and finds the stored reminder. A delivery whose attempts all run out is redelivered after the record's backoff, as the
+     * outbox does, at most `maxAttempts` = 10 times (`SharedConfiguration`). The test prints where the conflicts were.
+     */
     @Test void T_11_31_aHundredSimultaneousRemindersAreAHundredNotificationsWithoutDuplicates() throws Exception {
         var startsAt = Instant.parse("2026-10-08T16:50:00Z");
         for (int i = 0; i < 100; i++) { ports.activeBookings.put("booking-" + i, startsAt); }
-        // 200 deliveries at once: every booking's reminder twice (two ReminderDue of the same booking, T-11-32). A delivery that
-        // loses the race on `{clubId, dedupKey}` rolls back and is delivered again, as the outbox redelivers it (R-11-09).
-        var redeliveries = new java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger>();
+        double retried = retries.retries(OutboxDispatcher.RETRY_CONTEXT), exhausted = retries.exhaustions(OutboxDispatcher.RETRY_CONTEXT);
+        var sites = new ConcurrentHashMap<String, AtomicInteger>(); var redelivered = new AtomicInteger();
+        // 200 deliveries at once: every booking's reminder twice (two ReminderDue of the same booking, T-11-32).
         ConcurrencySupport.parallel(200, i -> () -> {
             boolean laura = i % 2 == 0;
             var payload = Map.<String, Object>of("bookingId", "booking-" + (i % 100), "memberId", laura ? "member-laura" : "member-marc", "dogId", laura ? "dog-duna" : "dog-ares",
                     "startsAt", startsAt.toString());
             String eventId = "reminder-" + i;
-            for (int attempt = 1; ; attempt++) {
-                try { deliver(eventId, CLUB, "ReminderDue", payload); return null; }
-                catch (RuntimeException raced) {
-                    if (attempt == 10) { throw raced; }
-                    var cause = raced; while (cause.getCause() instanceof RuntimeException inner) { cause = inner; }
-                    redeliveries.computeIfAbsent(cause.getClass().getSimpleName(), key -> new java.util.concurrent.atomic.AtomicInteger()).incrementAndGet();
+            for (int delivery = 1; ; delivery++) {
+                try {
+                    deliver(eventId, CLUB, "ReminderDue", payload, failure -> sites.computeIfAbsent(site(failure), key -> new AtomicInteger()).incrementAndGet());
+                    return null;
+                } catch (RuntimeException outlasted) {
+                    if (delivery == 10 || !TransactionRetries.conflict(outlasted)) { throw outlasted; }
+                    redelivered.incrementAndGet(); Thread.sleep(TransactionRetries.jitter());
                 }
             }
         });
-        System.out.println("T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2); redelivered after a rolled-back attempt: " + redeliveries);
+        System.out.println("T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict "
+                + (long) (retries.retries(OutboxDispatcher.RETRY_CONTEXT) - retried) + ", where the engine met them " + new java.util.TreeMap<>(sites)
+                + ", deliveries whose attempts ran out " + (long) (retries.exhaustions(OutboxDispatcher.RETRY_CONTEXT) - exhausted) + ", redelivered " + redelivered);
         var reminders = stored(CLUB, "N-13");
         assertThat(reminders).hasSize(100);
         assertThat(reminders.stream().map(Notification::dedupKey).distinct()).hasSize(100);
@@ -211,6 +232,33 @@ class NotificationEngineIT extends EngineFixtures {
         // The first-use template was created once for the club.
         try (var tenant = TenantContext.open(CLUB)) { assertThat(templateRepository.findByCode("N-13")).isPresent(); }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-13")), MessageTemplate.class)).isEqualTo(1);
+    }
+    /** Where an attempt met its failure: the application's write and its caller («NotificationEngine.store → NotificationRepository.insertAll»). */
+    static String site(Throwable failure) {
+        var frames = java.util.Arrays.stream(failure.getStackTrace()).filter(f -> f.getClassName().startsWith("com.agilityhub.core.") && !f.getClassName().contains("$$"))
+                .limit(2).map(f -> f.getClassName().substring(f.getClassName().lastIndexOf('.') + 1) + "." + f.getMethodName()).toList();
+        return frames.size() < 2 ? String.join("", frames) + " (" + failure.getClass().getSimpleName() + ")" : frames.get(1) + " → " + frames.get(0);
+    }
+
+    /**
+     * E7-T04 round 3 (round 2's review, nit #1; R-11-13, assumption R2-2): a batch stored before round 2 has no frozen copy of
+     * its template. Nothing is sent rather than today's text, and the engine logs a WARN with the batch and the template
+     * (ids only). Before the fix the batch was dropped silently.
+     */
+    @Test void R_11_13_aBatchWithoutItsFrozenTemplateSendsNothingAndSaysSo() {
+        String templateId;
+        try (var tenant = TenantContext.open(CLUB)) {
+            var club = configs.get(CLUB).club();
+            templateId = templates.forCode(NotificationCatalog.byCode(NotificationCatalog.ANNOUNCEMENT).orElseThrow(), club.locales(), club.defaultLocale()).id();
+            announcements.insert(new Announcement("e7t04-batch-old", CLUB, templateId, null, Announcement.MEMBERS, List.of(), null, List.of("member-laura"), 1,
+                    "account-admin", clock.instant()));
+        }
+        var logs = new ListAppender<ILoggingEvent>(); logs.start(); var logger = (Logger) LoggerFactory.getLogger(NotificationEngine.class); logger.addAppender(logs);
+        try { deliver(CLUB, "AnnouncementSent", Map.of("templateId", templateId, "batchId", "e7t04-batch-old", "recipientCount", 1, "filters", List.of())); }
+        finally { logger.detachAppender(logs); }
+        assertThat(stored(CLUB, NotificationCatalog.ANNOUNCEMENT)).isEmpty();
+        assertThat(logs.list).filteredOn(e -> e.getLevel() == Level.WARN).extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly("Announcement batch without its frozen template; nothing sent batchId=e7t04-batch-old templateId=" + templateId);
     }
 
     /**

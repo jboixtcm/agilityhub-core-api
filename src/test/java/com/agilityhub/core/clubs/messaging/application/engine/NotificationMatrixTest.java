@@ -55,7 +55,9 @@ import static org.mockito.Mockito.*;
  * `pushClubNews` ON/OFF (crossed, round 2) × the modules (all ON; `SMS`+`PUSH` OFF; and, for a code with module guards, its
  * own modules OFF) × the contact (present: an account, two e-mails, two phones, two push devices; absent: none). The template
  * enables exactly the channel of the case (PUSH is the code's, never the template's). Round 2 adds N-24 sent with a `CUSTOM`
- * template of each category D9 offers (R-11-13, ruling E82: `pushClubNews` holds whatever the category).
+ * template of each category D9 offers (R-11-13, ruling E82: `pushClubNews` holds whatever the category). Round 3 (review nit
+ * #4): every N-24 case, its own template's too, carries its batch's template id and renders the batch's frozen copy
+ * (`asSent`), as `MessagingNotificationFacts` makes every announcement do; the code's current template is never read for it.
  *
  * <p>The expected answer is the R-11-03 truth table as {@link ChannelTruthTable#expected} writes it, row by row (not from the
  * engine's code), plus what the engine adds around the resolver: a code whose module is off is never emitted (R-11-17), a
@@ -79,7 +81,7 @@ class NotificationMatrixTest {
     enum ContactKind { PRESENT, ABSENT }
     /** The categories of a `CUSTOM` template D9 creates (`MessageTemplateCreateRequest`): an announcement sent with one is N-24. */
     static final List<NotificationCategory> CUSTOM_CATEGORIES = List.of(NotificationCategory.PERSONAL, NotificationCategory.CLUB_NEWS, NotificationCategory.CLUB_CHANGES);
-    static final String CUSTOM_TEMPLATE = "template-custom-matrix", BATCH = "batch-matrix";
+    static final String CUSTOM_TEMPLATE = "template-custom-matrix", BATCH = "batch-matrix", N24_TEMPLATE = "template-" + NotificationCatalog.ANNOUNCEMENT;
     static final Map<String, AtomicInteger> CUSTOM_COUNTS = new TreeMap<>();
 
     /**
@@ -107,7 +109,7 @@ class NotificationMatrixTest {
             if (spec.stage() != NotificationSpec.Stage.R1 || WITHOUT_EVENT.contains(spec.code())) { continue; }
             for (var audience : spec.audiences()) { cases.addAll(axes(spec, null, audience)); }
         }
-        var n24 = NotificationCatalog.byCode("N-24").orElseThrow();
+        var n24 = NotificationCatalog.byCode(NotificationCatalog.ANNOUNCEMENT).orElseThrow();
         for (var category : CUSTOM_CATEGORIES) { cases.addAll(axes(n24, category, MEMBER)); }
         return cases.stream();
     }
@@ -141,7 +143,7 @@ class NotificationMatrixTest {
         assertThat(notification.code()).isEqualTo(c.spec().code());
         assertThat(notification.audience()).isEqualTo(c.audience());
         assertThat(notification.category()).isEqualTo(c.effective().category());
-        if (c.custom() != null) { assertThat(notification.templateId()).isEqualTo(CUSTOM_TEMPLATE); }
+        if (c.spec().code().equals(NotificationCatalog.ANNOUNCEMENT)) { assertThat(notification.templateId()).isEqualTo(c.custom() != null ? CUSTOM_TEMPLATE : N24_TEMPLATE); }
         assertThat(notification.recipient().accountId()).isEqualTo(c.contact() == ContactKind.PRESENT ? ChannelTruthTable.ACCOUNT : null);
         assertThat(notification.title()).as(c + " title").isNotBlank();
         assertThat(notification.deliveries()).extracting(d -> new ChannelResolver.Planned(d.channel(), d.target(), d.status()))
@@ -208,9 +210,11 @@ class NotificationMatrixTest {
         var config = new ClubConfig(VIEW, PARAMETERS, modules(c), null, Map.of());
         var configs = mock(ClubConfigService.class); when(configs.get(CLUB)).thenReturn(config);
         var templates = mock(TemplateProvider.class);
-        if (spec.templated()) { when(templates.forCode(any(), any(), any())).thenReturn(template(spec, c)); }
-        // R-11-13: the batch's frozen copy of the CUSTOM template it was sent with (`asSent`), never the code's own.
-        if (c.custom() != null) { when(templates.asSent(BATCH, CUSTOM_TEMPLATE)).thenReturn(Optional.of(custom(c))); }
+        boolean announcement = spec.code().equals(NotificationCatalog.ANNOUNCEMENT);
+        if (spec.templated() && !announcement) { when(templates.forCode(any(), any(), any())).thenReturn(template(spec, c)); }
+        // R-11-13: an announcement renders its batch's frozen copy (`asSent`) of the template it was sent with — a CUSTOM one or
+        // N-24's own — never the code's current template (`forCode` answers nothing for N-24 here).
+        if (announcement) { when(templates.asSent(BATCH, c.custom() != null ? CUSTOM_TEMPLATE : N24_TEMPLATE)).thenReturn(Optional.of(c.custom() != null ? custom(c) : template(spec, c))); }
         var ports = new InMemoryMessagingPorts();
         boolean present = c.contact() == ContactKind.PRESENT;
         var preferences = new LinkedHashMap<String, Object>();
@@ -261,7 +265,7 @@ class NotificationMatrixTest {
                 "es", "Hola [[member_first_name]], el sábado hay fiesta con [[dog_name]]."), "ca");
         var title = new com.agilityhub.core.shared.domain.LocalizedText(Map.of("ca", "Comunicat del club", "es", "Comunicado del club"), "ca");
         var sms = new com.agilityhub.core.shared.domain.LocalizedText(Map.of("ca", "[[club_name]]: festa dissabte", "es", "[[club_name]]: fiesta el sábado"), "ca");
-        var seeded = SEEDS.of("N-24").orElseThrow();
+        var seeded = SEEDS.of(NotificationCatalog.ANNOUNCEMENT).orElseThrow();
         return new MessageTemplate(CUSTOM_TEMPLATE, CLUB, null, TemplateKind.CUSTOM, c.custom(), title, text, sms, seeded.icon(), seeded.color(), matrix, true, false, true,
                 TemplateStatus.ACTIVE, 3L, NOW, "admin", NOW, "admin");
     }
@@ -294,7 +298,7 @@ class NotificationMatrixTest {
                         present ? ChannelTruthTable.ACCOUNT : null));
             }
             if (code.equals("N-02")) { builder.exclude("EMAIL"); }
-            if (custom) { builder.template(CUSTOM_TEMPLATE); }
+            if (custom) { builder.template(CUSTOM_TEMPLATE); } else if (code.equals(NotificationCatalog.ANNOUNCEMENT)) { builder.template(N24_TEMPLATE); }
             return Optional.of(builder.build());
         }
     }
