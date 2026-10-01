@@ -22,7 +22,7 @@
         <bucket4j.version>8.14.0</bucket4j.version>
         <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <archunit.version>1.4.2</archunit.version>
-        <jacoco.version>0.8.14</jacoco.version>
+        <jacoco.version>0.8.15</jacoco.version>
         <pitest.version>1.21.0</pitest.version>
         <pitest-junit5.version>1.2.3</pitest-junit5.version>
         <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
