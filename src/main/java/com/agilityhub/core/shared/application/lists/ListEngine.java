@@ -32,7 +32,7 @@ public class ListEngine {
         return facets(dataset(key), field, params);
     }
     public FilterValues facets(ListDataset dataset, String field, MultiValueMap<String, String> params) {
-        dataset.definition().field(field);
+        dataset.definition().field(field).requireImplemented();
         var query = ListQuery.parse(dataset.definition(), params).withoutField(field);
         return new FilterValues(field, repository.facets(dataset, query, field));
     }

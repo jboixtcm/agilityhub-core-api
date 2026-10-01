@@ -1,0 +1,37 @@
+E8-T01 index invoices {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index invoices {"v": 2, "key": {"clubId": 1, "series": 1, "number": 1}, "name": "invoice_club_series_number", "unique": true}
+E8-T01 index invoices {"v": 2, "key": {"clubId": 1, "period": 1, "status": 1}, "name": "invoice_club_period_status"}
+E8-T01 index invoices {"v": 2, "key": {"clubId": 1, "memberId": 1, "issueDate": -1}, "name": "invoice_club_member_issue"}
+E8-T01 index invoices {"v": 2, "key": {"clubId": 1, "runId": 1}, "name": "invoice_club_run"}
+E8-T01 index invoices {"v": 2, "key": {"clubId": 1, "remittanceId": 1}, "name": "invoice_club_remittance"}
+E8-T01 index collections {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index collections {"v": 2, "key": {"clubId": 1, "invoiceId": 1, "attempt": 1}, "name": "collection_club_invoice_attempt"}
+E8-T01 index collections {"v": 2, "key": {"clubId": 1, "provider": 1, "status": 1}, "name": "collection_club_provider_status"}
+E8-T01 index collections {"v": 2, "key": {"clubId": 1, "remittanceId": 1}, "name": "collection_club_remittance"}
+E8-T01 index collections {"v": 2, "key": {"clubId": 1, "providerRef": 1}, "name": "collection_club_provider_ref", "unique": true, "partialFilterExpression": {"providerRef": {"$type": "string"}}}
+E8-T01 index remittances {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index remittances {"v": 2, "key": {"clubId": 1, "period": 1, "status": 1}, "name": "remittance_club_period_status"}
+E8-T01 index remittances {"v": 2, "key": {"clubId": 1, "messageId": 1}, "name": "remittance_club_message", "unique": true}
+E8-T01 index billing_runs {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index billing_runs {"v": 2, "key": {"clubId": 1, "period": 1}, "name": "billing_run_live_period", "unique": true, "partialFilterExpression": {"status": {"$in": ["GENERATED", "CHARGING", "COMPLETED"]}}}
+E8-T01 index billing_simulations {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index billing_simulations {"v": 2, "key": {"clubId": 1, "period": 1}, "name": "billing_simulation_club_period", "unique": true}
+E8-T01 index pack_balances {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index pack_balances {"v": 2, "key": {"clubId": 1, "dogId": 1, "state": 1, "expiresOn": 1}, "name": "pack_club_dog_state_expiry"}
+E8-T01 index pack_balances {"v": 2, "key": {"clubId": 1, "memberId": 1, "state": 1}, "name": "pack_club_member_state"}
+E8-T01 index pack_balances {"v": 2, "key": {"clubId": 1, "upfrontPaymentId": 1}, "name": "pack_club_upfront_payment", "unique": true, "partialFilterExpression": {"upfrontPaymentId": {"$type": "string"}}}
+E8-T01 index pending_charges {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index pending_charges {"v": 2, "key": {"clubId": 1, "bookingId": 1}, "name": "pending_charge_club_booking", "unique": true}
+E8-T01 index pending_charges {"v": 2, "key": {"clubId": 1, "memberId": 1, "invoiceId": 1}, "name": "pending_charge_club_member_invoice"}
+E8-T01 index stripe_events {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index stripe_events {"v": 2, "key": {"eventId": 1}, "name": "stripe_event_id", "unique": true}
+E8-T01 index stripe_events {"v": 2, "key": {"clubId": 1, "receivedAt": 1}, "name": "stripe_event_club_received"}
+E8-T01 index billing_locks {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index billing_locks {"v": 2, "key": {"expiresAt": 1}, "name": "billing_lock_ttl", "expireAfterSeconds": 0}
+E8-T01 index inactivity_periods {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index inactivity_periods {"v": 2, "key": {"clubId": 1, "memberId": 1, "state": 1}, "name": "inactivity_club_member_state"}
+E8-T01 index inactivity_periods {"v": 2, "key": {"clubId": 1, "state": 1, "fromMonth": 1}, "name": "inactivity_club_state_from"}
+E8-T01 index leave_requests {"v": 2, "key": {"_id": 1}, "name": "_id_"}
+E8-T01 index leave_requests {"v": 2, "key": {"clubId": 1, "memberId": 1, "state": 1}, "name": "leave_club_member_state"}
+E8-T01 index leave_requests {"v": 2, "key": {"clubId": 1, "state": 1, "requestedDate": 1}, "name": "leave_club_state_requested"}
+E8-T01 index leave_requests {"v": 2, "key": {"clubId": 1, "source": 1, "state": 1}, "name": "leave_club_source_state"}

@@ -30,6 +30,11 @@ public class CensusLists implements ListProvider {
             if(ListAccess.admin()) {
                 add(filters,"signupPending","signupPending",BOOLEAN);add(filters,"pendingDogs","pendingDogs.name",TEXT);add(filters,"warnings","warnings",TEXT);
                 sorts.put("signup.submittedAt","signup.submittedAt");
+                // S13 R-13-17 (E8-T01 publishes them, E8-T05 computes them): the planned leave's source, the inactivity's last day and
+                // a pending inactivity or leave request. Until then a filter or a facet on one of them answers 501 NOT_IMPLEMENTED.
+                filters.put("leaveSource", ListDefinition.Field.deferred(TEXT));
+                filters.put("inactivityUntil", ListDefinition.Field.deferred(DATE));
+                filters.put("hasPendingRequest", ListDefinition.Field.deferred(BOOLEAN));
             }
             add(filters, "memberNumber", "memberNumber", NUMBER);
             add(filters, "lastName", "lastName", TEXT); contains(filters, "fullName", "fullName");
@@ -63,6 +68,7 @@ public class CensusLists implements ListProvider {
         if (!ListAccess.admin()) { columns.removeAll(List.of("imageRights", "idDocument", "birthDate", "gender", "roles")); filters.keySet().removeAll(List.of("imageRightsGranted", "birthDate", "gender", "roles")); }
         if (!config.modules().contains(Module.FAMILY_GROUP)) { columns.remove("familyGroup"); filters.remove("familyGroupId"); }
         if (!config.modules().contains(Module.FREE_TRAINING)) { columns.remove("freeTraining"); filters.remove("freeTrainingAllowed"); }
+        if (!config.modules().contains(Module.INACTIVITY)) { filters.remove("inactivityUntil"); }
         if (!config.modules().contains(Module.PACKS)) { columns.remove("pack"); }
         if (!Boolean.TRUE.equals(config.get("levels.enabled", Boolean.class))) { columns.remove("level"); filters.remove("levelId"); filters.remove("dogLevelId"); sorts.remove("levelOrder"); }
         var defaults = (members ? List.of("fullName", "dogs", "plan", "displayStatus")

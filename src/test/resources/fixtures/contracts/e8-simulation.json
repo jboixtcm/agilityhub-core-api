@@ -1,0 +1,8 @@
+{ "id": "3c4d5e6f-0000-4000-8000-000000000003",
+  "period": "2026-09", "at": "2026-08-25T09:12:00Z",
+  "incidents": [ {"memberId": "…", "memberName": "Joan Vila", "code": "NO_BANK_ACCOUNT"}, {"memberId": "…", "memberName": "Pau Riera", "code": "NO_PRICE"} ],
+  "cashMembers": [ {"memberId": "…", "memberName": "Joan Vila", "plannedLeaveDate": "2026-12-31"} ],
+  "kpis": { "count": 168, "total": {"amountMinor": 648000, "currency": "EUR"},
+            "byProvider": {"SEPA_XML": {"count": 162, "total": {"amountMinor": 624000, "currency": "EUR"}}, "MANUAL": {"count": 4, "total": {"amountMinor": 24000, "currency": "EUR"}}},
+            "cashPending": 4, "inactivityFees": {"count": 2, "firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "following": {"amountMinor": 1000, "currency": "EUR"}} },
+  "invoicesPreview": [ {"memberId": "…", "memberName": "Laura Serra", "paymentMethodType": "SEPA_DD", "lines": [{"origin": "MONTHLY_FEE", "description": "Quota Abonat 2 gossos — Setembre 2026", "total": {"amountMinor": 9000, "currency": "EUR"}}], "total": {"amountMinor": 9000, "currency": "EUR"}} ] }

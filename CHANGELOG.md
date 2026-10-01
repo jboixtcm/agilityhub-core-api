@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E8-T01 (S12 WP-12-A, S13 WP-13-A): the billing, payments, packs, inactivity and leave contract.
+  - 57 operations (36 S12, 21 S13) published with their forms, roles, modules, idempotency headers and canonical error
+    statuses; each answers `501 NOT_IMPLEMENTED` behind its tenant, role, impersonation, module and resource guards until
+    E8-T02…T06 serve it. The Stripe webhook (`POST /webhooks/stripe/{clubId}`) is signature-authenticated (`stripeSignature`),
+    outside the tenant filter. `GET /checkout-sessions/{id}` answers the session's creator only. `POST /checkout-sessions`
+    publishes `bookingId` and `upfrontPaymentIds` (501 until E8-T04); the signup checkout is unchanged. `GET /members` publishes
+    S13's `leaveSource`, `inactivityUntil` and `hasPendingRequest` filters (501 until E8-T05, through a new «deferred» list field).
+  - The documents and indexes of `invoices`, `collections`, `remittances`, `billing_runs` (partial unique live `{clubId,
+    period}`), `billing_simulations`, `pack_balances`, `pending_charges`, `stripe_events` (unique `eventId`), `billing_locks`
+    (TTL), `inactivity_periods` and `leave_requests`; `upfront_payments` widened to S12 §3 without touching the signup rows;
+    `Member.leaveHistory`; `Club.billing {invoiceSeriesPattern, nextNumber, resetYearly}`, kept by every full save and by
+    `club:apply`; the typed `StripeProviderSettings` view whose secrets never serialize.
+  - `BankAccountVault` (ruling E43): the full IBAN of both origins (clear, or encrypted by the Playoff import) for the SEPA
+    writer only, with the key `BILLING_BANK_KEY` (`.env.example`, `DEPLOY.md`).
+  - `BillingEvent` and `CensusLifecycleEvent` (S12/S13 §7 and Annex A), the E8 notification fixtures, the four S12 §13 audit
+    actions in the wire enum `AuditAction` (and S14 R-14-09), the architecture rules of the E8 context directions.
+
 - E7-T04 (S15 WP-15-C P4, S11 WP-11-F back half): the E7 integration and gate.
   - P4 `reminders` (S15 R-15-14): every minute, the ACTIVE class bookings and (with `FREE_TRAINING`) training bookings
     due at their dog owner's `reminderMinutesBefore` get `reminderSentAt` and `ReminderDue` in one transaction; the

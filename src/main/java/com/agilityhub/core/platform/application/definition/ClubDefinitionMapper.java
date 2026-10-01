@@ -80,7 +80,9 @@ public class ClubDefinitionMapper {
                 merged.has("legal") ? mapper.convertValue(merged.get("legal"), Club.Legal.class) : new Club.Legal("", Map.of(), ""),
                 Club.Status.valueOf(identity.path("status").asText()), previous == null ? Map.of() : previous.onboardingChecklist(),
                 previous == null ? Map.of() : previous.usage(), previous == null ? null : previous.version(),
-                previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash());
+                previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash(),
+                // E8-T01: the receipt numbering is operational state, never part of a definition; club:apply keeps it.
+                previous == null ? null : previous.billing());
     }
     /**
      * The declared providers, in the declared order, each keeping the configuration stored outside the file (S17 R-17-05).

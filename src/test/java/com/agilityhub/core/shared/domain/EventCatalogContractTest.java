@@ -101,6 +101,13 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.messaging.domain.MessagingEvent.class,
                 () -> new com.agilityhub.core.clubs.messaging.domain.MessagingEvent(com.agilityhub.core.clubs.messaging.domain.MessagingEvent.Kind.MessageTemplateChanged,
                         "club-a", "template-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "template-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        // E8-T01: the S12 §7 billing events and the S13 §7 inactivity and leave events (+ Annex A's proposals).
+        samples.put(com.agilityhub.core.payments.domain.BillingEvent.class,
+                () -> new com.agilityhub.core.payments.domain.BillingEvent(com.agilityhub.core.payments.domain.BillingEvent.Kind.InvoiceIssued,
+                        "club-a", "invoice-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("invoiceId", "invoice-a", "memberId", "member-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.class,
+                () -> new com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.Kind.LeaveRequested,
+                        "club-a", "request-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("requestId", "request-a", "memberId", "member-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -138,6 +145,14 @@ class EventCatalogContractTest {
             if (event instanceof com.agilityhub.core.clubs.activities.domain.ActivityEvent) {
                 for (var kind : com.agilityhub.core.clubs.activities.domain.ActivityEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
                 assertThat(event.aggregateType()).isEqualTo("Activity"); return;
+            }
+            if (event instanceof com.agilityhub.core.payments.domain.BillingEvent) {
+                for (var kind : com.agilityhub.core.payments.domain.BillingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("Invoice"); assertThat(event.payload()).containsKeys("invoiceId", "memberId"); return;
+            }
+            if (event instanceof com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent) {
+                for (var kind : com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("LeaveRequest"); assertThat(event.payload()).containsKeys("requestId", "memberId"); return;
             }
             if (event instanceof com.agilityhub.core.payments.domain.SignupPaymentEvent) {
                 assertThat(catalog).contains("UpfrontPaymentRecorded","UpfrontPaymentSucceeded");

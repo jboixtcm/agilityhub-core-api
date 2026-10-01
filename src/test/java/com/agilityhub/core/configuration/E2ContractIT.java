@@ -179,7 +179,7 @@ class E2ContractIT extends AbstractIntegrationTest {
         var lists = Map.of("members", List.of("lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city", "signup.submittedAt"),
                 "dogs", List.of("name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"), "audit-entries", List.of("at"));
         var filters = Map.of(
-                "members", "id,memberNumber,lastName,fullName,status,displayStatus,planId,priceId,paymentMethodType,nextInvoiceDate,joinedAt,leaveDate,bookingBlocked,familyGroupId,imageRightsGranted,roles,city,postalCode,dogLevelId,dogName,hasPendingDocuments,freeTrainingAllowed,gender,birthDate,signupPending,pendingDogs,warnings",
+                "members", "id,memberNumber,lastName,fullName,status,displayStatus,planId,priceId,paymentMethodType,nextInvoiceDate,joinedAt,leaveDate,bookingBlocked,familyGroupId,imageRightsGranted,roles,city,postalCode,dogLevelId,dogName,hasPendingDocuments,freeTrainingAllowed,gender,birthDate,signupPending,pendingDogs,warnings,leaveSource,inactivityUntil,hasPendingRequest",
                 "dogs", "id,name,breed,levelId,memberId,ownerName,handlerName,status,freeTrainingAllowed,hasLicense,licenseOrganisation,hasPendingDocuments,sex,birthDate,chip,registeredAt,levelAssignedAt",
                 "audit-entries", "at,action,entityType,entityId,memberId,actorAccountId,actorRole,impersonatedMemberId,origin");
         var columns = Map.of(

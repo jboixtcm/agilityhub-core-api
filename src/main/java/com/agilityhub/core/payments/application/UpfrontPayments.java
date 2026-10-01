@@ -6,6 +6,7 @@ import com.agilityhub.core.shared.application.*;
 import com.agilityhub.core.shared.domain.*;
 import java.time.*;
 import java.util.*;
+import java.util.Collection;
 import org.springframework.stereotype.Service;
 
 @Service

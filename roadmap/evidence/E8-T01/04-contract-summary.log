@@ -1,0 +1,7 @@
+ops added 57 removed 0
+schemas added 135 removed 0
+schemas changed ['AuditAction', 'CheckoutSessionRequest']
+ops changed ['GET /api/v1/members', 'POST /api/v1/checkout-sessions']
+security schemes added ['stripeSignature']
+paths added 50
+{'INVOICE_CREATED_MANUAL', 'PACK_ADJUSTED', 'CARD_CHARGES_STARTED', 'REMITTANCE_SUBMITTED'}

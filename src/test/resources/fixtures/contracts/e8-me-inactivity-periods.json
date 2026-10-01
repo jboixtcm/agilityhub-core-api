@@ -1,0 +1,5 @@
+{ "earliestFromMonth":"2026-10", "proposedFromMonth":"2026-10", "deadlineDay":25,
+  "fee": {"firstMonth":{"amountMinor":2000,"currency":"EUR"},"followingMonths":{"amountMinor":1000,"currency":"EUR"}},
+  "periods": [{"id":"ip1","fromMonth":"2026-10","toMonth":null,"state":"REQUESTED","comments":"Descans de la Duna",
+               "fee":{"firstMonth":{"amountMinor":2000,"currency":"EUR"},"followingMonths":{"amountMinor":1000,"currency":"EUR"}},
+               "editable":{"fromMonth":true,"toMonth":true,"cancel":true}}] }

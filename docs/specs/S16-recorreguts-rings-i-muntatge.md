@@ -43,7 +43,7 @@ Totes les pantalles noves es dissenyen amb el design system (`packages/ui`) segu
 | `tags[]`, `notes` | | no | |
 | `source` | enum | sí | `SMARTER · EDITOR · IMAGE · AGILITYHUB_COPY` (`sourceCourseId`) |
 | `sourceFileKey?`, `imageFileKey?`, `thumbnailFileKey?` | S3 | | miniatura generada al client (SVG → PNG) en desar |
-| `model?` | JSON `CourseModel` | sí llevat de `IMAGE` | validat amb el **JSON Schema publicat per `course-core`** (`schemaVersion`); mida ≤ 256 KB |
+| `model?` | JSON `CourseModel` | sí llevat de `IMAGE` | validat amb el **JSON Schema publicat per `course-core`** (`course-data.v{n}.schema.json`; el `Course` en desa `schemaVersion`, 1 a R1, perquè `CourseData` no porta cap camp de versió; decisió E84); mida ≤ 256 KB |
 | `stats` | `{obstacleCount, pathLengthM, bbox {w, h}}` | calculat | del model, per a llistats i filtres |
 | `version`, `history[]` (10 darreres versions del `model`) | | | edició in-place (assumpció §13) |
 | `createdAt`, `createdByAccountId`, `updatedAt`, `deletedAt?` | | | soft delete |
@@ -184,7 +184,7 @@ Llegeix: `courses.setupAutoExpireDays` (7), `courses.defaultWarningThresholdM` (
 **`course-core` (unitaris, Vitest, fixtures)**
 - T-16-01 (R-16-02) `parseSmarter` amb 5 fitxers de mostra (a obtenir del web-planner o de Smarter real): recompte d'obstacles, posicions ± 1 cm, seqüència, obstacle desconegut → `OTHER` + `UNKNOWN_OBSTACLE`, fitxer corrupte → `errors[]` sense excepció.
 - T-16-02 (R-16-05) `placeInRing`: translació/rotació/mirall amb valors coneguts (obstacle (12, 3), `dx 2 dy 1 rot 90` → (…)); cada codi d'avís amb un cas positiu i un de negatiu; `INVENTORY_SHORT` amb inventari de ring vs club.
-- T-16-03 (R-16-01) el `CourseModel` de cada fixture valida contra `course-model.schema.json`; un model amb `schemaVersion 2` → invàlid a R1.
+- T-16-03 (R-16-01) la `CourseData` que `course-core` obté de cada fixture Smarter valida contra `course-data.v1.schema.json`, i una `BuildSessionExportV1` feta amb els fixtures, contra `build-session-export.v1.schema.json`; una `CourseData` sense un camp obligatori o amb un tipus d'obstacle desconegut, i una exportació amb `schemaVersion 2`, → invàlides; el `Course` desa `schemaVersion = 1` al costat de `normalizedJson`, i una versió desconeguda → invàlida a R1 (decisió E84).
 - T-16-04 `course-ui`: snapshots del `CourseViewer2D` i del `BuildSheet` per a 2 fixtures; `PlacementEditor` emet `transform` i avisos en arrossegar (test d'interacció).
 
 **Integració (Testcontainers, S3 doble)**
@@ -291,7 +291,7 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 
 ### 14.5 Via de port (substitueix WP-16-0/A/B/E de §12)
 
-1. **WP-16-A′** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests (**fet a E0-W08**, web, 24-09). La publicació del JSON Schema de `CourseData`/`BuildSessionExportV1` (zod → JSON Schema) per a la validació al core se'n separa: és precondició de WP-16-C′ i serà la primera tasca web quan s'obri S16.
+1. **WP-16-A′** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests (**fet a E0-W08**, web, 24-09). La publicació del JSON Schema de `CourseData`/`BuildSessionExportV1` (zod → JSON Schema) per a la validació al core se'n separa: és precondició de WP-16-C′ i serà la primera tasca web quan s'obri S16 (**E9-W01**: draft-07 amb zod-to-json-schema; la versió va al nom del fitxer i a `$id`, perquè `CourseData` no té cap camp de versió i afegir-n'hi un trencaria `BuildSessionExportV1`, A9; decisió E84).
 2. **WP-16-C′** Back `courses`: col·leccions segons §14.2; endpoints modelats sobre els mètodes de `PlannerStore` (`listVenues, listRings, uploadCourse, savePlacement, createBuildSession, listCalendarPlacements, createMarker/updateMarker, listMarkers, createCalibrationLog, upsertBuildObstacleStatus, subscribeBuildObstacleStatuses → SSE, listAuditLogs…`) + `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) + `POST /rings/{id}/calibrations`.
 3. **WP-16-B′** `packages/course-ui`: moure `PlannerCanvas`, `Planner3D`, `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `PaperSizeToggle`, `UnitsToggle` (són React + Tailwind sense Next); `CoreApiStore implements PlannerStore` a `packages/api-client`.
 4. **WP-16-E′** `apps/clubs-admin`: pàgines del wizard (`/recorreguts/nou` = `plan/*`), biblioteca (D18 = `courses` + calendari), geometria de D16 (`venue/[id]/markers` + `RingDoorEditor` + inventari), sessions (`build-sessions/[id]` i `/live`), impressió de marcadors (`markers/print`). Next App Router → React Router: substituir `next/navigation`, `next/link`, `NextResponse` i `supabase-server` pels equivalents.
@@ -320,3 +320,4 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 - 24-09-2026 · verificació d'E0-W08 (web): WP-16-A′ fet (còpia de `course-core` i `shared-types` des de `65126cf`). La publicació del JSON Schema se'n separa com a precondició de WP-16-C′. §14.6-1 resolt.
 - 30-09-2026 · preparació d'E9 (decisió E77): R-16-05 amb els `ruleId` de `course-core` i la política dels avisos `critical`; §9, `courses.defaultWarningThresholdM` i `courses.buildSessionMaxHours` (E9-T01 aplica el catàleg amb el codi); §13, dubtes resolts.
 - 30-09-2026 · A6 tancada (Jordi): el Supabase del web-planner només té dades de prova; WP-16-G′ queda sense importació (§12, §14.5, §14.6-3).
+- 01-10-2026 · preparació d'E9-W01 (decisió E84): §3 (`model?`), T-16-03 i §14.5 WP-16-A′, els esquemes JSON versionats pel nom del fitxer i `$id`, i el `Course` en desa `schemaVersion`.

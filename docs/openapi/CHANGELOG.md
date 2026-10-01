@@ -2,6 +2,73 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T01 · the S12 and S13 contract: billing, payments, packs, inactivity and leave (web E8-W* build mocks-first)
+
+**57 operations added (36 S12, 21 S13) on 50 new paths; 2 operations changed; 135 schemas added, 2 changed; 1 security scheme
+added.** Every new operation answers `501 NOT_IMPLEMENTED` after its tenant, role, module and resource guards (E8-T02…T06
+serve them). Statuses are CATALEG_ERRORS' (§1 and rule 0), whatever S12/S13 §6 write. Roles: ADMIN on every route except the
+`/me/*` ones (MEMBER, also the impersonation token) and the webhook; INSTRUCTOR → 403 everywhere; the impersonation token on
+an admin route → `403 IMPERSONATION_DENIED`; another club's resource → 404.
+- **S12, module `BILLING` (off → `404 MODULE_DISABLED`)**:
+  - D6's month and cycle: `GET /billing/periods/{period}` (`BillingPeriod`) · `POST /billing/simulations` (201
+    `BillingSimulation`, the S12 §6 JSON + `id`) · `POST /billing/runs` (201 `BillingRunResult`, `Idempotency-Key`) ·
+    `GET /billing/runs/{id}` · `POST /billing/runs/{id}/card-charges` (202, key) · `POST /billing/runs/{id}/rollback` (key;
+    `409 RUN_NOT_ROLLBACKABLE {reasons[]}`) · `GET /billing/exports?period=&format=csv|xlsx` (file or 202 `ExportAccepted`).
+  - Remittances: `GET /remittances` (universal list, `x-filterable: period, status`, no `q`) · `GET /remittances/{id}` ·
+    `GET /remittances/{id}/file` (`RemittanceFile`, a signed URL) · `POST /remittances/{id}/submission` (key). The creditor's IBAN
+    is only masked (`Creditor.maskedIban`).
+  - Invoices: `GET /invoices` (universal list, `x-filterable: period, status, memberId, paymentMethodType, runId, remittanceId,
+    issueDate, total, kind`; `x-sortable: number, issueDate, total, memberLastName`; `q` = number and member) · `GET
+    /invoices/{id}` (with `collections[]`) · `POST /invoices` (201, manual adjustment, key) · `POST /invoices/{id}/payment` ·
+    `POST /invoices/payments` · `POST /invoices/{id}/failure` · `POST /invoices/{id}/retry` (202) · `POST /invoices/{id}/refund`
+    (202) · `POST /invoices/{id}/cancellation` (all keyed, with `version` where S12 §6 has it) · `GET /invoices/{id}/document`
+    (`application/pdf`). No `PATCH /invoices/{id}` (405, T-12-12).
+  - The member's view (MEMBER and the impersonation token): `GET /me/invoices` (`MeInvoicePage`) · `GET /me/invoices/{id}` ·
+    `GET /me/invoices/{id}/document` · `POST /me/card-setup` (201, key) · `GET /me/pack-balances` (`PACKS`).
+  - Payments on the spot and packs: `GET /upfront-payments?memberId=&status=` · `POST /upfront-payments` (201, key) · `POST
+    /upfront-payments/{id}/refund` (202, key) · `GET /pack-balances?memberId=&dogId=` · `POST /pack-balances` (201, key) · `POST
+    /pack-balances/{id}/adjustments` (key) — `PACKS` (off → 404). The S12 pack is `PackBalanceDetail`: `PackBalance` stays S08's
+    booking summary.
+  - D10: `POST /members/{id}/card-setup-link` (201, key) · `GET /members/{id}/pending-charges` (`SINGLE_CLASS`).
+  - `GET /checkout-sessions/{id}` (`CheckoutSessionView {checkoutSessionId, status: PENDING · PAID · EXPIRED}`): the creator
+    only — ANON by host with the `X-Signup-Token` capability, the session's MEMBER, an ADMIN of the club; security `[{}, bearer]`.
+  - `POST /webhooks/stripe/{clubId}` (outside `/api/v1`, like SendGrid's): no bearer and no host tenant; new security scheme
+    `stripeSignature` (`Stripe-Signature` header). Unknown club, `BILLING` off or `STRIPE` not enabled → 404; a missing
+    signature → `401 WEBHOOK_SIGNATURE_INVALID`.
+- **S13**:
+  - Inactivity, module `INACTIVITY` (off → 404): `GET /me/inactivity-periods` (`MeInactivityContext`, the S13 §6 JSON) · `GET
+    /me/inactivity-periods/preview?fromMonth=&toMonth=` · `POST /me/inactivity-periods` (201, key) · `PATCH
+    /me/inactivity-periods/{id}` (`version`) · `POST /me/inactivity-periods/{id}/cancellation` · `GET /inactivity-periods`
+    (universal list, `x-filterable: memberId, state, fromMonth, toMonth, origin, requestedAt`; `x-sortable: fromMonth,
+    requestedAt, memberLastName`) · `GET /inactivity-periods/{id}` · `POST /inactivity-periods` (201) · `POST
+    /inactivity-periods/{id}/decision` · `PATCH /inactivity-periods/{id}` · `POST /inactivity-periods/{id}/termination` · `POST
+    /inactivity-periods/{id}/cancellation`.
+  - Leave, no module: `GET /me/leave-requests` (`MeLeaveContext`) · `POST /me/leave-requests` (201, key) · `POST
+    /me/leave-requests/{id}/cancellation` · `GET /leave-requests` (universal list, `x-filterable: memberId, state, source,
+    requestedDate, effectiveDate, reasonKey, nps`; `x-sortable: requestedAt, requestedDate, effectiveDate`) · `GET
+    /leave-requests/{id}` · `POST /leave-requests/{id}/decision` · `POST /members/{id}/leave` (201) · `DELETE
+    /members/{id}/planned-leave` (204, key) · `POST /members/{id}/reactivation` (200 `Member`).
+  - A member reaches only their own period or request: another member's, also of their family group, is 404.
+- **Changed operations:**
+  - `POST /checkout-sessions` (E3-T03): `CheckoutSessionRequest` gains the optional `bookingId` and `upfrontPaymentIds`; a request
+    with either answers `NOT_IMPLEMENTED` until E8-T04. The signup checkout itself does not change.
+  - `GET /members`: `x-filterable` gains `leaveSource`, `inactivityUntil` (with `INACTIVITY`) and `hasPendingRequest`, ADMIN only
+    (S13 R-13-17); until E8-T05 computes them, a filter or a facet on one of them answers `501 NOT_IMPLEMENTED`.
+- **Changed schemas:** `AuditAction` gains `PACK_ADJUSTED`, `INVOICE_CREATED_MANUAL`, `REMITTANCE_SUBMITTED`,
+  `CARD_CHARGES_STARTED` (S12 §13; S14 R-14-09); `CheckoutSessionRequest` (above).
+- **Added schemas (135):** the forms of the operations above (`Invoice`, `InvoiceLine`, `InvoicePaymentMethod`, `Collection`,
+  `InvoiceListItem`, `InvoicePage`, `MeInvoice`, `Remittance`, `RemittanceListItem`, `BillingRun`, `BillingRunResult`,
+  `BillingSimulation`, `BillingPeriod`, `UpfrontPayment`, `PackBalanceDetail`, `PackMovement`, `PendingCharge`,
+  `InactivityPeriod`, `InactivityPeriodListItem`, `MeInactivityContext`, `InactivityPreview`, `LeaveRequest`,
+  `LeaveRequestListItem`, `MeLeaveContext`, `PlannedLeave`, …), their request bodies, the enums published once
+  (`InvoiceStatus`, `InvoiceKind`, `InvoiceLineOrigin`, `PaymentMethodType`, `CollectionProvider`, `CollectionStatus`,
+  `RemittanceStatus`, `BillingRunStatus`, `BillingIncidentCode`, `RollbackBlocker`, `UpfrontConcept`, `UpfrontStatus`,
+  `UpfrontProvider`, `ManualChannel`, `PackBalanceState`, `PackMovementType`, `CheckoutStatus`, `InactivityState`,
+  `LeaveRequestState`, `LeaveSource`, `LifecycleOrigin`, `LifecycleDecision`, `LifecycleCanceller`, `InactivityFinishReason`,
+  `InactivityCancelReason`, `LeaveCancelReason`, `CancelledBookingType`, `ChangeSource`, `OverlapHint`, `MemberLeftReason`) and
+  the error details `RunNotRollbackableDetails`, `CollectionDateTooSoonDetails`, `MaxAttemptsDetails`,
+  `InactivityDeadlineDetails`, `InactivityOverlapDetails`, `MemberLeavingDetails`.
+
 ## 2026-10-01 · E7-T04 round 2 · an announcement goes out as it was sent (ruling E82)
 
 **1 operation changed (description; no shape change).** S11 R-11-13.

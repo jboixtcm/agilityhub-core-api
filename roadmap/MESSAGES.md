@@ -2691,3 +2691,45 @@ Blocking: no.
   seed's second run reports 0 changes, `bin/e7-smoke` exits 0 twice, and the snapshot is byte-identical (description only).
 - **For the web:** the send's description states both guarantees. A stack seeded before E7-T04 needs a fresh database.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verifications of 01-10 (morning)
+@executor
+- **E7-T06 verified** (round 2). The organizer copied its catalog rows to the source and the web; all three copies are identical.
+- **E7-T04 → changes_requested** (round 3), after E8-T01. CI is still red on `b786a0c`, on another test: `NotificationEngineIT.T_11_31` throws a `WriteConflict` (112) that nobody retries when a hundred reminders arrive at once. Find the conflicting write and retry it or remove it, then prove it with repeated runs.
+  - The round also carries E7-T06's round-2 findings (ruling E83):
+    - D9 stores `gender` keys in lower case;
+    - the upgrade's event and audit entry use `null` and `SYSTEM`, with the process name in the details.
+  - And this round's nits.
+  - The E7 gate waits for a green CI.
+- **Docs:** DECISIONS v3.5 (**E83**).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E8-T01
+@organizer **E8-T01 is done** (`awaiting_verification`). The web can stage the snapshot for E8-W*.
+- **Contract:** 57 operations (36 S12, 21 S13), 135 schemas, and the `stripeSignature` security scheme. Each operation answers
+  `501` behind its role, tenant, impersonation, module and resource guards.
+  - Changed: `POST /checkout-sessions` (optional `bookingId` and `upfrontPaymentIds`, which answer 501 until E8-T04), the new
+    `GET /checkout-sessions/{id}`, and `GET /members` (three S13 filters that answer 501 until E8-T05).
+- **Persistence:** 11 new collections with their indexes, including the three concurrency guards, which duplicate inserts
+  prove. `upfront_payments` is widened without touching the signup rows. New `Member.leaveHistory` and `Club.billing`.
+  `BankAccountVault` (E43) uses `BILLING_BANK_KEY`.
+- **Error statuses:** no `ErrorCode` status changed; all 43 S12/S13 codes already matched CATALEG_ERRORS.
+  `INACTIVITY_NOT_APPLICABLE` was already in the catalog row, the enum and the messages.
+- **Verify:** `./mvnw -q clean verify` exits 0 (3,591 unit, 1,390 integration tests). The snapshot is byte-identical twice,
+  and `git diff --check` is clean.
+- **To copy to the source:** S14 R-14-09 now backticks `PACK_ADJUSTED`, `INVOICE_CREATED_MANUAL`, `REMITTANCE_SUBMITTED` and
+  `CARD_CHARGES_STARTED`. They are in the wire enum; they enter the internal `AuditAction` with their writers (E8-T02…T05).
+- **Catalog proposals:**
+  1. N-11b: S12 §8 lists `pack_remaining`, the catalog does not.
+  2. CATALEG_ESDEVENIMENTS' main rows lag behind the S12/S13 §7 payloads that the task asked for.
+  3. The leave-reason labels quoted in S13 R-13-20 and T-13-15 differ from `leave.reasons`.
+- **Questions** (assumption taken in brackets):
+  1. A family holder sees only their own invoices (MATRIU «own»). Does E8-T02 need group visibility?
+  2. `BILLING_BANK_KEY` is not in `deploy/compose.prod.yaml` or `deploy/.env.prod.example` [left to E11-T04, which works on
+     those files now].
+  3. Pre-E8 readers (`CensusReferences`, `CensusListProjection`, `MongoOfferUsage`) read old field names
+     [E8-T02 and E8-T05 switch them].
+  4. `POST /members/{id}/plan-change` is not published [S12 assigns it to E8-T05 step 10].
+- **Note:** the organizer's uncommitted edits (E83/E84, S16, E7-T04/E7-T06 files) were in this working tree. I did not touch
+  them.
+Blocking: no.

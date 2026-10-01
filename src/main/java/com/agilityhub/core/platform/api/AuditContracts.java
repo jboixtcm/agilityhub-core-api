@@ -47,6 +47,11 @@ public final class AuditContracts {
         REMITTANCE_ROLLED_BACK,
         UPFRONT_PAYMENT_RECORDED,
         PAYMENT_REFUNDED,
+        /** S12 §13 (E8-T01 publishes them; each enters `AuditAction` with its writer: E8-T05, E8-T02, E8-T03, E8-T04). */
+        PACK_ADJUSTED,
+        INVOICE_CREATED_MANUAL,
+        REMITTANCE_SUBMITTED,
+        CARD_CHARGES_STARTED,
         IMPERSONATION_STARTED,
         ACCOUNT_EMAIL_STATUS_CHANGED,
         PLATFORM_ROLES_CHANGED,

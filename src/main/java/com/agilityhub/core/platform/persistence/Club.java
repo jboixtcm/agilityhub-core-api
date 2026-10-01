@@ -23,7 +23,7 @@ public record Club(@Id String id, String slug, String name, String legalName, St
                    String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
                    Set<Module> modules, Map<String, Object> paymentProviders, Legal legal,
                    Status status, Map<String, Boolean> onboardingChecklist, Map<String, Long> usage,
-                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template, String publicApiKeyHash) {
+                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template, String publicApiKeyHash, Billing billing) {
     public Club(String id, String slug, String name, String legalName, String taxId, Address address,
                 String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
                 String timeZone, String currency, String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
@@ -40,7 +40,18 @@ public record Club(@Id String id, String slug, String name, String legalName, St
                 Map<String, Boolean> onboardingChecklist, Map<String, Long> usage, Long version, Instant createdAt, Instant updatedAt, Boolean template) {
         this(id, slug, name, legalName, taxId, address, null, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
                 timeZone, currency, countryProfile, domains, theme, pwa, modules, paymentProviders, legal, status,
-                onboardingChecklist, usage, version, createdAt, updatedAt, template, null);
+                onboardingChecklist, usage, version, createdAt, updatedAt, template, null, null);
+    }
+    /** The club before E8-T01 (no `billing` block yet). */
+    public Club(String id, String slug, String name, String legalName, String taxId, Address address, String displayCity,
+                String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
+                String timeZone, String currency, String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
+                Set<Module> modules, Map<String, Object> paymentProviders, Legal legal, Status status,
+                Map<String, Boolean> onboardingChecklist, Map<String, Long> usage, Long version, Instant createdAt, Instant updatedAt,
+                Boolean template, String publicApiKeyHash) {
+        this(id, slug, name, legalName, taxId, address, displayCity, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
+                timeZone, currency, countryProfile, domains, theme, pwa, modules, paymentProviders, legal, status,
+                onboardingChecklist, usage, version, createdAt, updatedAt, template, publicApiKeyHash, null);
     }
     public Club {
         template = Boolean.TRUE.equals(template);
@@ -61,6 +72,13 @@ public record Club(@Id String id, String slug, String name, String legalName, St
         onboardingChecklist = Map.copyOf(onboardingChecklist); usage = Map.copyOf(usage);
     }
     public record Address(String street, String postalCode, String city, String region, String country) { }
+    /**
+     * S12 §3 / model Annex B (E8-T01): the receipt numbering, outside `SEPA_XML` because a club without SEPA numbers too.
+     * `nextNumber` is taken atomically (`findOneAndUpdate` on `clubs`) inside the run's transaction and given back by a rollback
+     * (R-12-08, R-12-14); the pattern and the yearly reset follow `billing.invoiceSeriesPattern` / `billing.invoiceResetYearly`.
+     * Null until the first invoice. Every full save of the club carries it unchanged, so no other writer drops the counter.
+     */
+    public record Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly) { }
     public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary) {
         public Domain { host = com.agilityhub.core.platform.domain.HostNames.normalize(host); }
     }

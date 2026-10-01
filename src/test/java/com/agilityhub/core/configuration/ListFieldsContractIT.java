@@ -63,9 +63,14 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     /** Operation path → the allowlist of a list that is not a `ListEngine` provider. */
     static final Map<String, Set<String>> OWN_LISTS = Map.of("/api/v1/followup", FollowupContractAccess.FOLLOWUP.fields(),
             "/api/v1/attendances", AttendanceContractAccess.ATTENDANCES.fields(), "/api/v1/jobs/{name}/runs", JobAdminService.RUN_FIELDS,
-            "/api/v1/notifications", com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS.fields());
-    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (none since E7-T03 served the S11 log). */
-    static final Set<String> STUBS = Set.of();
+            "/api/v1/notifications", com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS.fields(),
+            // E8-T01: the S12 and S13 universal lists (E8-T02, E8-T03 and E8-T05 serve them).
+            "/api/v1/invoices", com.agilityhub.core.payments.application.BillingContractAccess.INVOICES.fields(),
+            "/api/v1/remittances", com.agilityhub.core.payments.application.BillingContractAccess.REMITTANCES.fields(),
+            "/api/v1/inactivity-periods", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.INACTIVITY_PERIODS.fields(),
+            "/api/v1/leave-requests", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.LEAVE_REQUESTS.fields());
+    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T01's four). */
+    static final Set<String> STUBS = Set.of("/api/v1/invoices", "/api/v1/remittances", "/api/v1/inactivity-periods", "/api/v1/leave-requests");
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";

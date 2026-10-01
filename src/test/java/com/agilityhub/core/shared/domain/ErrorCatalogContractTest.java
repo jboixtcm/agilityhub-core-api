@@ -130,6 +130,56 @@ class ErrorCatalogContractTest {
             expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
         }
     }
+    /**
+     * E8-T01 step 4 (CATALEG_ERRORS §1 + §3 rule 0; the catalog wins over S12 §6 and S13 §6): every S12/S13 code with its
+     * canonical status, a message in the three languages, and the §2 rows of the two specs naming exactly the vertical's codes.
+     * The state conflicts of S13 are explicit 409s in §1 since 26-09 (ruling E50); rule 0 makes the rest 422 (S12 §6 writes 409 for
+     * REFUND_EXCEEDS_PAID; S13 §6 writes 400 for LEAVE_REASON_UNKNOWN and 409 for MEMBER_NOT_LEFT and NO_PLANNED_LEAVE). No status
+     * changed: the enum already had every one (E0-T04, E50).
+     */
+    @Test void T_12_21_T_13_24_billingInactivityAndLeaveErrorsFollowTheCatalogStatuses() throws Exception {
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
+        var expected = new java.util.LinkedHashMap<String, Integer>();
+        for (String names : java.util.List.of(
+                // Explicit in §1.
+                "409:BILLING_BUSY,RUN_EXISTS,SIMULATION_STALE,RUN_NOT_ROLLBACKABLE,MAX_ATTEMPTS,INVALID_STATE,STALE_VERSION,IDEMPOTENCY_KEY_REUSED",
+                "422:COLLECTION_DATE_TOO_SOON,CURRENCY_MISMATCH,PAYMENT_PROVIDER_NOT_ENABLED,MEMBER_NOT_ACTIVE,INACTIVITY_PERIOD",
+                "401:WEBHOOK_SIGNATURE_INVALID", "403:READ_ONLY,IMPERSONATION_DENIED,FORBIDDEN", "404:MODULE_DISABLED,NOT_FOUND",
+                "400:VALIDATION_ERROR,INVALID_FILTER", "405:METHOD_NOT_ALLOWED",
+                // Explicit in §1 since 26-09 (E50): the state conflicts.
+                "409:INACTIVITY_INVALID_STATE,LEAVE_ALREADY_REQUESTED,LEAVE_ALREADY_SCHEDULED,LEAVE_INVALID_STATE,CLUB_NOT_EMPTY",
+                // Rule 0: the _OVERLAP suffix.
+                "409:INACTIVITY_OVERLAP",
+                // Rule 0: everything else is 422.
+                "422:NO_INVOICES,SEPA_NOT_CONFIGURED,NO_PAYMENT_METHOD,AMOUNT_EXCEEDS_DUE,PLAN_NOT_PACK,PACK_NEGATIVE,REFUND_EXCEEDS_PAID,INACTIVITY_DEADLINE_PASSED,"
+                        + "INACTIVITY_INVALID_RANGE,INACTIVITY_NOT_APPLICABLE,LEAVE_DATE_INVALID,LEAVE_REASON_UNKNOWN,MEMBER_NOT_LEFT,NO_PLANNED_LEAVE,MEMBER_LEAVING")) {
+            String[] pair = names.split(":");
+            for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
+        }
+        assertThat(expected).hasSize(43);
+        expected.forEach((name, status) -> {
+            assertThat(catalog).contains("`" + name + "`");
+            assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
+        });
+        var s12 = new java.util.TreeSet<String>(); var s13 = new java.util.TreeSet<String>();
+        for (var entry : java.util.Map.of("| S12 |", s12, "| S13 |", s13).entrySet()) {
+            String row = catalog.lines().filter(line -> line.startsWith(entry.getKey())).findFirst().orElseThrow();
+            var matcher = Pattern.compile("`([A-Z][A-Z_]+)`").matcher(row);
+            while (matcher.find()) { entry.getValue().add(matcher.group(1)); }
+        }
+        assertThat(s12).containsExactlyInAnyOrder("BILLING_BUSY", "RUN_EXISTS", "SIMULATION_STALE", "RUN_NOT_ROLLBACKABLE", "COLLECTION_DATE_TOO_SOON", "NO_INVOICES",
+                "SEPA_NOT_CONFIGURED", "MAX_ATTEMPTS", "NO_PAYMENT_METHOD", "REFUND_EXCEEDS_PAID", "AMOUNT_EXCEEDS_DUE", "PLAN_NOT_PACK", "PACK_NEGATIVE",
+                "CURRENCY_MISMATCH", "PAYMENT_PROVIDER_NOT_ENABLED", "WEBHOOK_SIGNATURE_INVALID");
+        // S13 R-13-02's INACTIVITY_NOT_APPLICABLE is in the §2 row (since 19-09) and in the enum, with its three messages.
+        assertThat(s13).containsExactlyInAnyOrder("INACTIVITY_NOT_APPLICABLE", "INACTIVITY_DEADLINE_PASSED", "INACTIVITY_INVALID_RANGE", "INACTIVITY_INVALID_STATE",
+                "INACTIVITY_OVERLAP", "LEAVE_ALREADY_REQUESTED", "LEAVE_ALREADY_SCHEDULED", "LEAVE_DATE_INVALID", "LEAVE_INVALID_STATE", "LEAVE_REASON_UNKNOWN",
+                "MEMBER_LEAVING", "MEMBER_NOT_LEFT", "NO_PLANNED_LEAVE", "READ_ONLY");
+        for (String locale : java.util.List.of("ca", "es", "en")) {
+            var messages = new java.util.Properties();
+            try (var input = Files.newBufferedReader(Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(input); }
+            expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
+        }
+    }
     @Test void T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
         var expected = new java.util.LinkedHashMap<String, Integer>();

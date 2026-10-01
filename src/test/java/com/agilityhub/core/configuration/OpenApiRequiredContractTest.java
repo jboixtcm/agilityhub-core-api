@@ -27,7 +27,10 @@ class OpenApiRequiredContractTest {
             "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch",
             // E7-T01 (S11 §6): the partial preference save (T-11-20), the recipients «selection or filters» of an announcement and
             // the log's subject, whose every key is nullable (sent as null when it does not apply).
-            "NotificationPreferencesRequest", "EmailByCategoryPatch", "AnnouncementRecipients", "NotificationSubject");
+            "NotificationPreferencesRequest", "EmailByCategoryPatch", "AnnouncementRecipients", "NotificationSubject",
+            // E8-T01 (S12 §6, S13 §6): the run's totals per provider (a provider the club does not use is absent), the reactivation
+            // (planId, priceId, nextInvoiceDate required with BILLING only, R-13-16) and the admin's cancellation note.
+            "ByProvider", "ReactivationRequest", "AdminCancellationRequest");
 
     @Test void E1_T11_everySnapshotObjectDeclaresItsRequiredProperties() throws Exception {
         var schemas = new ObjectMapper().readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");
@@ -113,6 +116,31 @@ class OpenApiRequiredContractTest {
         assertThat(required(schemas, "NotificationDetail")).contains("id", "code", "recipient", "subject", "deliveries", "title", "body", "locale")
                 .doesNotContain("readAt", "smsBody", "templateId", "templateVersion", "eventType", "audience");
         assertThat(required(schemas, "NotificationListItem")).containsExactly("id");
+        // E8-T01: S12/S13 §6 forms, required by default; optional = the `?` fields of §6, nullable or module-dependent.
+        assertThat(required(schemas, "BillingRunRequest")).containsExactlyInAnyOrder("period", "simulationId");
+        assertThat(required(schemas, "RollbackRequest")).containsExactlyInAnyOrder("reason", "confirmation");
+        assertThat(required(schemas, "ManualInvoiceRequest")).containsExactlyInAnyOrder("memberId", "lines", "note");
+        assertThat(required(schemas, "InvoicePaymentRequest")).containsExactlyInAnyOrder("paidAt", "channel", "version");
+        assertThat(required(schemas, "RefundRequest")).containsExactly("reason");
+        assertThat(required(schemas, "UpfrontPaymentRequest")).containsExactlyInAnyOrder("memberId", "concept", "amountDue", "amountPaid", "channel", "paidAt");
+        assertThat(required(schemas, "PackBalanceRequest")).containsExactlyInAnyOrder("memberId", "dogId", "planId", "openedOn", "reason");
+        assertThat(required(schemas, "PackAdjustmentRequest")).containsExactlyInAnyOrder("delta", "reason");
+        assertThat(required(schemas, "CheckoutSessionRequest")).containsExactlyInAnyOrder("memberId", "successUrl", "cancelUrl");
+        assertThat(required(schemas, "InactivityRequest")).containsExactly("fromMonth");
+        assertThat(required(schemas, "InactivityPatchRequest")).containsExactly("version");
+        assertThat(required(schemas, "AdminInactivityPatchRequest")).containsExactly("version");
+        assertThat(required(schemas, "LeaveCreateRequest")).containsExactlyInAnyOrder("requestedDate", "reasonKey");
+        assertThat(required(schemas, "LeaveDecisionRequest")).containsExactly("decision");
+        assertThat(required(schemas, "Invoice")).contains("id", "displayNumber", "lines", "total", "paymentMethod", "status", "kind", "refundedTotal", "collections")
+                .doesNotContain("runId", "remittanceId", "paidAt", "failedAt", "cancelledAt", "note");
+        assertThat(required(schemas, "Remittance")).contains("messageId", "creditor", "sequenceBreakdown", "fileAvailable").doesNotContain("xsdValidationSkipped", "submittedAt");
+        assertThat(required(schemas, "BillingPeriod")).containsExactlyInAnyOrder("period", "counts");
+        assertThat(required(schemas, "MeInactivityContext")).containsExactlyInAnyOrder("earliestFromMonth", "proposedFromMonth", "deadlineDay", "periods");
+        assertThat(required(schemas, "MeLeaveContext")).containsExactlyInAnyOrder("offerInactivity", "defaultDate", "fullMonthIfLater", "npsEnabled", "reasons", "requests");
+        assertThat(required(schemas, "BookingsInside")).containsExactlyInAnyOrder("classes", "total");
+        for (String item : List.of("InvoiceListItem", "RemittanceListItem", "InactivityPeriodListItem", "LeaveRequestListItem")) {
+            assertThat(required(schemas, item)).as(item).containsExactly("id");
+        }
     }
 
     @Test void E1_T11_javaDefaultsPreserveOptOutsRenamedPropertiesAndSharedReferences() {

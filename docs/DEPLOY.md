@@ -209,6 +209,10 @@ encryption. An archive without its OIDC/bank/backup keys is not a recovery plan.
 - `MIGRATION_BANK_KEY` protects imported bank data. No online re-encryption tool
   is provided here: keep the old key until all records and retained backups can
   be read by a reviewed migration. Never rotate it by just editing env.
+- `BILLING_BANK_KEY` is `BankAccountVault`'s key (ruling E43): the members'
+  encrypted IBANs, which only the SEPA remittance writer decrypts. The same rule
+  as `MIGRATION_BANK_KEY`: keep it for every retained record and backup, and
+  rotate it only with a reviewed re-encryption.
 - Changing `SIGNUP_CAPABILITY_KEY` invalidates outstanding signup capabilities
   and encrypted replay records; `BOOKING_CALENDAR_KEY` invalidates sent calendar
   links; `EMAIL_UNSUBSCRIBE_KEY` invalidates outstanding 30-day unsubscribe links.
@@ -312,6 +316,7 @@ and URIs are included because they must remain consistent across recovery.
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Base64 32 random bytes for imported IBAN encryption; preserve for every retained record/backup, re-encrypt before rotation. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, `BankAccountVault`'s key for the members' encrypted IBANs (E43); required before the first SEPA remittance; preserve and re-encrypt before rotation, like `MIGRATION_BANK_KEY`. |
 | `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
 | `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ENDPOINT` | Private attachment bucket/region; optional HTTPS endpoint. Preserve objects and signed upload CORS when moving. |

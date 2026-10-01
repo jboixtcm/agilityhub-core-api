@@ -70,6 +70,7 @@ public record ListQuery(int page, int size, List<String> sort, String q, List<Fi
             if (filter == null || filter.field() == null || filter.op() == null || filter.value() == null) { throw invalid(); }
             var field = definition.field(filter.field());
             if (!field.operators().contains(filter.op())) { throw invalid(); }
+            field.requireImplemented();
             Object value;
             if (filter.op() == FilterOperator.exists) { value = scalar(ListDefinition.Type.BOOLEAN, filter.value()); }
             else if (Set.of(FilterOperator.in, FilterOperator.nin, FilterOperator.between).contains(filter.op())) {

@@ -1,0 +1,80 @@
+{
+  "InactivityPeriod": {
+    "id": "e7f8091a-0000-4000-8000-00000000000e", "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214},
+    "fromMonth": "2026-11", "toMonth": "2026-12", "comments": "Descans de la Duna", "state": "APPROVED", "origin": "APP", "requestedAt": "2026-10-20T08:00:00Z",
+    "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000017", "impersonatedMemberId": null},
+    "decision": {"at": "2026-10-20T10:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000007", "decision": "APPROVED", "note": null, "deadlineOverridden": false},
+    "feeSnapshot": {"firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "followingMonths": {"amountMinor": 1000, "currency": "EUR"}},
+    "startedAt": null, "finishedAt": null, "finishReason": null, "cancelledAt": null, "cancelledBy": null, "cancelReason": null,
+    "cancelledBookings": [{"type": "CLASS", "id": "c5d6e7f8-0000-4000-8000-00000000000c", "sessionDate": "2026-11-03"},
+                          {"type": "TRAINING", "id": "c5d6e7f8-0000-4000-8000-00000000001c", "sessionDate": "2026-11-02"}],
+    "history": [{"at": "2026-10-20T08:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000017", "fromMonth": "2026-11", "toMonth": "2026-12", "source": "MEMBER"}],
+    "editable": {"fromMonth": true, "toMonth": true, "cancel": true}, "version": 2
+  },
+  "InactivityPeriod#impersonatedCancelled": {
+    "id": "e7f8091a-0000-4000-8000-00000000001e", "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214},
+    "fromMonth": "2026-10", "toMonth": null, "comments": null, "state": "CANCELLED", "origin": "BACKOFFICE", "requestedAt": "2026-09-24T08:00:00Z",
+    "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000007", "impersonatedMemberId": "1a2b3c4d-0000-4000-8000-000000000001"},
+    "decision": null, "feeSnapshot": null, "startedAt": null, "finishedAt": null, "finishReason": null, "cancelledAt": "2026-09-25T08:00:00Z",
+    "cancelledBy": "MEMBER", "cancelReason": "WITHDRAWN", "cancelledBookings": [], "history": [],
+    "editable": {"fromMonth": false, "toMonth": false, "cancel": false}, "version": 1
+  },
+  "InactivityPeriodPage": {
+    "items": [{"id": "e7f8091a-0000-4000-8000-00000000000e", "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214},
+               "fromMonth": "2026-11", "toMonth": "2026-12", "state": "REQUESTED", "origin": "APP", "requestedAt": "2026-10-20T08:00:00Z", "comments": "Descans de la Duna",
+               "feeSnapshot": null, "decision": null}],
+    "page": 0, "size": 50, "totalItems": 1, "totalPages": 1,
+    "appliedFilters": [{"field": "state", "op": "in", "value": ["REQUESTED", "APPROVED", "ACTIVE"]}]
+  },
+  "InactivityPreview": {"bookingsInside": {"classes": 1, "waitlist": 1, "trainings": 1, "activities": 1, "total": 4},
+                        "feeSchedule": [{"month": "2026-11", "amount": {"amountMinor": 2000, "currency": "EUR"}}, {"month": "2026-12", "amount": {"amountMinor": 1000, "currency": "EUR"}}],
+                        "earliestMonthViolation": false},
+  "InactivityPreview#modulesOff": {"bookingsInside": {"classes": 1, "total": 1}, "feeSchedule": [], "earliestMonthViolation": null},
+  "LeaveRequest": {
+    "id": "f8091a2b-0000-4000-8000-00000000000f",
+    "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214, "status": "ACTIVE", "leaveDate": "2026-10-31",
+               "leftAt": null, "leftReason": null},
+    "source": "MEMBER", "origin": "APP", "requestedAt": "2026-09-30T08:00:00Z",
+    "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000017", "impersonatedMemberId": null},
+    "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "reason": "Condicionants aliens", "nps": 8, "comment": "Més classes de tarda", "state": "APPROVED",
+    "decision": {"at": "2026-10-05T09:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000007", "decision": "APPROVED", "effectiveDate": "2026-10-31", "note": null},
+    "executedAt": null, "cancelledAt": null, "cancelledBy": null, "cancelReason": null,
+    "cancelledBookings": [{"type": "CLASS", "id": "c5d6e7f8-0000-4000-8000-00000000002c", "sessionDate": "2026-11-04"}], "packBalanceId": null, "version": 2
+  },
+  "LeaveRequest#packExpiredLeft": {
+    "id": "f8091a2b-0000-4000-8000-00000000001f",
+    "member": {"id": "1a2b3c4d-0000-4000-8000-000000000004", "fullName": "Joan Rock Example", "memberNumber": 301, "status": "LEFT", "leaveDate": null,
+               "leftAt": "2026-12-13T05:00:00Z", "leftReason": "PACK_EXPIRED"},
+    "source": "PACK_EXPIRED", "origin": "SYSTEM", "requestedAt": "2026-11-12T23:10:00Z",
+    "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000027", "impersonatedMemberId": null},
+    "requestedDate": "2026-12-12", "reasonKey": "PACK_EXPIRED", "reason": "Pack caducat", "nps": null, "comment": null, "state": "APPROVED",
+    "decision": {"at": "2026-11-12T23:10:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000027", "decision": "APPROVED", "effectiveDate": "2026-12-12", "note": null},
+    "executedAt": "2026-12-13T05:00:00Z", "cancelledAt": null, "cancelledBy": null, "cancelReason": null, "cancelledBookings": [],
+    "packBalanceId": "92a3b4c5-0000-4000-8000-000000000019", "version": 3
+  },
+  "LeaveRequestPage": {
+    "items": [{"id": "f8091a2b-0000-4000-8000-00000000000f", "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214},
+               "source": "MEMBER", "state": "PENDING", "requestedAt": "2026-09-30T08:00:00Z", "requestedDate": "2026-10-31", "effectiveDate": null,
+               "reasonKey": "EXTERNAL", "nps": 8, "comment": "Més classes de tarda"}],
+    "page": 0, "size": 50, "totalItems": 1, "totalPages": 1, "appliedFilters": [{"field": "state", "op": "eq", "value": "PENDING"}]
+  },
+  "MeLeaveContext": {
+    "offerInactivity": true, "fee": {"firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "followingMonths": {"amountMinor": 1000, "currency": "EUR"}},
+    "defaultDate": "2026-09-30", "fullMonthIfLater": true, "npsEnabled": true,
+    "reasons": [{"key": "LEARNED_ENOUGH", "label": "He après el que volia"}, {"key": "NO_TIME", "label": "No trobo temps"},
+                {"key": "NOT_EXPECTED", "label": "No és el que esperava"}, {"key": "EXTERNAL", "label": "Condicionants aliens"}, {"key": "OTHER", "label": "Altres"}],
+    "plannedLeave": null,
+    "requests": [{"id": "f8091a2b-0000-4000-8000-00000000000f", "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "nps": 8, "comment": "Més classes de tarda",
+                  "state": "PENDING", "decision": null}]
+  },
+  "MeLeaveContext#planned": {
+    "offerInactivity": false, "fee": null, "defaultDate": "2026-10-06", "fullMonthIfLater": true, "npsEnabled": false, "reasons": [],
+    "plannedLeave": {"date": "2026-10-31", "source": "MEMBER", "requestId": "f8091a2b-0000-4000-8000-00000000000f", "since": "2026-10-05T09:00:00Z", "cancellable": true},
+    "requests": [{"id": "f8091a2b-0000-4000-8000-00000000000f", "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "nps": null, "comment": null, "state": "APPROVED",
+                  "decision": {"at": "2026-10-05T09:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000007", "decision": "APPROVED", "effectiveDate": "2026-10-31", "note": null}}]
+  },
+  "PlannedLeave": {"date": "2026-12-12", "source": "PACK_EXPIRED", "requestId": "f8091a2b-0000-4000-8000-00000000001f", "since": "2026-11-12T23:10:00Z", "cancellable": true},
+  "InactivityDeadlineDetails": {"earliestMonth": "2026-11"},
+  "InactivityOverlapDetails": {"periodId": "e7f8091a-0000-4000-8000-00000000000e", "hint": "EXTEND"},
+  "MemberLeavingDetails": {"leaveDate": "2026-10-31"}
+}

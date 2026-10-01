@@ -26,8 +26,22 @@ public record ListDefinition(String key, Map<String, Field> filters, Map<String,
         return new ListDefinition(key, filters, sorts, searchable, columns, defaultColumns, defaultSort, fields, maxSize);
     }
     public enum Type { TEXT, NUMBER, BOOLEAN, DATE, INSTANT }
+    /** The path of a field the contract publishes before its owner computes it (E8-T01): using it answers 501 NOT_IMPLEMENTED. */
+    static final String DEFERRED = "#deferred";
     public record Field(String path, Type type, Set<FilterOperator> operators) {
         public Field(String path, Type type) { this(path, type, allowed(type)); }
+        /**
+         * A field of the published contract whose value a later task computes (e.g. S13 R-13-17's member filters, E8-T05): the
+         * list accepts the key, so `x-filterable` and the allowlist stay equal, and a filter or a facet on it is
+         * `501 NOT_IMPLEMENTED` instead of an empty answer.
+         */
+        public static Field deferred(Type type) { return new Field(DEFERRED, type); }
+        public boolean isDeferred() { return DEFERRED.equals(path); }
+        /** `501 NOT_IMPLEMENTED` for a deferred field. */
+        public Field requireImplemented() {
+            if (isDeferred()) { throw new ApiException(ErrorCode.NOT_IMPLEMENTED); }
+            return this;
+        }
         private static Set<FilterOperator> allowed(Type type) {
             var ops = EnumSet.of(FilterOperator.eq, FilterOperator.ne, FilterOperator.in,
                     FilterOperator.nin, FilterOperator.exists);

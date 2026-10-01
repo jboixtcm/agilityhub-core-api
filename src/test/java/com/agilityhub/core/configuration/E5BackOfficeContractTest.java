@@ -86,6 +86,8 @@ class E5BackOfficeContractTest {
                 "GET /api/v1/faq-entries/filter-values",
                 // D14 and its filter values (E6-T06, ruling E75).
                 "GET /api/v1/followup", "GET /api/v1/followup/filter-values",
+                // E8-T01: D6's receipts (S12 §6 «q (número, abonat)») and «Inactivitats i baixes» (the member's name, S13 §2).
+                "GET /api/v1/invoices", "GET /api/v1/inactivity-periods", "GET /api/v1/leave-requests",
                 // Contract-only routes: their implementation (and search) is deferred.
                 "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/erasure-requests", "GET /api/v1/platform/security-events");
         for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",

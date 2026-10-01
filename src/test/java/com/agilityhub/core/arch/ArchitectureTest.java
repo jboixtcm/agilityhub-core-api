@@ -57,4 +57,10 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E7_T01_messagingImportsNoOtherClubsContext = ArchitectureRules.MESSAGING_WITHOUT_OTHER_CLUBS;
+
+    @ArchTest
+    static final ArchRule E8_T01_paymentsReachesOnlyCatalogsAndCensusApplications = ArchitectureRules.PAYMENTS_CLUB_DEPENDENCIES;
+
+    @ArchTest
+    static final ArchRule E8_T01_censusReachesPaymentsAndBookingsOnlyThroughPorts = ArchitectureRules.CENSUS_THROUGH_PORTS;
 }

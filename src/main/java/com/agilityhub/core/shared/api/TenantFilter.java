@@ -40,6 +40,8 @@ public class TenantFilter extends OncePerRequestFilter {
                     || path.equals("/connect/logout") || path.equals("/oauth2/session") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
                     || path.matches("/api/v1/public/[^/]+/(plans|pages/[^/]+|activities(?:/[^/]+(?:/files/[^/]+)?)?)")
                     || path.equals("/api/v1/test/clock")
+                    // S12 R-12-21 (E8-T01): the Stripe webhook names its club in the path and opens it itself, never from a host or a bearer.
+                    || path.startsWith("/webhooks/stripe/")
                     // E5-T24: a signed local file URL takes its club from the signed file, never from the host or a bearer;
                     // E5-T26: its service opens that club as the tenant.
                     || SignedFileRequests.matches(request);
@@ -57,6 +59,8 @@ public class TenantFilter extends OncePerRequestFilter {
                     || path.startsWith("/api/v1/public/") || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/postal-codes/")
                     || path.equals("/api/v1/signup") || path.startsWith("/api/v1/signup/")
                     || path.equals("/api/v1/checkout-sessions") || path.startsWith("/oauth2/") || optionalHost
+                    // S12 §6 (E8-T01): the signup's return screen reads its checkout session by host with the signup capability.
+                    || "GET".equals(request.getMethod()) && path.matches("/api/v1/checkout-sessions/[^/]+")
                     // S11 R-11-08 (E7-T01): the anonymous CLUB_NEWS unsubscribe takes its club from the host, like signup.
                     || path.equals("/api/v1/email-unsubscribes")
                     || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics");

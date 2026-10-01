@@ -85,6 +85,9 @@ core:
     local-lanes: true
   migration:
     bank-key: ${MIGRATION_BANK_KEY:}
+  billing:
+    # Ruling E43 (E8-T01): BankAccountVault, the one key of the members' encrypted IBANs (both origins); only the SEPA writer decrypts.
+    bank-key: ${BILLING_BANK_KEY:}
   oidc:
     master-key: ${OIDC_MASTER_KEY:}
     login-url: ${OIDC_LOGIN_URL:https://id.agilitydoghub.com/login}

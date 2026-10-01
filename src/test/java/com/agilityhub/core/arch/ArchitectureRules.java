@@ -195,6 +195,44 @@ final class ArchitectureRules {
             .because("E6-T01: owning contexts register their Job beans; the platform never imports them");
 
     /**
+     * E8-T01 (fixed conventions): `payments` reaches the club contexts only through `clubs.catalogs.application` and
+     * `clubs.census.application`; the adapters of S08's `PackBalancePort`/`InactivityPort` (E8-T05) and of the census ports are
+     * the providers' side, so payments never imports bookings, training, activities, scheduling or another clubs context.
+     */
+    static final ArchRule PAYMENTS_CLUB_DEPENDENCIES = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "payments..")
+            .should().dependOnClassesThat(new DescribedPredicate<>("belong to a clubs context other than catalogs.application or census.application") {
+                @Override public boolean test(JavaClass type) {
+                    String name = type.getPackageName();
+                    return name.startsWith(BASE_PACKAGE + "clubs.") && !name.startsWith(BASE_PACKAGE + "clubs.catalogs.application")
+                            && !name.startsWith(BASE_PACKAGE + "clubs.census.application");
+                }
+            })
+            .because("E8-T01: payments → clubs.catalogs.application, clubs.census.application, platform, shared");
+
+    /**
+     * The census classes of E3's signup flow that call `payments.application` directly (the upfront rows and the checkout of a
+     * signup, E3-T03). They predate E8's convention; any other census class reaches payments through its own ports.
+     */
+    static final List<String> SIGNUP_PAYMENT_CALLERS = List.of(BASE_PACKAGE + "clubs.census.application.SignupService",
+            BASE_PACKAGE + "clubs.census.application.DemoSignupSeeder");
+    /**
+     * E8-T01 (fixed conventions; S13 R-13-06, R-13-12, R-13-14): S13 lives in `clubs.census`, which reaches payments only
+     * through the ports declared in `clubs.census.application.ports` (E3's signup flow excepted) and the bookings, trainings,
+     * waiting lists and activity registrations it cancels only through ports too: those contexts depend on the census.
+     */
+    static final ArchRule CENSUS_THROUGH_PORTS = noClasses()
+            .that(new DescribedPredicate<>("are census classes outside E3's signup payment callers") {
+                @Override public boolean test(JavaClass type) {
+                    return type.getPackageName().startsWith(BASE_PACKAGE + "clubs.census")
+                            && SIGNUP_PAYMENT_CALLERS.stream().noneMatch(caller -> type.getName().equals(caller) || type.getName().startsWith(caller + "$"));
+                }
+            })
+            .should().dependOnClassesThat().resideInAnyPackage(BASE_PACKAGE + "payments..", BASE_PACKAGE + "clubs.bookings..",
+                    BASE_PACKAGE + "clubs.training..", BASE_PACKAGE + "clubs.activities..")
+            .because("E8-T01: clubs.census → payments.application only through ports in clubs.census.application.ports");
+
+    /**
      * E5-T15 (review E5-T06 #4): a demo seed class is a top-level `Demo*Seeder`, `DemoMembers` or `DemoSeed*` (or a class
      * nested in one), never in an `..api..` package: not any `Demo*` name (`DemoIdentityService`, a `Demo*Controller`).
      */
