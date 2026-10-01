@@ -1,0 +1,18 @@
+COMMAND parse target/surefire-reports/TEST-*.xml and target/failsafe-reports/TEST-*.xml
+clean verify exit 0
+com.agilityhub.core.configuration.LogPrivacyTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.MongoTimeoutConfigurationTest tests=2 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.api.ClubCorsConfigurationSourceTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.AnonymousRateLimitsTest tests=19 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.RequestTraceFilterTest tests=1 failures=0 errors=0 skipped=0
+surefire-reports TOTAL tests=3617 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.activities.application.ActivityIT tests=33 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.bookings.api.WaitlistIT tests=18 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT tests=50 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.SecurityInventoryIT tests=1 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.CorsIT tests=6 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.IdentityCoreIT tests=28 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.SecurityHardeningIT tests=5 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.HealthIndependenceIT tests=5 failures=0 errors=0 skipped=0
+failsafe-reports TOTAL tests=1399 failures=0 errors=0 skipped=0
+exit 0

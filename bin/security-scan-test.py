@@ -4,7 +4,9 @@ import runpy
 import unittest
 from pathlib import Path
 
-findings = runpy.run_path(str(Path(__file__).with_name('security-scan')))['findings']
+scanner = runpy.run_path(str(Path(__file__).with_name('security-scan')))
+findings = scanner['findings']
+java_inventory = scanner['java_inventory']
 
 
 class ScanPolicyTest(unittest.TestCase):
@@ -20,7 +22,17 @@ class ScanPolicyTest(unittest.TestCase):
         self.assertEqual(result['secretRules'], ['fixture-secret'])
         self.assertNotIn('sensitive-fixture', str(result))
 
-    def test_empty_is_green(self):
+    def test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found(self):
+        for report in [{}, {'Results': [{'Type': 'jar', 'Packages': [{'Name': 'org.springframework:spring-web'}]}]}]:
+            with self.assertRaisesRegex(ValueError, 'Java dependency inventory incomplete'):
+                java_inventory(report)
+
+    def test_packaged_java_inventory_includes_core_runtime_dependencies(self):
+        packages = [{'Name': name} for name in scanner['REQUIRED_JAVA_PACKAGES']]
+        report = {'Results': [{'Type': 'jar', 'Packages': packages}, {'Type': 'debian', 'Packages': [{'Name': 'curl'}]}]}
+        self.assertEqual(java_inventory(report), 3)
+
+    def test_no_vulnerability_findings_is_distinct_from_a_valid_inventory(self):
         self.assertEqual(findings({}), {'vulnerabilities': 0, 'fixableCritical': [], 'secretRules': [], 'otherFindings': []})
 
 

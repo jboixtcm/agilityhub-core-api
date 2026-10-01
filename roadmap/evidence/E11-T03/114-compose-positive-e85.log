@@ -1,0 +1,2 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke --image-tag e11-security-local --security-only
+heavy.sh: 14:12 waiting for the host lock, held by: 14:12 agilityhub-core-api: python3 roadmap/evidence/E8-T02/billing-curl.py

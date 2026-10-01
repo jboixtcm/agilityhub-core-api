@@ -37,6 +37,25 @@ class LogPrivacyTest {
         assertThat(LogPrivacy.stack(null)).isEmpty();
     }
 
+    @Test void T_14_30_trustedUuidIdsStayByteIdenticalWhileNonIdsAreScrubbed() throws Exception {
+        String trace = "88ae4f16-856e-44cf-bf72-93ab871003a1";
+        var event = new LoggingEvent();
+        event.setTimeStamp(1790000000000L); event.setLevel(Level.INFO); event.setLoggerName("fixture");
+        event.setMessage("safe message");
+        event.setMDCPropertyMap(Map.of("traceId", trace, "clubId", trace, "accountId", trace));
+        var json = new ObjectMapper().readTree(new PrivacyLogFormatter().format(event));
+        for (String id : java.util.List.of("traceId", "clubId", "accountId")) {
+            assertThat(json.path(id).asText()).isEqualTo(trace);
+            MDC.put(id, trace);
+        }
+        try {
+            var sentry = new SentryPrivacyConfiguration().scrubSentryEvent().execute(new SentryEvent(), new io.sentry.Hint());
+            for (String id : java.util.List.of("traceId", "clubId", "accountId")) { assertThat(sentry.getTag(id)).isEqualTo(trace); }
+        } finally { MDC.clear(); }
+        assertThat(LogPrivacy.identifier(EMAIL)).doesNotContain(EMAIL);
+        assertThat(LogPrivacy.identifier(null)).isNull();
+    }
+
     @Test void T_14_30_sentryDropsRequestUserBreadcrumbsAndScrubsMessagesBeforeSending() throws Exception {
         var event = new SentryEvent();
         var message = new Message(); message.setFormatted(EMAIL + " " + PHONE + " " + IBAN + " " + IP + " " + IPV6);

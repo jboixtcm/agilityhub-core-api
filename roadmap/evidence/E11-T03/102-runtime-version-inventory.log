@@ -1,0 +1,53 @@
+COMMAND python3 roadmap/evidence/E11-T03/runtime-version-inventory.py
+SCANNER_COMMAND /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/security-tools/trivy-0.74.0 rootfs --scanners vuln --no-progress --format json --output /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-version-inventory-3xoh5ghz/inventory.json --exit-code 0 --timeout 15m target
+2026-10-01T12:15:07+02:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-01T12:15:08+02:00	INFO	Number of language-specific files	num=1
+2026-10-01T12:15:08+02:00	INFO	[jar] Detecting vulnerabilities...
+{
+  "javaPackages": 174,
+  "installedVersions": {
+    "io.netty:netty-buffer": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-codec": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-codec-http": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-codec-http2": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-common": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-handler": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-resolver": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-transport": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-transport-classes-epoll": [
+      "4.1.137.Final"
+    ],
+    "io.netty:netty-transport-native-unix-common": [
+      "4.1.137.Final"
+    ],
+    "org.apache.tomcat.embed:tomcat-embed-core": [
+      "10.1.60"
+    ],
+    "org.apache.tomcat.embed:tomcat-embed-el": [
+      "10.1.60"
+    ],
+    "org.apache.tomcat.embed:tomcat-embed-websocket": [
+      "10.1.60"
+    ]
+  }
+}
+PASS scanner inventory contains the patched runtime versions and no fixable CRITICAL
+
+exit 0
+elapsed_seconds 1.397

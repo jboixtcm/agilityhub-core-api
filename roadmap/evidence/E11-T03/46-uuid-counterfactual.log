@@ -1,0 +1,32 @@
+COUNTERFACTUAL COMMAND ./mvnw -q -Dtest=LogPrivacyTest#T_14_30_trustedUuidIdsStayByteIdenticalWhileNonIdsAreScrubbed test
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.222 s <<< FAILURE! -- in com.agilityhub.core.configuration.LogPrivacyTest
+[ERROR] com.agilityhub.core.configuration.LogPrivacyTest.T_14_30_trustedUuidIdsStayByteIdenticalWhileNonIdsAreScrubbed -- Time elapsed: 0.212 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "88ae4f16-856e-44cf-bf72-93ab871003a1"
+ but was: "88ae4f16-856e-44cf-[redacted]"
+	at com.agilityhub.core.configuration.LogPrivacyTest.T_14_30_trustedUuidIdsStayByteIdenticalWhileNonIdsAreScrubbed(LogPrivacyTest.java:48)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   LogPrivacyTest.T_14_30_trustedUuidIdsStayByteIdenticalWhileNonIdsAreScrubbed:48 
+expected: "88ae4f16-856e-44cf-bf72-93ab871003a1"
+ but was: "88ae4f16-856e-44cf-[redacted]"
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+COUNTERFACTUAL MAVEN EXIT 1
+RESTORED UUID identifier handling
+
+exit 0

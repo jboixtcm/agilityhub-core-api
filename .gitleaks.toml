@@ -11,6 +11,7 @@ paths = [
 
 [[allowlists]]
 description = "These two tests construct an ephemeral RSA PEM from a generated key; no key material is checked in."
+targetRules = ["private-key"]
 condition = "AND"
 paths = ['''src/test/java/com/agilityhub/core/(identity/api/SecurityHeadersIT|configuration/JwtConfigurationTest)\.java$''']
 regexTarget = "line"
@@ -18,7 +19,27 @@ regexes = ['''String pem = "-----BEGIN PRIVATE KEY-----\\n" \+ Base64\.getMimeEn
 
 [[allowlists]]
 description = "Notification evidence logs print dedupKey values: fictional, event-derived deduplication keys, not secrets. The generic-api-key rule matched one in E7-T01's round 2 (organizer, 28-09). Code and resources stay fully scanned."
+targetRules = ["generic-api-key"]
 condition = "AND"
 paths = ['''roadmap/evidence/.*\.log$''']
-regexTarget = "line"
-regexes = ['''dedupKey['"]?\s*[:=]''']
+regexTarget = "match"
+regexes = ['''(?i)^dedupKey['"]?\s*[:=]\s*['"]?[^'"\s,}]+['"]?$''']
+
+[[allowlists]]
+description = "E11-T03: UUID request trace and idempotency identifiers in test evidence are not credentials. Match only the identifier, never a whole log line."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''roadmap/evidence/.*\.log$''']
+regexTarget = "match"
+regexes = [
+  '''^o\.springdoc\.api\.AbstractOpenApiResource traceId=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s*$''',
+  '''^Idempotency-Key:"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"$''',
+]
+
+[[allowlists]]
+description = "E11-T03: the scanner joins two empty example assignments and mistakes the second variable name for a key."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)\.env\.example$''']
+regexTarget = "match"
+regexes = ['''^ATTACHMENT_S3_ACCESS_KEY=\nATTACHMENT_S3_SECRET_KEY=$''']

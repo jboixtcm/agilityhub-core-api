@@ -1132,27 +1132,43 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 | `core.security.rate-limits.signed-file` | 120 / 1m | IP; signed upload/download and calendar links |
 | `core.security.rate-limits.handoff` | 30 / 1m | Both IP and authenticated account; the route still requires a bearer |
 
-Mongo settings apply to the actual client, including clients configured with a
-URI. A finite operation budget includes driver retries; application
-`TransactionRetries` keeps its existing semantics and each new driver operation
-has this same bound. The independent health ping still has its stricter 1-second
-budget. Settings must be positive; a zero/infinite timeout refuses startup.
+Mongo connection, server-selection and pool bounds apply to the actual client,
+including URI configuration. The client-wide `timeoutMS` must remain unset
+(validated at startup): the driver would otherwise apply it to an entire
+transaction, breaking a legitimate seed or job (E85). A servlet filter binds
+`operation-timeout` to HTTP database operations and sessions only. Each retry
+opens its own bounded transaction; no deadline leaks back onto a reused thread.
+Session-bound reads keep their session deadline even in after-commit callbacks;
+a database override at that point is rejected by the driver.
+Exports (`export`, `data-export`, export downloads) and manual job triggers
+follow the background rule: neither their database operations nor their sessions
+receive an HTTP deadline. A manually triggered job runs under the same timeout
+policy as a scheduled one; there is no arbitrary upper runtime. Seeds, migration
+CLI, scheduled jobs and other background work also have no HTTP deadline. Their socket timeout defaults to zero;
+set a finite fallback only when it accommodates the longest background operation.
+The independent health ping retains its stricter 1-second budget. Connection,
+selection, pool and HTTP timeouts must be positive; only the background socket
+fallback accepts zero. Backup/restore tools keep their own execution settings.
+This uses the driver's [database and session timeout overrides](https://www.mongodb.com/docs/drivers/java/sync/current/connection/specify-connection-options/csot/).
 
 | Configuration key | Environment variable | Default |
 |---|---|---|
 | `core.mongo.connect-timeout` | `MONGO_CONNECT_TIMEOUT` | 2s |
-| `core.mongo.socket-timeout` | `MONGO_SOCKET_TIMEOUT` | 5s |
+| `core.mongo.socket-timeout` | `MONGO_SOCKET_TIMEOUT` | 0s (background fallback; HTTP uses CSOT) |
 | `core.mongo.server-selection-timeout` | `MONGO_SERVER_SELECTION_TIMEOUT` | 2s |
-| `core.mongo.operation-timeout` | `MONGO_OPERATION_TIMEOUT` | 10s |
+| `core.mongo.operation-timeout` | `MONGO_OPERATION_TIMEOUT` | 10s (ordinary HTTP database operations/sessions) |
 | `core.mongo.max-pool-size` | `MONGO_MAX_POOL_SIZE` | 100 |
 | `core.mongo.pool-wait-timeout` | `MONGO_POOL_WAIT_TIMEOUT` | 2s |
 | `sentry.dsn` | `SENTRY_DSN` | Empty: disabled. Obtain the release project's DSN at E12-T01. |
 
 `prod` and `staging` use Spring Boot structured JSON console logging; local/test
-keep readable output. One request filter establishes `traceId` and clears the
+keep readable output. The `structured-logs` profile opts the local Caddy proof
+into the same structured appender; a custom Logback file must explicitly select
+Boot's `structured-console-appender.xml`. One request filter establishes `traceId` and clears the
 MDC on every exit. Authentication and tenant resolution enrich `accountId` and
 `clubId` from trusted state. Unavailable IDs are `-`; no unverified header/JWT
-claim becomes an identity. `INTERNAL_ERROR.traceId` matches the logged ID.
+claim becomes an identity. UUID IDs bypass personal-data patterns in these three
+trusted fields so `INTERNAL_ERROR.traceId` matches the logged ID exactly.
 `LogPrivacy` is the common exclusion list for e-mails, phones, IBANs, IPs and
 credential-shaped text. Exception output keeps types and code locations without
 exception messages, which can contain full Mongo documents or request bodies.
@@ -1163,10 +1179,21 @@ Sentry uses `send-default-pii: false`, no request-body capture, no tracing or lo
 streaming. Its `beforeSend` builds a closed copy: request/user/contexts,
 breadcrumbs, arbitrary extras and exception messages are omitted; messages are
 scrubbed with the same exclusion list, stack locations and the three IDs remain.
-Setting the DSN does not enable real provider calls in the local deployment.
+The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled
+only when its DSN is configured.
 
-CI audits packaged dependencies with pinned Trivy `fs`, so transitive JARs are
-included without a separate NVD API key. Both architecture images are built,
+| Telemetry configuration key | Value / scope |
+|---|---|
+| `sentry.send-default-pii` | `false` in every profile |
+| `sentry.max-request-body-size` | `none` in every profile |
+| `sentry.traces-sample-rate` | `0.0` (no transaction tracing) |
+| `sentry.enable-logs` | `false` (no separate log streaming) |
+| `logging.structured.format.console` | `com.agilityhub.core.configuration.PrivacyLogFormatter` in `prod` / `staging`; unset locally |
+
+CI audits packaged dependencies with pinned Trivy `rootfs`, which inspects nested
+JARs; `fs` mode instead targets build manifests and silently ignores JARs. The
+scan fails if its Java inventory lacks Spring Web, Spring Security or the Mongo
+driver. This covers packaged dependencies without a separate NVD API key. Both architecture images are built,
 scanned for every secret and fixable CRITICAL vulnerability, then those exact
 images are pushed. Lower severities and unfixed findings appear in the job
 summary; secret matches never do. Only after both succeed is `:main` / `:sha-*`
@@ -1175,3 +1202,22 @@ Compose topology through `bin/deploy-smoke --security-only` and proves that the
 same smoke rejects an image whose entry point immediately fails. This mode uses
 E11-T04's local hosts and CA, skips backup helpers, and still cleans up on failure.
 The full E11-T04 backup rehearsal remains `bin/deploy-smoke`.
+
+Gitleaks scans history with its default rules. Evidence exceptions match only
+UUID trace/idempotency identifiers, notification deduplication keys and the
+literal pair of empty attachment-key assignments; they are scoped to individual
+rules so directory scans still read those files. `python3
+bin/security-secret-policy-test.py` proves a populated example key and a
+credential beside a trace still fail. The scanner's official configuration
+reference is https://github.com/gitleaks/gitleaks#configuration.
+
+Run mutation analysis under the shared host lock with `./mvnw -q -Pmutation
+test-compile org.pitest:pitest-maven:mutationCoverage`. It targets bookings and
+identity (payments joins at E11-T06), uses four workers (each capped at a 2 GiB
+heap and two active JVM processors) and keeps incremental history in `.local/pitest/history.bin`. The history and downloaded scanners are
+ignored local build caches; publish score summaries and sanitized evidence,
+not the caches. Six historical Testcontainers unsubscribe-link findings use exact
+commit/file/rule/line entries in `.gitleaksignore`; no future value is exempted.
+The profile allows 30 seconds of fixed fixture headroom plus twice the baseline
+test duration (PIT `timeoutConstant` / `timeoutFactor`). A timed-out mutant is reported explicitly; it is not a passing
+ordinary test run.

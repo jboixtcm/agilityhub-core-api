@@ -502,7 +502,7 @@ class WaitlistIT extends BookingFixtures {
         assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-joan", "s08-c0");
     }
 
-    @Test void R_08_15_theClaimOfADemotedEntryAnswersLikeItsHold() throws Exception {
+    @Test void T_08_22_R_08_15_theClaimOfADemotedEntryAnswersLikeItsHold() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201)); join(as("c0"), "last", "s08-d-c0", 201);
         cancel(as("pere"), id(pere), 200); dispatch();
@@ -519,5 +519,11 @@ class WaitlistIT extends BookingFixtures {
         assertThat(entry(duna)).containsEntry("state", "ACTIVE");
         assertThat(code(holdFor(as("laura"), "last", "s08-d-duna", duna, 422))).isEqualTo("WAITLIST_NOT_NOTIFIED");
         assertThat(code(claim(as("laura"), duna, "s08-no-hold", null, 422))).as("the same code as the hold").isEqualTo("WAITLIST_NOT_NOTIFIED");
+        // E11-T03 mutation survivor: another dog's live hold also takes the only seat, even with no live booking.
+        var otherHold = hold(as("joan"), "last", "s08-d-toby", 201);
+        assertThat(code(claim(as("laura"), duna, "s08-no-hold", null, 409)))
+                .as("a demoted claim counts another dog's hold toward capacity").isEqualTo("SEAT_TAKEN");
+        call(DELETE, "/seat-holds/" + id(otherHold), null, as("joan"), 204);
+        assertThat(code(claim(as("laura"), duna, "s08-no-hold", null, 422))).isEqualTo("WAITLIST_NOT_NOTIFIED");
     }
 }

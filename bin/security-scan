@@ -19,6 +19,20 @@ PACKAGES = {
 }
 
 
+REQUIRED_JAVA_PACKAGES = {'org.springframework.security:spring-security-core', 'org.springframework:spring-web',
+                          'org.mongodb:mongodb-driver-sync'}
+
+
+def java_inventory(report):
+    packages = {package.get('Name') for result in report.get('Results', [])
+                if result.get('Type') in ('jar', 'pom', 'gradle', 'sbt')
+                for package in result.get('Packages', [])}
+    missing = REQUIRED_JAVA_PACKAGES - packages
+    if missing:
+        raise ValueError('Java dependency inventory incomplete: ' + ', '.join(sorted(missing)))
+    return len(packages)
+
+
 def findings(report):
     critical = []
     secrets = []
@@ -38,8 +52,8 @@ def findings(report):
 
 
 def main():
-    if len(sys.argv) != 3 or sys.argv[1] not in ('fs', 'image'):
-        raise SystemExit('usage: bin/security-scan fs <directory> | image <image-reference>')
+    if len(sys.argv) != 3 or sys.argv[1] not in ('fs', 'rootfs', 'image'):
+        raise SystemExit('usage: bin/security-scan fs <project> | rootfs <packaged-directory> | image <image-reference>')
     package, digest = PACKAGES[(platform.system(), platform.machine())]
     cache = ROOT / '.local' / 'security-tools'
     cache.mkdir(parents=True, exist_ok=True)
@@ -58,11 +72,13 @@ def main():
     with tempfile.TemporaryDirectory() as temporary:
         report = Path(temporary) / 'report.json'
         command = [str(executable), mode, '--scanners', 'vuln,secret' if mode == 'image' else 'vuln',
-                   '--format', 'json', '--output', str(report), '--exit-code', '0', '--timeout', '15m', target]
+                   '--no-progress', '--format', 'json', '--output', str(report), '--exit-code', '0', '--timeout', '15m', target]
         print(f'Trivy {VERSION}: {mode} vulnerability audit' + (' and image secret scan' if mode == 'image' else ''), flush=True)
         environment = dict(os.environ, TRIVY_CACHE_DIR=str(cache / 'db'))
         subprocess.run(command, check=True, env=environment)
-        summary = findings(json.loads(report.read_text()))
+        document = json.loads(report.read_text())
+        summary = findings(document)
+        summary['javaPackages'] = java_inventory(document)
         output = json.dumps(summary, indent=2) + '\n'
         print(output, end='')
         if os.environ.get('GITHUB_STEP_SUMMARY'):

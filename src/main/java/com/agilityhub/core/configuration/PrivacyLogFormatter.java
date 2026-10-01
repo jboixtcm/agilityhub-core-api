@@ -12,7 +12,7 @@ public final class PrivacyLogFormatter implements StructuredLogFormatter<ILoggin
         members.add("logger", ILoggingEvent::getLoggerName);
         members.add("message", event -> LogPrivacy.scrub(event.getFormattedMessage()));
         for (String id : java.util.List.of("traceId", "clubId", "accountId")) {
-            members.add(id, event -> LogPrivacy.scrub(event.getMDCPropertyMap().getOrDefault(id, "-")));
+            members.add(id, event -> LogPrivacy.identifier(event.getMDCPropertyMap().getOrDefault(id, "-")));
         }
         members.add("exception", event -> LogPrivacy.stack(event.getThrowableProxy()));
     });

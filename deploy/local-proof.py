@@ -12,6 +12,7 @@ import shlex
 import socket
 import subprocess
 import tempfile
+import time
 import urllib.parse
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -75,7 +76,7 @@ def main():
 
         if args.security_only:
             override = work / 'security.yaml'
-            override.write_text('services:\n  core:\n    environment:\n      LOGGING_STRUCTURED_FORMAT_CONSOLE: com.agilityhub.core.configuration.PrivacyLogFormatter\n')
+            override.write_text('services:\n  core:\n    environment:\n      SPRING_PROFILES_ACTIVE: local,structured-logs\n      LOGGING_STRUCTURED_FORMAT_CONSOLE: com.agilityhub.core.configuration.PrivacyLogFormatter\n')
             compose += ['-f', str(override)]
 
         def docker(*arguments, **kwargs):
@@ -135,12 +136,16 @@ def main():
             docker('cp', 'caddy:/data/caddy/pki/authorities/local/root.crt', str(work / 'ca.crt'))
             port = values['LOCAL_HTTPS_PORT']
 
-            def request(host, path, form=None, cookie=None, expected=200, extra_headers=(), bearer=None):
+            def request(host, path, form=None, cookie=None, expected=200, extra_headers=(), bearer=None, method=None, json_body=None):
                 command = ['curl', '-4', '--silent', '--show-error', '--cacert', str(work / 'ca.crt'), '--noproxy', '*',
                            '--resolve', f'{host}:{port}:127.0.0.1', '--max-time', '30', '-D', str(work / 'headers'),
                            '-o', str(work / 'body'), '-w', '%{http_code}']
                 if form is not None:
                     command += ['--data-binary', '@-', '-H', 'Content-Type: application/x-www-form-urlencoded', '-H', f'Origin: https://{host}:{port}']
+                if method is not None:
+                    command += ['--request', method]
+                if json_body is not None:
+                    command += ['--data-binary', '@-', '-H', 'Content-Type: application/json']
                 if cookie:
                     (work / 'cookie-header').write_text('Cookie: ah_refresh=' + cookie)
                     command += ['-H', '@' + str(work / 'cookie-header')]
@@ -150,7 +155,8 @@ def main():
                 for header in extra_headers:
                     command += ['-H', header]
                 command += [f'https://{host}:{port}{path}']
-                result = run(command, input=urllib.parse.urlencode(form).encode() if form else None)
+                payload = json_body.encode() if json_body is not None else urllib.parse.urlencode(form).encode() if form else None
+                result = run(command, input=payload)
                 status = int(result.stdout)
                 if status != expected:
                     body = json.loads((work / 'body').read_text()) if (work / 'body').read_text().startswith('{') else {}
@@ -199,15 +205,21 @@ def main():
                 return cookie.value
 
             if args.security_only:
-                request('clubs.localhost', '/api/v1/e11-missing', expected=404, bearer=json.loads(body)['access_token'])
-                raw = docker('logs', '--no-log-prefix', '--no-color', 'core', text=True).stdout
+                probe, _ = request('clubs.localhost', '/api/v1/me', expected=400, method='PATCH', json_body='{',
+                                   bearer=json.loads(body)['access_token'])
+                trace = json.loads(probe)['traceId']
                 records = []
-                for line in raw.splitlines():
-                    if line.startswith('{'):
-                        record = json.loads(line)
-                        if all(record.get(key) not in (None, '', '-') for key in ('traceId', 'clubId', 'accountId')):
-                            records.append(record)
-                assert records, 'structured request log with all three ids'
+                for attempt in range(20):
+                    raw = docker('logs', '--no-log-prefix', '--no-color', 'core', text=True).stdout
+                    for line in raw.splitlines():
+                        if line.startswith('{'):
+                            record = json.loads(line)
+                            if record.get('traceId') == trace and all(record.get(key) not in (None, '', '-') for key in ('clubId', 'accountId')):
+                                records.append(record)
+                    if records:
+                        break
+                    time.sleep(0.1)
+                assert records, 'structured request log with the response trace id and both trusted identity ids'
                 print('PASS JSON request log ' + json.dumps(records[-1]), flush=True)
 
             initial = refresh_cookie(headers)

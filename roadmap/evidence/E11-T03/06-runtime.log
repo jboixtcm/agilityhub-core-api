@@ -15,13 +15,13 @@
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 08:44:20.569 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 08:44:20.665 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-08:44:20.839 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 4e5dcd88d277decd82637cdc8b49948d9fd45d9ecb443ee4a5b701ba150848f1
+08:44:20.839 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 4e5dcd88...[truncated]
 08:44:21.219 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.650297S
 08:44:21.231 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
 08:44:21.231 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
 08:44:21.232 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
 08:44:21.233 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
-08:44:21.311 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 960b468dc960cd9f72a9a8bf4ab6153ee3baa793ce8749ca7563bbdde0bcfa79
+08:44:21.311 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 960b468d...[truncated]
 08:44:22.134 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.901547S
 Integration JVM availableProcessors=18
 
@@ -327,7 +327,7 @@ java.lang.IllegalStateException
 2026-10-01T08:44:38.416+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.shared.api.HealthIndependenceIT]: HealthIndependenceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
 2026-10-01T08:44:38.472+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.api.HealthIndependenceIT
 2026-10-01T08:44:38.475+02:00 INFO  [main] tc.mongo:7 traceId= clubId= accountId= : Creating container for image: mongo:7
-2026-10-01T08:44:38.549+02:00 INFO  [main] tc.mongo:7 traceId= clubId= accountId= : Container mongo:7 is starting: 285180e5100a16c8bd5415571fe3aa48b149e3aaa20f3200897a4bf0a9bb22e3
+2026-10-01T08:44:38.549+02:00 INFO  [main] tc.mongo:7 traceId= clubId= accountId= : Container mongo:7 is starting: 285180e5...[truncated]
 2026-10-01T08:44:39.366+02:00 INFO  [main] tc.mongo:7 traceId= clubId= accountId= : Container mongo:7 started in PT0.891215S
 
   .   ____          _            __ _ _

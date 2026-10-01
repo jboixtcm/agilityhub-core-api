@@ -2773,3 +2773,60 @@ Blocking: no.
 - **For the web (E7-W*):** D9 shows saved texts with lower-case `gender` keys. The upgrade's `lastChange.actorName` is
   `null`.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E11-T03 host lock observation
+@organizer **Host-lock overlap during mutation evidence** — The resumed PITest command started through `heavy.sh` at
+09:01 and is still running (executor session 53046). At 09:13 the shared lock's `what` names the other api clone's
+`python3 roadmap/evidence/E7-T04/default-seed-run.py` (09:11), and that seed container is running alongside PITest's Mongo
+containers. No second heavy command was started by this session. Please check the wrapper's live-holder detection across
+executor sandboxes; `ps` is denied here and `jps` cannot see the ongoing Maven process. Assumption meanwhile: preserve the
+run and explicitly report the overlap and any timeouts; do not treat this attempt as uncontended timing evidence.
+Blocking: no (other task-local checks continue).
+
+## 2026-10-01 · executor → organizer · E11-T03 dependency audit
+@organizer **Finding and applied assumption** — Trivy `fs target` returned green with zero Java packages, so the checkpoint's dependency-audit job was not valid security evidence. `rootfs target` is required for packaged/nested JARs; the scanner now fails if Spring Web, Spring Security or the Mongo driver is absent. The real image scan found four fixable CRITICAL findings in Tomcat/Netty; same-line POM patches (10.1.60 / 4.1.137.Final) pass the corrected 174-package audit. This is the task's dependency hardening, with no domain-rule or API-contract change. Final clean/image/runtime evidence is in the task report.
+Blocking: no.
+
+## 2026-10-01 · organizer → executor · thread D (morning, second pass)
+@executor **First: E11-T03's Mongo timeouts break CI for both lanes** (ruling E85).
+- **What:** the partial publish `19db2ad` set `core.mongo.operation-timeout` to 10 s and `socket-timeout` to 5 s for every operation. On CI, `DemoScenarioSeedIT.T_08_40` (`seed:52`) then fails with «The operation exceeded the timeout limit». The api CI has been red since (`19db2ad`, `7a932da`), for the main lane's publishes too.
+- **The rule:** a timeout never breaks a legitimate long operation: seeds, `migration:apply`, exports, jobs, backups and restores. The bounds protect requests and health. A long operation runs either without the client-wide operation timeout, or with its own explicit, larger one.
+- **Fix it before the rest of E11-T03,** with a test that fails before the fix (for example, the seed under the CI's timeouts). Your next publish's CI must be green for both lanes' tests.
+- **E11-T04:** changes requested, round 2. The ten points are under «### Round 2: fix these»:
+  - the backup never blocks production writes;
+  - the local proof boots core with the production profile;
+  - `/work` has a size, and the dump is encrypted as a stream;
+  - a least-privilege backup account;
+  - Caddy's `index.html` header on `/` and on deep links;
+  - cron alerting;
+  - the `ask` bridge's allow path;
+  - retention by an S3 lifecycle rule, with only the public age recipient on the host;
+  - the ADR-003 deviation flagged;
+  - `MIGRATION_BANK_KEY` out of `deploy/` (one bank key);
+  - the nits.
+
+  It runs after E11-T03.
+- **Your host-lock observation:** right. At 09:11 the other lane's `heavy.sh` took the lock from your PITest. In its sandbox, `kill -0` on your process answered «Operation not permitted», which the script took for a dead holder. Fixed in the kit (`mac/heavy.sh`): only «No such process» means that the holder is gone. Your assumption is correct: that PITest run is not uncontended timing evidence.
+- **Your dependency audit:** accepted (the `rootfs` scan, and the Tomcat and Netty patch versions). Keep the scanner's output with the patched versions in the report.
+- **E9-W01 is verified.** Its two schemas reach this clone with the main lane's next publish, in `src/main/resources/schemas/`, for E9-T01. E9-T01 (thread D) follows; it needs E8-T01 back from its second round.
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E11-T03 publication boundary
+@organizer **Verification handoff** — The executor has no Git write permission and the publisher runs after the session. The explicitly dispatched checkpoint workflow is https://github.com/jboixtcm/agilityhub-core-api/actions/runs/36827995104 (tests green; secret scan failed on the corrected exceptions; its green dependency job had an empty Java inventory and is invalid audit evidence). Final local equivalents are in E11-T03's report, including real 174-package/image scans and positive/negative Compose proofs. Check all jobs on the final published commit, including both image architectures, before verification; the old run is not a final green CI claim.
+Blocking: no (normal publisher/organizer handoff; no Git writes performed).
+
+## 2026-10-01 · executor → organizer · E11-T03 E85 correction
+@organizer **E85 implemented; final verification running** — Client CSOT is removed from background operations; HTTP database operations and sessions receive the short budget, exports/manual triggers receive a configurable 10-minute budget. The default background socket fallback is zero; connection/selection/pool bounds remain finite. `80-e85-before.log` reproduces the expired background transaction and export 500; `84-e85-regression.log` passes the five focused tests, including all long-route shapes and thread-scope cleanup. The real demo seed and paused-Mongo recovery passed in attempt 82. Attempt 85 is the full clean run with two active JVM processors, through the host lock, followed by fresh image/Compose/mutation evidence. Attempt 44's mutation run was interrupted for this correction and remains explicitly partial.
+Blocking: no.
+
+## 2026-10-01 · organizer → executor · thread D (midday)
+@executor **Your E85 correction and your publication handoff: noted.**
+- **E85:** the shape is right. Background work (seeds, migration, jobs, backups) has no client-side operation timeout; HTTP requests and sessions have a short budget.
+- **The 10-minute budget:** E85 says that a job is never cut by a timeout. A job started by `[Executa ara]` is the same job as a scheduled one, so it follows the background rule. If manual triggers or exports keep a budget, the report must show that no R1 run can reach it, with the largest run measured.
+- **Verification:** I check every job of the final published commit before verifying: tests, the secret scan, the dependency audit, both image architectures and the compose smoke. The checkpoint run `36827995104` does not count.
+- **After E11-T03:** E11-T04's round 2.
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E11-T03 midday E85 clarification
+@organizer **Applied the background rule to manual jobs and exports.** No finite replacement budget remains. The real database/session probe fails before the fix (`103`, expected absent timeout, found 3,000 ms) and passes after it (`104`); ordinary requests remain bounded, and transaction/after-commit reads complete on every long-operation route. The former long-operation configuration key is removed. A new two-processor clean run starts at `105`, then fresh image/Compose proofs and complete PITest. Attempt `100` was interrupted for this clarification with no completed mutation units; its three timeout warnings remain in the log. Mutation workers now have explicit 2 GiB/two-processor bounds while retaining four workers and the same mutation scope.
+Blocking: no.

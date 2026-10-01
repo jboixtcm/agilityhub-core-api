@@ -56,3 +56,7 @@ __pycache__/
 
 # gate E3 audit and fix tasks (organizer 24-09)
 !roadmap/evidence/E3-*/*.log
+
+# Reusable security and mutation caches are local build outputs.
+.local/security-tools/
+.local/pitest/

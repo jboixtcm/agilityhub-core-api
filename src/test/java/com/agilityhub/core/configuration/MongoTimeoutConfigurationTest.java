@@ -16,9 +16,19 @@ class MongoTimeoutConfigurationTest {
         assertThat(result.getSocketSettings().getConnectTimeout(TimeUnit.MILLISECONDS)).isEqualTo(100);
         assertThat(result.getSocketSettings().getReadTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
         assertThat(result.getClusterSettings().getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(300);
-        assertThat(result.getTimeout(TimeUnit.MILLISECONDS)).isEqualTo(400);
+        assertThat(result.getTimeout(TimeUnit.MILLISECONDS)).as("no client-wide transaction deadline").isNull();
         assertThat(result.getConnectionPoolSettings().getMaxSize()).isEqualTo(7);
         assertThat(result.getConnectionPoolSettings().getMaxWaitTime(TimeUnit.MILLISECONDS)).isEqualTo(500);
+    }
+    @Test void E85_aClientWideTimeoutCannotSilentlyCapSeedsAndJobs() {
+        var one = Duration.ofSeconds(1);
+        var settings = new MongoTimeoutConfiguration.Settings(one, Duration.ZERO, one, one, 1, one);
+        var customizer = new MongoTimeoutConfiguration().boundedMongoClient(settings);
+        var unbounded = MongoClientSettings.builder();
+        customizer.customize(unbounded);
+        assertThat(unbounded.build().getSocketSettings().getReadTimeout(TimeUnit.MILLISECONDS)).isZero();
+        assertThatThrownBy(() -> customizer.customize(MongoClientSettings.builder().timeout(10, TimeUnit.MILLISECONDS)))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("timeoutMS must be unset");
     }
     @Test void E11_T03_invalidBoundsCannotStart() {
         var one = Duration.ofSeconds(1);

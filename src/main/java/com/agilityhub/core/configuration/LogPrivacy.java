@@ -12,7 +12,12 @@ public final class LogPrivacy {
             Pattern.compile("(?<![\\w])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w])"),
             Pattern.compile("(?i)(?<![\\w])(?:(?:[a-f0-9]{1,4}:){7}[a-f0-9]{1,4}|(?:[a-f0-9]{1,4}:){0,6}[a-f0-9]{0,4}::(?:[a-f0-9]{1,4}:){0,6}[a-f0-9]{0,4})(?![\\w])"),
             Pattern.compile("(?i)(?:bearer\\s+|(?:token|password|secret|signature|authorization|cookie)[=:]\\s*)[^\\s,;]+"));
+    private static final Pattern UUID = Pattern.compile("(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     private LogPrivacy() { }
+    /** Trusted server-generated correlation ids must survive patterns resembling a phone or IBAN. */
+    public static String identifier(String value) {
+        return value != null && UUID.matcher(value).matches() ? value : scrub(value);
+    }
     public static String scrub(String value) {
         if (value == null) { return null; }
         String result = value;

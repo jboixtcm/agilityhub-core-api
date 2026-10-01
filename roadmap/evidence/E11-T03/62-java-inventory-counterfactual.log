@@ -1,0 +1,19 @@
+COUNTERFACTUAL COMMAND python3 bin/security-scan-test.py (Java inventory guard removed)
+..F..
+======================================================================
+FAIL: test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found (__main__.ScanPolicyTest.test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/security-scan-test.py", line 27, in test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found
+    with self.assertRaisesRegex(ValueError, 'Java dependency inventory incomplete'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+FAILED (failures=1)
+
+COUNTERFACTUAL EXIT 1
+RESTORED Java inventory guard
+exit 0

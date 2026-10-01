@@ -54,10 +54,16 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
                 for (var alternative : requirement) { requiresBearer &= alternative.has("bearer"); }
                 var request = request(HttpMethod.valueOf(method.getKey().toUpperCase()), path.getKey().replaceAll("\\{[^}]+}", "inventory-missing"))
                         .header("Host", "inventory.example.test").contentType("application/json");
+                if (path.getKey().equals("/oauth2/token")) {
+                    request.contentType("application/x-www-form-urlencoded").param("grant_type", "password")
+                            .param("username", "inventory@example.test").param("password", "fictional-invalid-password");
+                }
                 var response = mvc.perform(request).andReturn().getResponse();
                 if (!path.getKey().equals("/oauth2/token")) {
                     failures.assertThat(response.getStatus() == 401).as(label + " without bearer -> " + response.getStatus())
                             .isEqualTo(requiresBearer);
+                } else {
+                    failures.assertThat(response.getStatus()).as(label + " requires client authentication").isEqualTo(401);
                 }
                 checked++;
             }

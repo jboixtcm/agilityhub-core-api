@@ -1,0 +1,76 @@
+heavy.sh: the previous holder (pid 86033) is gone - taking the lock over
+9:01:44 PIT >> INFO : Verbose logging is disabled. If you encounter a problem, please enable it before reporting an issue.
+9:01:45 PIT >> INFO : Created 443 mutation test units in pre scan
+9:01:45 PIT >> INFO : Sending 533 test classes to minion
+9:01:45 PIT >> INFO : Sent tests to minion
+9:01:56 PIT >> INFO : MINION : Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+9:01:56 PIT >> INFO : MINION : WARNING: A Java agent has been loaded dynamically (/private/tmp/e11-maven.BJqwxL/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+9:01:56 PIT >> INFO : MINION : WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+9:01:56 PIT >> INFO : MINION : WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+9:01:56 PIT >> INFO : MINION : WARNING: Dynamic loading of agents will be disallowed by default in a future release
+9:01:56 PIT >> INFO : MINION : OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|9:04:47 PIT >> INFO : MINION : VALIDATION_ERROR {}
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+9:04:47 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+/-\|/-\|/-\|9:04:49 PIT >> INFO : Calculated coverage in 184 seconds.
+9:04:49 PIT >> INFO : 4 tests took longer than 2000 ms
+9:04:49 PIT >> INFO : Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.api.BookingConcurrencyIT]/[method:T_08_30_tenNotifiedEntriesClaimInParallelOnlyTheFreeSeatsAreTakenAndTheRestGoBackToActive()]) took 5310 ms
+9:04:49 PIT >> INFO : Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.api.AttendanceIT]/[method:R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat()]) covered 5883 blocks
+9:04:50 PIT >> WARNING : Found more than one mutation similar on same line in a finally block. Can't correct for inlining.
+9:04:50 PIT >> INFO : Incremental analysis reduced number of mutations by 117
+9:04:50 PIT >> INFO : Created 175 mutation test units
+/9:09:15 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:12:26 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:12:27 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:12:32 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:13:13 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+-\9:18:56 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:19:25 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:19:56 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:20:24 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:20:55 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+|9:21:27 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:21:59 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:22:28 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:22:59 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:23:27 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:23:54 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:24:25 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:24:53 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:25:21 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+/9:25:49 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:26:18 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:26:46 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:27:14 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:27:45 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:28:14 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:28:36 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:28:41 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:29:10 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:29:39 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:30:08 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:30:35 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:31:03 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:31:31 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:32:00 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:32:28 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:33:00 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:33:33 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:34:04 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:34:33 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:35:03 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:35:34 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:36:03 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:36:32 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:37:00 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:37:28 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+9:37:58 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+-
+Interrupted after repeated minion timeouts; exit 130.

@@ -1,0 +1,88 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke --image-tag e11-security-local --security-only
+PASS deployment forwards the bank encryption key to Core
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-8ej9qo17/local.env -p e11-t04-397da4d6 -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-8ej9qo17/security.yaml up -d --wait --wait-timeout 420
+Volume e11-t04-397da4d6_exports Creating 
+ Volume e11-t04-397da4d6_caddy-config Creating 
+ Volume e11-t04-397da4d6_attachments Creating 
+ Volume e11-t04-397da4d6_mongo-data Creating 
+ Volume e11-t04-397da4d6_caddy-data Creating 
+ Volume e11-t04-397da4d6_caddy-data Creating 
+ Volume e11-t04-397da4d6_mongo-data Creating 
+ Volume e11-t04-397da4d6_mailbox Creating 
+ Volume e11-t04-397da4d6_attachments Creating 
+ Volume e11-t04-397da4d6_caddy-config Creating 
+ Volume e11-t04-397da4d6_mailbox Creating 
+ Volume e11-t04-397da4d6_exports Creating 
+ Network e11-t04-397da4d6_default Creating 
+ Network e11-t04-397da4d6_default Creating 
+ Volume e11-t04-397da4d6_caddy-data Created 
+ Volume e11-t04-397da4d6_caddy-data Created 
+ Volume e11-t04-397da4d6_exports Created 
+ Volume e11-t04-397da4d6_exports Created 
+ Volume e11-t04-397da4d6_attachments Created 
+ Volume e11-t04-397da4d6_attachments Created 
+ Volume e11-t04-397da4d6_caddy-config Created 
+ Volume e11-t04-397da4d6_caddy-config Created 
+ Volume e11-t04-397da4d6_mongo-data Created 
+ Volume e11-t04-397da4d6_mongo-data Created 
+ Volume e11-t04-397da4d6_mailbox Created 
+ Volume e11-t04-397da4d6_mailbox Created 
+ Network e11-t04-397da4d6_default Created 
+ Network e11-t04-397da4d6_default Created 
+ Container e11-t04-397da4d6-mongo-1 Creating 
+ Container e11-t04-397da4d6-mongo-1 Created 
+ Container e11-t04-397da4d6-seed-1 Creating 
+ Container e11-t04-397da4d6-seed-1 Created 
+ Container e11-t04-397da4d6-local-hosts-1 Creating 
+ Container e11-t04-397da4d6-local-hosts-1 Created 
+ Container e11-t04-397da4d6-core-1 Creating 
+ Container e11-t04-397da4d6-core-1 Created 
+ Container e11-t04-397da4d6-caddy-1 Creating 
+ Container e11-t04-397da4d6-caddy-1 Created 
+ Container e11-t04-397da4d6-mongo-1 Starting 
+ Container e11-t04-397da4d6-mongo-1 Started 
+ Container e11-t04-397da4d6-mongo-1 Waiting 
+ Container e11-t04-397da4d6-mongo-1 Healthy 
+ Container e11-t04-397da4d6-seed-1 Starting 
+ Container e11-t04-397da4d6-seed-1 Started 
+ Container e11-t04-397da4d6-seed-1 Waiting 
+ Container e11-t04-397da4d6-seed-1 Exited 
+ Container e11-t04-397da4d6-local-hosts-1 Starting 
+ Container e11-t04-397da4d6-local-hosts-1 Started 
+ Container e11-t04-397da4d6-local-hosts-1 Waiting 
+ Container e11-t04-397da4d6-mongo-1 Waiting 
+ Container e11-t04-397da4d6-mongo-1 Healthy 
+ Container e11-t04-397da4d6-local-hosts-1 Exited 
+ Container e11-t04-397da4d6-core-1 Starting 
+ Container e11-t04-397da4d6-core-1 Started 
+ Container e11-t04-397da4d6-core-1 Waiting 
+ Container e11-t04-397da4d6-core-1 Healthy 
+ Container e11-t04-397da4d6-caddy-1 Starting 
+ Container e11-t04-397da4d6-caddy-1 Started 
+ Container e11-t04-397da4d6-caddy-1 Waiting 
+ Container e11-t04-397da4d6-seed-1 Waiting 
+ Container e11-t04-397da4d6-local-hosts-1 Waiting 
+ Container e11-t04-397da4d6-mongo-1 Waiting 
+ Container e11-t04-397da4d6-core-1 Waiting 
+ Container e11-t04-397da4d6-local-hosts-1 Exited 
+ Container e11-t04-397da4d6-mongo-1 Healthy 
+ Container e11-t04-397da4d6-seed-1 Exited 
+ Container e11-t04-397da4d6-core-1 Healthy 
+ Container e11-t04-397da4d6-caddy-1 Healthy
+PASS authenticated production topology became healthy with local override
+RUNNER_CONTEXT DEPLOY_ENV_FILE=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-8ej9qo17/local.env DEPLOY_LOCAL=1 COMPOSE_PROJECT_NAME=e11-t04-397da4d6
+PASS Caddy HTTPS health UP (trusted internal CA, no -k)
+PASS branding resolves canic by each preserved front Host
+PASS all three mounted SPA index fixtures and deep-link fallback
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 297, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 210, in main
+    assert records, 'structured request log with all three ids'
+           ^^^^^^^
+AssertionError: structured request log with all three ids
+
+exit 1
+elapsed_seconds 45.484

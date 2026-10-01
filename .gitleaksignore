@@ -1,0 +1,10 @@
+
+# E11-T03: six historical Testcontainers-only unsubscribe capabilities in E7-T02 failure evidence.
+# Exact commit/file/rule/line fingerprints replace the former whole-line dedupKey exception.
+# No production credential; no future token or other evidence file is exempted.
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:65
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:66
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:69
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:243
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:244
+9827c04260cb5f1997bd09b1c1e769e84a2cf0f8:roadmap/evidence/E7-T02/25-round2-before-fix-it.log:generic-api-key:247

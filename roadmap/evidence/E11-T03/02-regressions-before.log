@@ -15,13 +15,13 @@
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 08:38:28.005 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 08:38:28.126 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-08:38:28.231 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7dda6828706b6b58fe28e7fbec1b6c3092e69fec828dc19d539f0c4c06a940cf
+08:38:28.231 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7dda6828...[truncated]
 08:38:28.526 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.520284S
 08:38:28.532 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
 08:38:28.532 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
 08:38:28.533 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
 08:38:28.533 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
-08:38:28.586 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 1de6d94b24cb8ab4004a4b31553480470ef38c1df01b084da03a384216833451
+08:38:28.586 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 1de6d94b...[truncated]
 08:38:29.263 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.729607S
 Integration JVM availableProcessors=18
 

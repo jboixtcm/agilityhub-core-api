@@ -394,8 +394,13 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         String other = accounts.findByEmail("other@example.test").orElseThrow().id();
         try (var scope = TenantContext.open("club-a")) { membershipService.setRoles(other, Set.of(Role.MEMBER)); }
         mvc.perform(request.with(jwt().jwt(j -> j.subject(other).claim("clubId", "club-a")))).andExpect(status().isOk());
+        assertThat(events("SessionRevoked")).as("another account cannot announce a logout of this family").isEmpty();
         mvc.perform(request.header("Authorization", bearer(first))).andExpect(status().isOk());
+        assertThat(events("SessionRevoked")).singleElement().satisfies(event -> {
+            assertThat(event.payload()).containsEntry("accountId", "account-a").containsEntry("reason", "LOGOUT");
+        });
         mvc.perform(request.header("Authorization", bearer(first))).andExpect(status().isOk());
+        assertThat(events("SessionRevoked")).as("logout retries never publish a second revocation").hasSize(1);
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest());
     }
 
@@ -412,6 +417,9 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
             assertThat(tokens.sessions("account-a")).hasSize(10).allMatch(t -> t.deviceLabel().equals("Chrome / Windows"));
         }
         refresh(first, HOST, "clubs-app").andExpect(status().isBadRequest());
+        assertThat(events("SessionRevoked")).singleElement().satisfies(event -> {
+            assertThat(event.payload()).containsEntry("accountId", "account-a").containsEntry("reason", "LIMIT");
+        });
         assertThat(mongo.findAll(RefreshToken.class).toString()).doesNotContain("credential");
     }
 
