@@ -11,7 +11,7 @@ import java.util.Map;
 
 /** Per-instance token buckets for the E0 single-instance deployment. */
 public final class RateLimits {
-    public enum Route { TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP, SIGNUP_IDENTITY, SIGNUP_FAMILY, SIGNUP_UPLOAD, SIGNUP_SUBMIT, SIGNUP_DAILY, SIGNUP_CHECKOUT, SIGNUP_TOWNS,
+    public enum Route { ANONYMOUS, WEBHOOK, SIGNED_FILE, HANDOFF, TOKEN_ACCOUNT, TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP, SIGNUP_IDENTITY, SIGNUP_FAMILY, SIGNUP_UPLOAD, SIGNUP_SUBMIT, SIGNUP_DAILY, SIGNUP_CHECKOUT, SIGNUP_TOWNS,
         /** E3-T09: the anonymous signup mails (N-39, the applicant's N-01) per club, notification and recipient (`notificationsPerRecipientPerHour`). */
         SIGNUP_RECIPIENT }
     public record Limit(long capacity, Duration period) {

@@ -22,7 +22,7 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
         // E5-T27 round 2 (review #2, ruling E71): the health never reaches the database, not even to resolve CORS. Only the configured
         // platform hosts are allowed there; any other origin gets no CORS processing, so the probe still answers its UP/DOWN envelope.
         if (health(request)) { return platform(origin) ? configuration(origin) : null; }
-        return configuration(allowed(origin) ? origin : null);
+        return configuration(allowed(origin, request) ? origin : null);
     }
 
     /** E5-T27 round 3: the path Spring routes (decoded, without `;` parameters), so `/api/v1/%68ealth` is the health too. */
@@ -43,9 +43,17 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
         return configuration;
     }
 
-    private boolean allowed(String origin) {
+    private boolean allowed(String origin, HttpServletRequest request) {
         String host = host(origin);
-        return host != null && (platformHosts.contains(host) || hosts.isCorsHost(host, local));
+        if (host == null) { return false; }
+        if (platformHosts.contains(host)) { return true; }
+        var originClub = hosts.corsClub(host, local);
+        if (originClub.isEmpty()) { return false; }
+        // Global identity/core endpoints accept registered club origins. A host-selected club accepts only its own.
+        String targetHost = local && request.getHeader("X-Club-Host") != null
+                ? request.getHeader("X-Club-Host") : request.getHeader("Host");
+        var targetClub = hosts.resolve(targetHost);
+        return targetClub.isEmpty() || targetClub.equals(originClub);
     }
 
     private boolean platform(String origin) {

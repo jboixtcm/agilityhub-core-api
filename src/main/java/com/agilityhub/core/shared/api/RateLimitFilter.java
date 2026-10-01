@@ -42,6 +42,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         String path = PATHS.getPathWithinApplication(request);
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var jwt = authentication instanceof JwtAuthenticationToken token && token.isAuthenticated() ? token : null;
+        if (jwt != null) { RequestTraceFilter.identity(jwt.getName(), jwt.getToken().getClaimAsString("clubId")); }
         Route route = route(request.getMethod(), path, jwt != null);
         if (route != null) {
             String subject = route == Route.ME ? jwt.getName() : request.getRemoteAddr();
@@ -56,6 +57,15 @@ public final class RateLimitFilter extends OncePerRequestFilter {
                 retryAfter = limits.retryAfter(route, subject, limits.limit(route, parameter));
                 if (route == Route.SIGNUP_SUBMIT) retryAfter=Math.max(retryAfter,limits.retryAfter(Route.SIGNUP_DAILY,subject,limits.limit(Route.SIGNUP_DAILY,parameter)));
             } else { retryAfter = limits.retryAfter(route, subject); }
+            if (route == Route.TOKEN && path.equals("/oauth2/token")) {
+                String username = request.getParameter("username");
+                if (username != null && !username.isBlank()) {
+                    retryAfter = Math.max(retryAfter, limits.retryAfter(Route.TOKEN_ACCOUNT, fingerprint(username.strip().toLowerCase(java.util.Locale.ROOT))));
+                }
+            }
+            if (route == Route.HANDOFF && jwt != null) {
+                retryAfter = Math.max(retryAfter, limits.retryAfter(Route.HANDOFF, "account:" + jwt.getName()));
+            }
             if (retryAfter > 0) {
                 events.record(SecurityEvents.Type.RATE_LIMITED, jwt == null ? null : jwt.getName(),
                         clubId);
@@ -73,7 +83,12 @@ public final class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private Route route(String method, String path, boolean authenticated) {
-        if (method.equals("OPTIONS")) { return null; }
+        if (method.equals("OPTIONS") || path.equals("/api/v1/health")) { return null; }
+        if (path.startsWith("/webhooks/")) { return Route.WEBHOOK; }
+        if (path.equals("/api/v1/auth/handoff")) { return Route.HANDOFF; }
+        if (path.matches("/api/v1/attachments/(uploads|files)/[^/]+")
+                || path.equals("/api/v1/signup/uploads") || path.equals("/api/v1/signup/files")
+                || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics")) { return Route.SIGNED_FILE; }
         if (method.equals("POST")) {
             Route signup=switch(path) {
                 case "/api/v1/signup/identity-checks" -> Route.SIGNUP_IDENTITY;
@@ -90,6 +105,19 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         if (method.equals("GET") && path.equals("/api/v1/branding")) { return Route.BRANDING; }
         if (path.equals("/api/v1/public") || path.startsWith("/api/v1/public/")) { return Route.PUBLIC; }
         if (authenticated && (path.equals("/api/v1/me") || path.startsWith("/api/v1/me/"))) { return Route.ME; }
+        if (path.startsWith("/oauth2/") || path.startsWith("/.well-known/") || path.equals("/connect/logout")
+                || path.equals("/api/v1/manifest.webmanifest") || path.equals("/api/v1/signup")
+                || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/")
+                || path.equals("/api/v1/email-unsubscribes") || path.startsWith("/api/v1/checkout-sessions/")) {
+            return Route.ANONYMOUS;
+        }
         return null;
+    }
+
+    private static String fingerprint(String value) {
+        try {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
 }

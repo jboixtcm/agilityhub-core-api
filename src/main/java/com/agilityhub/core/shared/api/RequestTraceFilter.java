@@ -25,10 +25,24 @@ public class RequestTraceFilter extends OncePerRequestFilter {
         return (String) request.getAttribute(ATTRIBUTE);
     }
 
+    /** Enrich only from verified authentication / tenant resolution, never request headers or unsigned JWTs. */
+    public static void identity(String accountId, String clubId) {
+        if (accountId != null) { MDC.put("accountId", accountId); }
+        if (clubId != null) { MDC.put("clubId", clubId); }
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        traceId(request);
-        chain.doFilter(request, response);
+        var previous = MDC.getCopyOfContextMap();
+        MDC.clear();
+        MDC.put("traceId", traceId(request));
+        MDC.put("clubId", "-");
+        MDC.put("accountId", "-");
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            if (previous == null) { MDC.clear(); } else { MDC.setContextMap(previous); }
+        }
     }
 }

@@ -30,6 +30,19 @@ class ClubCorsConfigurationSourceTest {
         assertThat(cors.getCorsConfiguration(request).getAllowedOrigins()).isNull();
     }
 
+    @Test void T_01_25_E11_localPendingDomainMustBelongToTheTargetClub() {
+        var repository = mock(ClubRepository.class);
+        when(repository.findByHost("api.example.test")).thenReturn(Optional.of(PlatformFixtures.club("club-a", "api.example.test")));
+        when(repository.findByAnyHost("pending.example.test")).thenReturn(Optional.of(PlatformFixtures.club("club-a", "api.example.test")));
+        when(repository.findByAnyHost("other.example.test")).thenReturn(Optional.of(PlatformFixtures.club("club-b", "other.example.test")));
+        var cors = new ClubCorsConfigurationSource(new HostTenantResolver(repository), List.of(), true);
+        var request = new MockHttpServletRequest("GET", "/api/v1/branding");
+        request.addHeader("Host", "api.example.test"); request.addHeader("Origin", "http://pending.example.test:5173");
+        assertThat(cors.getCorsConfiguration(request).getAllowedOrigins()).containsExactly("http://pending.example.test:5173");
+        request.removeHeader("Origin"); request.addHeader("Origin", "http://other.example.test:5173");
+        assertThat(cors.getCorsConfiguration(request).getAllowedOrigins()).isNull();
+    }
+
     /** E5-T27 round 2 (review #2, ruling E71): the health's CORS reads the platform hosts only; a club origin is never looked up. */
     @Test void E71_theHealthAllowsThePlatformHostsWithoutEverReadingTheClubs() {
         for (boolean local : new boolean[]{false, true}) {

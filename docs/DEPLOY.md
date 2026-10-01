@@ -1092,3 +1092,86 @@ after review:
   (`seeds/README.md` → «E5 bookings…», with the test clock at `demoNow`).
 - [ ] Run `./mvnw -q verify` (includes `MemberAggregatesIT`, `DemoScenarioSeedIT`) and repeat image mode with the
   reviewed published tag.
+
+
+## Security hardening (E11-T03)
+
+CORS uses exact origins, with HTTPS outside `local`. Configured
+`CORS_PLATFORM_HOSTS` work on both the API and identity chains. A registered club
+origin can call a global core/identity host; on a host belonging to a club, that
+origin must belong to the same club. Unknown, removed, pending (outside local),
+malformed and other-club origins receive no allow-origin header. Preflights have
+a 300-second cache. Health only accepts configured platform origins without
+looking up a club; other origins still receive its ordinary UP/DOWN response.
+Cookies remain same-origin (A1); CORS never enables credentials or wildcard
+origins. All SPAs receive nosniff, strict-origin-when-cross-origin, DENY and HSTS
+from Caddy. The web build owns its CSP. API JSON, errors, OAuth and files keep the
+Spring Security baseline and E71 download policies. API HSTS is enabled only for
+HTTPS requests under `prod`.
+
+The per-instance token buckets below use the injected clock and reset at their
+interval boundary. R1 is a single instance (ADR-003). Every refusal returns the
+catalog `429 RATE_LIMITED`, `Retry-After` in seconds, and writes `SecurityEvent`.
+Only trusted proxy addresses can set the effective client IP. Keys contain an
+IP, an internal account ID, or a SHA-256 digest of the normalized token username;
+never a plaintext e-mail. Signup keeps the existing club `signup.rateLimit`
+parameter and its recipient limits. Infrastructure settings can be overridden by
+Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`.
+
+| Configuration key (each has `.capacity` and `.period`) | Default | Key / scope |
+|---|---|---|
+| `core.security.rate-limits.token` | 30 / 1m | IP, shared token + magic-link entry point |
+| `core.security.rate-limits.token-account` | 10 / 1m | Digest of normalized token username, across IPs |
+| `core.security.rate-limits.magic-link-email` | 10 / 1h | Digest of normalized e-mail (existing magic-link rule) |
+| `core.security.rate-limits.magic-link-ip` | 60 / 1h | IP (existing magic-link rule) |
+| `core.security.rate-limits.branding` | 120 / 1m | IP |
+| `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
+| `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |
+| `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, checkout polling |
+| `core.security.rate-limits.webhook` | 600 / 1m | IP; provider signature validation is still required |
+| `core.security.rate-limits.signed-file` | 120 / 1m | IP; signed upload/download and calendar links |
+| `core.security.rate-limits.handoff` | 30 / 1m | Both IP and authenticated account; the route still requires a bearer |
+
+Mongo settings apply to the actual client, including clients configured with a
+URI. A finite operation budget includes driver retries; application
+`TransactionRetries` keeps its existing semantics and each new driver operation
+has this same bound. The independent health ping still has its stricter 1-second
+budget. Settings must be positive; a zero/infinite timeout refuses startup.
+
+| Configuration key | Environment variable | Default |
+|---|---|---|
+| `core.mongo.connect-timeout` | `MONGO_CONNECT_TIMEOUT` | 2s |
+| `core.mongo.socket-timeout` | `MONGO_SOCKET_TIMEOUT` | 5s |
+| `core.mongo.server-selection-timeout` | `MONGO_SERVER_SELECTION_TIMEOUT` | 2s |
+| `core.mongo.operation-timeout` | `MONGO_OPERATION_TIMEOUT` | 10s |
+| `core.mongo.max-pool-size` | `MONGO_MAX_POOL_SIZE` | 100 |
+| `core.mongo.pool-wait-timeout` | `MONGO_POOL_WAIT_TIMEOUT` | 2s |
+| `sentry.dsn` | `SENTRY_DSN` | Empty: disabled. Obtain the release project's DSN at E12-T01. |
+
+`prod` and `staging` use Spring Boot structured JSON console logging; local/test
+keep readable output. One request filter establishes `traceId` and clears the
+MDC on every exit. Authentication and tenant resolution enrich `accountId` and
+`clubId` from trusted state. Unavailable IDs are `-`; no unverified header/JWT
+claim becomes an identity. `INTERNAL_ERROR.traceId` matches the logged ID.
+`LogPrivacy` is the common exclusion list for e-mails, phones, IBANs, IPs and
+credential-shaped text. Exception output keeps types and code locations without
+exception messages, which can contain full Mongo documents or request bodies.
+The JSON field set excludes arbitrary MDC values. No filter logs request bodies,
+headers or query strings. Do not enable raw HTTP/Mongo debug payload logging.
+
+Sentry uses `send-default-pii: false`, no request-body capture, no tracing or log
+streaming. Its `beforeSend` builds a closed copy: request/user/contexts,
+breadcrumbs, arbitrary extras and exception messages are omitted; messages are
+scrubbed with the same exclusion list, stack locations and the three IDs remain.
+Setting the DSN does not enable real provider calls in the local deployment.
+
+CI audits packaged dependencies with pinned Trivy `fs`, so transitive JARs are
+included without a separate NVD API key. Both architecture images are built,
+scanned for every secret and fixable CRITICAL vulnerability, then those exact
+images are pushed. Lower severities and unfixed findings appear in the job
+summary; secret matches never do. Only after both succeed is `:main` / `:sha-*`
+published as a multi-architecture manifest. The amd64 job runs the authenticated
+Compose topology through `bin/deploy-smoke --security-only` and proves that the
+same smoke rejects an image whose entry point immediately fails. This mode uses
+E11-T04's local hosts and CA, skips backup helpers, and still cleans up on failure.
+The full E11-T04 backup rehearsal remains `bin/deploy-smoke`.

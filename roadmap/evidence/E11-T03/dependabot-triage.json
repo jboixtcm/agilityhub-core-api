@@ -1,0 +1,238 @@
+[
+  {
+    "createdAt": "2026-09-20T11:04:22Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 9,
+    "state": "OPEN",
+    "title": "build(deps): bump docker/build-push-action from 7.3.0 to 7.4.0",
+    "updatedAt": "2026-09-20T11:04:23Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/9",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "FAILURE",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506813736/job/106067910750"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506813736/job/106067910760"
+      },
+      {
+        "name": "Publish API image",
+        "conclusion": "SKIPPED",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506813736/job/106068702678"
+      }
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-20T11:04:14Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 8,
+    "state": "OPEN",
+    "title": "build(deps): bump docker/setup-buildx-action from 4.3.0 to 4.4.1",
+    "updatedAt": "2026-09-20T11:04:15Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/8",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "FAILURE",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506809028/job/106067897839"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506809028/job/106067897865"
+      },
+      {
+        "name": "Publish API image",
+        "conclusion": "SKIPPED",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506809028/job/106068700943"
+      }
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-20T11:03:43Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 7,
+    "state": "OPEN",
+    "title": "build(deps): bump docker/setup-qemu-action from 4.3.0 to 4.4.0",
+    "updatedAt": "2026-09-20T11:03:44Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/7",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "FAILURE",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506783533/job/106067833894"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506783533/job/106067833862"
+      },
+      {
+        "name": "Publish API image",
+        "conclusion": "SKIPPED",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/35506783533/job/106068602252"
+      }
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-13T11:03:54Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 6,
+    "state": "OPEN",
+    "title": "build(deps): bump actions/setup-java from 6.0.0 to 6.0.1",
+    "updatedAt": "2026-09-13T11:03:55Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/6",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34753461093/job/103713773888"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34753461093/job/103713773981"
+      },
+      {
+        "name": "Publish API image",
+        "conclusion": "SKIPPED",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34753461093/job/103714395454"
+      }
+    ],
+    "files": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-06T06:53:52Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 5,
+    "state": "OPEN",
+    "title": "build(deps-dev): bump org.pitest:pitest-maven from 1.21.0 to 1.30.0",
+    "updatedAt": "2026-09-06T06:53:53Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/5",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017703425/job/101444352907"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017703425/job/101444352818"
+      }
+    ],
+    "files": [
+      "pom.xml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-06T06:53:47Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 4,
+    "state": "OPEN",
+    "title": "build(deps-dev): bump org.apache.maven.plugins:maven-enforcer-plugin from 3.6.2 to 3.6.3",
+    "updatedAt": "2026-09-06T06:53:48Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/4",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017700323/job/101444343571"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017700323/job/101444343467"
+      }
+    ],
+    "files": [
+      "pom.xml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-06T06:53:39Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 3,
+    "state": "OPEN",
+    "title": "build(deps-dev): bump com.tngtech.archunit:archunit-junit5 from 1.4.2 to 1.5.0",
+    "updatedAt": "2026-09-06T06:53:40Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/3",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017695850/job/101444329022"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017695850/job/101444329126"
+      }
+    ],
+    "files": [
+      "pom.xml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-06T06:53:35Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 2,
+    "state": "OPEN",
+    "title": "build(deps): bump com.ibm.icu:icu4j from 77.1 to 78.3",
+    "updatedAt": "2026-09-06T06:53:36Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/2",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017692807/job/101444320293"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017692807/job/101444320137"
+      }
+    ],
+    "files": [
+      "pom.xml"
+    ]
+  },
+  {
+    "createdAt": "2026-09-06T06:53:31Z",
+    "mergeStateStatus": "UNKNOWN",
+    "number": 1,
+    "state": "OPEN",
+    "title": "build(deps-dev): bump org.jacoco:jacoco-maven-plugin from 0.8.14 to 0.8.15",
+    "updatedAt": "2026-09-06T06:53:32Z",
+    "url": "https://github.com/jboixtcm/agilityhub-core-api/pull/1",
+    "checks": [
+      {
+        "name": "Build and tests",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017689620/job/101444311545"
+      },
+      {
+        "name": "Secret scan",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/jboixtcm/agilityhub-core-api/actions/runs/34017689620/job/101444311521"
+      }
+    ],
+    "files": [
+      "pom.xml"
+    ]
+  }
+]

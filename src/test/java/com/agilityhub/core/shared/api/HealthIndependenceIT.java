@@ -243,6 +243,32 @@ class HealthIndependenceIT {
         return encoder.encode(org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(claims.build())).getTokenValue();
     }
 
+    @org.springframework.boot.test.web.server.LocalServerPort int apiPort;
+
+    @Test @org.junit.jupiter.api.Order(5)
+    void E11_T03_anApiReadTimesOutAndRecoversAlongWithTheProbe() throws Exception {
+        var client = HttpClient.newHttpClient();
+        // Public lookup: no bearer decode; MVC calls the real database and the real error handler.
+        var read = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + apiPort + "/api/v1/public/absent/plans"))
+                .header("X-Api-Key", "fictional-invalid-key").timeout(java.time.Duration.ofSeconds(25)).GET().build();
+        assertThat(client.send(read, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(403);
+        var docker = MONGO.getDockerClient();
+        docker.pauseContainerCmd(MONGO.getContainerId()).exec();
+        try {
+            long started = System.nanoTime();
+            var down = mvc.perform(get("/api/v1/health")).andReturn().getResponse();
+            assertThat(down.getStatus()).isEqualTo(503);
+            assertThat(java.time.Duration.ofNanos(System.nanoTime() - started)).isLessThan(java.time.Duration.ofSeconds(3));
+            started = System.nanoTime();
+            var answer = client.send(read, HttpResponse.BodyHandlers.ofString());
+            assertThat(answer.statusCode()).isEqualTo(500);
+            assertThat(new com.fasterxml.jackson.databind.ObjectMapper().readTree(answer.body()).path("code").asText()).isEqualTo("INTERNAL_ERROR");
+            assertThat(java.time.Duration.ofNanos(System.nanoTime() - started)).isLessThan(java.time.Duration.ofSeconds(22));
+        } finally { docker.unpauseContainerCmd(MONGO.getContainerId()).exec(); }
+        awaitUp();
+        assertThat(client.send(read, HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(403);
+    }
+
     private void awaitUp() throws Exception {
         long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(60);
         int status = 0;

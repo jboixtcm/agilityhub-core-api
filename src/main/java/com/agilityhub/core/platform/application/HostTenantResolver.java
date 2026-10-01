@@ -13,7 +13,7 @@ public class HostTenantResolver implements com.agilityhub.core.shared.applicatio
     private final ClubRepository clubs;
     private final CacheLoads<String, Optional<String>> hosts = CacheLoads.of(Caffeine.newBuilder().maximumSize(10000)
             .expireAfterWrite(Duration.ofMinutes(5)).build());
-    private final CacheLoads<String, Boolean> localCorsHosts = CacheLoads.of(Caffeine.newBuilder().maximumSize(10000)
+    private final CacheLoads<String, Optional<String>> localCorsHosts = CacheLoads.of(Caffeine.newBuilder().maximumSize(10000)
             .expireAfterWrite(Duration.ofMinutes(5)).build());
     public HostTenantResolver(ClubRepository clubs) { this.clubs = clubs; }
     public Optional<String> resolve(String host) {
@@ -23,7 +23,13 @@ public class HostTenantResolver implements com.agilityhub.core.shared.applicatio
     }
     // Evict negative lookups as well as hosts removed or reassigned by a domain update.
     public void invalidate() { hosts.invalidateAll(); localCorsHosts.invalidateAll(); }
+    /** CORS needs the owning club too, including registered pending domains in local development. */
+    public Optional<String> corsClub(String host, boolean local) {
+        String normalized = HostNames.normalize(host);
+        if (normalized.isEmpty()) { return Optional.empty(); }
+        return local ? localCorsHosts.get(normalized, key -> clubs.findByAnyHost(key).map(club -> club.id())) : resolve(normalized);
+    }
     public boolean isCorsHost(String host, boolean local) {
-        return local ? localCorsHosts.get(host, key -> clubs.findByAnyHost(key).isPresent()) : resolve(host).isPresent();
+        return corsClub(host, local).isPresent();
     }
 }

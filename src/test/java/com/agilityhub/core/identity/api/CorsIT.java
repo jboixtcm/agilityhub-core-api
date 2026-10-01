@@ -24,6 +24,35 @@ class CorsIT extends IdentityIntegrationSupport {
         }
     }
 
+    @Test void T_01_25_E11_ownVerifiedPlatformSubdomainWorksForPreflightAndCredentialedRequests() throws Exception {
+        String subdomain = "club-a.agilitydoghub.com";
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("club-a")),
+                new Update().set("domains.1.host", subdomain).set("domains.1.status", Club.DomainStatus.VERIFIED), Club.class);
+        hosts.invalidate();
+        String origin = "https://" + subdomain;
+        for (String path : new String[]{"/api/v1/branding", "/oauth2/token", "/.well-known/openid-configuration"}) {
+            mvc.perform(options(path).header("Host", HOST).header("Origin", origin).header("Access-Control-Request-Method", "GET"))
+                    .andExpect(status().isOk()).andExpect(header().string("Access-Control-Allow-Origin", origin))
+                    .andExpect(header().doesNotExist("Access-Control-Allow-Credentials"));
+        }
+        mvc.perform(get("/api/v1/branding").header("Host", HOST).header("Origin", origin)
+                        .cookie(new jakarta.servlet.http.Cookie("fixture", "ignored")))
+                .andExpect(status().isOk()).andExpect(header().string("Access-Control-Allow-Origin", origin))
+                .andExpect(header().doesNotExist("Access-Control-Allow-Credentials"));
+    }
+
+    @Test void E11_T03_anotherClubsOriginCannotReadOrPreflightThisClub() throws Exception {
+        for (String origin : new String[]{"https://b.example.test", "https://unknown.example.test"}) {
+            mvc.perform(options("/api/v1/branding").header("Host", HOST).header("Origin", origin)
+                            .header("Access-Control-Request-Method", "GET"))
+                    .andExpect(status().isForbidden()).andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+            mvc.perform(get("/api/v1/branding").header("Host", HOST).header("Origin", origin)
+                            .cookie(new jakarta.servlet.http.Cookie("untrusted", "fictional")))
+                    .andExpect(status().isForbidden()).andExpect(header().doesNotExist("Access-Control-Allow-Origin"))
+                    .andExpect(header().doesNotExist("Access-Control-Allow-Credentials"));
+        }
+    }
+
     @Test void T_01_25_unknownPendingMalformedAndInsecureOriginsHaveNoCorsHeaders() throws Exception {
         for (String origin : new String[]{"https://unknown.example.test", "https://pending." + HOST,
                 "https://" + HOST + ".evil.example.test", "http://" + HOST, "https://" + HOST + ":8443", "null",

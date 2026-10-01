@@ -1,3 +1,11 @@
+# E11-T03: error telemetry is a no-op with an empty DSN. Request/transaction bodies are never collected.
+sentry:
+  dsn: ${SENTRY_DSN:}
+  send-default-pii: false
+  max-request-body-size: none
+  traces-sample-rate: 0.0
+  enable-logs: false
+
 app:
   dashboard:
     cacheSeconds: 60
@@ -77,6 +85,14 @@ management:
       show-details: never
 
 core:
+  # E11-T03 infrastructure bounds; each transaction retry still has its own bounded driver operation.
+  mongo:
+    connect-timeout: ${MONGO_CONNECT_TIMEOUT:2s}
+    socket-timeout: ${MONGO_SOCKET_TIMEOUT:5s}
+    server-selection-timeout: ${MONGO_SERVER_SELECTION_TIMEOUT:2s}
+    operation-timeout: ${MONGO_OPERATION_TIMEOUT:10s}
+    max-pool-size: ${MONGO_MAX_POOL_SIZE:100}
+    pool-wait-timeout: ${MONGO_POOL_WAIT_TIMEOUT:2s}
   concurrency:
     # R1 runs a single API instance (ADR-003). The local lanes only bound contention inside one process; with more
     # than one instance they protect nothing and the Mongo mechanisms (the $inc sequences with WriteConflict retries,
@@ -131,6 +147,14 @@ core:
       branding: {capacity: 120, period: 1m}
       public-routes: {capacity: 60, period: 1m}
       me: {capacity: 600, period: 1m}
+      # E11-T03: independent per-IP buckets; handoff also per account, token-account across IPs.
+      anonymous: {capacity: 120, period: 1m}
+      webhook: {capacity: 600, period: 1m}
+      signed-file: {capacity: 120, period: 1m}
+      handoff: {capacity: 30, period: 1m}
+      token-account: {capacity: 10, period: 1m}
+      magic-link-email: {capacity: 10, period: 1h}
+      magic-link-ip: {capacity: 60, period: 1h}
     cors:
       platform-hosts: ${CORS_PLATFORM_HOSTS:id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
 
@@ -209,3 +233,9 @@ spring:
 springdoc:
   api-docs:
     enabled: false
+
+# E11-T03: Spring Boot JSON console output in production; local/test keep readable, scrubbed output.
+logging:
+  structured:
+    format:
+      console: com.agilityhub.core.configuration.PrivacyLogFormatter

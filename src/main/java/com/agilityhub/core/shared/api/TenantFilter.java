@@ -92,7 +92,10 @@ public class TenantFilter extends OncePerRequestFilter {
                         }
                         clubId = hostClub.orElseThrow(() -> new ApiException(ErrorCode.UNKNOWN_HOST));
                     }
-                    try (var scope = TenantContext.open(clubId)) { chain.doFilter(request, response); }
+                    try (var scope = TenantContext.open(clubId)) {
+                        RequestTraceFilter.identity(null, clubId);
+                        chain.doFilter(request, response);
+                    }
                     return;
                 }
             }

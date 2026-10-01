@@ -34,6 +34,7 @@ def free_port():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--image-tag', default='main')
+    parser.add_argument('--security-only', action='store_true', help='E11-T03: headers/CORS/logs; skip backup helpers')
     args = parser.parse_args()
     os.umask(0o077)
     with tempfile.TemporaryDirectory(prefix='e11-t04-') as directory:
@@ -72,6 +73,11 @@ def main():
         compose = ['docker', 'compose', '--env-file', str(envfile), '-p', project,
                    '-f', str(ROOT / 'deploy/compose.prod.yaml'), '-f', str(ROOT / 'deploy/compose.prod.local.yaml')]
 
+        if args.security_only:
+            override = work / 'security.yaml'
+            override.write_text('services:\n  core:\n    environment:\n      LOGGING_STRUCTURED_FORMAT_CONSOLE: com.agilityhub.core.configuration.PrivacyLogFormatter\n')
+            compose += ['-f', str(override)]
+
         def docker(*arguments, **kwargs):
             return run(compose + list(arguments), env=environment, **kwargs)
 
@@ -95,16 +101,18 @@ def main():
             assert resolved['services']['core']['environment'].get('BILLING_BANK_KEY') == values['BILLING_BANK_KEY'], \
                 'BILLING_BANK_KEY must reach Core from the deployment environment'
             print('PASS deployment forwards the bank encryption key to Core', flush=True)
-            print('COMMAND ' + shlex.join(compose + ['build', 'backup', 'minio']), flush=True)
-            build = docker('build', 'backup', 'minio', check=False, text=True)
-            if build.returncode:
-                print(build.stderr[-2500:], flush=True)
-                raise RuntimeError('Backup image build failed')
-            generated = docker('run', '--rm', '--no-deps', '-T', '--entrypoint', 'age-keygen', 'backup', text=True)
-            values['BACKUP_ENCRYPTION_KEY'] = next(line for line in generated.stdout.splitlines() if line.startswith('AGE-SECRET-KEY-'))
-            write_env()
+            if not args.security_only:
+                print('COMMAND ' + shlex.join(compose + ['build', 'backup', 'minio']), flush=True)
+                build = docker('build', 'backup', 'minio', check=False, text=True)
+                if build.returncode:
+                    print(build.stderr[-2500:], flush=True)
+                    raise RuntimeError('Backup image build failed')
+                generated = docker('run', '--rm', '--no-deps', '-T', '--entrypoint', 'age-keygen', 'backup', text=True)
+                values['BACKUP_ENCRYPTION_KEY'] = next(line for line in generated.stdout.splitlines() if line.startswith('AGE-SECRET-KEY-'))
+                write_env()
             print('COMMAND ' + shlex.join(compose + ['up', '-d', '--wait', '--wait-timeout', '420']), flush=True)
-            started = docker('up', '-d', '--wait', '--wait-timeout', '420', check=False, text=True)
+            targets = ['caddy'] if args.security_only else []
+            started = docker('up', '-d', '--wait', '--wait-timeout', '420', *targets, check=False, text=True)
             print(started.stderr.strip(), flush=True)
             if started.returncode:
                 # Store detailed private logs outside the repo for diagnosis only.
@@ -127,7 +135,7 @@ def main():
             docker('cp', 'caddy:/data/caddy/pki/authorities/local/root.crt', str(work / 'ca.crt'))
             port = values['LOCAL_HTTPS_PORT']
 
-            def request(host, path, form=None, cookie=None, expected=200, extra_headers=()):
+            def request(host, path, form=None, cookie=None, expected=200, extra_headers=(), bearer=None):
                 command = ['curl', '-4', '--silent', '--show-error', '--cacert', str(work / 'ca.crt'), '--noproxy', '*',
                            '--resolve', f'{host}:{port}:127.0.0.1', '--max-time', '30', '-D', str(work / 'headers'),
                            '-o', str(work / 'body'), '-w', '%{http_code}']
@@ -136,6 +144,9 @@ def main():
                 if cookie:
                     (work / 'cookie-header').write_text('Cookie: ah_refresh=' + cookie)
                     command += ['-H', '@' + str(work / 'cookie-header')]
+                if bearer:
+                    (work / 'bearer-header').write_text('Authorization: Bearer ' + bearer)
+                    command += ['-H', '@' + str(work / 'bearer-header')]
                 for header in extra_headers:
                     command += ['-H', header]
                 command += [f'https://{host}:{port}{path}']
@@ -146,20 +157,35 @@ def main():
                     raise RuntimeError(f'{host}{path}: expected {expected}, got {status} {body.get("code", "")}')
                 return (work / 'body').read_text(), (work / 'headers').read_text()
 
-            body, _ = request('core.localhost', '/api/v1/health')
+            def baseline(headers, spa=False):
+                lowered = headers.lower()
+                assert 'x-content-type-options: nosniff' in lowered
+                assert 'referrer-policy: strict-origin-when-cross-origin' in lowered
+                assert 'x-frame-options: deny' in lowered
+                if spa:
+                    assert 'strict-transport-security:' in lowered
+                else:
+                    assert "frame-ancestors 'none'" in lowered
+
+            body, headers = request('core.localhost', '/api/v1/health')
+            baseline(headers)
             assert json.loads(body)['status'] == 'UP'
             print('PASS Caddy HTTPS health UP (trusted internal CA, no -k)', flush=True)
             for host in ('clubs.localhost', 'clubsadmin.localhost'):
-                body, _ = request(host, '/api/v1/branding')
+                body, headers = request(host, '/api/v1/branding')
+                baseline(headers)
                 assert json.loads(body)['club']['slug'] == 'canic'
             print('PASS branding resolves canic by each preserved front Host', flush=True)
             for host, app in (('id.localhost', 'id'), ('clubs.localhost', 'clubs'), ('clubsadmin.localhost', 'clubsadmin')):
-                body, _ = request(host, '/a/spa/deep-link')
+                body, headers = request(host, '/a/spa/deep-link')
+                baseline(headers, spa=True)
                 assert f'<h1>AgilityHub {app}</h1>' in body
             print('PASS all three mounted SPA index fixtures and deep-link fallback', flush=True)
             body, headers = request('clubs.localhost', '/oauth2/token',
                                     {'grant_type': 'password', 'client_id': 'clubs-app',
                                      'username': 'admin@example.test', 'password': values['SEED_PASSWORD']})
+            baseline(headers)
+            assert 'no-store' in headers.lower()
             assert 'refresh_token' not in json.loads(body)
 
             def refresh_cookie(headers):
@@ -171,6 +197,18 @@ def main():
                 assert not cookie['domain'] and cookie['secure'] and cookie['httponly']
                 assert cookie['samesite'] == 'Strict' and cookie['path'] == '/oauth2/token'
                 return cookie.value
+
+            if args.security_only:
+                request('clubs.localhost', '/api/v1/e11-missing', expected=404, bearer=json.loads(body)['access_token'])
+                raw = docker('logs', '--no-log-prefix', '--no-color', 'core', text=True).stdout
+                records = []
+                for line in raw.splitlines():
+                    if line.startswith('{'):
+                        record = json.loads(line)
+                        if all(record.get(key) not in (None, '', '-') for key in ('traceId', 'clubId', 'accountId')):
+                            records.append(record)
+                assert records, 'structured request log with all three ids'
+                print('PASS JSON request log ' + json.dumps(records[-1]), flush=True)
 
             initial = refresh_cookie(headers)
             body, headers = request('clubs.localhost', '/oauth2/token',
@@ -190,6 +228,16 @@ def main():
                             'db.getSiblingDB("agilityhub").clubs.findOne()', check=False)
             assert unauth.returncode != 0
             print('PASS Mongo rejects unauthenticated reads; internal ask route is not public', flush=True)
+            if args.security_only:
+                own = f'https://clubsadmin.localhost:{port}'
+                _, headers = request('clubs.localhost', '/api/v1/branding', extra_headers=(f'Origin: {own}',))
+                assert 'access-control-allow-origin: ' + own in headers.lower()
+                assert 'access-control-allow-credentials:' not in headers.lower()
+                _, headers = request('clubs.localhost', '/api/v1/branding', expected=403,
+                                     extra_headers=('Origin: https://unknown.example.test',))
+                assert 'access-control-allow-origin:' not in headers.lower()
+                print('PASS HTTPS API/token/SPA headers and own/unknown origins through Caddy', flush=True)
+                return
             helper('import os,boto3; s=boto3.client("s3",endpoint_url=os.environ["BACKUP_S3_ENDPOINT"],'
                    'aws_access_key_id=os.environ["BACKUP_S3_ACCESS_KEY"],aws_secret_access_key=os.environ["BACKUP_S3_SECRET_KEY"]);'
                    's.create_bucket(Bucket=os.environ["BACKUP_S3_BUCKET"])')

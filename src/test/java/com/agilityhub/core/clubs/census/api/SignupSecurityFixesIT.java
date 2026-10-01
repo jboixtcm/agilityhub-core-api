@@ -1108,6 +1108,13 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(pngFile.getStatus()).isEqualTo(200);assertThat(pngFile.getContentType()).isEqualTo("image/png");
         assertThat(org.springframework.http.ContentDisposition.parse(pngFile.getHeader("Content-Disposition")).isInline()).as(pngFile.getHeader("Content-Disposition")).isTrue();
         assertThat(pngFile.getHeaders("Content-Security-Policy")).singleElement().satisfies(policy -> assertThat(policy.split(";\\s*")).contains("sandbox"));
+        // E11-T03: successful file responses carry the same baseline as JSON and errors.
+        for (var response : List.of(svgFile, pngFile)) {
+            assertThat(response.getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
+            assertThat(response.getHeader("Referrer-Policy")).isEqualTo("strict-origin-when-cross-origin");
+            assertThat(response.getHeader("X-Frame-Options")).isEqualTo("DENY");
+            assertThat(response.getHeader("Content-Security-Policy")).contains("frame-ancestors 'none'");
+        }
         var crossOrigin=getSigned(svgUrl,"Origin","https://"+host);
         assertThat(crossOrigin.getStatus()).isEqualTo(200);assertThat(crossOrigin.getHeader("Access-Control-Allow-Origin")).isEqualTo("https://"+host);
         assertThat(crossOrigin.getHeader("Access-Control-Expose-Headers")).as("a fetch from the club's web reads the stored name").containsIgnoringCase("Content-Disposition");

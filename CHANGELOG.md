@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E11-T03 security hardening: global pre-E8 OpenAPI authentication inventory; configurable limits for anonymous lookups,
+  webhooks, signed files and handoff, with token username limits across IPs. Club-host CORS rejects other clubs' origins.
+  Request MDC carries trace/account/club IDs; readable local logs and production JSON scrub personal data, and optional
+  Sentry uses a closed, scrubbed event payload. Mongo client and pool waits are finite and configurable.
+  Caddy adds the SPA security baseline. CI audits dependencies, scans both image architectures before pushing them, and
+  exercises authenticated Compose startup plus a broken-image rejection. E8 joins the security/mutation gate at E11-T06.
+
 - E8-T01 (S12 WP-12-A, S13 WP-13-A): the billing, payments, packs, inactivity and leave contract.
   - 57 operations (36 S12, 21 S13) published with their forms, roles, modules, idempotency headers and canonical error
     statuses; each answers `501 NOT_IMPLEMENTED` behind its tenant, role, impersonation, module and resource guards until

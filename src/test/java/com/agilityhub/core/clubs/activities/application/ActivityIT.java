@@ -291,6 +291,11 @@ class ActivityIT extends ActivityFixtures {
         var redirect=mvc.perform(get("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+fileKey)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
         var file=mvc.perform(get(java.net.URI.create(redirect))).andExpect(status().isOk()).andExpect(content().contentType(type))
                 .andExpect(content().bytes(new byte[]{1,2,3,4})).andReturn().getResponse();
+        // E11-T03: E71's inline PDF exception retains the baseline against sniffing and framing.
+        assertThat(file.getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
+        assertThat(file.getHeader("Referrer-Policy")).isEqualTo("strict-origin-when-cross-origin");
+        assertThat(file.getHeader("X-Frame-Options")).isEqualTo("DENY");
+        assertThat(file.getHeader("Content-Security-Policy")).contains("frame-ancestors 'none'");
         assertThat(file.getHeader("Content-Disposition")).as(type).startsWith(disposition+";");
         assertThat(file.getHeaders("Content-Security-Policy")).as(type).singleElement()
                 .satisfies(policy -> assertThat(policy.contains("sandbox")).as("%s sandboxed",type).isEqualTo(sandbox));

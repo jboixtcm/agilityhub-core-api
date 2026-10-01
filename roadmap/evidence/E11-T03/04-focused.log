@@ -1,0 +1,20 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/main/java/com/agilityhub/core/configuration/SentryPrivacyConfiguration.java:[14,24] no suitable constructor found for SentryEvent(io.sentry.protocol.SentryId)
+    constructor io.sentry.SentryEvent.SentryEvent(java.lang.Throwable) is not applicable
+      (argument mismatch; io.sentry.protocol.SentryId cannot be converted to java.lang.Throwable)
+    constructor io.sentry.SentryEvent.SentryEvent(java.util.Date) is not applicable
+      (argument mismatch; io.sentry.protocol.SentryId cannot be converted to java.util.Date)
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project agilityhub-core-api: Compilation failure
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/main/java/com/agilityhub/core/configuration/SentryPrivacyConfiguration.java:[14,24] no suitable constructor found for SentryEvent(io.sentry.protocol.SentryId)
+[ERROR]     constructor io.sentry.SentryEvent.SentryEvent(java.lang.Throwable) is not applicable
+[ERROR]       (argument mismatch; io.sentry.protocol.SentryId cannot be converted to java.lang.Throwable)
+[ERROR]     constructor io.sentry.SentryEvent.SentryEvent(java.util.Date) is not applicable
+[ERROR]       (argument mismatch; io.sentry.protocol.SentryId cannot be converted to java.util.Date)
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

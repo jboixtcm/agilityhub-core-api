@@ -33,14 +33,25 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityBaselineConfiguration {
     @ConfigurationProperties("core.security.rate-limits")
     public record RateLimitConfiguration(boolean enabled, RateLimits.Limit token, RateLimits.Limit branding,
-                                         RateLimits.Limit publicRoutes, RateLimits.Limit me) { }
+                                         RateLimits.Limit publicRoutes, RateLimits.Limit me,
+                                         RateLimits.Limit anonymous, RateLimits.Limit webhook, RateLimits.Limit signedFile,
+                                         RateLimits.Limit handoff, RateLimits.Limit tokenAccount,
+                                         RateLimits.Limit magicLinkEmail, RateLimits.Limit magicLinkIp) { }
 
     @Bean RateLimits rateLimits(RateLimitConfiguration settings, Clock clock) {
-        return new RateLimits(settings.enabled(), Map.of(RateLimits.Route.TOKEN, settings.token(),
-                RateLimits.Route.BRANDING, settings.branding(), RateLimits.Route.PUBLIC, settings.publicRoutes(),
-                RateLimits.Route.ME, settings.me(),
-                RateLimits.Route.MAGIC_LINK_EMAIL, new RateLimits.Limit(10, java.time.Duration.ofHours(1)),
-                RateLimits.Route.MAGIC_LINK_IP, new RateLimits.Limit(60, java.time.Duration.ofHours(1))), clock);
+        var limits = new java.util.EnumMap<RateLimits.Route, RateLimits.Limit>(RateLimits.Route.class);
+        limits.put(RateLimits.Route.TOKEN, settings.token());
+        limits.put(RateLimits.Route.BRANDING, settings.branding());
+        limits.put(RateLimits.Route.PUBLIC, settings.publicRoutes());
+        limits.put(RateLimits.Route.ME, settings.me());
+        limits.put(RateLimits.Route.ANONYMOUS, settings.anonymous());
+        limits.put(RateLimits.Route.WEBHOOK, settings.webhook());
+        limits.put(RateLimits.Route.SIGNED_FILE, settings.signedFile());
+        limits.put(RateLimits.Route.HANDOFF, settings.handoff());
+        limits.put(RateLimits.Route.TOKEN_ACCOUNT, settings.tokenAccount());
+        limits.put(RateLimits.Route.MAGIC_LINK_EMAIL, settings.magicLinkEmail());
+        limits.put(RateLimits.Route.MAGIC_LINK_IP, settings.magicLinkIp());
+        return new RateLimits(settings.enabled(), limits, clock);
     }
 
     @Bean FilterRegistrationBean<RateLimitFilter> rateLimitFilter(RateLimits limits, SecurityEvents events,
