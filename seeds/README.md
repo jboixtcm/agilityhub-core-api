@@ -162,8 +162,8 @@ Export includes account metadata and membership roles, excluding passwords and h
 
 Every demo member also gets one fictional mobile number: the club country's prefix
 (`+34` for ES) and `phoneNumberFormat` over the member number (`600000001`…), so
-cancellation SMS intents can be exercised. Numbers are fixture values; SMS stay
-`QUEUED` locally (no provider is configured).
+cancellation SMS intents can be exercised. Numbers are fixture values; locally no provider is configured, so the log
+sender (E7-T02) marks each SMS `SENT` without sending anything.
 
 **These are real-format numbers.** `+34 600 000 001`… is a valid Spanish mobile range that a real person may own, so
 **an SMS must never be sent from a non-production stack** (local, test, staging, the smoke and demo stacks): never
@@ -424,6 +424,28 @@ At `demoNow` (Monday 07:00 of week 0):
 The past no-show of week −4 was already taken by that week's P3 claim (its N-19 goes out with the outbox), so the
 first P3 run of week 0 notifies only the no-shows marked in week 0. `bin/e6-smoke` drives the rest of the gate
 scenario from this state.
+
+### E7 preference profiles and the CUSTOM template (`messaging` section, E7-T04)
+
+Applied once by the demo planning run (any anchor, not tied to week 0), after the other steps, as the club admin and
+always through the services: the census step adds the contact data (S03's D10 edit: at most two e-mails and two phones),
+then the S11 step marks the bounced address (the census writer the SendGrid webhook uses), saves the preferences as D10
+does, registers the push device as the member's own account and creates the template as D9 does. So the S11 channel ×
+audience × preference matrix is visible in 12/D10 and `bin/e7-smoke` has its cases. Fictional data only.
+
+| Census ordinal | Profile | What it shows |
+|---|---|---|
+| 14 (`member.10@example.test`) | `reminderMinutesBefore = 120` and one push device (`https://push.example.test/demo-canic/member-10`, «Android · Chrome») | P4 reminds 2 h before each class or training; N-13 by APP + PUSH (e-mail off: `OPERATIONAL`) |
+| 15 | `emailByCategory.CLUB_CHANGES = false` | a club change (N-08a, N-36…) by APP and SMS only: the SMS stays (R-11-04) |
+| 16 | a second phone, `+34600000901` | one SMS to each phone |
+| 17 | a second contact e-mail, `demo.canic.antic@example.test`, marked `bounced` | e-mails go only to the first address; D10 shows the mark |
+| 18 | `pushClubNews = false` | club news (N-24, N-32a) without push |
+
+The CUSTOM template is «Comunicat del club» (`CLUB_NEWS`, icon `flag`, colour `ACCENT`, members' APP + e-mail): a fictional
+open-day text with `[[member_first_name]]` and `[[dog_name]]`, in the club's languages (`ca`, `es`; the seed's `en` text
+is kept for a club that has English). D5/D15's «Enviar comunicat» dialog offers it beside N-24. The ten seed logins
+(`member@` … `member.10@`, member numbers 6…15, all ACTIVE) are the smoke's announcement audience
+(`filter=memberNumber:gte:6&filter=memberNumber:lte:15`); the census holds 184 active members in all.
 
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.

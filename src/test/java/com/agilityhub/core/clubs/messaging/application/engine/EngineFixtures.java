@@ -69,13 +69,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 abstract class EngineFixtures extends AbstractIntegrationTest {
     static final String CLUB = "e7t02-engine", OTHER = "e7t02-ba", HOST = "engine.example.test";
     static final List<String> DATA = List.of("notifications", "message_templates", "push_subscriptions", "class_sessions", "waitlist_entries", "domain_events",
-            "parameters", "members", "sendgrid_webhook_receipts");
+            "parameters", "members", "sendgrid_webhook_receipts", "announcements");
     @Autowired MongoTemplate mongo; @Autowired ObjectMapper mapper; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired IcuMessageSource messages; @Autowired TemplateProvider templates; @Autowired MessageTemplateRepository templateRepository;
     @Autowired NotificationRepository notifications; @Autowired PushSubscriptionRepository subscriptions; @Autowired NotificationAccounts accounts;
     @Autowired AccountRepository accountRepository; @Autowired EventPublisher events; @Autowired PlatformTransactionManager transactions;
     @Autowired ClubEmailSettings emailSettings; @Autowired ClubSmsUsage usage; @Autowired NotificationEmailRenderer emails; @Autowired UnsubscribeTokens unsubscribes;
-    @Autowired SchedulingNotificationFacts scheduling;
+    @Autowired SchedulingNotificationFacts scheduling; @Autowired com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository announcements;
     final ScriptedEmail mail = new ScriptedEmail();
     final FakeSmsSender sms = new FakeSmsSender();
     final FakePushSender push = new FakePushSender(null);
@@ -91,7 +91,7 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         ports.classInstructors.put("e7t02-class-a", List.of("instructor-marta"));
         for (var member : ports.members.values()) { account(member.accountId(), member.locale()); }
         account("account-admin2", "es");
-        owners = List.of(scheduling, new MessagingNotificationFacts(ports), new ReminderFacts());
+        owners = List.of(scheduling, new MessagingNotificationFacts(ports, announcements), new ReminderFacts());
         dispatcher = dispatcher(sms);
         engine = new NotificationEngine(configs, messages, templates, new RecipientResolver(ports, ports, ports), notifications, subscriptions, accounts, owners, ports,
                 events, dispatcher, clock, transactions);
@@ -201,6 +201,20 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         new TransactionTemplate(transactions).executeWithoutResult(tx -> engine.handle(eventId, envelope));
     }
     String deliver(String clubId, String type, Map<String, Object> payload) { String id = UUID.randomUUID().toString(); deliver(id, clubId, type, payload); return id; }
+    /**
+     * E7-T04 (R-11-13): an «Enviar comunicat» batch of the club's N-24 template to the given members, stored as the send stores
+     * it, and its `AnnouncementSent{templateId, batchId, recipientCount, filters}` delivered to the engine.
+     */
+    String announce(String clubId, String batchId, String... memberIds) {
+        String templateId;
+        try (var tenant = TenantContext.open(clubId)) {
+            var club = configs.get(clubId).club();
+            templateId = templates.forCode(com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.byCode("N-24").orElseThrow(), club.locales(), club.defaultLocale()).id();
+            announcements.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement(batchId, clubId, templateId,
+                    com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of(memberIds), memberIds.length, "account-admin", clock.instant()));
+        }
+        return deliver(clubId, "AnnouncementSent", Map.of("templateId", templateId, "batchId", batchId, "recipientCount", memberIds.length, "filters", List.of()));
+    }
 
     List<Notification> stored(String clubId, String code) {
         return mongo.find(Query.query(Criteria.where("clubId").is(clubId).and("code").is(code)).with(org.springframework.data.domain.Sort.by("dedupKey")), Notification.class);

@@ -103,7 +103,7 @@ Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) w
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
 - [x] E5-T01…T20 verified; CI green at `924303e`…`be2f4a8`.
-- [ ] E5-T21…E5-T31 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 01-10: E5-T21…E5-T30 verified; E5-T31 open (ruling E80).
+- [x] E5-T21…E5-T31 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 01-10: E5-T31 verified (ruling E81); the api side of E5 is complete.
 - [ ] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock).
 
 ### Gate E6 (back — organizer)

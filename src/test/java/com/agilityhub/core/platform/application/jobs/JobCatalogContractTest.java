@@ -46,9 +46,9 @@ class JobCatalogContractTest {
     /**
      * E6-T01 assumption (as E5-T01): `GET /jobs` lists only rows with a registered `Job` bean and a bean-less row answers
      * `JOB_UNKNOWN` on trigger. E6-T04 registers P3 (`NoShowNoticesJob`) and P8 (`ClassFinishingJob`); E5-T31 registers P5
-     * (`ExpirationsJob`, with its step h); P4 and P10 come later.
+     * (`ExpirationsJob`, with its step h); E7-T04 registers P4 (`RemindersJob`); P10 comes with E8.
      */
-    @Test void E6_T04_E5_T31_p3P5AndP8HaveTheirJobBeansAndOnlyP4AndP10AreLeft() {
+    @Test void E6_T04_E5_T31_E7_T04_p3P4P5AndP8HaveTheirJobBeansAndOnlyP10IsLeft() {
         var implementations = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS).importPackages("com.agilityhub.core");
         var beans = EnumSet.noneOf(JobName.class);
         for (var type : implementations) {
@@ -57,7 +57,7 @@ class JobCatalogContractTest {
         }
         var missing = new TreeSet<JobName>();
         for (var row : JobCatalog.all()) { if (!beans.contains(row.name())) { missing.add(row.name()); } }
-        assertThat(beans).contains(JobName.TEST_NOOP, JobName.NO_SHOW_NOTICES, JobName.CLASS_FINISHING, JobName.EXPIRATIONS);
-        assertThat(missing).isEqualTo(new TreeSet<>(Set.of(JobName.REMINDERS, JobName.BILLING_REMINDER)));
+        assertThat(beans).contains(JobName.TEST_NOOP, JobName.NO_SHOW_NOTICES, JobName.CLASS_FINISHING, JobName.EXPIRATIONS, JobName.REMINDERS);
+        assertThat(missing).isEqualTo(new TreeSet<>(Set.of(JobName.BILLING_REMINDER)));
     }
 }

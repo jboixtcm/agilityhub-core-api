@@ -30,10 +30,12 @@ import java.util.Set;
  *                         the notification takes that category, and its channels are that category's caps for the audience
  * @param enabledChannels  channels the event itself switches on, within the code's caps (N-32a: `ActivityPublished.notifyEmail`
  *                         — «+EMAIL si el club ho marca»); the member's preferences still apply
+ * @param templateId       the club template to render instead of the code's own (R-11-13, E7-T04: an announcement sent with a
+ *                         `CUSTOM` template is N-24 rendered with that template, its category and its matrix); `null` = the code's
  */
 public record NotificationFacts(String occurrence, Set<String> audiences, List<MemberSubject> members, InstructorScope instructors,
         SignupContactPort.ApplicantContact applicant, Map<String, Object> values, NotificationSubject subject, Set<String> excludedChannels,
-        Map<String, Map<String, Object>> audienceValues, String categoryOverride, Set<String> enabledChannels) {
+        Map<String, Map<String, Object>> audienceValues, String categoryOverride, Set<String> enabledChannels, String templateId) {
     public static final Set<String> AUDIENCES = Set.of("MEMBER", "INSTRUCTORS", "ADMINS", "APPLICANT");
     public static final Set<String> CHANNELS = Set.of("APP", "EMAIL", "SMS", "PUSH");
 
@@ -73,7 +75,7 @@ public record NotificationFacts(String occurrence, Set<String> audiences, List<M
         private SignupContactPort.ApplicantContact applicant; private final Map<String, Object> values = new LinkedHashMap<>();
         private NotificationSubject subject = NotificationSubject.NONE; private final Set<String> excluded = new LinkedHashSet<>();
         private final Map<String, Map<String, Object>> byAudience = new LinkedHashMap<>();
-        private String category; private final Set<String> enabled = new LinkedHashSet<>();
+        private String category; private final Set<String> enabled = new LinkedHashSet<>(); private String template;
 
         public Builder occurrence(String key) { occurrence = key; return this; }
         public Builder audiences(String... only) { audiences = new LinkedHashSet<>(); for (String audience : only) { audiences.add(audience(audience)); } return this; }
@@ -93,10 +95,11 @@ public record NotificationFacts(String occurrence, Set<String> audiences, List<M
         public Builder exclude(String channel) { excluded.add(channel(channel)); return this; }
         public Builder enable(String channel) { enabled.add(channel(channel)); return this; }
         public Builder category(String variant) { category = variant; return this; }
+        public Builder template(String templateId) { template = templateId; return this; }
         public NotificationFacts build() {
             var perAudience = new LinkedHashMap<String, Map<String, Object>>();
             byAudience.forEach((audience, map) -> perAudience.put(audience, Map.copyOf(map)));
-            return new NotificationFacts(occurrence, audiences, members, instructors, applicant, values, subject, excluded, perAudience, category, enabled);
+            return new NotificationFacts(occurrence, audiences, members, instructors, applicant, values, subject, excluded, perAudience, category, enabled, template);
         }
         private static String audience(String name) {
             if (!AUDIENCES.contains(name)) { throw new IllegalArgumentException("Not a catalog audience: " + name); }

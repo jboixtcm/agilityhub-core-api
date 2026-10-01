@@ -58,8 +58,8 @@ class E7ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
-        /** E7-T02 implements the unsubscribe link (the fixture's token is not valid → 422), E7-T03 the rest but the send (E7-T04). */
-        boolean implemented() { return !label().equals("POST /api/v1/message-templates/{id}/send"); }
+        /** E7-T02 implements the unsubscribe link (the fixture's token is not valid → 422), E7-T03 the rest but the send, E7-T04 the send. */
+        boolean implemented() { return true; }
         boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes"); }
         int allowedStatus() { return unsubscribe() ? 422 : implemented() ? success : 501; }
         /** The error code of the allowed call, `null` when it succeeds. */
@@ -104,7 +104,9 @@ class E7ContractIT extends AbstractIntegrationTest {
 
     /** `owner` picks the caller's own notification or device (`e7-own-{owner}`, `e7-sub-{owner}`); `imp` is the impersonated member's. */
     private String path(Route r, String owner) {
-        String id = r.label().equals("DELETE /api/v1/message-templates/{id}") ? "e7-template-custom" : r.path().startsWith("/api/v1/message-templates") ? "e7-template-a"
+        // The send (R-11-13) takes N-24 or a CUSTOM template: the fixture's CUSTOM one (e7-template-a is N-04).
+        String id = r.label().equals("DELETE /api/v1/message-templates/{id}") || r.label().equals("POST /api/v1/message-templates/{id}/send") ? "e7-template-custom"
+                : r.path().startsWith("/api/v1/message-templates") ? "e7-template-a"
                 : r.path().startsWith("/api/v1/notifications/") ? "e7-notification-a"
                 : r.path().startsWith("/api/v1/me/notifications/") ? "e7-own-" + owner : r.path().startsWith("/api/v1/members/") ? "e7-member-a" : "e7-sub-" + owner;
         return r.path().replace("{id}", id);
@@ -251,7 +253,7 @@ class E7ContractIT extends AbstractIntegrationTest {
     @Test void WP_11_A_theRemainingStubWritesNothing() throws Exception {
         var before = database();
         for (Route route : routes().filter(r -> !r.implemented() || r.unsubscribe()).toList()) {
-            // The send (E7-T04) and the unsubscribe route, which rejects the fixture's token, write nothing.
+            // The unsubscribe route, which rejects the fixture's token, writes nothing (E7-T04 serves the send: T-11-18 in AnnouncementsIT).
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().is(route.allowedStatus())); }
         }
         assertThat(database()).isEqualTo(before);

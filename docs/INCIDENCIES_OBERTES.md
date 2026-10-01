@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.4 · 01-10-2026** (v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.5 · 01-10-2026** (v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -61,6 +61,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-49 | 30-09 | api (consola, idempotència) | `IdempotencyFilter` pren el club del `clubId` del JWT i respon `NO_MEMBERSHIP` sense: una ruta de consola amb clau (`POST /platform/clubs/{clubId}/jobs/{name}/trigger`) cridada amb un token de plataforma queda refusada abans del handler (nota 2 d'E5-T29, llegida al codi) | Mitjana | oberta — per a E10 (S17, consola) |
 | INC-50 | 30-09 | api (processos, proves) | Nits de la ronda 2 d'E5-T29: un reintent d'un llançament manual pot deixar l'execució sense `JOB_TRIGGERED` si la primera escriptura de l'auditoria va fallar; la vida de 24 h de la clau és definida dues vegades; l'etiqueta T-09-30 dels tests de cerca no té cap asserció de tenant | Baixa | oberta — passada de correccions |
 | INC-51 | 01-10 | api (seguiment, contracte) | Menors de la revisió d'E6-T06 (la cerca de D14 sense projecció i amb llistes `$in` sense límit, les proves d'aïllament de tenant de la cerca i dels recomptes, `FOLLOWUP.searchable`, l'etiqueta d'un abonat esborrat als valors del filtre, els scripts de l'evidència) i la pregunta 1 d'E6-W05 (`POST /tasks` pot respondre `409 INVALID_STATE` sense declarar-lo) | Baixa | oberta — E11-T02 |
+| INC-52 | 01-10 | api (missatgeria, menors) | Menors de la revisió d'E7-T05: `claimAccepted` amb dos predicats sobre el mateix array, l'acceptació que no es torna a marcar mentre l'assentament falla més de 2 minuts, l'evidència del pas 4, la fila 11 de la taula sense prova, el rebot d'una adreça compartida, i detalls | Baixa | oberta — E11-T02 |
 
 ---
 
@@ -79,6 +80,24 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 6. **`POST /tasks`** pot respondre `409 INVALID_STATE` (una pujada caducada, `AttachmentService.claim`) i el contracte només hi declara `IDEMPOTENCY_KEY_REUSED`. Proposta: declarar-lo i donar-li un `details.reason` propi (per exemple `UPLOAD_EXPIRED`), perquè el client el distingeixi de `READMISSION_PENDING`.
 
 **On mirar**: la revisió citada; `FollowupIT` (línies 810-918); `AttachmentService.java:145`, `TaskService.java:54`.
+
+---
+
+## INC-52 · Menors de la revisió d'E7-T05 (api, missatgeria)
+
+**Gravetat**: baixa. Cap enviament es duplica en el funcionament normal; els casos de sota necessiten una caiguda llarga de la base de dades.
+
+**Origen**: `roadmap/reviews/E7-T05-20261001-0047-claude.md` (api); verificació de l'organitzador de l'1-10 (decisió E81).
+
+**Què cal fer**:
+1. **`claimAccepted`** (`NotificationRepository.java:146`) filtra `deliveries` dues vegades (un `$exists` a dalt i un `$elemMatch`) i escriu amb `deliveries.$`: la posició pot sortir del primer predicat i agafar el lloguer d'una altra entrega acceptada. Un sol predicat (`acceptedAt` dins l'`$elemMatch`, i un índex `sparse`), amb una prova de dues entregues acceptades, una amb el lloguer viu i l'altra vençut.
+2. **Una acceptació que no s'ha pogut marcar** (`NotificationDispatcher.java:335-375`): si els cinc intents de `markAccepted` fallen i l'assentament continua fallant més de 2 minuts, el lloguer original venç i `claimDue` torna a enviar el missatge. `settleWaiting` ha d'escriure primer la marca (i renovar el lloguer). Corregir la fila 7 de la taula d'E7-T05.
+3. **L'evidència del pas 4**: la prova «falla abans» s'atura en una línia que el pont de compilació fa fallar sempre; cal comprovar el mapa d'ús desat (`smsMonthKey`, `smsSentMonth`) i `firstCapNotice` abans, i tornar-la a executar amb el codi antic.
+4. **La fila 11** de la taula de camins d'error (el *hook* `sent` del propietari) no té prova.
+5. **Una adreça compartida que rebota** (decisió E81, R-11-08): la comprovació de cada intent ha de mirar l'adreça (`membersWithEmail(address)`), no només el contacte del destinatari.
+6. **Detalls**: `dispatch()` fa un `claimAccepted` per notificació fins i tot per a les acabades de desar (només cal al sondeig de 5 s); `markAccepted` sense `clubId`; `ClubSmsUsage.reserve` retorna el document sencer (cal projectar `usage.smsMonthKey`); els noms de les proves noves, amb els id T-11-07, T-11-09, T-11-10 i T-11-11.
+
+**On mirar**: la revisió citada; `roadmap/tasks/E7-T05.md` (la taula de camins d'error).
 
 ---
 

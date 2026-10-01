@@ -82,6 +82,23 @@ public class BookingRepository extends TenantRepository<Booking> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is(BookingState.PAYMENT_PENDING).and("bookedAt").lte(cutoff))
                 .with(Sort.by("bookedAt", "_id")), Booking.class);
     }
+    /**
+     * S15 R-15-14 P4 scope: ACTIVE bookings whose class starts in `(after, until]` and that have no reminder yet (index
+     * `booking_club_state_starts`), by start.
+     */
+    public List<Booking> reminderScope(Instant after, Instant until) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is(BookingState.ACTIVE).and("classStartsAt").gt(after).lte(until)
+                .and("reminderSentAt").is(null)).with(Sort.by("classStartsAt", "_id")), Booking.class);
+    }
+    /**
+     * S15 R-15-14 P4 mark, set once: only on a booking still ACTIVE, without a reminder and starting at the planned instant.
+     * `version` is left alone, so a member's concurrent change never fails on it (a concurrent transaction conflicts and retries).
+     */
+    public boolean markReminderSent(String id, Instant classStartsAt, Instant at) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("state").is(BookingState.ACTIVE).and("reminderSentAt").is(null)
+                .and("classStartsAt").is(classStartsAt));
+        return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("reminderSentAt", at), Booking.class).getModifiedCount() == 1;
+    }
     public Optional<Booking> byCheckoutSession(String sessionId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("charge.checkoutSessionId").is(sessionId)), Booking.class));
     }

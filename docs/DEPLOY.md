@@ -731,6 +731,53 @@ retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS sta
 (no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified
 on staging once the accounts exist.
 
+**When a variable is missing (E7-T04):**
+
+| Variables | `staging` / `prod` | `local` | `test` |
+|---|---|---|---|
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | the API refuses to start | the log sender: each SMS is recorded `SENT` with no provider call (never the number nor the text in the log) | in-memory double |
+| `TWILIO_MESSAGING_SERVICE_SID` | optional: without it the club's `messaging.sms.senderId` is the sender | idem | idem |
+| `SMS_ALLOWED_NUMBERS` (outside `prod`) | staging: empty = no real SMS at all; each blocked one is `SKIPPED_NOT_ALLOWED` | only matters with Twilio credentials, idem | — |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | the API refuses to start | the fake push sender keeps pushes in memory and records them `SENT`; `GET /branding.pushPublicKey` is `null` | in-memory double |
+| `VAPID_SUBJECT` | required with the keys | — | — |
+
+`bin/e7-smoke` (below) passes the Twilio credentials to its stack only when `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`
+and `SMOKE_SMS_TO` are all set in the shell, and then sets `SMS_ALLOWED_NUMBERS=$SMOKE_SMS_TO`, so no demo number can
+receive an SMS.
+
+## E7 communications gate (backend)
+
+Run from the API checkout with Docker, Compose, Python 3 and curl:
+
+```sh
+bin/e7-smoke
+bin/e7-smoke     # a fresh stack per run: re-runnable
+```
+
+P4 `reminders` runs **every minute** on the single scheduler (switch `jobs.reminders.enabled`, on by default; at most one
+`SKIPPED{DISABLED}` per hour while off) and reminds each booking once, at the lead its dog's owner chose
+(`reminderMinutesBefore`, one of `messaging.reminderOptionsMinutes`), in instants (a DST change moves nothing). It has
+no catch-up beyond its next minute: a reminder whose class has started is never sent. «Enviar comunicat» (`POST
+/message-templates/{id}/send`) writes the new `announcements` collection (one document per batch, never deleted; created
+on first use, index `{clubId, createdAt}` at start). **No new environment variable** besides the provider ones above.
+Databases written before E7-T01 convert their notification rows once with `bin/core messaging:migrate-notifications`
+(dry run first, then `--apply`; README «E7»).
+
+Organizer-run checklist for Gate E7 (back); copy its evidence links into the organizer-owned `roadmap/ROADMAP.md`
+after review:
+
+- [ ] The channel × audience × preference matrix green for every R1 code: the counts of `NotificationMatrixTest`
+  (engine, every R1 row × audience × channel × preference × modules × contact) and `NotificationActionsIT` (the real
+  E5/E6 actions) in E7-T04's report.
+- [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit, N-08a edited at D9 reflected in
+  the next notice in each recipient's language, and P4 at the configured lead: the `bin/e7-smoke` summary lines
+  (`roadmap/evidence/E7-T04/`).
+- [ ] Legacy SMS/PUSH intents converted to `SKIPPED_STALE` (`messaging:migrate-notifications`, E7-T02) and the
+  `SMS_ALLOWED_NUMBERS` guard proven outside `prod` (E7-T02's tests; `bin/e7-smoke` with `SMOKE_SMS_TO`).
+- [ ] Real SMS and real push received on devices (iOS PWA installed, Android): release items on staging with the
+  Twilio account and the VAPID keys (@jordi).
+- [ ] Run `./mvnw -q verify` and repeat image mode (`bin/e7-smoke --image <tag>`) with the reviewed published tag.
+
 **E-mail sender name (E5-T28, decision E48).** Every club e-mail (system and S11
 notices) is sent `From: <messaging.email.fromName> <address>`. The catalog default
 of `messaging.email.fromName` is empty, which means the club's own name

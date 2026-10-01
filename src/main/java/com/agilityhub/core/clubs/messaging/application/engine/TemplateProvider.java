@@ -34,6 +34,9 @@ public class TemplateProvider {
         this.outside = new TransactionTemplate(transactions); outside.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
+    /** A template of the current club by id (R-11-13: the one an announcement was sent with); another club's is absent. */
+    public java.util.Optional<MessageTemplate> byId(String id) { return id == null ? java.util.Optional.empty() : templates.findById(id); }
+
     /** The template of a templated code in the current club, created from the seed (every product language) when absent. */
     public MessageTemplate forCode(NotificationSpec spec, String clubDefaultLocale) { return forCode(spec, null, clubDefaultLocale); }
     /**

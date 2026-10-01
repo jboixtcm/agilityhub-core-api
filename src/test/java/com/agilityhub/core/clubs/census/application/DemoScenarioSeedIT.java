@@ -158,6 +158,39 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         assertThat(mongo.count(Query.query(Criteria.where("origin").ne("APP")), "bookings")).isZero();
     }
 
+    /**
+     * E7-T04 step 4: the `messaging` section through the S03/S11 services — the reminder of member.10@ with a push device, club
+     * changes without e-mail, two phones, two contact e-mails one of them bounced, no push of club news, and the CUSTOM
+     * «Comunicat del club» — once: a second run changes nothing.
+     */
+    @Test void T_11_20_E7_T04_theDemoSeedsThePreferenceProfilesAndTheCustomTemplateOnce() throws Exception {
+        seed("canic");
+        var run = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
+        assertThat(run).containsEntry("messagingProfiles", 3).containsEntry("messagingContacts", 2).containsEntry("messagingBounces", 1)
+                .containsEntry("pushSubscriptions", 1).containsEntry("customTemplates", 1);
+        var members = com.agilityhub.core.clubs.census.domain.DemoDataset.generate(com.agilityhub.core.clubs.census.support.DemoFixtures.spec(mapper, false), 42, club).members();
+        java.util.function.IntFunction<Document> member = ordinal -> mongo.findById(members.get(ordinal).id(), Document.class, "members");
+        var reminder = member.apply(14);
+        assertThat(reminder.getString("_id")).isEqualTo(memberOf("member.10@example.test"));
+        assertThat(reminder.get("notificationPreferences", Document.class)).containsEntry("reminderMinutesBefore", 120);
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(club).and("accountId").is(reminder.getString("accountId")).and("status").is("ACTIVE")),
+                Document.class, "push_subscriptions")).singleElement().satisfies(s -> assertThat(s.getString("deviceLabel")).isEqualTo("Android · Chrome"));
+        assertThat(member.apply(15).get("notificationPreferences", Document.class).get("emailByCategory", Document.class)).containsEntry("CLUB_CHANGES", false);
+        assertThat(member.apply(16).getList("phones", Document.class)).extracting(p -> p.getString("prefix") + p.getString("number")).hasSize(2).contains("+34600000901");
+        assertThat(member.apply(17).getList("contactEmails", Document.class)).hasSize(2)
+                .anySatisfy(e -> { assertThat(e.getString("email")).isEqualTo("demo.canic.antic@example.test"); assertThat(e.getBoolean("bounced")).isTrue(); })
+                .anySatisfy(e -> assertThat(e.getBoolean("bounced", false)).isFalse());
+        assertThat(member.apply(18).get("notificationPreferences", Document.class)).containsEntry("pushClubNews", false);
+        var custom = mongo.find(Query.query(Criteria.where("clubId").is(club).and("kind").is("CUSTOM")), Document.class, "message_templates");
+        assertThat(custom).singleElement().satisfies(t -> {
+            assertThat(t.getString("category")).isEqualTo("CLUB_NEWS");
+            assertThat(t.get("title", Document.class).get("values", Document.class)).containsEntry("ca", "Comunicat del club").containsEntry("es", "Comunicado del club");
+        });
+        seed("canic");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("kind").is("CUSTOM")), "message_templates")).isEqualTo(1);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club)), "push_subscriptions")).isEqualTo(1);
+    }
+
     @Test void T_08_40_scenarioIsDeterministicAndASecondRunChangesNothing() throws Exception {
         seed("canic"); var first = bookings(); var saved = snapshot();
         seed("canic"); assertThat(snapshot()).isEqualTo(saved);

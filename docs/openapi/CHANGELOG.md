@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E7-T04 · «Enviar comunicat» is served (web E7-W03 adopts)
+
+**1 operation changed (description; no shape change).** S11 R-11-13, T-11-18.
+- **`POST /message-templates/{id}/send`** no longer answers `501 NOT_IMPLEMENTED`: N-24 or an active `CUSTOM` template of
+  the club (another code or a disabled template → `422 TEMPLATE_NOT_SENDABLE`; an archived or unknown one → `404
+  NOT_FOUND`). `recipients` is `{memberIds[]}` or `{filters[], q}` — never both nor neither (`400 VALIDATION_ERROR`
+  `{field: recipients}`) — and `filters`/`q` are those of `GET /members` (an undeclared filter → `400 INVALID_FILTER`). A
+  member who left is never a recipient (R-11-02); nobody → `422 NO_RECIPIENTS`. `dryRun: true` → `200 {batchId: null,
+  recipientCount}`, nothing written; otherwise `202 {batchId, recipientCount}`, the batch is stored, `AnnouncementSent`
+  goes to the outbox and `ANNOUNCEMENT_SENT` is audited on the template. The same `Idempotency-Key` replays the same
+  `batchId`. Each member then gets one N-24 (`dedupKey {batchId}:{memberId}`) rendered with the template it was sent with: a
+  `CUSTOM` template keeps its own category for the preferences and its own matrix.
+
 ## 2026-09-30 · E6-T06 · D14's filter values and search, D12's training slot length, 25's activity links (web E6-W04 steps 0b and 0c adopt)
 
 **1 operation added; 2 operations changed (descriptions); 2 schemas changed (1 property added, 1 description).** Ruling E75.

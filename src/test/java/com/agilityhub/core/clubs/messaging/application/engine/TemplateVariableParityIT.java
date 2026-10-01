@@ -98,7 +98,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
     static final String ACTIVITY = "par-activity", TASK = "par-task", WEEK = "par-week-42", PLAN = "par-plan", LEVEL_C = "par-lv-c", LEVEL_D = "par-lv-d";
     static final List<String> DATA = List.of("members", "dogs", "accounts", "memberships", "instructors", "levels", "rings", "plans", "parameters", "class_sessions",
             "bookings", "waitlist_entries", "attendances", "training_bookings", "activities", "activity_registrations", "tasks", "weeks", "message_templates",
-            "notifications", "domain_events", "signup_notification_admissions", "seat_locks");
+            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements");
     /**
      * The templated codes whose events no owner of this repository explains yet: their facts are the event's payload until
      * their stage writes the owner (and adds the code's case to this test).
@@ -106,7 +106,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
     static final Map<String, String> LATER = new TreeMap<>(Map.of(
             "N-11a", "PackLowBalance: packs, S12 (E8-T05)", "N-11b", "PackExpiring / PackExpired: packs, S12 (E8-T05)",
             "N-18b", "InactivityResolved: inactivity periods, S13 (E8-T05)", "N-18c", "InactivityEnded: inactivity periods, S13 (E8-T05)",
-            "N-24", "AnnouncementSent: mass announcements (E7-T04)", "N-28", "LeaveResolved: leave requests, S13 (E8-T05)",
+            "N-28", "LeaveResolved: leave requests, S13 (E8-T05)",
             "N-30", "InvoicePaid (E8-T02) / UpfrontPaymentSucceeded: the receipt is Stripe's while billing.stripeReceiptEmail = true (the default); E8-T04",
             "N-31", "RingSetupChanged: course setups, S16 (later stage)", "N-35", "InvoiceFailed: billing, S12 (E8-T02, E8-T04)",
             "N-50", "no event: the S14 export worker triggers it directly (not produced yet)"));
@@ -259,6 +259,8 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         // A type of the club's `census.dogDocumentTypes` (the product default): its label in the recipient's language.
         cases.add(new Case("N-23", "DocumentReminderDue", Map.of("memberId", LAURA, "dogId", DUNA, "type", "VACCINATION_CARD")));
         cases.add(new Case("N-23", "DogDocumentPending", Map.of("memberId", LAURA, "dogId", DUNA, "type", "VACCINATION_CARD", "trigger", "MANUAL")));
+        // E7-T04: «Enviar comunicat» to Laura (the batch is stored with the installed template, see `install`).
+        cases.add(new Case("N-24", "AnnouncementSent", Map.of("batchId", "par-batch", "recipientCount", 1, "filters", List.of())));
         cases.add(new Case("N-29", "BookingBlockChanged", Map.of("memberId", LAURA, "reason", "Quota pendent", "active", true)));
         cases.add(new Case("N-32a", "ActivityPublished", Map.of("activityId", ACTIVITY, "notifyEmail", true)));
         cases.add(new Case("N-32b", "ActivityRegistrationChanged", Map.of("activityId", ACTIVITY, "memberId", LAURA, "state", "ACTIVE", "origin", "APP")));
@@ -288,9 +290,16 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         String body = "Values: " + String.join(" ", variables.stream().map(v -> v + "=[[" + v + "]] |").toList());
         var seed = MessageTemplateSeed.load().of(code).orElseThrow();
         var sms = seed.smsBody().isEmpty() ? null : new LocalizedText(Map.of("ca", "[[club_name]]", "es", "[[club_name]]"), "ca");
-        return mongo.insert(new MessageTemplate(null, CLUB, code, TemplateKind.CATALOG, spec.category(), new LocalizedText(Map.of("ca", "Paritat", "es", "Paridad"), "ca"),
+        var template = mongo.insert(new MessageTemplate(null, CLUB, code, TemplateKind.CATALOG, spec.category(), new LocalizedText(Map.of("ca", "Paritat", "es", "Paridad"), "ca"),
                 new LocalizedText(Map.of("ca", body, "es", body), "ca"), sms, spec.icon(), spec.color(), seed.matrix(), true, spec.mandatory(), true, TemplateStatus.ACTIVE, null,
                 NOW, "parity", NOW, "parity"));
+        if ("N-24".equals(code)) {
+            // R-11-13: the batch the send stores, with this template and Laura as its only member.
+            mongo.remove(Query.query(Criteria.where("_id").is("par-batch")), "announcements");
+            mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement("par-batch", CLUB, template.id(),
+                    com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of(LAURA), 1, "par-admin", NOW));
+        }
+        return template;
     }
     /** The outbox delivery of one event, as `OutboxDispatcher` runs the engine. */
     String deliver(String type, String aggregateId, Map<String, Object> payload) {

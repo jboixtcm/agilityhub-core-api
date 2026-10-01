@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E7-T04 (S15 WP-15-C P4, S11 WP-11-F back half): the E7 integration and gate.
+  - P4 `reminders` (S15 R-15-14): every minute, the ACTIVE class bookings and (with `FREE_TRAINING`) training bookings
+    due at their dog owner's `reminderMinutesBefore` get `reminderSentAt` and `ReminderDue` in one transaction; the
+    engine sends N-13. Instant arithmetic, dry run `WOULD_REMIND`, counters `{classReminders, trainingReminders}`. The job
+    lives in `clubs.common` and reads S08/S09 through `ReminderSource` (no context cycle); `GET /jobs` now lists it.
+  - «Enviar comunicat» (S11 R-11-13): `POST /message-templates/{id}/send` is served (it answered 501): N-24 or a `CUSTOM`
+    template, recipients by `memberIds` or by `GET /members`' filters, dry run, the `announcements` batch,
+    `AnnouncementSent`, the `ANNOUNCEMENT_SENT` audit on the template, the `Idempotency-Key` replay. The engine renders
+    each member's N-24 with the template it was sent with (a `CUSTOM` one keeps its category and matrix).
+  - The channel × audience × preference matrix: `NotificationMatrixTest` (every R1 catalog row × audience × channel ×
+    preference × modules × contact through the engine, 1,260 cases) and `NotificationActionsIT` (15 real E5/E6 actions
+    end to end, each recipient's language).
+  - The demo seed's `messaging` section: five preference profiles (a 2 h reminder with a push device, no club-change
+    e-mail, two phones, a bounced second e-mail, no club-news push) and the CUSTOM «Comunicat del club».
+  - `bin/e7-smoke [--image]`, the gate E7 (back) rehearsal, with a SendGrid bounce signed by a key generated for the run.
+  - Docs: README «E7», `seeds/README.md`, `docs/DEPLOY.md` (missing-credential behaviour, gate E7 checklist).
+
 - E11-T04: production Compose with authenticated MongoDB 7, private Core and Caddy's same-site SPA proxies;
   internal-CA local rehearsal with a fictional seed and MinIO; age-encrypted S3 backups, scoped 30-day retention
   and isolated restore/count verification. `docs/DEPLOY.md` now includes the release/rollback runbook,

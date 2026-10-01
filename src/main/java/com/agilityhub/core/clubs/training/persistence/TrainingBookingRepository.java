@@ -70,6 +70,16 @@ public class TrainingBookingRepository extends TenantRepository<TrainingBooking>
     public List<TrainingBooking> startingBetween(String clubId, Instant from, Instant until) {
         return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("startsAt").gte(from).lt(until)), TrainingBooking.class);
     }
+    /** S15 R-15-14 P4 scope: ACTIVE bookings starting in `(after, until]` without a reminder yet (index `training_club_state_starts`). */
+    public List<TrainingBooking> reminderScope(Instant after, Instant until) {
+        return mongo.find(tenantQuery().addCriteria(active().and("startsAt").gt(after).lte(until).and("reminderSentAt").is(null))
+                .with(Sort.by("startsAt", "_id")), TrainingBooking.class);
+    }
+    /** S15 R-15-14 P4 mark, set once on a booking still ACTIVE, without a reminder and starting at the planned instant; `version` untouched. */
+    public boolean markReminderSent(String id, Instant startsAt, Instant at) {
+        var query = tenantQuery().addCriteria(active().and("_id").is(id).and("reminderSentAt").is(null).and("startsAt").is(startsAt));
+        return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("reminderSentAt", at), TrainingBooking.class).getModifiedCount() == 1;
+    }
     public Optional<TrainingBooking> byIdempotencyKey(String accountId, String key) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("createdByAccountId").is(accountId).and("idempotencyKey").is(key)), TrainingBooking.class));
     }

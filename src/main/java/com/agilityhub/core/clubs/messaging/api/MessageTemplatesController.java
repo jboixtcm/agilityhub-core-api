@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.messaging.api;
 
+import com.agilityhub.core.clubs.messaging.application.AnnouncementService;
 import com.agilityhub.core.clubs.messaging.application.MessageTemplateService;
 import com.agilityhub.core.clubs.messaging.application.MessagingContractAccess;
 import com.agilityhub.core.clubs.messaging.application.TemplatePreviewService;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import static com.agilityhub.core.clubs.messaging.api.MessagingContracts.*;
@@ -31,7 +33,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 /**
  * S11 §6 message templates (D9, R-11-12), ADMIN only; the impersonation token is refused (MATRIU rule 3, T-11-28). E7-T03
  * serves the list, the detail, `CUSTOM` creation, the save, the preview (with «envia prova»), «Restaura el text per defecte»
- * and «Elimina»; `POST …/send` (R-11-13, N-24) keeps answering 501 NOT_IMPLEMENTED after its guards until E7-T04. Error
+ * and «Elimina»; E7-T04 serves `POST …/send` (R-11-13, N-24, {@link AnnouncementService}). Error
  * statuses are CATALEG_ERRORS' (rule 0), whatever S11 §6 writes.
  */
 @RestController
@@ -41,10 +43,11 @@ public class MessageTemplatesController {
     static final String TENANT = " Tenant comes from the JWT.";
     static final String ROLES = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). ";
     private final MessagingContractAccess access; private final MessageTemplateService templates; private final TemplatePreviewService previews;
-    private final IcuMessageSource messages;
+    private final IcuMessageSource messages; private final AnnouncementService announcements;
 
-    public MessageTemplatesController(MessagingContractAccess access, MessageTemplateService templates, TemplatePreviewService previews, IcuMessageSource messages) {
-        this.access = access; this.templates = templates; this.previews = previews; this.messages = messages;
+    public MessageTemplatesController(MessagingContractAccess access, MessageTemplateService templates, TemplatePreviewService previews, IcuMessageSource messages,
+            AnnouncementService announcements) {
+        this.access = access; this.templates = templates; this.previews = previews; this.messages = messages; this.announcements = announcements;
     }
 
     @GetMapping("/api/v1/message-templates")
@@ -134,20 +137,22 @@ public class MessageTemplatesController {
     public void archiveMessageTemplate(@PathVariable String id) { templates.archive(id); }
 
     @PostMapping("/api/v1/message-templates/{id}/send")
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, NOT_FOUND, TEMPLATE_NOT_SENDABLE, NO_RECIPIENTS, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "sendMessageTemplate", description = ROLES + "«Enviar comunicat» (R-11-13, N-24): N-24 or a CUSTOM template only "
             + "(TEMPLATE_NOT_SENDABLE, 422); recipients = the members of the selection or of the filters (the semantics of GET /members, any status the "
             + "list shows; NO_RECIPIENTS, 422). dryRun → 200 with the count and nothing written; otherwise 202, AnnouncementSent{templateId, batchId, "
             + "recipientCount, filters}, one MEMBER notification per member (dedupKey {batchId}:{memberId}) and ANNOUNCEMENT_SENT audit. The same "
-            + "Idempotency-Key replays the same batchId (E7-T04)." + STUB,
+            + "Idempotency-Key replays the same batchId (E7-T04). recipients is {memberIds} or {filters, q}, never both nor neither (VALIDATION_ERROR); "
+            + "a member who left is never a recipient (R-11-02); an archived template is NOT_FOUND." + TENANT,
             responses = {@ApiResponse(responseCode = "202", description = "AnnouncementResult", useReturnTypeSchema = true),
                     @ApiResponse(responseCode = "200", description = "AnnouncementResult (dryRun)", content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = AnnouncementResult.class)))})
-    public AnnouncementResult sendMessageTemplate(@PathVariable String id, @Valid @RequestBody AnnouncementRequest request,
+    public ResponseEntity<AnnouncementResult> sendMessageTemplate(@PathVariable String id, @Valid @RequestBody AnnouncementRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
-        access.template(id);
-        throw new UnsupportedOperationException();
+        var recipients = new AnnouncementService.Recipients(request.recipients().memberIds(), request.recipients().filters(), request.recipients().q());
+        if (Boolean.TRUE.equals(request.dryRun())) { return ResponseEntity.ok(new AnnouncementResult(null, announcements.count(id, recipients))); }
+        var receipt = announcements.send(id, recipients);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new AnnouncementResult(receipt.batchId(), receipt.recipientCount()));
     }
 
     // ---- mapping

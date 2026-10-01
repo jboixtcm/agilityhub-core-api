@@ -7,6 +7,8 @@ import com.agilityhub.core.clubs.messaging.application.ports.MemberContactsWrite
 import com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort;
 import com.agilityhub.core.clubs.messaging.application.ports.SignupContactPort;
 import com.agilityhub.core.clubs.messaging.application.NotificationPreferences;
+import com.agilityhub.core.shared.application.lists.ListEngine;
+import com.agilityhub.core.shared.application.lists.ListQuery;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +33,10 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class MessagingCensusDirectory implements MemberDirectoryPort, MemberContactsWriterPort, SignupContactPort {
     private final CensusAccess access; private final BookingMemberAccess bookingMembers;
-    public MessagingCensusDirectory(CensusAccess access, BookingMemberAccess bookingMembers) { this.access = access; this.bookingMembers = bookingMembers; }
+    private final org.springframework.beans.factory.ObjectProvider<ListEngine> lists;
+    public MessagingCensusDirectory(CensusAccess access, BookingMemberAccess bookingMembers, org.springframework.beans.factory.ObjectProvider<ListEngine> lists) {
+        this.access = access; this.bookingMembers = bookingMembers; this.lists = lists;
+    }
 
     @Override public Optional<MemberContact> find(String memberId) {
         if (memberId == null) { return Optional.empty(); }
@@ -46,6 +51,25 @@ public class MessagingCensusDirectory implements MemberDirectoryPort, MemberCont
         }
         var dogs = dogsOf(members.stream().map(m -> m.id).toList());
         return members.stream().map(m -> contact(m, dogs)).toList();
+    }
+    /**
+     * E7-T04 (R-11-13): the members `GET /members` lists with the same `filter=` values and `q`, in the list's order, through the
+     * same dataset (its role and module rules, its validation: an undeclared filter is `INVALID_FILTER`), without paging.
+     */
+    @Override public List<MemberContact> byFilters(List<String> filters, String q) {
+        var engine = lists.getObject();
+        var dataset = engine.dataset("members");
+        var params = new org.springframework.util.LinkedMultiValueMap<String, String>();
+        if (filters != null) { filters.forEach(filter -> params.add("filter", filter)); }
+        if (q != null && !q.isBlank()) { params.add("q", q); }
+        var query = ListQuery.parse(dataset.definition(), params);
+        List<String> ids;
+        try (var rows = engine.exportStream(dataset, query, List.of("id"))) {
+            ids = rows.map(row -> row.get("id")).filter(Objects::nonNull).map(Object::toString).toList();
+        }
+        var order = new HashMap<String, Integer>();
+        for (int i = 0; i < ids.size(); i++) { order.putIfAbsent(ids.get(i), i); }
+        return findAll(ids).stream().sorted(java.util.Comparator.comparingInt(contact -> order.getOrDefault(contact.memberId(), Integer.MAX_VALUE))).toList();
     }
     @Override public Optional<MemberContact> byAccount(String accountId) {
         if (accountId == null) { return Optional.empty(); }

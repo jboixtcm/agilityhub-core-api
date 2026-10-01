@@ -1,0 +1,503 @@
+#!/usr/bin/env python3
+"""Rehearse the E7 backend gate (S11 communications, S15 P4 reminders) with curl on a disposable local Compose stack.
+
+Seeds the Cànic with the demo (its `messaging` preference profiles and the CUSTOM «Comunicat del club»), then asserts with
+exact statuses and codes: the D9 template list, N-08a edited in `ca` and `es` with optimistic locking, a class cancelled by
+the club notifying every registrant in their own language by APP, e-mail (the local mailbox) and SMS (the local log sender),
+the member's feed and unread count, a preference that removes the e-mail but never the SMS, «Enviar comunicat» to ten
+members (dry run, batch, log, audit, replay), the refusals, the P4 reminder at the member's chosen lead with the test clock,
+push subscriptions with PUSH on and off, a signed SendGrid bounce, and one real SMS only when Twilio credentials are
+present. Re-runnable: every run builds its own stack and removes it at the end; the templates it creates carry a run
+suffix and are archived. Never prints a token, a key, a phone number nor a message body. Reuses bin/e5-smoke's stack helpers.
+"""
+import argparse
+import base64
+import datetime
+import hashlib
+import importlib.machinery
+import importlib.util
+import json
+import os
+from pathlib import Path
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parents[1]
+SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+# Seed logins (seeds/demo-canic.yaml `accountEmails`): member@ = ordinal 5 (member number 6) … member.10@ = ordinal 14 (number 15).
+ANNOUNCEMENT_FILTERS = ["memberNumber:gte:6", "memberNumber:lte:15"]
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+class P256:
+    """ECDSA P-256 / SHA-256 in plain Python for the SendGrid Event Webhook signature (no third-party package needed). The
+    run's key pair is fresh and only the API container gets its public half."""
+    P = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+    A = P - 3
+    N = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+    G = (0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296, 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5)
+
+    def __init__(self):
+        self.d = secrets.randbelow(self.N - 1) + 1
+        self.q = self.mul(self.d, self.G)
+
+    def add(self, p1, p2):
+        if p1 is None:
+            return p2
+        if p2 is None:
+            return p1
+        if p1[0] == p2[0] and (p1[1] + p2[1]) % self.P == 0:
+            return None
+        if p1 == p2:
+            slope = (3 * p1[0] * p1[0] + self.A) * pow(2 * p1[1], self.P - 2, self.P) % self.P
+        else:
+            slope = (p2[1] - p1[1]) * pow(p2[0] - p1[0], self.P - 2, self.P) % self.P
+        x = (slope * slope - p1[0] - p2[0]) % self.P
+        return x, (slope * (p1[0] - x) - p1[1]) % self.P
+
+    def mul(self, k, point):
+        result = None
+        while k:
+            if k & 1:
+                result = self.add(result, point)
+            point = self.add(point, point)
+            k >>= 1
+        return result
+
+    def public_der_base64(self):
+        """SubjectPublicKeyInfo (id-ecPublicKey, prime256v1) of the uncompressed point, as `SENDGRID_WEBHOOK_PUBLIC_KEY` takes it."""
+        prefix = bytes.fromhex("3059301306072a8648ce3d020106082a8648ce3d030107034200")
+        return base64.b64encode(prefix + b"\x04" + self.q[0].to_bytes(32, "big") + self.q[1].to_bytes(32, "big")).decode()
+
+    def sign(self, data):
+        z = int.from_bytes(hashlib.sha256(data).digest(), "big")
+        while True:
+            k = secrets.randbelow(self.N - 1) + 1
+            r = self.mul(k, self.G)[0] % self.N
+            s = pow(k, self.N - 2, self.N) * (z + r * self.d) % self.N
+            if r and s:
+                break
+
+        def integer(value):
+            raw = value.to_bytes((value.bit_length() + 8) // 8, "big")
+            return b"\x02" + bytes([len(raw)]) + raw
+        body = integer(r) + integer(s)
+        return base64.b64encode(b"\x30" + bytes([len(body)]) + body).decode()
+
+
+class E7:
+    def __init__(self, smoke_module, private, image):
+        self.m = smoke_module
+        self.s = smoke_module.Smoke(private, image)
+        self.private = private
+        self.s.project = "e7-smoke-" + secrets.token_hex(6)
+        args = self.s.compose_args
+        args[args.index("--project-name") + 1] = self.s.project
+        self.s.sign_in = self.sign_in
+        self.suffix = self.s.suffix
+        self.webhook = P256()
+        twilio = all(os.environ.get(k) for k in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "SMOKE_SMS_TO"))
+        self.real_sms = twilio
+        # The webhook verification key (and, only when present in this shell, the Twilio credentials) reach the API container.
+        override_path = private / "compose.override.json"
+        override = json.loads(override_path.read_text())
+        for service in override["services"].values():
+            env = service.get("environment")
+            if env is None:
+                continue
+            env["SENDGRID_WEBHOOK_PUBLIC_KEY"] = self.webhook.public_der_base64()
+            if twilio:
+                for key in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_MESSAGING_SERVICE_SID"):
+                    if os.environ.get(key):
+                        env[key] = os.environ[key]
+                env["SMS_ALLOWED_NUMBERS"] = os.environ["SMOKE_SMS_TO"]
+        override_path.write_text(json.dumps(override))
+        self.created_templates = []
+
+    # ---- helpers
+    def require(self, condition, message):
+        self.m.require(condition, message)
+
+    def call(self, *args, **kwargs):
+        return self.s.call(*args, **kwargs)
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def record(self, step, status, values=""):
+        self.s.record(step, status, values)
+
+    def wait(self, action, message, timeout=120):
+        return self.m.wait(action, message, timeout)
+
+    def sign_in(self):
+        """Access tokens live 15 min on the API's (moved) clock: every clock move needs fresh ones."""
+        s = self.s
+        self.admin = s.login("admin@example.test", "clubs-admin")
+        self.x = s.login("member@example.test", "clubs-app")         # the member who reads in Spanish
+        self.y = s.login("member.3@example.test", "clubs-app")       # a member who reads in Catalan
+        self.r = s.login("member.10@example.test", "clubs-app")      # «Recordatori de classe: 2 h abans», a phone with the app
+
+    def member_id(self, email):
+        return self.mongo('db.members.findOne({clubId:' + json.dumps(self.club) + ',accountId:db.accounts.findOne({email:' + json.dumps(email) + '})._id})._id')
+
+    def class_id(self, day, start, ring):
+        c = json.dumps(self.club)
+        return self.mongo('db.class_sessions.findOne({clubId:' + c + ',date:' + json.dumps(str(self.s.local(day, start).date())) + ',startTime:'
+                          + json.dumps(start) + ',ringId:db.rings.findOne({clubId:' + c + ',shortName:' + json.dumps(ring) + '})._id})._id')
+
+    def count(self, collection, criteria):
+        return self.mongo('db.' + collection + '.countDocuments(Object.assign({clubId:' + json.dumps(self.club) + '},' + json.dumps(criteria) + '))')
+
+    def notes(self, criteria):
+        """The club's notification documents matching `criteria`: id, code, audience, member, locale, deliveries (no text)."""
+        return self.mongo('db.notifications.find(Object.assign({clubId:' + json.dumps(self.club) + '},' + json.dumps(criteria) + ')).toArray().map(n=>({'
+                          'id:n._id,code:n.code,audience:n.audience,member:(n.recipient||{}).memberId,locale:n.locale,dedupKey:n.dedupKey,'
+                          'deliveries:(n.deliveries||[]).map(d=>({channel:d.channel,status:d.status,target:d.target}))}))')
+
+    def sms_states(self):
+        """The log sender marks an SMS SENT without sending it; with real Twilio credentials the allow-list (`SMS_ALLOWED_NUMBERS` =
+        `SMOKE_SMS_TO`, E7-T02) keeps every fictional number out: `SKIPPED_NOT_ALLOWED` proves that guard outside production."""
+        return ("SMS:SENT", "SMS:QUEUED", "SMS:SKIPPED_NOT_ALLOWED") if self.real_sms else ("SMS:SENT", "SMS:QUEUED")
+
+    @staticmethod
+    def channels(note):
+        return sorted({d["channel"] + ":" + d["status"] for d in note["deliveries"]})
+
+    def settled(self, criteria):
+        """The notices of `criteria` once none of their deliveries is still QUEUED (the dispatcher sends right after the engine)."""
+        rows = self.notes(criteria)
+        return rows if rows and all(d["status"] != "QUEUED" for n in rows for d in n["deliveries"]) else None
+
+    def detail(self, notification_id):
+        return self.call("GET", "/api/v1/notifications/" + notification_id, access=self.admin, quiet=True)
+
+    def mailbox(self):
+        """The local mailbox of the API (`LogEmailSender`): one JSON file per accepted e-mail, keyed by its notification tag."""
+        target = self.private / ("mailbox-" + secrets.token_hex(3))
+        target.mkdir()
+        self.s.compose("cp", self.s.service + ":/app/mailbox/.", str(target))
+        mails = {}
+        for path in target.glob("local-*.json"):
+            item = json.loads(path.read_text())
+            notification = (item.get("tags") or {}).get("notificationId")
+            if notification:
+                mails.setdefault(notification, []).append(item)
+        return mails
+
+    def set_clock(self, moment, label):
+        self.s.set_clock(moment, label)
+
+    def webhook_call(self, events):
+        """`POST /webhooks/email/sendgrid` signed with the run's key over `timestamp + body` (SendGrid's ECDSA scheme)."""
+        body = json.dumps(events).encode()
+        timestamp = str(int(time.time()))
+        payload = self.private / "webhook-body"
+        payload.write_bytes(body)
+        headers = ["User-Agent: AgilityHub-E7-Smoke", "Content-Type: application/json", "X-Twilio-Email-Event-Webhook-Timestamp: " + timestamp,
+                   "X-Twilio-Email-Event-Webhook-Signature: " + self.webhook.sign(timestamp.encode() + body)]
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.s.base + "/webhooks/email/sendgrid")
+        result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--request", "POST",
+                                 "--data-binary", "@" + str(payload), "--output", os.devnull, "--write-out", "%{http_code}", "--config", "-"],
+                                input=config, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0, f"curl POST /webhooks/email/sendgrid failed (exit {result.returncode})")
+        print("curl POST /webhooks/email/sendgrid -> " + result.stdout, flush=True)
+        return int(result.stdout)
+
+    def template_ids(self):
+        listing = self.call("GET", "/api/v1/message-templates", access=self.admin, quiet=True)
+        return {item["code"]: item["id"] for item in listing["items"] if item.get("code")}, listing
+
+    # ---- scenario
+    def scenario(self):
+        s = self.s
+        self.club = s.canic
+        self.sign_in()
+        self.x_member, self.y_member, self.r_member = (self.member_id(e) for e in ("member@example.test", "member.3@example.test", "member.10@example.test"))
+        self.templates()
+        self.cancellation()
+        self.feed()
+        self.preference()
+        self.announcements()
+        self.refusals()
+        self.reminders()
+        self.push()
+        self.bounce()
+        self.real_sms_step()
+        for template in self.created_templates:
+            self.call("DELETE", "/api/v1/message-templates/" + template, 204, access=self.admin, quiet=True)
+        self.record("DELETE /message-templates/{own CUSTOM} (run suffix " + self.suffix + ")", "204", f"{len(self.created_templates)} archived")
+
+    def templates(self):
+        codes, listing = self.template_ids()
+        catalog = [i for i in listing["items"] if i["kind"] == "CATALOG"]
+        custom = [i for i in listing["items"] if i["kind"] == "CUSTOM"]
+        counts = listing["countsByCategory"]
+        self.require(len(catalog) == 51 and len({i["code"] for i in catalog}) == 51, f"Expected the 51 catalog templates, got {len(catalog)}")
+        self.require(set(counts) == {"OPERATIONAL", "PERSONAL", "CLUB_CHANGES", "CLUB_NEWS"}, f"Category counts: {sorted(counts)}")
+        self.require(sum(counts.values()) == len(listing["items"]), "The four counts cover every template")
+        self.require(any(i["category"] == "CLUB_NEWS" for i in custom), "The seed's CUSTOM «Comunicat del club» is missing")
+        self.codes = codes
+        self.record("GET /message-templates", "200", f"{len(catalog)} catalog templates (one per eligible code) + {len(custom)} CUSTOM; counts {counts}")
+        # D9: N-08a's body edited in ca and es (the admin text stays: TEMPLATE_MISSING_VARIABLE otherwise), then a stale save.
+        detail = self.call("GET", "/api/v1/message-templates/" + codes["N-08a"], access=self.admin, quiet=True)
+        body = dict(detail["bodyI18n"])
+        body["ca"] = "[[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]. «[[admin_text]]» — avís revisat a D9 (smoke " + self.suffix + ")."
+        body["es"] = "[[class_date]] · [[class_time]] · [[class_description]], con [[dog_name]]. «[[admin_text]]» — aviso revisado en D9 (smoke " + self.suffix + ")."
+        save = dict(title=detail["titleI18n"], body=body, smsBody=detail.get("smsBodyI18n"), icon=detail["icon"], color=detail["color"],
+                    matrix=detail["matrix"], enabled=detail["enabled"], version=detail["version"])
+        saved = self.call("PUT", "/api/v1/message-templates/" + codes["N-08a"], access=self.admin, body=save)
+        self.require(saved["version"] == detail["version"] + 1, "The save bumps the version")
+        self.call("PUT", "/api/v1/message-templates/" + codes["N-08a"], 409, access=self.admin, body=save, error="STALE_VERSION")
+        self.record("PUT /message-templates/{N-08a} (ca + es) · PUT with the old version", "200 · 409 STALE_VERSION",
+                    f"version {detail['version']} → {saved['version']}")
+
+    def cancellation(self):
+        # member@ reads in Spanish (PATCH /me, S01); member.3@ keeps the club's Catalan.
+        me = self.call("PATCH", "/api/v1/me", access=self.x, body=dict(locale="es"))
+        self.require(me["account"]["locale"] == "es", "member@ is now in Spanish")
+        self.monday = self.class_id("MONDAY", "08:30", "MUN")
+        c = json.dumps(self.monday)
+        live = self.mongo('db.bookings.find({classSessionId:' + c + ',state:{$in:["ACTIVE","PAYMENT_PENDING"]}}).toArray().map(b=>b.memberId)') \
+            + self.mongo('db.waitlist_entries.find({classSessionId:' + c + ',state:{$in:["ACTIVE","NOTIFIED"]}}).toArray().map(w=>w.memberId)')
+        self.require(self.x_member in live and self.y_member in live, "member@ and member.3@ are registrants of Monday 08:30 MUN")
+        started = datetime.datetime.now(datetime.timezone.utc)
+        cancelled = self.call("POST", "/api/v1/class-sessions/" + self.monday + "/cancellation", access=self.admin, idempotent=True,
+                              body=dict(reason="CLUB_MANUAL", adminText="La pista està en manteniment (smoke E7)."))
+        self.require(cancelled["state"] == "CANCELLED", "The class is cancelled")
+        criteria = {"code": "N-08a", "audience": "MEMBER", "subject.classSessionId": self.monday}
+        notes = self.wait(lambda: (lambda rows: rows if rows and len(rows) == len(live) else None)(self.settled(criteria)),
+                          f"N-08a not settled for the {len(live)} registrants")
+        log = self.call("GET", "/api/v1/notifications?filter=code:eq:N-08a&size=200", access=self.admin)
+        rows = [i for i in log["items"] if i["audience"] == "MEMBER" and i["recipient"]["memberId"] in live]
+        self.require(len(rows) == len(live), f"GET /notifications shows {len(rows)} N-08a rows for {len(live)} registrants")
+        for row in rows:
+            states = sorted(f"{c['channel']}:{c['status']}" for c in row["channels"])
+            self.require("APP:DELIVERED" in states and "EMAIL:SENT" in states and any(x in states for x in self.sms_states()), f"N-08a channels {states}")
+        mails = self.mailbox()
+        languages = {}
+        for note in notes:
+            text = self.detail(note["id"])
+            marker = {"ca": "avís revisat a D9 (smoke " + self.suffix, "es": "aviso revisado en D9 (smoke " + self.suffix}[text["locale"]]
+            self.require(marker in text["body"], f"N-08a in {text['locale']} carries the edited text")
+            self.require(note["id"] in mails and mails[note["id"]][0]["locale"] == text["locale"], "The e-mail is in the local mailbox, same language")
+            languages[note["member"]] = text["locale"]
+        self.require(languages[self.x_member] == "es" and languages[self.y_member] == "ca", "member@ reads Spanish, member.3@ Catalan")
+        self.x_note = next(n for n in notes if n["member"] == self.x_member)
+        self.record("POST /class-sessions/{Mon 08:30 MUN}/cancellation → N-08a", "200",
+                    f"{len(rows)} registrants · APP DELIVERED + EMAIL SENT (mailbox) + SMS SENT · edited text in {sorted(set(languages.values()))}")
+        self.started = started
+
+    def feed(self):
+        feed = self.call("GET", "/api/v1/me/notifications?page=0&size=20", access=self.x)
+        card = next(i for i in feed["items"] if i["id"] == self.x_note["id"])
+        self.require("SMS" in card["channels"] and card["action"]["type"] == "CHANGE_CLASS", f"The card: channels {card['channels']}, action {card['action']}")
+        self.require(feed["unreadCount"] >= 1, "The card is unread")
+        read = self.call("POST", "/api/v1/me/notifications/read-all", access=self.x)
+        home = self.call("GET", "/api/v1/me/home", access=self.x, quiet=True)
+        self.require(read["unreadCount"] == 0 and home["notifications"]["unreadCount"] == 0, "read-all → 0, and /me/home agrees")
+        self.record("GET /me/notifications · POST read-all · GET /me/home", "200 · 200 · 200",
+                    f"N-08a card channels {card['channels']}, action {card['action']['type']}; unreadCount {feed['unreadCount']} → 0 (home 0)")
+
+    def preference(self):
+        saved = self.call("PUT", "/api/v1/me/notification-preferences", access=self.x, body=dict(emailByCategory=dict(CLUB_CHANGES=False)))
+        self.require(saved["emailByCategory"]["CLUB_CHANGES"] is False, "CLUB_CHANGES e-mail is off")
+        # Another change made by the club: Thursday 17:40 CAR, where member@'s dog waits.
+        thursday = self.class_id("THURSDAY", "17:40", "CAR")
+        waiting = self.mongo('db.waitlist_entries.countDocuments({classSessionId:' + json.dumps(thursday) + ',memberId:' + json.dumps(self.x_member)
+                             + ',state:{$in:["ACTIVE","NOTIFIED"]}})')
+        self.require(waiting == 1, "member@ waits on Thursday 17:40 CAR")
+        self.call("POST", "/api/v1/class-sessions/" + thursday + "/cancellation", access=self.admin, idempotent=True,
+                  body=dict(reason="CLUB_MANUAL", adminText="Canvi de pista imprevist (smoke E7)."))
+        criteria = {"code": "N-08a", "audience": "MEMBER", "subject.classSessionId": thursday, "recipient.memberId": self.x_member}
+        note = self.wait(lambda: self.settled(criteria), "N-08a not settled for member@ on Thursday")[0]
+        states = self.channels(note)
+        self.require("EMAIL:SKIPPED_BY_PREFERENCE" in states and any(x in states for x in self.sms_states()) and "APP:DELIVERED" in states,
+                     f"After the preference: {states}")
+        self.record("PUT /me/notification-preferences {CLUB_CHANGES:false} → another club change", "200 · 200", f"member@'s N-08a: {states}")
+
+    def announcements(self):
+        n24 = self.codes["N-24"]
+        before = (self.count("announcements", {}), self.count("domain_events", {"type": "AnnouncementSent"}), self.count("notifications", {"code": "N-24"}))
+        dry = self.call("POST", "/api/v1/message-templates/" + n24 + "/send", access=self.admin, idempotent=True,
+                        body=dict(recipients=dict(filters=ANNOUNCEMENT_FILTERS), dryRun=True))
+        self.require(dry["batchId"] is None and dry["recipientCount"] >= 10, f"Dry run: {dry}")
+        after_dry = (self.count("announcements", {}), self.count("domain_events", {"type": "AnnouncementSent"}), self.count("notifications", {"code": "N-24"}))
+        self.require(after_dry == before, "The dry run wrote nothing")
+        self.record("POST /message-templates/{N-24}/send {filters, dryRun:true}", "200", f"«S'enviarà a {dry['recipientCount']} abonats», nothing written")
+        key = str(uuid.uuid4())
+        sent = self.call("POST", "/api/v1/message-templates/" + n24 + "/send", 202, access=self.admin, key=key,
+                         body=dict(recipients=dict(filters=ANNOUNCEMENT_FILTERS), dryRun=False))
+        batch = sent["batchId"]
+        self.require(sent["recipientCount"] == dry["recipientCount"] == 10, f"Ten members: {sent}")
+        notes = self.wait(lambda: (lambda rows: rows if rows and len(rows) == 10 else None)(self.settled({"code": "N-24", "dedupKey": {"$regex": "^" + batch + ":"}})),
+                          "The ten N-24 notices are not settled")
+        self.require(all(n["dedupKey"] == batch + ":" + n["member"] and n["audience"] == "MEMBER" for n in notes), "dedupKey {batchId}:{memberId}")
+        log = self.call("GET", "/api/v1/notifications?filter=code:eq:N-24&size=200", access=self.admin, quiet=True)
+        self.require(len([i for i in log["items"] if i["recipient"]["memberId"] in {n["member"] for n in notes}]) == 10, "The log lists the ten notices")
+        audit = self.call("GET", "/api/v1/audit-entries?filter=action:eq:ANNOUNCEMENT_SENT", access=self.admin, quiet=True)["items"]
+        self.require(len(audit) == 1 and audit[0]["entityType"] == "MessageTemplate" and audit[0]["entityId"] == n24, "One ANNOUNCEMENT_SENT on the template")
+        replay = self.call("POST", "/api/v1/message-templates/" + n24 + "/send", 202, access=self.admin, key=key,
+                           body=dict(recipients=dict(filters=ANNOUNCEMENT_FILTERS), dryRun=False))
+        time.sleep(3)
+        self.require(replay["batchId"] == batch, "The same Idempotency-Key answers the same batch")
+        self.require(self.count("announcements", {}) == before[0] + 1 and self.count("notifications", {"code": "N-24"}) == before[2] + 10
+                     and len(self.call("GET", "/api/v1/audit-entries?filter=action:eq:ANNOUNCEMENT_SENT", access=self.admin, quiet=True)["items"]) == 1,
+                     "The replay created nothing")
+        push = sum(1 for n in notes for d in n["deliveries"] if d["channel"] == "PUSH" and d["status"] == "SENT")
+        self.record("POST /message-templates/{N-24}/send {filters} (+ replay, same key)", "202 · 202",
+                    f"batch {self.m.short(batch)}, 10 MEMBER notices with dedupKey {{batchId}}:{{memberId}}, 1 ANNOUNCEMENT_SENT audit, "
+                    f"{push} push sent; replay → same batch, no new rows")
+        # The run's own CUSTOM template (run suffix), to two members; archived at the end.
+        own = self.call("POST", "/api/v1/message-templates", 201, access=self.admin, body=dict(
+            category="CLUB_NEWS", title=dict(ca="Comunicat del smoke " + self.suffix, es="Comunicado del smoke " + self.suffix),
+            body=dict(ca="Hola [[member_first_name]]: avís de prova del smoke (text fictici).", es="Hola [[member_first_name]]: aviso de prueba del smoke (texto ficticio)."),
+            icon="flag", color="ACCENT", matrix=dict(MEMBER=dict(APP=True, EMAIL=True, SMS=False), INSTRUCTORS=dict(APP=False, EMAIL=False, SMS=False),
+                                                     ADMINS=dict(APP=False, EMAIL=False, SMS=False))))
+        self.created_templates.append(own["id"])
+        self.own_template = own["id"]
+        custom = self.call("POST", "/api/v1/message-templates/" + own["id"] + "/send", 202, access=self.admin, idempotent=True,
+                           body=dict(recipients=dict(memberIds=[self.x_member, self.y_member]), dryRun=False))
+        self.wait(lambda: (lambda rows: rows if rows and len(rows) == 2 else None)(self.settled({"code": "N-24", "dedupKey": {"$regex": "^" + custom["batchId"] + ":"}})),
+                  "The CUSTOM announcement is not settled")
+        self.record("POST /message-templates (CUSTOM, run suffix) · …/send {memberIds}", "201 · 202", f"{custom['recipientCount']} members")
+
+    def refusals(self):
+        self.call("POST", "/api/v1/message-templates/" + self.codes["N-08a"] + "/send", 422, access=self.admin, idempotent=True,
+                  body=dict(recipients=dict(filters=ANNOUNCEMENT_FILTERS), dryRun=False), error="TEMPLATE_NOT_SENDABLE")
+        self.call("POST", "/api/v1/message-templates/" + self.codes["N-24"] + "/send", 422, access=self.admin, idempotent=True,
+                  body=dict(recipients=dict(filters=["memberNumber:eq:999999"]), dryRun=False), error="NO_RECIPIENTS")
+        self.record("…/send with N-08a · with a filter that matches nobody", "422 TEMPLATE_NOT_SENDABLE · 422 NO_RECIPIENTS")
+
+    def reminders(self):
+        # The scheduler is on: P4 and P2 are switched off so only the manual runs below act (R-15-09: the switch never stops them).
+        for job in ("reminders", "risk-review"):
+            self.call("PUT", "/api/v1/jobs/" + job + "/switch", access=self.admin, body=dict(enabled=False), quiet=True)
+        self.set_clock(self.s.local("MONDAY", "07:00"), "Monday 07:00 of the demo week")
+        dog = next(d["id"] for d in self.call("GET", "/api/v1/me/home", access=self.r, quiet=True)["dogs"] if d["own"])
+        classes = self.call("GET", "/api/v1/me/bookable-classes?dogId=" + dog, access=self.r, quiet=True)["classes"]
+        target = next(c for c in sorted(classes, key=lambda c: c["startsAtLocal"])
+                      if c["state"] == "BOOKABLE" and c["startsAtLocal"] >= str(self.s.local("MONDAY", "12:00").date()) + "T12:00")
+        hold = self.call("POST", "/api/v1/seat-holds", 201, access=self.r, body=dict(classSessionId=target["id"], dogId=dog), quiet=True)
+        booking = self.call("POST", "/api/v1/bookings", 201, access=self.r, body=dict(seatHoldId=hold["id"]), idempotent=True)["id"]
+        start = datetime.datetime.fromisoformat(target["startsAtLocal"]).replace(tzinfo=self.s.tz)
+        moment = start - datetime.timedelta(minutes=120)
+        self.set_clock(moment - datetime.timedelta(minutes=1), "one minute before member.10@'s reminder moment")
+        early = self.call("POST", "/api/v1/jobs/reminders/trigger", access=self.admin, body=dict(dryRun=True))
+        self.require(all(i["entityId"] != booking for i in early["effects"]["items"]), "Not due one minute early")
+        self.set_clock(moment, "member.10@'s reminder moment (start − 120 min)")
+        dry = self.call("POST", "/api/v1/jobs/reminders/trigger", access=self.admin, body=dict(dryRun=True))
+        item = next(i for i in dry["effects"]["items"] if i["entityId"] == booking)
+        self.require(item["action"] == "WOULD_REMIND" and item["detail"]["lead"] == 120 and item["detail"]["memberId"] == self.r_member, f"Dry run item {item['action']}")
+        run = self.call("POST", "/api/v1/jobs/reminders/trigger", access=self.admin, body=dict(dryRun=False))
+        self.require(run["status"] == "SUCCEEDED" and any(i["entityId"] == booking and i["action"] == "REMIND" for i in run["effects"]["items"]), "The run reminds")
+        note = self.wait(lambda: self.settled({"code": "N-13", "dedupKey": "N-13:" + booking}), "N-13 not settled")
+        self.require(len(note) == 1 and note[0]["member"] == self.r_member, "Exactly one N-13, to member.10@")
+        states = self.channels(note[0])
+        self.require(states == ["APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "PUSH:SENT"], f"N-13 channels {states}")
+        again = self.call("POST", "/api/v1/jobs/reminders/trigger", access=self.admin, body=dict(dryRun=False))
+        time.sleep(3)
+        self.require(all(i["entityId"] != booking for i in again["effects"]["items"]) and self.count("notifications", {"code": "N-13", "dedupKey": "N-13:" + booking}) == 1,
+                     "A second run creates nothing (reminderSentAt)")
+        self.record("POST /jobs/reminders/trigger at start − 121, − 120 min (dry) · real · real again", "200 · 200 · 200 · 200",
+                    f"booking {self.m.short(booking)} {target['startsAtLocal']}: not yet → WOULD_REMIND lead 120 → one N-13 {states} → nothing new")
+
+    def push(self):
+        keys = dict(p256dh="BHOSs0YsSaLk6TQZCHSDATUjNlrmU0Lvhn21nxNNQtPGmW1zAZmQRcHOFqToHw0VllmplTaYYZl3k2c-1Jjfrp8", auth="IiIiIiIiIiIiIiIiIiIiIg")
+        endpoint = "https://push.example.test/e7-smoke/" + self.suffix
+        created = self.call("POST", "/api/v1/push-subscriptions", 201, access=self.y, body=dict(endpoint=endpoint, keys=keys), quiet=True)
+        self.require(created.get("id"), "A subscription id")
+        self.call("PUT", "/api/v1/club/modules/PUSH", access=self.admin, body=dict(enabled=False), quiet=True)
+        self.call("POST", "/api/v1/push-subscriptions", 404, access=self.y, body=dict(endpoint=endpoint + "/2", keys=keys), error="MODULE_DISABLED")
+        self.call("PUT", "/api/v1/club/modules/PUSH", access=self.admin, body=dict(enabled=True), quiet=True)
+        self.record("POST /push-subscriptions (fake endpoint) · PUSH off → POST again", "201 · 404 MODULE_DISABLED", "PUSH switched on again")
+
+    def bounce(self):
+        mail = next(d for d in self.detail(self.x_note["id"])["deliveries"] if d["channel"] == "EMAIL" and d["status"] == "SENT")
+        address = mail["target"]
+        status = self.webhook_call([dict(sg_event_id="e7-smoke-" + self.suffix + "-bounce", event="bounce", type="bounce", notificationId=self.x_note["id"],
+                                         clubId=self.club, email=address)])
+        self.require(status == 200, "The signed webhook is accepted")
+        failed = self.wait(lambda: next((d for d in self.detail(self.x_note["id"])["deliveries"] if d["channel"] == "EMAIL" and d["status"] == "FAILED"), None),
+                           "The e-mail delivery is not FAILED")
+        bounced = self.mongo('db.members.findOne({_id:' + json.dumps(self.x_member) + '}).contactEmails.filter(e=>e.bounced===true).length')
+        self.require(bounced >= 1, "contactEmails[].bounced = true")
+        n51 = self.wait(lambda: self.settled({"code": "N-51", "subject.memberId": self.x_member}) or self.settled({"code": "N-51"}), "No N-51 for the admins")
+        self.require(all(n["audience"] == "ADMINS" for n in n51), "N-51 goes to the admins")
+        # The next message to member@ skips the bounced address: its only contact e-mail.
+        again = self.call("POST", "/api/v1/message-templates/" + self.own_template + "/send", 202, access=self.admin, idempotent=True,
+                          body=dict(recipients=dict(memberIds=[self.x_member]), dryRun=False))
+        note = self.wait(lambda: self.settled({"code": "N-24", "dedupKey": again["batchId"] + ":" + self.x_member}), "The next notice is not settled")[0]
+        states = self.channels(note)
+        self.require("EMAIL:SKIPPED_NO_CONTACT" in states, f"The bounced address is skipped: {states}")
+        self.record("POST /webhooks/email/sendgrid (signed bounce) → next notice", "200",
+                    f"delivery {failed['status']}, contactEmails bounced, {len(n51)} N-51 to the admins, next N-24 {states}")
+
+    def real_sms_step(self):
+        if not self.real_sms:
+            print("real SMS skipped: no Twilio credentials", flush=True)
+            self.record("Real SMS (Twilio)", "skipped", "no Twilio credentials in the environment")
+            return
+        number = os.environ["SMOKE_SMS_TO"]
+        member = self.call("GET", "/api/v1/members/" + self.y_member, access=self.admin, quiet=True)
+        self.call("PATCH", "/api/v1/members/" + self.y_member, access=self.admin, quiet=True,
+                  body=dict(phones=[dict(prefix=number[:3], number=number[3:])], version=member["version"]))
+        own = self.call("POST", "/api/v1/message-templates", 201, access=self.admin, quiet=True, body=dict(
+            category="CLUB_CHANGES", title=dict(ca="Avís del smoke " + self.suffix), body=dict(ca="Prova d'SMS real del smoke (text fictici)."),
+            smsBody=dict(ca="Prova d'SMS real del smoke."), icon="info", color="NEUTRAL",
+            matrix=dict(MEMBER=dict(APP=True, EMAIL=False, SMS=True), INSTRUCTORS=dict(APP=False, EMAIL=False, SMS=False), ADMINS=dict(APP=False, EMAIL=False, SMS=False))))
+        self.created_templates.append(own["id"])
+        sent = self.call("POST", "/api/v1/message-templates/" + own["id"] + "/send", 202, access=self.admin, idempotent=True,
+                         body=dict(recipients=dict(memberIds=[self.y_member]), dryRun=False))
+        note = self.wait(lambda: self.settled({"code": "N-24", "dedupKey": sent["batchId"] + ":" + self.y_member}), "The real SMS is not settled")[0]
+        sms = next(d for d in self.detail(note["id"])["deliveries"] if d["channel"] == "SMS")
+        self.require(sms["status"] == "SENT" and sms["providerRef"], f"Real SMS {sms['status']}")
+        self.record("Real SMS (Twilio)", "SENT", "providerRef " + sms["providerRef"][:6] + "…[truncated]")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.s.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.s.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E7 backend gate: D9 templates and the edited N-08a in each recipient's language by APP, e-mail and SMS, the feed and its "
+              "unread count, preferences, «Enviar comunicat» to ten members with its log and audit, P4 at the member's lead, push, "
+              "a signed bounce", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    module = load_smoke()
+    parser.add_argument("--image", nargs="?", const=module.PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building the working tree; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e7-") as directory:
+        smoke = E7(module, Path(directory), options.image)
+        try:
+            smoke.s.start(seeds=SEEDS, label="Cànic")
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.s.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError, TypeError, IndexError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

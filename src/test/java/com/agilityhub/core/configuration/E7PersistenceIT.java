@@ -362,19 +362,6 @@ class E7PersistenceIT extends AbstractIntegrationTest {
         return out.toString(StandardCharsets.UTF_8);
     }
 
-    /** E7-T01 step 8 placeholder (E7-T04 writes it from `POST /message-templates/{id}/send`): the action exists, is written and read back per club. */
-    @Test @AuditCovers(AuditAction.ANNOUNCEMENT_SENT)
-    void T_11_18_announcementSentIsAnAuditActionOfTheClub() {
-        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("e7p-admin", null, "ROLE_ADMIN"));
-        try (var scope = TenantContext.open(CLUB)) {
-            new TransactionTemplate(manager).executeWithoutResult(tx -> audit.write(new AuditCommand(AuditAction.ANNOUNCEMENT_SENT, "Announcement", "e7p-batch", null,
-                    null, Map.of("recipientCount", 37, "filters", List.of("planId:eq:plan-a")), null)));
-        } finally { SecurityContextHolder.clearContext(); }
-        var entry = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(AuditAction.ANNOUNCEMENT_SENT)), AuditEntry.class);
-        assertThat(entry).isNotNull();
-        assertThat(entry.entityType()).isEqualTo("Announcement"); assertThat(entry.entityId()).isEqualTo("e7p-batch");
-        assertThat(entry.actorAccountId()).isEqualTo("e7p-admin"); assertThat(entry.actorRole()).isEqualTo("ADMIN");
-        assertThat(entry.changes()).extracting(change -> change.path()).contains("recipientCount");
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("action").is(AuditAction.ANNOUNCEMENT_SENT)), AuditEntry.class)).isZero();
-    }
+    // E7-T01's T-11-18 placeholder (an ANNOUNCEMENT_SENT entry written by hand) is gone: E7-T04's AnnouncementsIT covers the action
+    // on the real `POST /message-templates/{id}/send` (organizer 27-09).
 }

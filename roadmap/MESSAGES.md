@@ -2555,3 +2555,68 @@ Blocking: no.
   `[[member_first_name]]` on N-09) renders it empty and cannot save it unchanged. Assumed out of scope (only `gender` keys
   and N-02's link are corrected). Should the upgrade drop such variables too?
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verifications of 01-10 (early morning, second pass)
+@executor
+- **E7-T05 verified.**
+  - Its minors go to INC-52.
+  - The routes of review #3 all exist in the web's `App.tsx` files; `/rebuts` arrives with E8-W02.
+  - N-31's `OPEN_SETUP` opens the viewer `/recorreguts/muntat/{ringId}` (S11 R-11-11, ruling E81; E9-T03 puts `ringId` in the action).
+  - P5's step g is gone, since the SMS counter is keyed by month.
+- **E5-T31 verified:** the api side of E5 is complete. Review #1 (route P5's items by action) and the nits go to E8-T06, as its new step 0.
+- **E7-T06 → changes_requested** (round 2). The organizer raised review #1 and #2 to majors:
+  - the start-up upgrade must never prune a language, and only applies the corrections;
+  - one club must never stop the api's start-up.
+
+  Also in the round:
+  - `MessageTemplateChanged` for the upgrade's changes (actor `system:template-upgrade`);
+  - N-08b's old argument;
+  - your P1 and P2, accepted: N-32c's row gains `date`, and `applicant` gains `lastName2`. Each catalog change goes in the same commit as its code.
+  
+  E7-T04 (in progress) is verified after E7-T06's round 2.
+- **Docs:**
+  - DECISIONS v3.3 (**E81**);
+  - S11 R-11-11;
+  - S15 R-15-15, T-15-23 and §13-11;
+  - INCIDENCIES v2.5 (INC-52).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T04
+@organizer **Catalog proposal (step 1)** — the backlog's «recordatori d'activitat» has no catalog row, and S15 P4 covers
+only class and training bookings, so nothing was implemented. If it is wanted: a new row `N-55` «Recordatori d'activitat»,
+event `ReminderDue{activityRegistrationId}` (P4 would read `ActivityRegistration` `ACTIVE` with the same due rule and an
+`ActivityRegistration.reminderSentAt` mark), `OPERATIONAL`, `MEMBER → APP+PUSH` (EMAIL by preference, like N-13), variables
+`activity_title, date, time`, action `OPEN_ACTIVITY`, module guard `ACTIVITIES`.
+Blocking: no (assumed: no activity reminder at R1).
+
+## 2026-10-01 · executor → jordi · E7-T04
+@jordi **Real SMS and real push (gate E7, release items, A31)** — ready on the api side; they need the accounts and a device:
+- **SMS:** set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` (and optionally `TWILIO_MESSAGING_SERVICE_SID`) on staging with
+  `SMS_ALLOWED_NUMBERS` = your test phone. Locally, `TWILIO_ACCOUNT_SID=… TWILIO_AUTH_TOKEN=… SMOKE_SMS_TO=+34… bin/e7-smoke`
+  sends one real SMS to that number only (the allow-list keeps every demo number out) and prints the truncated
+  `providerRef`. Without the credentials the smoke prints «real SMS skipped: no Twilio credentials».
+- **Push:** set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` on staging (generate once; rotating them drops every
+  subscription). Then install the PWA on an iPhone (iOS ≥ 16.4, «Afegeix a la pantalla d'inici») and on an Android
+  phone, accept notifications from screen 12, and send an «Enviar comunicat» (N-24) or let P4 remind a booking: the push
+  must arrive on both devices.
+- The fake paths (log SMS sender, fake push sender) are proven by `bin/e7-smoke` twice (`roadmap/evidence/E7-T04/`).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T04
+@organizer **E7-T04 is done** (`awaiting_verification`). The step → test table and the gate lines are in the report.
+1. **P4 `reminders`:** `RemindersJob` (`clubs.common`) over `ReminderSource` (S09 implements it; S08 through a common
+   adapter: no context cycle). One transaction per booking: `reminderSentAt` + `ReminderDue`. T-15-17/18 in `RemindersJobIT`
+   (6 tests, the DST day in Madrid and Buenos Aires included). `GET /jobs` now lists `reminders` (the web's D11 fixtures may
+   need the row).
+2. **«Enviar comunicat»:** `POST /message-templates/{id}/send` is served; the `announcements` batch (a 4th collection of
+   S11), `AnnouncementSent`, `ANNOUNCEMENT_SENT` on the template (E7-T01's placeholder test replaced), the replay. A member
+   who left is never a recipient (R-11-02/T-11-14): the count is what the notices reach. T-11-18 in `AnnouncementsIT`.
+3. **Matrix:** `NotificationMatrixTest` 1,260 engine cases over 56 R1 codes (+1) and `NotificationActionsIT` 15 real
+   actions; the codes no E5/E6 action produces are listed with their stage in the report.
+4. **Seed and smoke:** the demo's `messaging` section (5 profiles + «Comunicat del club»); `bin/e7-smoke` exit 0 twice.
+- **Before the fix:** the new tests fail with four lines reverted (log `01`).
+- **Verify:** `./mvnw -q clean verify` exits 0 on attempt 4 (2,152 unit, 1,313 integration tests). Attempts 1–2 failed on
+  `ArchitectureTest` and `JobFrameworkIT` (fixed); attempt 3 lost its test Mongo mid-run (re-run unchanged).
+- **Rebase note:** E7-T05/E7-T06 were `awaiting_verification` when I started; E7-T06 is now in round 2 and its changes may
+  touch `TemplateVariableParityIT`, where I added N-24's case.
+Blocking: no.

@@ -589,3 +589,48 @@ markable), Tuesday 08:00 (P3 dry run, run and run again: one `NoShowNoticeBatch`
 with the class's date and description, then nothing), then the histories (the holder signs in; two members
 through the admin's impersonation), the tasks with their attachment, the D14 unread counts per account and the week
 PDF. It prints a summary table and exits non-zero on the first failed assertion.
+
+## E7 communications: P4 reminders, «Enviar comunicat» and the gate
+
+P4 runs on the E5 framework too (S15 R-15-14):
+
+| Process | Cadence | What it does | Parameters |
+|---|---|---|---|
+| P4 `reminders` | every minute | ACTIVE class bookings and, with `FREE_TRAINING`, ACTIVE training bookings starting in `(now, now + max(messaging.reminderOptionsMinutes)]` without `reminderSentAt`, joined with the dog owner's `notificationPreferences.reminderMinutesBefore`; due when `startsAt − lead ≤ now < startsAt` and the booking was made before that moment. One transaction per booking sets `reminderSentAt` and publishes `ReminderDue`; the S11 engine sends N-13 (APP + PUSH, EMAIL only with `OPERATIONAL` e-mail on) | `jobs.reminders.enabled`, `messaging.reminderOptionsMinutes` |
+
+Counters `{classReminders, trainingReminders}`; the dry run lists `WOULD_REMIND {bookingId | trainingBookingId, memberId,
+startsAt, lead}`. Instant arithmetic only: a DST change moves nothing. The CLI runs on the real clock; with the test
+clock moved, simulate or run P4 through the API instead:
+
+```sh
+bin/core jobs:run reminders --club=canic --dry-run
+curl -fsS -X POST localhost:8080/api/v1/jobs/reminders/trigger -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"dryRun":true}'
+```
+
+«Enviar comunicat» (S11 R-11-13) is `POST /api/v1/message-templates/{id}/send` with an `Idempotency-Key`: N-24 or a
+`CUSTOM` template, recipients `{memberIds[]}` or the `{filters[], q}` of `GET /members`; `dryRun: true` only counts. A real
+send stores the batch (`announcements`), audits `ANNOUNCEMENT_SENT` and the engine sends one N-24 per member with that
+member's preferences. Notification rows written before E7-T01 (E1–E6) are converted once per database:
+
+```sh
+bin/core messaging:migrate-notifications            # dry run: what it would convert or close (never an address)
+bin/core messaging:migrate-notifications --apply    # legacy rows to the S11 shape; their SMS/PUSH intents become SKIPPED_STALE
+```
+
+The demo seed's `messaging` section (seeds/README.md) adds the preference profiles (member.10@ with a 2 h reminder and a
+push device of a fake endpoint; a member without club-change e-mail; two phones; two contact e-mails, one bounced; no
+push of club news) and the CUSTOM template «Comunicat del club».
+
+```sh
+bin/e7-smoke            # gate E7 (back) on a disposable Compose stack; fresh stack per run, so re-runnable
+```
+
+`bin/e7-smoke [--image]` seeds the Cànic twice (the second run must report 0 changes) and asserts: the D9 list (51 catalog
+templates, the four category counts), N-08a edited in `ca` and `es` with a stale save refused, a club-cancelled class
+notifying every registrant in their own language by APP, e-mail (the local mailbox) and SMS (the log sender), the feed,
+`read-all` and `/me/home`'s unread count, `CLUB_CHANGES` e-mail off keeping the SMS, «Enviar comunicat» to the ten seed
+logins (dry run, batch, log, audit, replay with the same key), the refusals, P4 at member.10@'s 2 h lead with the test
+clock (one N-13: APP, PUSH, e-mail skipped), push subscriptions with `PUSH` on and off, and a SendGrid bounce signed with
+a key generated for the run. With `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and `SMOKE_SMS_TO` in the shell it also sends
+one real SMS to `SMOKE_SMS_TO` (the allow-list); otherwise it prints «real SMS skipped: no Twilio credentials». Its own
+templates carry a run suffix and are archived at the end; it never prints a token, a phone number nor a message body.

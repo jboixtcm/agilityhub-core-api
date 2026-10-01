@@ -17,6 +17,7 @@ import com.agilityhub.core.clubs.messaging.domain.NotificationPreference;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEvent;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEventEnvelope;
 import com.agilityhub.core.clubs.messaging.domain.NotificationSpec;
+import com.agilityhub.core.clubs.messaging.domain.TemplateKind;
 import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
@@ -128,8 +129,10 @@ public class NotificationEngine {
             if (!conditions(spec, trigger, config)) { continue; }
             var facts = facts(trigger, spec);
             if (facts.isEmpty()) { continue; }
-            var template = templates.forCode(spec, config.club().locales(), config.club().defaultLocale());
-            if (template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
+            // R-11-13: an announcement renders the template it was sent with (N-24's own, or a CUSTOM one).
+            var template = facts.get().templateId() == null ? templates.forCode(spec, config.club().locales(), config.club().defaultLocale())
+                    : templates.byId(facts.get().templateId()).orElse(null);
+            if (template == null || template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
             List<Notification> built = relevant(spec, trigger) ? build(spec, trigger, facts.get(), template, config) : stale(spec, trigger, facts.get(), template);
             var stored = store(spec, trigger, built);
             for (var owner : ownersOf(trigger.type())) { owner.stored(trigger, spec.code(), stored.views()); }
@@ -193,8 +196,10 @@ public class NotificationEngine {
     }
 
     private List<Notification> build(NotificationSpec catalogSpec, NotificationTrigger trigger, NotificationFacts facts, MessageTemplate template, ClubConfig config) {
-        // The catalog's Annex A variant (N-32b from the back office → CLUB_CHANGES): its category and its caps as channels.
-        var spec = facts.categoryOverride() == null ? catalogSpec : NotificationCatalog.variant(catalogSpec, NotificationCategory.valueOf(facts.categoryOverride()));
+        // The catalog's Annex A variant (N-32b from the back office → CLUB_CHANGES): its category and its caps as channels. A CUSTOM
+        // template (R-11-12, sent as N-24 by R-11-13) has its own category, whose caps bound the template's own matrix below.
+        var spec = facts.categoryOverride() != null ? NotificationCatalog.variant(catalogSpec, NotificationCategory.valueOf(facts.categoryOverride()))
+                : template.kind() == TemplateKind.CUSTOM ? NotificationCatalog.variant(catalogSpec, template.category()) : catalogSpec;
         var resolved = recipients.resolve(spec, trigger, facts);
         var formats = new ClubFormats(config, messages);
         var formatter = new VariableFormatter(formats, messages, clock, config.club().defaultLocale());

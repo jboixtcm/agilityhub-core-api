@@ -107,8 +107,8 @@ public final class ChannelTruthTable {
         };
     }
 
-    /** The deliveries of R-11-03, row by row of the table. */
-    static List<ChannelResolver.Planned> expected(NotificationSpec spec, NotificationAudience audience, Map<NotificationChannel, Boolean> matrix,
+    /** The deliveries of R-11-03, row by row of the table (public for E7-T04's engine matrix, `NotificationMatrixTest`). */
+    public static List<ChannelResolver.Planned> expected(NotificationSpec spec, NotificationAudience audience, Map<NotificationChannel, Boolean> matrix,
             ChannelResolver.Modules modules, ChannelResolver.Contact contact, boolean emailPreference, boolean pushClubNews, ContactKind kind) {
         var out = new ArrayList<ChannelResolver.Planned>();
         if (!spec.audiences().contains(audience)) { return out; }

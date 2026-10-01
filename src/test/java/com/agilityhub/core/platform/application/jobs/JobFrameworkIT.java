@@ -537,9 +537,9 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(runs()).singleElement().satisfies(run -> assertThat(run.getString("status")).isEqualTo("SUCCEEDED"));
         var suspended = mongo.find(Query.query(Criteria.where("clubId").is(SUSPENDED)), Document.class, "job_runs");
         assertThat(suspended).isNotEmpty().allSatisfy(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
-        // E5-T05 + E6-T04 + E5-T31 (P5, step h): the eight processes with a bean in R-15-01 order, then the test job; P4 and P10 have no bean yet.
+        // E5-T05 + E6-T04 + E5-T31 (P5, step h) + E7-T04 (P4): the nine processes with a bean in R-15-01 order, then the test job; P10 has no bean yet.
         assertThat(runner.registered()).extracting(Job::name).containsExactly(JobName.WEEK_OPENING, JobName.RISK_REVIEW, JobName.NO_SHOW_NOTICES,
-                JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS, JobName.CLASS_FINISHING, JobName.CLEANUP, JobName.TEST_NOOP);
+                JobName.REMINDERS, JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS, JobName.CLASS_FINISHING, JobName.CLEANUP, JobName.TEST_NOOP);
         assertThat(runner.registered(JobName.BILLING_REMINDER)).isEmpty();
         // A failing club does not stop the tick.
         job.configure(DAILY, 1, 0, true);

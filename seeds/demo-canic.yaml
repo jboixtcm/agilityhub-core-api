@@ -264,3 +264,33 @@ scenario:
       - {text: "Practiqueu el balancí a casa amb calma: sessions curtes, i sempre acabant amb un èxit (vídeo adjunt).", attachment: {name: balanci-mel.mp4, mimeType: video/mp4, sizeBytes: 4096}}
       - {text: "Tres sessions de quiets d'un minut abans de la classe de dilluns.", completedBy: Rita}
     observation: "Bona progressió en contactes; cal reforçar la sortida del túnel (observació fictícia)."
+
+# E7-T04 (S11 R-11-03/04/07/08, R-11-12): the preference profiles that make the channel × audience × preference matrix visible
+# in 12/D10 and in bin/e7-smoke, applied once by the demo planning run through the S03/S11 services (seeds/README.md).
+# `member` = census ordinal (14 = member.10@, a seed login; 15+ are ACTIVE members without a password). Fictional data only.
+messaging:
+  profiles:
+    - member: 14                       # member.10@: «Recordatori de classe: 2 h abans» + a phone with the app installed
+      reminderMinutesBefore: 120
+      push:
+        endpoint: 'https://push.example.test/demo-canic/member-10'
+        deviceLabel: 'Android · Chrome'
+        p256dh: 'BHOSs0YsSaLk6TQZCHSDATUjNlrmU0Lvhn21nxNNQtPGmW1zAZmQRcHOFqToHw0VllmplTaYYZl3k2c-1Jjfrp8'
+        auth: 'IiIiIiIiIiIiIiIiIiIiIg'
+    - member: 15                       # club changes by app and SMS only (the SMS stays, R-11-04)
+      emailByCategory: {CLUB_CHANGES: false}
+    - member: 16                       # two phones: one SMS to each
+      extraPhones: ['+34600000901']
+    - member: 17                       # two contact e-mails, the second one bounced (R-11-08)
+      bouncedEmails: ['demo.canic.antic@example.test']
+    - member: 18                       # no push for club news
+      pushClubNews: false
+  customTemplates:
+    - category: CLUB_NEWS
+      icon: flag
+      color: ACCENT
+      title: {ca: 'Comunicat del club', es: 'Comunicado del club', en: 'Message from the club'}
+      body:
+        ca: "Hola [[member_first_name]]! Dissabte fem la jornada de portes obertes del club: porteu [[dog_name]] i la família (text fictici)."
+        es: "¡Hola [[member_first_name]]! El sábado hacemos la jornada de puertas abiertas del club: traed a [[dog_name]] y a la familia (texto ficticio)."
+        en: "Hi [[member_first_name]]! On Saturday the club holds its open day: bring [[dog_name]] and the family (fictional text)."

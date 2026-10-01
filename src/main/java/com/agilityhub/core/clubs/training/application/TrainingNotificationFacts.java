@@ -52,8 +52,10 @@ public class TrainingNotificationFacts implements NotificationFactsPort, Booking
         String id = reminder ? trigger.text("trainingBookingId") : Objects.requireNonNullElse(trigger.text("trainingBookingId"), trigger.aggregateId());
         var booking = bookings.findById(id).orElse(null);
         if (booking == null) { return Optional.empty(); }
+        // N-13 goes to the member P4 reminded (`ReminderDue.memberId`: the dog's owner, whose lead applied, E7-T04); the other notices to the booker.
+        String memberId = reminder ? Objects.requireNonNullElse(trigger.text("memberId"), booking.memberId()) : booking.memberId();
         var builder = NotificationFacts.builder().subject(NotificationSubject.trainingBooking(booking.id()))
-                .member(new NotificationFacts.MemberSubject(booking.memberId(), booking.dogId(), Map.of("entityId", booking.id()), NotificationSubject.trainingBooking(booking.id())))
+                .member(new NotificationFacts.MemberSubject(memberId, booking.dogId(), Map.of("entityId", booking.id()), NotificationSubject.trainingBooking(booking.id())))
                 .value("date", booking.startsAt()).value("time", new NotificationValues.TimeRange(booking.startsAt(), booking.endsAt()))
                 .value("ring_name", Objects.toString(service.ringNames().get(booking.ringId()), ""));
         if (reminder) { return Optional.of(builder.value("kind", "TRAINING").build()); }

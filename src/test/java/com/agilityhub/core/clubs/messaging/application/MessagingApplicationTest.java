@@ -30,8 +30,8 @@ class MessagingApplicationTest {
     }
 
     @Test void T_11_11_T_11_07_theFactsOfN51AndN49() {
-        var facts = new MessagingNotificationFacts(InMemoryMessagingPorts.s11Examples());
-        assertThat(facts.eventTypes()).containsExactlyInAnyOrder("EmailBounced", "SmsCapReached");
+        var facts = new MessagingNotificationFacts(InMemoryMessagingPorts.s11Examples(), null);
+        assertThat(facts.eventTypes()).containsExactlyInAnyOrder("EmailBounced", "SmsCapReached", "AnnouncementSent");
         var bounced = facts.facts(trigger("EmailBounced", Map.of("memberId", "member-anna", "email", "anna@example.test", "type", "BOUNCE")), "N-51").orElseThrow();
         assertThat(bounced.values()).containsEntry("member_name", "Anna Soler").containsEntry("email", "anna@example.test");
         assertThat(bounced.members()).isEmpty(); assertThat(bounced.subject().memberId()).isEqualTo("member-anna");

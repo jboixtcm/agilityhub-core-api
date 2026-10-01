@@ -385,7 +385,7 @@ class NotificationEngineIT extends EngineFixtures {
     }
 
     @Test void T_11_23_clubNewsMailsCarryTheSignedUnsubscribeLinkAndTransactionalOnesNever() {
-        deliver(CLUB, "AnnouncementSent", Map.of("batchId", "batch-1", "memberId", "member-laura"));
+        announce(CLUB, "batch-1", "member-laura");
         var news = only(CLUB, "N-24");
         assertThat(news.dedupKey()).isEqualTo("batch-1:member-laura");
         assertThat(channels(news)).containsExactly("APP:DELIVERED", "EMAIL:SENT", "PUSH:SKIPPED_NO_CONTACT");
@@ -402,7 +402,7 @@ class NotificationEngineIT extends EngineFixtures {
         // After «Deixar de rebre» (CLUB_NEWS e-mail off) and with push of club news off: APP only, both skipped by preference.
         subscribe(CLUB, "subscription-laura", "account-laura");
         ports.update("member-laura", c -> InMemoryMessagingPorts.with(c, null, Map.of("emailByCategory", Map.of("CLUB_NEWS", false), "pushClubNews", false), null, null));
-        deliver(CLUB, "AnnouncementSent", Map.of("batchId", "batch-2", "memberId", "member-laura"));
+        announce(CLUB, "batch-2", "member-laura");
         assertThat(channels(stored(CLUB, "N-24").stream().filter(n -> n.dedupKey().startsWith("batch-2")).findFirst().orElseThrow()))
                 .containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "PUSH:SKIPPED_BY_PREFERENCE");
         assertThat(push.sent()).isEmpty();
@@ -490,7 +490,7 @@ class NotificationEngineIT extends EngineFixtures {
         assertThat(n28.body()).contains("31 de octubre de 2026", "Club Agility Exemple", "Ares");
         assertThat(n28.variables()).containsEntry("effective_date", "31 de octubre de 2026").containsEntry("member_first_name", "Marc");
         // N-24 never reaches him.
-        deliver(CLUB, "AnnouncementSent", Map.of("batchId", "batch-1", "memberId", "member-marc"));
+        announce(CLUB, "batch-1", "member-marc");
         assertThat(stored(CLUB, "N-24")).isEmpty();
         // Time: the engine never uses the wall clock (the notices carry the injected instant).
         assertThat(n28.createdAt()).isEqualTo(clock.instant());
