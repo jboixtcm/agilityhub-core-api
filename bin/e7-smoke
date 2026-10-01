@@ -31,6 +31,29 @@ ROOT = Path(__file__).resolve().parents[1]
 SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
 # Seed logins (seeds/demo-canic.yaml `accountEmails`): member@ = ordinal 5 (member number 6) … member.10@ = ordinal 14 (number 15).
 ANNOUNCEMENT_FILTERS = ["memberNumber:gte:6", "memberNumber:lte:15"]
+# The member's feed lists SMS in a card's `channels` only when one of the notice's SMS deliveries is SENT or DELIVERED («i per
+# SMS», MeNotification.channels); the e-mail is never listed.
+FEED_SMS_SENT = ("SENT", "DELIVERED")
+
+
+def feed_card_problem(card, deliveries, real_sms):
+    """What is wrong with the member's N-08a card (`GET /me/notifications`), given the notice's deliveries (`GET
+    /notifications/{id}`), or None. The expectation follows the SMS delivery's status (E7-T07, review #1 of E7-T04 round 3):
+    the card lists SMS exactly when one SMS delivery was sent. With the log sender every SMS is sent, so the card must carry
+    the SMS badge. With Twilio credentials the allow-list (`SMS_ALLOWED_NUMBERS` = `SMOKE_SMS_TO`) skips the member's fictional
+    number (`SKIPPED_NOT_ALLOWED`), and the card rightly leaves SMS out. Only statuses go into the message, never a target."""
+    sms = sorted(d["status"] for d in deliveries if d["channel"] == "SMS")
+    if not sms:
+        return "the notice has no SMS delivery"
+    sent = any(status in FEED_SMS_SENT for status in sms)
+    if not real_sms and not sent:
+        return f"the log sender did not send the SMS ({sms})"
+    expected = ["APP", "SMS"] if sent else ["APP"]
+    if card["channels"] != expected:
+        return f"channels {card['channels']}, expected {expected} for the SMS {sms}"
+    if card["action"] is None or card["action"]["type"] != "CHANGE_CLASS":
+        return f"action {card['action'] and card['action']['type']}, expected CHANGE_CLASS"
+    return None
 
 
 def load_smoke():
@@ -296,20 +319,24 @@ class E7:
             languages[note["member"]] = text["locale"]
         self.require(languages[self.x_member] == "es" and languages[self.y_member] == "ca", "member@ reads Spanish, member.3@ Catalan")
         self.x_note = next(n for n in notes if n["member"] == self.x_member)
+        sms = sorted({d["status"] for n in notes for d in n["deliveries"] if d["channel"] == "SMS"})
         self.record("POST /class-sessions/{Mon 08:30 MUN}/cancellation → N-08a", "200",
-                    f"{len(rows)} registrants · APP DELIVERED + EMAIL SENT (mailbox) + SMS SENT · edited text in {sorted(set(languages.values()))}")
+                    f"{len(rows)} registrants · APP DELIVERED + EMAIL SENT (mailbox) + SMS {' / '.join(sms)} · edited text in {sorted(set(languages.values()))}")
         self.started = started
 
     def feed(self):
         feed = self.call("GET", "/api/v1/me/notifications?page=0&size=20", access=self.x)
         card = next(i for i in feed["items"] if i["id"] == self.x_note["id"])
-        self.require("SMS" in card["channels"] and card["action"]["type"] == "CHANGE_CLASS", f"The card: channels {card['channels']}, action {card['action']}")
+        deliveries = self.detail(self.x_note["id"])["deliveries"]
+        problem = feed_card_problem(card, deliveries, self.real_sms)
+        self.require(problem is None, f"The N-08a card: {problem}")
         self.require(feed["unreadCount"] >= 1, "The card is unread")
         read = self.call("POST", "/api/v1/me/notifications/read-all", access=self.x)
         home = self.call("GET", "/api/v1/me/home", access=self.x, quiet=True)
         self.require(read["unreadCount"] == 0 and home["notifications"]["unreadCount"] == 0, "read-all → 0, and /me/home agrees")
+        sms = sorted(d["status"] for d in deliveries if d["channel"] == "SMS")
         self.record("GET /me/notifications · POST read-all · GET /me/home", "200 · 200 · 200",
-                    f"N-08a card channels {card['channels']}, action {card['action']['type']}; unreadCount {feed['unreadCount']} → 0 (home 0)")
+                    f"N-08a card channels {card['channels']} (SMS delivery {sms}), action {card['action']['type']}; unreadCount {feed['unreadCount']} → 0 (home 0)")
 
     def preference(self):
         saved = self.call("PUT", "/api/v1/me/notification-preferences", access=self.x, body=dict(emailByCategory=dict(CLUB_CHANGES=False)))
@@ -349,6 +376,10 @@ class E7:
         self.require(len([i for i in log["items"] if i["recipient"]["memberId"] in {n["member"] for n in notes}]) == 10, "The log lists the ten notices")
         audit = self.call("GET", "/api/v1/audit-entries?filter=action:eq:ANNOUNCEMENT_SENT", access=self.admin, quiet=True)["items"]
         self.require(len(audit) == 1 and audit[0]["entityType"] == "MessageTemplate" and audit[0]["entityId"] == n24, "One ANNOUNCEMENT_SENT on the template")
+        # E7-T07 (S14 §3): the batch is in the entry's details; the template did not change.
+        details = dict(batchId=batch, recipientCount=10, filters=ANNOUNCEMENT_FILTERS, selection="FILTERS")
+        self.require(audit[0].get("details") == details and audit[0]["changes"] == [], f"The audit entry's details {sorted(audit[0].get('details') or {})}, "
+                     f"{len(audit[0]['changes'])} changes")
         replay = self.call("POST", "/api/v1/message-templates/" + n24 + "/send", 202, access=self.admin, key=key,
                            body=dict(recipients=dict(filters=ANNOUNCEMENT_FILTERS), dryRun=False))
         time.sleep(3)
@@ -358,7 +389,8 @@ class E7:
                      "The replay created nothing")
         push = sum(1 for n in notes for d in n["deliveries"] if d["channel"] == "PUSH" and d["status"] == "SENT")
         self.record("POST /message-templates/{N-24}/send {filters} (+ replay, same key)", "202 · 202",
-                    f"batch {self.m.short(batch)}, 10 MEMBER notices with dedupKey {{batchId}}:{{memberId}}, 1 ANNOUNCEMENT_SENT audit, "
+                    f"batch {self.m.short(batch)}, 10 MEMBER notices with dedupKey {{batchId}}:{{memberId}}, 1 ANNOUNCEMENT_SENT audit "
+                    f"(details {{batchId, recipientCount 10, filters, selection}}, no changes), "
                     f"{push} push sent; replay → same batch, no new rows")
         # The run's own CUSTOM template (run suffix), to two members; archived at the end.
         own = self.call("POST", "/api/v1/message-templates", 201, access=self.admin, body=dict(

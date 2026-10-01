@@ -1,0 +1,36 @@
+applied A: bin/e7-smoke
+test_a_failure_never_prints_a_phone_number (__main__.FeedExpectationTest.test_a_failure_never_prints_a_phone_number) ... ok
+test_log_sender_card_carries_the_sms_badge (__main__.FeedExpectationTest.test_log_sender_card_carries_the_sms_badge) ... ok
+test_the_card_must_agree_with_the_delivery_in_both_modes (__main__.FeedExpectationTest.test_the_card_must_agree_with_the_delivery_in_both_modes) ... FAIL
+test_the_log_sender_must_send_and_the_action_stays_change_class (__main__.FeedExpectationTest.test_the_log_sender_must_send_and_the_action_stays_change_class) ... ok
+test_twilio_allow_list_card_leaves_the_skipped_sms_out (__main__.FeedExpectationTest.test_twilio_allow_list_card_leaves_the_skipped_sms_out) ... FAIL
+
+======================================================================
+FAIL: test_the_card_must_agree_with_the_delivery_in_both_modes (__main__.FeedExpectationTest.test_the_card_must_agree_with_the_delivery_in_both_modes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e7-smoke-test.py", line 111, in test_the_card_must_agree_with_the_delivery_in_both_modes
+    with self.assertRaisesRegex(AssertionError, "expected \\['APP'\\]"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AssertionError not raised
+
+======================================================================
+FAIL: test_twilio_allow_list_card_leaves_the_skipped_sms_out (__main__.FeedExpectationTest.test_twilio_allow_list_card_leaves_the_skipped_sms_out)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e7-smoke-test.py", line 99, in test_twilio_allow_list_card_leaves_the_skipped_sms_out
+    E7.feed(stub)
+    ~~~~~~~^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e7-smoke", line 332, in feed
+    self.require("SMS" in card["channels"] and card["action"]["type"] == "CHANGE_CLASS", f"The card: channels {card['channels']}, action {card['action']}")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e7-smoke-test.py", line 84, in require
+    raise AssertionError(message)
+AssertionError: The card: channels ['APP'], action {'type': 'CHANGE_CLASS', 'params': {'dogId': 'e7t07-dog'}, 'enabled': True}
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+FAILED (failures=2)
+test exit 1
+restored bin/e7-smoke

@@ -609,8 +609,8 @@ curl -fsS -X POST localhost:8080/api/v1/jobs/reminders/trigger -H "Authorization
 
 «Enviar comunicat» (S11 R-11-13) is `POST /api/v1/message-templates/{id}/send` with an `Idempotency-Key`: N-24 or a
 `CUSTOM` template, recipients `{memberIds[]}` or the `{filters[], q}` of `GET /members`; `dryRun: true` only counts. A real
-send stores the batch (`announcements`), audits `ANNOUNCEMENT_SENT` and the engine sends one N-24 per member with that
-member's preferences. Notification rows written before E7-T01 (E1–E6) are converted once per database:
+send stores the batch (`announcements`), audits `ANNOUNCEMENT_SENT` on the template (no changes; `details {batchId,
+recipientCount, filters, selection}`) and the engine sends one N-24 per member with that member's preferences. Notification rows written before E7-T01 (E1–E6) are converted once per database:
 
 ```sh
 bin/core messaging:migrate-notifications            # dry run: what it would convert or close (never an address)
@@ -632,5 +632,7 @@ notifying every registrant in their own language by APP, e-mail (the local mailb
 logins (dry run, batch, log, audit, replay with the same key), the refusals, P4 at member.10@'s 2 h lead with the test
 clock (one N-13: APP, PUSH, e-mail skipped), push subscriptions with `PUSH` on and off, and a SendGrid bounce signed with
 a key generated for the run. With `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` and `SMOKE_SMS_TO` in the shell it also sends
-one real SMS to `SMOKE_SMS_TO` (the allow-list); otherwise it prints «real SMS skipped: no Twilio credentials». Its own
+one real SMS to `SMOKE_SMS_TO` (the allow-list); otherwise it prints «real SMS skipped: no Twilio credentials». In that mode
+the seed members' SMS are `SKIPPED_NOT_ALLOWED`, and the feed check expects SMS in the card only when it was sent
+(`python3 bin/e7-smoke-test.py` covers both modes). Its own
 templates carry a run suffix and are archived at the end; it never prints a token, a phone number nor a message body.

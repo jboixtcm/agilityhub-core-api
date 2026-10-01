@@ -18,7 +18,6 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.shared.domain.ErrorCode;
-import com.agilityhub.core.shared.domain.audit.AuditField;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -39,7 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>A dry run only counts («S'enviarà a {n} abonats») and writes nothing. A real send, in one transaction: the
  * {@link Announcement} batch (its members and the template as it is now frozen: the engine renders that copy whatever happens
  * to the template later, ruling E82), `AnnouncementSent{templateId, batchId, recipientCount, filters}` on the
- * outbox and the `ANNOUNCEMENT_SENT` audit entry on the template with `{batchId, recipientCount, filters, selection}`. The
+ * outbox and the `ANNOUNCEMENT_SENT` audit entry on the template with `details {batchId, recipientCount, filters, selection}`
+ * and no `changes` (E7-T07: the template does not change). The
  * engine then creates one `MEMBER` notification per member (`dedupKey = {batchId}:{memberId}`) with that member's
  * preferences and the template's matrix. The `Idempotency-Key` replay of the same batch is the API's (`IdempotencyFilter`).</p>
  */
@@ -63,9 +63,18 @@ public class AnnouncementService {
         }
         String selection() { return memberIds != null ? Announcement.MEMBERS : Announcement.FILTERS; }
     }
-    /** What the real send did; the audited fields are the entry's details. */
-    public record Receipt(String templateId, @AuditField String batchId, @AuditField int recipientCount, @AuditField List<String> filters,
-            @AuditField String selection) { }
+    /** What the real send did. */
+    public record Receipt(String templateId, String batchId, int recipientCount, List<String> filters, String selection) {
+        /**
+         * The `ANNOUNCEMENT_SENT` entry's `details` (S14 §3, E7-T07): the send changes nothing on the template, so the entry has
+         * no `changes`; `selection` tells an explicit selection (no filters) from the list's filters.
+         */
+        public Map<String, Object> details() {
+            var details = new LinkedHashMap<String, Object>();
+            details.put("batchId", batchId); details.put("recipientCount", recipientCount); details.put("filters", filters); details.put("selection", selection);
+            return details;
+        }
+    }
 
     /** The dry run: how many members the send would reach. Nothing is written. */
     public int count(String templateId, Recipients recipients) {
@@ -74,7 +83,7 @@ public class AnnouncementService {
     }
 
     @Transactional
-    @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()")
+    @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", details = "#result.details()")
     public Receipt send(String templateId, Recipients recipients) {
         var template = sendable(templateId);
         var reached = recipients(recipients);

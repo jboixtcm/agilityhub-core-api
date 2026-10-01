@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E7-T07 · the `ANNOUNCEMENT_SENT` audit entry carries `details`
+
+**No schema, operation, status or required set changed; one description changed.**
+- `POST /message-templates/{id}/send`: the description says that the `ANNOUNCEMENT_SENT` entry is on the template, with no
+  changes and with `details {batchId, recipientCount, filters, selection}`.
+- Values without a contract change: for this action, `GET /audit-entries` and `GET /audit-entries/{id}` now return `details`
+  (`selection` is `FILTERS` or `MEMBERS`; `filters` is `[]` for a selection) and `changes: []`. Before, the four values were
+  `changes[]` paths and `details` was absent.
+
 ## 2026-10-01 · E8-T02 round 2 · a receipt cancelled by a rollback is listed only under `CANCELLED` (`rolledBack`)
 
 **One optional field added; two descriptions changed; no operation, status or required set changed** (ruling E87).

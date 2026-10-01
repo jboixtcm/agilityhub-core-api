@@ -26,9 +26,11 @@ public class AuditWriter {
     /**
      * S14 R-14-10: an entry without changes or reason is discarded, except for the «event» actions, which record that the
      * action happened (E5-T28: a re-validation of a VALIDATED week that activates its loose DRAFT classes keeps the week's
-     * fields, and is still audited).
+     * fields, and is still audited). `ANNOUNCEMENT_SENT` is one (E7-T07): a send changes nothing on its template, so the entry
+     * has no changes and carries the batch in `details` (S14 §3).
      */
-    static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED);
+    static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED,
+            AuditAction.ANNOUNCEMENT_SENT);
 
     public void write(AuditCommand command) { write(command, (String) null); }
 
@@ -64,7 +66,13 @@ public class AuditWriter {
     }
 
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null, null, null); }
+               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null); }
+
+    /** `@Audited`'s entry, with the `details` its expression gives (S14 §3; null or empty writes none). */
+    void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
+               List<AuditChange> changes, Map<String, Object> details) {
+        write(action, entityType, entityId, memberId, reason, changes, null, null, details == null || details.isEmpty() ? null : details);
+    }
 
     private void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
                List<AuditChange> changes, String origin, AuditActor system, Map<String, Object> details) {

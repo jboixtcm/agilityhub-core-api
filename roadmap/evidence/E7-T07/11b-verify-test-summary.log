@@ -1,0 +1,16 @@
+surefire-reports: 181 classes, tests=3655 failures=0 errors=0 skipped=0
+failsafe-reports: 125 classes, tests=1442 failures=0 errors=0 skipped=0
+  AnnouncementsIT (failsafe-reports): tests=4 failures=0 errors=0 skipped=0
+  NotificationActionsIT (failsafe-reports): tests=15 failures=0 errors=0 skipped=0
+  AuditWriterTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  AuditedAspectTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  AuditContractTest (surefire-reports): tests=1 failures=0 errors=0 skipped=0
+  AuditedAspectIT (failsafe-reports): tests=14 failures=0 errors=0 skipped=0
+  AuditQueriesIT (failsafe-reports): tests=8 failures=0 errors=0 skipped=0
+  NotificationMatrixTest (surefire-reports): tests=2681 failures=0 errors=0 skipped=0
+  DemoScenarioSeedIT (failsafe-reports): tests=6 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest (failsafe-reports): tests=10 failures=0 errors=0 skipped=0
+  ArchitectureTest (surefire-reports): tests=17 failures=0 errors=0 skipped=0
+  coverage com.agilityhub.core.platform.application.audit: lines 100.0 % (144/144), branches 95.0 % (57/60)
+  coverage com.agilityhub.core.clubs.messaging.application: lines 99.4 % (1001/1007), branches 88.2 % (830/941)
+  coverage com.agilityhub.core.clubs.messaging.api: lines 99.4 % (177/178), branches 85.5 % (53/62)

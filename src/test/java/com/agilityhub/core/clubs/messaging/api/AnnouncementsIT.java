@@ -41,7 +41,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * E7-T04 step 2 against the API (S11 R-11-13, T-11-18): «Enviar comunicat» with N-24 and with a `CUSTOM` template, recipients
  * by `memberIds` and by the filters of `GET /members` (the same semantics: the list's own answer is the oracle), the dry run that
- * counts and writes nothing, the real send with its batch, `AnnouncementSent`, the `ANNOUNCEMENT_SENT` audit and one N-24 per
+ * counts and writes nothing, the real send with its batch, `AnnouncementSent`, the `ANNOUNCEMENT_SENT` audit (read through the
+ * audit API: `details {batchId, recipientCount, filters, selection}` and no changes, E7-T07) and one N-24 per
  * member (`dedupKey {batchId}:{memberId}`) with each member's preferences and language, the `Idempotency-Key` replay with the
  * same `batchId`, and the refusals: another code (`TEMPLATE_NOT_SENDABLE`, 422), nobody (`NO_RECIPIENTS`, 422), an archived or
  * another club's template (404), both or neither kind of recipients (400), an undeclared filter (400), other roles (403).
@@ -161,13 +162,20 @@ class AnnouncementsIT extends AbstractIntegrationTest {
         assertThat(event.get("payload", Document.class).keySet()).containsExactlyInAnyOrder("templateId", "batchId", "recipientCount", "filters");
         assertThat(event.get("payload", Document.class)).containsEntry("templateId", n24).containsEntry("batchId", batchId).containsEntry("recipientCount", 3)
                 .containsEntry("filters", List.of("status:eq:ACTIVE"));
-        // ANNOUNCEMENT_SENT on the template, by the admin, with {batchId, recipientCount, filters} — only in this club.
-        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("ANNOUNCEMENT_SENT")), Document.class, "audit_entries");
-        assertThat(audit.getString("entityType")).isEqualTo("MessageTemplate"); assertThat(audit.getString("entityId")).isEqualTo(n24);
-        assertThat(audit.getString("actorAccountId")).isEqualTo(ADMIN); assertThat(audit.getString("actorRole")).isEqualTo("ADMIN");
-        assertThat(audit.getList("changes", Document.class)).extracting(c -> c.getString("path")).contains("batchId", "recipientCount", "filters");
-        assertThat(audit.toJson()).contains(batchId, "status:eq:ACTIVE");
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("action").is("ANNOUNCEMENT_SENT")), "audit_entries")).isZero();
+        // ANNOUNCEMENT_SENT on the template, by the admin — only in this club. E7-T07 (S14 §3): the audit API returns the batch in
+        // `details {batchId, recipientCount, filters}` (and `selection`); the template did not change, so `changes` is empty.
+        var expectedDetails = mapper.createObjectNode().put("batchId", batchId).put("recipientCount", 3);
+        expectedDetails.putArray("filters").add("status:eq:ACTIVE"); expectedDetails.put("selection", "FILTERS");
+        var audits = call(as(get("/api/v1/audit-entries"), "ADMIN").param("filter", "action:eq:ANNOUNCEMENT_SENT"), 200).path("items");
+        assertThat(audits).hasSize(1);
+        for (var audit : List.of(audits.get(0), call(as(get("/api/v1/audit-entries/" + audits.get(0).path("id").asText()), "ADMIN"), 200))) {
+            assertThat(audit.path("entityType").asText()).isEqualTo("MessageTemplate"); assertThat(audit.path("entityId").asText()).isEqualTo(n24);
+            assertThat(audit.path("actorAccountId").asText()).isEqualTo(ADMIN); assertThat(audit.path("actorRole").asText()).isEqualTo("ADMIN");
+            assertThat(audit.path("action").asText()).isEqualTo("ANNOUNCEMENT_SENT");
+            assertThat(audit.path("details")).isEqualTo(expectedDetails);
+            assertThat(audit.path("changes").isArray()).isTrue(); assertThat(audit.path("changes")).isEmpty();
+        }
+        assertThat(call(as(get("/api/v1/audit-entries"), "ADMIN", OTHER).param("filter", "action:eq:ANNOUNCEMENT_SENT"), 200).path("items")).isEmpty();
         // The same Idempotency-Key: the same batch, nothing new.
         var replay = send(n24, Map.of("filters", List.of("status:eq:ACTIVE")), false, key, 202);
         assertThat(replay.path("batchId").asText()).isEqualTo(batchId);
@@ -202,6 +210,13 @@ class AnnouncementsIT extends AbstractIntegrationTest {
         var batch = mongo.findById(sent.path("batchId").asText(), Document.class, "announcements");
         assertThat(batch.getString("selection")).isEqualTo("MEMBERS"); assertThat(batch.getList("filters", String.class)).isEmpty();
         assertThat(batch.getList("memberIds", String.class)).containsExactly("e7t04-ann-joan");
+        // E7-T07: a selection's entry says so, with no filters (the member ids stay in the batch, never in the audit).
+        var audit = call(as(get("/api/v1/audit-entries"), "ADMIN").param("filter", "action:eq:ANNOUNCEMENT_SENT").param("filter", "entityId:eq:" + custom), 200)
+                .path("items");
+        assertThat(audit).hasSize(1);
+        assertThat(audit.get(0).path("details")).isEqualTo(mapper.readTree("{\"batchId\":\"" + sent.path("batchId").asText()
+                + "\",\"recipientCount\":1,\"filters\":[],\"selection\":\"MEMBERS\"}"));
+        assertThat(audit.get(0).path("changes")).isEmpty();
         dispatch();
         var rows = NotificationRows.rows(mongo, CLUB, "N-24");
         assertThat(rows).extracting(r -> r.getString("memberId")).containsOnly("e7t04-ann-joan");

@@ -2,6 +2,7 @@ package com.agilityhub.core.platform.application.audit;
 
 import com.agilityhub.core.shared.domain.audit.AuditField;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
@@ -15,7 +16,7 @@ class AuditedAspectTest {
         MutableClub club = new MutableClub();
         assertThat(proxy.update(club, "Corrected name")).isSameAs(club);
         verify(writer).write(AuditAction.CLUB_UPDATED, "Club", "club-a", null, "Corrected name",
-                List.of(new AuditChange("name", "before", "after")));
+                List.of(new AuditChange("name", "before", "after")), null);
     }
 
     @Test void T_14_12_missingLoaderFailsBeforeMutationAndDuplicateLoadersAreRejected() {
@@ -36,7 +37,24 @@ class AuditedAspectTest {
         AuditWriter writer = mock(AuditWriter.class);
         proxy(writer, new DetachedService()).create();
         verify(writer).write(AuditAction.CLUB_UPDATED, "Club", "club-a", null, null,
-                List.of(new AuditChange("name", null, "before")));
+                List.of(new AuditChange("name", null, "before")), null);
+    }
+
+    /**
+     * E7-T07 (S14 §3; review #2 of E7-T04 round 3): `details` is an expression over the result, written as the entry's
+     * `details` next to its changes (none here: the result has no audited field); a null map writes none, anything else
+     * than a map is a programming error.
+     */
+    @Test void E7_T07_theDetailsExpressionIsTheEntrysDetails() {
+        AuditWriter writer = mock(AuditWriter.class);
+        var proxy = proxy(writer, new DetachedService());
+        proxy.send("template-a", 3);
+        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-a", null, null, List.of(),
+                Map.of("batchId", "batch-template-a", "recipientCount", 3));
+        proxy.send("template-b", 0);
+        verify(writer).write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-b", null, null, List.of(), null);
+        assertThatThrownBy(() -> proxy.sendWithTextDetails("template-c")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("@Audited details must be a map");
     }
 
     private DetachedService proxy(AuditWriter writer, DetachedService service) {
@@ -48,6 +66,10 @@ class AuditedAspectTest {
     public static class MutableClub {
         @AuditField private String name = "before";
         public String id() { return "club-a"; }
+    }
+
+    public record Sent(String templateId, int recipientCount) {
+        public Map<String, Object> details() { return recipientCount == 0 ? null : Map.of("batchId", "batch-" + templateId, "recipientCount", recipientCount); }
     }
 
     public static class DetachedService {
@@ -63,5 +85,11 @@ class AuditedAspectTest {
 
         @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'")
         public MutableClub create() { return new MutableClub(); }
+
+        @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", details = "#result.details()")
+        public Sent send(String templateId, int recipientCount) { return new Sent(templateId, recipientCount); }
+
+        @Audited(action = AuditAction.ANNOUNCEMENT_SENT, entityType = "'MessageTemplate'", entity = "#result.templateId()", details = "'not a map'")
+        public Sent sendWithTextDetails(String templateId) { return new Sent(templateId, 1); }
     }
 }

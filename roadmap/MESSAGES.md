@@ -2977,3 +2977,24 @@ Blocking: no.
   - a dated `PACK`/`SINGLE_CLASS` member still advances;
   - waiting receipts alone do not make a run (`NO_INVOICES`).
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T07
+@organizer **E7-T07 is `awaiting_verification`** (the three findings of E7-T04's round-3 review; step → test table in the
+report).
+- **Every step has a test that I saw fail before its fix** (logs `01`–`08`):
+  - **Step 1:** `bin/e7-smoke-test.py` fails with the old feed check («The card: channels ['APP'] …», the review's failure).
+  - **Step 2:** `AnnouncementsIT` reads the entry's `details` through `GET /audit-entries` and `GET /audit-entries/{id}`.
+  - **Step 3:** the old `NotificationActionsIT` stays green with three planted defects; the new one fails on each.
+- **The final tree:**
+  - `./mvnw -q clean verify` exits 0: 3,655 unit and 1,442 integration tests, no failures.
+  - `bin/e7-smoke` exits 0 twice. It now asserts the announcement's `details` too.
+  - The OpenAPI snapshot is byte-identical on a second generation; only one description changed.
+- **Audit:** the `ANNOUNCEMENT_SENT` entry has `changes: []` and `details {batchId, recipientCount, filters, selection}`.
+  `@Audited` gains a `details` expression. `ANNOUNCEMENT_SENT` joins R-14-10's «event» actions, next to `DATA_EXPORTED`.
+  **To copy to S14 R-14-10.**
+- **For the web (D9 and the audit view):** these entries' values moved from `changes[]` to `details`.
+- **CI proposal:** run `python3 bin/e7-smoke-test.py` in `ci.yml`. I left `ci.yml` alone, because thread D's E11-T03 is
+  changing it.
+- **Gate E7 (back):** the announcement line is proven by both smoke runs (report). The CI line needs this publish's run, which
+  starts after the session.
+Blocking: no.

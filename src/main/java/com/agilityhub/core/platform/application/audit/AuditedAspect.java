@@ -2,6 +2,7 @@ package com.agilityhub.core.platform.application.audit;
 
 import com.agilityhub.core.platform.domain.audit.AuditDiff;
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -51,8 +52,16 @@ public class AuditedAspect {
         AuditableLoader loader = loaders.get(type);
         Object after = loader == null ? result : loader.load(id);
         writer.write(audited.action(), type, id, text(audited.member(), context), text(audited.reason(), context),
-                AuditDiff.between(snapshot, AuditDiff.snapshot(after)));
+                AuditDiff.between(snapshot, AuditDiff.snapshot(after)), details(evaluate(audited.details(), context)));
         return result;
+    }
+
+    private static Map<String, Object> details(Object value) {
+        if (value == null) { return null; }
+        if (!(value instanceof Map<?, ?> map)) { throw new IllegalArgumentException("@Audited details must be a map"); }
+        var details = new LinkedHashMap<String, Object>();
+        map.forEach((key, item) -> details.put(key.toString(), item));
+        return details;
     }
 
     private AuditableLoader requireLoader(String type) {

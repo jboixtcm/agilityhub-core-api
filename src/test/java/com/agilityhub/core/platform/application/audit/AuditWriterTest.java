@@ -56,7 +56,29 @@ class AuditWriterTest {
                 null, null, null, null), " ")).isInstanceOf(IllegalArgumentException.class);
     }
 
-    /** A request's entry has no `details` (only a system process writes them, ruling E83). */
+    /**
+     * E7-T07 (S14 §3, R-14-10): an announcement's entry has no changes (its template does not change) and is still written,
+     * with the batch in `details`; an empty map writes no details. Before the fix the entry was discarded without changes.
+     */
+    @Test void E7_T07_anAnnouncementIsAnEventActionWithItsBatchInDetails() {
+        var repository = mock(AuditRepository.class);
+        var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", null, false, null, null, "trace-a"),
+                Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC));
+        var details = new java.util.LinkedHashMap<String, Object>();
+        details.put("batchId", "batch-a"); details.put("recipientCount", 10); details.put("filters", List.of("status:eq:ACTIVE")); details.put("selection", "FILTERS");
+        writer.write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-a", null, null, List.of(), details);
+        writer.write(AuditAction.ANNOUNCEMENT_SENT, "MessageTemplate", "template-b", null, null, List.of(), Map.of());
+        writer.write(AuditAction.CATALOG_CHANGED, "MessageTemplate", "template-c", null, null, List.of(), details);
+        var entries = ArgumentCaptor.forClass(AuditEntry.class);
+        verify(repository, times(2)).append(entries.capture());
+        var first = entries.getAllValues().getFirst();
+        assertThat(first.entityId()).isEqualTo("template-a"); assertThat(first.changes()).isEmpty(); assertThat(first.actorAccountId()).isEqualTo("account-a");
+        assertThat(first.details()).containsExactly(Map.entry("batchId", "batch-a"), Map.entry("recipientCount", 10),
+                Map.entry("filters", List.of("status:eq:ACTIVE")), Map.entry("selection", "FILTERS"));
+        assertThat(entries.getAllValues().get(1).entityId()).isEqualTo("template-b"); assertThat(entries.getAllValues().get(1).details()).isNull();
+    }
+
+    /** A request's entry written without details has none (ruling E83: never the system process's `job`). */
     @Test void E7_T06_aRequestsEntryHasNoDetails() {
         var repository = mock(AuditRepository.class);
         var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", null, false, null, null, "trace-a"),

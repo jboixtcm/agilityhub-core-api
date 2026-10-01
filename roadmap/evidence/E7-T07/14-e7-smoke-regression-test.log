@@ -1,0 +1,10 @@
+test_a_failure_never_prints_a_phone_number (__main__.FeedExpectationTest.test_a_failure_never_prints_a_phone_number) ... ok
+test_log_sender_card_carries_the_sms_badge (__main__.FeedExpectationTest.test_log_sender_card_carries_the_sms_badge) ... ok
+test_the_card_must_agree_with_the_delivery_in_both_modes (__main__.FeedExpectationTest.test_the_card_must_agree_with_the_delivery_in_both_modes) ... ok
+test_the_log_sender_must_send_and_the_action_stays_change_class (__main__.FeedExpectationTest.test_the_log_sender_must_send_and_the_action_stays_change_class) ... ok
+test_twilio_allow_list_card_leaves_the_skipped_sms_out (__main__.FeedExpectationTest.test_twilio_allow_list_card_leaves_the_skipped_sms_out) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK

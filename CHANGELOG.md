@@ -912,6 +912,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E7-T07: E7-T04's round-3 review follow-ups (ruling E72).
+  - The `ANNOUNCEMENT_SENT` audit entry carries the batch in `details {batchId, recipientCount, filters, selection}` (S14 §3),
+    written in the send's transaction; its `changes` are empty, because the template does not change. `@Audited` gains a
+    `details` expression, and `ANNOUNCEMENT_SENT` is an «event» action (R-14-10), so the entry is written without changes.
+    The audit API (`GET /audit-entries`, `GET /audit-entries/{id}`) returns those `details`. Before, the batch was in `changes[]`.
+  - `bin/e7-smoke`: the member's N-08a card expects SMS in `channels` only when the SMS delivery was sent. With the log sender
+    the SMS badge is still required. With Twilio credentials the allow-list skips the fictional number (`SKIPPED_NOT_ALLOWED`),
+    so the real-SMS branch now reaches its step. The smoke also checks the announcement's audit `details`.
+    `bin/e7-smoke-test.py` covers both modes with the two recorded answers.
+  - `NotificationActionsIT` asserts, for every real E5/E6 action, the complete set of notices it leaves in the club (no
+    missing, extra or duplicate recipient, of any code), each with its whole rendered body in the recipient's language.
+
 - E7-T06: notification template follow-ups (E7-T03's round-2 reviews; round 2, ruling E81).
   - Templates stored before E7-T03's round 2 are brought up to date at the API's start-up (`TemplateUpgrade`, before the web
     server and the schedulers; `bin/core` commands skip it). A catalog template the club never edited follows the current

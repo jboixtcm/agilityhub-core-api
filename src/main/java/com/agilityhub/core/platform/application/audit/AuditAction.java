@@ -16,7 +16,10 @@ public enum AuditAction {
     MEMBER_ROLES_CHANGED,
     DATA_EXPORTED,
     CATALOG_CHANGED,
-    /** S11 R-11-13 «Enviar comunicat» (E7-T01 contract, written by E7-T04): `details {recipientCount, filters}`. */
+    /**
+     * S11 R-11-13 «Enviar comunicat» (E7-T01 contract, written by E7-T04): an «event» action on the template, no `changes`,
+     * `details {batchId, recipientCount, filters, selection}` (E7-T07).
+     */
     ANNOUNCEMENT_SENT,
     MIGRATION_APPLIED,
     PLATFORM_ROLES_CHANGED,

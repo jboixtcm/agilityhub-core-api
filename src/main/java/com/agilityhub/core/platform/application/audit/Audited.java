@@ -16,4 +16,9 @@ public @interface Audited {
     String before() default "";
     String member() default "";
     String reason() default "";
+    /**
+     * Optional SpEL evaluated after the invocation (`#result` available): a map written as the entry's `details` (S14 §3),
+     * e.g. the announcement's `{batchId, recipientCount, filters}`; null or empty writes none.
+     */
+    String details() default "";
 }
