@@ -218,7 +218,7 @@ email.html.sha256: c1d6af358fa4f7f1
 ## N-32c MEMBER
 title: Activity cancelled by the club
 body: Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
-sms: Club Agility Exemple: Seminari de canicross is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inco... [160]
+sms: Club Agility Exemple: Seminari de canicross (12 Wed) is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for... [160]
 email.text: Activity cancelled by the club⏎⏎Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
 email.html.sha256: afb9d37b925e5e18
 

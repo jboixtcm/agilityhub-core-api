@@ -109,7 +109,8 @@ class MessageTemplateSeedTest {
      * E7-T06 step 5 (claude review #3, AGENTS rule 2): a seed prints only its row's variables. Every ICU argument of every seed
      * text is either one of the code's template variables or the name of a `select`/`plural` argument (a selector such as
      * `has_upfront` or `mode`, which chooses a branch and prints nothing of its own). Before the fix N-08b's body printed
-     * `{class_description}` and N-32c's SMS `{date}`, outside their CATALEG_NOTIFICACIONS rows.
+     * `{class_description}` and N-32c's SMS `{date}`, outside their CATALEG_NOTIFICACIONS rows. Round 2 (P1, ruling E81):
+     * N-32c's row gained `date`, and its SMS prints it again as S07 §8 writes it, «([[date]])».
      */
     @Test void E7_T06_everyIcuArgumentOfTheSeedIsARowVariableOrASelector() {
         var outside = new java.util.TreeSet<String>();
@@ -118,14 +119,15 @@ class MessageTemplateSeedTest {
             for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) {
                 texts.forEach((locale, text) -> {
                     var names = TemplateValidator.syntax(seeded.code(), text);
-                    names.icu().stream().filter(name -> !variables.contains(name) && !names.selectors().contains(name))
+                    names.icu().stream().filter(name -> !variables.contains(name) && (!names.selectors().contains(name) || names.printed().contains(name)))
                             .forEach(name -> outside.add(seeded.code() + " " + locale + " {" + name + "}"));
                 });
             }
         }
         assertThat(outside).isEmpty();
         assertThat(seed.of("N-08b").orElseThrow().body().values()).allSatisfy(text -> assertThat(text).doesNotContain("class_description"));
-        assertThat(seed.of("N-32c").orElseThrow().smsBody().values()).allSatisfy(text -> assertThat(text).doesNotContain("date"));
+        assertThat(NotificationCatalog.templateVariables(NotificationCatalog.byCode("N-32c").orElseThrow())).containsSubsequence("activity_title", "date", "admin_text");
+        assertThat(seed.of("N-32c").orElseThrow().smsBody().values()).allSatisfy(text -> assertThat(text).contains("[[activity_title]] ([[date]])"));
     }
 
     @Test void E7_T03_everySeedPassesTheValidationOfAnUnchangedSave() throws Exception {

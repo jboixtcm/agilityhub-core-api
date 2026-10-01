@@ -790,19 +790,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- E7-T06: notification template follow-ups (E7-T03's round-2 reviews).
+- E7-T06: notification template follow-ups (E7-T03's round-2 reviews; round 2, ruling E81).
   - Templates stored before E7-T03's round 2 are brought up to date at the API's start-up (`TemplateUpgrade`, before the web
-    server and the schedulers; `bin/core` commands skip it). A catalog template the club never edited takes the current seed
-    in the club's languages. An edited one, and a `CUSTOM` one, keep the club's words in the club's languages, with the
-    `gender` select keys in lower case (`FEMALE` never matched since round 1, so women read «Benvingut») and, for N-02,
-    without the sentence of its link (round 1's «…: [[link]].» rendered empty, and its unchanged save was
-    `TEMPLATE_UNKNOWN_VARIABLE`). Idempotent and conditional on the version read; no audit entry nor event.
+    server and the schedulers; `bin/core` commands skip it). A catalog template the club never edited follows the current
+    seed (E81), in the club's languages and in any other one it stores. An edited one, and a `CUSTOM` one, keep every stored
+    value in every stored language with only the corrections: the `gender` select keys in lower case (`FEMALE` never matched
+    since round 1, so women read «Benvingut»), N-02 without the sentence of its link (round 1's «…: [[link]].» rendered
+    empty, and its unchanged save was `TEMPLATE_UNKNOWN_VARIABLE`) and N-08b without E7-T03's `{class_description}`. A
+    language the club removed keeps its words (round 2: the upgrade never prunes; D9's next save does). Each change publishes
+    `MessageTemplateChanged` and audits `CATALOG_CHANGED` by `system:template-upgrade` (D9's «last change»); nothing when
+    nothing changes. Idempotent and conditional on the version read. A template or a whole club that fails is logged with its
+    ids only and retried at the next start-up; the API always starts.
+  - `AuditWriter.writeAsSystem`: a system process audits its own change (`actorName` = the process, role and origin `SYSTEM`).
   - The applicants' surnames reach N-01 and N-03: the engine derives `member_last_names` for any audience with the name
-    facts, and the signup's `member_name` is the full name (first name and both surnames, as every other audience's).
+    facts, and the signup's `member_name` is the full name (first name and both surnames, as every other audience's), each
+    part stripped. A readmission's `SignupSubmitted`/`SignupRejected` `applicant` carries `lastName2` (CATALEG_ESDEVENIMENTS, E81).
   - The notification preferences answer `locale` = `Account.locale` as stored, also outside the club's languages (12 and
     D10); only an account without a language reads the club's default.
-  - A seed text prints only its row's variables: N-08b's body no longer prints `{class_description}` and N-32c's SMS no
-    longer prints `{date}`. A save accepts, besides the code's variables, only the seed's `select`/`plural` argument names.
+  - A seed text prints only its row's variables: N-08b's body no longer prints `{class_description}`. N-32c's row gains `date`
+    (CATALEG_NOTIFICACIONS, S07 §8; E81) and its SMS prints «([[date]])» again. A save and the preview accept, besides the
+    code's variables, only the seed's `select`/`plural` argument names, and only in a `select`/`plural` position (`{active}`
+    printed alone is `TEMPLATE_UNKNOWN_VARIABLE`).
   - A variable-parity test over every templated R1 code: each variable a template may use renders with the real facts of
     each audience that reads the template (`TemplateVariableParityIT`); the codes whose owners come later are listed.
 - E7-T05: notification engine hardening (the four majors and the minor of E7-T02's round-2 review, and the dispatcher's

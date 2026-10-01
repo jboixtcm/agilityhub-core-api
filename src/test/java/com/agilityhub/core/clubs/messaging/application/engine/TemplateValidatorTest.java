@@ -138,23 +138,48 @@ class TemplateValidatorTest {
 
     /**
      * E7-T06 step 5 (claude review #3): a seed's simple `{var}` is no second variable list. The names a save accepts besides
-     * the row's variables are the seed's `select`/`plural` argument names only: N-08b's `{class_description}` and N-32c's
-     * `{date}` are refused like their `[[var]]` forms (neither is in its CATALEG_NOTIFICACIONS row), while N-01's
-     * `has_upfront` and N-16's `auto_cancel` selectors stay. Before the fix `seedArguments` read every ICU argument of the
-     * seed, and both texts were accepted.
+     * the row's variables are the seed's `select`/`plural` argument names only: N-08b's `{class_description}` is refused like
+     * its `[[var]]` form (it is not in its CATALEG_NOTIFICACIONS row), while N-01's `has_upfront` and N-16's `auto_cancel`
+     * selectors stay. Before the fix `seedArguments` read every ICU argument of the seed, and the text was accepted. Round 2
+     * (P1, ruling E81): N-32c's row gained `date`, so `{date}` and `[[date]]` are its own variable now.
      */
     @Test void E7_T06_theSeedsSelectorsAreTheOnlyIcuNamesBesidesTheRowsVariables() {
         var names = TemplateValidator.syntax("t", "{mode, select, FIFO {[[a]] {confirm_by}} other {x}} {count, plural, one {#} other {#}} {n, selectordinal, other {#}} {date}");
         assertThat(names.icu()).containsExactly("mode", "confirm_by", "count", "n", "date");
         assertThat(names.selectors()).containsExactly("mode", "count", "n");
+        assertThat(names.printed()).containsExactly("confirm_by", "date");
         assertThat(rules("N-01").icuNames()).contains("has_upfront"); assertThat(rules("N-16").icuNames()).contains("auto_cancel");
         assertThat(rules("N-08b").icuNames()).doesNotContain("class_description"); assertThat(rules("N-32c").icuNames()).doesNotContain("date");
         var n08b = error(() -> validate("N-08b", draft("N-08b", null, Map.of("ca", "[[class_date]] · {class_description}, amb [[dog_name]]: [[changes]]."), null, null, true)),
                 ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
         assertThat(n08b.details()).containsEntry("field", "body.ca").containsEntry("variables", List.of("class_description"));
-        var n32c = error(() -> validate("N-32c", draft("N-32c", null, null, Map.of("ca", "[[club_name]]: [[activity_title]] ({date}). [[admin_text]]"), null, true)),
-                ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
-        assertThat(n32c.details()).containsEntry("field", "smsBody.ca").containsEntry("variables", List.of("date"));
+        assertThat(rules("N-32c").variables()).contains("date");
+        for (String sms : List.of("[[club_name]]: [[activity_title]] ({date}). [[admin_text]]", "[[club_name]]: [[activity_title]] ([[date]]). [[admin_text]]")) {
+            assertThatCode(() -> validate("N-32c", draft("N-32c", null, null, Map.of("ca", sms), null, true))).as(sms).doesNotThrowAnyException();
+        }
+    }
+
+    /**
+     * E7-T06 round 2 (review #6): a seed selector is accepted only where it selects. N-29's `active` and N-01's
+     * `has_upfront` choose a branch of their seed and are no variable of their row, so printed alone (`{active}`, which would
+     * render the raw `true`) they are unknown, also next to their own select; inside a `select` they stay valid. A row variable
+     * that the seed also selects on (N-15's `mode`, N-16's `auto_cancel`) may be printed. Before the fix every seed selector
+     * passed in any position.
+     */
+    @Test void E7_T06_aSeedSelectorIsAcceptedOnlyInASelectPosition() {
+        assertThatCode(() -> validate("N-29", draft("N-29", null, Map.of("ca", "{active, select, true {Bloquejat: [[reason]]} other {Desbloquejat}}"), null, null, true)))
+                .doesNotThrowAnyException();
+        assertThat(error(() -> validate("N-29", draft("N-29", null, Map.of("ca", "Bloqueig: {active}. [[reason]]"), null, null, true)), ErrorCode.TEMPLATE_UNKNOWN_VARIABLE)
+                .details()).containsEntry("field", "body.ca").containsEntry("variables", List.of("active"));
+        assertThat(error(() -> validate("N-29", draft("N-29", null, Map.of("ca", "{active, select, true {Sí} other {No}} ({active}). [[reason]]"), null, null, true)),
+                ErrorCode.TEMPLATE_UNKNOWN_VARIABLE).details()).containsEntry("variables", List.of("active"));
+        assertThat(rules("N-01").variables()).doesNotContain("has_upfront"); assertThat(rules("N-01").icuNames()).contains("has_upfront");
+        assertThat(error(() -> validate("N-01", draft("N-01", null, Map.of("ca", "[[member_name]]: {has_upfront}"), null, null, true)), ErrorCode.TEMPLATE_UNKNOWN_VARIABLE)
+                .details()).containsEntry("variables", List.of("has_upfront"));
+        assertThat(rules("N-15").variables()).contains("mode"); assertThat(rules("N-16").variables()).contains("auto_cancel");
+        assertThatCode(() -> validate("N-15", draft("N-15", null, Map.of("ca", "[[class_date]] ({mode})", "es", "[[class_date]] ([[mode]])"), null, null, true)))
+                .doesNotThrowAnyException();
+        assertThat(TemplateValidator.unknown(rules("N-29"), TemplateValidator.syntax("t", "{active, select, true {[[reason]]} other {x}} {0}"))).containsExactly("0");
     }
 
     @Test void T_11_06_T_11_12_theSmsRules() {

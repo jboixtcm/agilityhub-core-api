@@ -37,20 +37,32 @@ public class AuditWriter {
      */
     public void write(AuditCommand command, String origin) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
-                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin);
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null);
+    }
+
+    /**
+     * A change a system process makes on its own, outside any request (E7-T06, ruling E81: the start-up template upgrade):
+     * the actor is the process — `actorName` = `process` (`system:…`), role `SYSTEM`, no account — and the origin `SYSTEM`,
+     * so the entity's «last change» names it.
+     */
+    public void writeAsSystem(AuditCommand command, String process) {
+        requireText(process, "Audit process is required");
+        write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), "SYSTEM",
+                new AuditActor(null, process, "SYSTEM", null, null, null, null, UUID.randomUUID().toString()));
     }
 
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null); }
+               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null, null); }
 
     private void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes, String origin) {
+               List<AuditChange> changes, String origin, AuditActor system) {
         Objects.requireNonNull(action, "Audit action is required");
         requireText(entityType, "Audit entity type is required");
         requireText(entityId, "Audit entity id is required");
         if (changes.isEmpty() && (reason == null || reason.isBlank()) && !EVENT_ACTIONS.contains(action)) { return; }
         String clubId = TenantContext.current();
-        AuditActor actor = Objects.requireNonNull(actors.current(), "Audit actor is required");
+        AuditActor actor = system != null ? system : Objects.requireNonNull(actors.current(), "Audit actor is required");
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),

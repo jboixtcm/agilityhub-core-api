@@ -1,0 +1,38 @@
+surefire (unit): tests=2156 failures=0 errors=0 skipped=0
+  MessagingE7T06UnitTest: tests=7 failures=0 errors=0 skipped=0
+  MessageTemplateSeedTest: tests=5 failures=0 errors=0 skipped=0
+  TemplateValidatorTest: tests=10 failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest: tests=3 failures=0 errors=0 skipped=0
+  AuditWriterTest: tests=2 failures=0 errors=0 skipped=0
+  E4ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  MessagingE7T03UnitTest: tests=6 failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest: tests=4 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=14 failures=0 errors=0 skipped=0
+failsafe (integration): tests=1317 failures=0 errors=0 skipped=0
+  TemplateUpgradeIT: tests=6 failures=0 errors=0 skipped=0
+  TemplateVariableParityIT: tests=2 failures=0 errors=0 skipped=0
+  NotificationPreferencesIT: tests=6 failures=0 errors=0 skipped=0
+  SignupSecurityFixesIT: tests=50 failures=0 errors=0 skipped=0
+  NotificationEngineIT: tests=13 failures=0 errors=0 skipped=0
+  MessageTemplatesIT: tests=10 failures=0 errors=0 skipped=0
+JaCoCo (merged unit + integration), line / branch covered ratio:
+  com.agilityhub.core.clubs.census.application: lines 0.988 (2140/2167), branches 0.847 (1817/2145)
+  com.agilityhub.core.clubs.messaging.api: lines 0.994 (177/178), branches 0.855 (53/62)
+  com.agilityhub.core.clubs.messaging.application: lines 0.994 (997/1003), branches 0.880 (828/941)
+  com.agilityhub.core.clubs.messaging.application.engine: lines 0.987 (961/974), branches 0.899 (856/952)
+  com.agilityhub.core.clubs.messaging.application.integrations: lines 0.994 (175/176), branches 0.971 (66/68)
+  com.agilityhub.core.clubs.messaging.application.ports: lines 0.985 (130/132), branches 0.987 (75/76)
+  com.agilityhub.core.clubs.messaging.domain: lines 1.000 (458/458), branches 0.975 (352/361)
+  com.agilityhub.core.clubs.messaging.persistence: lines 0.989 (274/277), branches 0.911 (154/169)
+  com.agilityhub.core.platform.application.audit: lines 1.000 (132/132), branches 0.979 (47/48)
+  class AuditWriter: lines 31/31, branches 20/20
+  class CensusNotificationFacts: lines 77/78, branches 77/103
+  class MessageTemplateService: lines 185/186, branches 156/174
+  class NotificationEngine: lines 237/239, branches 211/239
+  class NotificationPreferencesService: lines 49/49, branches 33/44
+  class SignupService: lines 610/614, branches 648/749
+  class TemplatePreviewService: lines 57/58, branches 55/66
+  class TemplateUpgrade: lines 132/132, branches 134/147
+  class TemplateUpgrade.Outcome: lines 1/1, branches 0/0
+  class TemplateUpgrade.Result: lines 3/3, branches 0/0
+  class TemplateValidator: lines 90/90, branches 87/90

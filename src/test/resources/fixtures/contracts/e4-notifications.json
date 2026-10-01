@@ -40,6 +40,7 @@
     "event": "ActivityCancelled",
     "variables": [
       "activity_title",
+      "date",
       "admin_text"
     ],
     "action": null

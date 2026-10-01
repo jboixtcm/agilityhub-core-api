@@ -491,7 +491,7 @@
       "code": "N-32c",
       "title": "Activity cancelled by the club",
       "body": "[[activity_title]]: [[admin_text]]",
-      "smsBody": "[[club_name]]: [[activity_title]] is cancelled. [[admin_text]]",
+      "smsBody": "[[club_name]]: [[activity_title]] ([[date]]) is cancelled. [[admin_text]]",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

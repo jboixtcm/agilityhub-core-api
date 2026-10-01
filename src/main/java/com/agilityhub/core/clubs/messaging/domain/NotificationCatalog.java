@@ -183,7 +183,7 @@ public final class NotificationCatalog {
         rows.add(code("N-32a", CLUB_NEWS, "ActivityPublished").to(MEMBER, APP).action(OPEN_ACTIVITY).vars("activity_title", "date").modules(Module.ACTIVITIES).build());
         rows.add(code("N-32b", OPERATIONAL, "ActivityRegistrationChanged").to(MEMBER, APP).action(OPEN_ACTIVITY).vars("activity_title", "date", "state")
                 .modules(Module.ACTIVITIES).build());
-        rows.add(code("N-32c", CLUB_CHANGES, "ActivityCancelled").to(MEMBER, APP, EMAIL, SMS).vars("activity_title", "admin_text").mandatory()
+        rows.add(code("N-32c", CLUB_CHANGES, "ActivityCancelled").to(MEMBER, APP, EMAIL, SMS).vars("activity_title", "date", "admin_text").mandatory()
                 .modules(Module.ACTIVITIES).build());
         rows.add(code("N-33", OPERATIONAL, "WeekOpened").to(MEMBER, APP, PUSH).action(OPEN_BOOKING).vars("week_start").build());
         rows.add(code("N-34", OPERATIONAL, "SignupPendingAging").to(ADMINS, APP).action(OPEN_SIGNUP).vars("count", "oldest_days").build());

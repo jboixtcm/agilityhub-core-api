@@ -50,7 +50,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-31 | Recorregut nou a la pista | `RingSetupChanged` (si `messaging.notifyNewRingSetup`) | OPERATIONAL | MEMBER amb dret d'entrenament → APP | ring_name, setup_kind, level | OPEN_SETUP | S16 |
 | N-32a | Activitat publicada | `ActivityPublished` | CLUB_NEWS | MEMBER (nivell admès) → APP (+EMAIL si el club ho marca) | activity_title, date | OPEN_ACTIVITY | S06 |
 | N-32b | Inscripció a activitat confirmada / anul·lada | `ActivityRegistrationChanged` | OPERATIONAL | MEMBER → APP | activity_title, date, state | OPEN_ACTIVITY | S08 |
-| N-32c | Activitat cancel·lada pel club | `ActivityCancelled` | CLUB_CHANGES | inscrits → APP+EMAIL+SMS | activity_title, admin_text | — | S06 |
+| N-32c | Activitat cancel·lada pel club | `ActivityCancelled` | CLUB_CHANGES | inscrits → APP+EMAIL+SMS | activity_title, date, admin_text | — | S06 |
 | N-33 | Ja pots reservar la setmana vinent | `WeekOpened` (si `messaging.notifyWeekOpening`) | OPERATIONAL | MEMBER → APP+PUSH | week_start | OPEN_BOOKING | S15 |
 | N-34 | Sol·licituds d'alta pendents des de fa dies | `SignupPendingAging` (diari) | OPERATIONAL | ADMINS → APP | count, oldest_days | OPEN_SIGNUP | S15 |
 | N-35 | Cobrament fallit (targeta) | `InvoiceFailed{STRIPE}` | PERSONAL | MEMBER → APP+EMAIL | amount, reason, retry_link | OPEN_INVOICES | S12 |

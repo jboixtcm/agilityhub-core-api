@@ -1,0 +1,72 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  384 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, inactiveDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, attendanceHistoryClasses=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, attendanceRenamed=0, attendanceLevelChanges=0, followupNotes=0, attendanceBookings=0, attendanceWaitlist=0, attendanceMarks=0, attendanceCancellations=0, attendanceNoShowBatches=0, followupTasks=0, followupTaskAttachments=0, followupObservations=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0, trainingHistoryOverrides=0, trainingHistoryBookings=0, messagingContacts=0, messagingProfiles=0, messagingBounces=0, pushSubscriptions=0, customTemplates=0}
+  20 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, inactiveDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, attendanceHistoryClasses=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, attendanceRenamed=0, attendanceLevelChanges=0, followupNotes=0, attendanceBookings=0, attendanceWaitlist=0, attendanceMarks=0, attendanceCancellations=0, attendanceNoShowBatches=0, followupTasks=0, followupTaskAttachments=0, followupObservations=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0, trainingHistoryOverrides=0, trainingHistoryBookings=0, messagingContacts=0, messagingProfiles=0, messagingBounces=0, pushSubscriptions=0, customTemplates=0}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic, fifo
+curl GET /api/v1/message-templates -> 200
+GET /message-templates -> 51 CATALOG templates; N-02 variables member_first_name, gender, club_name; N-32c variables activity_title, date, admin_text, club_name
+curl POST /api/v1/message-templates/6abdd0de3be346ad1f29dbdf/preview -> 200
+step 1 before (E7-T02 N-02 stored): preview ca title Benvingut, Laura! | body La teva alta a Club Agility Cànic està validada. Entra al teu compte amb aquest enllaç.
+PASS API restarted (start-up upgrade ran); admin signed in again
+step 1 after: N-02 version 1, customized False, updatedBy system:template-upgrade, languages ['ca', 'en', 'es'], body.ca Ja tens accés a l'app del club.
+step 1 after: N-02 MessageTemplateChanged 0 -> 1 (actor system:template-upgrade, origin SYSTEM); audit actor system:template-upgrade
+curl GET /api/v1/message-templates/6abdd0de3be346ad1f29dbdf -> 200
+curl PUT /api/v1/message-templates/6abdd0de3be346ad1f29dbdf -> 200
+step 1 after: N-02 GET (lastChange system:template-upgrade) then unchanged PUT -> 200, version 2, customized False
+step 1 after: N-15 version 1, customized False, updatedBy system:template-upgrade, languages ['ca', 'en', 'es'], body.ca Classe [[class_description]] · [[class_date]] · [[class_time]]. {mode, select, FIFO {Tens fins a les [[confirm_by]] per confirmar-la.} other {Estàs a la llista d'espera — la plaça és per a qui confirm…[truncated]
+step 1 after: N-15 MessageTemplateChanged 0 -> 1 (actor system:template-upgrade, origin SYSTEM); audit actor system:template-upgrade
+curl GET /api/v1/message-templates/6abdd0de3be346ad1f29dbed -> 200
+curl PUT /api/v1/message-templates/6abdd0de3be346ad1f29dbed -> 200
+step 1 after: N-15 GET (lastChange system:template-upgrade) then unchanged PUT -> 200, version 2, customized False
+curl POST /api/v1/message-templates/6abdd0de3be346ad1f29dbdf/preview -> 200
+step 1 after: N-02 preview ca title Benvinguda a Club Agility Cànic, Laura! | body Ja tens accés a l'app del club.
+curl GET /api/v1/message-templates/6abdd0de3be346ad1f29dbdf -> 200
+curl PUT /api/v1/message-templates/6abdd0de3be346ad1f29dbdf -> 400 TEMPLATE_UNKNOWN_VARIABLE
+step 1 edited, before: unchanged PUT -> 400 TEMPLATE_UNKNOWN_VARIABLE details {"variables": ["link"], "field": "body.ca"}
+curl POST /api/v1/message-templates/6abdd0de3be346ad1f29dbdf/preview -> 200
+step 1 edited, before: preview ca body Ja pots entrar a l'app del nostre club. Entra-hi amb aquest enllaç: . Fins aviat!
+curl GET /api/v1/message-templates/6abdd0de3be346ad1f29dbe6 -> 200
+curl PUT /api/v1/message-templates/6abdd0de3be346ad1f29dbe6 -> 400 TEMPLATE_UNKNOWN_VARIABLE
+round 2 #3, before: N-08b unchanged PUT -> 400 TEMPLATE_UNKNOWN_VARIABLE details {"variables": ["class_description"], "field": "body.ca"}
+round 2 #2, before: a FIFO club template with kind BOGUS (unreadable) stored
+PASS API restarted (start-up upgrade ran); admin signed in again
+round 2 #2, after: health UP; upgrade WARN lines: []
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: one WARN, the FIFO club's id only

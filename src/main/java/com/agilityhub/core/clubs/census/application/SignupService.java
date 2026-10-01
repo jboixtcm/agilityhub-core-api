@@ -297,12 +297,13 @@ public class SignupService implements SignupPaymentAccess {
     }
     /**
      * R-04-06 (c): the recipient of a readmission's N-01 and N-03 (S04 §8 `APPLICANT`): the submitted primary address and
-     * name, in `signup.locale`. It travels in the event because a rejection drops the submitted values before delivery.
+     * name (both surnames since E81: the applicant's `member_last_names`), in `signup.locale`. It travels in the event because a
+     * rejection drops the submitted values before delivery.
      */
     private Map<String,Object> applicant(Member member) {
         var person=submitted(member);
-        return object("email",primaryEmail(person.get("contactEmails")),"firstName",person.get("firstName"),"lastName1",person.get("lastName1"),"gender",person.get("gender"),
-                "locale",map(member.signup).get("locale"));
+        return object("email",primaryEmail(person.get("contactEmails")),"firstName",person.get("firstName"),"lastName1",person.get("lastName1"),
+                "lastName2",person.get("lastName2"),"gender",person.get("gender"),"locale",map(member.signup).get("locale"));
     }
     /** R-04-23 (E38): a rejected readmission leaves the LEFT record exactly as it was before the submission. */
     private void restoreLeft(Member member) {

@@ -1,14 +1,19 @@
 package com.agilityhub.core.clubs.census.application;
 
+import com.agilityhub.core.clubs.census.persistence.Dog;
+import com.agilityhub.core.clubs.census.persistence.Member;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationFacts;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPort;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationSubject;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationValues;
 import com.agilityhub.core.clubs.messaging.application.ports.SignupContactPort;
+import com.agilityhub.core.platform.application.CensusClubSettings;
 import com.agilityhub.core.shared.application.LocaleContext;
 import com.agilityhub.core.shared.domain.LocalizedText;
 import com.agilityhub.core.shared.domain.Money;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import static com.agilityhub.core.clubs.census.application.CensusValues.*;
@@ -40,10 +47,10 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 public class CensusNotificationFacts implements NotificationFactsPort {
     private static final Set<String> TYPES = Set.of("SignupSubmitted", "MemberValidated", "SignupRejected", "DogLevelChanged", "DogRegistered", "DogDeactivated",
             "BookingBlockChanged", "DogDocumentPending", "DocumentReminderDue", "MemberPaymentMethodChanged");
-    private final CensusAccess access; private final com.agilityhub.core.platform.application.CensusClubSettings settings; private final SignupRecipientCap cap;
+    private final CensusAccess access; private final CensusClubSettings settings; private final SignupRecipientCap cap;
     private final DocumentService documents;
 
-    public CensusNotificationFacts(CensusAccess access, com.agilityhub.core.platform.application.CensusClubSettings settings, SignupRecipientCap cap,
+    public CensusNotificationFacts(CensusAccess access, CensusClubSettings settings, SignupRecipientCap cap,
             DocumentService documents) {
         this.access = access; this.settings = settings; this.cap = cap; this.documents = documents;
     }
@@ -88,12 +95,12 @@ public class CensusNotificationFacts implements NotificationFactsPort {
         var member = id == null ? null : access.members.findById(id).orElse(null);
         if (member == null || member.erasedAt != null) { return Optional.empty(); }
         var person = map(trigger.payload().get("applicant")); boolean submitted = !person.isEmpty();
-        String firstName = submitted ? string(person.get("firstName")) : member.firstName;
         // E7-T06: the full name, as every other audience's `member_name` (first name and both surnames), so the engine derives the
-        // applicant's `member_last_names` from it. A readmission's `applicant` carries `lastName1` only (CATALEG_ESDEVENIMENTS).
-        String memberName = java.util.stream.Stream.of(firstName, submitted ? string(person.get("lastName1")) : member.lastName1,
-                submitted ? string(person.get("lastName2")) : member.lastName2).filter(part -> part != null && !part.isBlank()).map(String::strip)
-                .collect(java.util.stream.Collectors.joining(" "));
+        // applicant's `member_last_names` from it; each part stripped, the first name too, so the full name starts with it. A
+        // readmission's `applicant` carries both surnames since E81 (an event written before carries `lastName1` only).
+        String firstName = stripped(submitted ? string(person.get("firstName")) : member.firstName);
+        String memberName = Stream.of(firstName, submitted ? string(person.get("lastName1")) : member.lastName1, submitted ? string(person.get("lastName2")) : member.lastName2)
+                .map(CensusNotificationFacts::stripped).filter(part -> part != null && !part.isEmpty()).collect(Collectors.joining(" "));
         String email = submitted ? string(person.get("email")) : rows(member.contactEmails).isEmpty() ? null : string(rows(member.contactEmails).getFirst().get("email"));
         String locale = string((submitted ? person : map(member.signup)).getOrDefault("locale", access.config().club().defaultLocale()));
         var builder = NotificationFacts.builder().subject(NotificationSubject.member(id)).value("ADMINS", "entityId", id)
@@ -114,7 +121,7 @@ public class CensusNotificationFacts implements NotificationFactsPort {
         // SignupSubmitted (E3-T10/E3-T12): the locale, the dog names, the plan and the upfront total travel in the event; an
         // event written before the payload carried them (no `locale`) reads the submission block, as before.
         var payload = trigger.payload(); boolean carried = payload.containsKey("locale");
-        var dogs = carried ? List.<com.agilityhub.core.clubs.census.persistence.Dog>of() : dogs(trigger);
+        var dogs = carried ? List.<Dog>of() : dogs(trigger);
         var signup = carried ? Map.<String, Object>of() : submission(member, dogs);
         locale = string(carried ? payload.get("locale") : signup.getOrDefault("locale", locale));
         builder.value("dogs", String.join(", ", carried ? names(payload.get("dogNames")) : dogs.stream().map(d -> d.name).toList()));
@@ -143,19 +150,20 @@ public class CensusNotificationFacts implements NotificationFactsPort {
      * S04 §8 «abonat existent»: the account that also gets the APP copy when the event says the request came from a validated
      * member (`source = APP_ADD_DOG`, `memberWasActive`), never the member's state when the notice is built; else null.
      */
-    private static String existing(NotificationTrigger trigger, com.agilityhub.core.clubs.census.persistence.Member member) {
+    private static String existing(NotificationTrigger trigger, Member member) {
         boolean existing = "SignupRejected".equals(trigger.type()) ? trigger.flag("memberWasActive") : "APP_ADD_DOG".equals(trigger.text("source"));
         return existing ? member.accountId : null;
     }
-    private List<com.agilityhub.core.clubs.census.persistence.Dog> dogs(NotificationTrigger trigger) {
+    private List<Dog> dogs(NotificationTrigger trigger) {
         var ids = trigger.ids("dogIds");
         return ids.isEmpty() ? List.of() : access.dogs.matching(Criteria.where("_id").in(ids));
     }
-    private static List<String> names(Object raw) { return raw instanceof java.util.Collection<?> values ? values.stream().map(String::valueOf).toList() : List.of(); }
+    private static List<String> names(Object raw) { return raw instanceof Collection<?> values ? values.stream().map(String::valueOf).toList() : List.of(); }
+    private static String stripped(String text) { return text == null ? null : text.strip(); }
     /** The block of the submission these dogs came from (S04 §3): the oldest one, the member's signup for a dog written before the blocks. */
-    private static Map<String, Object> submission(com.agilityhub.core.clubs.census.persistence.Member member, List<com.agilityhub.core.clubs.census.persistence.Dog> dogs) {
+    private static Map<String, Object> submission(Member member, List<Dog> dogs) {
         return dogs.stream().filter(d -> d.signup != null).map(d -> map(d.signup))
-                .min(Comparator.comparing((Map<String, Object> b) -> Objects.requireNonNullElse(instant(b.get("submittedAt")), java.time.Instant.MAX))).orElse(map(member.signup));
+                .min(Comparator.comparing((Map<String, Object> b) -> Objects.requireNonNullElse(instant(b.get("submittedAt")), Instant.MAX))).orElse(map(member.signup));
     }
     /** The level's `LocalizedText` name (S05), or null for an unknown level. */
     private LocalizedText level(String levelId) {

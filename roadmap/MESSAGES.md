@@ -2620,3 +2620,52 @@ Blocking: no.
 - **Rebase note:** E7-T05/E7-T06 were `awaiting_verification` when I started; E7-T06 is now in round 2 and its changes may
   touch `TemplateVariableParityIT`, where I added N-24's case.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verifications of 01-10 (early morning, third pass)
+@executor
+- **E7-T04 → changes_requested** (round 2), after E7-T06's round 2.
+  - First: CI is red on `75635df`. `WeekOpeningJobIT` sees two push subscriptions that another IT left on the `s08` accounts.
+  - Then the review's points:
+    - an announcement goes out as it was sent (the batch keeps the template's version);
+    - every announcement respects `pushClubNews`;
+    - P4's tenant test;
+    - `ReminderDue`'s aggregate type;
+    - the CHANGELOG line about fresh databases;
+    - the nits.
+  - Re-run the gate evidence on top of E7-T06's round 2.
+- **Your questions (ruling E82):**
+  - N-55 is not at R1; it is a proposal for R2.
+  - `GET /jobs` listing `reminders` is noted for the web.
+  - N-19 follows E69.
+  - E11-T01's erasure covers the `announcements` collection.
+- **INC-53** collects the web's small api questions: `TaskItem.doneBy`, the relative `uploadUrl`, P8's dry-run counters, the follow-up attachment count, an upper bound for `read-all`, the trailing space in `/bookings/filter-values` labels, `isoWeekStart` on P1's item, and the seed's «Berta».
+- **Docs:**
+  - DECISIONS v3.4 (**E82**);
+  - S11 R-11-13;
+  - INCIDENCIES v2.6 (INC-53).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T06 round 2
+@organizer **E7-T06's round 2 is done** (`awaiting_verification`; the point → test table is under «### Round 2 report»).
+1. **Corrections only, never a language pruned:**
+   - An edited or `CUSTOM` template keeps every stored language with only the corrections: `gender` keys, N-02's link
+     sentence, N-08b's `{class_description}`. It is written only when one changes something.
+   - A never-edited one follows the current seed, in the club's languages plus the ones it stores (assumption R2-1: a
+     product `en` stays in a `ca/es` club until D9's next save; one line to change if you prefer otherwise).
+2. **One club never stops the start-up:** a failing club logs `WARN … club=<id> error=<class>`, is counted in
+   `Result.failedClubs` and retried at the next start-up; even a failed club listing only logs. Proven in an IT (an unreadable
+   template in the club that sorts first) and on the local stack (a FIFO template the API cannot read: the API starts, one WARN).
+3. **N-08b:** an edited N-08b loses `{class_description}`, and GET → unchanged PUT → 200. N-32c's `{date}` stays (valid with P1).
+4. **Events:** each upgraded template publishes `MessageTemplateChanged` (actor `system:template-upgrade`, `SYSTEM`) and audits
+   `CATALOG_CHANGED` through the new `AuditWriter.writeAsSystem` (D9's «last change» names the upgrade). Nothing is
+   published or audited when nothing changes.
+5. **P1 and P2** applied with their catalog rows: N-32c gains `date` (its SMS prints «([[date]])» again), `applicant` gains
+   `lastName2`. Please copy `CATALEG_NOTIFICACIONS.md` and `CATALEG_ESDEVENIMENTS.md` to the other two copies.
+6. **Nits #5–#8** done (stripped first name and readmission cases; a seed selector only in a `select`/`plural` position;
+   T-11-12's mandatory test in the table; imports and `clubIds()`'s Javadoc).
+- **Before the fix:** every new or changed test fails with its fix reverted (logs `11`, `12`).
+- **Verify and checks:** `./mvnw -q clean verify` exits 0 (2,156 unit, 1,317 integration tests). The local stack passes on
+  attempt 2: attempt 1 could not see the WARN because the smoke runs at `LOGGING_LEVEL_ROOT=ERROR`. The snapshot is
+  unchanged and byte-identical twice.
+- **Note:** another session's E7-T04 verification edits (E82) were in this working tree during my session. I did not touch them.
+Blocking: no.

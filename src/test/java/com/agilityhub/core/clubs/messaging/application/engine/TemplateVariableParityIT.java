@@ -375,20 +375,38 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         var applicantCases = cases().stream().filter(c -> Set.of("N-01", "N-03").contains(c.code())).toList();
         assertThat(applicantCases).extracting(Case::type).containsExactly("SignupSubmitted", "SignupRejected");
         for (var c : applicantCases) {
-            var spec = NotificationCatalog.byCode(c.code()).orElseThrow();
-            mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(c.code())), MessageTemplate.class);
-            var seed = MessageTemplateSeed.load().of(c.code()).orElseThrow();
-            mongo.insert(new MessageTemplate(null, CLUB, c.code(), TemplateKind.CATALOG, spec.category(), new LocalizedText(Map.of("ca", "Sol·licitud"), "ca"),
-                    new LocalizedText(Map.of("ca", "[[member_name]]. Cognoms: [[member_last_names]]."), "ca"), null, spec.icon(), spec.color(), seed.matrix(), true, false, true,
-                    TemplateStatus.ACTIVE, null, NOW, "parity", NOW, "parity"));
-            ((FakeEmailSender) email).clear();
-            String eventId = deliver(c.type(), c.aggregateId(), c.payload());
-            var applicant = notices(c.code(), eventId).stream().filter(n -> n.audience() == NotificationAudience.APPLICANT).findFirst().orElseThrow();
+            var applicant = applicantNotice(c, c.payload(), NURIA + "@example.test");
             assertThat(applicant.body()).as(c.code()).isEqualTo("Núria Vidal Mas. Cognoms: Vidal Mas.");
-            assertThat(applicant.recipient().email()).isEqualTo(NURIA + "@example.test");
             assertThat(applicant.variables()).containsEntry("member_last_names", "Vidal Mas");
             assertThat(((FakeEmailSender) email).lastTo(NURIA + "@example.test").text()).as(c.code() + " e-mail").contains("Cognoms: Vidal Mas.");
             System.out.println("E7-T06 step 2 " + c.code() + " " + c.type() + " → " + applicant.body());
         }
+        // Round 2 (nit #5): a readmission's applicant travels in the event. Its name parts are stripped, the first name too, so
+        // stray spaces never empty the surnames; since E81 it carries `lastName2`, and an event written before reads `lastName1`.
+        var readmitted = new LinkedHashMap<String, Object>(Map.of("email", "readmitted@example.test", "firstName", "  Núria ", "lastName1", "Vidal ", "lastName2", " Mas",
+                "gender", "FEMALE", "locale", "ca"));
+        var beforeE81 = new LinkedHashMap<String, Object>(readmitted); beforeE81.remove("lastName2");
+        for (var c : applicantCases) {
+            for (var variant : List.of(Map.entry(readmitted, "Núria Vidal Mas. Cognoms: Vidal Mas."), Map.entry(beforeE81, "Núria Vidal. Cognoms: Vidal."))) {
+                var applicant = applicantNotice(c, with(c.payload(), "applicant", variant.getKey()), "readmitted@example.test");
+                assertThat(applicant.body()).as(c.code() + " readmission " + variant.getKey().keySet()).isEqualTo(variant.getValue());
+                assertThat(applicant.variables()).containsEntry("member_first_name", "Núria");
+                System.out.println("E7-T06 round 2 " + c.code() + " " + c.type() + " readmission " + variant.getKey().keySet() + " → " + applicant.body());
+            }
+        }
+    }
+    /** The applicant's copy of one delivery of `c` with `payload`, through a template printing the name and the surnames. */
+    Notification applicantNotice(Case c, Map<String, Object> payload, String address) {
+        var spec = NotificationCatalog.byCode(c.code()).orElseThrow();
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(c.code())), MessageTemplate.class);
+        var seed = MessageTemplateSeed.load().of(c.code()).orElseThrow();
+        mongo.insert(new MessageTemplate(null, CLUB, c.code(), TemplateKind.CATALOG, spec.category(), new LocalizedText(Map.of("ca", "Sol·licitud"), "ca"),
+                new LocalizedText(Map.of("ca", "[[member_name]]. Cognoms: [[member_last_names]]."), "ca"), null, spec.icon(), spec.color(), seed.matrix(), true, false, true,
+                TemplateStatus.ACTIVE, null, NOW, "parity", NOW, "parity"));
+        ((FakeEmailSender) email).clear();
+        String eventId = deliver(c.type(), c.aggregateId(), payload);
+        var applicant = notices(c.code(), eventId).stream().filter(n -> n.audience() == NotificationAudience.APPLICANT).findFirst().orElseThrow();
+        assertThat(applicant.recipient().email()).isEqualTo(address);
+        return applicant;
     }
 }

@@ -1221,12 +1221,18 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         String recorded=unique("recorded"),applicant=unique("applicant");String admin=administrator();
         var original=withEmail(request(),recorded);String oldSurname=original.at("/person/lastName1").asText();
         String id=leftMember(original);dispatch();mailbox.clear();
-        var readmit=withEmail(readmission(original),applicant);readmit.put("locale","es");((ObjectNode)readmit.get("person")).put("firstName","Returning").put("lastName1","Readmitted");
+        var readmit=withEmail(readmission(original),applicant);readmit.put("locale","es");
+        ((ObjectNode)readmit.get("person")).put("firstName","Returning").put("lastName1","Readmitted").put("lastName2","Second");
         submit(readmit);dispatch();
+        // E7-T06 round 2, P2 (ruling E81): the event's applicant carries both surnames, so the applicant's N-01 has them all.
+        assertThat(collection("domain_events").stream().filter(e->"SignupSubmitted".equals(e.getString("type"))&&id.equals(e.get("payload",Document.class).getString("memberId"))
+                &&e.get("payload",Document.class).containsKey("applicant"))).singleElement()
+                .satisfies(e->assertThat(e.get("payload",Document.class).get("applicant",Document.class)).containsEntry("lastName1","Readmitted").containsEntry("lastName2","Second"));
         var received=mailbox.messages().stream().filter(m->m.to().equals(applicant)).toList();
         assertThat(received).as("N-01 to the submitted address").hasSize(1);assertThat(received.getFirst().locale().getLanguage()).isEqualTo("es");
         assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&applicant.equals(n.getString("recipientEmail"))))
-                .singleElement().satisfies(n->assertThat(n.getString("locale")).isEqualTo("es"));
+                .singleElement().satisfies(n->{assertThat(n.getString("locale")).isEqualTo("es");
+                    assertThat(n.get("variables",Document.class)).containsEntry("member_name","Returning Readmitted Second").containsEntry("member_last_names","Readmitted Second");});
         // The admins' copy names who applied: the submitted name, nothing from the LEFT record.
         var adminCopy=mailbox.messages().stream().filter(m->m.to().equals(admin+"@example.test")).toList();
         assertThat(adminCopy).hasSize(1);assertThat(adminCopy.getFirst().text()).contains("Returning Readmitted").doesNotContain(oldSurname);

@@ -28,4 +28,26 @@ class AuditWriterTest {
         assertThat(entries.getAllValues()).extracting(AuditEntry::action).containsExactly(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED);
         assertThat(entries.getAllValues()).allSatisfy(entry -> { assertThat(entry.changes()).isEmpty(); assertThat(entry.actorAccountId()).isEqualTo("account-a"); });
     }
+
+    /**
+     * E7-T06 round 2 (ruling E81): a system process audits its own change — the actor is the process (`actorName`, role
+     * `SYSTEM`, no account, origin `SYSTEM`), never the provider's — and an unchanged entity still writes nothing.
+     */
+    @Test void E7_T06_aSystemProcessIsTheActorOfItsOwnChange() {
+        var repository = mock(AuditRepository.class); var provider = mock(AuditActorProvider.class);
+        var writer = new AuditWriter(repository, provider, Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC));
+        writer.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, "MessageTemplate", "template-a", null, java.util.Map.of("title", "a"),
+                java.util.Map.of("title", "a"), null), "system:template-upgrade");
+        verifyNoInteractions(repository);
+        writer.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, "MessageTemplate", "template-a", null, java.util.Map.of("title", "a"),
+                java.util.Map.of("title", "b"), null), "system:template-upgrade");
+        var entry = ArgumentCaptor.forClass(AuditEntry.class);
+        verify(repository).append(entry.capture());
+        assertThat(entry.getValue().actorName()).isEqualTo("system:template-upgrade"); assertThat(entry.getValue().actorRole()).isEqualTo("SYSTEM");
+        assertThat(entry.getValue().actorAccountId()).isNull(); assertThat(entry.getValue().origin()).isEqualTo("SYSTEM");
+        assertThat(entry.getValue().changes()).hasSize(1); assertThat(entry.getValue().traceId()).isNotBlank();
+        verifyNoInteractions(provider);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> writer.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, "MessageTemplate", "template-a",
+                null, null, null, null), " ")).isInstanceOf(IllegalArgumentException.class);
+    }
 }

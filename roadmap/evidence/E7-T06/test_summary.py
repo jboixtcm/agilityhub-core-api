@@ -12,6 +12,8 @@ CLASSES = [
     'MessagingE7T06UnitTest', 'TemplateUpgradeIT', 'TemplateVariableParityIT',
     # changed
     'MessageTemplateSeedTest', 'TemplateValidatorTest', 'NotificationSeedSnapshotTest', 'NotificationPreferencesIT',
+    # round 2 (01-10): changed
+    'AuditWriterTest', 'SignupSecurityFixesIT', 'E4ResponseContractTest',
     # the neighbours they share code with
     'MessagingE7T03UnitTest', 'NotificationEngineIT', 'MessageTemplatesIT', 'NotificationCatalogContractTest', 'ArchitectureTest',
 ]
@@ -42,11 +44,12 @@ if os.path.exists('target/site/jacoco/jacoco.csv'):
     with open('target/site/jacoco/jacoco.csv', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             package = row['PACKAGE']
-            if 'clubs.messaging' in package or package.endswith('clubs.census.application'):
+            if 'clubs.messaging' in package or package.endswith('clubs.census.application') or package.endswith('platform.application.audit'):
                 agg = rows.setdefault(package, [0, 0, 0, 0])
                 agg[0] += int(row['LINE_MISSED']); agg[1] += int(row['LINE_COVERED'])
                 agg[2] += int(row['BRANCH_MISSED']); agg[3] += int(row['BRANCH_COVERED'])
-            if row['CLASS'] in ('TemplateUpgrade', 'NotificationPreferencesService', 'CensusNotificationFacts', 'MessageTemplateService', 'TemplateValidator') \
+            if row['CLASS'] in ('TemplateUpgrade', 'NotificationPreferencesService', 'CensusNotificationFacts', 'MessageTemplateService', 'TemplateValidator',
+                                'AuditWriter', 'TemplatePreviewService', 'SignupService') \
                     or row['CLASS'].startswith('TemplateUpgrade.') or row['CLASS'] == 'NotificationEngine':
                 classes[row['CLASS']] = (int(row['LINE_MISSED']), int(row['LINE_COVERED']), int(row['BRANCH_MISSED']), int(row['BRANCH_COVERED']))
     print('JaCoCo (merged unit + integration), line / branch covered ratio:')

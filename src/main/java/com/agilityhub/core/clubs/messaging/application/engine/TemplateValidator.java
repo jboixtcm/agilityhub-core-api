@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
  * (`details.fieldErrors`);</li>
  * <li>ICU that does not parse, or a `[[` without its `]]` → `400 TEMPLATE_SYNTAX_ERROR` (`details.field`, `body.ca`);</li>
  * <li>a `[[var]]` outside the template's variables (the one list of {@code NotificationCatalog.templateVariables}), or an
- * ICU argument outside them and the seed's own selectors → `400 TEMPLATE_UNKNOWN_VARIABLE` (`details.field` of the first
- * text with one, `details.variables`);</li>
+ * ICU argument outside them and the seed's own selectors (a selector only in a `select`/`plural` position, {@link #unknown})
+ * → `400 TEMPLATE_UNKNOWN_VARIABLE` (`details.field` of the first text with one, `details.variables`);</li>
  * <li>a required variable of the template (N-08a `admin_text`; N-02's `link` is its e-mail's only, E76) missing from a
  * language → `400 VALIDATION_ERROR` with `details.missingVariables` (S11's `TEMPLATE_MISSING_VARIABLE` is not in the
  * catalog, E66);</li>
@@ -79,10 +79,8 @@ public final class TemplateValidator {
         for (var field : List.of(Map.entry("title", draft.title()), Map.entry("body", draft.body()), Map.entry("smsBody", draft.smsBody()))) {
             for (var text : field.getValue().entrySet()) {
                 String path = field.getKey() + "." + text.getKey();
-                var names = syntax(path, text.getValue());
                 int before = unknown.size();
-                names.variables().stream().filter(name -> !rules.variables().contains(name)).forEach(unknown::add);
-                names.icu().stream().filter(name -> !rules.variables().contains(name) && !rules.icuNames().contains(name)).forEach(unknown::add);
+                unknown.addAll(unknown(rules, syntax(path, text.getValue())));
                 if (unknownField == null && unknown.size() > before) { unknownField = path; }
             }
         }
@@ -124,9 +122,23 @@ public final class TemplateValidator {
 
     /**
      * The `[[var]]` names and the ICU argument names of a text; `selectors` are the ICU arguments that choose a branch
-     * (`select`, `plural`, `selectordinal`: `gender`, `has_upfront`, `mode`…), a subset of `icu`.
+     * (`select`, `plural`, `selectordinal`: `gender`, `has_upfront`, `mode`…), `printed` the ones in any other position
+     * (`{date}`, `{count, number}`): both subsets of `icu`, and a name used both ways is in both.
      */
-    public record Names(Set<String> variables, Set<String> icu, Set<String> selectors) { }
+    public record Names(Set<String> variables, Set<String> icu, Set<String> selectors, Set<String> printed) { }
+
+    /**
+     * The names of a text its rules do not know (R-11-12), in the text's order: a `[[var]]` outside the variables, and an ICU
+     * argument that is no variable and no selector of the seed — a seed selector counts only in a `select`/`plural` position,
+     * so `{mode}` printed alone is unknown (E7-T06 round 2, review #6). D9's save and its preview read this one rule.
+     */
+    public static Set<String> unknown(Rules rules, Names names) {
+        var unknown = new LinkedHashSet<String>();
+        names.variables().stream().filter(name -> !rules.variables().contains(name)).forEach(unknown::add);
+        names.icu().stream().filter(name -> !rules.variables().contains(name) && (!rules.icuNames().contains(name) || names.printed().contains(name)))
+                .forEach(unknown::add);
+        return unknown;
+    }
 
     /** Parses one text as the renderer does (every apostrophe literal); `TEMPLATE_SYNTAX_ERROR` when it cannot. */
     public static Names syntax(String field, String text) {
@@ -143,20 +155,20 @@ public final class TemplateValidator {
             else if (text.charAt(i) == '}' && --depth < 0) { throw syntaxError(field); }
         }
         if (depth != 0) { throw syntaxError(field); }
-        var icu = new LinkedHashSet<String>(); var selectors = new LinkedHashSet<String>();
+        var icu = new LinkedHashSet<String>(); var selectors = new LinkedHashSet<String>(); var printed = new LinkedHashSet<String>();
         try {
             var pattern = new MessagePattern(MessagePattern.ApostropheMode.DOUBLE_OPTIONAL).parse(text.replace("''", "'").replace("'", "''"));
-            for (int i = 0; i < pattern.countParts(); i++) {
+            for (int i = 0; i + 1 < pattern.countParts(); i++) {
+                // Every argument is ARG_START followed by its ARG_NAME or ARG_NUMBER; ARG_START's type says how it is used.
                 var part = pattern.getPart(i);
-                if (part.getType() == MessagePattern.Part.Type.ARG_NAME) { icu.add(pattern.getSubstring(part)); }
-                if (part.getType() == MessagePattern.Part.Type.ARG_NUMBER) { icu.add(Integer.toString(part.getValue())); }
-                if (part.getType() == MessagePattern.Part.Type.ARG_START && SELECTING.contains(part.getArgType()) && i + 1 < pattern.countParts()) {
-                    var name = pattern.getPart(i + 1);
-                    selectors.add(name.getType() == MessagePattern.Part.Type.ARG_NUMBER ? Integer.toString(name.getValue()) : pattern.getSubstring(name));
-                }
+                if (part.getType() != MessagePattern.Part.Type.ARG_START) { continue; }
+                var name = pattern.getPart(i + 1);
+                String argument = name.getType() == MessagePattern.Part.Type.ARG_NUMBER ? Integer.toString(name.getValue()) : pattern.getSubstring(name);
+                icu.add(argument);
+                (SELECTING.contains(part.getArgType()) ? selectors : printed).add(argument);
             }
         } catch (IllegalArgumentException | IndexOutOfBoundsException unparsable) { throw syntaxError(field); }
-        return new Names(variables, icu, selectors);
+        return new Names(variables, icu, selectors, printed);
     }
     private static final Set<MessagePattern.ArgType> SELECTING = Set.of(MessagePattern.ArgType.SELECT, MessagePattern.ArgType.PLURAL,
             MessagePattern.ArgType.SELECTORDINAL);
