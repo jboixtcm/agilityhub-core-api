@@ -1,0 +1,222 @@
+name: agilityhub-prod
+services:
+  caddy:
+    depends_on:
+      core:
+        condition: service_healthy
+        required: true
+    environment:
+      ACME_EMAIL: operator@example.test
+      ADMIN_HOST: clubsadmin.agilitydoghub.com
+      CADDY_LOCAL_OPTIONS: ""
+      CLUB_ADMIN_HOSTS: unused.invalid
+      CLUBS_HOST: clubs.agilitydoghub.com
+      CORE_HOST: core.agilitydoghub.com
+      ID_HOST: id.agilitydoghub.com
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://127.0.0.1:2019/config/
+      timeout: 3s
+      interval: 5s
+      retries: 12
+    image: caddy:2.10.2-alpine
+    logging:
+      driver: json-file
+      options:
+        max-file: "5"
+        max-size: 10m
+    networks:
+      default:
+        ipv4_address: 172.30.240.10
+    ports:
+      - mode: ingress
+        target: 80
+        published: "80"
+        protocol: tcp
+      - mode: ingress
+        target: 443
+        published: "443"
+        protocol: tcp
+      - mode: ingress
+        target: 443
+        published: "443"
+        protocol: udp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /srv/agilityhub/web/id/dist
+        target: /srv/id
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /srv/agilityhub/web/clubs/dist
+        target: /srv/clubs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /srv/agilityhub/web/clubsadmin/dist
+        target: /srv/clubsadmin
+        read_only: true
+        bind: {}
+      - type: volume
+        source: caddy-data
+        target: /data
+        volume: {}
+      - type: volume
+        source: caddy-config
+        target: /config
+        volume: {}
+  core:
+    depends_on:
+      mongo:
+        condition: service_healthy
+        required: true
+    environment:
+      ATTACHMENT_S3_ACCESS_KEY: REPLACE_BEFORE_RELEASE
+      ATTACHMENT_S3_BUCKET: REPLACE_BEFORE_RELEASE
+      ATTACHMENT_S3_ENDPOINT: ""
+      ATTACHMENT_S3_REGION: eu-west-3
+      ATTACHMENT_S3_SECRET_KEY: REPLACE_BEFORE_RELEASE
+      AUTH_ISSUER: https://id.agilitydoghub.com
+      BILLING_BANK_KEY: REPLACE_BEFORE_RELEASE
+      BOOKING_CALENDAR_KEY: REPLACE_BEFORE_RELEASE
+      CORE_CONCURRENCY_LOCALLANES: "true"
+      CORS_PLATFORM_HOSTS: id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com
+      EMAIL_UNSUBSCRIBE_KEY: REPLACE_BEFORE_RELEASE
+      EXPORT_S3_ACCESS_KEY: REPLACE_BEFORE_RELEASE
+      EXPORT_S3_BUCKET: REPLACE_BEFORE_RELEASE
+      EXPORT_S3_ENDPOINT: ""
+      EXPORT_S3_REGION: eu-west-3
+      EXPORT_S3_SECRET_KEY: REPLACE_BEFORE_RELEASE
+      MAIL_FROM_PLATFORM: noreply@example.test
+      MIGRATION_BANK_KEY: ""
+      MONGODB_AUTH_DATABASE: admin
+      MONGODB_DATABASE: agilityhub
+      MONGODB_HOST: mongo
+      MONGODB_PASSWORD: REPLACE_BEFORE_RELEASE
+      MONGODB_PORT: "27017"
+      MONGODB_REPLICA_SET: rs0
+      MONGODB_USERNAME: coreApp
+      OIDC_AR_APP_LOGOUT_URI: https://ar.agilitydoghub.com/
+      OIDC_AR_APP_REDIRECT_URI: https://ar.agilitydoghub.com/oidc/callback
+      OIDC_CLUBS_ADMIN_LOGOUT_URI: https://clubsadmin.agilitydoghub.com/
+      OIDC_CLUBS_ADMIN_REDIRECT_URI: https://clubsadmin.agilitydoghub.com/oidc/callback
+      OIDC_CLUBS_APP_LOGOUT_URI: https://clubs.agilitydoghub.com/
+      OIDC_CLUBS_APP_REDIRECT_URI: https://clubs.agilitydoghub.com/oidc/callback
+      OIDC_ID_WEB_LOGOUT_URI: https://id.agilitydoghub.com/
+      OIDC_ID_WEB_REDIRECT_URI: https://id.agilitydoghub.com/oidc/callback
+      OIDC_LEARN_CLIENT_SECRET: REPLACE_BEFORE_RELEASE
+      OIDC_LEARN_LOGOUT_URI: https://learn.agilitydoghub.com/
+      OIDC_LEARN_REDIRECT_URI: https://learn.agilitydoghub.com/oidc/callback
+      OIDC_LOGIN_URL: https://id.agilitydoghub.com/login
+      OIDC_MASTER_KEY: REPLACE_BEFORE_RELEASE
+      PLATFORM_PRIVACY_POLICY_URL: https://id.agilitydoghub.com/privacy
+      PLATFORM_PRIVACY_POLICY_VERSION: v1
+      SENDGRID_API_KEY: REPLACE_BEFORE_RELEASE
+      SENDGRID_WEBHOOK_PUBLIC_KEY: REPLACE_BEFORE_RELEASE
+      SERVER_PORT: "8080"
+      SHARED_SCHEDULING_ENABLED: "true"
+      SIGNUP_CAPABILITY_KEY: REPLACE_BEFORE_RELEASE
+      SMS_ALLOWED_NUMBERS: ""
+      SPRING_PROFILES_ACTIVE: prod
+      TRUSTED_PROXY_PATTERN: 172\.30\.240\.10
+      TWILIO_ACCOUNT_SID: REPLACE_BEFORE_RELEASE
+      TWILIO_AUTH_TOKEN: REPLACE_BEFORE_RELEASE
+      TWILIO_MESSAGING_SERVICE_SID: ""
+      VAPID_PRIVATE_KEY: REPLACE_BEFORE_RELEASE
+      VAPID_PUBLIC_KEY: REPLACE_BEFORE_RELEASE
+      VAPID_SUBJECT: REPLACE_BEFORE_RELEASE
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -fsS
+        - http://127.0.0.1:8080/api/v1/health
+      timeout: 3s
+      interval: 5s
+      retries: 24
+      start_period: 1m0s
+    image: ghcr.io/jboixtcm/agilityhub-core-api:sha-REPLACE
+    logging:
+      driver: json-file
+      options:
+        max-file: "5"
+        max-size: 10m
+    networks:
+      default: null
+    restart: unless-stopped
+  mongo:
+    entrypoint:
+      - bash
+      - /opt/deploy/mongo-entrypoint.sh
+    environment:
+      MONGO_BACKUP_PASSWORD: REPLACE_BEFORE_RELEASE
+      MONGO_BACKUP_USERNAME: coreBackup
+      MONGO_INITDB_ROOT_PASSWORD: REPLACE_BEFORE_RELEASE
+      MONGO_INITDB_ROOT_USERNAME: coreRoot
+      MONGO_REPLICA_KEY: REPLACE_BEFORE_RELEASE
+      MONGODB_DATABASE: agilityhub
+      MONGODB_PASSWORD: REPLACE_BEFORE_RELEASE
+      MONGODB_USERNAME: coreApp
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - /opt/deploy/mongo-health.js
+      timeout: 10s
+      interval: 5s
+      retries: 24
+      start_period: 30s
+    image: mongo:7.0
+    logging:
+      driver: json-file
+      options:
+        max-file: "5"
+        max-size: 10m
+    networks:
+      default: null
+    restart: unless-stopped
+    tmpfs:
+      - /run/mongo-key:mode=0700
+    volumes:
+      - type: volume
+        source: mongo-data
+        target: /data/db
+        volume: {}
+      - type: bind
+        source: /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/mongo-entrypoint.sh
+        target: /opt/deploy/mongo-entrypoint.sh
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/mongo-health.js
+        target: /opt/deploy/mongo-health.js
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: agilityhub-prod_default
+    ipam:
+      config:
+        - subnet: 172.30.240.0/24
+volumes:
+  caddy-config:
+    name: agilityhub-prod_caddy-config
+  caddy-data:
+    name: agilityhub-prod_caddy-data
+  mongo-data:
+    name: agilityhub-prod_mongo-data
+x-logging:
+  driver: json-file
+  options:
+    max-file: "5"
+    max-size: 10m

@@ -43,6 +43,7 @@ services:
       SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY}
       BOOKING_CALENDAR_KEY: ${BOOKING_CALENDAR_KEY}
       EMAIL_UNSUBSCRIBE_KEY: ${EMAIL_UNSUBSCRIBE_KEY}
+      BILLING_BANK_KEY: ${BILLING_BANK_KEY}
     volumes:
       - exports:/app/exports
       - attachments:/app/attachments

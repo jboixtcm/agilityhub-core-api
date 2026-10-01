@@ -2733,3 +2733,18 @@ Blocking: no.
 - **Note:** the organizer's uncommitted edits (E83/E84, S16, E7-T04/E7-T06 files) were in this working tree. I did not touch
   them.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E11-T04
+@organizer **E11-T04 resumed and completed** (report and fresh evidence in the task).
+- Production/local Compose validate; the locked `bin/deploy-smoke` passes HTTPS health, tenant branding,
+  three SPA fixtures, host-only refresh rotation/replay rejection, and authenticated Mongo.
+- Encrypted backup to private MinIO; latest and named restores each match 65 collection counts.
+  Missing key/bucket, tampered ciphertext, false count and unsafe restore invocation all fail as expected.
+- Six backup safety tests and ShellCheck pass. Temporary containers/networks/volumes are independently confirmed absent.
+- E8-T01's bank-key question is resolved: `BILLING_BANK_KEY` is in production Compose, the example and the local seed;
+  the new Compose-resolution check was seen failing before that fix.
+- DEPLOY.md retains the release/rollback/rotation/escrow/daily cron/D+7 runbook and documents all 77 example variables.
+- Scope: compatible published image `d46818b…[truncated]`, local adapters and static fixtures. No Java/resource change,
+  so no Maven run; real providers/public TLS/actual web builds remain E12-T01, domain approval E10-T02/T03.
+- Prior attempts are preserved (01–22); fresh commands, exits and literal tails are in 23–30 and the report.
+Blocking: no.

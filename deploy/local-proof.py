@@ -48,7 +48,8 @@ def main():
         for key in ('MONGO_ROOT_PASSWORD', 'MONGODB_PASSWORD', 'MONGO_BACKUP_PASSWORD', 'SEED_PASSWORD',
                     'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY', 'OIDC_LEARN_CLIENT_SECRET'):
             values[key] = secrets.token_hex(24)
-        for key in ('OIDC_MASTER_KEY', 'SIGNUP_CAPABILITY_KEY', 'BOOKING_CALENDAR_KEY', 'EMAIL_UNSUBSCRIBE_KEY'):
+        for key in ('OIDC_MASTER_KEY', 'SIGNUP_CAPABILITY_KEY', 'BOOKING_CALENDAR_KEY', 'EMAIL_UNSUBSCRIBE_KEY',
+                    'BILLING_BANK_KEY'):
             values[key] = base64.b64encode(secrets.token_bytes(32)).decode()
         values['MONGO_REPLICA_KEY'] = base64.b64encode(secrets.token_bytes(512)).decode()
         values.update(BACKUP_S3_BUCKET='fictional-backups', BACKUP_S3_PREFIX='mongo/', BACKUP_S3_ENDPOINT='http://minio:9000',
@@ -90,6 +91,10 @@ def main():
                           'backup', '-c', code, text=True).stdout
 
         try:
+            resolved = json.loads(docker('config', '--format', 'json', text=True).stdout)
+            assert resolved['services']['core']['environment'].get('BILLING_BANK_KEY') == values['BILLING_BANK_KEY'], \
+                'BILLING_BANK_KEY must reach Core from the deployment environment'
+            print('PASS deployment forwards the bank encryption key to Core', flush=True)
             print('COMMAND ' + shlex.join(compose + ['build', 'backup', 'minio']), flush=True)
             build = docker('build', 'backup', 'minio', check=False, text=True)
             if build.returncode:

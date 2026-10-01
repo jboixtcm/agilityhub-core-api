@@ -57,6 +57,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and isolated restore/count verification. `docs/DEPLOY.md` now includes the release/rollback runbook,
   environment and key inventory, daily cron, rotation/recovery limits, logs and the D+7 checklist.
   Club-domain on-demand TLS fails closed pending E10-T02's approval endpoint; real deployment remains E12-T01.
+  The resumed local proof also checks that the deployment forwards E8's `BILLING_BANK_KEY` to Core;
+  the production example and local seed now supply it.
 - E6-T06 (ruling E75, S10 §6 and CONVENCIONS_API §4 amended 30-09): the D14 and D12 contract gaps of the web's E6-W03.
   - `GET /followup/filter-values` (INSTRUCTOR, ADMIN; `TASKS`): D14's filter values for `kind`, `memberId`, `dogId`,
     `authorAccountId` («Creador») and `unread`, each counted over the whole filtered set; `unread` is the caller's own.

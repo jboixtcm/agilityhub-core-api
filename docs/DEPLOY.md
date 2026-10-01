@@ -316,7 +316,7 @@ and URIs are included because they must remain consistent across recovery.
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Base64 32 random bytes for imported IBAN encryption; preserve for every retained record/backup, re-encrypt before rotation. |
-| `BILLING_BANK_KEY` | Base64 32 random bytes, `BankAccountVault`'s key for the members' encrypted IBANs (E43); required before the first SEPA remittance; preserve and re-encrypt before rotation, like `MIGRATION_BANK_KEY`. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, `BankAccountVault`'s key for the members' encrypted IBANs (E43); required by production Compose and forwarded to Core (also the local seed); preserve and re-encrypt before rotation, like `MIGRATION_BANK_KEY`. |
 | `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
 | `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ENDPOINT` | Private attachment bucket/region; optional HTTPS endpoint. Preserve objects and signed upload CORS when moving. |
@@ -355,7 +355,9 @@ needed), `MONGODB_TEST_URI` (isolated test only), `CONSUMER_ENV_FILE`,
 `CONSUMER_DATABASE`, `CONSUMER_PORT`, `CONSUMER_SCHEDULING_ENABLED`,
 `CONSUMER_LOG_LEVEL`, `CORE_IMAGE`, `MONGO_PORT` (consumer/development tooling,
 not the production compose), and `OIDC_SMOKE_BASE_URL`, `OIDC_SMOKE_EMAIL`,
-`OIDC_SMOKE_PASSWORD` (fictional manual smoke only). Do not inherit any of these
+`OIDC_SMOKE_PASSWORD` (fictional manual smoke only). `SMOKE_SMS_TO` is the explicit
+tester destination for E7's optional real-SMS rehearsal, never a release setting.
+Do not inherit any of these
 consumer/test settings into release Core.
 
 **Provider settings not yet implemented:** this checkout has no Stripe or Sentry

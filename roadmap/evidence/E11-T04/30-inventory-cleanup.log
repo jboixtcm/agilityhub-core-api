@@ -1,0 +1,6 @@
+PASS all 77 example variables are documented; all Compose inputs have examples
+PASS trusted proxy pattern matches only the fixed Caddy address
+PASS fictional proof resources remaining:
+containers=0
+networks=0
+volumes=0

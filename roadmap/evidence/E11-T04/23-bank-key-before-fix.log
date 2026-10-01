@@ -1,0 +1,9 @@
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 249, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 95, in main
+    assert resolved['services']['core']['environment'].get('BILLING_BANK_KEY') == values['BILLING_BANK_KEY'], \
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: BILLING_BANK_KEY must reach Core from the deployment environment
