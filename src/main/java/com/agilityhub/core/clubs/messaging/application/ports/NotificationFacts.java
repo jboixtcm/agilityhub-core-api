@@ -31,7 +31,8 @@ import java.util.Set;
  * @param enabledChannels  channels the event itself switches on, within the code's caps (N-32a: `ActivityPublished.notifyEmail`
  *                         — «+EMAIL si el club ho marca»); the member's preferences still apply
  * @param templateId       the club template to render instead of the code's own (R-11-13, E7-T04: an announcement sent with a
- *                         `CUSTOM` template is N-24 rendered with that template, its category and its matrix); `null` = the code's
+ *                         `CUSTOM` template is N-24 rendered with that template, its category and its matrix, as the batch froze
+ *                         it at the send, ruling E82); `null` = the code's
  */
 public record NotificationFacts(String occurrence, Set<String> audiences, List<MemberSubject> members, InstructorScope instructors,
         SignupContactPort.ApplicantContact applicant, Map<String, Object> values, NotificationSubject subject, Set<String> excludedChannels,

@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
  * member's name and the address, action OPEN_MEMBER; N-49 `SmsCapReached{month, cap}` → the ADMINS, `month` written out
  * («setembre de 2026»). E7-T04: N-24 `AnnouncementSent{templateId, batchId, recipientCount, filters}` → one `MEMBER`
  * notification per member of the stored batch ({@link Announcement#memberIds()}, frozen at the send), rendered with the
- * template it was sent with (N-24's or a `CUSTOM` one); a batch this club does not hold is no notice.
+ * template it was sent with (N-24's or a `CUSTOM` one) as the batch froze it (ruling E82); a batch this club does not hold is
+ * no notice.
  */
 @Service
 public class MessagingNotificationFacts implements NotificationFactsPort {

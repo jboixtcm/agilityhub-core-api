@@ -36,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
  * about them mandates (T-11-14), so the count is the count of the members the notices will reach. None → `NO_RECIPIENTS`.
  *
  * <p>A dry run only counts («S'enviarà a {n} abonats») and writes nothing. A real send, in one transaction: the
- * {@link Announcement} batch (its members frozen), `AnnouncementSent{templateId, batchId, recipientCount, filters}` on the
+ * {@link Announcement} batch (its members and the template as it is now frozen: the engine renders that copy whatever happens
+ * to the template later, ruling E82), `AnnouncementSent{templateId, batchId, recipientCount, filters}` on the
  * outbox and the `ANNOUNCEMENT_SENT` audit entry on the template with `{batchId, recipientCount, filters, selection}`. The
  * engine then creates one `MEMBER` notification per member (`dedupKey = {batchId}:{memberId}`) with that member's
  * preferences and the template's matrix. The `Idempotency-Key` replay of the same batch is the API's (`IdempotencyFilter`).</p>
@@ -80,8 +81,8 @@ public class AnnouncementService {
         String clubId = TenantContext.require(), batchId = UUID.randomUUID().toString();
         var user = CurrentUser.current();
         var filters = recipients.filters() == null ? List.<String>of() : recipients.filters();
-        announcements.insert(new Announcement(batchId, clubId, template.id(), recipients.selection(), filters, recipients.q(),
-                reached.stream().map(MemberContact::memberId).toList(), reached.size(), user == null ? null : user.accountId(), clock.instant()));
+        announcements.insert(new Announcement(batchId, clubId, template.id(), Announcement.SentTemplate.of(template), recipients.selection(), filters,
+                recipients.q(), reached.stream().map(MemberContact::memberId).toList(), reached.size(), user == null ? null : user.accountId(), clock.instant()));
         var payload = new LinkedHashMap<String, Object>();
         payload.put("templateId", template.id()); payload.put("batchId", batchId); payload.put("recipientCount", reached.size()); payload.put("filters", filters);
         events.publish(new MessagingEvent(MessagingEvent.Kind.AnnouncementSent, clubId, batchId, clock.instant(), payload,

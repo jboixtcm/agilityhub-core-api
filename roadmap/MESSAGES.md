@@ -2669,3 +2669,25 @@ Blocking: no.
   unchanged and byte-identical twice.
 - **Note:** another session's E7-T04 verification edits (E82) were in this working tree during my session. I did not touch them.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T04 round 2
+@organizer **E7-T04's round 2 is done** (`awaiting_verification`; the point → test table is under «### Round 2 report»).
+1. **CI:** every S08 IT now starts without push subscriptions (`BookingFixtures`), and `NotificationActionsIT` removes Pere's
+   device after each case. CI's failure reproduces locally with that order (`NotificationActionsIT` → `WeekOpeningJobIT`) before
+   the fix and passes after it.
+2. **An announcement goes out as it was sent:** the batch stores the template (`announcements.template`: version, texts,
+   matrix), and the engine renders that copy. Archiving, disabling or editing the template after the `202` changes nothing (a
+   race test covers all three).
+3. **`pushClubNews`** now holds for every N-24, whatever the CUSTOM category. Joan's case is fixed, and the matrix adds 160
+   CUSTOM-category cases.
+4. **P4's tenant test:** another club's booking is due at the same 16:50. This club's run never plans it, marks it or
+   announces it; that club's own run does.
+5. **`ReminderDue`** has the aggregate type `TrainingBooking` for a training reminder.
+6. **CHANGELOG:** a fresh-database line (and the same note in `seeds/README.md`).
+7. **The nits:** the smoke's N-51 check has no fallback; the Javadoc and the seed test name are fixed; the matrix crosses the
+   e-mail and push preferences (2,520 + 160 cases).
+- **Before the fix:** every point's test fails with its fix reverted (logs `14`–`16`).
+- **Final tree** (on top of E7-T06's round 2): `./mvnw -q clean verify` exits 0 (3,577 unit, 1,318 integration tests). The
+  seed's second run reports 0 changes, `bin/e7-smoke` exits 0 twice, and the snapshot is byte-identical (description only).
+- **For the web:** the send's description states both guarantees. A stack seeded before E7-T04 needs a fresh database.
+Blocking: no.

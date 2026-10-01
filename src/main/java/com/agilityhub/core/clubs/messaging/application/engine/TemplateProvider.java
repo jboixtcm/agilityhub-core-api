@@ -3,6 +3,8 @@ package com.agilityhub.core.clubs.messaging.application.engine;
 import com.agilityhub.core.clubs.messaging.domain.NotificationSpec;
 import com.agilityhub.core.clubs.messaging.domain.TemplateKind;
 import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
+import com.agilityhub.core.clubs.messaging.persistence.Announcement;
+import com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplateRepository;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -10,6 +12,7 @@ import com.agilityhub.core.shared.application.TransactionRetries;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -26,16 +29,28 @@ public class TemplateProvider {
     static final String SYSTEM_ACTOR = "system:notification-engine";
     static final int FIRST_USE_ATTEMPTS = 8;
     private final MessageTemplateRepository templates; private final MessageTemplateSeed seeds; private final Clock clock;
-    private final TransactionTemplate own, outside;
+    private final TransactionTemplate own, outside; private final AnnouncementRepository announcements;
 
     public TemplateProvider(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions) {
-        this.templates = templates; this.seeds = seeds; this.clock = clock;
+        this(templates, seeds, clock, transactions, null);
+    }
+    public TemplateProvider(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions,
+            AnnouncementRepository announcements) {
+        this.templates = templates; this.seeds = seeds; this.clock = clock; this.announcements = announcements;
         this.own = new TransactionTemplate(transactions); own.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.outside = new TransactionTemplate(transactions); outside.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
-    /** A template of the current club by id (R-11-13: the one an announcement was sent with); another club's is absent. */
-    public java.util.Optional<MessageTemplate> byId(String id) { return id == null ? java.util.Optional.empty() : templates.findById(id); }
+    /**
+     * The template an announcement batch of the current club was sent with (R-11-13, ruling E82): the copy the batch froze at
+     * the send ({@link Announcement.SentTemplate}), whatever the template's status or texts are now. Another club's batch, an
+     * unknown one or a batch of another template is none.
+     */
+    public Optional<MessageTemplate> asSent(String batchId, String templateId) {
+        if (batchId == null || templateId == null || announcements == null) { return Optional.empty(); }
+        return announcements.findById(batchId).filter(batch -> batch.template() != null && templateId.equals(batch.template().id()))
+                .map(batch -> batch.template().asTemplate(batch.clubId()));
+    }
 
     /** The template of a templated code in the current club, created from the seed (every product language) when absent. */
     public MessageTemplate forCode(NotificationSpec spec, String clubDefaultLocale) { return forCode(spec, null, clubDefaultLocale); }

@@ -13,7 +13,11 @@ public record SchedulerEvent(Kind kind, String clubId, String aggregateId, Insta
         Map<String, Object> payload, String actorAccountId, String impersonatedMemberId, Origin origin) implements DomainEvent {
     public SchedulerEvent { payload = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(payload)); }
     @Override public String type() { return kind.name(); }
-    @Override public String aggregateType() { return kind.aggregateType; }
+    /** The kind's aggregate; a P4 reminder carries its object's: `TrainingBooking` for a training (ruling E82). */
+    @Override public String aggregateType() {
+        return kind == Kind.ReminderDue && payload.containsKey(TRAINING_BOOKING_ID) ? TRAINING_BOOKING : kind.aggregateType;
+    }
+    static final String TRAINING_BOOKING_ID = "trainingBookingId", TRAINING_BOOKING = "TrainingBooking";
     public enum Kind {
         SchedulerRun("JobRun"),
         JobFailed("JobRun"),

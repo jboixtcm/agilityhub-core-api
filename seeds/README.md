@@ -441,13 +441,17 @@ audience × preference matrix is visible in 12/D10 and `bin/e7-smoke` has its ca
 | 15 | `emailByCategory.CLUB_CHANGES = false` | a club change (N-08a, N-36…) by APP and SMS only: the SMS stays (R-11-04) |
 | 16 | a second phone, `+34600000901` | one SMS to each phone |
 | 17 | a second contact e-mail, `demo.canic.antic@example.test`, marked `bounced` | e-mails go only to the first address; D10 shows the mark |
-| 18 | `pushClubNews = false` | club news (N-24, N-32a) without push |
+| 18 | `pushClubNews = false` | club news (N-32a) and every announcement (N-24, also a CUSTOM one of another category, ruling E82) without push |
 
 The CUSTOM template is «Comunicat del club» (`CLUB_NEWS`, icon `flag`, colour `ACCENT`, members' APP + e-mail): a fictional
 open-day text with `[[member_first_name]]` and `[[dog_name]]`, in the club's languages (`ca`, `es`; the seed's `en` text
 is kept for a club that has English). D5/D15's «Enviar comunicat» dialog offers it beside N-24. The ten seed logins
 (`member@` … `member.10@`, member numbers 6…15, all ACTIVE) are the smoke's announcement audience
 (`filter=memberNumber:gte:6&filter=memberNumber:lte:15`); the census holds 184 active members in all.
+
+A database seeded before E7-T04 keeps its old planning specification: `seed:demo` (also with `--reanchor`) answers
+`CLUB_NOT_EMPTY` there and never adds these profiles. Start it again from a fresh database (`docker compose down -v`, then
+`club:apply` and `seed:demo`).
 
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.

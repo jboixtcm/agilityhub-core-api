@@ -75,7 +75,7 @@ class ChannelResolverTest {
         assertThat(ChannelResolver.resolve(spec("N-08a"), MEMBER, spec("N-08a").defaultMatrix().get(MEMBER), on, laura(email(NotificationCategory.CLUB_CHANGES, false), phones)))
                 .extracting(ChannelResolver.Planned::channel, ChannelResolver.Planned::status)
                 .containsExactly(tuple(APP, DELIVERED), tuple(EMAIL, SKIPPED_BY_PREFERENCE), tuple(SMS, QUEUED));
-        // pushClubNews = false removes PUSH on CLUB_NEWS only (N-24), never on another category (N-13, N-15).
+        // pushClubNews = false removes PUSH on CLUB_NEWS and announcements only (N-24), never on another code (N-13, N-15).
         var noNewsPush = new NotificationPreference(Map.of(), null, false, null, null);
         var subscribed = new ChannelResolver.Contact("account-laura", List.of(), List.of(), List.of("subscription-a"), noNewsPush);
         assertThat(ChannelResolver.resolve(spec("N-24"), MEMBER, spec("N-24").defaultMatrix().get(MEMBER), on, subscribed))
@@ -84,6 +84,17 @@ class ChannelResolverTest {
                 .contains(new ChannelResolver.Planned(PUSH, "subscription-a", QUEUED));
         assertThat(ChannelResolver.resolve(spec("N-15"), MEMBER, spec("N-15").defaultMatrix().get(MEMBER), on, subscribed))
                 .contains(new ChannelResolver.Planned(PUSH, "subscription-a", QUEUED));
+        // E7-T04 round 2 (R-11-13, ruling E82): an announcement sent with a CUSTOM template of any category is still N-24, and
+        // `pushClubNews` = false removes its PUSH too; with the preference on, the device gets it.
+        var withNewsPush = new ChannelResolver.Contact("account-laura", List.of(), List.of(), List.of("subscription-a"), NotificationPreference.DEFAULTS);
+        for (var category : List.of(NotificationCategory.OPERATIONAL, NotificationCategory.PERSONAL, NotificationCategory.CLUB_CHANGES, NotificationCategory.CLUB_NEWS)) {
+            var custom = NotificationCatalog.variant(spec("N-24"), category);
+            var row = Map.of(APP, true, EMAIL, false, SMS, false);
+            assertThat(ChannelResolver.resolve(custom, MEMBER, row, on, subscribed)).as(category.name())
+                    .containsExactly(new ChannelResolver.Planned(APP, "account-laura", DELIVERED), new ChannelResolver.Planned(PUSH, null, SKIPPED_BY_PREFERENCE));
+            assertThat(ChannelResolver.resolve(custom, MEMBER, row, on, withNewsPush)).as(category.name())
+                    .containsExactly(new ChannelResolver.Planned(APP, "account-laura", DELIVERED), new ChannelResolver.Planned(PUSH, "subscription-a", QUEUED));
+        }
         // SYSTEM ignores preferences (every category off): the e-mail still goes.
         var allOff = new NotificationPreference(Map.of(NotificationCategory.OPERATIONAL, false, NotificationCategory.PERSONAL, false,
                 NotificationCategory.CLUB_CHANGES, false, NotificationCategory.CLUB_NEWS, false), null, false, null, null);

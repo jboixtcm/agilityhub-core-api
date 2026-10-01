@@ -38,6 +38,7 @@ import java.time.*;
 import java.util.*;
 import java.util.function.Supplier;
 import org.bson.Document;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -56,6 +57,7 @@ import static org.assertj.core.api.Assertions.*;
  * starts from the fixture, runs its preparation (whose notices are dropped), then its action.
  */
 class NotificationActionsIT extends BookingFixtures {
+    static final String PERE_DEVICE = "s08-sub-pere";
     @Autowired SeatHoldService holds; @Autowired BookingConfirmationService confirmations; @Autowired BookingCancellationService cancellations;
     @Autowired WaitlistService waitlist; @Autowired TrainingBookingService trainings; @Autowired ClassCancellationUseCase classCancellations;
     @Autowired ClassSessionService classes; @Autowired AttendanceSheetService attendance; @Autowired TaskService tasks; @Autowired DogService dogs;
@@ -74,12 +76,13 @@ class NotificationActionsIT extends BookingFixtures {
         // Free training for level C (Duna, Toby, Nit); Pere's phone has the PWA installed.
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-lv-C")), new Update().set("grantsFreeTraining", true), "levels");
         var keys = new PushSubscription.Keys(com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(), com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth());
-        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "push_subscriptions");
-        mongo.insert(new PushSubscription("s08-sub-pere", CLUB, "s08-pere", "https://push.example.test/s08-pere", null, keys, "Android · Chrome", "UA",
+        mongo.insert(new PushSubscription(PERE_DEVICE, CLUB, "s08-pere", "https://push.example.test/s08-pere", null, keys, "Android · Chrome", "UA",
                 PushSubscription.Status.ACTIVE, 0, null, null, 0L, clock.instant(), "s08-pere", clock.instant(), "s08-pere"));
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs"); mongo.remove(new Query(), "job_locks");
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "activities"); mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "activity_registrations");
     }
+    /** E7-T04 round 2: Pere's device is this IT's only; the S08 ITs after it (`WeekOpeningJobIT`'s N-33 PUSH) never see it. */
+    @AfterEach void removePeresDevice() { mongo.remove(Query.query(Criteria.where("_id").is(PERE_DEVICE)), "push_subscriptions"); }
 
     @ParameterizedTest(name = "{0}") @EnumSource(Action.class)
     void T_11_02_T_11_24_everyRealE5E6ActionNotifiesItsCodesEndToEnd(Action action) {

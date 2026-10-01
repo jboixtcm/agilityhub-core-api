@@ -163,7 +163,7 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
      * changes without e-mail, two phones, two contact e-mails one of them bounced, no push of club news, and the CUSTOM
      * «Comunicat del club» — once: a second run changes nothing.
      */
-    @Test void T_11_20_E7_T04_theDemoSeedsThePreferenceProfilesAndTheCustomTemplateOnce() throws Exception {
+    @Test void E7_T04_theDemoSeedsThePreferenceProfilesAndTheCustomTemplateOnce() throws Exception {
         seed("canic");
         var run = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
         assertThat(run).containsEntry("messagingProfiles", 3).containsEntry("messagingContacts", 2).containsEntry("messagingBounces", 1)

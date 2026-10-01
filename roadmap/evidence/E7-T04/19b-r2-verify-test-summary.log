@@ -1,0 +1,32 @@
+surefire-reports: 169 classes, tests=3577 failures=0 errors=0 skipped=0
+failsafe-reports: 116 classes, tests=1318 failures=0 errors=0 skipped=0
+  RemindersJobIT (failsafe-reports): tests=6 failures=0 errors=0 skipped=0
+  NotificationActionsIT (failsafe-reports): tests=15 failures=0 errors=0 skipped=0
+  AnnouncementsIT (failsafe-reports): tests=4 failures=0 errors=0 skipped=0
+  NotificationMatrixTest (surefire-reports): tests=2681 failures=0 errors=0 skipped=0
+  DemoScenarioSeedIT (failsafe-reports): tests=6 failures=0 errors=0 skipped=0
+  TemplateVariableParityIT (failsafe-reports): tests=2 failures=0 errors=0 skipped=0
+  NotificationEngineIT (failsafe-reports): tests=13 failures=0 errors=0 skipped=0
+  MessagingApplicationTest (surefire-reports): tests=3 failures=0 errors=0 skipped=0
+  MessagingPortsTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  ChannelResolverTest (surefire-reports): tests=64 failures=0 errors=0 skipped=0
+  E7ContractIT (failsafe-reports): tests=29 failures=0 errors=0 skipped=0
+  E7PersistenceIT (failsafe-reports): tests=8 failures=0 errors=0 skipped=0
+  JobsApiIT (failsafe-reports): tests=6 failures=0 errors=0 skipped=0
+  JobCatalogContractTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  JobFrameworkIT (failsafe-reports): tests=16 failures=0 errors=0 skipped=0
+  ArchitectureTest (surefire-reports): tests=14 failures=0 errors=0 skipped=0
+  AuditContractTest (surefire-reports): tests=1 failures=0 errors=0 skipped=0
+  ErrorCatalogContractTest (surefire-reports): tests=5 failures=0 errors=0 skipped=0
+  EventCatalogContractTest (surefire-reports): tests=2 failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  MessageParityTest (surefire-reports): tests=1 failures=0 errors=0 skipped=0
+  WeekOpeningJobIT (failsafe-reports): tests=4 failures=0 errors=0 skipped=0
+  TemplateProviderTest (surefire-reports): tests=4 failures=0 errors=0 skipped=0
+  coverage com.agilityhub.core.clubs.messaging.domain: lines 100.0 % (459/459), branches 97.5 % (356/365)
+  coverage com.agilityhub.core.clubs.messaging.application: lines 99.4 % (997/1003), branches 88.0 % (828/941)
+  coverage com.agilityhub.core.clubs.messaging.application.engine: lines 98.7 % (967/980), branches 89.9 % (863/960)
+  coverage com.agilityhub.core.clubs.messaging.api: lines 99.4 % (177/178), branches 85.5 % (53/62)
+  coverage com.agilityhub.core.clubs.common.application: lines 98.7 % (544/551), branches 87.0 % (342/393)
+  coverage com.agilityhub.core.clubs.bookings.application: lines 99.0 % (1946/1965), branches 84.1 % (1277/1518)
+  coverage com.agilityhub.core.shared.domain.events: lines 100.0 % (26/26), branches 100.0 % (4/4)

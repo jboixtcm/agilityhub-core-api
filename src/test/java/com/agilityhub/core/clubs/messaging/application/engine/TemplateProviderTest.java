@@ -75,4 +75,35 @@ class TemplateProviderTest {
             assertThatThrownBy(() -> provider.ensureAll(List.of("ca"), "ca")).isInstanceOf(IllegalStateException.class);
         }
     }
+
+    /**
+     * E7-T04 round 2 (R-11-13, ruling E82): a batch renders the copy of its template it froze at the send — the version and the
+     * texts of then, sendable even when the template is disabled or archived now; another template's id, an unknown batch or
+     * none is nothing, and the current template is never read.
+     */
+    @Test void R_11_13_aBatchRendersTheTemplateItFroze() {
+        var batches = mock(com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository.class);
+        var withBatches = new TemplateProvider(templates, MessageTemplateSeed.load(), Clock.fixed(Instant.parse("2026-10-05T08:00:00Z"), ZoneOffset.UTC),
+                mock(PlatformTransactionManager.class), batches);
+        try (var tenant = TenantContext.open("club-a")) {
+            var sent = new MessageTemplate("template-24", "club-a", "N-24", com.agilityhub.core.clubs.messaging.domain.TemplateKind.CATALOG,
+                    com.agilityhub.core.clubs.messaging.domain.NotificationCategory.CLUB_NEWS, new com.agilityhub.core.shared.domain.LocalizedText(java.util.Map.of("ca", "Festa"), "ca"),
+                    new com.agilityhub.core.shared.domain.LocalizedText(java.util.Map.of("ca", "Dissabte"), "ca"), null, null, null, java.util.Map.of(), false, false, true,
+                    com.agilityhub.core.clubs.messaging.domain.TemplateStatus.DISABLED, 4L, null, null, null, null);
+            when(batches.findById("batch-1")).thenReturn(Optional.of(new com.agilityhub.core.clubs.messaging.persistence.Announcement("batch-1", "club-a", "template-24",
+                    com.agilityhub.core.clubs.messaging.persistence.Announcement.SentTemplate.of(sent), "MEMBERS", List.of(), null, List.of("member-a"), 1, "admin", null)));
+            var rendered = withBatches.asSent("batch-1", "template-24").orElseThrow();
+            assertThat(rendered.version()).isEqualTo(4L); assertThat(rendered.title().values()).containsEntry("ca", "Festa");
+            assertThat(rendered.status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.TemplateStatus.ACTIVE); assertThat(rendered.enabled()).isTrue();
+            assertThat(withBatches.asSent("batch-1", "template-other")).isEmpty();
+            assertThat(withBatches.asSent("batch-unknown", "template-24")).isEmpty();
+            // A batch a database kept from before round 2 has no copy: nothing, never the template as it is now.
+            when(batches.findById("batch-old")).thenReturn(Optional.of(new com.agilityhub.core.clubs.messaging.persistence.Announcement("batch-old", "club-a",
+                    "template-24", null, "MEMBERS", List.of(), null, List.of("member-a"), 1, "admin", null)));
+            assertThat(withBatches.asSent("batch-old", "template-24")).isEmpty();
+            assertThat(withBatches.asSent(null, "template-24")).isEmpty();
+            assertThat(provider.asSent("batch-1", "template-24")).isEmpty();
+            verifyNoInteractions(templates);
+        }
+    }
 }

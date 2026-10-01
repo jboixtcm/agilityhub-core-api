@@ -143,7 +143,9 @@ public class MessageTemplatesController {
             + "list shows; NO_RECIPIENTS, 422). dryRun → 200 with the count and nothing written; otherwise 202, AnnouncementSent{templateId, batchId, "
             + "recipientCount, filters}, one MEMBER notification per member (dedupKey {batchId}:{memberId}) and ANNOUNCEMENT_SENT audit. The same "
             + "Idempotency-Key replays the same batchId (E7-T04). recipients is {memberIds} or {filters, q}, never both nor neither (VALIDATION_ERROR); "
-            + "a member who left is never a recipient (R-11-02); an archived template is NOT_FOUND." + TENANT,
+            + "a member who left is never a recipient (R-11-02); an archived template is NOT_FOUND. The batch goes out with the template as it was "
+            + "at the send (its version and texts): archiving, disabling or editing it after the 202 changes nothing; every announcement's PUSH "
+            + "respects the member's pushClubNews, whatever the template's category (ruling E82)." + TENANT,
             responses = {@ApiResponse(responseCode = "202", description = "AnnouncementResult", useReturnTypeSchema = true),
                     @ApiResponse(responseCode = "200", description = "AnnouncementResult (dryRun)", content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = AnnouncementResult.class)))})

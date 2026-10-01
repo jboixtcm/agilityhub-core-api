@@ -131,8 +131,9 @@ public class MessagingConfiguration {
     /** S11 §8: the product seed of the club templates (`seed/message-templates.{ca,es,en}.json`), checked against the catalog at start-up. */
     @Bean MessageTemplateSeed messageTemplateSeed(ObjectMapper mapper) { return MessageTemplateSeed.load(mapper); }
 
-    @Bean TemplateProvider notificationTemplates(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions) {
-        return new TemplateProvider(templates, seeds, clock, transactions);
+    @Bean TemplateProvider notificationTemplates(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions,
+            com.agilityhub.core.clubs.messaging.persistence.AnnouncementRepository announcements) {
+        return new TemplateProvider(templates, seeds, clock, transactions, announcements);
     }
 
     @Bean RecipientResolver notificationRecipients(MemberDirectoryPort members, StaffDirectoryPort staff, SignupContactPort signups) {

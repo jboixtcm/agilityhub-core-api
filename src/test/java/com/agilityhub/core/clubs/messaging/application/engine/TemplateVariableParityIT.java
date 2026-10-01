@@ -297,7 +297,8 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
             // R-11-13: the batch the send stores, with this template and Laura as its only member.
             mongo.remove(Query.query(Criteria.where("_id").is("par-batch")), "announcements");
             mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement("par-batch", CLUB, template.id(),
-                    com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of(LAURA), 1, "par-admin", NOW));
+                    com.agilityhub.core.clubs.messaging.persistence.Announcement.SentTemplate.of(template), com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS,
+                    List.of(), null, List.of(LAURA), 1, "par-admin", NOW));
         }
         return template;
     }

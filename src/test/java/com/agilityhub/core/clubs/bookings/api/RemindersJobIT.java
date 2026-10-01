@@ -1,5 +1,7 @@
 package com.agilityhub.core.clubs.bookings.api;
 
+import com.agilityhub.core.clubs.bookings.application.ClassReminders;
+import com.agilityhub.core.clubs.census.application.ReminderLeads;
 import com.agilityhub.core.clubs.common.application.RemindersJob;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.jobs.*;
@@ -24,10 +26,11 @@ import static org.assertj.core.api.Assertions.*;
  * `OPERATIONAL`); a booking made at 17:30 for 18:50, a member without a lead and a booking the club cancelled get none; a
  * training booking with FREE_TRAINING gets N-13 with its ring (none without the module). T-15-18: a preference changed at
  * 10:00 applies at the 10:00 tick both ways, and the DST day of 25-10-2026 in Madrid and Buenos Aires is plain instant
- * arithmetic. The dry run plans exactly what the run then does, and writes nothing.
+ * arithmetic. The dry run plans exactly what the run then does, and writes nothing. Round 2: the other club's booking due at
+ * the same 16:50 is never this club's (AGENTS rule 4), and a training reminder's aggregate is `TrainingBooking` (E82).
  */
 class RemindersJobIT extends BookingFixtures {
-    @Autowired JobRunner runner; @Autowired RemindersJob job;
+    @Autowired JobRunner runner; @Autowired RemindersJob job; @Autowired ClassReminders classReminders; @Autowired ReminderLeads leads;
 
     @BeforeEach void jobs() {
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
@@ -64,8 +67,16 @@ class RemindersJobIT extends BookingFixtures {
         String toby = book(as("joan"), "thu", "s08-d-toby").path("id").asText();
         lead("s08-m-pere", 120);
         String nit = book(as("pere"), "fri", "s08-d-nit").path("id").asText();
+        // AGENTS rule 4 (E7-T04 round 2): the other club has a member with 2 h and a booking for Thursday 18:50 too, due at 16:50.
+        String elsewhere = otherClubsBookingDueAt1650();
         dispatch();
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "notifications");
+        // Both reads P4 makes in this club see only this club: S08's scope and the census leads.
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            assertThat(classReminders.scope(local("2026-10-08T16:50"), local("2026-10-09T16:50"))).extracting(ClassReminders.Reminder::bookingId)
+                    .contains(duna).doesNotContain(elsewhere);
+            assertThat(leads.of(List.of("s08-m-laura", "s08-m-elsewhere"))).containsOnlyKeys("s08-m-laura");
+        }
 
         // 16:49: not yet (16:50 > now).
         assertThat(tick("2026-10-08T16:49").orElseThrow().items()).isEmpty();
@@ -87,6 +98,10 @@ class RemindersJobIT extends BookingFixtures {
         assertThat(booking(duna).getDate("reminderSentAt").toInstant()).isEqualTo(local("2026-10-08T16:50"));
         var event = reminders().getFirst();
         assertThat(event.getString("aggregateId")).isEqualTo(duna); assertThat(event.getString("origin")).isEqualTo("SYSTEM");
+        assertThat(event.getString("aggregateType")).isEqualTo("Booking");
+        // This club's dry run and run neither planned, nor marked, nor announced the other club's booking (its own run does, below).
+        assertThat(mongo.findById(elsewhere, Document.class, "bookings").get("reminderSentAt")).isNull();
+        assertThat(remindersOf(OTHER)).isEmpty();
         assertThat(event.get("payload", Document.class)).containsEntry("bookingId", duna).containsEntry("memberId", "s08-m-laura")
                 .containsEntry("dogId", "s08-d-duna").containsEntry("startsAt", local("2026-10-08T18:50").toString());
         // The next ticks and a manual run: nothing new (reminderSentAt).
@@ -113,9 +128,32 @@ class RemindersJobIT extends BookingFixtures {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(nit)), new Update().set("state", "CANCELLED_BY_CLUB"), "bookings");
         assertThat(tick("2026-10-09T18:00").orElseThrow().items()).isEmpty();
         assertThat(tick("2026-10-09T19:59").orElseThrow().items()).isEmpty();
-        assertThat(remindedBookings()).containsExactly(duna).doesNotContain(rock, toby, nit);
+        assertThat(remindedBookings()).containsExactly(duna).doesNotContain(rock, toby, nit, elsewhere);
         assertThat(booking(rock).get("reminderSentAt")).isNull(); assertThat(booking(toby).get("reminderSentAt")).isNull();
+        assertThat(booking(elsewhere).get("reminderSentAt")).isNull();
+        // The control: at the same 16:50 the other club's own run reminds its booking, and only that one.
+        clock.setInstant(local("2026-10-08T16:50"));
+        var theirs = runner.scheduled(OTHER, true, job, clock.instant()).orElseThrow();
+        assertThat(theirs.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(elsewhere, "REMIND"));
+        assertThat(booking(elsewhere).get("reminderSentAt")).isNotNull();
+        assertThat(remindersOf(OTHER)).singleElement().satisfies(e -> assertThat(e.getString("aggregateId")).isEqualTo(elsewhere));
+        assertThat(remindedBookings()).containsExactly(duna);
     }
+
+    /** The other club: a member with «2 h abans» and an ACTIVE booking (made on Tuesday) for its Thursday 18:50 class. */
+    String otherClubsBookingDueAt1650() {
+        mongo.save(new Document("_id", "s08-m-elsewhere").append("clubId", OTHER).append("firstName", "Elsewhere").append("lastName1", "Example").append("status", "ACTIVE")
+                .append("bookingBlock", new Document("active", false)).append("notificationPreferences", new Document("reminderMinutesBefore", 120)).append("version", 0), "members");
+        mongo.save(new Document("_id", "s08-d-elsewhere").append("clubId", OTHER).append("memberId", "s08-m-elsewhere").append("name", "Lluna").append("status", "ACTIVE")
+                .append("version", 0), "dogs");
+        var starts = local("2026-10-08T18:50");
+        mongo.insert(new Document("_id", "s08-b-elsewhere").append("clubId", OTHER).append("classSessionId", "s08-elsewhere-thu").append("dogId", "s08-d-elsewhere")
+                .append("memberId", "s08-m-elsewhere").append("state", "ACTIVE").append("origin", "APP").append("bookedAt", Date.from(NOW))
+                .append("classStartsAt", Date.from(starts)).append("classEndsAt", Date.from(starts.plus(Duration.ofHours(1)))).append("bookingWeekKey", "2026-10-04")
+                .append("version", 0L), "bookings");
+        return "s08-b-elsewhere";
+    }
+    List<Document> remindersOf(String clubId) { return mongo.find(Query.query(Criteria.where("clubId").is(clubId).and("type").is("ReminderDue")), Document.class, "domain_events"); }
 
     @Test void T_15_17_aTrainingBookingIsRemindedWithItsRingOnlyWithFreeTraining() {
         // Pere (his account in English, 2 h) and a free training of Nit on Central, Thursday 08-10 08:00–08:30, booked on Tuesday.
@@ -133,6 +171,9 @@ class RemindersJobIT extends BookingFixtures {
         assertThat(counters(run)).isEqualTo(Map.of("trainingReminders", 1L));
         assertThat(reminders().getFirst().get("payload", Document.class)).containsEntry("trainingBookingId", "s08-t-nit").containsEntry("memberId", "s08-m-pere")
                 .containsEntry("dogId", "s08-d-nit").doesNotContainKey("bookingId");
+        // Its object is the training booking (ruling E82): aggregate `TrainingBooking`, not `Booking`.
+        assertThat(reminders().getFirst().getString("aggregateType")).isEqualTo("TrainingBooking");
+        assertThat(reminders().getFirst().getString("aggregateId")).isEqualTo("s08-t-nit");
         assertThat(mongo.findById("s08-t-nit", Document.class, "training_bookings").get("reminderSentAt")).isNotNull();
         dispatch();
         var rows = NotificationRows.rows(mongo, CLUB, "N-13");

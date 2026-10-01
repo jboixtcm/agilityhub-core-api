@@ -17,11 +17,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     template, recipients by `memberIds` or by `GET /members`' filters, dry run, the `announcements` batch,
     `AnnouncementSent`, the `ANNOUNCEMENT_SENT` audit on the template, the `Idempotency-Key` replay. The engine renders
     each member's N-24 with the template it was sent with (a `CUSTOM` one keeps its category and matrix).
+  - Round 2 (ruling E82): the batch stores the template as it was sent (`announcements.template`: version, texts, matrix)
+    and the engine renders that copy, so archiving, disabling or editing the template after the `202` neither stops the
+    batch nor changes its text. Every announcement's PUSH respects `pushClubNews`, whatever the `CUSTOM` template's
+    category. A training reminder's `ReminderDue` has the aggregate type `TrainingBooking`.
   - The channel × audience × preference matrix: `NotificationMatrixTest` (every R1 catalog row × audience × channel ×
-    preference × modules × contact through the engine, 1,260 cases) and `NotificationActionsIT` (15 real E5/E6 actions
-    end to end, each recipient's language).
+    e-mail preference × `pushClubNews` × modules × contact through the engine, 2,520 cases, plus 160 of N-24 sent with a
+    `CUSTOM` template of each category) and `NotificationActionsIT` (15 real E5/E6 actions end to end, each recipient's
+    language).
   - The demo seed's `messaging` section: five preference profiles (a 2 h reminder with a push device, no club-change
-    e-mail, two phones, a bounced second e-mail, no club-news push) and the CUSTOM «Comunicat del club».
+    e-mail, two phones, a bounced second e-mail, no club-news push) and the CUSTOM «Comunicat del club». **A database
+    seeded before this task needs a fresh start** (`docker compose down -v`, then `club:apply` and `seed:demo`): its demo
+    planning was made without the `messaging` section, so `seed:demo` (also with `--reanchor`) answers `CLUB_NOT_EMPTY` there
+    and the profiles never arrive. The web and e2e lanes start from a fresh database.
+  - Tests: every S08 integration test starts without push subscriptions, and `NotificationActionsIT` removes the device it
+    creates (CI `75635df`: `WeekOpeningJobIT` saw it as an N-33 PUSH `SENT`).
   - `bin/e7-smoke [--image]`, the gate E7 (back) rehearsal, with a SendGrid bounce signed by a key generated for the run.
   - Docs: README «E7», `seeds/README.md`, `docs/DEPLOY.md` (missing-credential behaviour, gate E7 checklist).
 

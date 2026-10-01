@@ -27,7 +27,40 @@ CLASSES = [
     "com.agilityhub.core.shared.domain.EventCatalogContractTest",
     "com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest",
     "com.agilityhub.core.shared.application.MessageParityTest",
+    # Round 2
+    "com.agilityhub.core.clubs.bookings.api.WeekOpeningJobIT",
+    "com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest",
 ]
+# Round 2: the JaCoCo line/branch coverage (target/site/jacoco/jacoco.csv) of the packages the round touches; the build's
+# PACKAGE rule asks domain/application ≥ 85 % lines and ≥ 80 % branches, api ≥ 70 % lines.
+PACKAGES = [
+    "com.agilityhub.core.clubs.messaging.domain",
+    "com.agilityhub.core.clubs.messaging.application",
+    "com.agilityhub.core.clubs.messaging.application.engine",
+    "com.agilityhub.core.clubs.messaging.api",
+    "com.agilityhub.core.clubs.common.application",
+    "com.agilityhub.core.clubs.bookings.application",
+    "com.agilityhub.core.shared.domain.events",
+]
+
+
+def coverage():
+    import csv
+    path = ROOT / "target" / "site" / "jacoco" / "jacoco.csv"
+    if not path.exists():
+        print("jacoco.csv: missing")
+        return
+    sums = {}
+    with path.open() as handle:
+        for row in csv.DictReader(handle):
+            entry = sums.setdefault(row["PACKAGE"], [0, 0, 0, 0])
+            entry[0] += int(row["LINE_COVERED"]); entry[1] += int(row["LINE_MISSED"])
+            entry[2] += int(row["BRANCH_COVERED"]); entry[3] += int(row["BRANCH_MISSED"])
+    for name in PACKAGES:
+        lc, lm, bc, bm = sums.get(name, [0, 0, 0, 0])
+        lines = 100.0 * lc / (lc + lm) if lc + lm else 100.0
+        branches = 100.0 * bc / (bc + bm) if bc + bm else 100.0
+        print(f"  coverage {name}: lines {lines:.1f} % ({lc}/{lc + lm}), branches {branches:.1f} % ({bc}/{bc + bm})")
 
 
 def suites(folder):
@@ -51,6 +84,7 @@ def main():
         folder, counts = seen.get(name, ("missing", None))
         print(f"  {name.rsplit('.', 1)[1]} ({folder}): " + ("NOT RUN" if counts is None else
               f"tests={counts['tests']} failures={counts['failures']} errors={counts['errors']} skipped={counts['skipped']}"))
+    coverage()
 
 
 if __name__ == "__main__":

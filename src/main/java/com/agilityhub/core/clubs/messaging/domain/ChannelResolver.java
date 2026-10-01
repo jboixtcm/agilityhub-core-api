@@ -13,7 +13,8 @@ import static com.agilityhub.core.clubs.messaging.domain.NotificationChannel.*;
  * S11 R-11-03, the channel truth table, literally: for one recipient of one audience, the deliveries a notification is born
  * with and their initial status. A matrix cell that is off (or outside the code's caps) gives no delivery at all; the
  * notification is still stored (R-11-10). Preferences only concern `MEMBER` and never a `SYSTEM` category; they can remove
- * EMAIL (per category) and the PUSH of `CLUB_NEWS`, never APP nor SMS («+SMS» is fixed, Josep 18-08). `APPLICANT` is EMAIL
+ * EMAIL (per category) and the PUSH of `CLUB_NEWS` and of every announcement ({@link #pushClubNews}), never APP nor SMS
+ * («+SMS» is fixed, Josep 18-08). `APPLICANT` is EMAIL
  * only. The monthly SMS cap is applied by the dispatcher right before each send (R-11-06, S11 §6 `dispatch`), see
  * {@link #capReached}.
  */
@@ -75,7 +76,7 @@ public final class ChannelResolver {
         }
         if (spec.push().contains(audience)) {
             if (!modules.push()) { planned.add(new Planned(PUSH, null, SKIPPED_MODULE_OFF)); }
-            else if (preferencesApply && spec.category() == NotificationCategory.CLUB_NEWS && !contact.preferences().pushClubNews()) {
+            else if (preferencesApply && pushClubNews(spec) && !contact.preferences().pushClubNews()) {
                 planned.add(new Planned(PUSH, null, SKIPPED_BY_PREFERENCE));
             } else if (contact.pushSubscriptions().isEmpty()) { planned.add(new Planned(PUSH, null, SKIPPED_NO_CONTACT)); }
             else { contact.pushSubscriptions().forEach(id -> planned.add(new Planned(PUSH, id, QUEUED))); }
@@ -100,6 +101,15 @@ public final class ChannelResolver {
         targets.values().forEach(target -> forced.add(new Planned(EMAIL, target, QUEUED)));
         return forced;
     }
+
+    /**
+     * The PUSH a member turns off with `pushClubNews`: a `CLUB_NEWS` notice, and every announcement (N-24, also sent with a
+     * `CUSTOM` template of another category) whatever its category (S11 R-11-13, ruling E82).
+     */
+    static boolean pushClubNews(NotificationSpec spec) {
+        return spec.category() == NotificationCategory.CLUB_NEWS || ANNOUNCEMENT.equals(spec.code());
+    }
+    static final String ANNOUNCEMENT = "N-24";
 
     private static boolean on(Map<NotificationChannel, Boolean> row, java.util.Set<NotificationChannel> caps, NotificationChannel channel) {
         return caps.contains(channel) && Boolean.TRUE.equals(row.get(channel));

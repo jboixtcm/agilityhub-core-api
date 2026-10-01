@@ -434,8 +434,11 @@ class E7:
                            "The e-mail delivery is not FAILED")
         bounced = self.mongo('db.members.findOne({_id:' + json.dumps(self.x_member) + '}).contactEmails.filter(e=>e.bounced===true).length')
         self.require(bounced >= 1, "contactEmails[].bounced = true")
-        n51 = self.wait(lambda: self.settled({"code": "N-51", "subject.memberId": self.x_member}) or self.settled({"code": "N-51"}), "No N-51 for the admins")
+        # The N-51 is about the member whose address bounced (its subject), never just any N-51 of the club.
+        n51 = self.wait(lambda: self.settled({"code": "N-51", "subject.memberId": self.x_member}), "No N-51 about member@ for the admins")
         self.require(all(n["audience"] == "ADMINS" for n in n51), "N-51 goes to the admins")
+        others = self.count("notifications", {"code": "N-51", "subject.memberId": {"$ne": self.x_member}})
+        self.require(others == 0, f"Every N-51 is about member@ ({others} about someone else)")
         # The next message to member@ skips the bounced address: its only contact e-mail.
         again = self.call("POST", "/api/v1/message-templates/" + self.own_template + "/send", 202, access=self.admin, idempotent=True,
                           body=dict(recipients=dict(memberIds=[self.x_member]), dryRun=False))

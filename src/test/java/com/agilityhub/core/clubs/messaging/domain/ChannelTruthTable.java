@@ -21,7 +21,8 @@ import static com.agilityhub.core.clubs.messaging.domain.NotificationChannel.*;
  * resolver's code: APP → `DELIVERED` (feed; no account = no feed); EMAIL → `SKIPPED_BY_PREFERENCE` only for `MEMBER`, else
  * `QUEUED` to every address that did not bounce, else `SKIPPED_NO_CONTACT`; SMS → `SKIPPED_MODULE_OFF`, else `QUEUED` per
  * phone, else `SKIPPED_NO_CONTACT`; PUSH (fixed by the code, never by the template) → `SKIPPED_MODULE_OFF`, else
- * `SKIPPED_BY_PREFERENCE` for a `MEMBER` `CLUB_NEWS` notice without `pushClubNews`, else `QUEUED` per active subscription,
+ * `SKIPPED_BY_PREFERENCE` for a `MEMBER` `CLUB_NEWS` notice or announcement (N-24 of any category, E82) without
+ * `pushClubNews`, else `QUEUED` per active subscription,
  * else `SKIPPED_NO_CONTACT`; a cell that is off (or outside the code's caps) → no delivery; `APPLICANT` → EMAIL only (plus the
  * S04 §8 feed copy of an existing member who applies).</p>
  */
@@ -140,7 +141,10 @@ public final class ChannelTruthTable {
                 }
                 case PUSH -> {
                     if (!modules.push()) { out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_MODULE_OFF)); }
-                    else if (member && spec.category() == NotificationCategory.CLUB_NEWS && !pushClubNews) { out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_BY_PREFERENCE)); }
+                    // `pushClubNews` = false: a CLUB_NEWS notice, or an announcement (N-24) of any category (R-11-13, ruling E82).
+                    else if (member && (spec.category() == NotificationCategory.CLUB_NEWS || spec.code().equals("N-24")) && !pushClubNews) {
+                        out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_BY_PREFERENCE));
+                    }
                     else if (hasAccount) { SUBSCRIPTIONS.forEach(s -> out.add(new ChannelResolver.Planned(PUSH, s, QUEUED))); }
                     else { out.add(new ChannelResolver.Planned(PUSH, null, SKIPPED_NO_CONTACT)); }
                 }

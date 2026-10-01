@@ -36,9 +36,11 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     static final String CLUB = "s08-a", OTHER = "s08-b", HOST = "s08-a.example.test", OTHER_HOST = "s08-b.example.test";
     static final ZoneId MADRID = ZoneId.of("Europe/Madrid");
     static final Instant NOW = local("2026-10-06T10:00");
+    /** The club data every S08 IT starts without; `push_subscriptions` too (E7-T04 round 2: a device left by one IT was another's PUSH `SENT`). */
     static final List<String> DATA = List.of("bookings", "seat_holds", "seat_locks", "waitlist_entries", "class_sessions", "members", "dogs", "family_groups",
             "memberships", "accounts", "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records",
-            "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions", "attendances", "ring_blocks", "training_bookings", "tasks");
+            "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions", "attendances", "ring_blocks", "training_bookings", "tasks",
+            "push_subscriptions");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
     @Autowired InMemoryPackBalances packs; @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;

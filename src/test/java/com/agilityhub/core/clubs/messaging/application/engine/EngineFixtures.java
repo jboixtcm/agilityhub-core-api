@@ -209,9 +209,11 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         String templateId;
         try (var tenant = TenantContext.open(clubId)) {
             var club = configs.get(clubId).club();
-            templateId = templates.forCode(com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.byCode("N-24").orElseThrow(), club.locales(), club.defaultLocale()).id();
+            var template = templates.forCode(com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.byCode("N-24").orElseThrow(), club.locales(), club.defaultLocale());
+            templateId = template.id();
             announcements.insert(new com.agilityhub.core.clubs.messaging.persistence.Announcement(batchId, clubId, templateId,
-                    com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS, List.of(), null, List.of(memberIds), memberIds.length, "account-admin", clock.instant()));
+                    com.agilityhub.core.clubs.messaging.persistence.Announcement.SentTemplate.of(template), com.agilityhub.core.clubs.messaging.persistence.Announcement.MEMBERS,
+                    List.of(), null, List.of(memberIds), memberIds.length, "account-admin", clock.instant()));
         }
         return deliver(clubId, "AnnouncementSent", Map.of("templateId", templateId, "batchId", batchId, "recipientCount", memberIds.length, "filters", List.of()));
     }

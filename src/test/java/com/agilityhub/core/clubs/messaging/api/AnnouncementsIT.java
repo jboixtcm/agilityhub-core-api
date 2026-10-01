@@ -206,11 +206,56 @@ class AnnouncementsIT extends AbstractIntegrationTest {
         var rows = NotificationRows.rows(mongo, CLUB, "N-24");
         assertThat(rows).extracting(r -> r.getString("memberId")).containsOnly("e7t04-ann-joan");
         // Joan turned CLUB_NEWS e-mail off, not PERSONAL: the PERSONAL notice e-mails him; its title and body are the CUSTOM ones in Spanish.
-        assertThat(channels(rows, "e7t04-ann-joan")).containsExactlyInAnyOrder("APP:DELIVERED", "EMAIL:SENT", "PUSH:SKIPPED_NO_CONTACT");
+        // He also turned `pushClubNews` off, which every announcement respects whatever its category (R-11-13, ruling E82).
+        assertThat(channels(rows, "e7t04-ann-joan")).containsExactlyInAnyOrder("APP:DELIVERED", "EMAIL:SENT", "PUSH:SKIPPED_BY_PREFERENCE");
         var notification = NotificationRows.notifications(mongo, CLUB, "N-24").getFirst();
         assertThat(notification.getString("templateId")).isEqualTo(custom); assertThat(notification.getString("category")).isEqualTo("PERSONAL");
         assertThat(notification.getString("title")).isEqualTo("Comunicado del club");
         assertThat(notification.getString("body")).isEqualTo("Hola Joan, el sábado hay fiesta con Gos Joan.");
+    }
+
+    /**
+     * Round 2 (S11 R-11-13, ruling E82): a batch goes out as it was sent. Between each `202` and the outbox dispatch the admin
+     * edits the CUSTOM template, sends it again, archives it, and disables N-24 right after sending it. Every batch still
+     * notifies all its members, with the texts and the version its template had at its own send.
+     */
+    @Test void T_11_18_aBatchGoesOutAsItWasSentWhateverHappensToItsTemplateBeforeTheDispatch() throws Exception {
+        var both = Map.<String, Object>of("memberIds", List.of("e7t04-ann-laura", "e7t04-ann-joan"));
+        var create = Map.of("category", "CLUB_NEWS", "title", Map.of("ca", "Festa de tardor", "es", "Fiesta de otoño"),
+                "body", Map.of("ca", "Hola [[member_first_name]], dissabte hi ha festa.", "es", "Hola [[member_first_name]], el sábado hay fiesta."),
+                "icon", "flag", "color", "ACCENT", "matrix", matrix(true));
+        var created = call(as(post("/api/v1/message-templates"), "ADMIN").content(mapper.writeValueAsBytes(create)), 201);
+        String custom = created.path("id").asText(); long autumn = created.path("version").asLong();
+        // Batch A with the autumn texts, then the admin edits them.
+        String a = send(custom, both, false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        long winter = edit(custom, Map.of("ca", "Festa d'hivern", "es", "Fiesta de invierno"),
+                Map.of("ca", "Hola [[member_first_name]], la festa passa a l'hivern.", "es", "Hola [[member_first_name]], la fiesta pasa al invierno."), true);
+        assertThat(winter).isGreaterThan(autumn);
+        // Batch B with the winter texts, then the admin archives the template.
+        String b = send(custom, both, false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        call(as(delete("/api/v1/message-templates/" + custom), "ADMIN"), 204);
+        // Batch C with N-24, then the admin disables N-24.
+        String n24 = templateOf("N-24");
+        var n24Before = call(as(get("/api/v1/message-templates/" + n24), "ADMIN"), 200);
+        String c = send(n24, both, false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        edit(n24, Map.of("ca", "Avís desactivat", "es", "Aviso desactivado"), Map.of("ca", "Res", "es", "Nada"), false);
+        assertThat(mongo.findById(n24, Document.class, "message_templates").getString("status")).isEqualTo("DISABLED");
+        // Each batch froze its template: id, version and texts.
+        assertThat(mongo.findById(a, Document.class, "announcements").get("template", Document.class)).containsEntry("version", autumn).containsEntry("kind", "CUSTOM");
+        assertThat(mongo.findById(b, Document.class, "announcements").get("template", Document.class)).containsEntry("version", winter);
+
+        // Only now the outbox is dispatched: every batch goes out whole, as it was sent.
+        dispatch();
+        assertThat(batch(a)).extracting(n -> n.getString("title") + " | " + n.getString("body") + " | v" + n.get("templateVersion")).containsExactlyInAnyOrder(
+                "Festa de tardor | Hola Laura, dissabte hi ha festa. | v" + autumn, "Fiesta de otoño | Hola Joan, el sábado hay fiesta. | v" + autumn);
+        assertThat(batch(b)).extracting(n -> n.getString("title") + " | " + n.getString("body") + " | v" + n.get("templateVersion")).containsExactlyInAnyOrder(
+                "Festa d'hivern | Hola Laura, la festa passa a l'hivern. | v" + winter, "Fiesta de invierno | Hola Joan, la fiesta pasa al invierno. | v" + winter);
+        assertThat(batch(c)).extracting(n -> n.getString("title")).containsExactlyInAnyOrder(n24Before.path("titleI18n").path("ca").asText(),
+                n24Before.path("titleI18n").path("es").asText());
+        assertThat(batch(c)).allSatisfy(n -> assertThat(n.get("templateVersion", Number.class).longValue()).isEqualTo(n24Before.path("version").asLong()));
+        for (String batchId : List.of(a, b, c)) {
+            assertThat(batch(batchId)).as(batchId).hasSize(mongo.findById(batchId, Document.class, "announcements").getInteger("recipientCount"));
+        }
     }
 
     @Test void T_11_18_theRefusals() throws Exception {
@@ -249,6 +294,19 @@ class AnnouncementsIT extends AbstractIntegrationTest {
     private static Map<String, Object> matrix(boolean email) {
         var off = Map.of("APP", false, "EMAIL", false, "SMS", false);
         return Map.of("MEMBER", Map.of("APP", true, "EMAIL", email, "SMS", false), "INSTRUCTORS", off, "ADMINS", off);
+    }
+    /** D9's save of a template (`PUT` with the stored version): new texts in `ca` and `es`, enabled or not; returns the new version. */
+    private long edit(String templateId, Map<String, String> title, Map<String, String> body, boolean enabled) throws Exception {
+        var current = call(as(get("/api/v1/message-templates/" + templateId), "ADMIN"), 200);
+        var update = new LinkedHashMap<String, Object>();
+        update.put("title", title); update.put("body", body); update.put("smsBody", current.path("smsBodyI18n").isNull() ? null : mapper.convertValue(current.path("smsBodyI18n"), Map.class));
+        update.put("icon", current.path("icon").asText()); update.put("color", current.path("color").asText()); update.put("matrix", current.path("matrix"));
+        update.put("enabled", enabled); update.put("version", current.path("version").asLong());
+        return call(as(put("/api/v1/message-templates/" + templateId), "ADMIN").content(mapper.writeValueAsBytes(update)), 200).path("version").asLong();
+    }
+    /** The notices of one batch (`dedupKey = {batchId}:{memberId}`). */
+    private List<Document> batch(String batchId) {
+        return NotificationRows.notifications(mongo, CLUB, "N-24").stream().filter(n -> n.getString("dedupKey").startsWith(batchId + ":")).toList();
     }
     private static List<String> channels(List<Document> rows, String memberId) {
         return rows.stream().filter(r -> memberId.equals(r.getString("memberId"))).map(r -> r.getString("channel") + ":" + r.getString("status")).toList();

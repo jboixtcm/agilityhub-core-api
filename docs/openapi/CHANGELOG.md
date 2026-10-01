@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E7-T04 round 2 · an announcement goes out as it was sent (ruling E82)
+
+**1 operation changed (description; no shape change).** S11 R-11-13.
+- **`POST /message-templates/{id}/send`**: the batch stores the template as it is at the send (its version and texts), and
+  each member's N-24 is rendered with that copy: archiving, disabling or editing the template after the `202` neither stops
+  the batch nor changes its text (`Notification.templateVersion` is the version sent). Every announcement's PUSH respects the
+  member's `pushClubNews` (`SKIPPED_BY_PREFERENCE`), whatever the category of the `CUSTOM` template it was sent with.
+
 ## 2026-10-01 · E7-T04 · «Enviar comunicat» is served (web E7-W03 adopts)
 
 **1 operation changed (description; no shape change).** S11 R-11-13, T-11-18.

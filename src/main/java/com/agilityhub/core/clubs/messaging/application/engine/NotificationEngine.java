@@ -129,10 +129,16 @@ public class NotificationEngine {
             if (!conditions(spec, trigger, config)) { continue; }
             var facts = facts(trigger, spec);
             if (facts.isEmpty()) { continue; }
-            // R-11-13: an announcement renders the template it was sent with (N-24's own, or a CUSTOM one).
-            var template = facts.get().templateId() == null ? templates.forCode(spec, config.club().locales(), config.club().defaultLocale())
-                    : templates.byId(facts.get().templateId()).orElse(null);
-            if (template == null || template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
+            // R-11-13 (ruling E82): an announcement renders the template (N-24's own, or a CUSTOM one) as its batch froze it at the
+            // send, whatever the template's status or texts are now; any other code renders the club's template, unless DISABLED.
+            MessageTemplate template;
+            if (facts.get().templateId() == null) {
+                template = templates.forCode(spec, config.club().locales(), config.club().defaultLocale());
+                if (template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
+            } else {
+                template = templates.asSent(trigger.text("batchId"), facts.get().templateId()).orElse(null);
+                if (template == null) { continue; }
+            }
             List<Notification> built = relevant(spec, trigger) ? build(spec, trigger, facts.get(), template, config) : stale(spec, trigger, facts.get(), template);
             var stored = store(spec, trigger, built);
             for (var owner : ownersOf(trigger.type())) { owner.stored(trigger, spec.code(), stored.views()); }

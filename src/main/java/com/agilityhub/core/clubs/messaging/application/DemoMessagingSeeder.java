@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * E7-T04 step 4, the S11 half of the demo seed's `messaging` section (after the census half, `clubs.census.application.
- * DemoMessagingSeeder`, order 50, has written the contact data), so S11's channel × audience × preference matrix is visible in
+ * DemoContactsSeeder`, order 50, has written the contact data), so S11's channel × audience × preference matrix is visible in
  * 12/D10 and in `bin/e7-smoke`: the bounce mark of an address (the census writer the SendGrid webhook uses, R-11-08), the
  * preferences as D10 saves them (R-11-04), a push device of a fake endpoint registered by the member's own account (R-11-07)
  * and the `CUSTOM` templates as D9 creates them (R-11-12, in the club's languages only). Members are reached through the
