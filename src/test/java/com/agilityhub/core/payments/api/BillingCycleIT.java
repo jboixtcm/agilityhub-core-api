@@ -345,12 +345,251 @@ class BillingCycleIT extends BillingItSupport {
         var overview = ok(admin(get("/api/v1/members/puig/overview")), 200);
         assertThat(overview.path("invoicesCount").asInt()).isEqualTo(1);
         assertThat(overview.at("/recentInvoices/0/id").asText()).isEqualTo(live.getString("_id"));
-        // The admin still reads it, as it is: CANCELLED{ROLLBACK}. ROLLBACK is the rollback's own reason: an admin may not type it.
+        // The admin still reads it, as it is: CANCELLED{ROLLBACK}, rolled back by its run (E8-T07 step 4).
         assertThat(ok(admin(get("/api/v1/invoices/" + rolledBack)), 200).path("cancelReason").asText()).isEqualTo("ROLLBACK");
-        String other = invoices().stream().filter(invoice -> invoice.getString("memberId").equals("vives") && "PENDING".equals(invoice.getString("status")))
-                .findFirst().orElseThrow().getString("_id");
-        error(admin(keyed(post("/api/v1/invoices/" + other + "/cancellation"), Map.of("reason", "rollback ", "version", 0))), 400, "VALIDATION_ERROR");
-        assertThat(mongo.findById(other, Document.class, "invoices").getString("status")).isEqualTo("PENDING");
+    }
+
+    /**
+     * E8-T07 step 1 (review #1 of E8-T02's round 2, ruling E89; R-12-12, R-12-16, R-12-19): a manual receipt whose total is zero
+     * or negative is never direct-debited. With `includeInNextRun` it is refused at creation; one stored with the flag before
+     * the fix is left out of the simulation and of the run; the admin settles it by hand. R-12-19's own example.
+     */
+    @Test void T_12_18_R_12_19_aReceiptWithAZeroOrNegativeTotalIsNeverDirectDebitedAndTheAdminSettlesItByHand() throws Exception {
+        var minus = Map.of("description", "Ajust quota setembre", "base", Map.of("amountMinor", -3000, "currency", "EUR"), "taxPercent", 0);
+        var plus = Map.of("description", "Quota setembre", "base", Map.of("amountMinor", 3000, "currency", "EUR"), "taxPercent", 0);
+        var refused = call(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "puig", "lines", List.of(minus), "includeInNextRun", true, "note", "Ajust"))));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(400);
+        assertThat(json(refused).path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(json(refused).at("/details/field").asText()).isEqualTo("includeInNextRun");
+        // A zero total too (two lines that cancel out); nothing is stored and no number is taken.
+        error(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "puig", "lines", List.of(plus, minus), "includeInNextRun", true, "note", "Ajust"))), 400,
+                "VALIDATION_ERROR");
+        assertThat(invoices()).isEmpty();
+        // Without the flag it is an ordinary adjustment (T-12-18): numbered, PENDING.
+        var created = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "puig", "lines", List.of(minus), "note", "Ajust quota setembre −30,00 €"))), 201);
+        String id = created.path("id").asText();
+        assertThat(created.path("displayNumber").asText()).isEqualTo("2026-0912");
+        assertThat(created.at("/total/amountMinor").asLong()).isEqualTo(-3000);
+        assertThat(created.path("includeInNextRun").asBoolean()).isFalse();
+        // A receipt stored with the flag before the fix: neither the simulation nor the run debits it, whatever its flag says.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("includeInNextRun", true), "invoices");
+        var simulation = simulate("2026-09");
+        assertThat(simulation.path("invoicesPreview").findValuesAsText("memberId")).containsExactlyElementsOf(ORDER);
+        assertThat(simulation.at("/kpis/byProvider/SEPA_XML/count").asInt()).isEqualTo(4);
+        assertThat(simulation.at("/kpis/byProvider/SEPA_XML/total/amountMinor").asLong()).isEqualTo(20_400);
+        var result = run("2026-09", simulation.path("id").asText());
+        assertThat(result.at("/remittance/count").asInt()).isEqualTo(4);
+        assertThat(result.at("/remittance/total/amountMinor").asLong()).isEqualTo(20_400);
+        var stored = mongo.findById(id, Document.class, "invoices");
+        assertThat(stored.getString("status")).isEqualTo("PENDING");
+        assertThat(stored.get("remittanceId")).isNull();
+        assertThat(attempts(id)).isEmpty();
+        // R-12-16: the admin settles it by hand (the 30 € handed back by transfer).
+        var paid = ok(admin(keyed(post("/api/v1/invoices/" + id + "/payment"), Map.of("paidAt", "2026-08-25", "channel", "TRANSFER",
+                "version", ((Number) stored.get("version")).longValue()))), 200);
+        assertThat(paid.path("status").asText()).isEqualTo("PAID");
+        assertThat(attempts(id)).containsExactly("MANUAL SUCCEEDED 1 null");
+    }
+
+    /**
+     * E8-T07 step 2 (review #2, ruling E89; T-12-13, R-12-14): a rollback rolls back its whole block, a receipt the admin
+     * cancelled meanwhile included (its admin reason kept), and the next generation reissues the same numbers: no gap, no
+     * duplicate among the live receipts. The review's 0912…1026 with 0950 cancelled is this census's 0912…0919 with Vila's 0917.
+     */
+    @Test @AuditCovers(AuditAction.REMITTANCE_ROLLED_BACK)
+    void T_12_13_R_12_14_aRollbackReissuesItsWholeBlockAlsoAfterTheAdminCancelledOneOfItsReceipts() throws Exception {
+        String runId = run("2026-09", simulate("2026-09").path("id").asText()).at("/run/id").asText();
+        var numbers = numbersByMember();
+        assertThat(numbers.values()).containsExactly("2026-0912", "2026-0913", "2026-0914", "2026-0915", "2026-0916", "2026-0917", "2026-0918", "2026-0919");
+        String vila = invoices().stream().filter(invoice -> invoice.getString("memberId").equals("vila")).findFirst().orElseThrow().getString("_id");
+        assertThat(numbers).containsEntry("vila", "2026-0917");
+        clock.setInstant(NOW.plusSeconds(60));
+        ok(admin(keyed(post("/api/v1/invoices/" + vila + "/cancellation"), Map.of("reason", "Duplicat", "version", 0))), 200);
+        // Nothing blocks the rollback, and it rolls back the 8 receipts of the run: the admin's cancellation too.
+        clock.setInstant(NOW.plusSeconds(120));
+        var rollback = ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(rollback.path("cancelledInvoices").asInt()).isEqualTo(8);
+        // The next generation starts again at 0912: the same numbers, no gap, no duplicate among the live receipts.
+        clock.setInstant(NOW.plusSeconds(300));
+        run("2026-09", simulate("2026-09").path("id").asText());
+        var live = new LinkedHashMap<String, String>();
+        for (var invoice : invoices()) { if (!"CANCELLED".equals(invoice.getString("status"))) { live.put(invoice.getString("memberId"), invoice.getString("displayNumber")); } }
+        assertThat(live).isEqualTo(numbers);
+        assertThat(mongo.findById(CLUB, Document.class, "clubs").get("billing", Document.class).get("counters", Document.class)).containsEntry("2026", 920L);
+        assertThat(ok(admin(get("/api/v1/invoices")), 200).path("totalItems").asLong()).isEqualTo(8);
+        // Vila's first receipt is rolled back with the others: its admin reason and date kept, its attempt closed by FAILED{ROLLBACK}.
+        var cancelled = mongo.findById(vila, Document.class, "invoices");
+        assertThat(cancelled.getString("status")).isEqualTo("CANCELLED");
+        assertThat(cancelled.getString("cancelReason")).isEqualTo("Duplicat");
+        assertThat(cancelled.getDate("cancelledAt").toInstant()).isEqualTo(NOW.plusSeconds(60));
+        assertThat(attempts(vila)).containsExactly("MANUAL CREATED 1 null", "MANUAL FAILED 1 null");
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("status").is("FAILED").and("failureCode").is("ROLLBACK")), Document.class, "collections"))
+                .hasSize(8).allSatisfy(collection -> assertThat(collection.getString("invoiceId")).isIn(runInvoiceIds(runId)));
+        assertThat(events("InvoiceCancelled")).filteredOn(event -> "ROLLBACK".equals(event.get("payload", Document.class).getString("reason"))).hasSize(8);
+        var rows = ok(admin(get("/api/v1/invoices").param("filter", "status:eq:CANCELLED").param("size", "20")), 200);
+        assertThat(rows.path("totalItems").asLong()).isEqualTo(8);
+        assertThat(rows.path("items").findValuesAsText("rolledBack")).hasSize(8).containsOnly("true");
+        assertThat(ok(admin(get("/api/v1/invoices/" + vila)), 200).path("rolledBack").asBoolean()).isTrue();
+    }
+    /** The ids of {@code runId}'s receipts. */
+    private List<String> runInvoiceIds(String runId) {
+        return invoices().stream().filter(invoice -> runId.equals(invoice.getString("runId"))).map(invoice -> invoice.getString("_id")).toList();
+    }
+
+    /**
+     * E8-T07 step 3 (review #3, ruling E89; R-12-07, R-12-19): the waiting manual receipts the run would remit are part of the
+     * simulation — in `invoicesPreview` (with their `invoiceId` and number) and in the KPIs — so D6's confirmation and «Import
+     * de la remesa» are the remittance's.
+     */
+    @Test void T_12_09_R_12_07_R_12_19_theWaitingManualReceiptsAreInThePreviewAndInTheRemittanceKpi() throws Exception {
+        String included = flagged("puig", 2500);
+        var simulation = simulate("2026-09");
+        var receipt = previewOf(simulation, included);
+        assertThat(receipt.path("memberId").asText()).isEqualTo("puig");
+        assertThat(receipt.path("displayNumber").asText()).isEqualTo("2026-0912");
+        assertThat(receipt.path("paymentMethodType").asText()).isEqualTo("SEPA_DD");
+        assertThat(receipt.at("/total/amountMinor").asLong()).isEqualTo(2500);
+        assertThat(receipt.at("/lines/0/origin").asText()).isEqualTo("ADJUSTMENT");
+        // The run's own invoices do not exist yet: no invoiceId, no number (the keys are absent, as in S12 §6's JSON).
+        assertThat(preview(simulation, "mas").has("invoiceId")).isFalse();
+        assertThat(preview(simulation, "mas").has("displayNumber")).isFalse();
+        var kpis = simulation.path("kpis");
+        assertThat(kpis.path("count").asInt()).isEqualTo(9);
+        assertThat(kpis.at("/total/amountMinor").asLong()).isEqualTo(116_400 + 2_500);
+        assertThat(kpis.at("/byProvider/SEPA_XML/count").asInt()).isEqualTo(5);
+        assertThat(kpis.at("/byProvider/SEPA_XML/total/amountMinor").asLong()).isEqualTo(22_900);
+        assertThat(events("RemittanceSimulated")).singleElement()
+                .satisfies(event -> assertThat(event.get("payload", Document.class).get("totals", Document.class).getInteger("count")).isEqualTo(9));
+        var result = run("2026-09", simulation.path("id").asText());
+        assertThat(result.at("/remittance/count").asInt()).isEqualTo(kpis.at("/byProvider/SEPA_XML/count").asInt());
+        assertThat(result.at("/remittance/total")).isEqualTo(kpis.at("/byProvider/SEPA_XML/total"));
+        assertThat(result.at("/run/byProvider/SEPA_XML/total")).isEqualTo(kpis.at("/byProvider/SEPA_XML/total"));
+        assertThat(mongo.findById(included, Document.class, "invoices").getString("status")).isEqualTo("COLLECTING");
+    }
+
+    /**
+     * E8-T07 step 3 (R-12-07, R-12-19): a waiting receipt gets the run's incident checks. Its member has left, has no account
+     * left, no longer pays by SEPA_DD or signed another mandate since the receipt (E8-T03's review #1): an incident in the
+     * simulation and in `skipped[]`, and the receipt is not remitted (it keeps its flag for the next run). The others still go.
+     */
+    @Test void T_12_09_R_12_07_R_12_19_aWaitingReceiptWhoseMemberCannotBeDebitedIsAnIncidentAndStaysOut() throws Exception {
+        String remitted = flagged("puig", 2500), left = flagged("roca", 1000), noAccount = flagged("torres", 1100), cash = flagged("serra-joan", 1200),
+                mandate = flagged("mas", 1300);
+        clock.setInstant(NOW.plusSeconds(60));
+        census("roca", new Update().set("status", "LEFT"));
+        census("torres", new Update().unset("paymentMethod.iban"));
+        census("serra-joan", new Update().set("paymentMethod", new Document(cash())));
+        census("mas", new Update().set("paymentMethod.mandateRef", CLUB + "-207-2"));
+        clock.setInstant(NOW.plusSeconds(120));
+        var simulation = simulate("2026-09");
+        assertThat(incidents(simulation.path("incidents"))).containsEntry("roca", "NO_BANK_ACCOUNT").containsEntry("torres", "NO_BANK_ACCOUNT")
+                .containsEntry("serra-joan", "NO_BANK_ACCOUNT").containsEntry("mas", "NO_BANK_ACCOUNT");
+        assertThat(simulation.path("incidents").findValuesAsText("memberId")).doesNotHaveDuplicates();
+        assertThat(receiptIds(simulation)).containsExactly(remitted);
+        // The run: the same incidents skipped, only Eva's receipt in the remittance, which is what the simulation announced.
+        var result = run("2026-09", simulation.path("id").asText());
+        assertThat(incidents(result.path("skipped"))).isEqualTo(incidents(simulation.path("incidents")));
+        assertThat(result.at("/remittance/count").asInt()).isEqualTo(simulation.at("/kpis/byProvider/SEPA_XML/count").asInt());
+        assertThat(result.at("/remittance/total")).isEqualTo(simulation.at("/kpis/byProvider/SEPA_XML/total"));
+        assertThat(mongo.findById(remitted, Document.class, "invoices").getString("status")).isEqualTo("COLLECTING");
+        for (String waiting : List.of(left, noAccount, cash, mandate)) {
+            var stored = mongo.findById(waiting, Document.class, "invoices");
+            assertThat(stored.getString("status")).as(waiting).isEqualTo("PENDING");
+            assertThat(stored.get("remittanceId")).as(waiting).isNull();
+            assertThat(stored.getBoolean("includeInNextRun")).as(waiting).isTrue();
+            assertThat(attempts(waiting)).as(waiting).isEmpty();
+        }
+    }
+
+    /** E8-T07 step 3 (R-12-07): a flagged receipt created after the simulation makes it stale; simulated again, it is in. */
+    @Test void T_12_09_R_12_07_aFlaggedReceiptCreatedAfterTheSimulationMakesItStale() throws Exception {
+        String simulation = simulate("2026-09").path("id").asText();
+        clock.setInstant(NOW.plusSeconds(60));
+        String receipt = flagged("puig", 2500);
+        error(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation))), 409, "SIMULATION_STALE");
+        assertThat(invoices()).extracting(invoice -> invoice.getString("_id")).containsExactly(receipt);
+        var fresh = simulate("2026-09");
+        assertThat(receiptIds(fresh)).containsExactly(receipt);
+        run("2026-09", fresh.path("id").asText());
+        assertThat(mongo.findById(receipt, Document.class, "invoices").getString("status")).isEqualTo("COLLECTING");
+    }
+
+    /** E8-T07 step 3 (R-12-07, R-12-25): a pending charge created — or voided — after the simulation makes it stale. */
+    @Test void T_12_09_R_12_07_R_12_25_aPendingChargeCreatedAfterTheSimulationMakesItStale() throws Exception {
+        String simulation = simulate("2026-09").path("id").asText();
+        clock.setInstant(NOW.plusSeconds(60));
+        mongo.save(new Document("_id", "bill-charge-3").append("clubId", CLUB).append("memberId", "mas").append("dogId", "bill-dog-mas")
+                .append("bookingId", "bill-booking-3").append("priceId", "bill-price-single-single_class")
+                .append("amount", new Document("amountMinor", 1200L).append("currency", "EUR")).append("description", "Classe 18/08 — Duna")
+                .append("createdAt", java.util.Date.from(clock.instant())), "pending_charges");
+        error(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation))), 409, "SIMULATION_STALE");
+        var fresh = simulate("2026-09");
+        assertThat(preview(fresh, "mas").path("lines").findValuesAsText("description")).contains("Classe 18/08 — Duna");
+        clock.setInstant(NOW.plusSeconds(120));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("bill-charge-3")), new Update().set("voidedAt", java.util.Date.from(clock.instant())), "pending_charges");
+        error(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", fresh.path("id").asText()))), 409, "SIMULATION_STALE");
+        assertThat(invoices()).isEmpty();
+        run("2026-09", simulate("2026-09").path("id").asText());
+        assertThat(invoices().getFirst().getList("lines", Document.class)).extracting(line -> line.getString("description"))
+                .containsExactly("Classe 04/08 — Duna", "Classe 11/08 — Duna");
+    }
+
+    /**
+     * E8-T07 step 4 (review #4, ruling E89; §5): a receipt is rolled back because its run is `ROLLED_BACK`, never because of
+     * the words of its `cancelReason`: the admin's reason is free text again, «ROLLBACK» included.
+     */
+    @Test void T_12_19_R_12_14_rolledBackComesFromTheRunAndTheAdminsReasonIsFreeText() throws Exception {
+        String runId = run("2026-09", simulate("2026-09").path("id").asText()).at("/run/id").asText();
+        String vives = invoices().stream().filter(invoice -> invoice.getString("memberId").equals("vives")).findFirst().orElseThrow().getString("_id");
+        var cancelled = ok(admin(keyed(post("/api/v1/invoices/" + vives + "/cancellation"), Map.of("reason", "ROLLBACK", "version", 0))), 200);
+        assertThat(cancelled.path("cancelReason").asText()).isEqualTo("ROLLBACK");
+        assertThat(cancelled.path("rolledBack").asBoolean()).isFalse();
+        // Its run is live: an admin's cancellation, everywhere — «Tots», the CANCELLED chip unmarked, the member's receipts, D10.
+        assertThat(ok(admin(get("/api/v1/invoices")), 200).path("totalItems").asLong()).isEqualTo(8);
+        assertThat(ok(admin(get("/api/v1/billing/periods/2026-09")), 200).at("/counts/all").asLong()).isEqualTo(8);
+        var chip = ok(admin(get("/api/v1/invoices").param("filter", "status:eq:CANCELLED")), 200);
+        assertThat(rowIds(chip)).containsExactly(vives);
+        assertThat(chip.at("/items/0/rolledBack").asBoolean()).isFalse();
+        assertThat(rowIds(ok(as(get("/api/v1/me/invoices"), CLUB, "MEMBER", "vives"), 200))).containsExactly(vives);
+        ok(as(get("/api/v1/me/invoices/" + vives), CLUB, "MEMBER", "vives"), 200);
+        assertThat(ok(admin(get("/api/v1/members/vives/overview")), 200).path("invoicesCount").asInt()).isEqualTo(1);
+        // Once its run is rolled back the receipt is too, its reason unchanged.
+        clock.setInstant(NOW.plusSeconds(60));
+        ok(admin(keyed(post("/api/v1/billing/runs/" + runId + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        var detail = ok(admin(get("/api/v1/invoices/" + vives)), 200);
+        assertThat(detail.path("rolledBack").asBoolean()).isTrue();
+        assertThat(detail.path("cancelReason").asText()).isEqualTo("ROLLBACK");
+        assertThat(ok(admin(get("/api/v1/invoices")), 200).path("totalItems").asLong()).isZero();
+        assertThat(ok(as(get("/api/v1/me/invoices"), CLUB, "MEMBER", "vives"), 200).path("totalItems").asLong()).isZero();
+        error(as(get("/api/v1/me/invoices/" + vives), CLUB, "MEMBER", "vives"), 404, "NOT_FOUND");
+        assertThat(ok(admin(get("/api/v1/members/vives/overview")), 200).path("invoicesCount").asInt()).isZero();
+    }
+
+    /** A manual `SEPA_DD` receipt of {@code cents} with `includeInNextRun` (R-12-19); its id. */
+    private String flagged(String memberId, long cents) throws Exception {
+        var created = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", memberId, "includeInNextRun", true, "note", "Amb la remesa",
+                "lines", List.of(Map.of("description", "Quota pendent", "base", Map.of("amountMinor", cents, "currency", "EUR"), "taxPercent", 0))))), 201);
+        assertThat(created.path("includeInNextRun").asBoolean()).as(memberId).isTrue();
+        return created.path("id").asText();
+    }
+    private void census(String memberId, Update update) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(memberId)), update.set("updatedAt", java.util.Date.from(clock.instant())), "members");
+    }
+    private static JsonNode previewOf(JsonNode simulation, String invoiceId) {
+        for (var preview : simulation.path("invoicesPreview")) { if (preview.path("invoiceId").asText().equals(invoiceId)) { return preview; } }
+        throw new AssertionError(invoiceId + " not previewed");
+    }
+    /** The waiting receipts a simulation previews (the run's own invoices have no id yet). */
+    private static List<String> receiptIds(JsonNode simulation) {
+        var ids = new ArrayList<String>();
+        simulation.path("invoicesPreview").forEach(preview -> { if (preview.path("invoiceId").isTextual()) { ids.add(preview.path("invoiceId").asText()); } });
+        return ids;
+    }
+    /** memberId → code of a simulation's incidents or a run's skipped[]. */
+    private static Map<String, String> incidents(JsonNode incidents) {
+        var codes = new LinkedHashMap<String, String>();
+        incidents.forEach(incident -> codes.put(incident.path("memberId").asText(), incident.path("code").asText()));
+        return codes;
     }
 
     /**

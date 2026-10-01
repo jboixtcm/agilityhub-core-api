@@ -939,6 +939,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T07: E8-T02's round-2 review follow-ups (ruling E89; S12 R-12-07, R-12-12, R-12-14, R-12-19, §5, T-12-13).
+  - A manual receipt whose total is zero or negative is never direct-debited: `POST /invoices` with `includeInNextRun` and such a
+    total answers `400 VALIDATION_ERROR {field: includeInNextRun}` before taking a number; one stored with the flag before is
+    never picked up (E8-T03's `forNextRun` filter); the admin settles it by hand (R-12-16).
+  - A rollback rolls back the run's whole block: a receipt the admin cancelled meanwhile keeps its reason and date, gets the
+    `FAILED{ROLLBACK}` collection and `InvoiceCancelled{ROLLBACK}` like the others, and the numbering floor leaves it out, so
+    the next generation reissues the same numbers (before, it started after that receipt and left a gap).
+  - A receipt is rolled back when its run is `ROLLED_BACK`, not when its `cancelReason` reads `ROLLBACK`: the admin's reason
+    is free text again. `/me/invoices`, D6's counts and list (`rolledBack`), D10's recent receipts and the numbering reads all
+    take it from the run; `Invoice` gains `rolledBack`.
+  - The simulation previews and counts the waiting `includeInNextRun` receipts the run will remit (`invoicesPreview[]` rows with
+    `invoiceId` and `displayNumber`; `kpis.count`, `kpis.total`, `byProvider.SEPA_XML`), so D6's confirmation is the remittance.
+    A waiting receipt whose member has left, no longer pays by `SEPA_DD`, has no account or signed another mandate since is a
+    `NO_BANK_ACCOUNT` incident (closest closed code; proposal in the task report) and stays out of the remittance with its flag;
+    with `SEPA_XML` off, `PROVIDER_DISABLED`. A flagged receipt or a pending charge created (or voided) after the simulation
+    makes it stale (`409 SIMULATION_STALE`): the simulation keeps the sets it saw.
+  - Indexes: `invoices {clubId, series, number: -1}` (`invoice_club_series_number_all`, not partial, not unique), which
+    `highestNumber` and `numberedFrom` name in a hint; `billing_runs {clubId, status}` for the rolled-back runs.
 - E7-T07: E7-T04's round-3 review follow-ups (ruling E72).
   - The `ANNOUNCEMENT_SENT` audit entry carries the batch in `details {batchId, recipientCount, filters, selection}` (S14 §3),
     written in the send's transaction; its `changes` are empty, because the template does not change. `@Audited` gains a

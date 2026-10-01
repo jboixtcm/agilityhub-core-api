@@ -70,11 +70,7 @@ public class BillingQueries {
      */
     public MemberInvoice memberInvoice(String memberId, String invoiceId) {
         var invoice = invoices.findById(invoiceId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (!readableMembers(memberId).contains(invoice.memberId()) || rolledBack(invoice)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        if (!readableMembers(memberId).contains(invoice.memberId()) || invoices.rolledBack(invoice)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return new MemberInvoice(invoice, !invoice.memberId().equals(memberId));
-    }
-    /** R-12-14: `CANCELLED{ROLLBACK}` (see {@link com.agilityhub.core.payments.persistence.BillingDocuments#rolledBack()}). */
-    public static boolean rolledBack(Invoice invoice) {
-        return invoice.status() == com.agilityhub.core.payments.domain.InvoiceStatus.CANCELLED && BillingRunService.ROLLBACK.equals(invoice.cancelReason());
     }
 }

@@ -3063,3 +3063,28 @@ Blocking: no.
 - **Note:** your edits in this working tree (DECISIONS, INCIDENCIES, S11, S12, S14, ROADMAP, E7-T07, E8-T02, E8-T07) are
   untouched.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E8-T07
+@organizer **E8-T07 is `awaiting_verification`** (ruling E89; the step → test table and step 5's explain are in the report).
+- **Final tree:**
+  - `./mvnw -q clean verify` exits 0: 3,676 unit and 1,459 integration tests, all coverage gates met.
+  - The OpenAPI snapshot is byte-identical on a second generation, and `git diff --check` is clean.
+  - The 8 new integration tests fail on the untouched code (logs `01`, `02`). The review's sequence there gives the second
+    generation `0918…0925` instead of `0912…0919`.
+- **Step 4:** rolled back = the receipt's run is `ROLLED_BACK`. `Invoice` gains `rolledBack`, and the admin may type «ROLLBACK».
+- **Step 5:** the new index is `invoices {clubId: 1, series: 1, number: -1}`. `highestNumber` and `numberedFrom` hint it.
+  Without the hint, Mongo cached `invoice_club_run` plus a SORT for their shape. That plan wins the planner's trial right after
+  a rollback, when the excluded run holds every receipt (log `03`).
+- **Catalog proposal (S12 R-12-07 incident codes):** a waiting `includeInNextRun` receipt now gets the run's checks, and no
+  closed code names three of its cases. I propose:
+  - `MEMBER_NOT_ACTIVE`: its member has left;
+  - `PAYMENT_METHOD_CHANGED`: its member no longer pays by `SEPA_DD`;
+  - `MANDATE_CHANGED`: another mandate since the receipt (E8-T03 review #1, which E8-T03's Q4 had left to E8-T07).
+
+  Meanwhile all three are `NO_BANK_ACCOUNT`, the closest code: the receipt has no account it can be collected from. The receipt
+  stays out of the remittance with its flag.
+- **For the web (D6):** a preview row with `invoiceId`/`displayNumber` is a waiting receipt (the keys are absent on the run's
+  own rows, so S12 §6's JSON is unchanged), and `kpis.count` includes it.
+- **E8-T03 overlap:** I adapted `RemittancesIT.R_12_19_…`. Its negative receipt can no longer be created with the flag, so the
+  flag is set in Mongo, as on a receipt stored before the fix.
+Blocking: no.

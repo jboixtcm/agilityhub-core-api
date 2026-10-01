@@ -172,6 +172,26 @@ class InvoicingRulesTest {
                 .nextInvoiceDate()).isEqualTo(LocalDate.of(2026, 10, 1));
     }
 
+    /**
+     * E8-T07 step 3 (R-12-07, R-12-19): a waiting `includeInNextRun` receipt rides the run only while its member can still be
+     * debited for it under the mandate it froze; the member's own data first, then the club's provider.
+     */
+    @Test void R_12_07_R_12_19_aWaitingReceiptIsAnIncidentWhenItsMemberCanNoLongerBeDebitedForIt() {
+        var eva = new Member("puig", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat");
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-1", CANIC)).isNull();
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", null, null, CANIC)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "LEFT", null, PaymentMethodType.SEPA_DD, true, false, "abonat"), "m-1", CANIC))
+                .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "ACTIVE", null, PaymentMethodType.MANUAL, false, false, "abonat"), null, CANIC))
+                .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "ACTIVE", null, PaymentMethodType.SEPA_DD, false, false, "abonat"), "m-1", CANIC))
+                .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-2", CANIC)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        var cashOnly = new Settings("EUR", 1, CashInvoicing.SEMESTER, 6, true, true, true, true, Set.of(PaymentMethodType.MANUAL));
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-1", cashOnly)).isEqualTo(BillingIncidentCode.PROVIDER_DISABLED);
+        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-2", cashOnly)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+    }
+
     @Test void T_12_28_noCurrentPriceSkipsTheMemberMaintenanceBillsItsFeeAndAZeroTotalIssuesNothingButAdvances() {
         assertThat(lines(sepa("pau", "unpriced", LocalDate.of(2026, 9, 1)), SEPTEMBER)).isEqualTo(new Skipped(BillingIncidentCode.NO_PRICE));
         var terapia = billed(lines(sepa("teresa", "terapia", LocalDate.of(2026, 9, 1)), SEPTEMBER));

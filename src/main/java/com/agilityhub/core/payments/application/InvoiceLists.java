@@ -1,6 +1,6 @@
 package com.agilityhub.core.payments.application;
 
-import com.agilityhub.core.payments.persistence.BillingDocuments;
+import com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -23,12 +23,12 @@ import org.springframework.stereotype.Service;
  * sort) is joined from the census. ADMIN only, module `BILLING`, the open club only. Never an IBAN: the payment method is
  * its type. A receipt a rollback cancelled (R-12-14, ruling E87) is in the list, its counts, its search and its filter values
  * only when the `status` filter selects `CANCELLED` (`eq` or `in`), and then `rolledBack = true` marks it: its number was
- * reissued by the next run.
+ * reissued by the next run. A receipt is rolled back when its run is `ROLLED_BACK` (E8-T07 step 4), whatever its `cancelReason`.
  */
 @Service
 public class InvoiceLists implements ListProvider {
-    private final ClubConfigService configs;
-    public InvoiceLists(ClubConfigService configs) { this.configs = configs; }
+    private final ClubConfigService configs; private final InvoiceRepository invoices;
+    public InvoiceLists(ClubConfigService configs, InvoiceRepository invoices) { this.configs = configs; this.invoices = invoices; }
     @Override public Set<String> keys() { return Set.of("invoices"); }
     @Override public ListDataset dataset(String key) {
         ListAccess.account();
@@ -48,11 +48,11 @@ public class InvoiceLists implements ListProvider {
         var more = new Document("$subtract", List.of(new Document("$size", "$lines"), 1));
         projection.put("concept", new Document("$cond", List.of(new Document("$gt", List.of(more, 0)),
                 new Document("$concat", List.of(first, " (+", new Document("$toString", more), ")")), first)));
-        projection.put("rolledBack", new Document("$and", List.of(new Document("$eq", List.of("$status", "CANCELLED")),
-                new Document("$eq", List.of("$cancelReason", BillingDocuments.ROLLBACK)))));
+        var rolledBackRuns = invoices.rolledBackRunIds();
+        projection.put("rolledBack", new Document("$in", List.of(new Document("$ifNull", java.util.Arrays.asList("$runId", null)), rolledBackRuns)));
         return new ListDataset(BillingContractAccess.INVOICES, "invoices", stages, projection,
                 Set.of("runId", "remittanceId", "paidAt", "failedAt", "member.memberNumber"), (field, value) -> String.valueOf(value))
-                .withScope(query -> selectsCancelled(query) ? null : new Document("$nor", List.of(BillingDocuments.rolledBack())));
+                .withScope(query -> selectsCancelled(query) || rolledBackRuns.isEmpty() ? null : new Document("runId", new Document("$nin", rolledBackRuns)));
     }
     /** Whether the query's `status` filter names `CANCELLED` (D6's «Anul·lats»): only then are the rolled-back receipts listed. */
     static boolean selectsCancelled(ListQuery query) {

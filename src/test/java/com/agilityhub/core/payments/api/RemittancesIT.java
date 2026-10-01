@@ -159,8 +159,11 @@ class RemittancesIT extends BillingItSupport {
     @Test void R_12_19_onlyAPositiveManualReceiptRidesTheNextRemittance() throws Exception {
         var positive = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "puig", "includeInNextRun", true, "note", "Quota d'agost pendent",
                 "lines", List.of(Map.of("description", "Quota d'agost pendent", "base", Map.of("amountMinor", 2500, "currency", "EUR"), "taxPercent", 0))))), 201);
-        var negative = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "torres", "includeInNextRun", true, "note", "Ajust",
+        // E8-T07 step 1: the flag is refused with a negative total at creation; this is a receipt stored with it before that fix.
+        var negative = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "torres", "note", "Ajust",
                 "lines", List.of(Map.of("description", "Ajust quota setembre", "base", Map.of("amountMinor", -3000, "currency", "EUR"), "taxPercent", 0))))), 201);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(negative.path("id").asText())),
+                new org.springframework.data.mongodb.core.query.Update().set("includeInNextRun", true), "invoices");
         var result = generate();
         assertThat(result.at("/remittance/count").asInt()).isEqualTo(5);
         assertThat(result.at("/remittance/total/amountMinor").asLong()).isEqualTo(20_400 + 2_500);

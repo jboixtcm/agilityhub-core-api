@@ -35,14 +35,17 @@ import org.springframework.stereotype.Service;
  * `COLLECTING`), the remittance written by {@link RemittanceWriterPort} before the commit, the included members'
  * `nextInvoiceDate` advanced (the old dates kept in `previousDates`), the `PendingCharge`s stamped; `InvoiceIssued` per
  * invoice, `InvoiceCollecting` per remitted receipt, `RemittanceGenerated`, `BillingRunCreated`, one `REMITTANCE_GENERATED`
- * entry with `details.invoiceIds`. Members with an incident are skipped (`skipped[]`) and never block.
+ * entry with `details.invoiceIds`. Members with an incident are skipped (`skipped[]`) and never block; so is a waiting receipt
+ * whose member can no longer be debited for it (E8-T07 step 3), which stays `PENDING` with its flag.
  *
  * <p>Rollback: allowed while the remittance is not submitted, no non-manual collection of the run is submitted or
  * succeeded, no receipt of the run (or of its remittance) is paid, the run is not `COMPLETED` and nothing was numbered after
- * the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. The invoices are cancelled (`ROLLBACK`) with a new
- * `FAILED{ROLLBACK}` collection each, the manual receipts the run remitted go back to `PENDING` (not cancelled: the run did
- * not issue them; `includeInNextRun` kept), the remittance rolled back (its file kept), the counter given back, the dates
- * restored, the charges unbilled: the same month can be simulated and generated again with the same numbers.
+ * the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. Every invoice of the run is rolled back with a new
+ * `FAILED{ROLLBACK}` collection and `InvoiceCancelled{ROLLBACK}`: the live ones are cancelled (`ROLLBACK`), one the admin
+ * cancelled meanwhile keeps its own cancellation (E8-T07 step 2, ruling E89) — the run's `ROLLED_BACK` status is what makes
+ * them all rolled back. The manual receipts the run remitted go back to `PENDING` (not cancelled: the run did not issue them;
+ * `includeInNextRun` kept), the remittance is rolled back (its file kept), the counter given back, the dates restored, the
+ * charges unbilled: the same month can be simulated and generated again with the same numbers (T-12-13).
  */
 @Service
 public class BillingRunService {
@@ -76,13 +79,14 @@ public class BillingRunService {
     public RunOutcome generate(YearMonth period, String simulationId, LocalDate requestedCollectionDate) {
         if (runs.live(period.toString()).isPresent()) { throw new ApiException(ErrorCode.RUN_EXISTS); }
         var simulation = simulations.findById(simulationId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (!simulation.period().equals(period.toString()) || stale(simulation)) { throw new ApiException(ErrorCode.SIMULATION_STALE); }
         var plan = invoicing.plan(period);
+        if (!simulation.period().equals(period.toString()) || stale(simulation, plan)) { throw new ApiException(ErrorCode.SIMULATION_STALE); }
         var context = plan.context(); var drafts = plan.month().invoices();
         if (drafts.isEmpty()) { throw new ApiException(ErrorCode.NO_INVOICES); }
         var issueDate = context.issueDate(); Instant now = clock.instant(); String actor = BillingEvents.actor();
-        // R-12-19: the manual SEPA_DD receipts waiting for «the next remittance» join this run's, while SEPA_XML is enabled.
-        var included = context.settings().enabledMethods().contains(PaymentMethodType.SEPA_DD) ? invoices.forNextRun() : List.<Invoice>of();
+        // R-12-19: the manual SEPA_DD receipts waiting for «the next remittance» join this run's, those their member can still be
+        // debited for while SEPA_XML is enabled (E8-T07 step 3); the others are skipped with their incident, as the simulation said.
+        var included = plan.remitted();
         boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
@@ -124,8 +128,7 @@ public class BillingRunService {
         }
         var advances = plan.month().advances();
         var run = new BillingRun(runId, context.clubId(), period.toString(), BillingRunStatus.GENERATED, simulationId, issued.stream().map(Invoice::id).toList(),
-                byProvider(byMethod, context, remittanceId), collectionDate == null ? null : collectionDate.toString(), now, now,
-                plan.month().skipped().stream().map(skip -> new BillingRun.Skipped(skip.memberId(), BillingSimulationService.name(plan.member(skip.memberId())), skip.code())).toList(),
+                byProvider(byMethod, context, remittanceId), collectionDate == null ? null : collectionDate.toString(), now, now, skipped(plan),
                 advances.stream().map(advance -> new BillingRun.PreviousDate(advance.memberId(), String.valueOf(advance.from()), String.valueOf(advance.to()))).toList(),
                 first, actor, null, null, null, now, counterKey);
         issued.forEach(invoices::insert);
@@ -189,9 +192,12 @@ public class BillingRunService {
         var issued = invoices.forRun(runId);
         var attempts = collections.forInvoices(issued.stream().map(Invoice::id).toList());
         for (var invoice : issued) {
-            if (invoice.status() == InvoiceStatus.CANCELLED) { continue; }
-            var state = InvoiceState.of(invoice, now, actor).status(InvoiceStatus.CANCELLED).cancelled(now, ROLLBACK);
-            if (!invoices.transition(invoice.id(), invoice.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+            // E8-T07 step 2 (ruling E89): the whole block. A receipt the admin cancelled meanwhile keeps its state, date and reason
+            // (its history), and is rolled back with the others: its run's status says so, and its attempt is closed the same way.
+            if (invoice.status() != InvoiceStatus.CANCELLED) {
+                var state = InvoiceState.of(invoice, now, actor).status(InvoiceStatus.CANCELLED).cancelled(now, ROLLBACK);
+                if (!invoices.transition(invoice.id(), invoice.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+            }
             var last = attempts.stream().filter(attempt -> attempt.invoiceId().equals(invoice.id())).reduce((a, b) -> b).orElse(null);
             collections.insert(new Collection(UUID.randomUUID().toString(), invoice.clubId(), invoice.id(), last == null ? provider(invoice.paymentMethod().type()) : last.provider(),
                     invoice.total(), CollectionStatus.FAILED, null, invoice.remittanceId(), last == null ? 1 : last.attempt(), ROLLBACK, reason, List.of(), now, now,
@@ -265,9 +271,11 @@ public class BillingRunService {
 
     /**
      * R-12-07: something billing reads changed after the simulation was taken — the members, family groups, plans and
-     * prices, the `billing.*` parameters, and the club's own configuration (its payment providers and modules, round 2).
+     * prices, the `billing.*` parameters, and the club's own configuration (its payment providers and modules, round 2). E8-T07
+     * step 3: also the unbilled charges the run bills and the waiting `includeInNextRun` receipts it checks, compared as sets with
+     * the simulation's — a charge or a flagged receipt created after it (or voided, cancelled, returned by a rollback since).
      */
-    boolean stale(BillingSimulation simulation) {
+    boolean stale(BillingSimulation simulation, InvoicingService.MonthPlan plan) {
         var involved = new HashSet<String>();
         simulation.incidents().forEach(incident -> involved.add(incident.memberId()));
         simulation.invoicesPreview().forEach(preview -> involved.add(preview.memberId()));
@@ -277,7 +285,21 @@ public class BillingRunService {
         catalog.lastChange().ifPresent(changes::add);
         counters.parametersChangedAt("billing.").ifPresent(changes::add);
         counters.clubChangedAt().ifPresent(changes::add);
-        return changes.stream().anyMatch(change -> change.isAfter(simulation.at()));
+        return changes.stream().anyMatch(change -> change.isAfter(simulation.at()))
+                || !BillingSimulationService.chargeIds(plan).equals(Objects.requireNonNullElse(simulation.chargeIds(), List.of()))
+                || !BillingSimulationService.waitingInvoiceIds(plan).equals(Objects.requireNonNullElse(simulation.waitingInvoiceIds(), List.of()));
+    }
+    /** R-12-07: the members the run leaves out — the month's incidents, then the waiting receipts it cannot remit (E8-T07). */
+    private static List<BillingRun.Skipped> skipped(InvoicingService.MonthPlan plan) {
+        var skipped = new ArrayList<BillingRun.Skipped>();
+        plan.month().skipped().forEach(skip -> skipped.add(new BillingRun.Skipped(skip.memberId(), BillingSimulationService.name(plan.member(skip.memberId())), skip.code())));
+        for (var waiting : plan.waiting()) {
+            var receipt = waiting.invoice();
+            if (waiting.incident() != null && skipped.stream().noneMatch(skip -> skip.memberId().equals(receipt.memberId()) && skip.code() == waiting.incident())) {
+                skipped.add(new BillingRun.Skipped(receipt.memberId(), waiting.memberName(), waiting.incident()));
+            }
+        }
+        return skipped;
     }
 
     /** A new invoice (R-12-08/09): lines numbered from 1, amounts summed from the lines, the payment method frozen and masked. */

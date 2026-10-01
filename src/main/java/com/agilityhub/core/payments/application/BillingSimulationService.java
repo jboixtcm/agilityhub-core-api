@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
  * the incidents (`NO_BANK_ACCOUNT`, `NO_PLAN`, `NO_PRICE`, `CARD_INVALID`, `CURRENCY_MISMATCH`, `PROVIDER_DISABLED`), the
  * active cash members with their planned leave, the preview of each invoice and the KPIs — kept as the month's only
  * `BillingSimulation` and announced with `RemittanceSimulated`. A month more than three months ahead is `400
- * VALIDATION_ERROR` (S12 §13); the club's billing lock held by a run or a rollback is `409 BILLING_BUSY`.
+ * VALIDATION_ERROR` (S12 §13); the club's billing lock held by a run or a rollback is `409 BILLING_BUSY`. E8-T07 (R-12-19):
+ * the waiting manual `includeInNextRun` receipts the run will remit are previewed and counted too (so D6's confirmation is the
+ * remittance), and the ones it cannot remit are incidents.
  */
 @Service
 public class BillingSimulationService {
@@ -88,6 +90,20 @@ public class BillingSimulationService {
             byMethod.computeIfAbsent(method, ignored -> new ArrayList<>()).add(total);
             inactive += (int) draft.lines().stream().filter(line -> line.origin() == InvoiceLineOrigin.INACTIVITY_FEE).count();
         }
+        // E8-T07 step 3 (R-12-07, R-12-19): the waiting manual receipts the run remits are in the preview and the KPIs; the others
+        // are its incidents (one per member and code).
+        for (var waiting : plan.waiting()) {
+            var receipt = waiting.invoice();
+            var code = waiting.incident() != null ? waiting.incident() : sepaUnusable ? BillingIncidentCode.PROVIDER_DISABLED : null;
+            if (code != null) {
+                incident(incidents, new BillingSimulation.Incident(receipt.memberId(), waiting.memberName(), code));
+                continue;
+            }
+            preview.add(new BillingSimulation.PreviewInvoice(receipt.memberId(), waiting.memberName(), PaymentMethodType.SEPA_DD,
+                    receipt.lines().stream().map(line -> new BillingSimulation.PreviewLine(line.origin(), line.description(), line.total())).toList(),
+                    receipt.total(), receipt.id(), receipt.displayNumber()));
+            byMethod.computeIfAbsent(PaymentMethodType.SEPA_DD, ignored -> new ArrayList<>()).add(receipt.total());
+        }
         var all = byMethod.values().stream().flatMap(List::stream).toList();
         var enabled = context.settings().enabledMethods();
         var kpis = new BillingSimulation.Kpis(preview.size(), InvoiceAmounts.sum(all, currency),
@@ -96,8 +112,15 @@ public class BillingSimulationService {
                 byMethod.getOrDefault(PaymentMethodType.MANUAL, List.of()).size(),
                 new BillingSimulation.InactivityFees(inactive, fee(context, "billing.inactivityFeeFirstMonth"), fee(context, "billing.inactivityFeeFollowingMonths")));
         return new BillingSimulation(UUID.randomUUID().toString(), context.clubId(), plan.period().toString(), clock.instant(), incidents, cash, preview, kpis,
-                BillingEvents.actor());
+                BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan));
     }
+    /** An incident once per member and code (a waiting receipt's may repeat its member's own, R-12-07). */
+    static void incident(List<BillingSimulation.Incident> incidents, BillingSimulation.Incident incident) {
+        if (incidents.stream().noneMatch(known -> known.memberId().equals(incident.memberId()) && known.code() == incident.code())) { incidents.add(incident); }
+    }
+    /** R-12-07 (E8-T07): the unbilled charges the plan bills and the waiting receipts it checked, sorted (the run compares them). */
+    static List<String> chargeIds(InvoicingService.MonthPlan plan) { return plan.charges().keySet().stream().sorted().toList(); }
+    static List<String> waitingInvoiceIds(InvoicingService.MonthPlan plan) { return plan.waiting().stream().map(waiting -> waiting.invoice().id()).sorted().toList(); }
     static Money total(InvoicingRules.Draft draft, String currency) {
         return InvoiceAmounts.sum(draft.lines().stream().map(line -> line.amounts().total()).toList(), currency);
     }

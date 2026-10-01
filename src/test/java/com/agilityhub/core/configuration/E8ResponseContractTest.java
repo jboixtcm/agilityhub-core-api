@@ -46,7 +46,7 @@ class E8ResponseContractTest {
             var fields = fixture(group).fields();
             while (fields.hasNext()) { var entry = fields.next(); roundTrip(entry.getKey(), entry.getValue(), type(entry.getKey())); forms++; }
         }
-        assertThat(forms).isEqualTo(41);
+        assertThat(forms).isEqualTo(42); // E8-T07: + InvoicePreview#waitingReceipt
         // A provider the club does not use, and a counter of a module that is off, are absent; nothing else is.
         var byProvider = mapper.valueToTree(new BillingContracts.ByProvider(null, null, null));
         assertThat(byProvider.size()).isZero();

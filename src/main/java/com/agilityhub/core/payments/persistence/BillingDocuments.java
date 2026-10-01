@@ -29,17 +29,28 @@ public final class BillingDocuments {
     public static final List<String> NUMBERED_STATUSES = List.of("PENDING", "COLLECTING", "PAID", "FAILED");
     /** R-12-11: a lock its holder never released expires after ten minutes. */
     public static final Duration BILLING_LOCK_LEASE = Duration.ofMinutes(10);
-    /** R-12-14: the `cancelReason` of a receipt cancelled by a rollback (`CANCELLED{ROLLBACK}`). */
+    /**
+     * R-12-14: the reason a rollback writes on the receipts it cancels (`CANCELLED{ROLLBACK}`) and on their `FAILED` collection.
+     * It does not make a receipt rolled back: its run does ({@link InvoiceRepository#rolledBackRunIds()}).
+     */
     public static final String ROLLBACK = "ROLLBACK";
 
     /**
-     * R-12-14 (round 2, ruling E87): a receipt cancelled by a rollback. Its number went back to the counter and the next run
-     * reissues it, so it never reaches the member (`/me/invoices`), D6's «Tots» or the list's search: D6 shows it only under
-     * the `CANCELLED` filter, marked as rolled back.
+     * R-12-14, §5 (E8-T07 step 4, ruling E89): the open club's rolled-back runs. A receipt is rolled back when its run is
+     * `ROLLED_BACK` — every receipt of the run, one the admin had cancelled before included — never because of the words of its
+     * `cancelReason`, which is the admin's free text. Its number went back to the counter and the next run reissues it, so it
+     * never reaches the member (`/me/invoices`), D10, D6's «Tots» or the list's search: D6 shows it only under the `CANCELLED`
+     * filter, marked as rolled back (round 2, ruling E87). A club has one run per month, read through `billing_run_club_status`.
      */
-    public static Document rolledBack() { return new Document("status", "CANCELLED").append("cancelReason", ROLLBACK); }
-    /** Every receipt except the rolled-back ones ({@link #rolledBack()}). */
-    public static Criteria notRolledBack() { return new Criteria().norOperator(Criteria.where("status").is("CANCELLED").and("cancelReason").is(ROLLBACK)); }
+    public static List<String> rolledBackRunIds(MongoTemplate mongo, String clubId) {
+        var query = org.springframework.data.mongodb.core.query.Query.query(Criteria.where("clubId").is(clubId).and("status").is("ROLLED_BACK"));
+        query.fields().include("_id");
+        return mongo.find(query, Document.class, "billing_runs").stream().map(run -> run.getString("_id")).toList();
+    }
+    /** The receipts that are not rolled back, given the club's rolled-back runs; null when nothing is (no condition to add). */
+    public static Criteria notRolledBack(List<String> rolledBackRunIds) {
+        return rolledBackRunIds.isEmpty() ? null : Criteria.where("runId").nin(rolledBackRunIds);
+    }
 
     private static PartialIndexFilter present(String field) {
         return PartialIndexFilter.of(new Document(field, new Document("$type", "string")));
@@ -47,6 +58,12 @@ public final class BillingDocuments {
 
     @Repository
     public static class InvoiceRepository extends TenantRepository<Invoice> {
+        /**
+         * E8-T07 step 5: the index the numbering reads walk, named in their hint. Left to itself the planner may cache
+         * `invoice_club_run` for their shape — it wins the trial when the excluded rolled-back run holds every receipt (right after
+         * a rollback) — and then scan and sort the club's receipts on every later reservation.
+         */
+        static final String SERIES_NUMBER_INDEX = "invoice_club_series_number_all";
         public InvoiceRepository(MongoTemplate mongo) { super(mongo, Invoice.class); }
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
@@ -59,6 +76,10 @@ public final class BillingDocuments {
             }
             indexes.ensureIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", ASC).unique()
                     .partial(PartialIndexFilter.of(Criteria.where("status").in(NUMBERED_STATUSES))).named("invoice_club_series_number"));
+            // E8-T07 step 5: the numbering reads (highestNumber, numberedFrom, seriesUsed) leave the cancelled receipts in and the
+            // rolled-back ones out, which the partial index above cannot serve. This one covers every receipt (not unique; number
+            // descending, so it is a different key pattern from the guard's).
+            indexes.ensureIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", DESC).named(SERIES_NUMBER_INDEX));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("period", ASC).on("status", ASC).named("invoice_club_period_status"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("issueDate", DESC).named("invoice_club_member_issue"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("runId", ASC).named("invoice_club_run"));
@@ -74,23 +95,26 @@ public final class BillingDocuments {
         }
         /** R-12-27: the invoices of {@code memberIds}, newest first; a rolled-back one never reaches the member. */
         public List<Invoice> ofMembers(java.util.Collection<String> memberIds, int page, int size) {
-            return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))).addCriteria(notRolledBack())
+            return mongo.find(live(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))))
                     .with(Sort.by(DESC, "issueDate").and(Sort.by(DESC, "number"))).skip((long) page * size).limit(size), Invoice.class);
         }
         public long countOfMembers(java.util.Collection<String> memberIds) {
-            return mongo.count(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))).addCriteria(notRolledBack()), Invoice.class);
+            return mongo.count(live(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds)))), Invoice.class);
         }
         /** D6's chips of {@code period}: the invoices by status, the rolled-back ones aside (R-12-14). */
         public java.util.Map<String, Long> countsByStatus(String period) {
             var counts = new java.util.LinkedHashMap<String, Long>();
-            for (var invoice : mongo.find(tenantQuery().addCriteria(Criteria.where("period").is(period)).addCriteria(notRolledBack()), Invoice.class)) {
+            for (var invoice : mongo.find(live(tenantQuery().addCriteria(Criteria.where("period").is(period))), Invoice.class)) {
                 counts.merge(invoice.status().name(), 1L, Long::sum);
             }
             return counts;
         }
-        /** R-12-08: the highest number {@code series} has issued (0 before the first), the rolled-back receipts aside. */
+        /**
+         * R-12-08: the highest number {@code series} has issued (0 before the first), the rolled-back receipts aside — so after a
+         * rollback the floor ignores the run's whole block, a receipt of it the admin had cancelled included (E8-T07 step 2).
+         */
         public long highestNumber(String series) {
-            var query = tenantQuery().addCriteria(Criteria.where("series").is(series)).addCriteria(notRolledBack()).with(Sort.by(DESC, "number")).limit(1);
+            var query = live(tenantQuery().addCriteria(Criteria.where("series").is(series))).with(Sort.by(DESC, "number")).limit(1).withHint(SERIES_NUMBER_INDEX);
             query.fields().include("number");
             var top = mongo.findOne(query, Document.class, "invoices");
             return top == null || !(top.get("number") instanceof Number number) ? 0 : number.longValue();
@@ -99,12 +123,28 @@ public final class BillingDocuments {
         public boolean seriesUsed(String series) { return mongo.exists(tenantQuery().addCriteria(Criteria.where("series").is(series)), Invoice.class); }
         /** R-12-14: whether {@code series} has a receipt numbered {@code number} or later, the rolled-back ones aside. */
         public boolean numberedFrom(String series, long number) {
-            return mongo.exists(tenantQuery().addCriteria(Criteria.where("series").is(series).and("number").gte(number)).addCriteria(notRolledBack()), Invoice.class);
+            var query = live(tenantQuery().addCriteria(Criteria.where("series").is(series).and("number").gte(number))).limit(1).withHint(SERIES_NUMBER_INDEX);
+            query.fields().include("_id");
+            return mongo.findOne(query, Document.class, "invoices") != null;
+        }
+        /** The open club's rolled-back runs (see {@link BillingDocuments#rolledBackRunIds}). */
+        public List<String> rolledBackRunIds() { return BillingDocuments.rolledBackRunIds(mongo, com.agilityhub.core.shared.application.TenantContext.require()); }
+        /** R-12-14: whether {@code invoice} is rolled back — its run is `ROLLED_BACK` (E8-T07 step 4). */
+        public boolean rolledBack(Invoice invoice) {
+            return invoice.runId() != null && mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(invoice.runId()).and("status").is("ROLLED_BACK")),
+                    "billing_runs");
+        }
+        /** {@code query} without the rolled-back receipts. */
+        private org.springframework.data.mongodb.core.query.Query live(org.springframework.data.mongodb.core.query.Query query) {
+            var condition = notRolledBack(rolledBackRunIds());
+            return condition == null ? query : query.addCriteria(condition);
         }
         /**
-         * R-12-19 (round 2, ruling E87): the manual receipts the next run puts into its remittance — `PENDING`, `SEPA_DD`,
-         * `includeInNextRun`, in no remittance yet — in their numbers' order. E8-T03: only a positive total can be debited (a
-         * pain.008 amount is at least 0.01); a zero or negative adjustment waits for R-12-16 instead of failing every run.
+         * R-12-19 (round 2, ruling E87): the manual receipts waiting for the next run's remittance — `PENDING`, `SEPA_DD`,
+         * `includeInNextRun`, in no remittance yet — in their numbers' order. Only a positive total can be debited (a pain.008
+         * amount is at least 0.01; E8-T03, E8-T07 step 1, ruling E89): a zero or negative one stored with the flag before
+         * `POST /invoices` refused it is never picked up, whatever its flag says, and waits for R-12-16. The simulation and the
+         * run check each against its member (`InvoicingService`).
          */
         public List<Invoice> forNextRun() {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("MANUAL").and("status").is("PENDING").and("includeInNextRun").is(true)
@@ -215,8 +255,11 @@ public final class BillingDocuments {
         public BillingRunRepository(MongoTemplate mongo) { super(mongo, BillingRun.class); }
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
-            mongo.indexOps(BillingRun.class).ensureIndex(new Index().on("clubId", ASC).on("period", ASC).unique()
+            var indexes = mongo.indexOps(BillingRun.class);
+            indexes.ensureIndex(new Index().on("clubId", ASC).on("period", ASC).unique()
                     .partial(PartialIndexFilter.of(Criteria.where("status").in(LIVE_RUN_STATUSES))).named("billing_run_live_period"));
+            // E8-T07: the rolled-back runs every receipt read leaves out (rolledBackRunIds).
+            indexes.ensureIndex(new Index().on("clubId", ASC).on("status", ASC).named("billing_run_club_status"));
         }
         /** R-12-11: the month's live run (`GENERATED`, `CHARGING`, `COMPLETED`), if any. */
         public java.util.Optional<BillingRun> live(String period) {

@@ -58,8 +58,9 @@ public class InvoicesController {
     @Operation(summary = "invoices", description = ROLES + "D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips "
             + "Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els "
             + "rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when "
-            + "there are more lines. A receipt cancelled by a rollback (R-12-14: its number was reissued) is listed, counted and searched only "
-            + "when the status filter selects CANCELLED (eq or in), with rolledBack = true. An undeclared filter, sort or fields key → 400 "
+            + "there are more lines. A rolled-back receipt (R-12-14: its run is ROLLED_BACK and its number was reissued; whatever its "
+            + "cancelReason) is listed, counted and searched only when the status filter selects CANCELLED (eq or in), with rolledBack = true. "
+            + "An undeclared filter, sort or fields key → 400 "
             + "INVALID_FILTER." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "InvoicePage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = InvoicePage.class))))
@@ -73,12 +74,11 @@ public class InvoicesController {
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "invoice", description = ROLES + "D6's drawer: the invoice, its lines, its collections (attempts and refunds, oldest first) "
             + "and refundedTotal. A collection's providerRef is Stripe's PaymentIntent, «{mandateRef}/{endToEndId}» for SEPA, the channel (and "
-            + "reference) of a manual payment." + SERVED,
+            + "reference) of a manual payment. rolledBack: its run was rolled back (R-12-14), whatever its cancelReason." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "Invoice", useReturnTypeSchema = true))
     public Invoice invoice(@PathVariable String id) {
         access.invoice(id);
-        var detail = actions.detail(id);
-        return BillingViews.invoice(detail.invoice(), detail.collections());
+        return view(actions.detail(id));
     }
 
     @PostMapping("/api/v1/invoices")
@@ -86,7 +86,8 @@ public class InvoicesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, CURRENCY_MISMATCH})
     @Operation(summary = "createManualInvoice", description = ROLES + "R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + "
             + "round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method "
-            + "frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. INVOICE_CREATED_MANUAL audit, "
+            + "frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. includeInNextRun with a total "
+            + "of zero or less → 400 VALIDATION_ERROR {field: includeInNextRun} (never direct-debited; settled by hand). INVOICE_CREATED_MANUAL audit, "
             + "InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; "
             + "another club's member → 404; an erased one → 409 MEMBER_ERASED." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "Invoice", useReturnTypeSchema = true))
@@ -163,9 +164,9 @@ public class InvoicesController {
 
     @PostMapping("/api/v1/invoices/{id}/cancellation")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "cancelInvoice", description = ROLES + "R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason, "
-            + "InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). The reason "
-            + "ROLLBACK is the rollback's own (R-12-14) → 400 VALIDATION_ERROR {field: reason}." + SERVED,
+    @Operation(summary = "cancelInvoice", description = ROLES + "R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason "
+            + "(free text), InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). "
+            + "A rollback of its run later rolls it back too, its reason kept (R-12-14)." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "Invoice", useReturnTypeSchema = true))
     public Invoice cancelInvoice(@PathVariable String id, @Valid @RequestBody InvoiceCancellationRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
@@ -195,11 +196,14 @@ public class InvoicesController {
                         .filename(displayNumber + ".pdf").build().toString()).body(body);
     }
     private Invoice keyed(int status, java.util.function.Supplier<com.agilityhub.core.payments.application.InvoiceActions.InvoiceDetail> work) {
-        var detail = transactions.keyed(status, work, result -> json(BillingViews.invoice(result.invoice(), result.collections())));
-        return BillingViews.invoice(detail.invoice(), detail.collections());
+        var detail = transactions.keyed(status, work, result -> json(view(result)));
+        return view(detail);
     }
     private static BulkPaymentResult bulk(java.util.List<com.agilityhub.core.payments.application.InvoiceActions.InvoiceDetail> paid) {
-        return new BulkPaymentResult(paid.size(), paid.stream().map(detail -> BillingViews.invoice(detail.invoice(), detail.collections())).toList());
+        return new BulkPaymentResult(paid.size(), paid.stream().map(InvoicesController::view).toList());
+    }
+    private static Invoice view(com.agilityhub.core.payments.application.InvoiceActions.InvoiceDetail detail) {
+        return BillingViews.invoice(detail.invoice(), detail.collections(), detail.rolledBack());
     }
     private byte[] json(Object body) {
         try { return mapper.writeValueAsBytes(body); }

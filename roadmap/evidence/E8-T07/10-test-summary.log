@@ -1,0 +1,19 @@
+unit/contract (surefire): tests=3676 failures=0 errors=0 skipped=0
+integration (failsafe): tests=1459 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=44 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E8ContractIT: tests=70 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.BillingCycleIT: tests=21 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.InvoiceActionsIT: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.InvoiceNumberingIT: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.PendingChargesIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.RemittancesIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E8ResponseContractTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.domain.InvoicingRulesTest: tests=12 failures=0 errors=0 skipped=0
+coverage com.agilityhub.core.payments.domain: lines 100.0 % branches 90.5 %
+coverage com.agilityhub.core.payments.application: lines 98.8 % branches 84.3 %
+coverage com.agilityhub.core.payments.api: lines 97.6 % branches 75.7 %
+coverage com.agilityhub.core.payments.persistence: lines 98.7 % branches 78.1 %
+coverage com.agilityhub.core.clubs.census.persistence: lines 98.7 % branches 74.5 %
+exit 0

@@ -30,8 +30,10 @@ import org.springframework.stereotype.Service;
  * `InvoicePaid{MANUAL}`, `INVOICE_MARKED_PAID`; in bulk all or none.</li>
  * <li>R-12-17 «impagat (manual)»: a `COLLECTING` SEPA invoice, or a `PAID` one with a SEPA collection (a later bank return) →
  * `Collection FAILED{BANK_RETURN}`, `FAILED`, `InvoiceFailed` (→ N-10), `INVOICE_MARKED_FAILED`; no claim, no block (BR-08).</li>
- * <li>R-12-19: the cancellation of a `PENDING`/`FAILED` invoice, never `PAID`/`COLLECTING`; and the manual adjustment invoice
- * (`kind = MANUAL`, `ADJUSTMENT` lines, positive or negative) numbered from the series counter, `INVOICE_CREATED_MANUAL`.</li>
+ * <li>R-12-19: the cancellation of a `PENDING`/`FAILED` invoice, never `PAID`/`COLLECTING`, with the admin's free-text reason;
+ * and the manual adjustment invoice (`kind = MANUAL`, `ADJUSTMENT` lines, positive or negative) numbered from the series
+ * counter, `INVOICE_CREATED_MANUAL`. Only a positive total may ride «the next remittance» (`includeInNextRun`, E8-T07 step 1,
+ * ruling E89): a zero or negative one is settled by R-12-16.</li>
  * </ul>
  * Days the admin picks are club-local (R-12-30): today's becomes the current instant, an earlier one its start in the club's
  * time zone; a day after today is `400 VALIDATION_ERROR`.
@@ -39,8 +41,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class InvoiceActions {
     public static final String BANK_RETURN = "BANK_RETURN";
-    /** An invoice with its attempts, oldest first (the drawer). */
-    public record InvoiceDetail(Invoice invoice, List<Collection> collections) { }
+    /** An invoice with its attempts, oldest first (the drawer), and whether its run was rolled back (R-12-14, E8-T07 step 4). */
+    public record InvoiceDetail(Invoice invoice, List<Collection> collections, boolean rolledBack) {
+        /** A receipt an action just moved: a rolled-back one is `CANCELLED` and takes no action. */
+        public InvoiceDetail(Invoice invoice, List<Collection> collections) { this(invoice, collections, false); }
+    }
     public record ManualLine(String description, Money base, BigDecimal taxPercent) { }
 
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final BillingLockRepository locks;
@@ -54,7 +59,7 @@ public class InvoiceActions {
 
     public InvoiceDetail detail(String id) {
         var invoice = invoices.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        return new InvoiceDetail(invoice, collections.forInvoice(id));
+        return new InvoiceDetail(invoice, collections.forInvoice(id), invoices.rolledBack(invoice));
     }
     /** The member's own language (their signup's), for the receipt the admin downloads (R-12-27, §10). */
     public Optional<String> memberLocale(String memberId) {
@@ -91,12 +96,10 @@ public class InvoiceActions {
         return new InvoiceDetail(after, collections.forInvoice(id));
     }
     /**
-     * R-12-19: `PENDING`/`FAILED` → `CANCELLED{ADMIN}` with the admin's reason. `ROLLBACK` is the reason only a rollback writes
-     * (R-12-14): a receipt cancelled with it would read as rolled back and leave the member's list, so the admin may not type
-     * it (`400 VALIDATION_ERROR {field: reason}`).
+     * R-12-19: `PENDING`/`FAILED` → `CANCELLED{ADMIN}` with the admin's reason, free text («ROLLBACK» included: whether a receipt
+     * is rolled back comes from its run, E8-T07 step 4).
      */
     public InvoiceDetail cancel(String id, String reason, long version) {
-        if (reason != null && BillingRunService.ROLLBACK.equalsIgnoreCase(reason.strip())) { throw BillingContractAccess.invalid("reason"); }
         var invoice = current(id, version);
         if (invoice.status() != InvoiceStatus.PENDING && invoice.status() != InvoiceStatus.FAILED) { throw invalidState(invoice); }
         Instant now = clock.instant();
@@ -105,7 +108,12 @@ public class InvoiceActions {
         audit.write(new AuditCommand(AuditAction.INVOICE_CANCELLED, "Invoice", id, invoice.memberId(), invoice, after, reason));
         return new InvoiceDetail(after, collections.forInvoice(id));
     }
-    /** R-12-19: a manual adjustment invoice, numbered like the run's (`409 BILLING_BUSY` while a run holds the counter). */
+    /**
+     * R-12-19: a manual adjustment invoice, numbered like the run's (`409 BILLING_BUSY` while a run holds the counter).
+     * `includeInNextRun` is kept for a `SEPA_DD` member only, and only with a positive total: a zero or negative total with it is
+     * `400 VALIDATION_ERROR {field: includeInNextRun}`, before any number is taken (E8-T07 step 1, ruling E89; a pain.008 amount
+     * is at least 0.01, R-12-12).
+     */
     public InvoiceDetail createManual(String memberId, List<ManualLine> lines, boolean includeInNextRun, String note) {
         if (locks.held(clock.instant())) { throw new ApiException(ErrorCode.BILLING_BUSY); }
         var member = census.member(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -115,6 +123,9 @@ public class InvoiceActions {
             InvoiceAmounts.requireCurrency(line.base(), context.currency());
             drafted.add(new InvoicingRules.Line(InvoiceLineOrigin.ADJUSTMENT, null, null, null, null, texts.adjustment(line.description(), context.locale()),
                     InvoiceAmounts.fromBase(line.base(), line.taxPercent()), null));
+        }
+        if (includeInNextRun && InvoiceAmounts.sum(drafted.stream().map(line -> line.amounts().total()).toList(), context.currency()).amountMinor() <= 0) {
+            throw BillingContractAccess.invalid("includeInNextRun");
         }
         var method = InvoicingService.member(member).method();
         if (method == null) { method = PaymentMethodType.MANUAL; }

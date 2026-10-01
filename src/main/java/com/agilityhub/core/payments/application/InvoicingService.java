@@ -3,10 +3,13 @@ package com.agilityhub.core.payments.application;
 import com.agilityhub.core.clubs.catalogs.application.BillingCatalogAccess;
 import com.agilityhub.core.payments.application.ports.InactivityFeePort;
 import com.agilityhub.core.payments.application.ports.LeaveBillingPort;
+import com.agilityhub.core.payments.domain.BillingIncidentCode;
 import com.agilityhub.core.payments.domain.InvoiceLineOrigin;
 import com.agilityhub.core.payments.domain.InvoicingRules;
 import com.agilityhub.core.payments.domain.PaymentMethodType;
+import com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository;
 import com.agilityhub.core.payments.persistence.BillingDocuments.PendingChargeRepository;
+import com.agilityhub.core.payments.persistence.Invoice;
 import com.agilityhub.core.payments.persistence.PendingCharge;
 import com.agilityhub.core.platform.application.BillingProviderSettings;
 import com.agilityhub.core.platform.application.ClubConfig;
@@ -42,18 +45,26 @@ public class InvoicingService {
         public boolean module(Module module) { return config.modules().contains(module); }
         public <T> T parameter(String key, Class<T> type) { return config.get(key, type); }
     }
-    /** The month as the rules decided it, with what the simulation and the run need to write it. */
+    /**
+     * The month as the rules decided it, with what the simulation and the run need to write it. `waiting`: the manual receipts
+     * waiting for «the next remittance» (R-12-19), in their numbers' order, each with its incident or none (E8-T07 step 3).
+     */
     public record MonthPlan(Context context, YearMonth period, InvoicingRules.Month month, Map<String, BillingMember> members,
-            Map<String, PendingCharge> charges) {
+            Map<String, PendingCharge> charges, List<WaitingReceipt> waiting) {
         public BillingMember member(String id) { return members.get(id); }
+        /** The waiting receipts the run remits (no incident). */
+        public List<Invoice> remitted() { return waiting.stream().filter(receipt -> receipt.incident() == null).map(WaitingReceipt::invoice).toList(); }
     }
+    /** A waiting receipt, its member's current name (else the one frozen on it) and why it cannot ride this run, if so. */
+    public record WaitingReceipt(Invoice invoice, String memberName, BillingIncidentCode incident) { }
 
     private final BillingCensusAccess census; private final BillingCatalogAccess catalog; private final InactivityFeePort inactivity;
-    private final LeaveBillingPort leave; private final PendingChargeRepository charges; private final ClubConfigService configs;
+    private final LeaveBillingPort leave; private final PendingChargeRepository charges; private final InvoiceRepository invoices; private final ClubConfigService configs;
     private final BillingProviderSettings providers; private final BillingTexts texts; private final ClubClock clock;
     public InvoicingService(BillingCensusAccess census, BillingCatalogAccess catalog, InactivityFeePort inactivity, LeaveBillingPort leave,
-            PendingChargeRepository charges, ClubConfigService configs, BillingProviderSettings providers, BillingTexts texts, ClubClock clock) {
-        this.census = census; this.catalog = catalog; this.inactivity = inactivity; this.leave = leave; this.charges = charges;
+            PendingChargeRepository charges, InvoiceRepository invoices, ClubConfigService configs, BillingProviderSettings providers, BillingTexts texts,
+            ClubClock clock) {
+        this.census = census; this.catalog = catalog; this.inactivity = inactivity; this.leave = leave; this.charges = charges; this.invoices = invoices;
         this.configs = configs; this.providers = providers; this.texts = texts; this.clock = clock;
     }
 
@@ -90,7 +101,23 @@ public class InvoicingService {
                 sources(context, pending), describer(context));
         var chargesById = new LinkedHashMap<String, PendingCharge>();
         pending.values().forEach(list -> list.forEach(charge -> chargesById.put(charge.id(), charge)));
-        return new MonthPlan(context, period, month, byId, chargesById);
+        return new MonthPlan(context, period, month, byId, chargesById, waiting(context));
+    }
+
+    /**
+     * R-12-19 (E8-T07 step 3): the club's waiting `includeInNextRun` receipts (positive totals only, ruling E89), each checked
+     * against its member as it is now ({@link InvoicingRules#waitingReceiptIncident}): the simulation previews and counts the
+     * remitted ones and lists the others as incidents; the run remits the former and skips the latter.
+     */
+    private List<WaitingReceipt> waiting(Context context) {
+        var waiting = new ArrayList<WaitingReceipt>();
+        for (var receipt : invoices.forNextRun()) {
+            var member = census.member(receipt.memberId()).orElse(null);
+            var incident = InvoicingRules.waitingReceiptIncident(receipt.paymentMethod().mandateRef(), member == null ? null : member(member),
+                    member == null || member.paymentMethod() == null ? null : member.paymentMethod().mandateRef(), context.settings());
+            waiting.add(new WaitingReceipt(receipt, member == null ? receipt.memberSnapshot().fullName() : member.fullName(), incident));
+        }
+        return waiting;
     }
 
     /** R-12-08: last names, first name, member number — deterministic, so a rollback and a new run number alike. */

@@ -7957,7 +7957,7 @@
             "$ref" : "#/components/schemas/Money"
           },
           "cancelReason" : {
-            "description" : "ADMIN or ROLLBACK, or the admin's reason",
+            "description" : "The admin's reason (free text), or ROLLBACK when a rollback cancelled it; rolledBack, not this text, says whether it is rolled back",
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
@@ -8046,6 +8046,10 @@
             "format" : "uuid",
             "type" : [ "string", "null" ]
           },
+          "rolledBack" : {
+            "description" : "Its run was rolled back (R-12-14): every receipt of the run, one the admin had cancelled before included; its number was given back and reissued",
+            "type" : "boolean"
+          },
           "runId" : {
             "format" : "uuid",
             "type" : [ "string", "null" ]
@@ -8067,7 +8071,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "base", "collections", "createdAt", "displayNumber", "id", "includeInNextRun", "issueDate", "kind", "lines", "memberId", "memberSnapshot", "number", "paymentMethod", "period", "refundedTotal", "series", "status", "tax", "total", "version" ],
+        "required" : [ "base", "collections", "createdAt", "displayNumber", "id", "includeInNextRun", "issueDate", "kind", "lines", "memberId", "memberSnapshot", "number", "paymentMethod", "period", "refundedTotal", "rolledBack", "series", "status", "tax", "total", "version" ],
         "type" : "object"
       },
       "InvoiceCancellationRequest" : {
@@ -8231,7 +8235,7 @@
             "type" : [ "string", "null" ]
           },
           "rolledBack" : {
-            "description" : "CANCELLED by a rollback (R-12-14): its number was reissued; listed only under the CANCELLED filter",
+            "description" : "Its run was rolled back (R-12-14), whatever its cancelReason: its number was reissued; listed only under the CANCELLED filter",
             "type" : "boolean"
           },
           "runId" : {
@@ -8356,7 +8360,17 @@
         "type" : "object"
       },
       "InvoicePreview" : {
+        "description" : "A receipt of the confirmation: one the run will issue (no invoiceId or displayNumber: the keys are absent, as in S12 §6's JSON), or a waiting manual SEPA_DD receipt with includeInNextRun the run will put into its remittance (R-12-19), with its id and number",
         "properties" : {
+          "displayNumber" : {
+            "description" : "Waiting receipts only",
+            "type" : "string"
+          },
+          "invoiceId" : {
+            "description" : "Waiting receipts only",
+            "format" : "uuid",
+            "type" : "string"
+          },
           "lines" : {
             "items" : {
               "$ref" : "#/components/schemas/PreviewLine"
@@ -27148,7 +27162,7 @@
     },
     "/api/v1/billing/runs" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-11/12 «2 · GENERA REMESA SEPA (XML)»: one Mongo transaction under the club's billing lock (409 BILLING_BUSY) creates the PENDING/COLLECTING invoices numbered {series}-{number:04d} in the members' order (last names, first name, member number), one Collection each, the remittance (pain.008 written and validated before the commit), advances the included members' nextInvoiceDate, marks the PendingCharges; InvoiceIssued per invoice, InvoiceCollecting (SEPA), RemittanceGenerated, BillingRunCreated, one REMITTANCE_GENERATED audit entry with details.invoiceIds. One live run per month (409 RUN_EXISTS); the simulation must be the month's, made after the last change of the members, family groups, plans, prices and billing.* parameters (409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]). collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and must leave two business days after today → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). The same Idempotency-Key answers the same run. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-11/12 «2 · GENERA REMESA SEPA (XML)»: one Mongo transaction under the club's billing lock (409 BILLING_BUSY) creates the PENDING/COLLECTING invoices numbered {series}-{number:04d} in the members' order (last names, first name, member number), one Collection each, the remittance (pain.008 written and validated before the commit), advances the included members' nextInvoiceDate, marks the PendingCharges; InvoiceIssued per invoice, InvoiceCollecting (SEPA), RemittanceGenerated, BillingRunCreated, one REMITTANCE_GENERATED audit entry with details.invoiceIds. One live run per month (409 RUN_EXISTS); the simulation must be the month's, made after the last change of the members, family groups, plans, prices, billing.* parameters and the club's configuration, with the same unbilled PendingCharges and waiting includeInNextRun receipts (409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]), and so are the waiting receipts the simulation listed as incidents (they stay PENDING); the others join the remittance. collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and must leave two business days after today → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). The same Idempotency-Key answers the same run. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "createBillingRun",
         "parameters" : [ {
           "in" : "header",
@@ -27608,7 +27622,7 @@
     },
     "/api/v1/billing/runs/{id}/rollback" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-14 [Retrocedeix la remesa] with the typed confirmation (exactly RETROCEDIR, otherwise 400 VALIDATION_ERROR): one transaction under the billing lock — invoices CANCELLED{ROLLBACK}, a new FAILED{ROLLBACK} collection each, remittance ROLLED_BACK (file kept), the numbering given back, each member's nextInvoiceDate restored, PendingCharge.invoiceId cleared; RemittanceRolledBack, InvoiceCancelled each, one REMITTANCE_ROLLED_BACK audit entry. The month can then be simulated and generated again with the same numbers. Not allowed → 409 RUN_NOT_ROLLBACKABLE {reasons[]: REMITTANCE_SUBMITTED · COLLECTION_SUBMITTED · INVOICE_PAID · MANUAL_INVOICE_AFTER (an invoice numbered after the run)}; a run already rolled back → 409 RUN_NOT_ROLLBACKABLE {reasons: []}. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-14 [Retrocedeix la remesa] with the typed confirmation (exactly RETROCEDIR, otherwise 400 VALIDATION_ERROR): one transaction under the billing lock — every invoice of the run rolled back (the live ones CANCELLED{ROLLBACK}; one the admin cancelled meanwhile keeps its reason), a new FAILED{ROLLBACK} collection each, remittance ROLLED_BACK (file kept), the numbering given back, each member's nextInvoiceDate restored, PendingCharge.invoiceId cleared; RemittanceRolledBack, InvoiceCancelled each, one REMITTANCE_ROLLED_BACK audit entry. The month can then be simulated and generated again with the same numbers. Not allowed → 409 RUN_NOT_ROLLBACKABLE {reasons[]: REMITTANCE_SUBMITTED · COLLECTION_SUBMITTED · INVOICE_PAID · MANUAL_INVOICE_AFTER (an invoice numbered after the run)}; a run already rolled back → 409 RUN_NOT_ROLLBACKABLE {reasons: []}. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "rollbackBillingRun",
         "parameters" : [ {
           "in" : "path",
@@ -27773,7 +27787,7 @@
     },
     "/api/v1/billing/simulations" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-07 «1 · SIMULA EL MES»: computes R-12-01…05 without writing business data (incidents NO_BANK_ACCOUNT, NO_PLAN, NO_PRICE, CARD_INVALID, CURRENCY_MISMATCH, PROVIDER_DISABLED; cash members with their planned leave; preview and KPIs) and keeps it as the month's only simulation; RemittanceSimulated. A month more than three months ahead → 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-07 «1 · SIMULA EL MES»: computes R-12-01…05 without writing business data (incidents NO_BANK_ACCOUNT, NO_PLAN, NO_PRICE, CARD_INVALID, CURRENCY_MISMATCH, PROVIDER_DISABLED; cash members with their planned leave; preview and KPIs) and keeps it as the month's only simulation; RemittanceSimulated. The waiting manual SEPA_DD receipts with includeInNextRun (R-12-19) the run will remit are in the preview (with their invoiceId and displayNumber) and the KPIs; one whose member has left, no longer pays by SEPA_DD, has no account or signed another mandate since is an incident (NO_BANK_ACCOUNT) and is not remitted. A month more than three months ahead → 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "simulateBilling",
         "requestBody" : {
           "content" : {
@@ -42211,7 +42225,7 @@
     },
     "/api/v1/invoices" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when there are more lines. A receipt cancelled by a rollback (R-12-14: its number was reissued) is listed, counted and searched only when the status filter selects CANCELLED (eq or in), with rolledBack = true. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when there are more lines. A rolled-back receipt (R-12-14: its run is ROLLED_BACK and its number was reissued; whatever its cancelReason) is listed, counted and searched only when the status filter selects CANCELLED (eq or in), with rolledBack = true. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "invoices",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -42446,7 +42460,7 @@
         "x-sortable" : [ "number", "issueDate", "total", "memberLastName" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. INVOICE_CREATED_MANUAL audit, InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; another club's member → 404; an erased one → 409 MEMBER_ERASED. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a MANUAL invoice (ADJUSTMENT lines, positive or negative, base + round_half_even(base × taxPercent / 100)) numbered like the others from the series counter, PENDING, with the member's payment method frozen; collected by hand (R-12-16) or, for SEPA_DD with includeInNextRun, by a later remittance. includeInNextRun with a total of zero or less → 400 VALIDATION_ERROR {field: includeInNextRun} (never direct-debited; settled by hand). INVOICE_CREATED_MANUAL audit, InvoiceIssued. While a run holds the club's billing lock → 409 BILLING_BUSY. A line in another currency → 422 CURRENCY_MISMATCH; another club's member → 404; an erased one → 409 MEMBER_ERASED. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "createManualInvoice",
         "parameters" : [ {
           "in" : "header",
@@ -42998,7 +43012,7 @@
     },
     "/api/v1/invoices/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's drawer: the invoice, its lines, its collections (attempts and refunds, oldest first) and refundedTotal. A collection's providerRef is Stripe's PaymentIntent, «{mandateRef}/{endToEndId}» for SEPA, the channel (and reference) of a manual payment. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's drawer: the invoice, its lines, its collections (attempts and refunds, oldest first) and refundedTotal. A collection's providerRef is Stripe's PaymentIntent, «{mandateRef}/{endToEndId}» for SEPA, the channel (and reference) of a manual payment. rolledBack: its run was rolled back (R-12-14), whatever its cancelReason. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "invoice",
         "parameters" : [ {
           "in" : "path",
@@ -43145,7 +43159,7 @@
     },
     "/api/v1/invoices/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason, InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). The reason ROLLBACK is the rollback's own (R-12-14) → 400 VALIDATION_ERROR {field: reason}. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason (free text), InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). A rollback of its run later rolls it back too, its reason kept (R-12-14). Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "cancelInvoice",
         "parameters" : [ {
           "in" : "path",

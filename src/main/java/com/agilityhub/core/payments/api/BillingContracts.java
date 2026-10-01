@@ -52,11 +52,14 @@ public final class BillingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String remittanceId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String failureReason, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant cancelledAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN or ROLLBACK, or the admin's reason") String cancelReason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The admin's reason (free text), or ROLLBACK when a rollback cancelled it; "
+                    + "rolledBack, not this text, says whether it is rolled back") String cancelReason,
             @Schema(description = "Refunded so far (zero when none)") Money refundedTotal,
             @Schema(description = "SEPA_DD manual invoice to be collected by the next run (R-12-19)") boolean includeInNextRun,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note, List<Collection> collections, long version, Instant createdAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String createdByAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String createdByAccountId,
+            @Schema(description = "Its run was rolled back (R-12-14): every receipt of the run, one the admin had cancelled before included; its "
+                    + "number was given back and reissued") boolean rolledBack) { }
     @Schema(description = "A member of the D6 list: id, full name, number")
     public record InvoiceMember(@Schema(format = "uuid") String id, String fullName, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer memberNumber) { }
     @Schema(description = "A row of D6's universal list (CONVENCIONS_API §4): only the row id is required, fields= leaves out the rest. concept = the "
@@ -72,8 +75,8 @@ public final class BillingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String remittanceId,
             @Schema(requiredMode = NOT_REQUIRED) Money refundedTotal, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt,
-            @Schema(requiredMode = NOT_REQUIRED, description = "CANCELLED by a rollback (R-12-14): its number was reissued; listed only under the CANCELLED filter")
-            Boolean rolledBack) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Its run was rolled back (R-12-14), whatever its cancelReason: its number was reissued; "
+                    + "listed only under the CANCELLED filter") Boolean rolledBack) { }
     public record InvoicePage(List<InvoiceListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     @Schema(description = "POST /invoices/payments: how many invoices were marked paid")
@@ -135,8 +138,12 @@ public final class BillingContracts {
     public record CashMember(@Schema(format = "uuid") String memberId, String memberName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate plannedLeaveDate) { }
     public record PreviewLine(InvoiceLineOrigin origin, String description, Money total) { }
+    @Schema(description = "A receipt of the confirmation: one the run will issue (no invoiceId or displayNumber: the keys are absent, as in S12 §6's "
+            + "JSON), or a waiting manual SEPA_DD receipt with includeInNextRun the run will put into its remittance (R-12-19), with its id and number")
     public record InvoicePreview(@Schema(format = "uuid") String memberId, String memberName, PaymentMethodType paymentMethodType,
-            List<PreviewLine> lines, Money total) { }
+            List<PreviewLine> lines, Money total,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, format = "uuid", description = "Waiting receipts only") String invoiceId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Waiting receipts only") String displayNumber) { }
     @Schema(description = "D6 KPI «Quota d'inactivitat · {count} · {firstMonth} el 1r mes · {following}/mes»")
     public record InactivityFees(@Schema(minimum = "0") int count, Money firstMonth, Money following) { }
     public record SimulationKpis(@Schema(minimum = "0") int count, Money total, ByProvider byProvider, @Schema(minimum = "0") int cashPending,

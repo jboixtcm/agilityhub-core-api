@@ -66,7 +66,10 @@ public class BillingController {
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, BILLING_BUSY})
     @Operation(summary = "simulateBilling", description = ROLES + "R-12-07 «1 · SIMULA EL MES»: computes R-12-01…05 without writing business data "
             + "(incidents NO_BANK_ACCOUNT, NO_PLAN, NO_PRICE, CARD_INVALID, CURRENCY_MISMATCH, PROVIDER_DISABLED; cash members with their planned "
-            + "leave; preview and KPIs) and keeps it as the month's only simulation; RemittanceSimulated. A month more than three months ahead "
+            + "leave; preview and KPIs) and keeps it as the month's only simulation; RemittanceSimulated. The waiting manual SEPA_DD receipts "
+            + "with includeInNextRun (R-12-19) the run will remit are in the preview (with their invoiceId and displayNumber) and the KPIs; one "
+            + "whose member has left, no longer pays by SEPA_DD, has no account or signed another mandate since is an incident (NO_BANK_ACCOUNT) "
+            + "and is not remitted. A month more than three months ahead "
             + "→ 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingSimulation", useReturnTypeSchema = true))
     public BillingSimulation simulateBilling(@Valid @RequestBody SimulationRequest request) {
@@ -84,8 +87,10 @@ public class BillingController {
             + "(last names, first name, member number), one Collection each, the remittance (pain.008 written and validated before the commit), "
             + "advances the included members' nextInvoiceDate, marks the PendingCharges; InvoiceIssued per invoice, InvoiceCollecting (SEPA), "
             + "RemittanceGenerated, BillingRunCreated, one REMITTANCE_GENERATED audit entry with details.invoiceIds. One live run per month (409 "
-            + "RUN_EXISTS); the simulation must be the month's, made after the last change of the members, family groups, plans, prices and "
-            + "billing.* parameters (409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]). "
+            + "RUN_EXISTS); the simulation must be the month's, made after the last change of the members, family groups, plans, prices, "
+            + "billing.* parameters and the club's configuration, with the same unbilled PendingCharges and waiting includeInNextRun receipts "
+            + "(409 SIMULATION_STALE; another club's or an unknown one → 404). Members with an incident are skipped (skipped[]), and so are the "
+            + "waiting receipts the simulation listed as incidents (they stay PENDING); the others join the remittance. "
             + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and must leave two "
             + "business days after today → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA "
             + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). The same Idempotency-Key answers the same run." + SERVED,
@@ -127,7 +132,8 @@ public class BillingController {
     @PostMapping("/api/v1/billing/runs/{id}/rollback")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, RUN_NOT_ROLLBACKABLE, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
     @Operation(summary = "rollbackBillingRun", description = ROLES + "R-12-14 [Retrocedeix la remesa] with the typed confirmation (exactly "
-            + "RETROCEDIR, otherwise 400 VALIDATION_ERROR): one transaction under the billing lock — invoices CANCELLED{ROLLBACK}, a new FAILED{ROLLBACK} "
+            + "RETROCEDIR, otherwise 400 VALIDATION_ERROR): one transaction under the billing lock — every invoice of the run rolled back (the "
+            + "live ones CANCELLED{ROLLBACK}; one the admin cancelled meanwhile keeps its reason), a new FAILED{ROLLBACK} "
             + "collection each, remittance ROLLED_BACK (file kept), the numbering given back, each member's nextInvoiceDate restored, "
             + "PendingCharge.invoiceId cleared; RemittanceRolledBack, InvoiceCancelled each, one REMITTANCE_ROLLED_BACK audit entry. The month can "
             + "then be simulated and generated again with the same numbers. Not allowed → 409 RUN_NOT_ROLLBACKABLE {reasons[]: REMITTANCE_SUBMITTED · "

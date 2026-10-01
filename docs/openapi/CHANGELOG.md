@@ -2,6 +2,26 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T07 · rolled back comes from the run; the waiting manual receipts are in the simulation
+
+**Two schemas changed (additive), seven descriptions changed; no operation, status or error list changed.**
+- `Invoice` (`GET /invoices/{id}`, the invoice writes, `BulkPaymentResult.invoices[]`): new required `rolledBack` (boolean). It is
+  true when the receipt's run is `ROLLED_BACK` (R-12-14, §5), whatever its `cancelReason`: every receipt of a rolled-back run,
+  one the admin had cancelled before included (its own reason and date kept). `cancelReason`'s description says so.
+- `InvoicePreview` (`POST /billing/simulations`): new optional `invoiceId` (uuid) and `displayNumber`. A row with them is a waiting
+  manual `SEPA_DD` receipt with `includeInNextRun` that the run will put into its remittance (R-12-19); on the run's own rows both
+  keys are absent (never `null`), so S12 §6's JSON is unchanged. Such rows count in `kpis.count`, `kpis.total` and
+  `kpis.byProvider.SEPA_XML`.
+- `InvoiceListItem.rolledBack`: description only (it now comes from the run).
+- Descriptions: `POST /invoices` (`includeInNextRun` with a total of zero or less → `400 VALIDATION_ERROR {field:
+  includeInNextRun}`); `POST /invoices/{id}/cancellation` (the reason is free text: `ROLLBACK` is no longer refused);
+  `GET /invoices` and `GET /invoices/{id}` (rolled back = its run); `POST /billing/simulations` (the waiting receipts and their
+  incidents); `POST /billing/runs` (staleness also covers the unbilled charges and the waiting receipts; a waiting receipt
+  with an incident is skipped); `POST /billing/runs/{id}/rollback` (the whole block, an admin-cancelled receipt included).
+- Values without a contract change: a waiting receipt whose member has left, no longer pays by `SEPA_DD`, has no account or
+  signed another mandate is a `NO_BANK_ACCOUNT` incident in the simulation and in `skipped[]`; with `SEPA_XML` off, a
+  `PROVIDER_DISABLED` one. After a rollback the next run reissues the run's whole block of numbers.
+
 ## 2026-10-01 · E8-T03 · the `/remittances*` routes are served
 
 **No schema, operation, status or required set changed; four descriptions changed and one error list grew.**

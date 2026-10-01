@@ -80,12 +80,14 @@ public class CensusReferences extends TenantRepository<Member> {
     }
     /**
      * D10's «Rebuts recents» over S12's `invoices` (E8-T02): the club-local `issueDate`, the invoice's `total`, newest first. A
-     * receipt cancelled by a rollback (`CANCELLED{ROLLBACK}`, S12 R-12-14) is left out: the next run reissued its number (E87).
+     * receipt rolled back (S12 R-12-14: its run is `ROLLED_BACK`, E8-T07) is left out: the next run reissued its number (E87).
      */
     public List<Map<String,Object>> invoices(String memberId) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId))
-                        .addCriteria(new Criteria().norOperator(Criteria.where("status").is("CANCELLED").and("cancelReason").is("ROLLBACK")))
-                .with(Sort.by(Sort.Direction.DESC, "issueDate").and(Sort.by(Sort.Direction.DESC, "number"))), Document.class, "invoices").stream()
+        var query = tenantQuery().addCriteria(Criteria.where("memberId").is(memberId));
+        var rolledBackRuns = mongo.find(tenantQuery().addCriteria(Criteria.where("status").is("ROLLED_BACK")), Document.class, "billing_runs").stream()
+                .map(run -> run.getString("_id")).toList();
+        if (!rolledBackRuns.isEmpty()) { query.addCriteria(Criteria.where("runId").nin(rolledBackRuns)); }
+        return mongo.find(query.with(Sort.by(Sort.Direction.DESC, "issueDate").and(Sort.by(Sort.Direction.DESC, "number"))), Document.class, "invoices").stream()
                 .map(row -> object("id", row.get("_id"), "date", date(row.get("issueDate")), "amount", row.get("total"), "status", row.get("status"))).toList();
     }
     public List<Map<String,Object>> recentAudit(String memberId) {

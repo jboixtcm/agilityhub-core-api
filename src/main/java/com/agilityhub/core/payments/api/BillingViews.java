@@ -22,7 +22,7 @@ import static com.agilityhub.core.payments.api.BillingContracts.*;
 final class BillingViews {
     private BillingViews() { }
 
-    static BillingContracts.Invoice invoice(Invoice invoice, List<Collection> collections) {
+    static BillingContracts.Invoice invoice(Invoice invoice, List<Collection> collections, boolean rolledBack) {
         var method = invoice.paymentMethod();
         return new BillingContracts.Invoice(invoice.id(), invoice.series(), invoice.number(), invoice.displayNumber(), LocalDate.parse(invoice.issueDate()),
                 invoice.period(), invoice.memberId(), new MemberSnapshot(invoice.memberSnapshot().number(), invoice.memberSnapshot().fullName(),
@@ -32,7 +32,7 @@ final class BillingViews {
                 invoice.status(), invoice.kind(), invoice.runId(), invoice.remittanceId(), invoice.paidAt(), invoice.failedAt(), invoice.failureReason(),
                 invoice.cancelledAt(), invoice.cancelReason(), invoice.refundedTotal(), invoice.includeInNextRun(), invoice.note(),
                 collections.stream().map(BillingViews::collection).toList(), invoice.version() == null ? 0 : invoice.version(), invoice.createdAt(),
-                invoice.createdByAccountId());
+                invoice.createdByAccountId(), rolledBack);
     }
     static InvoicePaymentMethod method(Invoice.PaymentMethodSnapshot method) {
         return new InvoicePaymentMethod(method.type(), method.maskedAccount(), method.holderName(), method.mandateRef(), method.last4(), method.channel());
@@ -48,7 +48,8 @@ final class BillingViews {
         return new BillingContracts.BillingSimulation(simulation.id(), simulation.period(), simulation.at(), incidents(simulation.incidents()),
                 cash(simulation), kpis(simulation.kpis()),
                 simulation.invoicesPreview().stream().map(preview -> new InvoicePreview(preview.memberId(), preview.memberName(), preview.paymentMethodType(),
-                        preview.lines().stream().map(line -> new PreviewLine(line.origin(), line.description(), line.total())).toList(), preview.total())).toList());
+                        preview.lines().stream().map(line -> new PreviewLine(line.origin(), line.description(), line.total())).toList(), preview.total(),
+                        preview.invoiceId(), preview.displayNumber())).toList());
     }
     static List<BillingIncident> incidents(List<BillingSimulation.Incident> incidents) {
         return incidents.stream().map(incident -> new BillingIncident(incident.memberId(), incident.memberName(), incident.code())).toList();

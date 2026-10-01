@@ -14,7 +14,7 @@
                      "amount": {"amountMinor": 9000, "currency": "EUR"}, "status": "SUBMITTED", "providerRef": "canic-214-1:2026-0912",
                      "remittanceId": "4d5e6f70-0000-4000-8000-000000000004", "attempt": 1, "failureCode": null, "failureMessage": null, "refunds": [],
                      "createdAt": "2026-08-25T09:30:00Z", "resolvedAt": null}],
-    "version": 1, "createdAt": "2026-08-25T09:30:00Z", "createdByAccountId": "708192a3-0000-4000-8000-000000000007"
+    "version": 1, "createdAt": "2026-08-25T09:30:00Z", "createdByAccountId": "708192a3-0000-4000-8000-000000000007", "rolledBack": false
   },
   "Invoice#manualCash": {
     "id": "6f1c2a40-5b7e-4c1a-9d3e-2a1b0c9d8e72", "series": "2026", "number": 1080, "displayNumber": "2026-1080", "issueDate": "2026-09-10", "period": "2026-09",
@@ -28,7 +28,7 @@
     "collections": [{"id": "5e6f7081-0000-4000-8000-000000000015", "invoiceId": "6f1c2a40-5b7e-4c1a-9d3e-2a1b0c9d8e72", "provider": "MANUAL",
                      "amount": {"amountMinor": -3000, "currency": "EUR"}, "status": "SUCCEEDED", "providerRef": "CASH", "remittanceId": null, "attempt": 1,
                      "failureCode": null, "failureMessage": null, "refunds": [], "createdAt": "2026-09-11T08:00:00Z", "resolvedAt": "2026-09-11T08:00:00Z"}],
-    "version": 2, "createdAt": "2026-09-10T16:00:00Z", "createdByAccountId": "708192a3-0000-4000-8000-000000000007"
+    "version": 2, "createdAt": "2026-09-10T16:00:00Z", "createdByAccountId": "708192a3-0000-4000-8000-000000000007", "rolledBack": false
   },
   "InvoicePage": {
     "items": [
@@ -98,6 +98,9 @@
     "counts": {"all": 168, "pending": 4, "remitted": 162, "paid": 2, "failed": 0}
   },
   "BillingPeriod#empty": {"period": "2026-12", "simulation": null, "run": null, "remittance": null, "counts": {"all": 0, "pending": 0, "remitted": 0, "paid": 0, "failed": 0}},
+  "InvoicePreview#waitingReceipt": {"memberId": "1a2b3c4d-0000-4000-8000-000000000003", "memberName": "Eva Puig Example", "paymentMethodType": "SEPA_DD",
+    "lines": [{"origin": "ADJUSTMENT", "description": "Quota d'agost pendent", "total": {"amountMinor": 2500, "currency": "EUR"}}],
+    "total": {"amountMinor": 2500, "currency": "EUR"}, "invoiceId": "6f1c2a40-5b7e-4c1a-9d3e-2a1b0c9d8e73", "displayNumber": "2026-0911"},
   "UpfrontPayment": {"id": "8192a3b4-0000-4000-8000-000000000008", "memberId": "1a2b3c4d-0000-4000-8000-000000000001", "dogId": "a3b4c5d6-0000-4000-8000-00000000000a",
                      "concept": "PACK", "signupConcept": null, "amountDue": {"amountMinor": 12000, "currency": "EUR"}, "amountPaid": {"amountMinor": 12000, "currency": "EUR"},
                      "status": "PAID", "provider": {"type": "MANUAL", "checkoutSessionId": null, "paymentIntentId": null, "chargeId": null, "channel": "BIZUM",

@@ -286,4 +286,21 @@ public final class InvoicingRules {
         if (!settings.enabledMethods().contains(member.method())) { return BillingIncidentCode.PROVIDER_DISABLED; }
         return null;
     }
+
+    /**
+     * R-12-07, R-12-19 (E8-T07 step 3, ruling E89): why a manual `SEPA_DD` receipt waiting for «the next remittance» cannot ride
+     * it now, or null when it can. The run's checks, the member's own data first: a member gone ({@code member} null) or no
+     * longer `ACTIVE` (`LEFT`), one who no longer pays by `SEPA_DD`, has no account left, or signed another mandate since the
+     * receipt froze {@code receiptMandate} (the debit would name a mandate the bank no longer has) has no account this receipt
+     * can be debited from: `NO_BANK_ACCOUNT`, the closest closed code (E8-T07's catalog proposal); then the club's provider
+     * (`PROVIDER_DISABLED`, R-12-28). Such a receipt is not remitted and keeps its flag: the next run checks it again.
+     */
+    public static BillingIncidentCode waitingReceiptIncident(String receiptMandate, Member member, String memberMandate, Settings settings) {
+        if (member == null || !"ACTIVE".equals(member.status()) || member.method() != PaymentMethodType.SEPA_DD || !member.bankAccount()
+                || !java.util.Objects.equals(receiptMandate, memberMandate)) {
+            return BillingIncidentCode.NO_BANK_ACCOUNT;
+        }
+        if (!settings.enabledMethods().contains(PaymentMethodType.SEPA_DD)) { return BillingIncidentCode.PROVIDER_DISABLED; }
+        return null;
+    }
 }

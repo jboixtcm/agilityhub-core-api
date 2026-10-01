@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 class InvoiceNumberingIT extends BillingItSupport {
     static final Instant JANUARY = Instant.parse("2027-01-04T09:00:00Z");
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.payments.persistence.BillingDocuments.InvoiceRepository repository;
 
     String manual(String memberId) throws Exception {
         return ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", memberId, "lines", List.of(Map.of("description", "Ajust", "base",
@@ -77,6 +78,62 @@ class InvoiceNumberingIT extends BillingItSupport {
         parameter(CLUB, "billing.invoiceResetYearly", false);
         assertThat(manual("puig")).isEqualTo("2026-0912");
         numbersAreUnique();
+    }
+
+    /**
+     * E8-T07 step 5 (review #5 of E8-T02's round 2): the numbering reads — `highestNumber` (every reservation's floor) and
+     * `numberedFrom` (the rollback blockers of `GET /billing/periods/{period}`) — walk a non-partial `{clubId, series, number}`
+     * index, without scanning and sorting the club's invoices. The real queries are read from Mongo's profiler, then explained
+     * (printed for the task's evidence), over a rolled-back run and its reissue. The reissue's own reservation is the case that
+     * needs the queries' hint: right after the rollback every receipt is excluded, `invoice_club_run` wins the planner's trial and
+     * is cached, and the later reads would scan and sort with it.
+     */
+    @Test void R_12_08_R_12_14_theNumberingQueriesWalkTheSeriesNumberIndex() throws Exception {
+        String first = run("2026-09", simulate("2026-09").path("id").asText()).at("/run/id").asText();
+        ok(admin(keyed(post("/api/v1/billing/runs/" + first + "/rollback"), Map.of("reason", "Preu equivocat", "confirmation", "RETROCEDIR"))), 200);
+        clock.setInstant(clock.instant().plusSeconds(300));
+        run("2026-09", simulate("2026-09").path("id").asText());
+        var db = mongo.getDb();
+        db.runCommand(new Document("profile", 0));
+        db.getCollection("system.profile").drop();
+        db.runCommand(new Document("profile", 2));
+        long highest; boolean after;
+        try (var scope = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            highest = repository.highestNumber("2026");
+            after = repository.numberedFrom("2026", 920);
+        } finally { db.runCommand(new Document("profile", 0)); }
+        assertThat(highest).isEqualTo(919);
+        assertThat(after).isFalse();
+        var profiled = db.getCollection("system.profile").find(new Document("ns", db.getName() + ".invoices")).sort(new Document("ts", 1)).into(new ArrayList<>());
+        assertThat(profiled).hasSize(2);
+        var labels = List.of("highestNumber", "numberedFrom");
+        for (int i = 0; i < 2; i++) {
+            var entry = profiled.get(i);
+            var command = new Document(entry.get("command", Document.class));
+            for (String key : List.of("lsid", "$db", "$clusterTime", "$readPreference", "txnNumber", "autocommit", "startTransaction", "readConcern")) { command.remove(key); }
+            var explain = db.runCommand(new Document("explain", command).append("verbosity", "queryPlanner"));
+            System.out.println("E8-T07 explain " + labels.get(i) + " · planSummary " + entry.getString("planSummary") + " · hasSortStage "
+                    + entry.getBoolean("hasSortStage", false) + " · keysExamined " + entry.get("keysExamined") + " · docsExamined " + entry.get("docsExamined")
+                    + "\n  command " + command.toJson() + "\n  winningPlan " + Objects.requireNonNullElse(winningPlan(explain), explain).toJson());
+        }
+        for (int i = 0; i < 2; i++) {
+            var entry = profiled.get(i);
+            assertThat(entry.getString("planSummary")).as(labels.get(i)).isEqualTo("IXSCAN { clubId: 1, series: 1, number: -1 }");
+            assertThat(entry.getBoolean("hasSortStage", false)).as(labels.get(i)).isFalse();
+        }
+    }
+    /** The first `winningPlan` of an explain (a find's, or an aggregation's first stage). */
+    static Document winningPlan(Document explain) {
+        for (var value : explain.values()) {
+            if (value instanceof Document document) {
+                if (document.containsKey("winningPlan")) { return document.get("winningPlan", Document.class); }
+                var nested = winningPlan(document);
+                if (nested != null) { return nested; }
+            } else if (value instanceof List<?> list) {
+                for (var item : list) { if (item instanceof Document document) { var nested = winningPlan(document); if (nested != null) { return nested; } } }
+            }
+        }
+        return explain.containsKey("winningPlan") ? explain.get("winningPlan", Document.class) : null;
     }
 
     @Test void T_12_04_R_12_14_aPatternCounterIsTheSameSeriesOnlyWhenTheSeriesHasReceipts() throws Exception {
