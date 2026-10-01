@@ -18,8 +18,8 @@ import static com.agilityhub.core.payments.api.BillingRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
- * S12 §6 billing routes of a member's D10 card (R-12-22, R-12-25), ADMIN only, module `BILLING`. Every operation runs its
- * guards and then answers 501 NOT_IMPLEMENTED until E8-T04 (card setup) and E8-T02 (pending charges).
+ * S12 §6 billing routes of a member's D10 card (R-12-22, R-12-25), ADMIN only, module `BILLING`. The pending charges are served
+ * (E8-T02); the card-setup link runs its guards and answers 501 NOT_IMPLEMENTED until E8-T04.
  */
 @RestController
 @RequiresModule(Module.BILLING)
@@ -27,8 +27,10 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class MemberBillingController {
     static final String ROLES = BillingController.ROLES;
     static final String STUB = BillingController.STUB;
-    private final BillingContractAccess access;
-    public MemberBillingController(BillingContractAccess access) { this.access = access; }
+    private final BillingContractAccess access; private final com.agilityhub.core.payments.application.PendingChargeService charges;
+    public MemberBillingController(BillingContractAccess access, com.agilityhub.core.payments.application.PendingChargeService charges) {
+        this.access = access; this.charges = charges;
+    }
 
     @PostMapping("/api/v1/members/{id}/card-setup-link")
     @ResponseStatus(HttpStatus.CREATED)
@@ -47,10 +49,11 @@ public class MemberBillingController {
     @RequiresModule(Module.SINGLE_CLASS)
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "pendingCharges", description = ROLES + "SINGLE_CLASS off → 404 MODULE_DISABLED. R-12-25: the member's single classes "
-            + "charged by consumption, billed (invoiceId) or not yet, voided ones included. Another club's member → 404." + STUB,
+            + "charged by consumption (CHARGE_ON_ATTENDANCE: attended, no-show or cancelled late), newest first, billed (invoiceId) or not yet, voided "
+            + "ones included. Another club's member → 404." + BillingController.SERVED,
             responses = @ApiResponse(responseCode = "200", description = "PendingCharge[]", useReturnTypeSchema = true))
     public List<PendingCharge> pendingCharges(@PathVariable String id) {
         access.member(id);
-        throw new UnsupportedOperationException();
+        return charges.forMember(id).stream().map(BillingViews::pendingCharge).toList();
     }
 }

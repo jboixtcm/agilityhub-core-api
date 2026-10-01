@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.bookings.persistence;
 
 import com.agilityhub.core.clubs.bookings.domain.BookingState;
+import com.agilityhub.core.clubs.bookings.domain.ChargeMode;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.persistence.TenantRepository;
@@ -98,6 +99,16 @@ public class BookingRepository extends TenantRepository<Booking> {
         var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("state").is(BookingState.ACTIVE).and("reminderSentAt").is(null)
                 .and("classStartsAt").is(classStartsAt));
         return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("reminderSentAt", at), Booking.class).getModifiedCount() == 1;
+    }
+    /**
+     * S12 R-12-25 (E8-T02): the provisional `charge.chargeInvoiceLineRef` of a `CHARGE_ON_ATTENDANCE` booking — its `PendingCharge` —
+     * written by the collection name, so `version` is left alone and no member's edit of the booking fails on it.
+     */
+    public boolean stampChargeRef(String id, String reference) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("charge.mode").is(ChargeMode.CHARGE_ON_ATTENDANCE.name())
+                .and("charge.chargeInvoiceLineRef").ne(reference));
+        return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("charge.chargeInvoiceLineRef", reference), "bookings")
+                .getModifiedCount() == 1;
     }
     public Optional<Booking> byCheckoutSession(String sessionId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("charge.checkoutSessionId").is(sessionId)), Booking.class));

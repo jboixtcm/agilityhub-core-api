@@ -1,0 +1,7 @@
+heavy.sh: 12:23 waiting for the host lock, held by: 12:23 agilityhub-core-api-c: bin/deploy-smoke --image-tag e11-security-broken --security-only
+heavy.sh: the previous holder (pid 44973) is gone - taking the lock over
+heavy.sh: 12:39 got the host lock after 15 min 37 s
+Starting disposable development build Compose stack
+Building the current working tree image
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: docker build failed (exit 1; exception classes: none; codes: none; private output withheld)

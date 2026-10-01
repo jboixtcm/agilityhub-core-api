@@ -98,7 +98,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
     static final String ACTIVITY = "par-activity", TASK = "par-task", WEEK = "par-week-42", PLAN = "par-plan", LEVEL_C = "par-lv-c", LEVEL_D = "par-lv-d";
     static final List<String> DATA = List.of("members", "dogs", "accounts", "memberships", "instructors", "levels", "rings", "plans", "parameters", "class_sessions",
             "bookings", "waitlist_entries", "attendances", "training_bookings", "activities", "activity_registrations", "tasks", "weeks", "message_templates",
-            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements");
+            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements", "invoices");
     /**
      * The templated codes whose events no owner of this repository explains yet: their facts are the event's payload until
      * their stage writes the owner (and adds the code's case to this test).
@@ -108,7 +108,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
             "N-18b", "InactivityResolved: inactivity periods, S13 (E8-T05)", "N-18c", "InactivityEnded: inactivity periods, S13 (E8-T05)",
             "N-28", "LeaveResolved: leave requests, S13 (E8-T05)",
             "N-30", "InvoicePaid (E8-T02) / UpfrontPaymentSucceeded: the receipt is Stripe's while billing.stripeReceiptEmail = true (the default); E8-T04",
-            "N-31", "RingSetupChanged: course setups, S16 (later stage)", "N-35", "InvoiceFailed: billing, S12 (E8-T02, E8-T04)",
+            "N-31", "RingSetupChanged: course setups, S16 (later stage)",
             "N-50", "no event: the S14 export worker triggers it directly (not produced yet)"));
 
     @Autowired MongoTemplate mongo; @Autowired ObjectMapper mapper; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
@@ -175,6 +175,15 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
                 "Marta Roca"), null, null, null, NOW, NOW, null, null, 0, null));
         mongo.insert(new Week(WEEK, CLUB, 2026, 42, LocalDate.parse("2026-10-12"), LocalDate.parse("2026-10-18"), WeekState.VALIDATED, NOW, "par-admin", null, null, NOW,
                 "par-admin", null, NOW, "par-admin", NOW, "par-admin", NOW, null));
+        // Billing (E8-T02): Laura's September receipt, which a card failure (N-35, E8-T04's path) is about.
+        var fee = new com.agilityhub.core.shared.domain.Money(6000, "EUR"); var zero = new com.agilityhub.core.shared.domain.Money(0, "EUR");
+        mongo.insert(new com.agilityhub.core.payments.persistence.Invoice("par-invoice", CLUB, "2026", 912, "2026-0912", "2026-08-25", "2026-09", LAURA,
+                new com.agilityhub.core.payments.persistence.Invoice.MemberSnapshot(1, "Laura Serra Puig", null), List.of(new com.agilityhub.core.payments.persistence.Invoice.Line(1,
+                com.agilityhub.core.payments.domain.InvoiceLineOrigin.MONTHLY_FEE, null, null, "Quota mensual — Setembre 2026", fee, java.math.BigDecimal.ZERO, zero, fee)),
+                fee, zero, fee, new com.agilityhub.core.payments.persistence.Invoice.PaymentMethodSnapshot(com.agilityhub.core.payments.domain.PaymentMethodType.CARD,
+                "···· 4242", "Laura Serra", null, "4242", null), com.agilityhub.core.payments.domain.InvoiceStatus.FAILED,
+                com.agilityhub.core.payments.domain.InvoiceKind.PERIODIC, "par-run", null, false, null, null, NOW, "La targeta ha estat rebutjada", null, null, zero, null, 1L,
+                NOW, "par-admin", NOW, "par-admin"));
         ((FakeEmailSender) email).clear();
         logs.list.clear(); logs.start(); ((Logger) LoggerFactory.getLogger(TemplateRenderer.class)).addAppender(logs);
     }
@@ -267,6 +276,8 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         cases.add(new Case("N-32c", "ActivityCancelled", Map.of("activityId", ACTIVITY, "adminText", "Suspès per la pluja.", "affected", List.of(Map.of("memberId", LAURA)))));
         cases.add(new Case("N-32d", "ActivityUpdated", Map.of("activityId", ACTIVITY, "registrantCount", 1, "diff", Map.of("startTime", Map.of("before", "09:30", "after", "10:00")))));
         cases.add(new Case("N-33", "WeekOpened", Map.of("notified", true, "weekId", WEEK, "isoWeekStart", "2026-10-12")));
+        // E8-T02: the billing owner explains InvoiceFailed (N-10 to the admins, N-35 to the member of a card failure).
+        cases.add(new Case("N-35", "InvoiceFailed", Map.of("invoiceId", "par-invoice", "provider", "STRIPE", "reason", "card_declined")));
         cases.add(new Case("N-36", "BookingCreated", with(bookingOf, "origin", "BACKOFFICE")));
         cases.add(new Case("N-36", "BookingCancelled", with(bookingOf, "origin", "BACKOFFICE", "by", "ADMIN")));
         cases.add(new Case("N-37", "DogRegistered", Map.of("memberId", LAURA, "dogId", DUNA)));

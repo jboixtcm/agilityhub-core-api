@@ -30,7 +30,7 @@ public class AuditWriter {
      */
     static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED);
 
-    public void write(AuditCommand command) { write(command, null); }
+    public void write(AuditCommand command) { write(command, (String) null); }
 
     /**
      * {@link #write(AuditCommand)} with an explicit `origin`, for a mutation without an authenticated user: an anonymous
@@ -39,6 +39,16 @@ public class AuditWriter {
     public void write(AuditCommand command, String origin) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
                 AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin, null, null);
+    }
+
+    /**
+     * {@link #write(AuditCommand)} with `details` (S14 §3): one entry per aggregate that names what it covers, e.g. the
+     * billing run's `REMITTANCE_GENERATED {invoiceIds[]}` (R-14-10: one entry per aggregate, not per invoice, E8-T02).
+     */
+    public void write(AuditCommand command, Map<String, Object> details) {
+        write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), null, null,
+                details == null || details.isEmpty() ? null : details);
     }
 
     /**

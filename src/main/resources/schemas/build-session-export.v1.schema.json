@@ -1,0 +1,1212 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.agilitydoghub.com/build-session-export/v1.json",
+  "title": "BuildSessionExportV1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "exportedAt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "producer": {
+      "type": "string"
+    },
+    "buildSession": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "placement_id": {
+          "type": "string"
+        },
+        "judge_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_started",
+            "in_progress",
+            "completed",
+            "abandoned"
+          ]
+        },
+        "selected_strategy": {
+          "type": "string",
+          "enum": [
+            "equipment_type",
+            "closer_obstacle_order",
+            "free_build"
+          ]
+        },
+        "last_known_marker_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "local_cache_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "obstacle_statuses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "course_obstacle_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "not_placed",
+                  "current",
+                  "placed",
+                  "skipped",
+                  "needs_check"
+                ]
+              },
+              "updated_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "course_obstacle_id",
+              "status",
+              "updated_at"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "placement_id",
+        "judge_id",
+        "status",
+        "selected_strategy",
+        "last_known_marker_id",
+        "started_at",
+        "completed_at",
+        "local_cache_version",
+        "obstacle_statuses"
+      ],
+      "additionalProperties": false
+    },
+    "placement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "course_id": {
+          "type": "string"
+        },
+        "venue_id": {
+          "type": "string"
+        },
+        "ring_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "placement_mode": {
+          "type": "string",
+          "enum": [
+            "preserveMeters",
+            "centered",
+            "fitToRing"
+          ]
+        },
+        "offset_x_m": {
+          "type": "number"
+        },
+        "offset_y_m": {
+          "type": "number"
+        },
+        "rotation_deg": {
+          "type": "number"
+        },
+        "flip_x_bool": {
+          "type": "boolean",
+          "default": false
+        },
+        "flip_y_bool": {
+          "type": "boolean",
+          "default": false
+        },
+        "warning_threshold_m": {
+          "type": "number"
+        },
+        "warnings_json": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "ruleId": {
+                "type": "string",
+                "enum": [
+                  "outside-ring",
+                  "border-clearance",
+                  "course-no-go",
+                  "ring-no-go",
+                  "door-clearance",
+                  "course-larger-than-ring",
+                  "obstacle-inventory"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "critical"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "obstacleSourceId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "courseNoGoZoneId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ringNoGoZoneId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doorId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "distanceMeters": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "thresholdMeters": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "ruleId",
+              "severity",
+              "message",
+              "obstacleSourceId",
+              "courseNoGoZoneId",
+              "ringNoGoZoneId",
+              "doorId",
+              "distanceMeters",
+              "thresholdMeters"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "ready_to_build",
+            "archived"
+          ]
+        },
+        "scheduled_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "event_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "course_type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "Jumping",
+                "Agility"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "grades": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "sizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "is_training": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "id",
+        "course_id",
+        "venue_id",
+        "ring_id",
+        "name",
+        "placement_mode",
+        "offset_x_m",
+        "offset_y_m",
+        "rotation_deg",
+        "warning_threshold_m",
+        "warnings_json",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "course": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "title_raw": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "units": {
+          "type": "string",
+          "enum": [
+            "m",
+            "ft"
+          ]
+        },
+        "design_length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "design_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "canvas_width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "canvas_height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "origin": {
+          "type": "string"
+        },
+        "normalized_json": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string",
+              "const": "smarter-agility"
+            },
+            "sourceFileName": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "title": {
+              "type": "string"
+            },
+            "titleRaw": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "units": {
+              "type": "string",
+              "enum": [
+                "M",
+                "FT"
+              ]
+            },
+            "designLengthMeters": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "designWidthMeters": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "canvasWidth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "canvasHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "origin": {
+              "type": "string",
+              "enum": [
+                "LT",
+                "LB",
+                "RT",
+                "RB",
+                "CC",
+                "LC",
+                "RC",
+                "CB"
+              ]
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "courseType": {
+                  "type": "string"
+                },
+                "grade": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "location": {
+                  "type": "string"
+                },
+                "designer": {
+                  "type": "string"
+                },
+                "organization": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string"
+                },
+                "exportVersion": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "obstacleSummary": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "type",
+                "courseType",
+                "grade",
+                "category",
+                "location",
+                "designer",
+                "organization",
+                "date",
+                "exportVersion",
+                "obstacleSummary"
+              ],
+              "additionalProperties": false
+            },
+            "obstacles": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "sourceId": {
+                    "type": "string"
+                  },
+                  "sourceCode": {
+                    "type": "string"
+                  },
+                  "obstacleType": {
+                    "type": "string",
+                    "enum": [
+                      "Jump",
+                      "DoubleJump",
+                      "Tunnel3m",
+                      "Tunnel4m",
+                      "Tunnel5m",
+                      "Tunnel6m",
+                      "DogWalk",
+                      "AFrame",
+                      "Seesaw",
+                      "Weave",
+                      "LongJump",
+                      "Wall",
+                      "Tire",
+                      "Unknown"
+                    ]
+                  },
+                  "xMeters": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "yMeters": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "rotationDegrees": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "nominalLengthMeters": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "controlPointsMeters": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "x": {
+                              "type": "number"
+                            },
+                            "y": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "colorKey": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "notPlaced",
+                      "placed"
+                    ],
+                    "default": "notPlaced"
+                  },
+                  "rawMetadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "sourceId",
+                  "sourceCode",
+                  "obstacleType",
+                  "xMeters",
+                  "yMeters",
+                  "rotationDegrees",
+                  "nominalLengthMeters",
+                  "controlPointsMeters",
+                  "colorKey",
+                  "rawMetadata"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "numbers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "sequenceNumber": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sequenceKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "default": "n1"
+                  },
+                  "xMeters": {
+                    "type": "number"
+                  },
+                  "yMeters": {
+                    "type": "number"
+                  },
+                  "linkedObstacleSourceId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "obstacleConnectionPoint": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "rawMetadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "text",
+                  "sequenceNumber",
+                  "xMeters",
+                  "yMeters",
+                  "linkedObstacleSourceId",
+                  "obstacleConnectionPoint",
+                  "rawMetadata"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "noGoZones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "sourceId": {
+                    "type": "string"
+                  },
+                  "sourceType": {
+                    "type": "string",
+                    "const": "at"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "polygonPointsMeters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 3
+                  },
+                  "warningMarginMeters": {
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0.5
+                  },
+                  "rawMetadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "id",
+                  "sourceId",
+                  "sourceType",
+                  "label",
+                  "polygonPointsMeters",
+                  "rawMetadata"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "ignoredLogos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "rawMetadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "url",
+                  "rawMetadata"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "themeId": {
+              "type": "string",
+              "default": "agilityhub"
+            },
+            "rawMetadata": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "required": [
+            "id",
+            "source",
+            "sourceFileName",
+            "title",
+            "titleRaw",
+            "units",
+            "designLengthMeters",
+            "designWidthMeters",
+            "canvasWidth",
+            "canvasHeight",
+            "origin",
+            "metadata",
+            "obstacles",
+            "numbers",
+            "noGoZones",
+            "ignoredLogos",
+            "rawMetadata"
+          ],
+          "additionalProperties": false
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "palette_key": {
+              "type": "string"
+            },
+            "theme_json": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "required": [
+            "id",
+            "palette_key",
+            "theme_json"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "title_raw",
+        "source",
+        "source_version",
+        "units",
+        "design_length_m",
+        "design_width_m",
+        "canvas_width",
+        "canvas_height",
+        "origin",
+        "normalized_json",
+        "theme"
+      ],
+      "additionalProperties": false
+    },
+    "venue": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "surface": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "indoor_outdoor": {
+          "type": "string",
+          "enum": [
+            "indoor",
+            "outdoor",
+            "mixed"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "name",
+        "country",
+        "city",
+        "surface",
+        "indoor_outdoor"
+      ],
+      "additionalProperties": false
+    },
+    "ring": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "venue_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "border_clearance_m": {
+          "type": "number"
+        },
+        "surface": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "doors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "entrance",
+                  "exit",
+                  "equipment",
+                  "emergency",
+                  "other"
+                ],
+                "default": "other"
+              },
+              "polygon_points_m": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "clearance_m": {
+                "type": "number"
+              },
+              "is_active": {
+                "type": "boolean",
+                "default": true
+              },
+              "flow": {
+                "type": "string",
+                "enum": [
+                  "in",
+                  "out",
+                  "both"
+                ],
+                "default": "both"
+              },
+              "side": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "north",
+                      "south",
+                      "east",
+                      "west"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
+              "start_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "default": null
+              },
+              "end_m": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "polygon_points_m",
+              "clearance_m"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "no_go_zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "wall",
+                  "column",
+                  "restricted",
+                  "entrance",
+                  "equipment",
+                  "other"
+                ],
+                "default": "other"
+              },
+              "polygon_points_m": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "warning_margin_m": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "polygon_points_m",
+              "warning_margin_m"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "markers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "marker_uid": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "x_m": {
+                "type": "number"
+              },
+              "y_m": {
+                "type": "number"
+              },
+              "z_m": {
+                "type": "number"
+              },
+              "rotation_y_deg": {
+                "type": "number"
+              },
+              "physical_width_m": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "physical_height_m": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "is_fixed": {
+                "type": "boolean"
+              },
+              "is_active": {
+                "type": "boolean"
+              },
+              "april_tag_id": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 586
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "marker_uid",
+              "role",
+              "x_m",
+              "y_m",
+              "z_m",
+              "rotation_y_deg",
+              "physical_width_m",
+              "physical_height_m",
+              "is_fixed",
+              "is_active"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 6,
+          "maxItems": 6
+        }
+      },
+      "required": [
+        "id",
+        "venue_id",
+        "name",
+        "length_m",
+        "width_m",
+        "border_clearance_m",
+        "surface",
+        "doors",
+        "no_go_zones",
+        "markers"
+      ],
+      "additionalProperties": false
+    },
+    "assetProfile": {
+      "type": "object",
+      "properties": {
+        "profileId": {
+          "type": "string"
+        },
+        "fallbackChain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "profileId",
+        "fallbackChain"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "exportedAt",
+    "producer",
+    "buildSession",
+    "placement",
+    "course",
+    "venue",
+    "ring",
+    "assetProfile"
+  ],
+  "additionalProperties": false
+}

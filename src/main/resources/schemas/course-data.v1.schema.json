@@ -1,0 +1,417 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.agilitydoghub.com/course-data/v1.json",
+  "title": "CourseData",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "const": "smarter-agility"
+    },
+    "sourceFileName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "titleRaw": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "units": {
+      "type": "string",
+      "enum": [
+        "M",
+        "FT"
+      ]
+    },
+    "designLengthMeters": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "designWidthMeters": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "canvasWidth": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "canvasHeight": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "origin": {
+      "type": "string",
+      "enum": [
+        "LT",
+        "LB",
+        "RT",
+        "RB",
+        "CC",
+        "LC",
+        "RC",
+        "CB"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "courseType": {
+          "type": "string"
+        },
+        "grade": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "designer": {
+          "type": "string"
+        },
+        "organization": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "exportVersion": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "obstacleSummary": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "courseType",
+        "grade",
+        "category",
+        "location",
+        "designer",
+        "organization",
+        "date",
+        "exportVersion",
+        "obstacleSummary"
+      ],
+      "additionalProperties": false
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceCode": {
+            "type": "string"
+          },
+          "obstacleType": {
+            "type": "string",
+            "enum": [
+              "Jump",
+              "DoubleJump",
+              "Tunnel3m",
+              "Tunnel4m",
+              "Tunnel5m",
+              "Tunnel6m",
+              "DogWalk",
+              "AFrame",
+              "Seesaw",
+              "Weave",
+              "LongJump",
+              "Wall",
+              "Tire",
+              "Unknown"
+            ]
+          },
+          "xMeters": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "yMeters": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rotationDegrees": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "nominalLengthMeters": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "controlPointsMeters": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "colorKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "notPlaced",
+              "placed"
+            ],
+            "default": "notPlaced"
+          },
+          "rawMetadata": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "id",
+          "sourceId",
+          "sourceCode",
+          "obstacleType",
+          "xMeters",
+          "yMeters",
+          "rotationDegrees",
+          "nominalLengthMeters",
+          "controlPointsMeters",
+          "colorKey",
+          "rawMetadata"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "sequenceNumber": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sequenceKey": {
+            "type": "string",
+            "minLength": 1,
+            "default": "n1"
+          },
+          "xMeters": {
+            "type": "number"
+          },
+          "yMeters": {
+            "type": "number"
+          },
+          "linkedObstacleSourceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "obstacleConnectionPoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rawMetadata": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "sequenceNumber",
+          "xMeters",
+          "yMeters",
+          "linkedObstacleSourceId",
+          "obstacleConnectionPoint",
+          "rawMetadata"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "noGoZones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string",
+            "const": "at"
+          },
+          "label": {
+            "type": "string"
+          },
+          "polygonPointsMeters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 3
+          },
+          "warningMarginMeters": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0.5
+          },
+          "rawMetadata": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "id",
+          "sourceId",
+          "sourceType",
+          "label",
+          "polygonPointsMeters",
+          "rawMetadata"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ignoredLogos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rawMetadata": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "url",
+          "rawMetadata"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "themeId": {
+      "type": "string",
+      "default": "agilityhub"
+    },
+    "rawMetadata": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "sourceFileName",
+    "title",
+    "titleRaw",
+    "units",
+    "designLengthMeters",
+    "designWidthMeters",
+    "canvasWidth",
+    "canvasHeight",
+    "origin",
+    "metadata",
+    "obstacles",
+    "numbers",
+    "noGoZones",
+    "ignoredLogos",
+    "rawMetadata"
+  ],
+  "additionalProperties": false
+}

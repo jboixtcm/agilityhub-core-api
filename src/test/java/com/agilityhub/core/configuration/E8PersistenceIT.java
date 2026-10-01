@@ -107,6 +107,9 @@ class E8PersistenceIT extends AbstractIntegrationTest {
         var invoice = indexes("invoices");
         assertThat(invoice.get("invoice_club_series_number").get("key")).isEqualTo(keys("clubId", 1, "series", 1, "number", 1));
         assertThat(invoice.get("invoice_club_series_number").getBoolean("unique")).isTrue();
+        // E8-T02 (R-12-14): a cancelled invoice gives its number up, so a rolled-back block can be numbered again.
+        assertThat(invoice.get("invoice_club_series_number").get("partialFilterExpression"))
+                .isEqualTo(new Document("status", new Document("$in", List.of("PENDING", "COLLECTING", "PAID", "FAILED"))));
         assertThat(invoice.get("invoice_club_period_status").get("key")).isEqualTo(keys("clubId", 1, "period", 1, "status", 1));
         assertThat(invoice.get("invoice_club_member_issue").get("key")).isEqualTo(keys("clubId", 1, "memberId", 1, "issueDate", -1));
         assertThat(invoice.get("invoice_club_run").get("key")).isEqualTo(keys("clubId", 1, "runId", 1));

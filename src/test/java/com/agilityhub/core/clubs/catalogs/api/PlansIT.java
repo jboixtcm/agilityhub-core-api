@@ -253,12 +253,16 @@ class PlansIT extends AbstractIntegrationTest {
     }
     @Test void T_05_17_planUsageBlocksTypeChangesAndDeletionButAllowsDeactivation() throws Exception {
         String id = plan("USED", "MONTHLY"); String price = price(id, 6000, "2026-01-01", null).at("/price/id").asText();
-        for (String collection : List.of("members", "pack_balances", "invoice_lines", "collections")) {
+        for (String collection : List.of("members", "pack_balances", "collections")) {
             mongo.insert(new Document("_id", "other-ref").append("clubId", OTHER).append("planId", id).append("priceId", price), collection);
         }
+        // E8-T02: an invoice line is embedded in its invoice (`lines[].priceId`).
+        mongo.insert(new Document("_id", "other-ref").append("clubId", OTHER).append("lines", List.of(new Document("priceId", price))), "invoices");
         try (var scope = TenantContext.open(CLUB)) { assertThat(usage.plan(id).values()).allMatch(count -> count == 0); }
-        for (String collection : List.of("members", "pack_balances", "invoice_lines", "collections")) {
-            mongo.insert(new Document("_id", "own-ref").append("clubId", CLUB).append("priceId", price), collection);
+        for (String collection : List.of("members", "pack_balances", "invoices", "collections")) {
+            var reference = new Document("_id", "own-ref").append("clubId", CLUB);
+            if (collection.equals("invoices")) { reference.append("lines", List.of(new Document("priceId", price))); } else { reference.append("priceId", price); }
+            mongo.insert(reference, collection);
             error(admin(delete("/api/v1/plans/" + id)), 409, "PLAN_IN_USE");
             error(admin(body(patch("/api/v1/plans/" + id), Map.of("type", "PACK", "pack", Map.of("sessions", 10, "validityMonths", 3), "version", 0))), 409, "PLAN_IN_USE");
             mongo.remove(Query.query(Criteria.where("_id").is("own-ref")), collection);
@@ -378,13 +382,14 @@ class PlansIT extends AbstractIntegrationTest {
             error(admin(body(patch("/api/v1/prices/" + id), Map.of("validTo", to, "version", 0))), 400, "VALIDATION_ERROR");
         }
         admin(body(patch("/api/v1/prices/" + id), Map.of())).andExpect(status().isBadRequest());
-        mongo.insert(new Document("_id", "line-unknown").append("clubId", CLUB).append("priceId", id), "invoice_lines");
+        // E8-T02: the line is embedded in an invoice of unknown period (S12 §3 `lines[]`, the invoice's `period`).
+        mongo.insert(new Document("_id", "line-unknown").append("clubId", CLUB).append("lines", List.of(new Document("priceId", id))), "invoices");
         error(admin(body(post("/api/v1/prices"), priceInput(plan, 6500, "2027-01-01", null))), 409, "PRICE_LOCKED");
         error(admin(delete("/api/v1/prices/" + id)), 409, "PRICE_LOCKED");
         assertThat(mongo.findAll(AuditEntry.class)).hasSize(2); assertThat(mongo.findAll(DomainEventRecord.class)).hasSize(2);
-        mongo.updateFirst(Query.query(Criteria.where("_id").is("line-unknown")), new Update().set("periodTo", "2026-03-31"), "invoice_lines");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("line-unknown")), new Update().set("period", "2026-03"), "invoices");
         try (var scope = TenantContext.open(CLUB)) { assertThat(usage.price(id).lastBilled()).isEqualTo(LocalDate.parse("2026-03-31")); }
-        mongo.updateFirst(Query.query(Criteria.where("_id").is("line-unknown")), new Update().set("periodTo", "invalid"), "invoice_lines");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("line-unknown")), new Update().set("period", "invalid"), "invoices");
         try (var scope = TenantContext.open(CLUB)) { assertThat(usage.price(id).periodKnown()).isFalse(); }
     }
     @Test void T_05_03_priceTodayUsesClubTimezoneAtMidnight() throws Exception {

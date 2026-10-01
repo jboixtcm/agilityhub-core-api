@@ -1,0 +1,339 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  384 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+PASS fixture (disposable database only): ok · 184 ACTIVE members owe 2026-09; six members with one incident each
+curl POST /api/v1/invoices -> 201
+curl POST /api/v1/invoices -> 201
+curl POST /api/v1/invoices -> 201
+curl POST /api/v1/invoices -> 201
+PASS POST /invoices ×4 (cash adjustments, before the run): 201 · 2026-0001, 2026-0002, 2026-0003, 2026-0004
+curl POST /api/v1/billing/simulations -> 201
+--- simulation incidents (R-12-07)
+[
+ {
+  "memberId": "c3fd7096…",
+  "memberName": "Arnau Fictici025",
+  "code": "NO_BANK_ACCOUNT"
+ },
+ {
+  "memberId": "723a321c…",
+  "memberName": "Aleix Fictici026",
+  "code": "NO_PLAN"
+ },
+ {
+  "memberId": "72f6ac55…",
+  "memberName": "Biel Fictici028",
+  "code": "NO_PRICE"
+ },
+ {
+  "memberId": "72cbca57…",
+  "memberName": "Arnau Fictici029",
+  "code": "CURRENCY_MISMATCH"
+ },
+ {
+  "memberId": "1bf3f547…",
+  "memberName": "Mariona Fictici031",
+  "code": "CARD_INVALID"
+ },
+ {
+  "memberId": "50ff1311…",
+  "memberName": "Pol Fictici032",
+  "code": "PROVIDER_DISABLED"
+ }
+]
+PASS POST /billing/simulations: 201 · 6 incidents · codes ['CARD_INVALID', 'CURRENCY_MISMATCH', 'NO_BANK_ACCOUNT', 'NO_PLAN', 'NO_PRICE', 'PROVIDER_DISABLED'] · count 115 · total 1268000 · byProvider {"SEPA_XML": 58, "MANUAL": 57} · cashPending 57 · cashMembers 61
+curl GET /api/v1/billing/periods/2026-09 -> 200
+PASS GET /billing/periods/2026-09: 200 · simulation 628649a4… · run None · counts {'all': 0, 'pending': 0, 'remitted': 0, 'paid': 0, 'failed': 0}
+curl POST /api/v1/billing/runs -> 422 COLLECTION_DATE_TOO_SOON
+PASS POST /billing/runs (default day 1 of 2026-09, today): 422 COLLECTION_DATE_TOO_SOON · {"earliest": "2026-10-05", "requested": "2026-09-01"}
+curl POST /api/v1/billing/runs -> 201
+PASS POST /billing/runs (collectionDate 2026-10-05): 201 · run a0044357… GENERATED · 115 invoices · skipped 6 · remittance canic-2026-09-1 (58 SEPA)
+curl GET /api/v1/invoices -> 200
+--- GET /invoices?filter=period:eq:2026-09 (first 5 rows)
+[
+ {
+  "displayNumber": "2026-0005",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+  "total": {
+   "amountMinor": 9000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "SEPA_DD",
+  "status": "COLLECTING"
+ },
+ {
+  "displayNumber": "2026-0006",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026 (+3)",
+  "total": {
+   "amountMinor": 36000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "MANUAL",
+  "status": "PENDING"
+ },
+ {
+  "displayNumber": "2026-0007",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+  "total": {
+   "amountMinor": 9000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "SEPA_DD",
+  "status": "COLLECTING"
+ },
+ {
+  "displayNumber": "2026-0008",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+  "total": {
+   "amountMinor": 9000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "SEPA_DD",
+  "status": "COLLECTING"
+ },
+ {
+  "displayNumber": "2026-0009",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026 (+3)",
+  "total": {
+   "amountMinor": 36000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "MANUAL",
+  "status": "PENDING"
+ }
+]
+PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
+--- before the rollback
+{
+ "Invoice": {
+  "_id": "e837923c…",
+  "displayNumber": "2026-0005",
+  "status": "COLLECTING",
+  "issueDate": "2026-10-01",
+  "period": "2026-09",
+  "total": {
+   "amountMinor": {
+    "high": 0,
+    "low": 9000,
+    "unsigned": false
+   },
+   "currency": "EUR"
+  },
+  "runId": "a0044357…",
+  "remittanceId": "2b9f726c…",
+  "cancelReason": null,
+  "paymentMethod": {
+   "type": "SEPA_DD",
+   "maskedAccount": "···· ···· ···· ···· 0001"
+  },
+  "lines": [
+   {
+    "origin": "MONTHLY_FEE",
+    "description": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+    "total": {
+     "amountMinor": {
+      "high": 0,
+      "low": 9000,
+      "unsigned": false
+     },
+     "currency": "EUR"
+    }
+   }
+  ],
+  "version": {
+   "high": 0,
+   "low": 0,
+   "unsigned": false
+  }
+ },
+ "Collections": [
+  {
+   "provider": "SEPA_XML",
+   "status": "CREATED",
+   "attempt": 1,
+   "failureCode": null,
+   "remittanceId": "2b9f726c…",
+   "endToEndId": "2026-0005"
+  }
+ ],
+ "BillingRun": {
+  "_id": "a0044357…",
+  "status": "GENERATED",
+  "period": "2026-09",
+  "firstNumber": {
+   "high": 0,
+   "low": 5,
+   "unsigned": false
+  },
+  "counterKey": "2026",
+  "invoiceIds": 115,
+  "collectionDate": "2026-10-05",
+  "rolledBackAt": null,
+  "rollbackReason": null,
+  "previousDates[member]": [
+   {
+    "memberId": "1d6b3d6f-4fc2-3016-bdf5-70a973a2f2d1",
+    "nextInvoiceDate": "2026-09-01",
+    "advancedTo": "2026-10-01"
+   }
+  ]
+ },
+ "Member.nextInvoiceDate": "2026-10-01"
+}
+--- AuditEntry of the generation
+{
+ "action": "REMITTANCE_GENERATED",
+ "entityType": "BillingRun",
+ "entityId": "a0044357…",
+ "actorRole": "ADMIN",
+ "origin": "BACKOFFICE",
+ "details.invoiceIds": [
+  "e837923c…",
+  "ecc99ea2…",
+  "6983b527…",
+  "… (115 ids)"
+ ],
+ "details.period": "2026-09"
+}
+audit entries REMITTANCE_GENERATED of the club: 1
+curl POST /api/v1/invoices/payments -> 200
+PASS POST /invoices/payments (the 4 cash adjustments): 200 · paid 4 · statuses ['PAID']
+curl POST /api/v1/billing/runs/<id>/rollback -> 400 VALIDATION_ERROR
+curl POST /api/v1/billing/runs/<id>/rollback -> 200
+PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restoredMembers": 178}
+--- after the rollback
+{
+ "Invoice": {
+  "_id": "e837923c…",
+  "displayNumber": "2026-0005",
+  "status": "CANCELLED",
+  "issueDate": "2026-10-01",
+  "period": "2026-09",
+  "total": {
+   "amountMinor": {
+    "high": 0,
+    "low": 9000,
+    "unsigned": false
+   },
+   "currency": "EUR"
+  },
+  "runId": "a0044357…",
+  "remittanceId": "2b9f726c…",
+  "cancelReason": "ROLLBACK",
+  "paymentMethod": {
+   "type": "SEPA_DD",
+   "maskedAccount": "···· ···· ···· ···· 0001"
+  },
+  "lines": [
+   {
+    "origin": "MONTHLY_FEE",
+    "description": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+    "total": {
+     "amountMinor": {
+      "high": 0,
+      "low": 9000,
+      "unsigned": false
+     },
+     "currency": "EUR"
+    }
+   }
+  ],
+  "version": {
+   "high": 0,
+   "low": 1,
+   "unsigned": false
+  }
+ },
+ "Collections": [
+  {
+   "provider": "SEPA_XML",
+   "status": "CREATED",
+   "attempt": 1,
+   "failureCode": null,
+   "remittanceId": "2b9f726c…",
+   "endToEndId": "2026-0005"
+  },
+  {
+   "provider": "SEPA_XML",
+   "status": "FAILED",
+   "attempt": 1,
+   "failureCode": "ROLLBACK",
+   "remittanceId": "2b9f726c…",
+   "endToEndId": "2026-0005"
+  }
+ ],
+ "BillingRun": {
+  "_id": "a0044357…",
+  "status": "ROLLED_BACK",
+  "period": "2026-09",
+  "firstNumber": {
+   "high": 0,
+   "low": 5,
+   "unsigned": false
+  },
+  "counterKey": "2026",
+  "invoiceIds": 115,
+  "collectionDate": "2026-10-05",
+  "rolledBackAt": "2026-10-01T11:48:49.584Z",
+  "rollbackReason": "Preu equivocat",
+  "previousDates[member]": [
+   {
+    "memberId": "1d6b3d6f-4fc2-3016-bdf5-70a973a2f2d1",
+    "nextInvoiceDate": "2026-09-01",
+    "advancedTo": "2026-10-01"
+   }
+  ]
+ },
+ "Member.nextInvoiceDate": "2026-09-01"
+}
+curl POST /api/v1/billing/simulations -> 201
+curl POST /api/v1/billing/runs -> 201
+PASS POST /billing/runs again (new simulation): 201 · run c700a6a0… · identical displayNumber per member: True (2026-0005…2026-0119, 115 invoices)
+curl GET /api/v1/invoices/<id> -> 200
+curl POST /api/v1/invoices/<id>/payment -> 200
+curl GET /api/v1/billing/periods/2026-09 -> 200
+PASS GET /billing/periods/2026-09 after a cash payment: 200 · rollbackable False · blockers ['INVOICE_PAID']
+curl GET /api/v1/invoices/<id> -> 200
+curl POST /api/v1/invoices/<id>/failure -> 200
+PASS POST /invoices/{id}/failure (a remitted SEPA receipt): 200 · FAILED · collections ['CREATED', 'FAILED']
+curl GET /api/v1/invoices/ac49a07b-2a07-428e-80b8-6b645d810b6b/document -> 200
+PASS GET /invoices/{id}/document: 200 · 11451 bytes · starts b'%PDF-'
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic; x2) · second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+  fixture (disposable database only) · ok · 184 ACTIVE members owe 2026-09; six members with one incident each
+  POST /invoices ×4 (cash adjustments, before the run) · 201 · 2026-0001, 2026-0002, 2026-0003, 2026-0004
+  POST /billing/simulations · 201 · 6 incidents · codes ['CARD_INVALID', 'CURRENCY_MISMATCH', 'NO_BANK_ACCOUNT', 'NO_PLAN', 'NO_PRICE', 'PROVIDER_DISABLED'] · count 115 · total 1268000 · byProvider {"SEPA_XML": 58, "MANUAL": 57} · cashPending 57 · cashMembers 61
+  GET /billing/periods/2026-09 · 200 · simulation 628649a4… · run None · counts {'all': 0, 'pending': 0, 'remitted': 0, 'paid': 0, 'failed': 0}
+  POST /billing/runs (default day 1 of 2026-09, today) · 422 COLLECTION_DATE_TOO_SOON · {"earliest": "2026-10-05", "requested": "2026-09-01"}
+  POST /billing/runs (collectionDate 2026-10-05) · 201 · run a0044357… GENERATED · 115 invoices · skipped 6 · remittance canic-2026-09-1 (58 SEPA)
+  GET /invoices?filter=period:eq:2026-09 · 200 · totalItems 115
+  POST /invoices/payments (the 4 cash adjustments) · 200 · paid 4 · statuses ['PAID']
+  POST /billing/runs/{id}/rollback · 200 · {"cancelledInvoices": 115, "restoredMembers": 178}
+  POST /billing/runs again (new simulation) · 201 · run c700a6a0… · identical displayNumber per member: True (2026-0005…2026-0119, 115 invoices)
+  GET /billing/periods/2026-09 after a cash payment · 200 · rollbackable False · blockers ['INVOICE_PAID']
+  POST /invoices/{id}/failure (a remitted SEPA receipt) · 200 · FAILED · collections ['CREATED', 'FAILED']
+  GET /invoices/{id}/document · 200 · 11451 bytes · starts b'%PDF-'
+PASS E8-T02 curl sequence
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

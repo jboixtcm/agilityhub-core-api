@@ -43,7 +43,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * INSTRUCTOR → 403; impersonation on the admin routes → 403), T-12-22 (`BILLING`, `PACKS`, `SINGLE_CLASS` off → 404),
  * T-13-24 (another club's period or request → 404; another member's, also of the caller's family group → 404; the
  * impersonation token on the `/me/*` routes only) and T-13-25 (`INACTIVITY` off → 404 on every `*inactivity*` route while
- * the leave routes answer) — the stubs write nothing, and the snapshot publishes every operation with its forms.
+ * the leave routes answer) — the stubs write nothing, and the snapshot publishes every operation with its forms. E8-T02 serves
+ * 18 of the routes (`served` in `e8-routes.json`): the same guards run first, and past them a served route answers its success
+ * or a business error, never 501.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E8ContractIT extends AbstractIntegrationTest {
@@ -62,8 +64,9 @@ class E8ContractIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     String signupToken;
 
+    /** `served`: E8-T02 serves the route (its guards still run first); every other route still answers 501 after them. */
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
-                 String module, String scope, boolean resource, boolean impersonation) {
+                 String module, String scope, boolean resource, boolean impersonation, boolean served) {
         boolean club() { return scope.equals("CLUB"); }
         boolean webhook() { return scope.equals("WEBHOOK"); }
         boolean me() { return path.startsWith("/api/v1/me/"); }
@@ -75,6 +78,14 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
     }
     static Stream<Route> clubRoutes() throws Exception { return routes().filter(Route::club); }
+    /** E8-T02 serves 18 routes; the rest of the contract stays a stub. */
+    static Stream<Route> stubRoutes() throws Exception { return routes().filter(route -> !route.served()); }
+    /** A served route past its guards: its success or a business answer, never the guards' 401/403 nor the stub's 501. */
+    private void served(MockHttpServletRequestBuilder request) throws Exception {
+        var response = mvc.perform(request).andReturn();
+        String label = response.getRequest().getMethod() + " " + response.getRequest().getRequestURI();
+        assertThat(response.getResponse().getStatus()).as(label + " " + response.getResponse().getContentAsString()).isNotIn(401, 403, 501);
+    }
 
     @BeforeEach void prepare() {
         clock.setInstant(Instant.parse("2026-09-24T08:00:00Z"));
@@ -183,6 +194,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     void T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
+            if (allowed && route.served()) { served(call(route, CLUB, role)); continue; }
             error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
                     allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
@@ -208,7 +220,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(CLUB)) { issued = impersonations.create("e8-imp-admin", "e8-member-a", "Contract authorization test"); }
         for (Route route : clubRoutes().toList()) {
             var request = call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
+            if (route.impersonation() && route.served()) { served(request); }
+            else if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
             else { error(request, 403, "IMPERSONATION_DENIED", "FORBIDDEN"); }
         }
         assertThat(clubRoutes().filter(Route::impersonation).map(Route::path).allMatch(path -> path.startsWith("/api/v1/me/") || path.startsWith("/api/v1/checkout-sessions/"))).isTrue();
@@ -227,7 +240,10 @@ class E8ContractIT extends AbstractIntegrationTest {
      */
     @Test void T_13_24_aMemberReachesOnlyTheirOwnResourcesAndStaffOnlyTokensAreRefused() throws Exception {
         for (Route route : clubRoutes().filter(r -> r.resource() && r.roles().contains("MEMBER") && (r.me() || r.path().startsWith("/api/v1/checkout-sessions/"))).toList()) {
-            error(call(route, CLUB, "MEMBER", "e8-member-b"), 404, "NOT_FOUND");
+            // R-12-27 (E8-T02): the family holder's invoice is the group's; a member outside the group still gets 404.
+            boolean holdersInvoice = route.path().startsWith("/api/v1/me/invoices/");
+            error(call(route, CLUB, "MEMBER", holdersInvoice ? "e8-member-erased" : "e8-member-b"), 404, "NOT_FOUND");
+            if (holdersInvoice) { mvc.perform(call(route, CLUB, "MEMBER", "e8-member-b")).andExpect(status().isOk()); }
         }
         error(as(get("/api/v1/me/invoices/e8-invoice-b"), "MEMBER"), 404, "NOT_FOUND");
         error(as(patch("/api/v1/me/inactivity-periods/e8-period-b").contentType("application/json").content("{\"version\":0}"), "MEMBER"), 404, "NOT_FOUND");
@@ -235,8 +251,9 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(Route::me).toList()) {
             for (String staff : List.of("ADMIN", "INSTRUCTOR")) {
                 error(call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-a")).authorities(() -> "ROLE_" + staff)), 403, "FORBIDDEN");
-                error(call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-a"))
-                        .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff)), 501, "NOT_IMPLEMENTED");
+                var both = call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-a"))
+                        .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff));
+                if (route.served()) { served(both); } else { error(both, 501, "NOT_IMPLEMENTED"); }
             }
         }
         // The checkout's return screen: the session's member, an admin of the club or the anonymous signup capability only.
@@ -269,8 +286,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(r -> "PACKS".equals(r.module())).toList()) { error(call(route, CLUB, route.roles().getFirst()), 404, "MODULE_DISABLED"); }
         assertThat(clubRoutes().filter(r -> "PACKS".equals(r.module())).map(Route::label)).containsExactly("GET /api/v1/pack-balances", "GET /api/v1/me/pack-balances",
                 "POST /api/v1/pack-balances", "POST /api/v1/pack-balances/{id}/adjustments");
-        error(as(get("/api/v1/invoices"), "ADMIN"), 501, "NOT_IMPLEMENTED");
-        error(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/invoices"), "ADMIN")).andExpect(status().isOk());
+        mvc.perform(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN")).andExpect(status().isOk());
         club(CLUB, without(Module.SINGLE_CLASS));
         error(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN"), 404, "MODULE_DISABLED");
         error(as(get("/api/v1/pack-balances").param("memberId", "e8-member-a"), "ADMIN"), 501, "NOT_IMPLEMENTED");
@@ -333,7 +350,8 @@ class E8ContractIT extends AbstractIntegrationTest {
             var parameter = entry.getValue().split("=", 2);
             error(as(get(entry.getKey()).param(parameter[0], parameter[1]), "ADMIN"), 400, "INVALID_FILTER");
         }
-        error(as(get("/api/v1/invoices").param("q", "0912").param("filter", "total:gte:5000").param("fields", "displayNumber,member"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/invoices").param("q", "0912").param("filter", "total:gte:5000").param("fields", "displayNumber,member"), "ADMIN"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].displayNumber").value("2026-0912"));
         // T-12-12 (contract half): an issued invoice is immutable, there is no PATCH.
         error(as(patch("/api/v1/invoices/e8-invoice-a").contentType("application/json").content("{\"total\":{\"amountMinor\":6000,\"currency\":\"EUR\"}}"), "ADMIN"),
                 405, "METHOD_NOT_ALLOWED");
@@ -341,7 +359,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         error(as(post("/api/v1/members/e8-member-erased/leave").contentType("application/json").content("{\"effectiveDate\":\"2026-12-31\"}"), "ADMIN"), 409, "MEMBER_ERASED");
         error(as(post("/api/v1/members/e8-member-erased/card-setup-link").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
                 .content("{\"successUrl\":\"https://e8-a.example.test/ok\",\"cancelUrl\":\"https://e8-a.example.test/ko\"}"), "ADMIN"), 409, "MEMBER_ERASED");
-        error(as(get("/api/v1/members/e8-member-erased/pending-charges"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/members/e8-member-erased/pending-charges"), "ADMIN")).andExpect(status().isOk());
         // The optional references: a dog's packs, a payment without a dog, an open preview; an unknown dog is 404.
         error(as(get("/api/v1/pack-balances").param("dogId", "e8-dog-a"), "ADMIN"), 501, "NOT_IMPLEMENTED");
         error(as(get("/api/v1/pack-balances").param("dogId", "e8-missing"), "ADMIN"), 404, "NOT_FOUND");
@@ -397,7 +415,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_12_21_T_13_24_theStubsWriteNothing() throws Exception {
         var before = database();
-        for (Route route : routes().toList()) {
+        for (Route route : stubRoutes().toList()) {
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
         }
         assertThat(database()).isEqualTo(before);
@@ -411,7 +429,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
-            assertThat(op.path("description").asText()).as(route.label()).contains("Roles:", "501", "guards");
+            if (route.served()) { assertThat(op.path("description").asText()).as(route.label()).contains("Roles:").doesNotContain("Contract only"); }
+            else { assertThat(op.path("description").asText()).as(route.label()).contains("Roles:", "501", "guards"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.label()).isTrue();
             assertThat(op.path("operationId").asText()).as(route.label()).doesNotContain("_");
             // Club routes take the tenant from the JWT (or the host); only the webhook names its club in the path.

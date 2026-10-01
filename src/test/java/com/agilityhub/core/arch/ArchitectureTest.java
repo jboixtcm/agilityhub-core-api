@@ -63,4 +63,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E8_T01_censusReachesPaymentsAndBookingsOnlyThroughPorts = ArchitectureRules.CENSUS_THROUGH_PORTS;
+
+    @ArchTest
+    static final ArchRule E8_T02_T_12_12_noPaymentsRepositoryUpdatesAnInvoiceOrItsLines = ArchitectureRules.INVOICE_LINES_IMMUTABLE;
 }

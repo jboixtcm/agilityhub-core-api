@@ -2830,3 +2830,61 @@ Blocking: no.
 ## 2026-10-01 · executor → organizer · E11-T03 midday E85 clarification
 @organizer **Applied the background rule to manual jobs and exports.** No finite replacement budget remains. The real database/session probe fails before the fix (`103`, expected absent timeout, found 3,000 ms) and passes after it (`104`); ordinary requests remain bounded, and transaction/after-commit reads complete on every long-operation route. The former long-operation configuration key is removed. A new two-processor clean run starts at `105`, then fresh image/Compose proofs and complete PITest. Attempt `100` was interrupted for this clarification with no completed mutation units; its three timeout warnings remain in the log. Mutation workers now have explicit 2 GiB/two-processor bounds while retaining four workers and the same mutation scope.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verifications of 01-10 (morning, second pass)
+@executor **E7-T04 is verified, E7-T07 is open, and E8-T01 goes back for a second round** (ruling E85).
+- **E7-T04 (round 3):** verified, and T-11-31 now passes on CI. The round-3 review's three findings go to **E7-T07** (thread C, `ready`, order 45):
+  - the smoke's real-SMS branch;
+  - the announcement's audit `details`;
+  - the real-action matrix's bodies and recipients.
+
+  The E7 gate (back) waits for E7-T07 and a green CI.
+- **Your question (E7-T04, point 2):** keep the outbox retry for every consumer.
+- **CI is red on `7a932da`, and not because of threads A or C.** `DemoScenarioSeedIT.T_08_40` exceeds the 10 s Mongo operation timeout that E11-T03's work in progress added (`19db2ad`, thread D). Thread D fixes it first. Do not change the Mongo timeouts in this lane; if your publish's CI is red only there, say so in your report.
+- **E8-T01:** changes requested, round 2: eight points under «### Round 2: fix these»:
+  - the guards before the stubs;
+  - the Stripe signature before the stub;
+  - `MeInactivityPeriod.version`;
+  - a nullable `toMonth`, with the PATCH's field presence;
+  - one bank key (`BILLING_BANK_KEY`);
+  - the whitespace check;
+  - the event catalog's main rows;
+  - mockup 15's leave reasons.
+
+  Your questions are answered in its verification. E8-T02, in progress, runs to the end first.
+- **E8-T02 (in progress):** switch `CensusReferences.invoices` (`date`/`amount` → `issueDate`/`total`) and `MongoOfferUsage`'s `invoice_lines` (the lines are embedded), as E8-T01's report asked (its question 4). If they fall outside your diff, say so in the report.
+- **E8-T05** gains step 15: N-11b's `pack_remaining`, and the inactivity and pack readers.
+- **The E5 gate is closed** (api and web).
+- **Schemas:** `src/main/resources/schemas/course-data.v1.schema.json` and `build-session-export.v1.schema.json` are the web's E9-W01 files, byte for byte, for E9-T01. Do not edit them: a change comes from the web.
+- **Docs synced:**
+  - DECISIONS v3.7 (E85);
+  - INCIDENCIES v2.7;
+  - CONVENCIONS_API §7 (a `5xx` keeps the client's key);
+  - S14 and S16.
+- **Host lock:** `heavy.sh` no longer takes the lock from a live holder in another sandbox. At 09:11 a run of this lane took it from thread D's PITest, because `kill -0` answered «Operation not permitted».
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E8-T02
+@organizer **E8-T02 is `awaiting_verification`** (S12 WP-12-B, all 14 steps).
+- **Final tree:**
+  - `./mvnw -q clean verify` exits 0: 3,645 unit tests and 1,425 integration tests, no failures.
+  - The OpenAPI snapshot is byte-identical on a second generation, and `git diff --check` is clean.
+  - The curl sequence on a disposable stack exits 0. It covers the six incidents, the generation of 115 receipts, the
+    rollback, and a second generation with the same `displayNumber` for every member. It also covers the bulk cash payment,
+    the bank return with N-10 and the PDF.
+- **Demo-seed timeouts:** three earlier full runs failed only on the demo-seed ITs, with «operation exceeded the timeout
+  limit». That is thread D's 10 s timeout. I did not change it. The final run on a quieter host is green.
+- **Your 01-10 request:** I switched `CensusReferences.invoices` to `issueDate`/`total` and `MongoOfferUsage` to the embedded
+  `lines.priceId`. Both are in this diff.
+- **Model note:** I made E8-T01's unique `{clubId, series, number}` index partial: it now covers only invoices that are not
+  cancelled, and the old index is replaced at start-up. Without it, R-12-14's second generation cannot reuse the
+  rolled-back numbers. Log `04` shows the `409` without this change.
+- **Questions** (the assumption I took is in brackets):
+  - **Q1:** may D6 mark a `COLLECTING` receipt paid (S12 §5) or not (R-12-16)? [no]
+  - **Q2:** does E8-T03's remittance pick up `includeInNextRun` manual receipts? [stored, not picked up yet]
+  - **Q3:** E85 says a `4xx` with the api's body retires the key. On the billing writes, an error releases the key, as on
+    the follow-up and signup routes, so a retry with the same key runs again. Should all those branches store their `4xx`
+    instead? [left as the follow-up routes do]
+- **A29:** `signup.text.cashConditions` describes the `SEMESTER` case. It must be reviewed whenever `billing.cashInvoicing`
+  changes; this is in the report and in `CHANGELOG.md`.
+Blocking: no.

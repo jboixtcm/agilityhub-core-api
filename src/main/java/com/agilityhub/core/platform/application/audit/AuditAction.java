@@ -27,5 +27,10 @@ public enum AuditAction {
     CLUB_UPDATED,
     CLUB_MODULES_CHANGED,
     CLUB_STATUS_CHANGED,
-    JOB_TRIGGERED
+    JOB_TRIGGERED,
+    /**
+     * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)
+     * and the billing run's generation and rollback (R-12-11, R-12-14; one entry per run, `details.invoiceIds[]`).
+     */
+    INVOICE_MARKED_PAID, INVOICE_MARKED_FAILED, INVOICE_CANCELLED, INVOICE_CREATED_MANUAL, REMITTANCE_GENERATED, REMITTANCE_ROLLED_BACK
 }

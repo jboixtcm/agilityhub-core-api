@@ -59,13 +59,15 @@ public class BillingContractAccess {
     private final MemberIdentityAccess members; private final DogOwnerAccess dogs; private final ClubConfigService configs;
     private final CensusClubSettings clubSettings; private final com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     private final com.agilityhub.core.shared.application.TeamMemberAccess team;
+    private final com.agilityhub.core.shared.application.BillingCensusAccess census;
     public BillingContractAccess(InvoiceRepository invoices, BillingRunRepository runs, BillingSimulationRepository simulations, RemittanceRepository remittances,
             UpfrontPaymentRepository upfront, PackBalanceRepository packs, com.agilityhub.core.payments.persistence.SignupCheckoutRepository checkouts,
             MemberIdentityAccess members, DogOwnerAccess dogs, ClubConfigService configs, CensusClubSettings clubSettings,
-            com.agilityhub.core.shared.application.SignupCapabilities capabilities, com.agilityhub.core.shared.application.TeamMemberAccess team) {
+            com.agilityhub.core.shared.application.SignupCapabilities capabilities, com.agilityhub.core.shared.application.TeamMemberAccess team,
+            com.agilityhub.core.shared.application.BillingCensusAccess census) {
         this.invoices = invoices; this.runs = runs; this.simulations = simulations; this.remittances = remittances; this.upfront = upfront;
         this.packs = packs; this.checkouts = checkouts; this.members = members; this.dogs = dogs; this.configs = configs;
-        this.clubSettings = clubSettings; this.capabilities = capabilities; this.team = team;
+        this.clubSettings = clubSettings; this.capabilities = capabilities; this.team = team; this.census = census;
     }
 
     public void tenant() { TenantContext.require(); }
@@ -83,11 +85,20 @@ public class BillingContractAccess {
     }
     public void invoice(String id) { invoices.findById(id).orElseThrow(BillingContractAccess::notFound); }
     public void invoices(Collection<String> ids) { ids.forEach(this::invoice); }
-    /** R-12-27: the caller's own invoice (the impersonated member's under impersonation); E8-T02 adds the family holder's. */
+    /**
+     * R-12-27: the caller's own invoice (the impersonated member's under impersonation) or, with `FAMILY_GROUP`, one of the holder
+     * of the family group the caller belongs to (E8-T02); another member's is 404 (T-13-24).
+     */
     public void ownInvoice(String id) {
         var invoice = invoices.findById(id).orElseThrow(BillingContractAccess::notFound);
-        if (!invoice.memberId().equals(callerMember())) { throw notFound(); }
+        String caller = callerMember();
+        if (invoice.memberId().equals(caller)) { return; }
+        boolean holder = configs.get(TenantContext.require()).modules().contains(Module.FAMILY_GROUP)
+                && census.familyGroupOf(caller).map(group -> invoice.memberId().equals(group.holderMemberId())).orElse(false);
+        if (!holder) { throw notFound(); }
     }
+    /** The member a `/me/*` call reads (see {@link #callerMember()}), for the services. */
+    public String me() { return callerMember(); }
     public void run(String id) { runs.findById(id).orElseThrow(BillingContractAccess::notFound); }
     public void simulation(String id) { simulations.findById(id).orElseThrow(BillingContractAccess::notFound); }
     public void remittance(String id) { remittances.findById(id).orElseThrow(BillingContractAccess::notFound); }

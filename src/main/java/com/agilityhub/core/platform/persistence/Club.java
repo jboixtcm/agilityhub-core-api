@@ -77,8 +77,13 @@ public record Club(@Id String id, String slug, String name, String legalName, St
      * `nextNumber` is taken atomically (`findOneAndUpdate` on `clubs`) inside the run's transaction and given back by a rollback
      * (R-12-08, R-12-14); the pattern and the yearly reset follow `billing.invoiceSeriesPattern` / `billing.invoiceResetYearly`.
      * Null until the first invoice. Every full save of the club carries it unchanged, so no other writer drops the counter.
+     * E8-T02 (R-12-08): `counters` holds the next number of each counter key — the resolved series when numbering resets
+     * yearly («no counter for the new series yet» = 1), one running key otherwise; `nextNumber` (an imported Playoff
+     * counter, S18) seeds the first key only. Written only by `InvoiceCounters`, which bumps the club's version.
      */
-    public record Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly) { }
+    public record Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly, Map<String, Long> counters) {
+        public Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly) { this(invoiceSeriesPattern, nextNumber, resetYearly, null); }
+    }
     public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary) {
         public Domain { host = com.agilityhub.core.platform.domain.HostNames.normalize(host); }
     }

@@ -233,6 +233,32 @@ final class ArchitectureRules {
             .because("E8-T01: clubs.census → payments.application only through ports in clubs.census.application.ports");
 
     /**
+     * E8-T02 (S12 R-12-10, T-12-12): an issued invoice is immutable. No repository of `payments` declares an `update*` or `save*`
+     * method that takes an `Invoice`, an `Invoice.Line` or a collection of lines: only the state fields move
+     * (`InvoiceRepository.transition`), and corrections are new invoices.
+     */
+    static final String INVOICE = BASE_PACKAGE + "payments.persistence.Invoice";
+    static final ArchRule INVOICE_LINES_IMMUTABLE = com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods()
+            .that().areDeclaredInClassesThat().resideInAPackage(BASE_PACKAGE + "payments..")
+            .and().areDeclaredInClassesThat().haveSimpleNameEndingWith("Repository")
+            .and().haveNameMatching("(update|save).*")
+            .should(new ArchCondition<>("not take an Invoice or its lines") {
+                @Override public void check(com.tngtech.archunit.core.domain.JavaMethod method, ConditionEvents events) {
+                    for (var type : method.getParameterTypes()) {
+                        var names = new java.util.ArrayList<String>(); names.add(type.toErasure().getName());
+                        if (type instanceof com.tngtech.archunit.core.domain.JavaParameterizedType parameterized) {
+                            parameterized.getActualTypeArguments().forEach(argument -> names.add(argument.toErasure().getName()));
+                        }
+                        if (names.contains(INVOICE) || names.contains(INVOICE + "$Line")) {
+                            events.add(SimpleConditionEvent.violated(method, method.getFullName() + " takes " + type.getName()));
+                        }
+                    }
+                }
+            })
+            .because("E8-T02: R-12-10 — an invoice's lines, amounts, member and number never change once issued")
+            .allowEmptyShould(true);
+
+    /**
      * E5-T15 (review E5-T06 #4): a demo seed class is a top-level `Demo*Seeder`, `DemoMembers` or `DemoSeed*` (or a class
      * nested in one), never in an `..api..` package: not any `Demo*` name (`DemoIdentityService`, a `Demo*Controller`).
      */

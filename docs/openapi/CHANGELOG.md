@@ -2,6 +2,25 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T02 · the S12 monthly cycle and the invoice actions are served (no schema change)
+
+**18 operations served, descriptions and three error lists changed; no path, schema or success status changed.** The operations
+of E8-T01 that E8-T02 implements no longer answer `501`: `GET /billing/periods/{period}`, `POST /billing/simulations`,
+`POST /billing/runs`, `GET /billing/runs/{id}`, `POST /billing/runs/{id}/rollback`, `GET /invoices`, `GET /invoices/{id}`,
+`POST /invoices`, `POST /invoices/{id}/payment`, `POST /invoices/payments`, `POST /invoices/{id}/failure`,
+`POST /invoices/{id}/cancellation`, `GET /invoices/{id}/document`, `GET /me/invoices`, `GET /me/invoices/{id}`,
+`GET /me/invoices/{id}/document`, `GET /members/{id}/pending-charges`; `POST /billing/runs/{id}/card-charges` answers
+`422 PAYMENT_PROVIDER_NOT_ENABLED` after its guards until E8-T04 brings a card provider. Their descriptions now state what they
+do (the members' numbering order, the collection-day default and the two business days, the rollback's word `RETROCEDIR`, the
+chips of D6, the family holder's receipts, the masked method of the PDF).
+- Error lists: `POST /billing/runs` and `POST /billing/runs/{id}/rollback` gain `409 STALE_VERSION` (a write conflict that
+  outlasts the retries); `POST /invoices` gains `409 BILLING_BUSY` (a run holds the receipt counter) and `409 STALE_VERSION`;
+  `POST /invoices/payments` gains `409 STALE_VERSION`.
+- Values the web sees without a contract change: a SEPA collection's `providerRef` is «{mandateRef}/{endToEndId}» and a manual
+  one's the channel («TRANSFER · TR-1» with a reference); `InvoiceListItem.concept` is the first line's frozen description,
+  «(+n)» when there are more; a manual invoice's `period` is its issue month; `GET /me/invoices` includes the family holder's
+  receipts with `familyGroup = true` (R-12-27).
+
 ## 2026-10-01 · E7-T04 round 3 · D9 stores `gender` select keys in lower case (ruling E83)
 
 **Descriptions only; no schema, status or path changed.** `POST /message-templates`, `PUT /message-templates/{id}`: the keys of a

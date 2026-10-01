@@ -70,6 +70,15 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             + "|POST /api/v1/followup/[^/]+/read|POST /api/v1/followup/read-all");
 
     /**
+     * S12 R-12-11/14/16/17/19 (E8-T02), `METHOD path`: the billing writes take the club's billing lock outside any transaction
+     * (the run, its rollback, a simulation sent with a key) and run their own transaction retried on a write conflict
+     * (`BillingTransactions`), storing their answer there: the run, the rollback, a manual invoice, the payments, the failure
+     * and the cancellation of an invoice.
+     */
+    static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(simulations|runs|runs/[^/]+/rollback)"
+            + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation)");
+
+    /**
      * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header
      * ({@link KeyedRoutes}: E6-T01's attendance and observations PUTs and the two follow-up DELETEs today), are filtered; a read never.
      */
@@ -170,7 +179,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // S10 (E6-T03 rounds 4 and 5, INC-47): two keyed follow-up writes that meet on one document answer the spec's conflict
         // code (STALE_VERSION, TASK_ALREADY_DONE, NOT_FOUND, …) or both succeed, never a 500; like the signup, an error releases the key.
         boolean followup = FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
-        if (bookings || signup || followup || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S12 (E8-T02): the billing writes, like the follow-up ones; an error releases the key.
+        boolean billing = BILLING.matcher(request.getMethod() + " " + path).matches();
+        if (bookings || signup || followup || billing || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;

@@ -8,6 +8,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E8-T02 (S12 WP-12-B): invoicing and the monthly cycle.
+  - `InvoicingService.linesFor(member, period)` over pure `InvoicingRules` (R-12-01…06): who enters the month, the lines by
+    plan type (`MONTHLY_FEE` at the current price, replaced by `INACTIVITY_FEE` or `MAINTENANCE_FEE`; none for packs; one
+    `SINGLE_CLASS` line per pending charge), the family holder as single payer, cash by natural half-years
+    (`billing.cashInvoicing = SEMESTER`) or monthly, the next invoice date. No current price skips the member (`NO_PRICE`).
+  - `POST /billing/simulations` (the six incidents, cash members, preview, KPIs; one per month; `RemittanceSimulated`),
+    `POST /billing/runs` (one transaction under the club's billing lock: numbered invoices `{series}-{number:04d}` in the
+    members' order from `CLUB.billing.counters`, one collection each, the remittance, the advanced dates, one
+    `REMITTANCE_GENERATED` entry with `details.invoiceIds`), `POST /billing/runs/{id}/rollback` (numbers, dates and charges
+    given back; the same month can be generated again with the same numbers), `GET /billing/periods/{period}`,
+    `GET /billing/runs/{id}`. The collection date is `billing.sepa.collectionDayOfMonth` of the billed month (`0` = its last
+    day), two business days after the generation at least.
+  - The invoice actions: payment (one and in bulk), bank return, cancellation, manual adjustment invoice — each audited
+    (`INVOICE_MARKED_PAID`, `INVOICE_MARKED_FAILED`, `INVOICE_CANCELLED`, `INVOICE_CREATED_MANUAL`), each keyed and versioned.
+    `InvoiceFailed` notifies the admins (N-10).
+  - The reads: D6's list `GET /invoices`, the drawer `GET /invoices/{id}`, the member's `GET /me/invoices` (with the family
+    holder's receipts), the receipt PDF of both, `GET /members/{id}/pending-charges`.
+  - `PendingCharge` from `AttendanceMarked` / `BookingCancelled{late}` of a `CHARGE_ON_ATTENDANCE` booking (R-12-25).
+  - The ports E8-T03…T05 replace (`InactivityFeePort`, `LeaveBillingPort`, `PackBalanceOpeningPort`, `RemittanceWriterPort`
+    with a local/test in-memory writer, `CardChargingPort`), with null-object defaults.
+  - An ArchUnit rule: no repository of `payments` updates an invoice or its lines (R-12-10).
+  - Note for the signup texts (A29): `signup.text.cashConditions` describes the `SEMESTER` case; review it whenever
+    `billing.cashInvoicing` changes.
+
 - E11-T03 security hardening: global pre-E8 OpenAPI authentication inventory; configurable limits for anonymous lookups,
   webhooks, signed files and handoff, with token username limits across IPs. Club-host CORS rejects other clubs' origins.
   Request MDC carries trace/account/club IDs; readable local logs and production JSON scrub personal data, and optional
@@ -723,6 +747,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     window and the guards, ArchUnit `clubs.bookings` ⊬ `clubs.followup` and `platform` ⊬ `clubs`.
 
 ### Changed
+
+- E8-T02: the unique `invoice_club_series_number` index of `invoices` now covers the invoices that are not cancelled (partial on
+  `status ∈ PENDING, COLLECTING, PAID, FAILED`): a rolled-back run keeps its cancelled invoices and gives its numbers back to the
+  next generation (R-12-14). The index E8-T01 created is replaced at start-up. `Club.billing` gains `counters` (the next number
+  of each series); `Collection` stores a SEPA attempt's `mandateRef`/`endToEndId` and a manual payment's `channel`/`reference`
+  outside the unique `providerRef`. `GET /me/invoices/{id}` reaches the family holder's receipts (R-12-27).
 
 - E6-T06 step 4 (E6-T05's question, ruling E75): `HistoryItem.activityId` is sent only when the activity's page answers
   (`PUBLISHED` or `FINISHED`, S07 §6) and is `null` otherwise, so 25 never links a row to a 404: a registration cancelled in

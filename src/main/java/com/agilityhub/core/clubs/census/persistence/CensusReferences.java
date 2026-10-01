@@ -78,10 +78,11 @@ public class CensusReferences extends TenantRepository<Member> {
         }
         return List.copyOf(result);
     }
+    /** D10's «Rebuts recents» over S12's `invoices` (E8-T02): the club-local `issueDate`, the invoice's `total`, newest first. */
     public List<Map<String,Object>> invoices(String memberId) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId))
-                .with(Sort.by(Sort.Direction.DESC, "date")), Document.class, "invoices").stream()
-                .map(row -> object("id", row.get("_id"), "date", date(row.get("date")), "amount", row.get("amount"), "status", row.get("status"))).toList();
+                .with(Sort.by(Sort.Direction.DESC, "issueDate").and(Sort.by(Sort.Direction.DESC, "number"))), Document.class, "invoices").stream()
+                .map(row -> object("id", row.get("_id"), "date", date(row.get("issueDate")), "amount", row.get("total"), "status", row.get("status"))).toList();
     }
     public List<Map<String,Object>> recentAudit(String memberId) {
         return mongo.find(tenantQuery().addCriteria(new Criteria().orOperator(Criteria.where("memberId").is(memberId),

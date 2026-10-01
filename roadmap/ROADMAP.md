@@ -99,12 +99,14 @@ Added 30-09, night (verifications of E5-T29's round 2, E7-T03 and the web's E7-W
 
 Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) works in a second clone of this repo (`agilityhub-core-api-c`) and takes only **thread D**; the main loop takes threads A, B and C. Each clone lists its threads in an untracked `.roadmap-threads` file that `check.py --next` reads. Thread D starts with **E11-T04** (deploy assets proven locally, `ready`); E11-T03, E9 and E10 follow as thread D.
 
+Added 01-10, morning (verifications of E7-T04's round 3, E8-T01 and E11-T04; ruling E85): **E7-T07** (E7-T04's round-3 review: the smoke's real-SMS branch, the announcement's audit `details`, the real-action matrix's bodies and recipients) runs after E7-T04; the E7 gate waits for it and for a green CI. E8-T01 and E11-T04 go back for a second round, and E8-T05 gains step 15 (from E8-T01's report). The E5 gate is closed.
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
 - [x] E5-T01…T20 verified; CI green at `924303e`…`be2f4a8`.
 - [x] E5-T21…E5-T31 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 01-10: E5-T31 verified (ruling E81); the api side of E5 is complete.
-- [ ] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock).
+- [x] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock). — organizer 01-10: E5-W04 and E5-W05 verified; **the E5 gate is closed** (ruling E85).
 
 ### Gate E6 (back — organizer)
 - [ ] `bin/e6-smoke` green twice: the sheet from 21 and from D12 (same `PUT`, replayed with the same `Idempotency-Key`), «ha avisat» frees the seat and notifies the waitlist (N-15), a no-show → N-19 once (P3), `class-finishing` at +15 min (P8), the history states on 25.
@@ -112,10 +114,10 @@ Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) w
 - [x] E6-T01…T06 verified, CI green, snapshot staged (E6-W01…W04). — organizer 01-10: E6-T06 verified; its minors are INC-51.
 
 ### Gate E7 (back — organizer; real SMS and push on devices are release items, A31)
-- [ ] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report).
-- [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead.
-- [ ] Legacy SMS/PUSH intents converted to `SKIPPED_STALE`; `SMS_ALLOWED_NUMBERS` guard proven outside `prod`.
-- [ ] E7-T01…T05 verified, CI green, snapshot staged (E7-W01…W03).
+- [x] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report). — organizer 01-10: E7-T04's final run, `NotificationMatrixTest` 2,681 (2,520 catalog cases over 56 R1 codes, 160 N-24) and `NotificationActionsIT` 15, green on CI.
+- [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead. — organizer 01-10: proven by E7-T04's final smoke; ticked when E7-T07 writes the announcement's `details` in its audit entry.
+- [x] Legacy SMS/PUSH intents converted to `SKIPPED_STALE`; `SMS_ALLOWED_NUMBERS` guard proven outside `prod`. — organizer 01-10: E7-T01's `E7PersistenceIT` and E7-T02's guard (`SKIPPED_NOT_ALLOWED`), green on CI.
+- [ ] E7-T01…T07 verified, CI green, snapshot staged (E7-W01…W03). — organizer 01-10: E7-T01…T06 verified; E7-T07 and a green CI remain (ruling E85).
 
 ### Gate E8 (back — organizer; bank acceptance of the pain.008, the bookkeeper's acceptance of the accounting export and daily backups are release items, @jordi)
 - [ ] `bin/e8-smoke` green twice: simulation → run → XSD-valid XML equal to the golden file → mark returned → rollback → re-run with the same numbers; both `billing.cashInvoicing` branches and both `collectionDayOfMonth` semantics tested (A28/A29).

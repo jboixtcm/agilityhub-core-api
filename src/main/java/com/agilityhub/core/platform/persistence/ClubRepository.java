@@ -39,6 +39,48 @@ public class ClubRepository extends GlobalRepository<Club> {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require())),
                 new org.springframework.data.mongodb.core.query.Update().max("nextMemberNumber", (long) maximum + 1), Club.class);
     }
+    /**
+     * E8-T02 (R-12-08): the next {@code count} numbers of the counter {@code key} of `billing.counters`, taken atomically in
+     * the caller's transaction; returns the first one. A key without a counter yet starts at the imported `billing.nextNumber`
+     * when the club has no counter at all, otherwise at 1 (a new series of a yearly reset). The club's version is bumped, so a
+     * full club save read before this write fails instead of writing the old counter back.
+     */
+    public long reserveInvoiceNumbers(String clubId, String key, int count) {
+        if (count < 1) { throw new IllegalArgumentException("count"); }
+        String field = counterField(key);
+        var id = Query.query(Criteria.where("_id").is(clubId));
+        var club = mongo.findOne(id, org.bson.Document.class, "clubs");
+        if (club == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
+        var billing = club.get("billing", org.bson.Document.class);
+        var counters = billing == null ? null : billing.get("counters", org.bson.Document.class);
+        if (counters == null || !counters.containsKey(counterKey(key))) {
+            long seed = (counters == null || counters.isEmpty()) && billing != null && billing.get("nextNumber") instanceof Number imported ? imported.longValue() : 1L;
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(clubId).and(field).exists(false)),
+                    new org.springframework.data.mongodb.core.query.Update().set(field, seed), "clubs");
+        }
+        var before = mongo.findAndModify(id, new org.springframework.data.mongodb.core.query.Update().inc(field, (long) count).inc("version", 1L),
+                org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(false), org.bson.Document.class, "clubs");
+        return ((Number) before.get("billing", org.bson.Document.class).get("counters", org.bson.Document.class).get(counterKey(key))).longValue();
+    }
+    /** The next number of the counter {@code key}, empty while it has none. */
+    public Optional<Long> invoiceCounter(String clubId, String key) {
+        var club = mongo.findOne(Query.query(Criteria.where("_id").is(clubId)), org.bson.Document.class, "clubs");
+        var billing = club == null ? null : club.get("billing", org.bson.Document.class);
+        var counters = billing == null ? null : billing.get("counters", org.bson.Document.class);
+        return counters == null || !(counters.get(counterKey(key)) instanceof Number next) ? Optional.empty() : Optional.of(next.longValue());
+    }
+    /**
+     * R-12-14: gives a block of numbers back — the counter returns to {@code restoreTo} only while it still is {@code expectedNext}
+     * (nothing was numbered after the block); returns whether it did.
+     */
+    public boolean restoreInvoiceCounter(String clubId, String key, long expectedNext, long restoreTo) {
+        String field = counterField(key);
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(clubId).and(field).is(expectedNext)),
+                new org.springframework.data.mongodb.core.query.Update().set(field, restoreTo).inc("version", 1L), "clubs").getModifiedCount() == 1;
+    }
+    /** A series is user text (`billing.invoiceSeriesPattern`): `.` and `$` would split the field path. */
+    static String counterKey(String key) { return key.replace('.', '_').replace('$', '_'); }
+    private static String counterField(String key) { return "billing.counters." + counterKey(key); }
     public void ensureIndexes() {
         mongo.indexOps(Club.class).ensureIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));
         mongo.indexOps(Club.class).ensureIndex(new Index().on("domains.host", Direction.ASC).unique().sparse().named("club_host"));

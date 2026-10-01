@@ -29,8 +29,16 @@ public class UpfrontPayments {
     private final SignupCheckoutRepository sessions;
     private final EventPublisher events;
     private final Clock clock;
-    public UpfrontPayments(UpfrontPaymentRepository repository,SignupCheckoutRepository sessions,EventPublisher events,Clock clock) {
-        this.repository=repository;this.sessions=sessions;this.events=events;this.clock=clock;
+    private final com.agilityhub.core.payments.application.ports.PackBalanceOpeningPort packs;
+    private final com.agilityhub.core.shared.application.ClubClock clubClock;
+    public UpfrontPayments(UpfrontPaymentRepository repository,SignupCheckoutRepository sessions,EventPublisher events,Clock clock,
+            com.agilityhub.core.payments.application.ports.PackBalanceOpeningPort packs,com.agilityhub.core.shared.application.ClubClock clubClock) {
+        this.repository=repository;this.sessions=sessions;this.events=events;this.clock=clock;this.packs=packs;this.clubClock=clubClock;
+    }
+    /** S12 R-12-23 (E8-T02): a `PACK` row that becomes `PAID` opens its dog's pack (`PackBalanceOpeningPort`; a no-op until E8-T05). */
+    private void opened(UpfrontPayment p,Instant paidAt) {
+        if (!"PACK".equals(p.concept())) { return; }
+        packs.open(p.memberId(),p.dogId(),p.id(),paidAt.atZone(clubClock.now(p.clubId()).getZone()).toLocalDate());
     }
     public List<Line> lines(String memberId,List<Submission> scope) {
         return selected(memberId,scope).stream().filter(p -> !Set.of("CANCELLED","REFUNDED").contains(p.status())).map(this::line).toList();
@@ -91,6 +99,7 @@ public class UpfrontPayments {
             long allocated=Math.min(remaining,p.amountDue().minus(p.amountPaid()).amountMinor()); remaining-=allocated;
             Money paid=p.amountPaid().plus(new Money(allocated,amount.currency()));
             repository.update(state(p,paid.equals(p.amountDue())?"PAID":"PARTIAL",paid,"MANUAL",null));
+            if (paid.equals(p.amountDue())) { opened(p,clock.instant()); }
             // CATALEG_ESDEVENIMENTS (E3-T10): the payload names the member, like Succeeded/Failed.
             emit("UpfrontPaymentRecorded",p,Map.of("paymentId",p.id(),"memberId",p.memberId(),"concept",p.concept(),"provider","MANUAL","amountPaid",new Money(allocated,amount.currency())));
         }
@@ -208,6 +217,7 @@ public class UpfrontPayments {
             if(booking) payload.put("bookingId",p.bookingId());
             if(complete) {
                 repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session,paidAt));
+                opened(p,paidAt);
                 payload.put("amountPaid",p.amountDue().minus(p.amountPaid()));emit("UpfrontPaymentSucceeded",p,payload);
             } else if(booking) {
                 repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));

@@ -35,6 +35,13 @@ public class ParameterRepository extends TenantRepository<Parameter> {
             throw SettingsWriteConflict.translate(failure);
         }
     }
+    /** E8-T02 (R-12-07): the latest change of the club's overrides whose key starts with {@code prefix} (a reset included). */
+    public java.util.Optional<java.time.Instant> lastChange(String prefix) {
+        var query = tenantQuery().addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("key")
+                .regex("^" + java.util.regex.Pattern.quote(prefix))).with(org.springframework.data.domain.Sort.by(Direction.DESC, "updatedAt")).limit(1);
+        var latest = mongo.findOne(query, Parameter.class);
+        return java.util.Optional.ofNullable(latest == null ? null : latest.updatedAt());
+    }
     public void ensureIndexes() {
         mongo.indexOps(Parameter.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC)
                 .on("scopeRef", Direction.ASC).unique().named("parameter_scope_key"));
