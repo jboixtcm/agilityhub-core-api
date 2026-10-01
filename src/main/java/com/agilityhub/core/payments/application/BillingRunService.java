@@ -130,12 +130,6 @@ public class BillingRunService {
                 first, actor, null, null, null, now, counterKey);
         issued.forEach(invoices::insert);
         attempts.forEach(collections::insert);
-        Remittance remittance = null;
-        if (sepa) {
-            // R-12-11: the file is written and validated before the commit; a failure here rolls the whole run back.
-            var written = writer.write(run, List.copyOf(sepaAttempts), collectionDate);
-            remittance = remittances.insert(withId(written, remittanceId));
-        }
         for (var advance : advances) {
             if (!census.moveNextInvoiceDate(advance.memberId(), advance.from(), advance.to())) { throw new ApiException(ErrorCode.SIMULATION_STALE); }
         }
@@ -143,6 +137,12 @@ public class BillingRunService {
             for (var line : drafts.get(i).lines()) {
                 if (line.chargeId() != null && !charges.bill(line.chargeId(), issued.get(i).id())) { throw new ApiException(ErrorCode.SIMULATION_STALE); }
             }
+        }
+        Remittance remittance = null;
+        if (sepa) {
+            // R-12-11 (E8-T03): the file is written, validated and stored before the commit; a failure rolls the whole run back. It
+            // comes after every check the run can still fail, and the writer deletes its file if the transaction rolls back.
+            remittance = remittances.insert(writer.write(run, remittanceId, List.copyOf(sepaAttempts), collectionDate));
         }
         var stored = runs.insert(run);
         for (int i = 0; i < issued.size(); i++) {
@@ -302,9 +302,10 @@ public class BillingRunService {
     }
     static Invoice.PaymentMethodSnapshot snapshot(PaymentMethodType method, BillingCensusAccess.PaymentMethod payment) {
         if (payment == null) { return new Invoice.PaymentMethodSnapshot(method, null, null, null, null, null); }
+        boolean sepa = method == PaymentMethodType.SEPA_DD;
         return new Invoice.PaymentMethodSnapshot(method, method == PaymentMethodType.MANUAL ? null : payment.maskedAccount(), payment.holderName(),
-                method == PaymentMethodType.SEPA_DD ? payment.mandateRef() : null, method == PaymentMethodType.CARD ? payment.last4() : null,
-                method == PaymentMethodType.MANUAL ? channel(payment.channel()) : null);
+                sepa ? payment.mandateRef() : null, method == PaymentMethodType.CARD ? payment.last4() : null,
+                method == PaymentMethodType.MANUAL ? channel(payment.channel()) : null, sepa ? payment.mandateSignedAt() : null);
     }
     static ManualChannel channel(String stored) {
         if (stored == null) { return null; }
@@ -343,13 +344,6 @@ public class BillingRunService {
         var amounts = byMethod.getOrDefault(method, List.of());
         if (amounts.isEmpty() && !enabled.contains(method)) { return null; }
         return new BillingRun.Totals(amounts.size(), InvoiceAmounts.sum(amounts, currency), method == PaymentMethodType.SEPA_DD ? remittanceId : null, stripeCounter, stripeCounter);
-    }
-    private static Remittance withId(Remittance written, String id) {
-        if (id.equals(written.id())) { return written; }
-        return new Remittance(id, written.clubId(), written.runId(), written.period(), written.messageId(), written.creationAt(), written.requestedCollectionDate(),
-                written.creditor(), written.collectionIds(), written.count(), written.total(), written.sequenceBreakdown(), written.fileKey(), written.xsdValidatedAt(),
-                written.xsdValidationSkipped(), written.status(), written.submittedAt(), written.submittedByAccountId(), written.version(), written.createdAt(),
-                written.createdByAccountId());
     }
     private static LocalDate date(String value) { return value == null || value.equals("null") ? null : LocalDate.parse(value); }
 }

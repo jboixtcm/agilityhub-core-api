@@ -31,7 +31,14 @@ public record Invoice(@Id String id, String clubId, String series, long number, 
     /** S12 §3 `InvoiceLine`: description frozen in the club's `defaultLocale`; `tax = round_half_even(base × taxPercent / 100)`. */
     public record Line(int lineNo, InvoiceLineOrigin origin, String priceId, String bookingId, String description, Money base,
             BigDecimal taxPercent, Money tax, Money total) { }
-    /** The method frozen at issue: `maskedAccount` (never the IBAN), `holderName`, `mandateRef`, a card's `last4`, a manual `channel`. */
+    /**
+     * The method frozen at issue: `maskedAccount` (never the IBAN), `holderName`, `mandateRef`, a card's `last4`, a manual `channel`.
+     * E8-T03: `mandateSignedAt` is frozen with `mandateRef` (R-12-12 `DtOfSgntr`); null on invoices issued before it.
+     */
     public record PaymentMethodSnapshot(PaymentMethodType type, String maskedAccount, String holderName, String mandateRef, String last4,
-            ManualChannel channel) { }
+            ManualChannel channel, Instant mandateSignedAt) {
+        public PaymentMethodSnapshot(PaymentMethodType type, String maskedAccount, String holderName, String mandateRef, String last4, ManualChannel channel) {
+            this(type, maskedAccount, holderName, mandateRef, last4, channel, null);
+        }
+    }
 }

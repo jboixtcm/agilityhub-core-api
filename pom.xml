@@ -59,6 +59,16 @@
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf</artifactId>
         </dependency>
+        <!-- E8-T03 (ADR-006): the pain.008 classes are generated from src/main/resources/sepa/*.xsd (xjc, below) and
+             marshalled with the JAXB reference implementation; both versions come from the Spring Boot parent. -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
@@ -194,6 +204,27 @@
                 <executions>
                     <execution>
                         <goals><goal>integration-test</goal><goal>verify</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- E8-T03 (ADR-006): JAXB classes generated at build time from the pain.008 schema in use; the schema is a
+                     build input (replace the file to change it) and the golden file of T-12-11 is the regression net. -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>pain-008</id>
+                        <goals><goal>xjc</goal></goals>
+                        <configuration>
+                            <sources><source>src/main/resources/sepa/pain.008.001.02.xsd</source></sources>
+                            <packageName>com.agilityhub.core.payments.sepa.generated</packageName>
+                            <outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
+                            <noGeneratedHeaderComments>true</noGeneratedHeaderComments>
+                            <!-- The plugin creates its episode folder first; clearing the output afterwards removes it. -->
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

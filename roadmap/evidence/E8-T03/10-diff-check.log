@@ -1,0 +1,55 @@
+git diff --check exit 0
+ M CHANGELOG.md
+ M docs/DECISIONS_PENDENTS.md
+ M docs/DEPLOY.md
+ M docs/INCIDENCIES_OBERTES.md
+ M docs/openapi/CHANGELOG.md
+ M docs/openapi/openapi.json
+ M docs/specs/S11-comunicacions.md
+ M docs/specs/S12-facturacio-i-pagaments.md
+ M docs/specs/S14-tauler-auditoria-exportacions-rgpd.md
+ M pom.xml
+ M roadmap/MESSAGES.md
+ M roadmap/ROADMAP.md
+ M roadmap/STATUS.md
+ M roadmap/tasks/E7-T07.md
+ M roadmap/tasks/E8-T02.md
+ M roadmap/tasks/E8-T03.md
+ M src/main/java/com/agilityhub/core/clubs/census/application/BillingCensusAdapter.java
+ M src/main/java/com/agilityhub/core/clubs/census/application/MemberService.java
+ M src/main/java/com/agilityhub/core/clubs/common/persistence/LocalExportStorage.java
+ M src/main/java/com/agilityhub/core/payments/api/RemittancesController.java
+ M src/main/java/com/agilityhub/core/payments/application/BillingRunService.java
+ M src/main/java/com/agilityhub/core/payments/application/BillingSimulationService.java
+ M src/main/java/com/agilityhub/core/payments/application/ports/BillingPortDefaults.java
+ D src/main/java/com/agilityhub/core/payments/application/ports/InMemoryRemittanceWriter.java
+ M src/main/java/com/agilityhub/core/payments/application/ports/RemittanceWriterPort.java
+ M src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java
+ M src/main/java/com/agilityhub/core/payments/persistence/Invoice.java
+ M src/main/java/com/agilityhub/core/payments/persistence/Remittance.java
+ M src/main/java/com/agilityhub/core/platform/application/audit/AuditAction.java
+ M src/main/java/com/agilityhub/core/shared/api/SignedFileRequests.java
+ M src/main/java/com/agilityhub/core/shared/application/BillingCensusAccess.java
+ M src/test/java/com/agilityhub/core/configuration/E8ContractIT.java
+ M src/test/java/com/agilityhub/core/configuration/ListFieldsContractIT.java
+ M src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java
+ M src/test/java/com/agilityhub/core/payments/api/BillingItSupport.java
+ M src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java
+ M src/test/java/com/agilityhub/core/payments/application/ports/BillingPortDefaultsTest.java
+ M src/test/resources/fixtures/contracts/e8-routes.json
+?? roadmap/evidence/E8-T03/
+?? roadmap/tasks/E8-T07.md
+?? src/main/java/com/agilityhub/core/clubs/common/application/ExportFileStoreAdapter.java
+?? src/main/java/com/agilityhub/core/payments/api/RemittanceFilesController.java
+?? src/main/java/com/agilityhub/core/payments/application/RemittanceLists.java
+?? src/main/java/com/agilityhub/core/payments/application/RemittanceService.java
+?? src/main/java/com/agilityhub/core/payments/application/sepa/
+?? src/main/java/com/agilityhub/core/payments/domain/SepaDirectDebits.java
+?? src/main/java/com/agilityhub/core/payments/domain/SepaText.java
+?? src/main/java/com/agilityhub/core/shared/application/ExportFileStore.java
+?? src/main/resources/sepa/
+?? src/test/java/com/agilityhub/core/clubs/common/application/ExportFileStoreAdapterTest.java
+?? src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java
+?? src/test/java/com/agilityhub/core/payments/application/sepa/
+?? src/test/java/com/agilityhub/core/payments/domain/SepaDirectDebitsTest.java
+?? src/test/resources/sepa/

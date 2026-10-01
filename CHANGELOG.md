@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E8-T03 (S12 WP-12-C, ADR-006): SEPA remittances.
+  - `SepaRemittanceWriter` replaces E8-T02's local/test stub and its production null object. It writes the run's `SEPA_XML`
+    collections as a pain.008.001.02 `CstmrDrctDbtInitn` file through JAXB classes generated at build time by xjc
+    (`jaxb2-maven-plugin`, package `payments.sepa.generated`) from `src/main/resources/sepa/pain.008.001.02.xsd`. That schema
+    is the Deutsche Kreditwirtschaft's SEPA restriction of the ISO 20022 schema (EPC SDD Core rules, ISO namespace), taken
+    from the Maven Central artifact `com.github.hbci4j:hbci4j-core:4.1.17`. The bank's own schema is still a @jordi input.
+  - The file: `MsgId = {clubSlug}-{period}-{seq}` (≤ 35 characters, the slug cut); one `PmtInf` per sequence type (`FRST`
+    only with `billing.sepa.useFrst` for a mandate never sent or collected, otherwise `RCUR`: the Cànic); `CORE`, `SEPA`,
+    `SLEV`, and `ReqdColltnDt` from the run; the creditor scheme identifier with its suffix. A debit takes `EndToEndId`, the
+    amount and the mandate from its collection, the frozen description, holder and signature date from its invoice, and the
+    debtor's full IBAN from `BankAccountVault` (the only place it leaves the database in clear). Texts are transliterated to the
+    SEPA character set (`Cànic · Núria` → `Canic - Nuria`) and cut at 140 (`Ustrd`) or 70 (`Nm`) characters.
+  - Validation against the schema before anything is stored or committed; the file then goes to the export store under
+    `remittances/{clubId}/{period}/{messageId}-{remittanceId}.xml` (deleted again if the run's transaction rolls back). Fail
+    fast: `422 SEPA_NOT_CONFIGURED` without the creditor's identifier or IBAN (the simulation lists those debtors as
+    `PROVIDER_DISABLED`), with `details.memberIds` for a debit without a mandate, signature date or account, and with
+    `details.reason = SCHEMA` for a refused file. `422 CURRENCY_MISMATCH` outside euros; `422 COLLECTION_DATE_TOO_SOON`.
+  - `GET /remittances` (universal list), `GET /remittances/{id}`, `GET /remittances/{id}/file` (a five-minute signed link,
+    audited `DATA_EXPORTED`; on the local store a self-authorising route, CONVENCIONS_API §5) and
+    `POST /remittances/{id}/submission` (`GENERATED → SUBMITTED`, audited `REMITTANCE_SUBMITTED`; the run is no longer
+    rollbackable). A rolled-back remittance keeps its file and its row.
+  - Mandates: `mandateSignedAt` is frozen onto the invoice with `mandateRef`. A member who changes to direct debit or gives
+    another account gets the next mandate (`{clubSlug}-{memberNumber}-2`, …) signed that day, in the same transaction.
+  - A manual receipt with `includeInNextRun` rides the remittance only with a positive total (a pain.008 amount is ≥ 0.01).
+  - The shared port `ExportFileStore` lets `payments` reach the existing export store (`clubs.common`'s `ExportStorage`).
+  - DEPLOY.md: the remittance files live under `remittances/` in the export bucket, with no lifecycle expiry.
+
 - E8-T02 (S12 WP-12-B): invoicing and the monthly cycle.
   - `InvoicingService.linesFor(member, period)` over pure `InvoicingRules` (R-12-01…06): who enters the month, the lines by
     plan type (`MONTHLY_FEE` at the current price, replaced by `INACTIVITY_FEE` or `MAINTENANCE_FEE`; none for packs; one

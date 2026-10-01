@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.8 · 01-10-2026** (v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.9 · 01-10-2026** (v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -63,6 +63,8 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-51 | 01-10 | api (seguiment, contracte) | Menors de la revisió d'E6-T06 (la cerca de D14 sense projecció i amb llistes `$in` sense límit, les proves d'aïllament de tenant de la cerca i dels recomptes, `FOLLOWUP.searchable`, l'etiqueta d'un abonat esborrat als valors del filtre, els scripts de l'evidència) i la pregunta 1 d'E6-W05 (`POST /tasks` pot respondre `409 INVALID_STATE` sense declarar-lo) | Baixa | oberta — E11-T02 |
 | INC-52 | 01-10 | api (missatgeria, menors) | Menors de la revisió d'E7-T05: `claimAccepted` amb dos predicats sobre el mateix array, l'acceptació que no es torna a marcar mentre l'assentament falla més de 2 minuts, l'evidència del pas 4, la fila 11 de la taula sense prova, el rebot d'una adreça compartida, i detalls | Baixa | oberta — E11-T02 |
 | INC-53 | 01-10 | api (contracte i seed, petits) | Preguntes d'api d'E6-W04, E7-W05 i E5-W05: `TaskItem.doneBy`, `UploadUrl.uploadUrl` relatiu, els comptadors de simulació de P8, el comptador d'adjunts de `FollowupItem`, un límit superior per a `read-all`, les etiquetes amb espai final de `/bookings/filter-values`, `isoWeekStart` a l'ítem de P1, el «Berta» del seed, la resta de codis d'S10 que han passat a 422, els camps obligatoris de `Member` que l'esborrament anul·la, i les claus d'idempotència de `POST /jobs/{name}/trigger` i de la llista d'espera | Baixa | oberta — E11-T02 (el punt 10, E11-T01) |
+| INC-54 | 01-10 | api (comunicacions, menors) | Menors d'E7-T07: `bin/e7-smoke-test.py` a la CI, la resposta de la llista permesa enregistrada d'una execució real, els canals comparats sense ordre, noms de proves, i els formats en anglès de `ClubFormats` (R-11-05) | Baixa | oberta — E11-T02 |
+| INC-55 | 01-10 | web (preferències, mocks) | Menors de la ronda 2 d'E7-W07: una negativa de l'api ha de treure només la preferència que nomena, i una tria que ja ha rebut el seu `2xx` ha de sortir de la safata; un sol magatzem de reserves per als mons del mock | Baixa | oberta — E11-W02 |
 
 ---
 
@@ -106,7 +108,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 
 **Gravetat**: baixa. El web hi té una alternativa a cada cas.
 
-**Origen**: les preguntes d'E6-W04 (Q1–Q3), d'E7-W05 (Q3) i de la ronda 2 d'E5-W05 (R2-Q1, R2-Q2); verificació de l'organitzador de l'1-10 (decisió E82). El punt 10, de la suposició A8 d'E7-W06 (decisió E85) i de la pregunta Q3 d'E7-W07. Els punts 11 i 12, de les preguntes Q1 i Q2 d'E7-W07 (decisió E86).
+**Origen**: les preguntes d'E6-W04 (Q1–Q3), d'E7-W05 (Q3) i de la ronda 2 d'E5-W05 (R2-Q1, R2-Q2); verificació de l'organitzador de l'1-10 (decisió E82). El punt 10, de la suposició A8 d'E7-W06 (decisió E85) i de la pregunta Q3 d'E7-W07. Els punts 11 i 12, de les preguntes Q1 i Q2 d'E7-W07 (decisió E86). Els punts 13–16, de les propostes del pas 5 d'E7-W03 (decisió E89).
 
 **Què cal fer**:
 1. **`TaskItem.doneBy`** a `GET /me/dogs`, perquè la pantalla 13 digui «feta per {nom} el {data}», com la 26.
@@ -127,7 +129,44 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 11. **`POST /jobs/{name}/trigger`** accepta `Idempotency-Key` (E75), però l'OpenAPI no la declara (S15 §6 hi diu «no»). Cal declarar-la, opcional, perquè el web l'envia (CONVENCIONS_API §7).
 12. **`POST /waitlist-entries`**: si es perd el `201`, el reintent respon `409 ALREADY_ON_WAITLIST`. Cal declarar-hi `Idempotency-Key` (el filtre ja accepta una clau a tot `POST`) i provar que un reintent amb la mateixa clau rep el mateix `201`. Cal dir també quina guarda evita dues entrades simultànies del mateix gos (R-08-12 no en diu cap). El web l'adopta quan l'api la declari.
 
-**On mirar**: els informes d'E6-W04 i d'E7-W05 i la ronda 2 d'E5-W05 (web).
+13. **El nom d'una plantilla del catàleg** (`MessageTemplateListItem.name`) és la font del títol, amb ICU i variables («{kind, select, …} (N-13)», «[[dog_name_article]] puja de nivell!»), i D9 l'escriu tal qual. L'api ha de tornar el nom de producte del catàleg (`CATALEG_NOTIFICACIONS`, columna «Nom»), i per a una plantilla `CUSTOM`, el nom que li ha donat el club.
+14. **N-08a i la pista:** el mockup 11 escriu «· Central», però `ring_name` no és una variable d'N-08a. Si s'hi afegeix, la fila del catàleg, el seed i S11 §8 canvien en el mateix commit. Fins aleshores s'accepta la diferència amb el mockup.
+15. **Els comptadors de P4:** la simulació compta `WOULD_REMIND` i l'execució real `classReminders` i `trainingReminders`. Un sol joc de noms, com al punt 3 per a P8.
+16. **El registre d'avisos** no mostra el `batchId` d'un comunicat: «un sol lot» només es veu pel nombre de files. Les files d'un comunicat han de portar el seu `batchId`.
+
+**On mirar**: els informes d'E6-W04, d'E7-W05 i d'E7-W03, i la ronda 2 d'E5-W05 (web).
+
+---
+
+## INC-54 · Menors d'E7-T07 (api, comunicacions)
+
+**Gravetat**: baixa.
+
+**Origen**: la revisió d'E7-T07 (`roadmap/reviews/E7-T07-20261001-1747-claude.md`); verificació de l'organitzador de l'1-10 al vespre (decisió E89).
+
+**Què cal fer**:
+1. **`python3 bin/e7-smoke-test.py` a `ci.yml`**, al costat de `bin/security-scan-test.py`. Ara només s'executa en local, i un canvi a `bin/e7-smoke` podria tornar a exigir l'SMS sense que ningú ho vegi.
+2. **La resposta de la llista permesa, enregistrada d'una execució real:** `bin/e7-smoke` amb credencials de Twilio fictícies i un `SMOKE_SMS_TO` fictici. La guarda refusa l'SMS dels abonats del seed abans de cap crida a Twilio, i l'execució ha d'arribar a `real_sms_step()`. La resposta enregistrada substitueix la que es va escriure a mà.
+3. **`bin/e7-smoke:52`** compara els canals sense ordre (`sorted`).
+4. **Noms de les proves** amb l'identificador de la spec (`AuditWriterTest`, `AuditedAspectTest`; AGENTS regla 5).
+5. **Els formats de `ClubFormats` en anglès (R-11-05):** el dia de la setmana va davant del dia («Thursday 8», «Sat 17»), i tota variable d'hora s'escriu igual («9:30»), també `[[changes]]`. Cal actualitzar les expectatives de `NotificationActionsIT`.
+
+**On mirar**: l'informe d'E7-T07 i la seva revisió.
+
+---
+
+## INC-55 · Menors de la ronda 2 d'E7-W07 (web, preferències i mocks)
+
+**Gravetat**: baixa. Són casos extrems poc probables.
+
+**Origen**: la revisió de la ronda 2 d'E7-W07 (`roadmap/reviews/E7-W07-20261001-1704-claude.md`); verificació de l'organitzador de l'1-10 al vespre (decisió E89).
+
+**Què cal fer**:
+1. **Una negativa de l'api treu només la preferència que nomena:** `INVALID_REMINDER_OPTION` → `reminderMinutesBefore`, `CHANNEL_NOT_ALLOWED` → push, i si no, `details.field`. Tot el cos només quan la negativa no es pot lligar a cap preferència. Avui una tria guardada viatja amb el valor refusat i es perd. Cal una prova amb un cos mixt.
+2. **Una tria guardada que ja ha rebut el seu `2xx`** (enviada sola i res en camí des d'aleshores) surt de la safata. Avui torna a sortir com a pendent si falla una petició posterior, i es pot tornar a enviar sobre un canvi fet en un altre lloc.
+3. **Un sol magatzem de reserves** per als mons del mock (R2-A6, acceptada de moment): avui els inscrits es reparteixen a la primera lectura d'un món del personal, i el món de l'abonat no compta aquestes reserves.
+
+**On mirar**: `packages/api-client/src/preferences-saver.ts` i `mocks/fixtures/bookings.ts`.
 
 ---
 

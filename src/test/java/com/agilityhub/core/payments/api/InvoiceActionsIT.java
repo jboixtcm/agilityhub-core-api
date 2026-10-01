@@ -86,7 +86,7 @@ class InvoiceActionsIT extends BillingItSupport {
         assertThat(failed.path("failureReason").asText()).isEqualTo("Devolució del banc");
         assertThat(failed.path("collections").findValuesAsText("status")).containsExactly("CREATED", "FAILED");
         assertThat(failed.at("/collections/1/failureCode").asText()).isEqualTo("BANK_RETURN");
-        assertThat(failed.at("/collections/1/providerRef").asText()).isEqualTo("bill-a-mandate/" + byMember.get("puig").getString("displayNumber"));
+        assertThat(failed.at("/collections/1/providerRef").asText()).isEqualTo("bill-a-208-1/" + byMember.get("puig").getString("displayNumber"));
         assertThat(events("InvoiceFailed")).singleElement().satisfies(event -> {
             assertThat(event.get("payload", Document.class).getString("provider")).isEqualTo("SEPA_XML");
             assertThat(event.get("payload", Document.class).getString("reason")).isEqualTo("BANK_RETURN");

@@ -1,6 +1,8 @@
 package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.payments.domain.BillingEvent;
+import com.agilityhub.core.payments.domain.BillingIncidentCode;
+import com.agilityhub.core.platform.application.BillingProviderSettings;
 import com.agilityhub.core.payments.domain.InvoiceAmounts;
 import com.agilityhub.core.payments.domain.InvoiceLineOrigin;
 import com.agilityhub.core.payments.domain.InvoicingRules;
@@ -30,10 +32,11 @@ public class BillingSimulationService {
     /** S12 §13: a month can be simulated at most three months ahead of today's. */
     static final int MAX_MONTHS_AHEAD = 3;
     private final InvoicingService invoicing; private final BillingSimulationRepository simulations; private final BillingLockRepository locks;
-    private final BillingEvents events; private final BillingTransactions transactions; private final Clock clock;
+    private final BillingEvents events; private final BillingTransactions transactions; private final BillingProviderSettings providers; private final Clock clock;
     public BillingSimulationService(InvoicingService invoicing, BillingSimulationRepository simulations, BillingLockRepository locks, BillingEvents events,
-            BillingTransactions transactions, Clock clock) {
-        this.invoicing = invoicing; this.simulations = simulations; this.locks = locks; this.events = events; this.transactions = transactions; this.clock = clock;
+            BillingTransactions transactions, BillingProviderSettings providers, Clock clock) {
+        this.invoicing = invoicing; this.simulations = simulations; this.locks = locks; this.events = events; this.transactions = transactions;
+        this.providers = providers; this.clock = clock;
     }
 
     public BillingSimulation simulate(YearMonth period) {
@@ -61,16 +64,24 @@ public class BillingSimulationService {
 
     BillingSimulation build(InvoicingService.MonthPlan plan) {
         var context = plan.context(); String currency = context.currency();
-        var incidents = plan.month().skipped().stream()
-                .map(skip -> new BillingSimulation.Incident(skip.memberId(), name(plan.member(skip.memberId())), skip.code())).toList();
+        var incidents = new ArrayList<>(plan.month().skipped().stream()
+                .map(skip -> new BillingSimulation.Incident(skip.memberId(), name(plan.member(skip.memberId())), skip.code())).toList());
         var cash = plan.members().values().stream().filter(member -> member.paymentMethod() != null && "MANUAL".equals(member.paymentMethod().type()))
                 .map(member -> new BillingSimulation.CashMember(member.id(), name(member), member.leaveDate() == null ? null : member.leaveDate().toString())).toList();
         var preview = new ArrayList<BillingSimulation.PreviewInvoice>();
         var byMethod = new EnumMap<PaymentMethodType, List<Money>>(PaymentMethodType.class);
         int inactive = 0;
+        // E8-T03 (S12 §13, step 9): SEPA_XML enabled without its creditor data (identifier or IBAN missing) cannot remit. Its debtors
+        // are PROVIDER_DISABLED here, so D6 shows it before the run, which answers 422 SEPA_NOT_CONFIGURED until D11 completes it.
+        boolean sepaUnusable = context.settings().enabledMethods().contains(PaymentMethodType.SEPA_DD)
+                && !providers.sepaCreditor().map(BillingProviderSettings.SepaCreditor::configured).orElse(false);
         for (var draft : plan.month().invoices()) {
             var payer = plan.member(draft.payerId());
             var method = InvoicingService.member(payer).method();
+            if (sepaUnusable && method == PaymentMethodType.SEPA_DD) {
+                incidents.add(new BillingSimulation.Incident(payer.id(), name(payer), BillingIncidentCode.PROVIDER_DISABLED));
+                continue;
+            }
             var total = total(draft, currency);
             preview.add(new BillingSimulation.PreviewInvoice(payer.id(), name(payer), method,
                     draft.lines().stream().map(line -> new BillingSimulation.PreviewLine(line.origin(), line.description(), line.amounts().total())).toList(), total));

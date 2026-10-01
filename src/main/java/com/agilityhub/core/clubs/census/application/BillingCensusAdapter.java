@@ -53,6 +53,21 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         return Stream.concat(members.stream().map(member -> member.updatedAt), census.groups.findAll().stream().map(group -> group.updatedAt))
                 .filter(Objects::nonNull).max(Instant::compareTo);
     }
+    /** E8-T03: the stored `iban` or `ibanEncrypted` (either shape of the method), with the mandate; never logged (see the port). */
+    @Override public Map<String, SepaAccount> sepaAccounts(Collection<String> memberIds) {
+        var accounts = new LinkedHashMap<String, SepaAccount>();
+        if (memberIds == null || memberIds.isEmpty()) { return accounts; }
+        for (Member member : census.members.matching(Criteria.where("_id").in(List.copyOf(memberIds)))) {
+            var stored = member.paymentMethod;
+            if (stored == null || !"SEPA_DD".equals(string(stored.get("type")))) { continue; }
+            var sepa = map(stored.getOrDefault("sepa", stored));
+            var account = new LinkedHashMap<String, Object>();
+            for (String key : List.of("iban", "ibanEncrypted")) { if (present(sepa.get(key))) { account.put(key, sepa.get(key)); } }
+            accounts.put(member.id, new SepaAccount(member.id, account, string(sepa.get("holderName")), string(sepa.get("mandateRef")),
+                    signedAt(sepa.get("mandateSignedAt"))));
+        }
+        return accounts;
+    }
     @Override public Map<String, String> dogNames(Collection<String> dogIds) {
         var names = new LinkedHashMap<String, String>();
         if (dogIds == null || dogIds.isEmpty()) { return names; }
@@ -75,7 +90,12 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         String masked = "CARD".equals(type) ? (card.get("last4") == null ? null : "···· " + card.get("last4"))
                 : CensusRules.maskedIban(sepa.get("ibanLast4") == null ? string(sepa.get("iban")) : string(sepa.get("ibanLast4")));
         return new PaymentMethod(type, account, "MANUAL".equals(type) ? null : masked, string(sepa.get("holderName")), string(sepa.get("holderTaxId")),
-                string(sepa.get("mandateRef")), string(card.get("last4")), Boolean.TRUE.equals(card.get("invalid")), string(manual.get("channel")));
+                string(sepa.get("mandateRef")), string(card.get("last4")), Boolean.TRUE.equals(card.get("invalid")), string(manual.get("channel")),
+                signedAt(sepa.get("mandateSignedAt")));
+    }
+    /** `mandateSignedAt` as stored (a date, or an ISO instant); anything else reads as absent, which the SEPA writer refuses. */
+    static Instant signedAt(Object raw) {
+        try { return CensusValues.instant(raw); } catch (java.time.format.DateTimeParseException unreadable) { return null; }
     }
     private static boolean present(Object value) { return value != null && !value.toString().isBlank(); }
     private static FamilyGroup group(com.agilityhub.core.clubs.census.persistence.FamilyGroup group) {

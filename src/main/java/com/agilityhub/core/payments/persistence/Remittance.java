@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("remittances")
 public record Remittance(@Id String id, String clubId, String runId, String period, String messageId, Instant creationAt,
         String requestedCollectionDate, Creditor creditor, List<String> collectionIds, int count, Money total, SequenceBreakdown sequenceBreakdown,
-        String fileKey, Instant xsdValidatedAt, Boolean xsdValidationSkipped, @AuditField RemittanceStatus status, Instant submittedAt,
+        String fileKey, Instant xsdValidatedAt, Boolean xsdValidationSkipped, @AuditField RemittanceStatus status, @AuditField Instant submittedAt,
         String submittedByAccountId, @Version Long version, Instant createdAt, String createdByAccountId) implements TenantEntity {
     public record Creditor(String name, String id, @Sensitive String iban, String bic) { }
     /** One `PmtInf` per sequence type: `FRST` only with `billing.sepa.useFrst`, otherwise every transaction is `RCUR`. */

@@ -39,7 +39,8 @@ public class LocalExportStorage implements ExportStorage {
         long expires = expiresAt.getEpochSecond();
         return "/api/v1/exports/" + id + "/download?expires=" + expires + "&signature=" + signature(id, club, owner, expires);
     }
-    private String signature(String id, String club, String owner, long expires) { return ExportNames.hmac(id + "\n" + club + "\n" + owner + "\n" + expires, key); }
+    /** The store's HMAC over a link's parts; E8-T03: also the signature of another context's self-authorising route (A31). */
+    public String signature(String id, String club, String owner, long expires) { return ExportNames.hmac(id + "\n" + club + "\n" + owner + "\n" + expires, key); }
     public void verify(String id, String club, String owner, Instant expiresAt, long expires, String signature) {
         if (expires != expiresAt.getEpochSecond() || !clock.instant().isBefore(Instant.ofEpochSecond(expires))) { throw new ApiException(ErrorCode.EXPORT_EXPIRED); }
         try {

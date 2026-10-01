@@ -1,0 +1,218 @@
+heavy.sh: 19:30 waiting for the host lock, held by: 19:28 agilityhub-core-web: pnpm e2e:docker E8-W01
+heavy.sh: 19:35 got the host lock after 5 min 1 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  384 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+PASS fixture (disposable database only): ok · fictional SEPA_XML creditor; 184 ACTIVE members owe 2026-11; 123 pay by SEPA_DD, 123 with a complete mandate
+curl POST /api/v1/billing/simulations -> 201
+PASS POST /billing/simulations (a SEPA member without its mandate): 201 · count 119 · byProvider {"SEPA_XML": 62, "MANUAL": 57} · incidents []
+curl POST /api/v1/billing/runs -> 422 SEPA_NOT_CONFIGURED
+PASS POST /billing/runs (one SEPA member without mandateRef): 422 SEPA_NOT_CONFIGURED · details.memberIds ['eea19294…'] (the watched member eea19294…) · invoices/remittances/runs written [0, 0, 0]
+curl POST /api/v1/billing/simulations -> 201
+PASS POST /billing/simulations (the mandate back): 201 · count 119 · byProvider {"SEPA_XML": 62, "MANUAL": 57} · incidents []
+curl POST /api/v1/billing/runs -> 201
+PASS POST /billing/runs: 201 · run 618b9709… GENERATED · 119 invoices · collectionDate 2026-11-01 · remittance canic-2026-11-1 (62 debits, 396000 EUR) · sequenceBreakdown {'FRST': 0, 'RCUR': 62}
+curl GET /api/v1/remittances -> 200
+--- GET /remittances (items)
+[
+ {
+  "id": "b53593ee…",
+  "period": "2026-11",
+  "messageId": "canic-2026-11-1",
+  "creationAt": "2026-10-01T17:38:03.577Z",
+  "requestedCollectionDate": "2026-11-01",
+  "count": 62,
+  "total": {
+   "amountMinor": 396000,
+   "currency": "EUR"
+  },
+  "status": "GENERATED",
+  "fileAvailable": true
+ }
+]
+PASS GET /remittances: 200 · totalItems 1
+curl GET /api/v1/remittances/<id> -> 200
+--- GET /remittances/{id}
+{
+ "id": "b53593ee…",
+ "runId": "618b9709…",
+ "period": "2026-11",
+ "messageId": "canic-2026-11-1",
+ "creationAt": "2026-10-01T17:38:03.577Z",
+ "requestedCollectionDate": "2026-11-01",
+ "creditor": {
+  "name": "Club d'Agility Cànic (fictional creditor)",
+  "id": "ES00000G00000000",
+  "maskedIban": "···· ···· ···· ···· 9876",
+  "bic": null
+ },
+ "collectionIds": "62 ids",
+ "count": 62,
+ "total": {
+  "amountMinor": 396000,
+  "currency": "EUR"
+ },
+ "sequenceBreakdown": {
+  "FRST": 0,
+  "RCUR": 62
+ },
+ "fileAvailable": true,
+ "xsdValidatedAt": "2026-10-01T17:38:03.726Z",
+ "xsdValidationSkipped": null,
+ "status": "GENERATED",
+ "submittedAt": null,
+ "submittedByAccountId": null
+}
+curl GET /api/v1/remittances/<id>/file -> 200
+PASS GET /remittances/{id}/file: 200 · fileName remesa-2026-11.xml · expiresAt 2026-10-01T17:43:03.900653967Z · downloadUrl /api/v1/remittances/files/<id>/<id>?expires=1790876583&signature=<hmac>
+PASS GET <signed downloadUrl> (no bearer): 200 · Content-Disposition: attachment; filename="remesa-2026-11.xml" · Cache-Control: no-store · Content-Type: application/xml
+$ xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd remesa-2026-11.xml
+remesa-2026-11.xml validates
+exit 0
+--- the first 40 lines of the downloaded file (IBANs masked here; the file carries them in full)
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+    <CstmrDrctDbtInitn>
+        <GrpHdr>
+            <MsgId>canic-2026-11-1</MsgId>
+            <CreDtTm>2026-10-01T19:38:03</CreDtTm>
+            <NbOfTxs>62</NbOfTxs>
+            <CtrlSum>3960.00</CtrlSum>
+            <InitgPty>
+                <Nm>Club d'Agility Canic (fictional creditor)</Nm>
+                <Id>
+                    <OrgId>
+                        <Othr>
+                            <Id>ES00000G00000000</Id>
+                        </Othr>
+                    </OrgId>
+                </Id>
+            </InitgPty>
+        </GrpHdr>
+        <PmtInf>
+            <PmtInfId>canic-2026-11-1-RCUR</PmtInfId>
+            <PmtMtd>DD</PmtMtd>
+            <NbOfTxs>62</NbOfTxs>
+            <CtrlSum>3960.00</CtrlSum>
+            <PmtTpInf>
+                <SvcLvl>
+                    <Cd>SEPA</Cd>
+                </SvcLvl>
+                <LclInstrm>
+                    <Cd>CORE</Cd>
+                </LclInstrm>
+                <SeqTp>RCUR</SeqTp>
+            </PmtTpInf>
+            <ReqdColltnDt>2026-11-01</ReqdColltnDt>
+            <Cdtr>
+                <Nm>Club d'Agility Canic (fictional creditor)</Nm>
+            </Cdtr>
+            <CdtrAcct>
+                <Id>
+                    <IBAN>ES00 ···· 9876</IBAN>
+PASS the file: ok · 67587 bytes · NbOfTxs 62 · CtrlSum 3960.00 · SeqTp ['RCUR'] · ReqdColltnDt 2026-11-01 · full debtor IBANs in the file 62
+--- the Remittance document
+{
+ "_id": "b53593ee…",
+ "clubId": "38f19379-7dda-4476-9557-8081f4a36bd3",
+ "runId": "618b9709…",
+ "period": "2026-11",
+ "messageId": "canic-2026-11-1",
+ "creationAt": "2026-10-01T17:38:03.577Z",
+ "requestedCollectionDate": "2026-11-01",
+ "creditor": {
+  "_id": "ES00000G00000000",
+  "name": "Club d'Agility Cànic (fictional creditor)",
+  "iban": "ES00 ···· 9876"
+ },
+ "collectionIds": "62 ids",
+ "count": 62,
+ "total": {
+  "amountMinor": {
+   "high": 0,
+   "low": 396000,
+   "unsigned": false
+  },
+  "currency": "EUR"
+ },
+ "sequenceBreakdown": {
+  "frst": 0,
+  "rcur": 62
+ },
+ "fileKey": "remittances/<id>/2026-11/canic-2026-11-1-<id>.xml",
+ "xsdValidatedAt": "2026-10-01T17:38:03.726Z",
+ "status": "GENERATED",
+ "version": {
+  "high": 0,
+  "low": 0,
+  "unsigned": false
+ },
+ "createdAt": "2026-10-01T17:38:03.577Z",
+ "createdByAccountId": "9ff9660d…",
+ "_class": "com.agilityhub.core.payments.persistence.Remittance"
+}
+curl POST /api/v1/remittances/<id>/submission -> 200
+PASS POST /remittances/{id}/submission: 200 · status SUBMITTED · submittedAt 2026-09-30T22:00:00Z · submittedByAccountId 9ff9660d…
+curl POST /api/v1/billing/runs/<id>/rollback -> 409 RUN_NOT_ROLLBACKABLE
+PASS POST /billing/runs/{id}/rollback: 409 RUN_NOT_ROLLBACKABLE · {"reasons": ["REMITTANCE_SUBMITTED"]}
+--- AuditEntry REMITTANCE_SUBMITTED
+{
+ "action": "REMITTANCE_SUBMITTED",
+ "entityType": "Remittance",
+ "entityId": "b53593ee…",
+ "actorRole": "ADMIN",
+ "changes": [
+  {
+   "path": "status",
+   "before": "GENERATED",
+   "after": "SUBMITTED"
+  },
+  {
+   "path": "submittedAt",
+   "after": "2026-09-30T22:00:00Z"
+  }
+ ],
+ "details": {
+  "submittedOn": "2026-10-01",
+  "messageId": "canic-2026-11-1",
+  "period": "2026-11",
+  "runId": "618b9709-02f3-4008-b214-37a0de6dda0f"
+ }
+}
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic; x2) · second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+  fixture (disposable database only) · ok · fictional SEPA_XML creditor; 184 ACTIVE members owe 2026-11; 123 pay by SEPA_DD, 123 with a complete mandate
+  POST /billing/simulations (a SEPA member without its mandate) · 201 · count 119 · byProvider {"SEPA_XML": 62, "MANUAL": 57} · incidents []
+  POST /billing/runs (one SEPA member without mandateRef) · 422 SEPA_NOT_CONFIGURED · details.memberIds ['eea19294…'] (the watched member eea19294…) · invoices/remittances/runs written [0, 0, 0]
+  POST /billing/simulations (the mandate back) · 201 · count 119 · byProvider {"SEPA_XML": 62, "MANUAL": 57} · incidents []
+  POST /billing/runs · 201 · run 618b9709… GENERATED · 119 invoices · collectionDate 2026-11-01 · remittance canic-2026-11-1 (62 debits, 396000 EUR) · sequenceBreakdown {'FRST': 0, 'RCUR': 62}
+  GET /remittances · 200 · totalItems 1
+  GET /remittances/{id}/file · 200 · fileName remesa-2026-11.xml · expiresAt 2026-10-01T17:43:03.900653967Z · downloadUrl /api/v1/remittances/files/<id>/<id>?expires=1790876583&signature=<hmac>
+  GET <signed downloadUrl> (no bearer) · 200 · Content-Disposition: attachment; filename="remesa-2026-11.xml" · Cache-Control: no-store · Content-Type: application/xml
+  the file · ok · 67587 bytes · NbOfTxs 62 · CtrlSum 3960.00 · SeqTp ['RCUR'] · ReqdColltnDt 2026-11-01 · full debtor IBANs in the file 62
+  POST /remittances/{id}/submission · 200 · status SUBMITTED · submittedAt 2026-09-30T22:00:00Z · submittedByAccountId 9ff9660d…
+  POST /billing/runs/{id}/rollback · 409 RUN_NOT_ROLLBACKABLE · {"reasons": ["REMITTANCE_SUBMITTED"]}
+PASS E8-T03 curl sequence
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

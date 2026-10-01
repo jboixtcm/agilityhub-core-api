@@ -69,8 +69,11 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
             "/api/v1/remittances", com.agilityhub.core.payments.application.BillingContractAccess.REMITTANCES.fields(),
             "/api/v1/inactivity-periods", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.INACTIVITY_PERIODS.fields(),
             "/api/v1/leave-requests", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.LEAVE_REQUESTS.fields());
-    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves invoices). */
-    static final Set<String> STUBS = Set.of("/api/v1/remittances", "/api/v1/inactivity-periods", "/api/v1/leave-requests");
+    /**
+     * The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves
+     * invoices, E8-T03 remittances).
+     */
+    static final Set<String> STUBS = Set.of("/api/v1/inactivity-periods", "/api/v1/leave-requests");
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -258,6 +261,12 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                 new com.agilityhub.core.payments.persistence.Invoice.PaymentMethodSnapshot(com.agilityhub.core.payments.domain.PaymentMethodType.MANUAL, null, null, null, null, null),
                 com.agilityhub.core.payments.domain.InvoiceStatus.PENDING, com.agilityhub.core.payments.domain.InvoiceKind.MANUAL, null, null, false, "Prova", null, null, null,
                 null, null, zero, null, null, clock.instant(), "list-fields-admin", clock.instant(), "list-fields-admin"));
+        // E8-T03: `GET /remittances` is served; a generated remittance not yet sent to the bank (`submittedAt` null).
+        mongo.insert(new com.agilityhub.core.payments.persistence.Remittance("list-fields-remittance", canic, "list-fields-run", "2026-09", "canic-2026-09-1",
+                clock.instant(), "2026-09-01", new com.agilityhub.core.payments.persistence.Remittance.Creditor("Club Example", "ES00ZZZG00000000",
+                "ES0000000000000000009876", null), List.of("list-fields-collection"), 1, fee,
+                new com.agilityhub.core.payments.persistence.Remittance.SequenceBreakdown(0, 1), "remittances/" + canic + "/2026-09/canic-2026-09-1.xml",
+                clock.instant(), null, com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED, null, null, 0L, clock.instant(), "list-fields-admin"));
         return canic;
     }
     String registeredActivity(String club) {

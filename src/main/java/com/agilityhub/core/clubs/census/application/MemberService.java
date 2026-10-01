@@ -148,6 +148,17 @@ public class MemberService {
             Object holder = sepa.containsKey("holderName") || !kept ? sepa.get("holderName") : current.get("holderName");
             payment.putAll(object("holderName", text(holder, "sepa.holderName", 120, true), "holderTaxId", tax));
             if (kept) { payment.putAll(select(current, "mandateRef", "mandateSignedAt")); }
+            // S12 §7 `MemberPaymentMethodChanged{SEPA_DD}` (E8-T03, R-12-12): a new authorisation — direct debit after another method,
+            // or another account — is a new mandate: the next sequence of the member's reference (`-2`, `-3`…) and today's
+            // signature, in this same transaction, so no run can debit the new account under the old mandate. With
+            // `billing.sepa.useFrst` its first debit is FRST. A correction of the holder's name or tax id keeps the mandate (R-03-07).
+            var account = select(payment, "iban", "ibanEncrypted");
+            boolean sameMandate = kept && select(current, "iban", "ibanEncrypted").equals(account);
+            if (!sameMandate && !account.isEmpty() && member.memberNumber != null) {
+                payment.put("mandateRef", com.agilityhub.core.clubs.census.domain.CensusRules.mandateRef(access.config().club().slug(), member.memberNumber,
+                        kept ? string(current.get("mandateRef")) : null));
+                payment.put("mandateSignedAt", clock.instant());
+            }
         } else {
             var manual = map(request.get("manual")); allow(manual, Set.of("channel"));
             String channel = text(manual.get("channel"), "manual.channel", 30, true);

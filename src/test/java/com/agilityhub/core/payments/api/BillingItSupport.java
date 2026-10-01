@@ -150,6 +150,11 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
     }
     static Map<String, Object> cash() { return Map.of("type", "MANUAL", "channel", "cash"); }
     void member(String id, int number, String first, String last, Map<String, Object> payment, String plan) {
+        if (payment != null && payment.containsKey("mandateRef")) {
+            // E8-T03: each SEPA member has its own mandate `{clubSlug}-{memberNumber}-1`, signed on 15-06 (R-12-12 `MndtId`, `DtOfSgntr`).
+            payment = new LinkedHashMap<>(payment);
+            payment.put("mandateRef", CLUB + "-" + number + "-1"); payment.put("mandateSignedAt", Date.from(Instant.parse("2026-06-15T10:00:00Z")));
+        }
         mongo.save(new Document("_id", id).append("clubId", CLUB).append("status", "ACTIVE").append("memberNumber", number).append("firstName", first)
                 .append("lastName1", last).append("planId", plan == null ? null : "bill-plan-" + plan).append("nextInvoiceDate", "2026-09-01")
                 .append("paymentMethod", payment == null ? null : new Document(payment)).append("accountId", "bill-account-" + id)

@@ -101,6 +101,8 @@ Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) w
 
 Added 01-10, morning (verifications of E7-T04's round 3, E8-T01 and E11-T04; ruling E85): **E7-T07** (E7-T04's round-3 review: the smoke's real-SMS branch, the announcement's audit `details`, the real-action matrix's bodies and recipients) runs after E7-T04; the E7 gate waits for it and for a green CI. E8-T01 and E11-T04 go back for a second round, and E8-T05 gains step 15 (from E8-T01's report). The E5 gate is closed.
 
+Added 01-10, evening (verifications of E7-T07 and E8-T02's round 2; ruling E89): **the E7 gate (back) is closed.** **E8-T07** (E8-T02's round-2 review: no direct debit of a zero or negative receipt, a rollback that reissues its whole block, the waiting manual receipts in the simulation, the rolled-back state from the run, an index for the numbering) runs after E8-T03.
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
@@ -115,9 +117,9 @@ Added 01-10, morning (verifications of E7-T04's round 3, E8-T01 and E11-T04; rul
 
 ### Gate E7 (back — organizer; real SMS and push on devices are release items, A31)
 - [x] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report). — organizer 01-10: E7-T04's final run, `NotificationMatrixTest` 2,681 (2,520 catalog cases over 56 R1 codes, 160 N-24) and `NotificationActionsIT` 15, green on CI.
-- [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead. — organizer 01-10: proven by E7-T04's final smoke; ticked when E7-T07 writes the announcement's `details` in its audit entry.
+- [x] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead. — organizer 01-10: E7-T04's final smoke, and E7-T07's (`13-e7-smoke-run-2.log:43`, the audit's `details`).
 - [x] Legacy SMS/PUSH intents converted to `SKIPPED_STALE`; `SMS_ALLOWED_NUMBERS` guard proven outside `prod`. — organizer 01-10: E7-T01's `E7PersistenceIT` and E7-T02's guard (`SKIPPED_NOT_ALLOWED`), green on CI.
-- [ ] E7-T01…T07 verified, CI green, snapshot staged (E7-W01…W03). — organizer 01-10: E7-T01…T06 verified; E7-T07 and a green CI remain (ruling E85).
+- [x] E7-T01…T07 verified, CI green, snapshot staged (E7-W01…W03). — organizer 01-10: E7-T07 verified, CI green on `e29748c`; E7-W03 adopted the snapshot. **The E7 gate (back) is closed** (ruling E89).
 
 ### Gate E8 (back — organizer; bank acceptance of the pain.008, the bookkeeper's acceptance of the accounting export and daily backups are release items, @jordi)
 - [ ] `bin/e8-smoke` green twice: simulation → run → XSD-valid XML equal to the golden file → mark returned → rollback → re-run with the same numbers; both `billing.cashInvoicing` branches and both `collectionDayOfMonth` semantics tested (A28/A29).

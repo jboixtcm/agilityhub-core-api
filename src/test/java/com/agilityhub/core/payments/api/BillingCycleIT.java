@@ -124,7 +124,8 @@ class BillingCycleIT extends BillingItSupport {
         error(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation.path("id").asText()))), 409, "RUN_EXISTS");
         var period = ok(admin(get("/api/v1/billing/periods/2026-09")), 200);
         assertThat(period.at("/run/id").asText()).isEqualTo(run.path("id").asText());
-        assertThat(period.at("/remittance/fileAvailable").asBoolean()).isFalse();
+        // E8-T03: the pain.008 file is written with the run (E8-T02's stub had none).
+        assertThat(period.at("/remittance/fileAvailable").asBoolean()).isTrue();
         assertThat(period.path("counts").path("all").asLong()).isEqualTo(8);
         assertThat(period.path("counts").path("remitted").asLong()).isEqualTo(4);
         assertThat(period.path("counts").path("pending").asLong()).isEqualTo(4);

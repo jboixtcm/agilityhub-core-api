@@ -44,8 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * T-13-24 (another club's period or request → 404; another member's, also of the caller's family group → 404; the
  * impersonation token on the `/me/*` routes only) and T-13-25 (`INACTIVITY` off → 404 on every `*inactivity*` route while
  * the leave routes answer) — the stubs write nothing, and the snapshot publishes every operation with its forms. E8-T02 serves
- * 18 of the routes (`served` in `e8-routes.json`): the same guards run first, and past them a served route answers its success
- * or a business error, never 501.
+ * 18 of the routes and E8-T03 the four `/remittances*` ones (`served` in `e8-routes.json`): the same guards run first, and past
+ * them a served route answers its success or a business error, never 501.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E8ContractIT extends AbstractIntegrationTest {
@@ -67,7 +67,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.payments.application.ProviderSecretVault secrets;
     String signupToken;
 
-    /** `served`: E8-T02 serves the route (its guards still run first); every other route still answers 501 after them. */
+    /** `served`: E8-T02 or E8-T03 serves the route (its guards still run first); every other route still answers 501 after them. */
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation, boolean served) {
         boolean club() { return scope.equals("CLUB"); }
@@ -81,7 +81,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
     }
     static Stream<Route> clubRoutes() throws Exception { return routes().filter(Route::club); }
-    /** E8-T02 serves 18 routes; the rest of the contract stays a stub. */
+    /** E8-T02 serves 18 routes and E8-T03 four; the rest of the contract stays a stub. */
     static Stream<Route> stubRoutes() throws Exception { return routes().filter(route -> !route.served()); }
     /** A served route past its guards: its success or a business answer, never the guards' 401/403 nor the stub's 501. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {

@@ -2,6 +2,26 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T03 · the `/remittances*` routes are served
+
+**No schema, operation, status or required set changed; four descriptions changed and one error list grew.**
+- `GET /remittances`, `GET /remittances/{id}`, `GET /remittances/{id}/file` and `POST /remittances/{id}/submission` no longer
+  answer `501`. Their descriptions now state what they serve: the list's row and its empty page for a club without SEPA
+  (R-12-28); the detail's `sequenceBreakdown`, `xsdValidatedAt` and masked creditor IBAN; the five-minute signed link, which
+  authorises itself (no bearer), with `Content-Type: application/xml`, `Content-Disposition: attachment;
+  filename="remesa-{period}.xml"` and the audited file access (`DATA_EXPORTED`); and the submission's rules. `submittedAt` is a
+  club-local day, not after today and not before the remittance's day (`400 VALIDATION_ERROR {field: submittedAt}`), stored as
+  the start of that day in the club's zone. The audit action is `REMITTANCE_SUBMITTED`. Afterwards a rollback is
+  `409 RUN_NOT_ROLLBACKABLE {reasons: [REMITTANCE_SUBMITTED]}`.
+- `POST /remittances/{id}/submission`: its `409` list gains `STALE_VERSION` (the billing transaction's exhausted write-conflict
+  retries, as on the other billing writes).
+- Values without a contract change: `POST /billing/runs` returns a remittance with `fileAvailable: true`, `xsdValidatedAt` and
+  `xsdValidationSkipped: null`. It now answers `422 SEPA_NOT_CONFIGURED` when the club's `SEPA_XML` has no creditor identifier
+  or IBAN (and the simulation lists those debtors as `PROVIDER_DISABLED`), with `details.memberIds` for a debit without a
+  mandate, a signature date or an account, and with `details.reason = SCHEMA` for a file the schema refuses. It answers
+  `422 CURRENCY_MISMATCH` for a club not in euros. The local signed download (`/api/v1/remittances/files/{clubId}/{id}`) is
+  not published: the client only follows the `downloadUrl` it was given.
+
 ## 2026-10-01 · E7-T07 · the `ANNOUNCEMENT_SENT` audit entry carries `details`
 
 **No schema, operation, status or required set changed; one description changed.**

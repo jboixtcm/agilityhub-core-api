@@ -103,11 +103,12 @@ public final class BillingDocuments {
         }
         /**
          * R-12-19 (round 2, ruling E87): the manual receipts the next run puts into its remittance — `PENDING`, `SEPA_DD`,
-         * `includeInNextRun`, in no remittance yet — in their numbers' order.
+         * `includeInNextRun`, in no remittance yet — in their numbers' order. E8-T03: only a positive total can be debited (a
+         * pain.008 amount is at least 0.01); a zero or negative adjustment waits for R-12-16 instead of failing every run.
          */
         public List<Invoice> forNextRun() {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("MANUAL").and("status").is("PENDING").and("includeInNextRun").is(true)
-                    .and("paymentMethod.type").is("SEPA_DD").and("remittanceId").is(null)).with(Sort.by(ASC, "number")), Invoice.class);
+                    .and("paymentMethod.type").is("SEPA_DD").and("remittanceId").is(null).and("total.amountMinor").gt(0)).with(Sort.by(ASC, "number")), Invoice.class);
         }
         /** The manual receipts a run put into the remittance {@code remittanceId} (R-12-19): no run of their own. */
         public List<Invoice> includedIn(String remittanceId) {
@@ -162,6 +163,10 @@ public final class BillingDocuments {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("invoiceId").in(List.copyOf(invoiceIds)))
                     .with(org.springframework.data.domain.Sort.by(ASC, "attempt", "createdAt")), Collection.class);
         }
+        /** R-12-12 (E8-T03): the `SEPA_XML` attempts under {@code mandateRefs}, to tell a mandate already collected (`RCUR`) from a new one (`FRST`). */
+        public List<Collection> sepaAttempts(java.util.Collection<String> mandateRefs) {
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("provider").is("SEPA_XML").and("mandateRef").in(List.copyOf(mandateRefs))), Collection.class);
+        }
         /** R-12-10: a collection attempt is append-only — a new outcome is a new document. */
         @Override public Collection replace(Collection collection) { throw new UnsupportedOperationException("R-12-10: a collection is append-only"); }
         @Override public boolean deleteById(String id) { throw new UnsupportedOperationException("R-12-10: a collection is append-only"); }
@@ -186,6 +191,20 @@ public final class BillingDocuments {
         public boolean rollBack(String id) {
             return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("GENERATED")),
                     new Update().set("status", "ROLLED_BACK").inc("version", 1L), "remittances").getMatchedCount() == 1;
+        }
+        /** R-12-15 (E8-T03): `GENERATED → SUBMITTED` with when and by whom; false when it is no longer `GENERATED`. */
+        public boolean submit(String id, java.time.Instant submittedAt, String accountId) {
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("GENERATED")),
+                    new Update().set("status", "SUBMITTED").set("submittedAt", submittedAt).set("submittedByAccountId", accountId).inc("version", 1L),
+                    "remittances").getMatchedCount() == 1;
+        }
+        /** R-12-12 (E8-T03): which of {@code ids} were marked as sent to the bank (their debits count as submitted). */
+        public java.util.Set<String> submittedAmong(java.util.Collection<String> ids) {
+            var query = tenantQuery().addCriteria(Criteria.where("_id").in(List.copyOf(ids)).and("status").is("SUBMITTED"));
+            query.fields().include("_id");
+            var found = new java.util.HashSet<String>();
+            mongo.find(query, Document.class, "remittances").forEach(document -> found.add(document.getString("_id")));
+            return found;
         }
         @Override public Remittance replace(Remittance remittance) { throw new UnsupportedOperationException("R-12-10: a remittance is append-only"); }
         @Override public boolean deleteById(String id) { throw new UnsupportedOperationException("R-12-10: a remittance is append-only"); }

@@ -11,15 +11,25 @@ import java.util.Optional;
  * The census as S12's invoicing reads and moves it (E8-T02, R-12-01…06, R-12-14, R-12-27), tenant-scoped. `payments` cannot
  * reach `clubs.census.application` (the census's signup flow already calls payments: a context cycle), so the census
  * implements this port. A payment method never carries the IBAN here: only whether the member has an account, its masked
- * form and the mandate; the SEPA writer alone decrypts (`BankAccountVault`, E43).
+ * form and the mandate; the SEPA writer alone reads the stored account ({@link #sepaAccounts}, E8-T03) and decrypts it
+ * (`BankAccountVault`, E43).
  */
 public interface BillingCensusAccess {
     /**
      * `type` SEPA_DD · CARD · MANUAL as stored; `bankAccount` = `iban` or `ibanEncrypted` present (a migrated member carries only
      * the encrypted form, E8-T01); `cardInvalid` = `card.invalid` (R-12-22); `channel` the stored manual channel as written.
+     * E8-T03: `mandateSignedAt`, the mandate's signature (frozen onto the invoice with `mandateRef`, R-12-12 `DtOfSgntr`).
      */
     record PaymentMethod(String type, boolean bankAccount, String maskedAccount, String holderName, String holderTaxId, String mandateRef,
-            String last4, boolean cardInvalid, String channel) { }
+            String last4, boolean cardInvalid, String channel, Instant mandateSignedAt) { }
+    /**
+     * E8-T03 (R-12-12, ruling E43): a `SEPA_DD` member's account as stored — `iban` in clear (signup, D10) or `ibanEncrypted`
+     * (migrated), nothing else of the method — with the mandate and the holder. Only the SEPA writer reads it, and only to hand it
+     * to `BankAccountVault`, the one place the full IBAN leaves the database in clear (the pain.008 file). Never logged or published.
+     */
+    record SepaAccount(String memberId, Map<String, Object> account, String holderName, String mandateRef, Instant mandateSignedAt) {
+        @Override public String toString() { return "SepaAccount[memberId=" + memberId + ", mandateRef=" + mandateRef + "]"; }
+    }
     /** A member as billing sees it; `locale` is the member's own (signup) language, null when unknown. */
     record BillingMember(String id, Integer memberNumber, String firstName, String lastName1, String lastName2, String status, String planId,
             LocalDate nextInvoiceDate, LocalDate leaveDate, String familyGroupId, PaymentMethod paymentMethod, String taxId, String locale,
@@ -52,4 +62,6 @@ public interface BillingCensusAccess {
     Optional<Instant> lastChange(Collection<String> memberIds);
     /** The names of the club's dogs among {@code dogIds} («Classe {data} — {gos}», R-12-25). */
     Map<String, String> dogNames(Collection<String> dogIds);
+    /** E8-T03: the `SEPA_DD` accounts of the open club's {@code memberIds} (a member paying otherwise is absent). See {@link SepaAccount}. */
+    Map<String, SepaAccount> sepaAccounts(Collection<String> memberIds);
 }

@@ -711,6 +711,17 @@ attachments remain live. Orphan `signup/` uploads are deleted by the S15 cleanup
 job (above); `attachments/` has no orphan-object tagging or cleanup worker yet:
 reconcile unreferenced uploads against attachment metadata before deleting them. Bucket age alone does not distinguish abandoned and live uploads.
 
+SEPA remittance files (S12 R-12-12, E8-T03) live in the export store under
+`remittances/{clubId}/{period}/`: one pain.008 XML per generated remittance,
+with the members' full IBANs. Extend the export principal to Get/Put/DeleteObject
+under `remittances/` too. The api deletes a file only when the run that wrote it
+did not commit; a rolled-back remittance keeps its file for the audit (R-12-14).
+**Never apply lifecycle expiry to `remittances/`**: the files are the club's
+record of what went to the bank. Downloads are presigned GETs valid for five
+minutes, answering `Content-Disposition: attachment` with the stored
+`application/xml` type, and each link issued is audited (`DATA_EXPORTED`).
+Treat the bucket as holding bank data: private and encrypted at rest.
+
 `staging`/`prod` require both sets of bucket, region and credentials; missing
 values fail startup with a missing-configuration error, even when `local` is also
 active. Startup checks configuration presence, not remote bucket access: verify

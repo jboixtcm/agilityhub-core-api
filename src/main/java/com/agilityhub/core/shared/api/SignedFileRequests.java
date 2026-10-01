@@ -9,10 +9,11 @@ import java.util.regex.Pattern;
  * never sends it to the storage), no tenant comes from the host or a bearer, and the service opens the signed file's club as
  * the tenant (E5-T26): `PUT /api/v1/attachments/uploads/{id}`, `GET /api/v1/attachments/files/{id}`, `GET /api/v1/signup/files`
  * and, since E5-T26 (R-04-27), `PUT /api/v1/signup/uploads`, whose grant says whether it closes with the signup form.
+ * E8-T03: `GET /api/v1/remittances/files/{clubId}/{id}`, a remittance's pain.008 file on the local store (S12 R-12-12).
  */
 public final class SignedFileRequests {
     private static final Pattern UPLOAD = Pattern.compile("/api/v1/attachments/uploads/[^/]+");
-    private static final Pattern DOWNLOAD = Pattern.compile("/api/v1/attachments/files/[^/]+");
+    private static final Pattern DOWNLOAD = Pattern.compile("/api/v1/attachments/files/[^/]+|/api/v1/remittances/files/[^/]+/[^/]+");
     private SignedFileRequests() { }
 
     public static boolean matches(HttpServletRequest request) {

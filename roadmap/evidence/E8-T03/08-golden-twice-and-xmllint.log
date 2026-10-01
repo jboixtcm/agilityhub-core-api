@@ -1,0 +1,22 @@
+# run 1: the full clean verify (06-verify.log) left target/sepa/remesa-2026-09.actual.xml
+$ cmp target/sepa/remesa-2026-09.actual.xml src/test/resources/sepa/remesa-2026-09.golden.xml
+exit 0
+da54e16d492ee92080c4a8c4f7cb5b0cfc9ea75d28b6c461e4097f512e3053c1  target/sepa/remesa-2026-09.actual.xml
+da54e16d492ee92080c4a8c4f7cb5b0cfc9ea75d28b6c461e4097f512e3053c1  src/test/resources/sepa/remesa-2026-09.golden.xml
+# run 2: RemittancesIT's T-12-11 alone
+$ ./mvnw -q verify -Dtest=NoSuchUnitTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=RemittancesIT#T_12_11* -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" version="3.0.2" name="com.agilityhub.core.payments.api.RemittancesIT" time="24.519" tests="1" errors="0" skipped="0" failures="0" flakes="0">
+exit 0
+$ cmp target/sepa/run1.xml target/sepa/remesa-2026-09.actual.xml
+exit 0
+$ cmp target/sepa/remesa-2026-09.actual.xml src/test/resources/sepa/remesa-2026-09.golden.xml
+exit 0
+da54e16d492ee92080c4a8c4f7cb5b0cfc9ea75d28b6c461e4097f512e3053c1  target/sepa/remesa-2026-09.actual.xml
+# the schema in use (xmllint)
+$ xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd src/test/resources/sepa/remesa-2026-09.golden.xml
+src/test/resources/sepa/remesa-2026-09.golden.xml validates
+exit 0
+$ xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd target/sepa/remesa-2026-09.actual.xml
+target/sepa/remesa-2026-09.actual.xml validates
+exit 0
+exit 0

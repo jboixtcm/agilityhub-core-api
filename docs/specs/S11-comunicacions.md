@@ -235,7 +235,7 @@ dispatch(nId):                                                  // també el pol
     res.ok ? d.sent(res.providerRef) : res.retryable && d.attempts < 5 ? d.retry(backoff(d.attempts)) : d.failed(res.error)
 ```
 
-Codis d'error propis: `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`, `TEMPLATE_MISSING_VARIABLE`, `CHANNEL_NOT_ALLOWED`, `SMS_BODY_REQUIRED`, `SMS_BODY_TOO_LONG` (400) · `TEMPLATE_MANDATORY`, `TEMPLATE_NOT_CATALOG`, `TEMPLATE_NOT_CUSTOM`, `TEMPLATE_NOT_SENDABLE`, `STALE_VERSION` (409) · `NO_RECIPIENTS` (422) · `INVALID_REMINDER_OPTION`, `PUSH_SUBSCRIPTION_INVALID`, `UNSUBSCRIBE_TOKEN_INVALID` (400) · `WEBHOOK_SIGNATURE_INVALID` (401) · `MODULE_DISABLED` (404).
+Codis d'error propis: `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`, `TEMPLATE_MISSING_VARIABLE`, `SMS_BODY_REQUIRED`, `SMS_BODY_TOO_LONG` (400) · `STALE_VERSION` (409) · `CHANNEL_NOT_ALLOWED`, `TEMPLATE_MANDATORY`, `TEMPLATE_NOT_CATALOG`, `TEMPLATE_NOT_CUSTOM`, `TEMPLATE_NOT_SENDABLE`, `NO_RECIPIENTS`, `INVALID_REMINDER_OPTION`, `PUSH_SUBSCRIPTION_INVALID`, `UNSUBSCRIBE_TOKEN_INVALID` (422, per la regla 0 de `CATALEG_ERRORS`, que mana sobre els 400 i 409 que encara escriuen la taula de §6 i les regles; organitzador 01-10, decisió E89) · `WEBHOOK_SIGNATURE_INVALID` (401) · `MODULE_DISABLED` (404).
 
 ## 7. Esdeveniments
 
@@ -414,3 +414,4 @@ Ordre: A → B0 (E1) → (B ∥ C ∥ D/E) → F. Tres fils: **B** (motor + prov
 - 30-09-2026 · verificacions de la ronda 2 d'E7-T03 i d'E7-W02 (decisió E79): R-11-12 i T-11-12, el `link` de N-02 només a la còpia de correu i l'exemple de variable obligatòria amb N-08a; la fila 30 del §2 i T-11-36, amb `FAQ` off la pantalla 30 perd només la pestanya de preguntes (les pàgines del club es queden a `/info`); §10, les claus de 12 a `auth:profile.*` i les de 30 a `shell:info.*`.
 - 01-10-2026 · verificació d'E7-T05 (decisió E81): R-11-11, `OPEN_SETUP` (N-31) obre el visor del muntatge de S16 amb el `ringId` de l'acció, no la pantalla 08.
 - 01-10-2026 · verificació d'E7-T04 (decisió E82): R-11-13, el lot d'un comunicat es renderitza amb la versió de la plantilla del moment de l'enviament, i tot comunicat respecta `pushClubNews`.
+- 01-10-2026 · verificacions d'E7-T07 i E7-W03 (decisió E89): els codis d'error propis porten l'estat de la regla 0 de `CATALEG_ERRORS` (422), que mana sobre els 400 i 409 que encara escriuen §6 i les regles.
