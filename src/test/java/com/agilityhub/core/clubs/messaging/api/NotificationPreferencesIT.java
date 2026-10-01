@@ -176,6 +176,29 @@ class NotificationPreferencesIT extends AbstractIntegrationTest {
         for (String role : List.of("MEMBER", "INSTRUCTOR")) { call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), LAURA, role, CLUB), 403); }
     }
 
+    /**
+     * E7-T06 step 3 (E7-T03 step 6; review #3): `locale` is `Account.locale` as stored, even when the club does not offer it —
+     * an `en` account in a `ca/es` club reads `en` on 12 and in D10 (the engine renders its notices in `en`, R-11-01), and
+     * `availableLocales` stays the club's. An account without a language reads the club's default. Before the fix both routes
+     * answered the club's default (`ca`).
+     */
+    @Test void T_11_20_theLocaleIsTheAccountsOwnEvenOutsideTheClubsLanguages() throws Exception {
+        var tree = (ObjectNode) mapper.valueToTree(clubs.findById(CLUB).orElseThrow());
+        tree.set("locales", mapper.valueToTree(List.of("ca", "es"))); tree.put("defaultLocale", "ca");
+        clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(CLUB);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(LAURA)), new org.springframework.data.mongodb.core.query.Update().set("locale", "en"), "accounts");
+        var mine = call(as(get("/api/v1/me/notification-preferences"), LAURA, "MEMBER", CLUB), 200);
+        var d10 = call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), ADMIN, "ADMIN", CLUB), 200);
+        assertThat(mine.path("locale").asText()).isEqualTo("en"); assertThat(d10.path("locale").asText()).isEqualTo("en");
+        assertThat(mine.path("availableLocales")).isEqualTo(mapper.readTree("[\"ca\", \"es\"]")); assertThat(d10).isEqualTo(mine);
+        // A save answers the same language.
+        assertThat(call(as(put("/api/v1/me/notification-preferences").content("{\"pushClubNews\": false}"), LAURA, "MEMBER", CLUB), 200).path("locale").asText())
+                .isEqualTo("en");
+        // An account without a language: the club's default.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(LAURA)), new org.springframework.data.mongodb.core.query.Update().unset("locale"), "accounts");
+        assertThat(call(as(get("/api/v1/me/notification-preferences"), LAURA, "MEMBER", CLUB), 200).path("locale").asText()).isEqualTo("ca");
+    }
+
     @Test void T_11_28_theImpersonationTokenSavesTheMembersBlockWithAudit() throws Exception {
         mongo.save(new com.agilityhub.core.identity.persistence.Membership(ADMIN, ADMIN, CLUB, null, Set.of(com.agilityhub.core.identity.domain.Role.ADMIN),
                 com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.ADMIN));

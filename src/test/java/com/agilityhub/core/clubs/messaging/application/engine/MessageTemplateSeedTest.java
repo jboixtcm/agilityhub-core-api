@@ -105,6 +105,29 @@ class MessageTemplateSeedTest {
         return texts;
     }
 
+    /**
+     * E7-T06 step 5 (claude review #3, AGENTS rule 2): a seed prints only its row's variables. Every ICU argument of every seed
+     * text is either one of the code's template variables or the name of a `select`/`plural` argument (a selector such as
+     * `has_upfront` or `mode`, which chooses a branch and prints nothing of its own). Before the fix N-08b's body printed
+     * `{class_description}` and N-32c's SMS `{date}`, outside their CATALEG_NOTIFICACIONS rows.
+     */
+    @Test void E7_T06_everyIcuArgumentOfTheSeedIsARowVariableOrASelector() {
+        var outside = new java.util.TreeSet<String>();
+        for (var seeded : seed.all()) {
+            var variables = new HashSet<>(NotificationCatalog.templateVariables(NotificationCatalog.byCode(seeded.code()).orElseThrow()));
+            for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) {
+                texts.forEach((locale, text) -> {
+                    var names = TemplateValidator.syntax(seeded.code(), text);
+                    names.icu().stream().filter(name -> !variables.contains(name) && !names.selectors().contains(name))
+                            .forEach(name -> outside.add(seeded.code() + " " + locale + " {" + name + "}"));
+                });
+            }
+        }
+        assertThat(outside).isEmpty();
+        assertThat(seed.of("N-08b").orElseThrow().body().values()).allSatisfy(text -> assertThat(text).doesNotContain("class_description"));
+        assertThat(seed.of("N-32c").orElseThrow().smsBody().values()).allSatisfy(text -> assertThat(text).doesNotContain("date"));
+    }
+
     @Test void E7_T03_everySeedPassesTheValidationOfAnUnchangedSave() throws Exception {
         var messages = new IcuMessageSource();
         var samples = new TemplateSampleData(messages);
@@ -115,8 +138,9 @@ class MessageTemplateSeedTest {
         var config = new ClubConfig(club, Map.of(), Set.of(), null, Map.of());
         for (var seeded : seed.all()) {
             var spec = NotificationCatalog.byCode(seeded.code()).orElseThrow();
+            // The save's ICU names besides the variables: the seed's selectors only (E7-T06, `MessageTemplateService.seedArguments`).
             var icu = new HashSet<String>();
-            for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) { texts.values().forEach(t -> icu.addAll(TemplateValidator.syntax(spec.code(), t).icu())); }
+            for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) { texts.values().forEach(t -> icu.addAll(TemplateValidator.syntax(spec.code(), t).selectors())); }
             var caps = new java.util.EnumMap<com.agilityhub.core.clubs.messaging.domain.NotificationAudience, Set<com.agilityhub.core.clubs.messaging.domain.NotificationChannel>>(
                     com.agilityhub.core.clubs.messaging.domain.NotificationAudience.class);
             spec.audiences().stream().filter(a -> a.templated()).forEach(a -> caps.put(a, spec.caps(a)));

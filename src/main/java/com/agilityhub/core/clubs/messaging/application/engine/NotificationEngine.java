@@ -278,7 +278,11 @@ public class NotificationEngine {
         return new Notification.Action(type, params);
     }
 
-    /** The values every code can use: `club_name`, the recipient's names and gender, the subject dog's name and article, `audience`. */
+    /**
+     * The values every code can use: `club_name`, the recipient's names and gender, the subject dog's name and article,
+     * `audience`. `member_last_names` is the derived form of `member_name` wherever the name facts are (E7-T06): the MEMBER
+     * recipient's own, or the facts' `member_name`/`member_first_name` for any other audience (an applicant's, from the signup).
+     */
     private void derived(RecipientResolver.Recipient recipient, NotificationSpec spec, ClubConfig config, Locale locale, Map<String, Object> raw) {
         raw.putIfAbsent("club_name", config.club().name());
         raw.put("audience", recipient.audience() == NotificationAudience.MEMBER || recipient.audience() == NotificationAudience.APPLICANT ? "MEMBER" : "STAFF");
@@ -286,7 +290,7 @@ public class NotificationEngine {
             var contact = recipient.contact();
             raw.putIfAbsent("member_name", contact.displayName());
             raw.putIfAbsent("member_first_name", contact.firstName());
-            raw.putIfAbsent("member_last_names", lastNames(contact));
+            raw.putIfAbsent("member_last_names", lastNames(contact.displayName(), contact.firstName()));
             raw.putIfAbsent("gender", contact.gender() == null ? "OTHER" : contact.gender());
             // The subject dog whoever owns it (the family member who booked the owner's dog reads its name, A20b).
             var dog = Optional.ofNullable(recipient.subjectDog());
@@ -301,10 +305,14 @@ public class NotificationEngine {
             }
         }
         if (raw.get("dog_name") instanceof String name && !raw.containsKey("dog_name_article")) { raw.put("dog_name_article", name); }
+        if (!raw.containsKey("member_last_names") && raw.get("member_name") instanceof String name && raw.get("member_first_name") instanceof String first) {
+            raw.put("member_last_names", lastNames(name, first));
+        }
     }
-    private static String lastNames(MemberContact contact) {
-        if (contact.firstName() == null || contact.displayName().length() <= contact.firstName().length()) { return ""; }
-        return contact.displayName().startsWith(contact.firstName()) ? contact.displayName().substring(contact.firstName().length()).strip() : "";
+    /** The surnames of a full name that starts with the first name («Laura Serra Puig» → «Serra Puig»); empty otherwise. */
+    static String lastNames(String fullName, String firstName) {
+        if (fullName == null || firstName == null || fullName.length() <= firstName.length()) { return ""; }
+        return fullName.startsWith(firstName) ? fullName.substring(firstName.length()).strip() : "";
     }
 
     /** `notif.{code}.staff.{part}`: the non-editable product copy of the staff audiences (part C S11). */

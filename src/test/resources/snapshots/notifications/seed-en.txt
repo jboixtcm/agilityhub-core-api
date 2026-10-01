@@ -63,10 +63,10 @@ body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C — class cancelled. Th
 
 ## N-08b MEMBER
 title: Class changed by the club
-body: 12 Wednesday · B+C, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.
+body: 12 Wednesday, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.
 sms: Club Agility Exemple: class 12 Wednesday with Duna changed. Time: 18:50 -> 19:00 . Ring: Central -> Muntanya. [109]
-email.text: Class changed by the club⏎⏎12 Wednesday · B+C, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 66b57b843e495c1d
+email.text: Class changed by the club⏎⏎12 Wednesday, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: c70fba992c566640
 
 ## N-08b INSTRUCTORS
 title: Class changed by the club
@@ -218,7 +218,7 @@ email.html.sha256: c1d6af358fa4f7f1
 ## N-32c MEMBER
 title: Activity cancelled by the club
 body: Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
-sms: Club Agility Exemple: Seminari de canicross (12 Wed) is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for... [160]
+sms: Club Agility Exemple: Seminari de canicross is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inco... [160]
 email.text: Activity cancelled by the club⏎⏎Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
 email.html.sha256: afb9d37b925e5e18
 

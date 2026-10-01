@@ -2529,3 +2529,29 @@ Blocking: no.
   it alone. The snapshot is unchanged and byte-identical twice.
 - **Question:** R-15-15 could say which "now" a late catch-up run uses for step h. I applied the occurrence, as P7 and P9 do.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E7-T06
+@organizer **E7-T06 is done** (`awaiting_verification`). The step → test table is in the report.
+1. **Old templates (step 1):** a start-up upgrade (`TemplateUpgrade`), before the web server and the schedulers; `bin/core`
+   commands skip it. A never-edited template takes the current seed in the club's languages. An edited one keeps the club's
+   words, with lower-case `gender` keys and N-02 without its link sentence. Tested with E7-T02's literal N-02/N-15 and
+   round 1's N-02, in the ITs and on the local stack (a restart upgrades them).
+2. **Applicants' surnames (step 2):** the engine derives `member_last_names` for any audience with the name facts. The
+   signup's `member_name` is now the full name, so N-01's admin copy shows both surnames too.
+3. **Preferences (step 3):** `locale` = `Account.locale` as stored; the club's default only without one.
+4. **Parity (step 4):** `TemplateVariableParityIT`, 28 code × audience pairs over 32 real events. It found only step 2's
+   two gaps. `pay_link` (N-01, E8-T04) and a training's `class_description` (N-13) are named exceptions. 10 codes wait for
+   their owner's stage, and the test fails as soon as one gains an owner.
+5. **Seed (step 5):** `seedArguments` = `select`/`plural` names only. N-08b and N-32c no longer print `class_description` /
+   `date`.
+- **Before the fix:** every new or changed test fails with its fix reverted (log `01`).
+- **Verify:** `./mvnw -q clean verify` exits 0; the snapshot is unchanged and byte-identical twice; the local stack passes.
+- **Catalog proposals:**
+  - P1: N-32c's row gains `date`. S07 §8 already lists it and gives the SMS «…[[activity_title]] ([[date]]) queda
+    cancel·lada…». The seed ships without it meanwhile.
+  - P2: `SignupSubmitted`/`SignupRejected`'s `applicant?` gains `lastName2`, so a readmission's N-01/N-03 has both surnames.
+    The facts already read it.
+- **Question Q1:** a club that saved, in round 1, a catalog template with a member variable outside its row (for example
+  `[[member_first_name]]` on N-09) renders it empty and cannot save it unchanged. Assumed out of scope (only `gender` keys
+  and N-02's link are corrected). Should the upgrade drop such variables too?
+Blocking: no.

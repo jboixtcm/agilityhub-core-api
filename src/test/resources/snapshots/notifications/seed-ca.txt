@@ -63,10 +63,10 @@ body: Club Agility Exemple: dimecres 12 · 18:50 · B+C — classe anul·lada. L
 
 ## N-08b MEMBER
 title: Classe modificada pel club
-body: Dimecres 12 · B+C, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.
+body: Dimecres 12, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.
 sms: Club Agility Exemple: classe dimecres 12 amb Duna modificada. Hora: 18:50 -> 19:00 . Pista: Central -> Muntanya. [112]
-email.text: Classe modificada pel club⏎⏎Dimecres 12 · B+C, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 105a476e7c6d164e
+email.text: Classe modificada pel club⏎⏎Dimecres 12, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 17a07e2e2b5163bb
 
 ## N-08b INSTRUCTORS
 title: Classe modificada pel club
@@ -218,7 +218,7 @@ email.html.sha256: d21d54cb0ae5d427
 ## N-32c MEMBER
 title: Activitat cancel·lada pel club
 body: Seminari de canicross: La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!
-sms: Club Agility Exemple: l'activitat Seminari de canicross (dc 12) queda cancel.lada. La classe queda anul.lada per la pluja. Podeu reservar-ne una altra des de... [160]
+sms: Club Agility Exemple: l'activitat Seminari de canicross queda cancel.lada. La classe queda anul.lada per la pluja. Podeu reservar-ne una altra des de l'app.... [159]
 email.text: Activitat cancel·lada pel club⏎⏎Seminari de canicross: La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
 email.html.sha256: 5f9c5b573b10e997
 

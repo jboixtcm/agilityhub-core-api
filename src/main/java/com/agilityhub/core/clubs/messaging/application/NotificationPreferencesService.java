@@ -103,9 +103,14 @@ public class NotificationPreferencesService {
     }
 
     private View view(MemberContact member, ClubConfig config) { return view(member, config, NotificationPreference.of(member.preferences())); }
+    /**
+     * `locale` is `Account.locale` as stored (E7-T03 step 6, E7-T06), also when it is not one of the club's languages: the
+     * engine renders the member's notices in it (R-11-01), and 12/D10 show it; `availableLocales` stays the club's. Only a
+     * member without an account, or an account without a language, reads the club's default (the field is always present).
+     */
     private View view(MemberContact member, ClubConfig config, NotificationPreference preferences) {
         String locale = member.accountId() == null ? null : accounts.find(member.accountId()).map(NotificationAccounts.Recipient::locale).orElse(null);
-        if (locale == null || locale.isBlank() || !config.club().locales().contains(locale)) { locale = config.club().defaultLocale(); }
+        if (locale == null || locale.isBlank()) { locale = config.club().defaultLocale(); }
         return new View(preferences, options(config), locale, config.club().locales(), config.modules().contains(Module.SMS), config.modules().contains(Module.PUSH));
     }
     /** `messaging.reminderOptionsMinutes`, the choices of «Recordatori de classe» (R-11-04). */

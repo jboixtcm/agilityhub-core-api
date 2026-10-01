@@ -23,6 +23,14 @@ public class MessageTemplateRepository extends TenantRepository<MessageTemplate>
                 .partial(PartialIndexFilter.of(Criteria.where("code").type(2))));
         indexes.ensureIndex(new Index().on("clubId", ASC).on("category", ASC).on("status", ASC).named("template_club_category_status"));
     }
+    /**
+     * Every club that holds a template, across tenants (E7-T06: the start-up upgrade walks them one tenant at a time; it
+     * reads and writes each club's templates through the tenant-scoped methods).
+     */
+    public java.util.List<String> clubIds() {
+        return mongo.findDistinct(new org.springframework.data.mongodb.core.query.Query(), "clubId", MessageTemplate.class, String.class).stream()
+                .filter(java.util.Objects::nonNull).sorted().toList();
+    }
     /** The club's template of a catalog code (R-11-01). */
     public Optional<MessageTemplate> findByCode(String code) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("code").is(code)), MessageTemplate.class));

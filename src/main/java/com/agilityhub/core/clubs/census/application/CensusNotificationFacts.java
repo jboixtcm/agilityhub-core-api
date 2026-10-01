@@ -88,8 +88,12 @@ public class CensusNotificationFacts implements NotificationFactsPort {
         var member = id == null ? null : access.members.findById(id).orElse(null);
         if (member == null || member.erasedAt != null) { return Optional.empty(); }
         var person = map(trigger.payload().get("applicant")); boolean submitted = !person.isEmpty();
-        String firstName = submitted ? string(person.get("firstName")) : member.firstName, lastName = submitted ? string(person.get("lastName1")) : member.lastName1;
-        String memberName = String.join(" ", Objects.toString(firstName, ""), Objects.toString(lastName, "")).strip();
+        String firstName = submitted ? string(person.get("firstName")) : member.firstName;
+        // E7-T06: the full name, as every other audience's `member_name` (first name and both surnames), so the engine derives the
+        // applicant's `member_last_names` from it. A readmission's `applicant` carries `lastName1` only (CATALEG_ESDEVENIMENTS).
+        String memberName = java.util.stream.Stream.of(firstName, submitted ? string(person.get("lastName1")) : member.lastName1,
+                submitted ? string(person.get("lastName2")) : member.lastName2).filter(part -> part != null && !part.isBlank()).map(String::strip)
+                .collect(java.util.stream.Collectors.joining(" "));
         String email = submitted ? string(person.get("email")) : rows(member.contactEmails).isEmpty() ? null : string(rows(member.contactEmails).getFirst().get("email"));
         String locale = string((submitted ? person : map(member.signup)).getOrDefault("locale", access.config().club().defaultLocale()));
         var builder = NotificationFacts.builder().subject(NotificationSubject.member(id)).value("ADMINS", "entityId", id)

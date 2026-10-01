@@ -38,9 +38,9 @@ class TemplateValidatorTest {
 
     private TemplateValidator.Rules rules(String code) {
         var spec = NotificationCatalog.byCode(code).orElseThrow();
-        var icu = new HashSet<String>();
+        var icu = new HashSet<String>(); // the seed's selectors, as `MessageTemplateService.seedArguments` (E7-T06)
         var seeded = seed.of(code).orElseThrow();
-        for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) { texts.values().forEach(t -> icu.addAll(TemplateValidator.syntax(code, t).icu())); }
+        for (var texts : List.of(seeded.title(), seeded.body(), seeded.smsBody())) { texts.values().forEach(t -> icu.addAll(TemplateValidator.syntax(code, t).selectors())); }
         var caps = new EnumMap<NotificationAudience, Set<NotificationChannel>>(NotificationAudience.class);
         spec.audiences().stream().filter(NotificationAudience::templated).forEach(a -> caps.put(a, spec.caps(a)));
         return new TemplateValidator.Rules(NotificationCatalog.templateVariables(spec), icu, NotificationCatalog.templateRequiredVariables(spec), caps,
@@ -134,6 +134,27 @@ class TemplateValidatorTest {
         // Round 2 (review #2): the member variables of R-11-12 are CUSTOM templates'; a catalog code has only its row's (N-29: `reason`).
         assertThat(error(() -> validate("N-29", draft("N-29", null, Map.of("ca", "Hola [[member_first_name]]: [[reason]]"), null, null, true)),
                 ErrorCode.TEMPLATE_UNKNOWN_VARIABLE).details()).containsEntry("variables", List.of("member_first_name"));
+    }
+
+    /**
+     * E7-T06 step 5 (claude review #3): a seed's simple `{var}` is no second variable list. The names a save accepts besides
+     * the row's variables are the seed's `select`/`plural` argument names only: N-08b's `{class_description}` and N-32c's
+     * `{date}` are refused like their `[[var]]` forms (neither is in its CATALEG_NOTIFICACIONS row), while N-01's
+     * `has_upfront` and N-16's `auto_cancel` selectors stay. Before the fix `seedArguments` read every ICU argument of the
+     * seed, and both texts were accepted.
+     */
+    @Test void E7_T06_theSeedsSelectorsAreTheOnlyIcuNamesBesidesTheRowsVariables() {
+        var names = TemplateValidator.syntax("t", "{mode, select, FIFO {[[a]] {confirm_by}} other {x}} {count, plural, one {#} other {#}} {n, selectordinal, other {#}} {date}");
+        assertThat(names.icu()).containsExactly("mode", "confirm_by", "count", "n", "date");
+        assertThat(names.selectors()).containsExactly("mode", "count", "n");
+        assertThat(rules("N-01").icuNames()).contains("has_upfront"); assertThat(rules("N-16").icuNames()).contains("auto_cancel");
+        assertThat(rules("N-08b").icuNames()).doesNotContain("class_description"); assertThat(rules("N-32c").icuNames()).doesNotContain("date");
+        var n08b = error(() -> validate("N-08b", draft("N-08b", null, Map.of("ca", "[[class_date]] · {class_description}, amb [[dog_name]]: [[changes]]."), null, null, true)),
+                ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
+        assertThat(n08b.details()).containsEntry("field", "body.ca").containsEntry("variables", List.of("class_description"));
+        var n32c = error(() -> validate("N-32c", draft("N-32c", null, null, Map.of("ca", "[[club_name]]: [[activity_title]] ({date}). [[admin_text]]"), null, true)),
+                ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
+        assertThat(n32c.details()).containsEntry("field", "smsBody.ca").containsEntry("variables", List.of("date"));
     }
 
     @Test void T_11_06_T_11_12_theSmsRules() {

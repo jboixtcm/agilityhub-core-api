@@ -122,8 +122,11 @@ public final class TemplateValidator {
         if (rules.mandatory() && !draft.enabled()) { throw new ApiException(ErrorCode.TEMPLATE_MANDATORY); }
     }
 
-    /** The `[[var]]` names and the ICU argument names of a text. */
-    public record Names(Set<String> variables, Set<String> icu) { }
+    /**
+     * The `[[var]]` names and the ICU argument names of a text; `selectors` are the ICU arguments that choose a branch
+     * (`select`, `plural`, `selectordinal`: `gender`, `has_upfront`, `mode`…), a subset of `icu`.
+     */
+    public record Names(Set<String> variables, Set<String> icu, Set<String> selectors) { }
 
     /** Parses one text as the renderer does (every apostrophe literal); `TEMPLATE_SYNTAX_ERROR` when it cannot. */
     public static Names syntax(String field, String text) {
@@ -140,17 +143,23 @@ public final class TemplateValidator {
             else if (text.charAt(i) == '}' && --depth < 0) { throw syntaxError(field); }
         }
         if (depth != 0) { throw syntaxError(field); }
-        var icu = new LinkedHashSet<String>();
+        var icu = new LinkedHashSet<String>(); var selectors = new LinkedHashSet<String>();
         try {
             var pattern = new MessagePattern(MessagePattern.ApostropheMode.DOUBLE_OPTIONAL).parse(text.replace("''", "'").replace("'", "''"));
             for (int i = 0; i < pattern.countParts(); i++) {
                 var part = pattern.getPart(i);
                 if (part.getType() == MessagePattern.Part.Type.ARG_NAME) { icu.add(pattern.getSubstring(part)); }
                 if (part.getType() == MessagePattern.Part.Type.ARG_NUMBER) { icu.add(Integer.toString(part.getValue())); }
+                if (part.getType() == MessagePattern.Part.Type.ARG_START && SELECTING.contains(part.getArgType()) && i + 1 < pattern.countParts()) {
+                    var name = pattern.getPart(i + 1);
+                    selectors.add(name.getType() == MessagePattern.Part.Type.ARG_NUMBER ? Integer.toString(name.getValue()) : pattern.getSubstring(name));
+                }
             }
         } catch (IllegalArgumentException | IndexOutOfBoundsException unparsable) { throw syntaxError(field); }
-        return new Names(variables, icu);
+        return new Names(variables, icu, selectors);
     }
+    private static final Set<MessagePattern.ArgType> SELECTING = Set.of(MessagePattern.ArgType.SELECT, MessagePattern.ArgType.PLURAL,
+            MessagePattern.ArgType.SELECTORDINAL);
 
     private static void texts(String field, Map<String, String> values, List<String> locales, String defaultLocale, boolean required, int max,
             List<Map<String, Object>> errors) {

@@ -194,12 +194,16 @@ public class MessageTemplateService {
         return new TemplateValidator.Rules(NotificationCatalog.templateVariables(spec), seedArguments(code), NotificationCatalog.templateRequiredVariables(spec), caps,
                 MessageTemplateSeed.smsCapable(spec), spec.mandatory());
     }
-    /** The ICU arguments of the code's seed in every language (its own selectors: `has_upfront`, `active`, `change`…). */
+    /**
+     * The selectors of the code's seed in every language: the names of its `select` and `plural` arguments (`has_upfront`,
+     * `active`, `change`…), which choose a branch and are no `[[var]]` of their own. A simple `{var}` of the seed is never
+     * one (E7-T06, AGENTS rule 2): a template may print only its row's variables ({@link NotificationCatalog#templateVariables}).
+     */
     Set<String> seedArguments(String code) {
         var names = new LinkedHashSet<String>();
         provider.seeds().of(code).ifPresent(seed -> {
             for (var texts : List.of(seed.title(), seed.body(), seed.smsBody())) {
-                texts.forEach((locale, text) -> names.addAll(TemplateValidator.syntax(code, text).icu()));
+                texts.forEach((locale, text) -> names.addAll(TemplateValidator.syntax(code, text).selectors()));
             }
         });
         return names;

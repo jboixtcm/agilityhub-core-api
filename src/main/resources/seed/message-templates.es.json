@@ -121,7 +121,7 @@
     {
       "code": "N-08b",
       "title": "Clase modificada por el club",
-      "body": "[[class_date]] · {class_description}, con [[dog_name]]: la clase ha cambiado. [[changes]]. Consulta la app.",
+      "body": "[[class_date]], con [[dog_name]]: la clase ha cambiado. [[changes]]. Consulta la app.",
       "smsBody": "[[club_name]]: clase [[class_date]] con [[dog_name]] modificada. [[changes]].",
       "icon": "bell",
       "color": "NEUTRAL",
@@ -491,7 +491,7 @@
       "code": "N-32c",
       "title": "Actividad cancelada por el club",
       "body": "[[activity_title]]: [[admin_text]]",
-      "smsBody": "[[club_name]]: la actividad [[activity_title]] ({date}) queda cancelada. [[admin_text]]",
+      "smsBody": "[[club_name]]: la actividad [[activity_title]] queda cancelada. [[admin_text]]",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

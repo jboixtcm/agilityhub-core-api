@@ -1,0 +1,31 @@
+surefire (unit): tests=891 failures=0 errors=0 skipped=0
+  MessagingE7T06UnitTest: tests=5 failures=0 errors=0 skipped=0
+  MessageTemplateSeedTest: tests=5 failures=0 errors=0 skipped=0
+  TemplateValidatorTest: tests=9 failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest: tests=3 failures=0 errors=0 skipped=0
+  MessagingE7T03UnitTest: tests=6 failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest: tests=4 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=14 failures=0 errors=0 skipped=0
+failsafe (integration): tests=1289 failures=0 errors=0 skipped=0
+  TemplateUpgradeIT: tests=2 failures=0 errors=0 skipped=0
+  TemplateVariableParityIT: tests=2 failures=0 errors=0 skipped=0
+  NotificationPreferencesIT: tests=6 failures=0 errors=0 skipped=0
+  NotificationEngineIT: tests=13 failures=0 errors=0 skipped=0
+  MessageTemplatesIT: tests=10 failures=0 errors=0 skipped=0
+JaCoCo (merged unit + integration), line / branch covered ratio:
+  com.agilityhub.core.clubs.census.application: lines 0.987 (2090/2117), branches 0.848 (1785/2105)
+  com.agilityhub.core.clubs.messaging.api: lines 0.994 (175/176), branches 0.850 (51/60)
+  com.agilityhub.core.clubs.messaging.application: lines 0.994 (884/889), branches 0.875 (744/850)
+  com.agilityhub.core.clubs.messaging.application.engine: lines 0.987 (955/968), branches 0.893 (847/948)
+  com.agilityhub.core.clubs.messaging.application.integrations: lines 0.994 (175/176), branches 0.971 (66/68)
+  com.agilityhub.core.clubs.messaging.application.ports: lines 0.985 (129/131), branches 0.987 (75/76)
+  com.agilityhub.core.clubs.messaging.domain: lines 1.000 (458/458), branches 0.975 (352/361)
+  com.agilityhub.core.clubs.messaging.persistence: lines 0.996 (267/268), branches 0.921 (152/165)
+  class CensusNotificationFacts: lines 77/78, branches 75/101
+  class MessageTemplateService: lines 185/186, branches 155/174
+  class NotificationEngine: lines 235/237, branches 205/233
+  class NotificationPreferencesService: lines 49/49, branches 33/44
+  class TemplateUpgrade: lines 108/108, branches 126/139
+  class TemplateUpgrade.Outcome: lines 1/1, branches 0/0
+  class TemplateUpgrade.Result: lines 2/2, branches 0/0
+  class TemplateValidator: lines 87/87, branches 88/94
