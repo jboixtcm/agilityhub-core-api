@@ -31,6 +31,8 @@ public class PendingChargeService {
     private static final Logger LOG = LoggerFactory.getLogger(PendingChargeService.class);
     /** A booking of a single class as its consumers see it: the dog's owner, the dog and the class's club-local day. */
     public record ChargedBooking(String bookingId, String memberId, String dogId, String dogName, LocalDate classDate) { }
+    /** The booking's charge after an event: its id and whether it is live (false: voided, the booking stops naming it). */
+    public record BookingCharge(String chargeId, boolean live) { }
 
     private final PendingChargeRepository charges; private final BillingCensusAccess census; private final BillingCatalogAccess catalog;
     private final ClubConfigService configs; private final BillingTexts texts; private final Clock clock;
@@ -39,19 +41,21 @@ public class PendingChargeService {
         this.charges = charges; this.census = census; this.catalog = catalog; this.configs = configs; this.texts = texts; this.clock = clock;
     }
 
-    /** S10 `AttendanceMarked{state, previousState}`: the id of the booking's live (not voided) charge after the mark, if any. */
-    public Optional<String> attendance(ChargedBooking booking, String state, String previousState) {
+    /** S10 `AttendanceMarked{state, previousState}`: the booking's charge after the mark, if it has one (empty: nothing done). */
+    public Optional<BookingCharge> attendance(ChargedBooking booking, String state, String previousState) {
         if (!enabled()) { return Optional.empty(); }
         var existing = charges.forBooking(booking.bookingId());
-        return live(apply(booking, PendingChargeRules.onAttendance(state, previousState, existing(existing)), existing));
+        return state(apply(booking, PendingChargeRules.onAttendance(state, previousState, existing(existing)), existing));
     }
-    /** S08 `BookingCancelled{late}`: a late cancellation is charged; the id of the booking's live charge, if any. */
-    public Optional<String> cancellation(ChargedBooking booking, boolean late) {
+    /** S08 `BookingCancelled{late}`: a late cancellation is charged; the booking's charge after it, if it has one. */
+    public Optional<BookingCharge> cancellation(ChargedBooking booking, boolean late) {
         if (!enabled()) { return Optional.empty(); }
         var existing = charges.forBooking(booking.bookingId());
-        return live(apply(booking, PendingChargeRules.onCancellation(late, existing(existing)), existing));
+        return state(apply(booking, PendingChargeRules.onCancellation(late, existing(existing)), existing));
     }
-    private static Optional<String> live(Optional<PendingCharge> charge) { return charge.filter(pending -> pending.voidedAt() == null).map(PendingCharge::id); }
+    private static Optional<BookingCharge> state(Optional<PendingCharge> charge) {
+        return charge.map(pending -> new BookingCharge(pending.id(), pending.voidedAt() == null));
+    }
     /** `GET /members/{id}/pending-charges`: the member's charges, newest first, billed and voided ones included. */
     public List<PendingCharge> forMember(String memberId) { return charges.forMember(memberId); }
 

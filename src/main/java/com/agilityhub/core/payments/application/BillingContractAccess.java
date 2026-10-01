@@ -43,7 +43,7 @@ public class BillingContractAccess {
             List.of("displayNumber", "member", "concept", "total", "paymentMethodType", "status", "issueDate", "period", "kind", "paidAt", "remittanceId"),
             List.of("displayNumber", "member", "concept", "total", "paymentMethodType", "status"), List.of("number,desc"),
             Set.of("id", "displayNumber", "number", "issueDate", "period", "member", "concept", "total", "paymentMethodType", "status", "kind",
-                    "runId", "remittanceId", "refundedTotal", "paidAt", "failedAt"));
+                    "runId", "remittanceId", "refundedTotal", "paidAt", "failedAt", "rolledBack"));
     /** `GET /remittances` (S12 §6): filters `period, status`; no free-text search (CONVENCIONS_API §4, E75). */
     public static final ListDefinition REMITTANCES = new ListDefinition("remittances",
             Map.of("period", new Field("period", Type.TEXT), "status", new Field("status", Type.TEXT)),

@@ -218,6 +218,23 @@ class InvoiceActionsIT extends BillingItSupport {
         assertThat(detail.toString()).doesNotContain(IBAN);
     }
 
+    /** Round 2 (review #9): S12 §10, the receipt names the tax after the club's country profile (`ES` → «IVA»). */
+    @Test void T_12_20_theReceiptNamesTheTaxAfterTheClubsCountryProfile() throws Exception {
+        String taxed = ok(admin(keyed(post("/api/v1/invoices"), Map.of("memberId", "puig", "lines", List.of(Map.of("description", "Material",
+                "base", Map.of("amountMinor", 4959, "currency", "EUR"), "taxPercent", 21)), "note", "Amb IVA"))), 201).path("id").asText();
+        assertThat(receiptText(taxed)).contains("IVA", "10,41", "60,00").doesNotContain("Impost");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new org.springframework.data.mongodb.core.query.Update().set("countryProfile", "GENERIC"), "clubs");
+        configs.invalidate(CLUB);
+        assertThat(receiptText(taxed)).contains("Impost", "10,41").doesNotContain("IVA");
+        // The Cànic bills without tax (B3): no tax row at all.
+        assertThat(receiptText(id("vila"))).doesNotContain("Impost", "IVA");
+    }
+    private String receiptText(String invoiceId) throws Exception {
+        var pdf = call(admin(get("/api/v1/invoices/" + invoiceId + "/document")));
+        assertThat(pdf.getStatus()).isEqualTo(200);
+        try (var document = Loader.loadPDF(pdf.getContentAsByteArray())) { return new PDFTextStripper().getText(document); }
+    }
+
     @Test void T_12_21_anotherClubsAdminGets404AndMembersInstructorsAndImpersonationAre403() throws Exception {
         String invoice = id("puig"), run = byMember.get("puig").getString("runId");
         for (String path : List.of("/api/v1/invoices/" + invoice, "/api/v1/invoices/" + invoice + "/document", "/api/v1/billing/runs/" + run)) {

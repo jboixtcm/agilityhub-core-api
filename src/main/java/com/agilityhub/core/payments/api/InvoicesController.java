@@ -53,12 +53,14 @@ public class InvoicesController {
             columns = {"displayNumber*", "member*", "concept*", "total*", "paymentMethodType*", "status*", "issueDate", "period", "kind", "paidAt", "remittanceId"},
             paged = true, exportable = true,
             fields = {"id", "displayNumber", "number", "issueDate", "period", "member", "concept", "total", "paymentMethodType", "status", "kind", "runId",
-                    "remittanceId", "refundedTotal", "paidAt", "failedAt"})
+                    "remittanceId", "refundedTotal", "paidAt", "failedAt", "rolledBack"})
     @ContractErrors({INVALID_FILTER, MODULE_DISABLED})
     @Operation(summary = "invoices", description = ROLES + "D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips "
             + "Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els "
             + "rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when "
-            + "there are more lines. An undeclared filter, sort or fields key → 400 INVALID_FILTER." + SERVED,
+            + "there are more lines. A receipt cancelled by a rollback (R-12-14: its number was reissued) is listed, counted and searched only "
+            + "when the status filter selects CANCELLED (eq or in), with rolledBack = true. An undeclared filter, sort or fields key → 400 "
+            + "INVALID_FILTER." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "InvoicePage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = InvoicePage.class))))
     public Object invoices(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -162,7 +164,8 @@ public class InvoicesController {
     @PostMapping("/api/v1/invoices/{id}/cancellation")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "cancelInvoice", description = ROLES + "R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason, "
-            + "InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status})." + SERVED,
+            + "InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). The reason "
+            + "ROLLBACK is the rollback's own (R-12-14) → 400 VALIDATION_ERROR {field: reason}." + SERVED,
             responses = @ApiResponse(responseCode = "200", description = "Invoice", useReturnTypeSchema = true))
     public Invoice cancelInvoice(@PathVariable String id, @Valid @RequestBody InvoiceCancellationRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {

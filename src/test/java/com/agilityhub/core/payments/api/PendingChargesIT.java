@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * S12 R-12-25 (E8-T02, T-12-08's integration half): the consumers of S10 `AttendanceMarked` and S08 `BookingCancelled{late}`
@@ -79,14 +80,17 @@ class PendingChargesIT extends BillingItSupport {
         attendance("bill-b-attended", "PRESENT", "PENDING");
         attendance("bill-b-attended", "NO_SHOW", "PRESENT");
         assertThat(charges()).hasSize(1);
-        // Back to PENDING before billing (S10 R-10-07): voided; marked again: the same charge comes back.
+        // Back to PENDING before billing (S10 R-10-07): voided, and the booking no longer names it (round 2, review #8); marked
+        // again: the same charge comes back and the booking names it again.
         attendance("bill-b-attended", "PENDING", "NO_SHOW");
         assertThat(charges().getFirst().get("voidedAt")).isNotNull();
+        assertThat(chargeRef("bill-b-attended")).isNull();
         attendance("bill-b-attended", "PRESENT", "PENDING");
         assertThat(charges()).singleElement().satisfies(charge -> {
             assertThat(charge.getString("_id")).isEqualTo(chargeId);
             assertThat(charge.get("voidedAt")).isNull();
         });
+        assertThat(chargeRef("bill-b-attended")).isEqualTo(chargeId);
         // A late cancellation is charged; an in-time one is not; a PAY_TO_BOOK booking (E8-T04) is left alone.
         publish(new BookingEvent(BookingEvent.Kind.BookingCancelled, CLUB, "bill-b-late", clock.instant(), Map.of("bookingId", "bill-b-late", "late", true, "by", "MEMBER"),
                 "bill-mia", null, DomainEvent.Origin.APP));
@@ -105,6 +109,30 @@ class PendingChargesIT extends BillingItSupport {
         // Once billed, a mark back to PENDING never changes the charge (the invoice is immutable: an adjustment corrects it).
         attendance("bill-b-attended", "PENDING", "PRESENT");
         assertThat(charges()).allSatisfy(charge -> assertThat(charge.get("voidedAt")).isNull());
+    }
+
+    /**
+     * Round 2 (review #3, ruling E87): S04 sets `nextInvoiceDate` only for MONTHLY plans, so a validated single-class member has
+     * none. Their charges are billed by the month's run all the same, and the run gives them no date; a rollback unbills them.
+     */
+    @Test void T_12_08_R_12_25_aSingleClassMemberWithoutANextInvoiceDateIsBilledForTheirCharges() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("mas")), new org.springframework.data.mongodb.core.query.Update().unset("nextInvoiceDate"), "members");
+        attendance("bill-b-attended", "PRESENT", "PENDING");
+        clock.setInstant(Instant.parse("2026-10-26T09:00:00Z"));
+        var simulation = simulate("2026-11");
+        assertThat(simulation.path("invoicesPreview").findValuesAsText("memberId")).contains("mas");
+        var result = run("2026-11", simulation.path("id").asText());
+        var mia = invoices().stream().filter(invoice -> invoice.getString("memberId").equals("mas")).findFirst().orElseThrow();
+        assertThat(mia.getList("lines", Document.class)).extracting(line -> line.getString("origin") + " " + line.getString("description"))
+                .containsExactly("SINGLE_CLASS Classe 06/10 — Duna");
+        assertThat(charges()).singleElement().satisfies(charge -> assertThat(charge.getString("invoiceId")).isEqualTo(mia.getString("_id")));
+        // No date written for her (a plan without a periodic fee), and none to restore.
+        assertThat(member("mas", "nextInvoiceDate")).isNull();
+        var run = mongo.findById(result.at("/run/id").asText(), Document.class, "billing_runs");
+        assertThat(run.getList("previousDates", Document.class)).extracting(previous -> previous.getString("memberId")).doesNotContain("mas");
+        ok(admin(keyed(post("/api/v1/billing/runs/" + result.at("/run/id").asText() + "/rollback"), Map.of("reason", "Error", "confirmation", "RETROCEDIR"))), 200);
+        assertThat(charges()).singleElement().satisfies(charge -> assertThat(charge.get("invoiceId")).isNull());
+        assertThat(member("mas", "nextInvoiceDate")).isNull();
     }
 
     @Test void T_12_22_withoutSingleClassAnAttendanceChargesNothing() {

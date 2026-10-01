@@ -13,6 +13,7 @@ public class SpanishCountryProfile extends GenericCountryProfile {
     @Override public List<String> idDocumentTypes() { return List.of("DNI", "NIE", "PASSPORT"); }
     @Override public String defaultPhonePrefix() { return "+34"; }
     @Override public String dateFormat() { return "dd/MM/yyyy"; }
+    @Override public String taxLabelKey() { return "billing.receipt.tax.ES"; }
     @Override public String normalizeIdDocument(String type, String value) {
         String normalized = super.normalizeIdDocument(type, value);
         return "DNI".equals(type) && normalized.matches("[0-9]{7}[A-Z]") ? "0" + normalized : normalized;

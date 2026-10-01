@@ -33,6 +33,8 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
     }
     public List<String> ringPalette() { return club.theme().ringPalette(); }
     public String primaryColor() { return club.theme().colors().primary(); }
+    /** S02 §3, S12 §10: the message key of the tax's name after the club's country profile (`ES` → «IVA»). */
+    public String taxLabelKey() { return countryProfile.taxLabelKey(); }
     /**
      * `legalName` and `taxId` are the club's public legal identity (S02 §3, R-02-02); both may be unset. E3-T16 (R-02-02,
      * amended 25-09): `city` is the town shown with the club's name, `displayCity ?? address.city`; `legalAddress` is the

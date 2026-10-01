@@ -28,52 +28,55 @@ curl POST /api/v1/invoices -> 201
 curl POST /api/v1/invoices -> 201
 curl POST /api/v1/invoices -> 201
 PASS POST /invoices ×4 (cash adjustments, before the run): 201 · 2026-0001, 2026-0002, 2026-0003, 2026-0004
+curl POST /api/v1/invoices -> 201
+PASS POST /invoices (SEPA_DD, includeInNextRun): 201 · 2026-0005 · PENDING · includeInNextRun True
 curl POST /api/v1/billing/simulations -> 201
 --- simulation incidents (R-12-07)
 [
  {
-  "memberId": "ad7f3bb7…",
+  "memberId": "9a917e15…",
   "memberName": "Arnau Fictici025",
   "code": "NO_BANK_ACCOUNT"
  },
  {
-  "memberId": "230aaaec…",
+  "memberId": "873a444e…",
   "memberName": "Aleix Fictici026",
   "code": "NO_PLAN"
  },
  {
-  "memberId": "ad22ff39…",
+  "memberId": "cb570c0c…",
   "memberName": "Biel Fictici028",
   "code": "NO_PRICE"
  },
  {
-  "memberId": "dc3630dd…",
+  "memberId": "791ae68c…",
   "memberName": "Arnau Fictici029",
   "code": "CURRENCY_MISMATCH"
  },
  {
-  "memberId": "acb69423…",
+  "memberId": "dfa2ed1f…",
   "memberName": "Mariona Fictici031",
   "code": "CARD_INVALID"
  },
  {
-  "memberId": "9fcf642c…",
+  "memberId": "5739a62c…",
   "memberName": "Pol Fictici032",
   "code": "PROVIDER_DISABLED"
  }
 ]
 PASS POST /billing/simulations: 201 · 6 incidents · codes ['CARD_INVALID', 'CURRENCY_MISMATCH', 'NO_BANK_ACCOUNT', 'NO_PLAN', 'NO_PRICE', 'PROVIDER_DISABLED'] · count 115 · total 1268000 · byProvider {"SEPA_XML": 58, "MANUAL": 57} · cashPending 57 · cashMembers 61
 curl GET /api/v1/billing/periods/2026-09 -> 200
-PASS GET /billing/periods/2026-09: 200 · simulation 53f2174f… · run None · counts {'all': 0, 'pending': 0, 'remitted': 0, 'paid': 0, 'failed': 0}
+PASS GET /billing/periods/2026-09: 200 · simulation dc48cf45… · run None · counts {'all': 0, 'pending': 0, 'remitted': 0, 'paid': 0, 'failed': 0}
 curl POST /api/v1/billing/runs -> 422 COLLECTION_DATE_TOO_SOON
-PASS POST /billing/runs (default day 1 of 2026-09, today): 422 COLLECTION_DATE_TOO_SOON · {"requested": "2026-09-01", "earliest": "2026-10-05"}
+PASS POST /billing/runs (default day 1 of 2026-09, today): 422 COLLECTION_DATE_TOO_SOON · {"earliest": "2026-10-05", "requested": "2026-09-01"}
 curl POST /api/v1/billing/runs -> 201
-PASS POST /billing/runs (collectionDate 2026-10-05): 201 · run 7bc0c91c… GENERATED · 115 invoices · skipped 6 · remittance canic-2026-09-1 (58 SEPA)
+PASS POST /billing/runs (collectionDate 2026-10-05): 201 · run 7e242c77… GENERATED · 115 invoices · skipped 6 · remittance canic-2026-09-1 (59 SEPA)
+PASS the included manual receipt after the run: ok · 2026-0005 COLLECTING · remittance d193461f… · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1)]
 curl GET /api/v1/invoices -> 200
 --- GET /invoices?filter=period:eq:2026-09 (first 5 rows)
 [
  {
-  "displayNumber": "2026-0005",
+  "displayNumber": "2026-0006",
   "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
   "total": {
    "amountMinor": 9000,
@@ -83,7 +86,7 @@ curl GET /api/v1/invoices -> 200
   "status": "COLLECTING"
  },
  {
-  "displayNumber": "2026-0006",
+  "displayNumber": "2026-0007",
   "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026 (+3)",
   "total": {
    "amountMinor": 36000,
@@ -91,16 +94,6 @@ curl GET /api/v1/invoices -> 200
   },
   "paymentMethodType": "MANUAL",
   "status": "PENDING"
- },
- {
-  "displayNumber": "2026-0007",
-  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
-  "total": {
-   "amountMinor": 9000,
-   "currency": "EUR"
-  },
-  "paymentMethodType": "SEPA_DD",
-  "status": "COLLECTING"
  },
  {
   "displayNumber": "2026-0008",
@@ -114,6 +107,16 @@ curl GET /api/v1/invoices -> 200
  },
  {
   "displayNumber": "2026-0009",
+  "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
+  "total": {
+   "amountMinor": 9000,
+   "currency": "EUR"
+  },
+  "paymentMethodType": "SEPA_DD",
+  "status": "COLLECTING"
+ },
+ {
+  "displayNumber": "2026-0010",
   "concept": "Quota Abonat · 2 gossos (familiar) — Setembre 2026 (+3)",
   "total": {
    "amountMinor": 36000,
@@ -127,21 +130,17 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
 --- before the rollback
 {
  "Invoice": {
-  "_id": "622de4f4…",
-  "displayNumber": "2026-0005",
+  "_id": "418a2173…",
+  "displayNumber": "2026-0006",
   "status": "COLLECTING",
   "issueDate": "2026-10-01",
   "period": "2026-09",
   "total": {
-   "amountMinor": {
-    "high": 0,
-    "low": 9000,
-    "unsigned": false
-   },
+   "amountMinor": 9000,
    "currency": "EUR"
   },
-  "runId": "7bc0c91c…",
-  "remittanceId": "31227df4…",
+  "runId": "7e242c77…",
+  "remittanceId": "d193461f…",
   "cancelReason": null,
   "paymentMethod": {
    "type": "SEPA_DD",
@@ -152,20 +151,12 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
     "origin": "MONTHLY_FEE",
     "description": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
     "total": {
-     "amountMinor": {
-      "high": 0,
-      "low": 9000,
-      "unsigned": false
-     },
+     "amountMinor": 9000,
      "currency": "EUR"
     }
    }
   ],
-  "version": {
-   "high": 0,
-   "low": 0,
-   "unsigned": false
-  }
+  "version": 0
  },
  "Collections": [
   {
@@ -173,19 +164,15 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
    "status": "CREATED",
    "attempt": 1,
    "failureCode": null,
-   "remittanceId": "31227df4…",
-   "endToEndId": "2026-0005"
+   "remittanceId": "d193461f…",
+   "endToEndId": "2026-0006"
   }
  ],
  "BillingRun": {
-  "_id": "7bc0c91c…",
+  "_id": "7e242c77…",
   "status": "GENERATED",
   "period": "2026-09",
-  "firstNumber": {
-   "high": 0,
-   "low": 5,
-   "unsigned": false
-  },
+  "firstNumber": 6,
   "counterKey": "2026",
   "invoiceIds": 115,
   "collectionDate": "2026-10-05",
@@ -193,7 +180,7 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
   "rollbackReason": null,
   "previousDates[member]": [
    {
-    "memberId": "ef3c1431…[truncated]",
+    "memberId": "543fa1c7…",
     "nextInvoiceDate": "2026-09-01",
     "advancedTo": "2026-10-01"
    }
@@ -205,13 +192,13 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
 {
  "action": "REMITTANCE_GENERATED",
  "entityType": "BillingRun",
- "entityId": "7bc0c91c…",
+ "entityId": "7e242c77…",
  "actorRole": "ADMIN",
  "origin": "BACKOFFICE",
  "details.invoiceIds": [
-  "622de4f4…",
-  "12458413…",
-  "589dcb1c…",
+  "418a2173…",
+  "01a003af…",
+  "e6ac854f…",
   "… (115 ids)"
  ],
  "details.period": "2026-09"
@@ -225,21 +212,17 @@ PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restor
 --- after the rollback
 {
  "Invoice": {
-  "_id": "622de4f4…",
-  "displayNumber": "2026-0005",
+  "_id": "418a2173…",
+  "displayNumber": "2026-0006",
   "status": "CANCELLED",
   "issueDate": "2026-10-01",
   "period": "2026-09",
   "total": {
-   "amountMinor": {
-    "high": 0,
-    "low": 9000,
-    "unsigned": false
-   },
+   "amountMinor": 9000,
    "currency": "EUR"
   },
-  "runId": "7bc0c91c…",
-  "remittanceId": "31227df4…",
+  "runId": "7e242c77…",
+  "remittanceId": "d193461f…",
   "cancelReason": "ROLLBACK",
   "paymentMethod": {
    "type": "SEPA_DD",
@@ -250,20 +233,12 @@ PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restor
     "origin": "MONTHLY_FEE",
     "description": "Quota Abonat · 2 gossos (familiar) — Setembre 2026",
     "total": {
-     "amountMinor": {
-      "high": 0,
-      "low": 9000,
-      "unsigned": false
-     },
+     "amountMinor": 9000,
      "currency": "EUR"
     }
    }
   ],
-  "version": {
-   "high": 0,
-   "low": 1,
-   "unsigned": false
-  }
+  "version": 1
  },
  "Collections": [
   {
@@ -271,35 +246,31 @@ PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restor
    "status": "CREATED",
    "attempt": 1,
    "failureCode": null,
-   "remittanceId": "31227df4…",
-   "endToEndId": "2026-0005"
+   "remittanceId": "d193461f…",
+   "endToEndId": "2026-0006"
   },
   {
    "provider": "SEPA_XML",
    "status": "FAILED",
    "attempt": 1,
    "failureCode": "ROLLBACK",
-   "remittanceId": "31227df4…",
-   "endToEndId": "2026-0005"
+   "remittanceId": "d193461f…",
+   "endToEndId": "2026-0006"
   }
  ],
  "BillingRun": {
-  "_id": "7bc0c91c…",
+  "_id": "7e242c77…",
   "status": "ROLLED_BACK",
   "period": "2026-09",
-  "firstNumber": {
-   "high": 0,
-   "low": 5,
-   "unsigned": false
-  },
+  "firstNumber": 6,
   "counterKey": "2026",
   "invoiceIds": 115,
   "collectionDate": "2026-10-05",
-  "rolledBackAt": "2026-10-01T11:47:36.693Z",
+  "rolledBackAt": "2026-10-01T14:53:33.942Z",
   "rollbackReason": "Preu equivocat",
   "previousDates[member]": [
    {
-    "memberId": "ef3c1431…[truncated]",
+    "memberId": "543fa1c7…",
     "nextInvoiceDate": "2026-09-01",
     "advancedTo": "2026-10-01"
    }
@@ -307,8 +278,50 @@ PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restor
  },
  "Member.nextInvoiceDate": "2026-09-01"
 }
+PASS the included manual receipt after the rollback: ok · 2026-0005 PENDING · remittance None · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1), ('SEPA_XML', 'FAILED', 1)]
 curl POST /api/v1/billing/simulations -> 201
 curl POST /api/v1/billing/runs -> 201
-PASS POST /billing/runs again (new simulation): 201 · run 2f1e4356… · identical displayNumber per member: True (2026-0005…2026-0119, 115 invoices)
+PASS POST /billing/runs again (new simulation): 201 · run d4e0592b… · identical displayNumber per member: True (2026-0006…2026-0120, 115 invoices)
+PASS the included manual receipt after the second run: ok · 2026-0005 COLLECTING · remittance 10d38edf… · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1), ('SEPA_XML', 'FAILED', 1), ('SEPA_XML', 'CREATED', 2)]
+curl GET /api/v1/billing/periods/2026-09 -> 200
+curl GET /api/v1/invoices -> 200
+curl GET /api/v1/invoices -> 200
+PASS D6 after the second run: 200 · counts.all 115 · GET /invoices totalItems 115 · stored documents 230 · CANCELLED filter 115 rows, rolledBack ['True']
+curl GET /api/v1/members/<id>/overview -> 200
+PASS D10 overview of the watched member: 200 · invoicesCount 1 · recent [('ef24b3f6…', 'COLLECTING')]
+curl GET /api/v1/invoices/<id> -> 200
+curl POST /api/v1/invoices/<id>/payment -> 200
+curl GET /api/v1/billing/periods/2026-09 -> 200
+PASS GET /billing/periods/2026-09 after a cash payment: 200 · rollbackable False · blockers ['INVOICE_PAID']
+curl GET /api/v1/invoices/<id> -> 200
+curl POST /api/v1/invoices/<id>/failure -> 200
+PASS POST /invoices/{id}/failure (a remitted SEPA receipt): 200 · FAILED · collections ['CREATED', 'FAILED']
+PASS N-10 after the bank return: ok · 2 notification(s) naming 2026-0006 · N-35 0
+curl GET /api/v1/invoices/ef24b3f6…[truncated]/document -> 200
+PASS GET /invoices/{id}/document: 200 · 11311 bytes · starts b'%PDF-'
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic; x2) · second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+  fixture (disposable database only) · ok · 184 ACTIVE members owe 2026-09; six members with one incident each
+  POST /invoices ×4 (cash adjustments, before the run) · 201 · 2026-0001, 2026-0002, 2026-0003, 2026-0004
+  POST /invoices (SEPA_DD, includeInNextRun) · 201 · 2026-0005 · PENDING · includeInNextRun True
+  POST /billing/simulations · 201 · 6 incidents · codes ['CARD_INVALID', 'CURRENCY_MISMATCH', 'NO_BANK_ACCOUNT', 'NO_PLAN', 'NO_PRICE', 'PROVIDER_DISABLED'] · count 115 · total 1268000 · byProvider {"SEPA_XML": 58, "MANUAL": 57} · cashPending 57 · cashMembers 61
+  GET /billing/periods/2026-09 · 200 · simulation dc48cf45… · run None · counts {'all': 0, 'pending': 0, 'remitted': 0, 'paid': 0, 'failed': 0}
+  POST /billing/runs (default day 1 of 2026-09, today) · 422 COLLECTION_DATE_TOO_SOON · {"earliest": "2026-10-05", "requested": "2026-09-01"}
+  POST /billing/runs (collectionDate 2026-10-05) · 201 · run 7e242c77… GENERATED · 115 invoices · skipped 6 · remittance canic-2026-09-1 (59 SEPA)
+  the included manual receipt after the run · ok · 2026-0005 COLLECTING · remittance d193461f… · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1)]
+  GET /invoices?filter=period:eq:2026-09 · 200 · totalItems 115
+  POST /invoices/payments (the 4 cash adjustments) · 200 · paid 4 · statuses ['PAID']
+  POST /billing/runs/{id}/rollback · 200 · {"cancelledInvoices": 115, "restoredMembers": 178}
+  the included manual receipt after the rollback · ok · 2026-0005 PENDING · remittance None · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1), ('SEPA_XML', 'FAILED', 1)]
+  POST /billing/runs again (new simulation) · 201 · run d4e0592b… · identical displayNumber per member: True (2026-0006…2026-0120, 115 invoices)
+  the included manual receipt after the second run · ok · 2026-0005 COLLECTING · remittance 10d38edf… · includeInNextRun True · attempts [('SEPA_XML', 'CREATED', 1), ('SEPA_XML', 'FAILED', 1), ('SEPA_XML', 'CREATED', 2)]
+  D6 after the second run · 200 · counts.all 115 · GET /invoices totalItems 115 · stored documents 230 · CANCELLED filter 115 rows, rolledBack ['True']
+  D10 overview of the watched member · 200 · invoicesCount 1 · recent [('ef24b3f6…', 'COLLECTING')]
+  GET /billing/periods/2026-09 after a cash payment · 200 · rollbackable False · blockers ['INVOICE_PAID']
+  POST /invoices/{id}/failure (a remitted SEPA receipt) · 200 · FAILED · collections ['CREATED', 'FAILED']
+  N-10 after the bank return · ok · 2 notification(s) naming 2026-0006 · N-35 0
+  GET /invoices/{id}/document · 200 · 11311 bytes · starts b'%PDF-'
+PASS E8-T02 curl sequence
 Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
-FAIL: POST /api/v1/invoices/d1057dd6…[truncated]/payment: expected 200, got 400 VALIDATION_ERROR
+exit 0

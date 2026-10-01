@@ -36,7 +36,7 @@
        "member": {"id": "1a2b3c4d-0000-4000-8000-000000000001", "fullName": "Laura Serra Example", "memberNumber": 214}, "concept": "Quota Abonat 2 gossos — Setembre 2026",
        "total": {"amountMinor": 9000, "currency": "EUR"}, "paymentMethodType": "SEPA_DD", "status": "COLLECTING", "kind": "PERIODIC",
        "runId": "2b3c4d5e-0000-4000-8000-000000000002", "remittanceId": "4d5e6f70-0000-4000-8000-000000000004", "refundedTotal": {"amountMinor": 0, "currency": "EUR"},
-       "paidAt": null, "failedAt": null}
+       "paidAt": null, "failedAt": null, "rolledBack": false}
     ],
     "page": 0, "size": 50, "totalItems": 1, "totalPages": 1, "appliedFilters": [{"field": "period", "op": "eq", "value": "2026-09"}]
   },

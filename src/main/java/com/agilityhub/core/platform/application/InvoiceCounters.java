@@ -21,13 +21,19 @@ public class InvoiceCounters {
         this.clubs = clubs; this.parameters = parameters; this.configs = configs;
     }
 
-    /** The first of {@code count} consecutive numbers of the counter {@code key} (R-12-08). */
-    public long reserve(String key, int count) {
+    /**
+     * The first of {@code count} consecutive numbers of the counter {@code key} (R-12-08), never below {@code floor}; a key
+     * without a counter yet starts at the highest counter of the stored keys {@code sameSeries} accepts (see
+     * {@link ClubRepository#reserveInvoiceNumbers}). The keys {@code sameSeries} sees are stored ones ({@link #storedKey}).
+     */
+    public long reserve(String key, int count, long floor, java.util.function.Predicate<String> sameSeries) {
         String club = TenantContext.require();
-        long first = clubs.reserveInvoiceNumbers(club, key, count);
+        long first = clubs.reserveInvoiceNumbers(club, key, count, floor, sameSeries);
         evict(club);
         return first;
     }
+    /** How a counter key is stored under `billing.counters` (`.` and `$` replaced). */
+    public static String storedKey(String key) { return ClubRepository.counterKey(key); }
     /** The number the next invoice of {@code key} would take, empty before the first one. */
     public Optional<Long> next(String key) { return clubs.invoiceCounter(TenantContext.require(), key); }
     /**
@@ -46,4 +52,12 @@ public class InvoiceCounters {
     }
     /** R-12-07: when an override of a parameter whose key starts with {@code prefix} last changed (`billing.`), if ever. */
     public Optional<Instant> parametersChangedAt(String prefix) { return parameters.lastChange(prefix); }
+    /**
+     * R-12-07 (round 2, ruling E87): when the open club's configuration last changed — its `updatedAt`, which every writer of
+     * the club's settings, modules and payment providers stamps (D11, `club:apply`). The counters above bump the version only,
+     * so numbering a receipt never makes a simulation stale.
+     */
+    public Optional<Instant> clubChangedAt() {
+        return clubs.findById(TenantContext.require()).map(com.agilityhub.core.platform.persistence.Club::updatedAt);
+    }
 }

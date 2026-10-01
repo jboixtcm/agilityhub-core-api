@@ -217,7 +217,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest @MethodSource("clubRoutes")
-    void T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
+    void T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBeforeItsAnswerOrItsStub(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
             if (allowed && route.served()) { served(call(route, CLUB, role)); continue; }

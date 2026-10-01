@@ -113,6 +113,8 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
         tree.set("modules", mapper.valueToTree(modules));
         tree.set("paymentProviders", mapper.valueToTree(providers));
         tree.put("name", id.equals(CLUB) ? "Club Agility Facturació" : "Club Agility Altre");
+        // R-12-07: the club's configuration predates the census (the shared fixture's is in 2030, after every simulation here).
+        tree.set("updatedAt", mapper.valueToTree(NOW.minusSeconds(86_400)));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(id);
     }
     static Map<String, Object> providers(boolean sepa, boolean manual, boolean stripe) {

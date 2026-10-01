@@ -12562,3 +12562,4 @@ E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 159 PENDING records (more than one dispatch() batch)
+[round-2 note, 2026-10-01: this round-1 log was captured without its exit code. The heavy.sh call exited 0, as the round-1 report states; 15-test-summary.log has its totals. Round-2 logs end with an exit line.]

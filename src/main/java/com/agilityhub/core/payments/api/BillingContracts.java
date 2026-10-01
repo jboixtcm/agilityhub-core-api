@@ -71,7 +71,9 @@ public final class BillingContracts {
             @Schema(requiredMode = NOT_REQUIRED) InvoiceKind kind, @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String runId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String remittanceId,
             @Schema(requiredMode = NOT_REQUIRED) Money refundedTotal, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt,
+            @Schema(requiredMode = NOT_REQUIRED, description = "CANCELLED by a rollback (R-12-14): its number was reissued; listed only under the CANCELLED filter")
+            Boolean rolledBack) { }
     public record InvoicePage(List<InvoiceListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     @Schema(description = "POST /invoices/payments: how many invoices were marked paid")

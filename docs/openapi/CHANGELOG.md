@@ -2,6 +2,21 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T02 round 2 · a receipt cancelled by a rollback is listed only under `CANCELLED` (`rolledBack`)
+
+**One optional field added; two descriptions changed; no operation, status or required set changed** (ruling E87).
+- `InvoiceListItem` gains the optional `rolledBack` (boolean), also a `fields` key of `GET /invoices` (`x-fields`): true for a
+  receipt cancelled by a rollback (R-12-14), whose number the next run reissued. `GET /invoices` lists, counts and searches such a
+  receipt only when the `status` filter selects `CANCELLED` (`eq` or `in`); `GET /billing/periods/{period}`'s `counts`, `GET
+  /me/invoices` (and its `{id}` and `document`, now `404` for it) and D10's recent receipts leave it out.
+- `POST /invoices/{id}/cancellation`: the description states that the reason `ROLLBACK` (the rollback's own) is `400
+  VALIDATION_ERROR {field: reason}` (already in its error list).
+- Values without a contract change: the club's next `POST /billing/runs` puts the `PENDING` manual `SEPA_DD` receipts with
+  `includeInNextRun` into its remittance (`COLLECTING`, counted in `byProvider.SEPA_XML` and the remittance), and its rollback
+  returns them to `PENDING`; a change of the club's payment providers or modules after the simulation is `409 SIMULATION_STALE`; a `COMPLETED`
+  run's rollback is `409 RUN_NOT_ROLLBACKABLE {reasons: [COLLECTION_SUBMITTED]}`; the receipt PDF names the tax after the club's
+  country profile (`ES` → «IVA»).
+
 ## 2026-10-01 · E8-T01 round 2 · guards before the stubs, the Stripe signature first, `MeInactivityPeriod.version`, nullable `toMonth`
 
 **No operation or schema added or removed; 5 schemas and 11 operations changed** (`roadmap/evidence/E8-T01/15-r2-contract-diff.log`).

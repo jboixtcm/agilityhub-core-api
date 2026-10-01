@@ -110,6 +110,13 @@ public class BookingRepository extends TenantRepository<Booking> {
         return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("charge.chargeInvoiceLineRef", reference), "bookings")
                 .getModifiedCount() == 1;
     }
+    /** S12 R-12-25 (E8-T02 round 2): the booking stops naming {@code reference}, its voided charge; another reference is kept. */
+    public boolean clearChargeRef(String id, String reference) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("charge.mode").is(ChargeMode.CHARGE_ON_ATTENDANCE.name())
+                .and("charge.chargeInvoiceLineRef").is(reference));
+        return mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().set("charge.chargeInvoiceLineRef", null), "bookings")
+                .getModifiedCount() == 1;
+    }
     public Optional<Booking> byCheckoutSession(String sessionId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("charge.checkoutSessionId").is(sessionId)), Booking.class));
     }

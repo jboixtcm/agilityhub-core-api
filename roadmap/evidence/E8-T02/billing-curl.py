@@ -10,6 +10,9 @@ adjustment receipts issued before the run) → POST /billing/runs/{id}/rollback 
 identical displayNumber of every member → a cash receipt paid (the run stops being rollbackable) → a bank return of a
 remitted receipt with N-10 → its PDF. Prints one member's Invoice, Collection and BillingRun before and after the
 rollback, the generation's AuditEntry and the simulation's incidents. Ids and tokens are truncated; no IBAN is printed.
+Round 2 (ruling E87): a manual SEPA_DD receipt with includeInNextRun rides the run's remittance, goes back to PENDING with
+the rollback and rides the second run's; after the second run D6's counts, the list and D10 count each number once, and the
+CANCELLED filter shows the rolled-back receipts with rolledBack = true.
 """
 import importlib.machinery
 import importlib.util
@@ -57,7 +60,7 @@ def show(title, value):
 PREPARE = r"""
 (() => {
   const club = CLUB;
-  const sepa = db.members.find({clubId: club, status: "ACTIVE", "paymentMethod.type": "SEPA_DD", familyGroupId: null}).sort({memberNumber: 1}).limit(6).toArray();
+  const sepa = db.members.find({clubId: club, status: "ACTIVE", "paymentMethod.type": "SEPA_DD", familyGroupId: null}).sort({memberNumber: 1}).limit(7).toArray();
   const abonat = db.plans.findOne({clubId: club, code: "ABONAT"});
   const price = db.prices.findOne({clubId: club, planId: abonat._id, concept: "MONTHLY_FEE"});
   const unpriced = Object.assign({}, abonat, {_id: "e8t02-plan-unpriced", code: "E8T02_SENSE_PREU"});
@@ -72,7 +75,8 @@ PREPARE = r"""
   db.members.updateOne({_id: sepa[4]._id}, {$set: {paymentMethod: {type: "CARD", card: {stripeCustomerId: "cus_e8t02", last4: "4242", invalid: true}}}});
   db.members.updateOne({_id: sepa[5]._id}, {$set: {paymentMethod: {type: "CARD", card: {stripeCustomerId: "cus_e8t02b", last4: "1881", invalid: false}}}});
   const cash = db.members.find({clubId: club, status: "ACTIVE", "paymentMethod.type": "MANUAL", familyGroupId: null}).sort({memberNumber: 1}).limit(4).toArray();
-  return {incidentMembers: sepa.map(m => m._id), cash: cash.map(m => m._id), active: db.members.countDocuments({clubId: club, status: "ACTIVE"})};
+  return {incidentMembers: sepa.slice(0, 6).map(m => m._id), spareSepa: sepa[6]._id, cash: cash.map(m => m._id),
+          active: db.members.countDocuments({clubId: club, status: "ACTIVE"})};
 })()
 """
 
@@ -109,6 +113,16 @@ def scenario(smoke):
         manual.append(receipt["id"])
     smoke.record("POST /invoices ×4 (cash adjustments, before the run)", "201", ", ".join(smoke.mongo(
         'db.invoices.find({_id:{$in:' + json.dumps(manual) + '}}).sort({number:1}).toArray().map(i=>i.displayNumber)')))
+    # Round 2 (R-12-19, ruling E87): a manual SEPA_DD receipt «included in the next remittance».
+    included = smoke.call("POST", "/api/v1/invoices", 201, access=admin, idempotent=True, body={"memberId": prepared["spareSepa"], "note": "E8-T02 round 2",
+                          "includeInNextRun": True, "lines": [{"description": "Quota d'agost pendent", "base": {"amountMinor": 2500, "currency": "EUR"}, "taxPercent": 0}]})
+    smoke.record("POST /invoices (SEPA_DD, includeInNextRun)", "201", f"{included['displayNumber']} · {included['status']} · includeInNextRun {included['includeInNextRun']}")
+
+    def receipt_state(label):
+        doc = smoke.mongo('db.invoices.findOne({_id:' + json.dumps(included["id"]) + '})')
+        attempts = smoke.mongo('db.collections.find({invoiceId:' + json.dumps(included["id"]) + '}).sort({attempt:1,createdAt:1}).toArray()')
+        smoke.record(label, "ok", f"{doc['displayNumber']} {doc['status']} · remittance {short(doc.get('remittanceId'))} · includeInNextRun "
+                     f"{doc['includeInNextRun']} · attempts {[(a['provider'], a['status'], plain(a['attempt'])) for a in attempts]}")
 
     simulation = smoke.call("POST", "/api/v1/billing/simulations", 201, access=admin, body={"period": "2026-09"})
     incidents = [{"memberId": short(i["memberId"]), "memberName": i["memberName"], "code": i["code"]} for i in simulation["incidents"]]
@@ -130,6 +144,7 @@ def scenario(smoke):
     smoke.record("POST /billing/runs (collectionDate " + earliest + ")", "201",
                  f"run {short(run['id'])} {run['status']} · {len(run['invoiceIds'])} invoices · skipped {len(first['skipped'])} · "
                  f"remittance {first['remittance']['messageId'] if first['remittance'] else None} ({first['remittance']['count'] if first['remittance'] else 0} SEPA)")
+    receipt_state("the included manual receipt after the run")
     numbers = {i["memberId"]: i["displayNumber"] for i in smoke.mongo('db.invoices.find({runId:' + json.dumps(run["id"]) + '}).toArray()')}
     listed = smoke.call("GET", "/api/v1/invoices?filter=period:eq:2026-09&sort=number,asc", access=admin)
     show("GET /invoices?filter=period:eq:2026-09 (first 5 rows)", [{k: r.get(k) for k in ("displayNumber", "concept", "total", "paymentMethodType", "status")}
@@ -156,6 +171,7 @@ def scenario(smoke):
     smoke.record("POST /billing/runs/{id}/rollback", "200", json.dumps(rollback))
     after = documents(smoke, watched)
     show("after the rollback", after)
+    receipt_state("the included manual receipt after the rollback")
 
     again = smoke.call("POST", "/api/v1/billing/simulations", 201, access=admin, body={"period": "2026-09"})
     second = smoke.call("POST", "/api/v1/billing/runs", 201, access=admin, idempotent=True,
@@ -166,6 +182,21 @@ def scenario(smoke):
                  f"({min(numbers.values())}…{max(numbers.values())}, {len(numbers)} invoices)")
     if not same:
         raise AssertionError("The second generation did not reproduce the numbers")
+    receipt_state("the included manual receipt after the second run")
+    # Round 2 (R-12-14, ruling E87): each number exists twice now (rolled back + reissued); only the reissued one counts.
+    counts = smoke.call("GET", "/api/v1/billing/periods/2026-09", access=admin)["counts"]
+    live = smoke.call("GET", "/api/v1/invoices?filter=period:eq:2026-09", access=admin)["totalItems"]
+    stored = smoke.mongo('db.invoices.countDocuments({clubId:' + json.dumps(club) + ',period:"2026-09"})')
+    cancelled = smoke.call("GET", "/api/v1/invoices?filter=period:eq:2026-09&filter=status:eq:CANCELLED&fields=displayNumber,rolledBack&size=200", access=admin)
+    marks = sorted({str(item.get("rolledBack")) for item in cancelled["items"]})
+    smoke.record("D6 after the second run", "200", f"counts.all {counts['all']} · GET /invoices totalItems {live} · stored documents {stored} · "
+                 f"CANCELLED filter {cancelled['totalItems']} rows, rolledBack {marks}")
+    overview = smoke.call("GET", f"/api/v1/members/{watched}/overview", access=admin)
+    smoke.record("D10 overview of the watched member", "200", f"invoicesCount {overview['invoicesCount']} · recent "
+                 f"{[(short(i['id']), i['status']) for i in overview['recentInvoices']]}")
+    expected_own = 2 if watched == prepared["spareSepa"] else 1
+    if counts["all"] != len(renumbered) or live != len(renumbered) or overview["invoicesCount"] != expected_own:
+        raise AssertionError("A rolled-back receipt is still counted")
     # A cash receipt of the run paid: the run is no longer rollbackable (R-12-14).
     cash_id = smoke.mongo('db.invoices.findOne({runId:' + json.dumps(second["run"]["id"]) + ',"paymentMethod.type":"MANUAL"})._id')
     cash_invoice = smoke.call("GET", f"/api/v1/invoices/{cash_id}", access=admin)

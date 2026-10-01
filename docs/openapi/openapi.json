@@ -8230,6 +8230,10 @@
             "format" : "uuid",
             "type" : [ "string", "null" ]
           },
+          "rolledBack" : {
+            "description" : "CANCELLED by a rollback (R-12-14): its number was reissued; listed only under the CANCELLED filter",
+            "type" : "boolean"
+          },
           "runId" : {
             "format" : "uuid",
             "type" : [ "string", "null" ]
@@ -42207,7 +42211,7 @@
     },
     "/api/v1/invoices" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when there are more lines. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D6's receipts, universal list (CONVENCIONS_API §4), newest number first; the chips Tots · Pendents · Remesats · Cobrats · Impagats are status filters; q searches the number and the member's name; D10's «Tots els rebuts ›» is filter=memberId:eq:{id}. total filters on amountMinor. concept is the first line's frozen description, «(+n)» when there are more lines. A receipt cancelled by a rollback (R-12-14: its number was reissued) is listed, counted and searched only when the status filter selects CANCELLED (eq or in), with rolledBack = true. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "invoices",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -42436,7 +42440,7 @@
           "key" : "remittanceId"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "displayNumber", "number", "issueDate", "period", "member", "concept", "total", "paymentMethodType", "status", "kind", "runId", "remittanceId", "refundedTotal", "paidAt", "failedAt" ],
+        "x-fields" : [ "id", "displayNumber", "number", "issueDate", "period", "member", "concept", "total", "paymentMethodType", "status", "kind", "runId", "remittanceId", "refundedTotal", "paidAt", "failedAt", "rolledBack" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "period", "status", "memberId", "paymentMethodType", "runId", "remittanceId", "issueDate", "total", "kind" ],
         "x-sortable" : [ "number", "issueDate", "total", "memberLastName" ]
@@ -43141,7 +43145,7 @@
     },
     "/api/v1/invoices/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason, InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-19: a PENDING or FAILED invoice → CANCELLED with the admin's reason, InvoiceCancelled{reason: ADMIN}, INVOICE_CANCELLED audit; never PAID or COLLECTING (409 INVALID_STATE {status}). The reason ROLLBACK is the rollback's own (R-12-14) → 400 VALIDATION_ERROR {field: reason}. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "cancelInvoice",
         "parameters" : [ {
           "in" : "path",

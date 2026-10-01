@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
  * S12 §6 reads of the monthly cycle (E8-T02): D6's month (`GET /billing/periods/{period}`: the simulation, the live run — or
  * the last rolled-back one — with `rollbackable` and `rollbackBlockers` computed now, its remittance, the chip counts), a run,
  * and the member's receipts of R-12-27 — their own and, with `FAMILY_GROUP`, those of the holder of the family group they
- * belong to (`familyGroup = true`).
+ * belong to (`familyGroup = true`). A receipt cancelled by a rollback is in neither the chip counts nor the member's
+ * receipts (round 2, ruling E87).
  */
 @Service
 public class BillingQueries {
@@ -63,10 +64,17 @@ public class BillingQueries {
         var items = invoices.ofMembers(members, page, size).stream().map(invoice -> new MemberInvoice(invoice, !invoice.memberId().equals(memberId))).toList();
         return new MemberInvoices(items, page, size, invoices.countOfMembers(members));
     }
-    /** One of the receipts {@code memberId} reads; another member's (or another club's) is `404`. */
+    /**
+     * One of the receipts {@code memberId} reads; another member's (or another club's) is `404`, and so is one cancelled by a
+     * rollback (R-12-14, ruling E87: the run that issued it never happened for the member; its number is reissued).
+     */
     public MemberInvoice memberInvoice(String memberId, String invoiceId) {
         var invoice = invoices.findById(invoiceId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (!readableMembers(memberId).contains(invoice.memberId())) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        if (!readableMembers(memberId).contains(invoice.memberId()) || rolledBack(invoice)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return new MemberInvoice(invoice, !invoice.memberId().equals(memberId));
+    }
+    /** R-12-14: `CANCELLED{ROLLBACK}` (see {@link com.agilityhub.core.payments.persistence.BillingDocuments#rolledBack()}). */
+    public static boolean rolledBack(Invoice invoice) {
+        return invoice.status() == com.agilityhub.core.payments.domain.InvoiceStatus.CANCELLED && BillingRunService.ROLLBACK.equals(invoice.cancelReason());
     }
 }

@@ -27,7 +27,8 @@ import org.springframework.stereotype.Component;
  * S12 R-12-27, §10 (E8-T02, T-12-20): the receipt («Rebut») as a synchronous PDF with the club's mark — the band in the club's
  * theme colour with its name, as the list exports draw it (`ListExportRenderer`, which `payments` cannot import: `clubs.common`
  * already depends on it) — in the reader's language, with the descriptions frozen at issue. The payment method shows its
- * masked account only, never an IBAN. Labels are `billing.receipt.*`.
+ * masked account only, never an IBAN. Labels are `billing.receipt.*`; the tax's is the club's country profile's
+ * (`taxLabelKey`, S12 §10: `ES` → «IVA»).
  */
 @Component
 public class ReceiptPdf {
@@ -70,7 +71,9 @@ public class ReceiptPdf {
                 y -= LINE / 2;
                 if (invoice.tax().amountMinor() != 0) {
                     y = row(stream, font, y, label("base", locale), money(invoice.base(), locale));
-                    y = row(stream, font, y, label("tax", locale), money(invoice.tax(), locale));
+                    // S12 §10: the tax is named by the club's country profile (`ES` → «IVA»).
+                    String tax = messages.format(club.taxLabelKey(), Map.of(), locale);
+                    y = row(stream, font, y, tax, money(invoice.tax(), locale));
                 }
                 y = row(stream, font, y, label("total", locale), money(invoice.total(), locale));
                 y -= LINE;

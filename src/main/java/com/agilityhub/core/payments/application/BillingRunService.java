@@ -28,24 +28,27 @@ import org.springframework.stereotype.Service;
  * its single audit entry) under the club's billing lock.
  *
  * <p>Generation: one live run per month (`409 RUN_EXISTS`); the month's simulation made after the last relevant change —
- * members, family groups, plans and prices, `billing.*` parameters (`409 SIMULATION_STALE`); the invoices numbered in the
- * members' order from the series counter, one `Collection` each (`SEPA_XML` → the remittance, the invoice `COLLECTING`;
- * `MANUAL` and `STRIPE` → `PENDING`), the remittance written by {@link RemittanceWriterPort} before the commit, the included
- * members' `nextInvoiceDate` advanced (the old dates kept in `previousDates`), the `PendingCharge`s stamped; `InvoiceIssued`
- * per invoice, `InvoiceCollecting` per SEPA invoice, `RemittanceGenerated`, `BillingRunCreated`, one `REMITTANCE_GENERATED`
+ * members, family groups, plans and prices, `billing.*` parameters, the club's configuration (`409 SIMULATION_STALE`); the
+ * invoices numbered in the members' order from the series counter ({@link InvoiceNumbers}), one `Collection` each
+ * (`SEPA_XML` → the remittance, the invoice `COLLECTING`; `MANUAL` and `STRIPE` → `PENDING`), the club's `PENDING` manual
+ * `SEPA_DD` receipts with `includeInNextRun` put into the same remittance (R-12-19: a new `SEPA_XML` attempt each, the receipt
+ * `COLLECTING`), the remittance written by {@link RemittanceWriterPort} before the commit, the included members'
+ * `nextInvoiceDate` advanced (the old dates kept in `previousDates`), the `PendingCharge`s stamped; `InvoiceIssued` per
+ * invoice, `InvoiceCollecting` per remitted receipt, `RemittanceGenerated`, `BillingRunCreated`, one `REMITTANCE_GENERATED`
  * entry with `details.invoiceIds`. Members with an incident are skipped (`skipped[]`) and never block.
  *
  * <p>Rollback: allowed while the remittance is not submitted, no non-manual collection of the run is submitted or
- * succeeded, no invoice of the run is paid and nothing was numbered after the run's block — else `409 RUN_NOT_ROLLBACKABLE
- * {reasons}`. The invoices are cancelled (`ROLLBACK`) with a new `FAILED{ROLLBACK}` collection each, the remittance rolled
- * back (its file kept), the counter given back, the dates restored, the charges unbilled: the same month can be simulated
- * and generated again with the same numbers.
+ * succeeded, no receipt of the run (or of its remittance) is paid, the run is not `COMPLETED` and nothing was numbered after
+ * the run's block — else `409 RUN_NOT_ROLLBACKABLE {reasons}`. The invoices are cancelled (`ROLLBACK`) with a new
+ * `FAILED{ROLLBACK}` collection each, the manual receipts the run remitted go back to `PENDING` (not cancelled: the run did
+ * not issue them; `includeInNextRun` kept), the remittance rolled back (its file kept), the counter given back, the dates
+ * restored, the charges unbilled: the same month can be simulated and generated again with the same numbers.
  */
 @Service
 public class BillingRunService {
     /** The word D6's confirmation asks to type (R-12-14). */
     public static final String CONFIRMATION = "RETROCEDIR";
-    public static final String ROLLBACK = "ROLLBACK";
+    public static final String ROLLBACK = BillingDocuments.ROLLBACK;
 
     /** A generated run with its remittance (null without `SEPA_XML` invoices) and what blocks its rollback now. */
     public record RunOutcome(BillingRun run, Remittance remittance, List<RollbackBlocker> blockers) { }
@@ -54,15 +57,16 @@ public class BillingRunService {
     private final InvoicingService invoicing; private final BillingSimulationService simulator; private final BillingRunRepository runs;
     private final BillingSimulationRepository simulations; private final InvoiceRepository invoices; private final CollectionRepository collections;
     private final RemittanceRepository remittances; private final PendingChargeRepository charges; private final RemittanceWriterPort writer;
-    private final InvoiceCounters counters; private final BillingCensusAccess census; private final BillingCatalogAccess catalog;
+    private final InvoiceCounters counters; private final InvoiceNumbers numbers; private final BillingCensusAccess census; private final BillingCatalogAccess catalog;
     private final BillingEvents events; private final AuditWriter audit; private final BillingTransactions transactions; private final Clock clock;
     public BillingRunService(InvoicingService invoicing, BillingSimulationService simulator, BillingRunRepository runs, BillingSimulationRepository simulations,
             InvoiceRepository invoices, CollectionRepository collections, RemittanceRepository remittances, PendingChargeRepository charges,
-            RemittanceWriterPort writer, InvoiceCounters counters, BillingCensusAccess census, BillingCatalogAccess catalog, BillingEvents events,
-            AuditWriter audit, BillingTransactions transactions, Clock clock) {
+            RemittanceWriterPort writer, InvoiceCounters counters, InvoiceNumbers numbers, BillingCensusAccess census, BillingCatalogAccess catalog,
+            BillingEvents events, AuditWriter audit, BillingTransactions transactions, Clock clock) {
         this.invoicing = invoicing; this.simulator = simulator; this.runs = runs; this.simulations = simulations; this.invoices = invoices;
         this.collections = collections; this.remittances = remittances; this.charges = charges; this.writer = writer; this.counters = counters;
-        this.census = census; this.catalog = catalog; this.events = events; this.audit = audit; this.transactions = transactions; this.clock = clock;
+        this.numbers = numbers; this.census = census; this.catalog = catalog; this.events = events; this.audit = audit; this.transactions = transactions;
+        this.clock = clock;
     }
 
     /** R-12-11: {@code work} under the club's billing lock (`409 BILLING_BUSY` while a simulation, run or rollback holds it). */
@@ -77,7 +81,9 @@ public class BillingRunService {
         var context = plan.context(); var drafts = plan.month().invoices();
         if (drafts.isEmpty()) { throw new ApiException(ErrorCode.NO_INVOICES); }
         var issueDate = context.issueDate(); Instant now = clock.instant(); String actor = BillingEvents.actor();
-        boolean sepa = drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
+        // R-12-19: the manual SEPA_DD receipts waiting for «the next remittance» join this run's, while SEPA_XML is enabled.
+        var included = context.settings().enabledMethods().contains(PaymentMethodType.SEPA_DD) ? invoices.forNextRun() : List.<Invoice>of();
+        boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
             Integer day = context.parameter("billing.sepa.collectionDayOfMonth", Integer.class);
@@ -88,10 +94,8 @@ public class BillingRunService {
             }
         }
         // R-12-08: the series of the issue date, numbered from its counter in the members' order.
-        String pattern = context.parameter("billing.invoiceSeriesPattern", String.class);
-        boolean reset = !Boolean.FALSE.equals(context.parameter("billing.invoiceResetYearly", Boolean.class));
-        String series = InvoiceNumbering.series(pattern, issueDate), counterKey = InvoiceNumbering.counterKey(pattern, issueDate, reset);
-        long first = counters.reserve(counterKey, drafts.size());
+        var block = numbers.reserve(context, drafts.size());
+        String series = block.series(), counterKey = block.counterKey(); long first = block.first();
         String runId = UUID.randomUUID().toString(), remittanceId = sepa ? UUID.randomUUID().toString() : null;
         var issued = new ArrayList<Invoice>(); var attempts = new ArrayList<Collection>(); var sepaAttempts = new ArrayList<Collection>();
         var byMethod = new EnumMap<PaymentMethodType, List<Money>>(PaymentMethodType.class);
@@ -106,6 +110,17 @@ public class BillingRunService {
             attempts.add(attempt);
             if (attempt.provider() == CollectionProvider.SEPA_XML) { sepaAttempts.add(attempt); }
             byMethod.computeIfAbsent(method, ignored -> new ArrayList<>()).add(invoice.total());
+        }
+        // R-12-19: each waiting manual receipt gets a new SEPA_XML attempt in this remittance and goes COLLECTING.
+        var remitted = new ArrayList<Invoice>(); var remittedAttempts = new ArrayList<Collection>();
+        for (var receipt : included) {
+            var attempt = remittedAttempt(receipt, collections.forInvoice(receipt.id()), remittanceId, now);
+            collections.insert(attempt);
+            sepaAttempts.add(attempt); remittedAttempts.add(attempt);
+            var state = InvoiceState.of(receipt, now, actor).status(InvoiceStatus.COLLECTING).remittance(remittanceId);
+            if (!invoices.transition(receipt.id(), receipt.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+            remitted.add(receipt);
+            byMethod.computeIfAbsent(PaymentMethodType.SEPA_DD, ignored -> new ArrayList<>()).add(receipt.total());
         }
         var advances = plan.month().advances();
         var run = new BillingRun(runId, context.clubId(), period.toString(), BillingRunStatus.GENERATED, simulationId, issued.stream().map(Invoice::id).toList(),
@@ -138,18 +153,27 @@ public class BillingRunService {
                         "collectionId", attempts.get(i).id()));
             }
         }
+        for (int i = 0; i < remitted.size(); i++) {
+            var receipt = remitted.get(i);
+            events.publish(BillingEvent.Kind.InvoiceCollecting, receipt.id(), Map.of("invoiceId", receipt.id(), "provider", CollectionProvider.SEPA_XML.name(),
+                    "collectionId", remittedAttempts.get(i).id()));
+        }
+        var remittedIds = remitted.stream().map(Invoice::id).toList();
         if (remittance != null) {
             var payload = new LinkedHashMap<String, Object>();
             payload.put("remittanceId", remittance.id()); payload.put("runId", runId);
-            payload.put("invoiceIds", issued.stream().filter(invoice -> invoice.status() == InvoiceStatus.COLLECTING).map(Invoice::id).toList());
+            var remittanceInvoices = new ArrayList<>(issued.stream().filter(invoice -> invoice.status() == InvoiceStatus.COLLECTING).map(Invoice::id).toList());
+            remittanceInvoices.addAll(remittedIds);
+            payload.put("invoiceIds", remittanceInvoices);
             payload.put("fileKey", remittance.fileKey());
             events.publish(BillingEvent.Kind.RemittanceGenerated, remittance.id(), payload);
         }
         events.publish(BillingEvent.Kind.BillingRunCreated, runId, Map.of("runId", runId, "period", period.toString(), "simulationId", simulationId,
                 "invoiceCount", issued.size()));
-        // R-14-10: one entry for the run, its invoices in `details` (never one entry per invoice).
+        // R-14-10: one entry for the run, its invoices in `details` (never one entry per invoice); the manual receipts it remitted too.
         audit.write(new AuditCommand(AuditAction.REMITTANCE_GENERATED, "BillingRun", runId, null, null, stored, null),
-                Map.of("period", period.toString(), "invoiceIds", stored.invoiceIds(), "remittanceId", Objects.toString(remittanceId, "")));
+                Map.of("period", period.toString(), "invoiceIds", stored.invoiceIds(), "remittedManualInvoiceIds", remittedIds,
+                        "remittanceId", Objects.toString(remittanceId, "")));
         return new RunOutcome(stored, remittance, blockers(stored));
     }
 
@@ -175,6 +199,18 @@ public class BillingRunService {
             events.publish(BillingEvent.Kind.InvoiceCancelled, invoice.id(), Map.of("invoiceId", invoice.id(), "reason", ROLLBACK));
         }
         var remittance = remittances.forRun(runId).orElse(null);
+        // R-12-19: the manual receipts the run remitted were not issued by it — back to PENDING, out of the remittance, the flag kept.
+        var returned = new ArrayList<String>();
+        for (var receipt : remittance == null ? List.<Invoice>of() : invoices.includedIn(remittance.id())) {
+            if (receipt.status() != InvoiceStatus.COLLECTING) { continue; }
+            var last = collections.forInvoice(receipt.id()).stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);
+            collections.insert(new Collection(UUID.randomUUID().toString(), receipt.clubId(), receipt.id(), CollectionProvider.SEPA_XML, receipt.total(),
+                    CollectionStatus.FAILED, null, remittance.id(), last == null ? 1 : last.attempt(), ROLLBACK, reason, List.of(), now, now,
+                    last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null));
+            var state = InvoiceState.of(receipt, now, actor).status(InvoiceStatus.PENDING).remittance(null);
+            if (!invoices.transition(receipt.id(), receipt.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+            returned.add(receipt.id());
+        }
         if (remittance != null && !remittances.rollBack(remittance.id())) { throw new ApiException(ErrorCode.STALE_VERSION); }
         if (run.counterKey() != null && !issued.isEmpty()
                 && !counters.restore(run.counterKey(), run.firstNumber() + issued.size(), run.firstNumber())) {
@@ -190,33 +226,47 @@ public class BillingRunService {
         var after = runs.findById(runId).orElseThrow();
         var ids = issued.stream().map(Invoice::id).toList();
         if (remittance != null) {
-            events.publish(BillingEvent.Kind.RemittanceRolledBack, remittance.id(), Map.of("remittanceId", remittance.id(), "runId", runId, "invoiceIds", ids));
+            var touched = new ArrayList<>(ids); touched.addAll(returned);
+            events.publish(BillingEvent.Kind.RemittanceRolledBack, remittance.id(), Map.of("remittanceId", remittance.id(), "runId", runId, "invoiceIds", touched));
         }
         audit.write(new AuditCommand(AuditAction.REMITTANCE_ROLLED_BACK, "BillingRun", runId, null, run, after, reason),
-                Map.of("period", run.period(), "invoiceIds", ids, "restoredMembers", restored));
+                Map.of("period", run.period(), "invoiceIds", ids, "returnedManualInvoiceIds", returned, "restoredMembers", restored));
         return new RollbackOutcome(ids.size(), restored);
     }
 
-    /** R-12-14: what keeps {@code run} from being rolled back now (empty = rollbackable, when the run is live). */
+    /**
+     * R-12-14: what keeps {@code run} from being rolled back now (empty = rollbackable, when the run is live). A `COMPLETED` run
+     * (E8-T04: its cards charged) is never rolled back (§5): `COLLECTION_SUBMITTED`. «Something numbered after the run's block»
+     * is read both on the run's counter and on the series, so a receipt numbered by the other counter key (a toggled
+     * `billing.invoiceResetYearly`) blocks it too.
+     */
     public List<RollbackBlocker> blockers(BillingRun run) {
         if (run.status() == BillingRunStatus.ROLLED_BACK) { return List.of(); }
         var reasons = new ArrayList<RollbackBlocker>();
         var remittance = remittances.forRun(run.id()).orElse(null);
         if (remittance != null && remittance.status() == RemittanceStatus.SUBMITTED) { reasons.add(RollbackBlocker.REMITTANCE_SUBMITTED); }
         var issued = invoices.forRun(run.id());
-        var attempts = collections.forInvoices(issued.stream().map(Invoice::id).toList());
-        if (attempts.stream().anyMatch(attempt -> attempt.provider() != CollectionProvider.MANUAL
+        // The manual receipts the run put into its remittance (R-12-19) count as the run's for a collection or a payment.
+        var touched = new ArrayList<>(issued);
+        if (remittance != null) { touched.addAll(invoices.includedIn(remittance.id())); }
+        var attempts = collections.forInvoices(touched.stream().map(Invoice::id).toList());
+        if (run.status() == BillingRunStatus.COMPLETED || attempts.stream().anyMatch(attempt -> attempt.provider() != CollectionProvider.MANUAL
                 && (attempt.status() == CollectionStatus.SUBMITTED || attempt.status() == CollectionStatus.SUCCEEDED))) {
             reasons.add(RollbackBlocker.COLLECTION_SUBMITTED);
         }
-        if (issued.stream().anyMatch(invoice -> invoice.status() == InvoiceStatus.PAID)) { reasons.add(RollbackBlocker.INVOICE_PAID); }
-        if (run.counterKey() != null && counters.next(run.counterKey()).map(next -> next != run.firstNumber() + issued.size()).orElse(true)) {
+        if (touched.stream().anyMatch(invoice -> invoice.status() == InvoiceStatus.PAID)) { reasons.add(RollbackBlocker.INVOICE_PAID); }
+        long after = run.firstNumber() + issued.size();
+        if (run.counterKey() != null && (counters.next(run.counterKey()).map(next -> next != after).orElse(true)
+                || !issued.isEmpty() && invoices.numberedFrom(issued.getFirst().series(), after))) {
             reasons.add(RollbackBlocker.MANUAL_INVOICE_AFTER);
         }
         return reasons;
     }
 
-    /** R-12-07: something billing reads changed after the simulation was taken. */
+    /**
+     * R-12-07: something billing reads changed after the simulation was taken — the members, family groups, plans and
+     * prices, the `billing.*` parameters, and the club's own configuration (its payment providers and modules, round 2).
+     */
     boolean stale(BillingSimulation simulation) {
         var involved = new HashSet<String>();
         simulation.incidents().forEach(incident -> involved.add(incident.memberId()));
@@ -226,6 +276,7 @@ public class BillingRunService {
         census.lastChange(involved).ifPresent(changes::add);
         catalog.lastChange().ifPresent(changes::add);
         counters.parametersChangedAt("billing.").ifPresent(changes::add);
+        counters.clubChangedAt().ifPresent(changes::add);
         return changes.stream().anyMatch(change -> change.isAfter(simulation.at()));
     }
 
@@ -272,6 +323,12 @@ public class BillingRunService {
         return new Collection(UUID.randomUUID().toString(), invoice.clubId(), invoice.id(), provider, invoice.total(), CollectionStatus.CREATED, null,
                 sepa ? remittanceId : null, 1, null, null, List.of(), now, null, sepa ? invoice.paymentMethod().mandateRef() : null,
                 sepa ? invoice.displayNumber() : null, provider == CollectionProvider.MANUAL ? invoice.paymentMethod().channel() : null, null);
+    }
+    /** R-12-19: a waiting manual receipt's attempt in the run's remittance — its next attempt number, `EndToEndId` its number. */
+    private static Collection remittedAttempt(Invoice receipt, List<Collection> earlier, String remittanceId, Instant now) {
+        int attempt = earlier.isEmpty() ? 1 : earlier.getLast().attempt() + 1;
+        return new Collection(UUID.randomUUID().toString(), receipt.clubId(), receipt.id(), CollectionProvider.SEPA_XML, receipt.total(), CollectionStatus.CREATED, null,
+                remittanceId, attempt, null, null, List.of(), now, null, receipt.paymentMethod().mandateRef(), receipt.displayNumber(), null, null);
     }
     private static PaymentMethodType method(InvoicingService.MonthPlan plan, InvoicingRules.Draft draft) {
         return InvoicingService.member(plan.member(draft.payerId())).method();

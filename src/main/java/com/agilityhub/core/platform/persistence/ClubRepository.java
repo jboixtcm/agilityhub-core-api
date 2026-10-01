@@ -41,26 +41,38 @@ public class ClubRepository extends GlobalRepository<Club> {
     }
     /**
      * E8-T02 (R-12-08): the next {@code count} numbers of the counter {@code key} of `billing.counters`, taken atomically in
-     * the caller's transaction; returns the first one. A key without a counter yet starts at the imported `billing.nextNumber`
-     * when the club has no counter at all, otherwise at 1 (a new series of a yearly reset). The club's version is bumped, so a
-     * full club save read before this write fails instead of writing the old counter back.
+     * the caller's transaction; returns the first one. A number is never reused (round 2, ruling E87):
+     * <ul>
+     * <li>a key without a counter yet — a new year's series with a yearly reset, or the other key after
+     * `billing.invoiceResetYearly` was toggled — starts at the highest counter of the stored keys {@code sameSeries} accepts
+     * (they number the same series), or at the imported `billing.nextNumber` while the club has no counter at all, else 1;</li>
+     * <li>no counter ever hands out a number below {@code floor}: the caller's «after the highest number its series has
+     * issued», so two keys of one series never meet.</li>
+     * </ul>
+     * The club's version is bumped, so a full club save read before this write fails instead of writing the old counter back.
      */
-    public long reserveInvoiceNumbers(String clubId, String key, int count) {
+    public long reserveInvoiceNumbers(String clubId, String key, int count, long floor, java.util.function.Predicate<String> sameSeries) {
         if (count < 1) { throw new IllegalArgumentException("count"); }
-        String field = counterField(key);
+        String field = counterField(key), stored = counterKey(key);
         var id = Query.query(Criteria.where("_id").is(clubId));
         var club = mongo.findOne(id, org.bson.Document.class, "clubs");
         if (club == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
         var billing = club.get("billing", org.bson.Document.class);
         var counters = billing == null ? null : billing.get("counters", org.bson.Document.class);
-        if (counters == null || !counters.containsKey(counterKey(key))) {
+        if (counters == null || !counters.containsKey(stored)) {
             long seed = (counters == null || counters.isEmpty()) && billing != null && billing.get("nextNumber") instanceof Number imported ? imported.longValue() : 1L;
+            if (counters != null) {
+                for (var other : counters.entrySet()) {
+                    if (other.getValue() instanceof Number next && sameSeries.test(other.getKey())) { seed = Math.max(seed, next.longValue()); }
+                }
+            }
             mongo.updateFirst(Query.query(Criteria.where("_id").is(clubId).and(field).exists(false)),
                     new org.springframework.data.mongodb.core.query.Update().set(field, seed), "clubs");
         }
+        mongo.updateFirst(id, new org.springframework.data.mongodb.core.query.Update().max(field, floor), "clubs");
         var before = mongo.findAndModify(id, new org.springframework.data.mongodb.core.query.Update().inc(field, (long) count).inc("version", 1L),
                 org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(false), org.bson.Document.class, "clubs");
-        return ((Number) before.get("billing", org.bson.Document.class).get("counters", org.bson.Document.class).get(counterKey(key))).longValue();
+        return ((Number) before.get("billing", org.bson.Document.class).get("counters", org.bson.Document.class).get(stored)).longValue();
     }
     /** The next number of the counter {@code key}, empty while it has none. */
     public Optional<Long> invoiceCounter(String clubId, String key) {
@@ -79,7 +91,7 @@ public class ClubRepository extends GlobalRepository<Club> {
                 new org.springframework.data.mongodb.core.query.Update().set(field, restoreTo).inc("version", 1L), "clubs").getModifiedCount() == 1;
     }
     /** A series is user text (`billing.invoiceSeriesPattern`): `.` and `$` would split the field path. */
-    static String counterKey(String key) { return key.replace('.', '_').replace('$', '_'); }
+    public static String counterKey(String key) { return key.replace('.', '_').replace('$', '_'); }
     private static String counterField(String key) { return "billing.counters." + counterKey(key); }
     public void ensureIndexes() {
         mongo.indexOps(Club.class).ensureIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));

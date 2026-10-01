@@ -29,6 +29,17 @@ public final class BillingDocuments {
     public static final List<String> NUMBERED_STATUSES = List.of("PENDING", "COLLECTING", "PAID", "FAILED");
     /** R-12-11: a lock its holder never released expires after ten minutes. */
     public static final Duration BILLING_LOCK_LEASE = Duration.ofMinutes(10);
+    /** R-12-14: the `cancelReason` of a receipt cancelled by a rollback (`CANCELLED{ROLLBACK}`). */
+    public static final String ROLLBACK = "ROLLBACK";
+
+    /**
+     * R-12-14 (round 2, ruling E87): a receipt cancelled by a rollback. Its number went back to the counter and the next run
+     * reissues it, so it never reaches the member (`/me/invoices`), D6's «Tots» or the list's search: D6 shows it only under
+     * the `CANCELLED` filter, marked as rolled back.
+     */
+    public static Document rolledBack() { return new Document("status", "CANCELLED").append("cancelReason", ROLLBACK); }
+    /** Every receipt except the rolled-back ones ({@link #rolledBack()}). */
+    public static Criteria notRolledBack() { return new Criteria().norOperator(Criteria.where("status").is("CANCELLED").and("cancelReason").is(ROLLBACK)); }
 
     private static PartialIndexFilter present(String field) {
         return PartialIndexFilter.of(new Document(field, new Document("$type", "string")));
@@ -61,21 +72,46 @@ public final class BillingDocuments {
         public List<Invoice> forIds(java.util.Collection<String> ids) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(List.copyOf(ids))), Invoice.class);
         }
-        /** R-12-27: the invoices of {@code memberIds}, newest first. */
+        /** R-12-27: the invoices of {@code memberIds}, newest first; a rolled-back one never reaches the member. */
         public List<Invoice> ofMembers(java.util.Collection<String> memberIds, int page, int size) {
-            return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds)))
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))).addCriteria(notRolledBack())
                     .with(Sort.by(DESC, "issueDate").and(Sort.by(DESC, "number"))).skip((long) page * size).limit(size), Invoice.class);
         }
         public long countOfMembers(java.util.Collection<String> memberIds) {
-            return mongo.count(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))), Invoice.class);
+            return mongo.count(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))).addCriteria(notRolledBack()), Invoice.class);
         }
-        /** D6's chips of {@code period}: the invoices by status. */
+        /** D6's chips of {@code period}: the invoices by status, the rolled-back ones aside (R-12-14). */
         public java.util.Map<String, Long> countsByStatus(String period) {
             var counts = new java.util.LinkedHashMap<String, Long>();
-            for (var invoice : mongo.find(tenantQuery().addCriteria(Criteria.where("period").is(period)), Invoice.class)) {
+            for (var invoice : mongo.find(tenantQuery().addCriteria(Criteria.where("period").is(period)).addCriteria(notRolledBack()), Invoice.class)) {
                 counts.merge(invoice.status().name(), 1L, Long::sum);
             }
             return counts;
+        }
+        /** R-12-08: the highest number {@code series} has issued (0 before the first), the rolled-back receipts aside. */
+        public long highestNumber(String series) {
+            var query = tenantQuery().addCriteria(Criteria.where("series").is(series)).addCriteria(notRolledBack()).with(Sort.by(DESC, "number")).limit(1);
+            query.fields().include("number");
+            var top = mongo.findOne(query, Document.class, "invoices");
+            return top == null || !(top.get("number") instanceof Number number) ? 0 : number.longValue();
+        }
+        /** Whether {@code series} has any receipt at all, a rolled-back one included. */
+        public boolean seriesUsed(String series) { return mongo.exists(tenantQuery().addCriteria(Criteria.where("series").is(series)), Invoice.class); }
+        /** R-12-14: whether {@code series} has a receipt numbered {@code number} or later, the rolled-back ones aside. */
+        public boolean numberedFrom(String series, long number) {
+            return mongo.exists(tenantQuery().addCriteria(Criteria.where("series").is(series).and("number").gte(number)).addCriteria(notRolledBack()), Invoice.class);
+        }
+        /**
+         * R-12-19 (round 2, ruling E87): the manual receipts the next run puts into its remittance — `PENDING`, `SEPA_DD`,
+         * `includeInNextRun`, in no remittance yet — in their numbers' order.
+         */
+        public List<Invoice> forNextRun() {
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("MANUAL").and("status").is("PENDING").and("includeInNextRun").is(true)
+                    .and("paymentMethod.type").is("SEPA_DD").and("remittanceId").is(null)).with(Sort.by(ASC, "number")), Invoice.class);
+        }
+        /** The manual receipts a run put into the remittance {@code remittanceId} (R-12-19): no run of their own. */
+        public List<Invoice> includedIn(String remittanceId) {
+            return mongo.find(tenantQuery().addCriteria(Criteria.where("remittanceId").is(remittanceId).and("runId").is(null)).with(Sort.by(ASC, "number")), Invoice.class);
         }
         /**
          * The state fields of §5's transitions, and only them (R-12-10): lines, amounts, member, series and number never change.
@@ -99,6 +135,8 @@ public final class BillingDocuments {
         public InvoiceState status(com.agilityhub.core.payments.domain.InvoiceStatus next) {
             return new InvoiceState(next, remittanceId, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId);
         }
+        /** The remittance a manual receipt joins (R-12-19) or leaves (null, R-12-14). */
+        public InvoiceState remittance(String id) { return new InvoiceState(status, id, paidAt, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId); }
         public InvoiceState paid(java.time.Instant when) { return new InvoiceState(status, remittanceId, when, failedAt, failureReason, cancelledAt, cancelReason, at, byAccountId); }
         public InvoiceState failed(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, when, reason, cancelledAt, cancelReason, at, byAccountId); }
         public InvoiceState cancelled(java.time.Instant when, String reason) { return new InvoiceState(status, remittanceId, paidAt, failedAt, failureReason, when, reason, at, byAccountId); }

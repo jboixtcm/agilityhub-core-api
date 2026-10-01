@@ -4,7 +4,6 @@ import com.agilityhub.core.payments.domain.*;
 import com.agilityhub.core.payments.persistence.BillingDocuments.*;
 import com.agilityhub.core.payments.persistence.Collection;
 import com.agilityhub.core.payments.persistence.Invoice;
-import com.agilityhub.core.platform.application.InvoiceCounters;
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.platform.application.audit.AuditCommand;
 import com.agilityhub.core.platform.application.audit.AuditWriter;
@@ -45,11 +44,11 @@ public class InvoiceActions {
     public record ManualLine(String description, Money base, BigDecimal taxPercent) { }
 
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final BillingLockRepository locks;
-    private final InvoiceCounters counters; private final InvoicingService invoicing; private final BillingCensusAccess census; private final BillingTexts texts;
+    private final InvoiceNumbers numbers; private final InvoicingService invoicing; private final BillingCensusAccess census; private final BillingTexts texts;
     private final BillingEvents events; private final AuditWriter audit; private final ClubClock clubClock; private final Clock clock;
-    public InvoiceActions(InvoiceRepository invoices, CollectionRepository collections, BillingLockRepository locks, InvoiceCounters counters,
+    public InvoiceActions(InvoiceRepository invoices, CollectionRepository collections, BillingLockRepository locks, InvoiceNumbers numbers,
             InvoicingService invoicing, BillingCensusAccess census, BillingTexts texts, BillingEvents events, AuditWriter audit, ClubClock clubClock, Clock clock) {
-        this.invoices = invoices; this.collections = collections; this.locks = locks; this.counters = counters; this.invoicing = invoicing;
+        this.invoices = invoices; this.collections = collections; this.locks = locks; this.numbers = numbers; this.invoicing = invoicing;
         this.census = census; this.texts = texts; this.events = events; this.audit = audit; this.clubClock = clubClock; this.clock = clock;
     }
 
@@ -91,8 +90,13 @@ public class InvoiceActions {
         audit.write(new AuditCommand(AuditAction.INVOICE_MARKED_FAILED, "Invoice", id, invoice.memberId(), invoice, after, reason));
         return new InvoiceDetail(after, collections.forInvoice(id));
     }
-    /** R-12-19: `PENDING`/`FAILED` → `CANCELLED`. */
+    /**
+     * R-12-19: `PENDING`/`FAILED` → `CANCELLED{ADMIN}` with the admin's reason. `ROLLBACK` is the reason only a rollback writes
+     * (R-12-14): a receipt cancelled with it would read as rolled back and leave the member's list, so the admin may not type
+     * it (`400 VALIDATION_ERROR {field: reason}`).
+     */
     public InvoiceDetail cancel(String id, String reason, long version) {
+        if (reason != null && BillingRunService.ROLLBACK.equalsIgnoreCase(reason.strip())) { throw BillingContractAccess.invalid("reason"); }
         var invoice = current(id, version);
         if (invoice.status() != InvoiceStatus.PENDING && invoice.status() != InvoiceStatus.FAILED) { throw invalidState(invoice); }
         Instant now = clock.instant();
@@ -115,10 +119,8 @@ public class InvoiceActions {
         var method = InvoicingService.member(member).method();
         if (method == null) { method = PaymentMethodType.MANUAL; }
         var issueDate = context.issueDate();
-        String pattern = context.parameter("billing.invoiceSeriesPattern", String.class);
-        boolean reset = !Boolean.FALSE.equals(context.parameter("billing.invoiceResetYearly", Boolean.class));
-        String series = InvoiceNumbering.series(pattern, issueDate);
-        long number = counters.reserve(InvoiceNumbering.counterKey(pattern, issueDate, reset), 1);
+        var block = numbers.reserve(context, 1);
+        String series = block.series(); long number = block.first();
         Instant now = clock.instant(); String actor = BillingEvents.actor();
         var invoice = invoices.insert(BillingRunService.invoice(UUID.randomUUID().toString(), context, series, number, issueDate, YearMonth.from(issueDate), member,
                 drafted, method, InvoiceStatus.PENDING, InvoiceKind.MANUAL, null, null, includeInNextRun && method == PaymentMethodType.SEPA_DD, note, now, actor));

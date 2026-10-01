@@ -78,11 +78,15 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         var stages = new ArrayList<Document>();
         stages.add(new Document("$match", tenantQuery().getQueryObject()));
         stages.addAll(data.stages());
+        var scope = data.scope() == null ? null : data.scope().apply(query);
+        if (scope != null && !scope.isEmpty()) { stages.add(new Document("$match", scope)); }
         match(data, query, stages);
         return stages;
     }
     /** Skip row enrichment only when it cannot change the selected rows or their filter values. */
     private List<Document> countPipeline(ListDataset data, ListQuery query) {
+        // A list's own scope may read any field its stages compute.
+        if (data.scope() != null) { return pipeline(data, query); }
         var paths = new HashSet<String>();
         query.filters().forEach(filter -> paths.add(data.definition().field(filter.field()).path()));
         // A list's own search may read any field its stages compute.

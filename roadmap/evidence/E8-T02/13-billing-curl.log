@@ -193,7 +193,7 @@ PASS GET /invoices?filter=period:eq:2026-09: 200 · totalItems 115
   "rollbackReason": null,
   "previousDates[member]": [
    {
-    "memberId": "1d6b3d6f-4fc2-3016-bdf5-70a973a2f2d1",
+    "memberId": "1d6b3d6f…[truncated]",
     "nextInvoiceDate": "2026-09-01",
     "advancedTo": "2026-10-01"
    }
@@ -299,7 +299,7 @@ PASS POST /billing/runs/{id}/rollback: 200 · {"cancelledInvoices": 115, "restor
   "rollbackReason": "Preu equivocat",
   "previousDates[member]": [
    {
-    "memberId": "1d6b3d6f-4fc2-3016-bdf5-70a973a2f2d1",
+    "memberId": "1d6b3d6f…[truncated]",
     "nextInvoiceDate": "2026-09-01",
     "advancedTo": "2026-10-01"
    }
@@ -317,7 +317,7 @@ PASS GET /billing/periods/2026-09 after a cash payment: 200 · rollbackable Fals
 curl GET /api/v1/invoices/<id> -> 200
 curl POST /api/v1/invoices/<id>/failure -> 200
 PASS POST /invoices/{id}/failure (a remitted SEPA receipt): 200 · FAILED · collections ['CREATED', 'FAILED']
-curl GET /api/v1/invoices/ac49a07b-2a07-428e-80b8-6b645d810b6b/document -> 200
+curl GET /api/v1/invoices/ac49a07b…[truncated]/document -> 200
 PASS GET /invoices/{id}/document: 200 · 11451 bytes · starts b'%PDF-'
 
 SUMMARY (step · status · key values)

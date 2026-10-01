@@ -9,11 +9,16 @@ ROOT = Path(__file__).resolve().parents[3]
 CLASSES = ["InvoicingRulesTest", "InvoiceArithmeticTest", "InvoiceImmutabilityRuleTest", "BillingPortDefaultsTest", "BillingTransactionsTest",
            "BillingCycleIT", "InvoiceActionsIT", "PendingChargesIT", "E8ContractIT", "E8PersistenceIT", "E8ResponseContractTest", "ListFieldsContractIT",
            "TemplateVariableParityIT", "PlansIT", "ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "MessageParityTest",
-           "OpenApiSnapshotTest", "OpenApiRequiredContractTest", "ErrorCatalogContractTest", "E2ContractIT", "NotificationEngineIT", "CensusIT"]
+           "OpenApiSnapshotTest", "OpenApiRequiredContractTest", "ErrorCatalogContractTest", "E2ContractIT", "NotificationEngineIT", "CensusIT",
+           # round 2
+           "InvoiceNumberingIT"]
 PACKAGES = ["com/agilityhub/core/payments/domain", "com/agilityhub/core/payments/application", "com/agilityhub/core/payments/application/ports",
             "com/agilityhub/core/payments/api", "com/agilityhub/core/platform/application", "com/agilityhub/core/platform/application/audit",
             "com/agilityhub/core/clubs/catalogs/application", "com/agilityhub/core/clubs/census/application", "com/agilityhub/core/clubs/bookings/application",
-            "com/agilityhub/core/shared/application", "com/agilityhub/core/shared/api"]
+            "com/agilityhub/core/shared/application", "com/agilityhub/core/shared/api", "com/agilityhub/core/shared/application/lists",
+            "com/agilityhub/core/platform/domain"]
+if __import__("sys").argv[1:] == ["--no-coverage"]:
+    PACKAGES = []
 
 for name, folder in (("unit/contract (surefire)", "surefire-reports"), ("integration (failsafe)", "failsafe-reports")):
     totals = [0, 0, 0, 0]
@@ -27,12 +32,13 @@ for path in sorted(glob.glob(str(ROOT / "target" / "*-reports" / "TEST-*.xml")))
     if suite.get("name").rsplit(".", 1)[-1] in CLASSES:
         print(f"  {suite.get('name')}: tests={suite.get('tests')} failures={suite.get('failures')} errors={suite.get('errors')} skipped={suite.get('skipped')}")
 coverage = {}
-with open(ROOT / "target/site/jacoco/jacoco.csv", newline="") as report:
-    for row in csv.DictReader(report):
-        key = row["PACKAGE"].replace(".", "/")
-        values = coverage.setdefault(key, [0, 0, 0, 0])
-        values[0] += int(row["LINE_COVERED"]); values[1] += int(row["LINE_MISSED"])
-        values[2] += int(row["BRANCH_COVERED"]); values[3] += int(row["BRANCH_MISSED"])
+if PACKAGES:
+    with open(ROOT / "target/site/jacoco/jacoco.csv", newline="") as report:
+        for row in csv.DictReader(report):
+            key = row["PACKAGE"].replace(".", "/")
+            values = coverage.setdefault(key, [0, 0, 0, 0])
+            values[0] += int(row["LINE_COVERED"]); values[1] += int(row["LINE_MISSED"])
+            values[2] += int(row["BRANCH_COVERED"]); values[3] += int(row["BRANCH_MISSED"])
 for package in PACKAGES:
     covered, missed, bcovered, bmissed = coverage.get(package, [0, 0, 0, 0])
     lines = 100.0 * covered / max(1, covered + missed)

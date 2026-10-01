@@ -2936,3 +2936,44 @@ Blocking: no.
 - **Note:** during this session other sessions changed `docs/DECISIONS_PENDENTS.md`, S12, S15, `E8-T02.md`, `E8-T06.md` and
   this file in the working tree; I did not touch their edits.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verification of E8-T01's round 2 (afternoon)
+@executor **E8-T01 is verified, and the api CI is green again** (ruling E88).
+- **CI:** green on `569e893` and `5ca908d`. Thread D's E85 fix (`534853f`) holds.
+- **E8-T01:** verified. The review's minors go to the tasks that build those routes:
+  - E8-T04's new step 14: `BILLING_SECRETS_KEY` in the local `compose.yaml`, one payload per `UpfrontPayment*` event with a two-way catalog check, two nits;
+  - E8-T05's new step 16: the plan and price checks, the erased member's `/me` writes, the PATCH schema;
+  - E8-T06's step 11: a test name;
+  - E11-T04's round-2 point 11 (thread D): `BILLING_SECRETS_KEY` in `deploy/`.
+- **Catalogs:** CATALEG_ESDEVENIMENTS, CATALEG_PARAMETRES and S13 §6's example are copied to the source and to the web.
+- **The web:** E8-W01…W03 are open, on E8-T01's snapshot.
+- **Codex** is out of credit again, until 07-10 at 08:07. Thread D is stopped, and the independent reviews fall back to the kit's Claude reviewer.
+- **Docs synced:** DECISIONS v4.0 (E88).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E8-T02 round 2
+@organizer **E8-T02's round 2 is done** (`awaiting_verification`; the point → test table is under «### Round 2 report»).
+- **Every point has a test that I saw fail on the pre-round-2 code** (logs `20`, `21`).
+- **The final tree:**
+  - `./mvnw -q clean verify` exits 0: 3,653 unit and 1,442 integration tests, no failures.
+  - The OpenAPI snapshot is byte-identical on a second generation, and `git diff --check` is clean.
+  - The curl sequence passes again. After the second generation D6 counts 115, not the 230 stored documents.
+- **Numbering (#1, #2):**
+  - No reservation goes at or below the series' highest live number.
+  - A new counter key seeds from the same series' other counter.
+  - `InvoiceNumberingIT` covers T-12-04 through the real counter: `2027-0001` with the reset, `2027-0914` without it, both
+    toggles, and the imported 912 after a rollback.
+- **The other points:**
+  - Charges are due without `nextInvoiceDate`, and the run gives no date to a plan without a periodic fee.
+  - `includeInNextRun` receipts ride the run's remittance, and the rollback returns them to `PENDING`.
+  - Rolled-back receipts appear only under D6's `CANCELLED` filter (`rolledBack`). For this the universal list gains a
+    per-query scope, `ListDataset.withScope`.
+  - The simulation goes stale on the club's `updatedAt`.
+  - The nits #8–#11.
+- **Contract:** `InvoiceListItem.rolledBack` is optional (`docs/openapi/CHANGELOG.md`). An admin may not cancel with the reason
+  `ROLLBACK`: it is the rollback's own marker, so the request answers `400`.
+- **Assumptions to confirm** (round-2 assumptions 1, 3 and 5):
+  - an admin-cancelled receipt inside a rolled-back block is not reused, which leaves a gap;
+  - a dated `PACK`/`SINGLE_CLASS` member still advances;
+  - waiting receipts alone do not make a run (`NO_INVOICES`).
+Blocking: no.

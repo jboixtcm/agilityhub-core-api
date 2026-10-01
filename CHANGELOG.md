@@ -775,6 +775,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `CATALEG_ESDEVENIMENTS.md`: the main billing and inactivity/leave rows list the payloads the code publishes (S12/S13 §7).
 
 
+- E8-T02 round 2 (ruling E87; review `roadmap/reviews/E8-T02-20261001-1424-claude.md`):
+  - A receipt number is never reused (R-12-08). A counter never hands out a number at or below the highest one its series has
+    issued (rolled-back receipts aside), and a counter key that does not exist yet starts at the counter of another key of the
+    same series: toggling `billing.invoiceResetYearly` from D11 goes on from the series' last receipt in both directions, and a
+    new year with the reset still starts at `{YYYY}-0001` (`InvoiceNumbers`, `ClubRepository.reserveInvoiceNumbers`).
+  - A member with unbilled `PendingCharge`s is billed for them at the month's run even without `nextInvoiceDate` (a validated
+    single-class member has none), and the run gives no date to a plan without a periodic fee (R-12-25).
+  - The club's next run puts the `PENDING` manual `SEPA_DD` receipts with `includeInNextRun` into its remittance (a `SEPA_XML`
+    attempt, `COLLECTING`); a rollback returns them to `PENDING` with the flag kept (R-12-19).
+  - A receipt cancelled by a rollback leaves `/me/invoices` (its detail and PDF are `404`), D10's recent receipts, D6's «Tots»
+    count and the list's search; D6 lists it only under the `CANCELLED` filter with `rolledBack = true`. An admin may not
+    cancel with the reason `ROLLBACK` (`400`). The universal list engine gains a per-query scope (`ListDataset.withScope`).
+  - The simulation goes stale when the club's configuration changes (its `updatedAt`: payment providers, modules) (R-12-07).
+  - A voided pending charge clears `Booking.charge.chargeInvoiceLineRef`; the receipt PDF names the tax after the club's
+    country profile (`ES` → «IVA», `CountryProfile.taxLabelKey`); a `COMPLETED` run's rollback is `409 RUN_NOT_ROLLBACKABLE
+    {COLLECTION_SUBMITTED}`.
+
 - E8-T02: the unique `invoice_club_series_number` index of `invoices` now covers the invoices that are not cancelled (partial on
   `status ∈ PENDING, COLLECTING, PAID, FAILED`): a rolled-back run keeps its cancelled invoices and gives its numbers back to the
   next generation (R-12-14). The index E8-T01 created is replaced at start-up. `Club.billing` gains `counters` (the next number

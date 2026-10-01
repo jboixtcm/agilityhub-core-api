@@ -20,7 +20,8 @@ import org.springframework.stereotype.Service;
 /**
  * S12 R-12-25 consumers of S10 `AttendanceMarked{state, previousState}` and S08 `BookingCancelled{late}` (E8-T02): a booking of a
  * `CHARGE_ON_ATTENDANCE` single class gets its `PendingCharge` from `payments` ({@link PendingChargeService}: charge, void,
- * reinstate), and the booking's `charge.chargeInvoiceLineRef` provisionally names it. They live here because `payments`
+ * reinstate), and the booking's `charge.chargeInvoiceLineRef` provisionally names it while it is live (a voided charge is
+ * no longer named; a reinstated one is named again). They live here because `payments`
  * cannot read bookings (S08 already depends on it). Idempotent: a redelivered event finds the same charge and the same stamp.
  * Bookings of another mode (PAY_TO_BOOK is E8-T04's) and clubs without `BILLING`/`SINGLE_CLASS` are left alone.
  */
@@ -58,7 +59,12 @@ public class PendingChargeConsumers {
         return new PendingChargeService.ChargedBooking(booking.id(), booking.memberId(), booking.dogId(), dogName,
                 booking.classStartsAt().atZone(zone).toLocalDate());
     }
-    private void stamp(Booking booking, Optional<String> chargeId) { chargeId.ifPresent(id -> bookings.stampChargeRef(booking.id(), id)); }
+    /** The booking names its live charge; a voided one is no longer named (S10 R-10-07: marked back to PENDING before billing). */
+    private void stamp(Booking booking, Optional<PendingChargeService.BookingCharge> charge) {
+        charge.ifPresent(state -> {
+            if (state.live()) { bookings.stampChargeRef(booking.id(), state.chargeId()); } else { bookings.clearChargeRef(booking.id(), state.chargeId()); }
+        });
+    }
     private static String string(Object value) { return value == null ? null : value.toString(); }
 
     @Configuration(proxyBeanMethods = false)

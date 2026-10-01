@@ -35,5 +35,7 @@ public interface CountryProfile {
     String defaultPhonePrefix();
     String dateFormat();
     String timeFormat();
+    /** S02 §3, S12 §10: the message key of the tax's name on a receipt (`ES` → «IVA»); a generic «Tax» by default. */
+    default String taxLabelKey() { return "billing.receipt.tax"; }
     record Town(String town, String region) { }
 }

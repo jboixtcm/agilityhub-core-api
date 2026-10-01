@@ -1,0 +1,8 @@
+unit/contract (surefire): tests=11 failures=0 errors=0 skipped=0
+integration (failsafe): tests=33 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.BillingCycleIT: tests=14 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.InvoiceActionsIT: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.InvoiceNumberingIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.api.PendingChargesIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.domain.InvoicingRulesTest: tests=11 failures=0 errors=0 skipped=0
+exit 0

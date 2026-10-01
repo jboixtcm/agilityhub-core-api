@@ -92,6 +92,49 @@ class InvoicingRulesTest {
     }
     static Charge charge(String id, String day) { return new Charge(id, "booking-" + id, "p-single", eur(1200), BigDecimal.ZERO, "Classe " + day + " — Duna"); }
 
+    /** R-12-25 (ruling E87): a single-class member usually has no `nextInvoiceDate`; its charges are billed all the same. */
+    @Test void T_12_01_R_12_25_unbilledChargesAreDueWithoutANextInvoiceDateAndTheRunGivesNoDate() {
+        charges.put("nuria", List.of(charge("c1", "06/10"), charge("c2", "13/10")));
+        var nuria = billed(lines(sepa("nuria", "single", null), YearMonth.of(2026, 11)));
+        assertThat(nuria.lines()).extracting(Line::origin, Line::chargeId).containsExactly(org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.SINGLE_CLASS, "c1"),
+                org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.SINGLE_CLASS, "c2"));
+        assertThat(nuria.nextInvoiceDate()).isNull();
+        // The month: her invoice, and no date written (a plan without a periodic fee gets none from the run).
+        var month = InvoicingRules.month(List.of(sepa("nuria", "single", null)), List.of(), YearMonth.of(2026, 11), RUN_DAY, CANIC, sources, TEXT);
+        assertThat(month.invoices()).singleElement().satisfies(draft -> {
+            assertThat(draft.payerId()).isEqualTo("nuria");
+            assertThat(draft.lines()).hasSize(2);
+            assertThat(draft.advances()).isEmpty();
+        });
+        assertThat(month.advances()).isEmpty();
+        // Without charges, or with SINGLE_CLASS off, a member without a date is not due.
+        assertThat(lines(sepa("marc", "single", null), YearMonth.of(2026, 11))).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        var off = new Settings("EUR", 1, CashInvoicing.SEMESTER, 6, true, true, true, false, CANIC.enabledMethods());
+        assertThat(InvoicingRules.linesFor(sepa("nuria", "single", null), YearMonth.of(2026, 11), RUN_DAY, off, sources, TEXT)).isEqualTo(new Excluded(Exclusion.NOT_DUE));
+        // A cash member billed by half-years (next date 01-01) with a class in October: the class now, the half-year's date kept.
+        charges.put("vila", List.of(charge("c3", "20/10")));
+        var vila = billed(lines(cash("vila", "abonat", LocalDate.of(2027, 1, 1)), YearMonth.of(2026, 11)));
+        assertThat(vila.lines()).extracting(Line::origin).containsExactly(InvoiceLineOrigin.SINGLE_CLASS);
+        assertThat(vila.nextInvoiceDate()).isEqualTo(LocalDate.of(2027, 1, 1));
+        var cashMonth = InvoicingRules.month(List.of(cash("vila", "abonat", LocalDate.of(2027, 1, 1))), List.of(), YearMonth.of(2026, 11), RUN_DAY, CANIC, sources, TEXT);
+        assertThat(cashMonth.invoices()).singleElement().satisfies(draft -> assertThat(draft.advances()).isEmpty());
+        // R-12-04: a family member's charges go on the holder's invoice even when neither has a date due; nobody's date moves.
+        var laura = sepa("laura", "abonat2", LocalDate.of(2026, 12, 1));
+        var group = new Group("laura", List.of("laura", "nuria"));
+        var family = InvoicingRules.month(List.of(laura, sepa("nuria", "single", null)), List.of(group), YearMonth.of(2026, 11), RUN_DAY, CANIC, sources, TEXT);
+        assertThat(family.invoices()).singleElement().satisfies(draft -> {
+            assertThat(draft.payerId()).isEqualTo("laura");
+            assertThat(draft.lines()).extracting(Line::origin, Line::forMemberId).containsOnly(org.assertj.core.groups.Tuple.tuple(InvoiceLineOrigin.SINGLE_CLASS, "nuria"));
+            assertThat(draft.advances()).isEmpty();
+        });
+        // A due holder takes a dateless family member's charges, and only its own date moves.
+        var due = InvoicingRules.month(List.of(sepa("laura", "abonat2", LocalDate.of(2026, 11, 1)), sepa("nuria", "single", null)), List.of(group),
+                YearMonth.of(2026, 11), RUN_DAY, CANIC, sources, TEXT);
+        assertThat(due.invoices().getFirst().lines()).extracting(Line::origin).containsExactly(InvoiceLineOrigin.MONTHLY_FEE, InvoiceLineOrigin.SINGLE_CLASS,
+                InvoiceLineOrigin.SINGLE_CLASS);
+        assertThat(due.advances()).containsExactly(new Advance("laura", LocalDate.of(2026, 11, 1), LocalDate.of(2026, 12, 1)));
+    }
+
     @Test void T_12_01_pendingLeftNotDueWithoutAMethodOrAfterTheLeaveAreOutOfTheMonth() {
         assertThat(lines(new Member("nuria", "PENDING", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat"), SEPTEMBER))
                 .isEqualTo(new Excluded(Exclusion.NOT_ACTIVE));
