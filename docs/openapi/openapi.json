@@ -1200,22 +1200,27 @@
         "type" : "object"
       },
       "AdminInactivityPatchRequest" : {
+        "description" : "R-13-04 from D-screens: only the fields sent change; an unknown field → 400 VALIDATION_ERROR",
         "properties" : {
           "comments" : {
+            "description" : "Omitted = the comments stay; null clears them",
             "maxLength" : 500,
             "minLength" : 0,
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "fromMonth" : {
+            "description" : "Omitted = the start stays; never null",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : "string"
           },
           "overrideDeadline" : {
+            "description" : "«Salta el termini del dia {D}» (R-13-03, audited)",
             "type" : "boolean"
           },
           "toMonth" : {
+            "description" : "Omitted = the end stays; null = the period becomes open («— encara no ho sé»)",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "version" : {
             "format" : "int64",
@@ -1230,7 +1235,7 @@
           "comments" : {
             "maxLength" : 500,
             "minLength" : 0,
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "fromMonth" : {
             "minLength" : 1,
@@ -1247,8 +1252,9 @@
             "type" : "boolean"
           },
           "toMonth" : {
+            "description" : "Absent or null = «— encara no ho sé» (open)",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ "fromMonth", "memberId" ],
@@ -7264,19 +7270,23 @@
         "type" : "object"
       },
       "InactivityPatchRequest" : {
+        "description" : "R-13-04: only the fields sent change; an unknown field → 400 VALIDATION_ERROR",
         "properties" : {
           "comments" : {
+            "description" : "Omitted = the comments stay; null clears them",
             "maxLength" : 500,
             "minLength" : 0,
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "fromMonth" : {
+            "description" : "Omitted = the start stays; never null",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : "string"
           },
           "toMonth" : {
+            "description" : "Omitted = the end stays; null = the period becomes open («— encara no ho sé»)",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "version" : {
             "format" : "int64",
@@ -7517,7 +7527,7 @@
           "comments" : {
             "maxLength" : 500,
             "minLength" : 0,
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "fromMonth" : {
             "minLength" : 1,
@@ -7527,7 +7537,7 @@
           "toMonth" : {
             "description" : "Absent or null = «— encara no ho sé» (open)",
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ "fromMonth" ],
@@ -10442,7 +10452,7 @@
         "type" : "object"
       },
       "MeInactivityPeriod" : {
-        "description" : "A period of the caller in screen 14's context (S13 §6 JSON)",
+        "description" : "A period of the caller in screen 14's context (S13 §6 JSON). version is the period's optimistic lock: the member's PATCH /me/inactivity-periods/{id} sends it back (R-13-04; an old one → 409 STALE_VERSION, T-13-26)",
         "properties" : {
           "comments" : {
             "type" : [ "string", "null" ]
@@ -10471,9 +10481,14 @@
           "toMonth" : {
             "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
             "type" : [ "string", "null" ]
+          },
+          "version" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
           }
         },
-        "required" : [ "editable", "fromMonth", "id", "state" ],
+        "required" : [ "editable", "fromMonth", "id", "state", "version" ],
         "type" : "object"
       },
       "MeInvoice" : {
@@ -29043,7 +29058,7 @@
     },
     "/api/v1/checkout-sessions" : {
       "post" : {
-        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; E8-T04 serves them: until then a request with either answers NOT_IMPLEMENTED after the same guards and writes nothing.",
+        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; E8-T04 serves them. Until then a request with either first passes the same role, member and club checks as the signup checkout, then the booking and every upfront payment named must be that member's in the club (another member's, another club's or an unknown one → 404 NOT_FOUND), and only then answers NOT_IMPLEMENTED; it writes nothing.",
         "operationId" : "create_1",
         "parameters" : [ {
           "in" : "header",
@@ -40463,7 +40478,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
         "operationId" : "changeInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -47451,7 +47466,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -47461,7 +47476,7 @@
                 }
               }
             },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -48969,7 +48984,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -49125,7 +49140,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -49135,7 +49150,7 @@
                 }
               }
             },
-            "description" : "LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED"
+            "description" : "MEMBER_ERASED, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -49281,7 +49296,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -49369,7 +49384,7 @@
     },
     "/api/v1/me/inactivity-periods/{id}" : {
       "patch" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION. Another member's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
         "operationId" : "changeMyInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -50188,7 +50203,7 @@
                 }
               }
             },
-            "description" : "Not Found"
+            "description" : "NOT_FOUND"
           },
           "409" : {
             "content" : {
@@ -50344,7 +50359,7 @@
                 }
               }
             },
-            "description" : "Not Found"
+            "description" : "NOT_FOUND"
           },
           "409" : {
             "content" : {
@@ -50354,7 +50369,7 @@
                 }
               }
             },
-            "description" : "LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED"
+            "description" : "MEMBER_ERASED, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -51795,7 +51810,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -77825,7 +77840,7 @@
     },
     "/webhooks/stripe/{clubId}" : {
       "post" : {
-        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: the Stripe-Signature header is verified with the club's webhookSecret (invalid or missing → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent); the event is stored once per eventId (a second delivery → 200 with no effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. An unknown club, or one without BILLING (MODULE_DISABLED) or without an enabled STRIPE provider → 404. Contract only; returns 501 NOT_IMPLEMENTED after the club and signature-presence guards (E8-T01).",
+        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: before anything else the Stripe-Signature header (t={unix seconds},v1={hex HMAC-SHA256 of \"{t}.{raw body}\"}) is verified with the club's webhook secret, with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. Contract only; returns 501 NOT_IMPLEMENTED after the signature and the club guards (E8-T01).",
         "operationId" : "receiveStripeEvent",
         "parameters" : [ {
           "in" : "path",

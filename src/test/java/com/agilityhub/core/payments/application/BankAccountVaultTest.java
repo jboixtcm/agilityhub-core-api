@@ -8,9 +8,9 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * Ruling E43 (INC-31, E8-T01): one vault resolves the full IBAN of both origins for the SEPA writer only — a signup or D10
- * member's `iban` in clear, a migrated member's `ibanEncrypted` (S18) decrypted with the same cipher and associated data as
- * {@link MigrationBankVault}. A wrong key, a tampered value or another member's associated data never yields an IBAN, and no
- * failure message carries the value or the key.
+ * member's `iban` in clear, a migrated member's `ibanEncrypted` (S18), which {@link MigrationBankVault} encrypts through this
+ * very vault and key (ruling E85: `BILLING_BANK_KEY` is the only bank key). A wrong key, a tampered value or another member's
+ * associated data never yields an IBAN, and no failure message carries the value or the key.
  */
 class BankAccountVaultTest {
     static final String KEY = Base64.getEncoder().encodeToString("e8-t01-fictional-key-32-bytes!!!".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
@@ -18,7 +18,7 @@ class BankAccountVaultTest {
     static final String IBAN = "ES0000000000000000001234";
 
     @Test void E43_aMigratedIbanEncryptedByTheMigrationVaultIsResolvedWithTheSameKeyAndAssociatedData() {
-        String encrypted = new MigrationBankVault(KEY).encrypt(IBAN, "club-a", "member-a");
+        String encrypted = new MigrationBankVault(new BankAccountVault(KEY)).encrypt(IBAN, "club-a", "member-a");
         var vault = new BankAccountVault(KEY);
         assertThat(vault.resolve(Map.of("type", "SEPA_DD", "ibanEncrypted", encrypted, "ibanLast4", "1234"), "club-a", "member-a")).isEqualTo(IBAN);
         assertThat(vault.resolve(Map.of("type", "SEPA_DD", "sepa", Map.of("ibanEncrypted", encrypted)), "club-a", "member-a")).isEqualTo(IBAN);
@@ -54,5 +54,10 @@ class BankAccountVaultTest {
                 .isInstanceOf(IllegalStateException.class).hasMessage("BILLING_BANK_KEY is not Base64");
         assertThatThrownBy(() -> new BankAccountVault(Base64.getEncoder().encodeToString(new byte[16])).decrypt(encrypted, "club-a", "member-a"))
                 .isInstanceOf(IllegalStateException.class).hasMessageNotContaining(IBAN);
+        // E85: the migration refuses bank data without a usable BILLING_BANK_KEY, before writing anything.
+        assertThat(new BankAccountVault(KEY).configured()).isTrue();
+        for (String unusable : java.util.List.of("", "%%%", Base64.getEncoder().encodeToString(new byte[16]))) {
+            assertThat(new BankAccountVault(unusable).configured()).as(unusable).isFalse();
+        }
     }
 }

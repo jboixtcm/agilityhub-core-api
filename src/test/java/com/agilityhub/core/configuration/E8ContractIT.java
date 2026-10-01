@@ -53,7 +53,9 @@ class E8ContractIT extends AbstractIntegrationTest {
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("invoices", "collections", "remittances", "billing_runs", "billing_simulations", "upfront_payments", "pack_balances",
             "pending_charges", "stripe_events", "billing_locks", "inactivity_periods", "leave_requests", "checkout_sessions", "members", "memberships", "dogs",
-            "family_groups", "domain_events", "audit_entries", "idempotency_records");
+            "family_groups", "domain_events", "audit_entries", "idempotency_records", "bookings");
+    /** The fixture webhook signing secret of club A (never a real key), stored encrypted with the ITs' BILLING_SECRETS_KEY. */
+    static final String WEBHOOK_SECRET = "whsec_fake_fake_fake";
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired ClubRepository clubs;
@@ -62,6 +64,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     @Autowired MongoTemplate mongo;
     @Autowired SignupCapabilities capabilities;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
+    @Autowired com.agilityhub.core.payments.application.ProviderSecretVault secrets;
     String signupToken;
 
     /** `served`: E8-T02 serves the route (its guards still run first); every other route still answers 501 after them. */
@@ -96,12 +99,21 @@ class E8ContractIT extends AbstractIntegrationTest {
         member("e8-member-a", 214, "e8-MEMBER", "e8-family", null);
         member("e8-member-b", 215, "e8-other-member", "e8-family", null);
         member("e8-member-erased", 216, null, null, now);
+        mongo.save(new Document("_id", "e8-member-other").append("clubId", OTHER).append("status", "ACTIVE").append("firstName", "Pau").append("lastName1", "Example")
+                .append("memberNumber", 301).append("version", 0), "members");
         mongo.save(new Document("_id", "e8-member-membership").append("clubId", CLUB).append("accountId", "e8-MEMBER").append("memberId", "e8-member-a")
                 .append("status", "ACTIVE"), "memberships");
         mongo.save(new Document("_id", "e8-family").append("clubId", CLUB).append("holderMemberId", "e8-member-a").append("memberIds", List.of("e8-member-a", "e8-member-b"))
                 .append("status", "ACTIVE").append("version", 0), "family_groups");
-        mongo.save(new Document("_id", "e8-dog-a").append("clubId", CLUB).append("memberId", "e8-member-a").append("name", "Duna").append("sex", "FEMALE")
-                .append("status", "ACTIVE").append("version", 0), "dogs");
+        for (var dog : List.of(Map.entry("e8-dog-a", "e8-member-a"), Map.entry("e8-dog-b", "e8-member-b"))) {
+            mongo.save(new Document("_id", dog.getKey()).append("clubId", CLUB).append("memberId", dog.getValue()).append("name", "Duna").append("sex", "FEMALE")
+                    .append("status", "ACTIVE").append("version", 0), "dogs");
+        }
+        // E8-T01 round 2: the bookings a checkout may name (S08 R-08-18): member A's and member B's in club A, and one in club B.
+        for (var booking : List.of(List.of("e8-booking-a", CLUB, "e8-member-a"), List.of("e8-booking-b", CLUB, "e8-member-b"), List.of("e8-booking-other", OTHER, "e8-member-a"))) {
+            mongo.save(new Document("_id", booking.get(0)).append("clubId", booking.get(1)).append("memberId", booking.get(2)).append("dogId", "e8-dog-a")
+                    .append("state", "PAYMENT_PENDING").append("version", 0), "bookings");
+        }
         Money fee = new Money(9000, "EUR"), zero = new Money(0, "EUR");
         for (var owner : List.of(Map.entry("e8-invoice-a", "e8-member-a"), Map.entry("e8-invoice-b", "e8-member-b"))) {
             mongo.insert(new Invoice(owner.getKey(), CLUB, "2026", owner.getKey().endsWith("a") ? 912 : 913, "2026-0912", "2026-08-25", "2026-09", owner.getValue(),
@@ -122,6 +134,10 @@ class E8ContractIT extends AbstractIntegrationTest {
                 new Remittance.SequenceBreakdown(0, 1), "remittances/e8-club-a/2026-09-1.xml", now, null, RemittanceStatus.GENERATED, null, null, 0L, now, "e8-ADMIN"));
         mongo.insert(new UpfrontPayment("e8-upfront-a", CLUB, "e8-member-a", "e8-dog-a", "PACK", null, new Money(12000, "EUR"), new Money(12000, "EUR"), "PAID",
                 "STRIPE", "e8-checkout-a", now, now, null, null, null));
+        mongo.insert(new UpfrontPayment("e8-upfront-b", CLUB, "e8-member-b", "e8-dog-b", "PACK", null, new Money(12000, "EUR"), new Money(0, "EUR"), "DUE",
+                null, null, now, null, null, null, null));
+        mongo.insert(new UpfrontPayment("e8-upfront-other", OTHER, "e8-member-a", "e8-dog-a", "PACK", null, new Money(12000, "EUR"), new Money(0, "EUR"), "DUE",
+                null, null, now, null, null, null, null));
         mongo.insert(new PackBalance("e8-pack-a", CLUB, "e8-member-a", "e8-dog-a", "e8-plan-a", "e8-upfront-a", 10, 0, 10, "2026-06-12", "2026-11-11",
                 PackBalanceState.ACTIVE, List.of(new PackBalance.Movement("e8-movement-a", PackMovementType.OPEN, 10, null, null, null, now)), null, null, null, null, 0L, now, "e8-ADMIN"));
         mongo.insert(new SignupCheckoutSession("e8-checkout-a", CLUB, "e8-member-a", "PENDING", "payment", List.of("e8-upfront-a"), now.plusSeconds(1800), null));
@@ -144,8 +160,18 @@ class E8ContractIT extends AbstractIntegrationTest {
         mongo.remove(Query.query(Criteria.where("_id").is(clubId)), Club.class);
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(clubId, clubId.equals(CLUB) ? HOST : OTHER_HOST));
         tree.set("modules", mapper.valueToTree(modules));
+        // R-12-21: club A has a webhook secret (encrypted as S12 stores it); club B has none.
+        if (clubId.equals(CLUB)) { ((ObjectNode) tree.path("paymentProviders").path("STRIPE")).put("webhookSecretEnc", secrets.encrypt(WEBHOOK_SECRET, CLUB, "STRIPE", "webhookSecretEnc")); }
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(clubId);
     }
+    /** Stripe's `Stripe-Signature` (t, v1 = hex HMAC-SHA256 of "{t}.{body}") at {@code at}, computed here independently of the api. */
+    static String signature(String secret, Instant at, String body) throws Exception {
+        var mac = javax.crypto.Mac.getInstance("HmacSHA256");
+        mac.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256"));
+        String signed = at.getEpochSecond() + "." + body;
+        return "t=" + at.getEpochSecond() + ",v1=" + java.util.HexFormat.of().formatHex(mac.doFinal(signed.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+    private String signature(String body) throws Exception { return signature(WEBHOOK_SECRET, clock.instant(), body); }
     private static List<Module> without(Module... off) {
         var modules = new ArrayList<>(List.of(Module.values())); modules.removeAll(List.of(off)); return modules;
     }
@@ -171,7 +197,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         if (r.body() != null && !r.body().isNull()) { request.contentType("application/json").content(mapper.writeValueAsString(r.body())); }
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
-        if (r.webhook()) { request.header("Stripe-Signature", "t=1790000000,v1=e8fixture"); }
+        if (r.webhook()) { request.header("Stripe-Signature", signature(mapper.writeValueAsString(r.body()))); }
         if (role.equals("ANON") && r.path().startsWith("/api/v1/checkout-sessions/")) { request.header("X-Signup-Token", signupToken); }
         if (!role.equals("ANON")) {
             request.with(jwt().jwt(j -> j.subject("e8-" + role).claim("clubId", clubId).claim("memberId", memberId)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
@@ -274,8 +300,10 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
         assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(35);
         error(as(get("/api/v1/me/invoices"), "MEMBER"), 404, "MODULE_DISABLED");
-        error(post("/webhooks/stripe/" + CLUB).contentType("application/json").content("{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}")
-                .header("Stripe-Signature", "t=1,v1=x"), 404, "MODULE_DISABLED");
+        // A delivery signed by the club's secret reaches the module guard; an unsigned one never does (R-12-21).
+        String event = "{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}";
+        error(webhook(CLUB, event, signature(event)), 404, "MODULE_DISABLED");
+        error(webhook(CLUB, event, "t=1,v1=x"), 401, "WEBHOOK_SIGNATURE_INVALID");
         for (Route route : clubRoutes().filter(r -> r.module() == null || r.module().equals("INACTIVITY")).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 501, "NOT_IMPLEMENTED"); }
         }
@@ -307,24 +335,64 @@ class E8ContractIT extends AbstractIntegrationTest {
     }
 
     /**
-     * R-12-21: the webhook names its club in the path (no bearer, no host): an unknown club or one without an enabled STRIPE
-     * provider → 404, a missing signature → 401 WEBHOOK_SIGNATURE_INVALID with a SecurityEvent; then 501 until E8-T04. A
-     * bearer of another club changes nothing: the club is the path's.
+     * R-12-21 (round 2, review #2): the webhook names its club in the path (no bearer, no host) and authenticates the body before
+     * anything else: Stripe's HMAC-SHA256 of "{t}.{body}" under the club's webhook secret, with a 5-minute tolerance. A missing,
+     * made-up, wrong, stale or another body's signature, an unknown club, a club without a secret and one whose stored secret
+     * does not decrypt → 401 WEBHOOK_SIGNATURE_INVALID with a SecurityEvent each and nothing else stored. A valid signature
+     * reaches the club guards (STRIPE disabled → 404) and then 501 until E8-T04; a bearer of another club changes nothing.
      */
-    @Test void T_12_15_theStripeWebhookIsReachedBySignatureForThePathsClubOnly() throws Exception {
+    @Test void T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse() throws Exception {
         String body = "{\"id\":\"evt_e8_fixture\",\"type\":\"payment_intent.succeeded\",\"created\":1790000000}";
-        error(post("/webhooks/stripe/" + CLUB).contentType("application/json").content(body).header("Stripe-Signature", "t=1790000000,v1=e8"), 501, "NOT_IMPLEMENTED");
-        long before = mongo.getCollection("security_events").countDocuments();
-        error(post("/webhooks/stripe/" + CLUB).contentType("application/json").content(body), 401, "WEBHOOK_SIGNATURE_INVALID");
-        assertThat(mongo.getCollection("security_events").countDocuments()).isEqualTo(before + 1);
-        error(post("/webhooks/stripe/e8-unknown-club").contentType("application/json").content(body).header("Stripe-Signature", "t=1,v1=x"), 404, "NOT_FOUND");
+        String tampered = body.replace("payment_intent.succeeded", "charge.refunded");
+        var before = database();
+        error(webhook(CLUB, body, signature(body)), 501, "NOT_IMPLEMENTED");
+        // Stripe may send several v1 (a rolled secret) and a v0: one valid v1 is enough, a v0 never counts.
+        String rolled = signature(body).replace(",v1=", ",v1=" + "0".repeat(64) + ",v0=" + "1".repeat(64) + ",v1=");
+        error(webhook(CLUB, body, rolled), 501, "NOT_IMPLEMENTED");
+        error(webhook(CLUB, body, signature(body)).with(jwt().jwt(j -> j.claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN")), 501, "NOT_IMPLEMENTED");
+        long events = securityEvents();
+        Map<String, MockHttpServletRequestBuilder> refused = new LinkedHashMap<>();
+        refused.put("missing", webhook(CLUB, body, null));
+        refused.put("made up", webhook(CLUB, body, "t=" + clock.instant().getEpochSecond() + ",v1=e8"));
+        refused.put("another secret", webhook(CLUB, body, signature("whsec_fake_other_fake", clock.instant(), body)));
+        refused.put("tampered body", webhook(CLUB, tampered, signature(body)));
+        refused.put("only v0", webhook(CLUB, body, signature(body).replace("v1=", "v0=")));
+        refused.put("stale", webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().minusSeconds(301), body)));
+        refused.put("future", webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().plusSeconds(301), body)));
+        refused.put("unknown club", webhook("e8-unknown-club", body, signature(body)));
+        refused.put("club without a secret", webhook(OTHER, body, signature(body)));
+        for (var entry : refused.entrySet()) {
+            var response = mvc.perform(entry.getValue()).andReturn().getResponse();
+            assertThat(response.getStatus()).as(entry.getKey()).isEqualTo(401);
+            assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).as(entry.getKey()).isEqualTo("WEBHOOK_SIGNATURE_INVALID");
+        }
+        assertThat(securityEvents()).as("one SecurityEvent per refused delivery").isEqualTo(events + refused.size());
+        for (var request : refused.values()) { error(request, 401, "WEBHOOK_SIGNATURE_INVALID"); }
+        // Inside the tolerance on both sides.
+        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().minusSeconds(300), body)), 501, "NOT_IMPLEMENTED");
+        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().plusSeconds(300), body)), 501, "NOT_IMPLEMENTED");
+        // A stored secret that does not decrypt (club A's ciphertext: another associated data) is no secret.
         var tree = (ObjectNode) mapper.valueToTree(clubs.findById(OTHER).orElseThrow());
-        ((ObjectNode) tree.path("paymentProviders").path("STRIPE")).put("enabled", false);
+        ((ObjectNode) tree.path("paymentProviders").path("STRIPE")).put("webhookSecretEnc", secrets.encrypt(WEBHOOK_SECRET, CLUB, "STRIPE", "webhookSecretEnc"));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(OTHER);
-        error(post("/webhooks/stripe/" + OTHER).contentType("application/json").content(body).header("Stripe-Signature", "t=1,v1=x"), 404, "NOT_FOUND");
-        error(post("/webhooks/stripe/" + CLUB).contentType("application/json").content(body).header("Stripe-Signature", "t=1,v1=x")
-                .with(jwt().jwt(j -> j.claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN")), 501, "NOT_IMPLEMENTED");
-        assertThat(mongo.getCollection("stripe_events").countDocuments(new Document("clubId", CLUB))).isZero();
+        error(webhook(OTHER, body, signature(body)), 401, "WEBHOOK_SIGNATURE_INVALID");
+        // Signed with the club's own secret but STRIPE disabled → 404 («club sense Stripe»), after the signature.
+        tree = (ObjectNode) mapper.valueToTree(clubs.findById(OTHER).orElseThrow());
+        ((ObjectNode) tree.path("paymentProviders").path("STRIPE")).put("webhookSecretEnc", secrets.encrypt(WEBHOOK_SECRET, OTHER, "STRIPE", "webhookSecretEnc"))
+                .put("enabled", false);
+        clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(OTHER);
+        error(webhook(OTHER, body, signature(body)), 404, "NOT_FOUND");
+        error(webhook(OTHER, body, null), 401, "WEBHOOK_SIGNATURE_INVALID");
+        var after = database(); after.remove("clubs"); before.remove("clubs");
+        assertThat(after).as("nothing but the security events is stored").isEqualTo(before);
+        assertThat(mongo.getCollection("stripe_events").countDocuments()).isZero();
+    }
+    private MockHttpServletRequestBuilder webhook(String clubId, String body, String signature) {
+        var request = post("/webhooks/stripe/" + clubId).contentType("application/json").content(body);
+        return signature == null ? request : request.header("Stripe-Signature", signature);
+    }
+    private long securityEvents() {
+        return mongo.getCollection("security_events").countDocuments(new Document("type", "WEBHOOK_SIGNATURE_INVALID"));
     }
 
     /** The bodies, months and list queries are validated before the stub; an issued invoice has no PATCH (T-12-12); MEMBER_ERASED. */
@@ -376,18 +444,126 @@ class E8ContractIT extends AbstractIntegrationTest {
 
     /**
      * S12 §6 (E8-T01): `POST /checkout-sessions` keeps the E3-T03 signup checkout and publishes `bookingId` and
-     * `upfrontPaymentIds`; a request with either answers 501 until E8-T04, and writes nothing.
+     * `upfrontPaymentIds`; a request with either that passes every guard answers 501 until E8-T04, and writes nothing.
      */
     @Test void T_12_16_theCheckoutExtensionsAnswer501UntilE8T04() throws Exception {
         var before = database();
         for (String extension : List.of("\"bookingId\":\"e8-booking-a\"", "\"upfrontPaymentIds\":[\"e8-upfront-a\"]")) {
-            String body = "{\"memberId\":\"e8-member-a\",\"successUrl\":\"https://e8-a.example.test/ok\",\"cancelUrl\":\"https://e8-a.example.test/ko\"," + extension + "}";
             for (String role : List.of("MEMBER", "ADMIN")) {
-                error(as(post("/api/v1/checkout-sessions").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json").content(body), role),
-                        501, "NOT_IMPLEMENTED");
+                error(as(checkout("e8-member-a", extension), role), 501, "NOT_IMPLEMENTED");
+            }
+            error(checkout("e8-member-a", extension).header("Host", HOST), 401, "UNAUTHENTICATED");
+            error(checkout("e8-member-a", extension).header("Host", HOST).content(withToken("e8-member-a", extension, signupToken)), 501, "NOT_IMPLEMENTED");
+        }
+        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
+        assertThat(after).isEqualTo(before);
+    }
+
+    /**
+     * Round 2 (review #1, AGENTS rule 4): the checkout extensions run the signup checkout's role, member and club checks, then
+     * check that the booking and every upfront payment named are that member's in the club, before the stub. A MEMBER naming
+     * another member's booking or payment (also of their family group), an ADMIN naming another club's, or an unknown one → 404;
+     * nothing of the census or of payments is written.
+     */
+    @Test void T_12_21_T_13_24_theCheckoutExtensionsAuthorizeAndCheckTheirReferencesBeforeTheStub() throws Exception {
+        var before = database();
+        for (String role : List.of("MEMBER", "ADMIN")) {
+            for (String extension : List.of("\"bookingId\":\"e8-booking-b\"", "\"bookingId\":\"e8-booking-other\"", "\"bookingId\":\"e8-missing\"",
+                    "\"upfrontPaymentIds\":[\"e8-upfront-b\"]", "\"upfrontPaymentIds\":[\"e8-upfront-a\",\"e8-upfront-other\"]",
+                    "\"upfrontPaymentIds\":[\"e8-missing\"]", "\"bookingId\":\"e8-booking-a\",\"upfrontPaymentIds\":[\"e8-upfront-b\"]")) {
+                error(as(checkout("e8-member-a", extension), role), 404, "NOT_FOUND");
             }
         }
-        assertThat(database()).isEqualTo(before);
+        // The anonymous signup screen: the capability names member A, so member B's booking is not reachable either.
+        error(checkout("e8-member-a", "").header("Host", HOST).content(withToken("e8-member-a", "\"bookingId\":\"e8-booking-b\"", signupToken)), 404, "NOT_FOUND");
+        // The signup checkout's own guards come first: a MEMBER naming another member, another club's member, an erased one.
+        error(as(checkout("e8-member-b", "\"bookingId\":\"e8-booking-b\""), "MEMBER"), 403, "FORBIDDEN");
+        error(as(checkout("e8-member-other", "\"bookingId\":\"e8-booking-other\""), "ADMIN"), 404, "NOT_FOUND");
+        error(as(checkout("e8-member-erased", "\"upfrontPaymentIds\":[\"e8-upfront-a\"]"), "ADMIN"), 409, "MEMBER_ERASED");
+        error(checkout("e8-member-a", "\"bookingId\":\"e8-booking-a\"").header("Host", HOST).content(withToken("e8-member-a", "\"bookingId\":\"e8-booking-a\"", "not-a-capability")),
+                401, "UNAUTHENTICATED");
+        // An admin of the club reaches member B's own booking and payment: they are B's.
+        error(as(checkout("e8-member-b", "\"bookingId\":\"e8-booking-b\",\"upfrontPaymentIds\":[\"e8-upfront-b\"]"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
+        assertThat(after).as("no stub nor guard writes").isEqualTo(before);
+    }
+    private MockHttpServletRequestBuilder checkout(String memberId, String extension) {
+        return post("/api/v1/checkout-sessions").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"" + memberId + "\",\"successUrl\":\"https://e8-a.example.test/ok\",\"cancelUrl\":\"https://e8-a.example.test/ko\""
+                        + (extension.isEmpty() ? "" : "," + extension) + "}");
+    }
+    private static String withToken(String memberId, String extension, String token) {
+        return "{\"memberId\":\"" + memberId + "\",\"signupToken\":\"" + token + "\",\"successUrl\":\"https://e8-a.example.test/ok\","
+                + "\"cancelUrl\":\"https://e8-a.example.test/ko\"," + extension + "}";
+    }
+
+    /**
+     * Round 2 (review #1): every other stub resolves its caller and its references before answering 501. A pack or an upfront
+     * payment names a dog of its member (another member's dog → 404); a `/me/*` stub needs the caller's member in the club
+     * (a member token that names none → 404; an erased member's write → 409 MEMBER_ERASED).
+     */
+    @Test void T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub() throws Exception {
+        var before = database();
+        error(as(post("/api/v1/pack-balances").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-b\",\"planId\":\"e8-plan-a\",\"openedOn\":\"2026-06-12\",\"reason\":\"Pack regalat\"}"), "ADMIN"), 404, "NOT_FOUND");
+        error(as(post("/api/v1/pack-balances").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\",\"planId\":\"e8-plan-a\",\"openedOn\":\"2026-06-12\",\"reason\":\"Pack regalat\"}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        String payment = "\"concept\":\"ENTRY_FEE\",\"amountDue\":{\"amountMinor\":10000,\"currency\":\"EUR\"},"
+                + "\"amountPaid\":{\"amountMinor\":10000,\"currency\":\"EUR\"},\"channel\":\"CASH\",\"paidAt\":\"2026-09-24\"";
+        error(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-b\"," + payment + "}"), "ADMIN"), 404, "NOT_FOUND");
+        error(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\"," + payment + "}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        var noMember = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER");
+        var erased = jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-erased")).authorities(() -> "ROLE_MEMBER");
+        var foreign = jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-other")).authorities(() -> "ROLE_MEMBER");
+        Map<String, MockHttpServletRequestBuilder> reads = new LinkedHashMap<>();
+        reads.put("GET /me/pack-balances", get("/api/v1/me/pack-balances"));
+        reads.put("GET /me/inactivity-periods", get("/api/v1/me/inactivity-periods"));
+        reads.put("GET /me/inactivity-periods/preview", get("/api/v1/me/inactivity-periods/preview").param("fromMonth", "2026-11"));
+        reads.put("GET /me/leave-requests", get("/api/v1/me/leave-requests"));
+        Map<String, MockHttpServletRequestBuilder> writes = new LinkedHashMap<>();
+        writes.put("POST /me/card-setup", post("/api/v1/me/card-setup").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"successUrl\":\"https://e8-a.example.test/ok\",\"cancelUrl\":\"https://e8-a.example.test/ko\"}"));
+        writes.put("POST /me/inactivity-periods", post("/api/v1/me/inactivity-periods").header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType("application/json").content("{\"fromMonth\":\"2026-11\"}"));
+        writes.put("POST /me/leave-requests", post("/api/v1/me/leave-requests").header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType("application/json").content("{\"requestedDate\":\"2026-10-31\",\"reasonKey\":\"EXTERNAL\"}"));
+        for (var route : java.util.stream.Stream.concat(reads.entrySet().stream(), writes.entrySet().stream()).toList()) {
+            var response = mvc.perform(route.getValue().header("Host", HOST).with(noMember)).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " without a member").isEqualTo(404);
+            response = mvc.perform(route.getValue().header("Host", HOST).with(foreign)).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " with another club's member").isEqualTo(404);
+            response = mvc.perform(route.getValue().header("Host", HOST).with(erased)).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " of an erased member").isEqualTo(writes.containsKey(route.getKey()) ? 409 : 501);
+            response = mvc.perform(as(route.getValue(), "MEMBER")).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " of the member").isEqualTo(501);
+        }
+        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
+        assertThat(after).isEqualTo(before);
+    }
+
+    /**
+     * S13 §3 and R-13-04 (round 2, review #4): an open period has `toMonth: null`. Every inactivity body accepts it, and both
+     * PATCH bodies keep field presence: an omitted field, `toMonth: null` (open the end) and a new end all reach the stub,
+     * while `fromMonth: null`, an unknown field (a misspelt `toMonth` would otherwise be dropped silently), a malformed month
+     * or a missing version are 400. What each body means is `MonthsPatch.patch()` (E8ResponseContractTest).
+     */
+    @Test void T_13_26_R_13_04_theInactivityBodiesTakeANullEndAndThePatchKeepsFieldPresence() throws Exception {
+        for (String path : List.of("/api/v1/me/inactivity-periods/e8-period-a", "/api/v1/inactivity-periods/e8-period-a")) {
+            String role = path.startsWith("/api/v1/me/") ? "MEMBER" : "ADMIN";
+            for (String body : List.of("{\"version\":0}", "{\"toMonth\":null,\"version\":0}", "{\"toMonth\":\"2027-02\",\"comments\":null,\"version\":0}")) {
+                error(as(patch(path).contentType("application/json").content(body), role), 501, "NOT_IMPLEMENTED");
+            }
+            for (String body : List.of("{\"fromMonth\":null,\"version\":0}", "{\"tomonth\":null,\"version\":0}", "{\"toMonth\":\"2027-2\",\"version\":0}",
+                    "{\"toMonth\":null}")) {
+                error(as(patch(path).contentType("application/json").content(body), role), 400, "VALIDATION_ERROR");
+            }
+        }
+        error(as(post("/api/v1/me/inactivity-periods").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"fromMonth\":\"2026-11\",\"toMonth\":null,\"comments\":null}"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        error(as(post("/api/v1/inactivity-periods").contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"fromMonth\":\"2026-11\",\"toMonth\":null}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
     }
 
     /** S13 R-13-17 (E8-T01 publishes, E8-T05 computes): the three member filters answer 501, the rest of `GET /members` is unchanged. */

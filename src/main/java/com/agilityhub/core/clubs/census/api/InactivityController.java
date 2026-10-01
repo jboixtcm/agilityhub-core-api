@@ -42,27 +42,27 @@ public class InactivityController {
     @GetMapping("/api/v1/me/inactivity-periods")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
-    @ContractErrors({MODULE_DISABLED})
+    @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "myInactivityContext", description = MEMBER_ROLES + "Screen 14's context (S13 §6 JSON): the first month the caller may "
             + "still change E(today) (R-13-01, inactivity.requestDeadlineDay in the club's time zone), the fee with BILLING, and the caller's own "
             + "periods with what each still lets them change." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "MeInactivityContext", useReturnTypeSchema = true))
     public MeInactivityContext myInactivityContext() {
-        access.tenant();
+        access.me();
         throw new UnsupportedOperationException();
     }
 
     @GetMapping("/api/v1/me/inactivity-periods/preview")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, INACTIVITY_INVALID_RANGE})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_RANGE})
     @Operation(summary = "previewInactivity", description = MEMBER_ROLES + "Screen 14's yellow note and fee card (R-13-06/08), recomputed at each "
             + "change of months: the caller's live bookings inside the months (a counter of a module that is off is absent) and the fee per month. "
             + "toMonth before fromMonth → 422 INACTIVITY_INVALID_RANGE; a malformed month → 400 VALIDATION_ERROR." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "InactivityPreview", useReturnTypeSchema = true))
     public InactivityPreview previewInactivity(@RequestParam @Schema(pattern = LifecycleContracts.MONTH) String fromMonth,
             @RequestParam(required = false) @Schema(pattern = LifecycleContracts.MONTH) String toMonth) {
-        access.tenant();
+        access.me();
         access.month("fromMonth", fromMonth, true);
         access.month("toMonth", toMonth, false);
         throw new UnsupportedOperationException();
@@ -72,8 +72,8 @@ public class InactivityController {
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, MEMBER_NOT_ACTIVE, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED,
-            INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE, INACTIVITY_NOT_APPLICABLE})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, MEMBER_NOT_ACTIVE, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP,
+            IDEMPOTENCY_KEY_REUSED, INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE, INACTIVITY_NOT_APPLICABLE})
     @Operation(summary = "requestInactivity", description = MEMBER_ROLES + "R-13-02 [ENVIA LA SOL·LICITUD]: a REQUESTED period of the caller "
             + "(origin APP, or BACKOFFICE under impersonation, audited with both ids); InactivityRequested → N-18a. Only an ACTIVE member (422 "
             + "MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED) on a MONTHLY plan (a PACK or SINGLE_CLASS plan → 422 "
@@ -82,7 +82,7 @@ public class InactivityController {
             + "period (409 INACTIVITY_OVERLAP {periodId, hint: EXTEND}). The same Idempotency-Key answers the same period." + STUB,
             responses = @ApiResponse(responseCode = "201", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod requestInactivity(@Valid @RequestBody InactivityRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
-        access.tenant();
+        access.mutableMe();
         throw new UnsupportedOperationException();
     }
 
@@ -93,7 +93,9 @@ public class InactivityController {
     @Operation(summary = "changeMyInactivity", description = MEMBER_ROLES + "R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and "
             + "comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED "
             + "{earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled "
-            + "(R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION. Another member's → 404." + STUB,
+            + "(R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each "
+            + "period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the "
+            + "period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod changeMyInactivity(@PathVariable String id, @Valid @RequestBody InactivityPatchRequest request) {
         access.ownPeriod(id);
@@ -173,7 +175,8 @@ public class InactivityController {
     @PreAuthorize(ADMIN)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE})
     @Operation(summary = "changeInactivity", description = ADMIN_ROLES + "R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with "
-            + "overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION." + STUB,
+            + "overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. "
+            + "Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod changeInactivity(@PathVariable String id, @Valid @RequestBody AdminInactivityPatchRequest request) {
         access.period(id);

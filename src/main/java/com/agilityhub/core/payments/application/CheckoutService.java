@@ -85,6 +85,12 @@ public class CheckoutService {
         return result;
     }
     /**
+     * The role, member and club checks of {@link #create}, read-only (E8-T01 round 2, AGENTS rule 4): ANON needs the member's
+     * signup capability (401), a MEMBER may name only themself (403), and the member must be the open club's (404) and not
+     * erased (409 MEMBER_ERASED). S12's `bookingId`/`upfrontPaymentIds` pass them before their stub (E8-T04 serves them).
+     */
+    public void authorize(String memberId,String token) { members.authorize(memberId,token); }
+    /**
      * The provider could not open the session: it expires on our side and its rows are DUE again (a new checkout may open).
      * E5-T30 round 2 (E79): only while this request still holds its key's claim. A retry that took the claim over after its
      * lease owns the session now: the key's lock fails here ({@code IDEMPOTENCY_KEY_REUSED}), so neither side is expired.

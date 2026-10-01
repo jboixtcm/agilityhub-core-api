@@ -55,7 +55,7 @@ public class PackBalancesController {
             responses = @ApiResponse(responseCode = "201", description = "PackBalanceDetail", useReturnTypeSchema = true))
     public PackBalanceDetail openPackBalance(@Valid @RequestBody PackBalanceRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(request.memberId());
-        access.dog(request.dogId());
+        access.memberDog(request.memberId(), request.dogId());
         throw new UnsupportedOperationException();
     }
 

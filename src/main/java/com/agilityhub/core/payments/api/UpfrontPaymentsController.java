@@ -51,7 +51,7 @@ public class UpfrontPaymentsController {
     public UpfrontPayment recordUpfrontPayment(@Valid @RequestBody UpfrontPaymentRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(request.memberId());
-        if (request.dogId() != null) { access.dog(request.dogId()); }
+        if (request.dogId() != null) { access.memberDog(request.memberId(), request.dogId()); }
         throw new UnsupportedOperationException();
     }
 

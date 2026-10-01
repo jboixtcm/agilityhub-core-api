@@ -37,13 +37,13 @@ public class LeaveController {
     @GetMapping("/api/v1/me/leave-requests")
     @PreAuthorize(InactivityController.MEMBER)
     @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND})
     @Operation(summary = "myLeaveContext", description = MEMBER_ROLES + "Screen 15's context (S13 §6): the inactivity offer (INACTIVITY on and a "
             + "plan that may request it), the fee with BILLING, today in the club's time zone, leave.fullMonthIfLater, leave.npsEnabled, the MEMBER "
             + "reasons of leave.reasons in the reader's locale, the caller's planned leave and requests." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "MeLeaveContext", useReturnTypeSchema = true))
     public MeLeaveContext myLeaveContext() {
-        access.tenant();
+        access.me();
         throw new UnsupportedOperationException();
     }
 
@@ -51,8 +51,8 @@ public class LeaveController {
     @PreAuthorize(InactivityController.MEMBER)
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, READ_ONLY, MEMBER_NOT_ACTIVE, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED,
-            LEAVE_DATE_INVALID, LEAVE_REASON_UNKNOWN})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, READ_ONLY, MEMBER_NOT_ACTIVE, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED,
+            IDEMPOTENCY_KEY_REUSED, LEAVE_DATE_INVALID, LEAVE_REASON_UNKNOWN})
     @Operation(summary = "requestLeave", description = MEMBER_ROLES + "R-13-09 [ENVIA LA SOL·LICITUD]: a PENDING request of the caller (origin APP, "
             + "or BACKOFFICE under impersonation, audited); LeaveRequested → N-14 with the localized reason. Only an ACTIVE member (422 "
             + "MEMBER_NOT_ACTIVE), one PENDING request (409 LEAVE_ALREADY_REQUESTED) and no planned leave (409 LEAVE_ALREADY_SCHEDULED); "
@@ -60,7 +60,7 @@ public class LeaveController {
             + "400); nps only with leave.npsEnabled (403 READ_ONLY, §1: T-13-15 writes 400). The same Idempotency-Key answers the same request." + STUB,
             responses = @ApiResponse(responseCode = "201", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest requestLeave(@Valid @RequestBody LeaveCreateRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
-        access.tenant();
+        access.mutableMe();
         throw new UnsupportedOperationException();
     }
 

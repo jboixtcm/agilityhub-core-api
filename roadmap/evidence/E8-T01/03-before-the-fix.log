@@ -6,12 +6,12 @@
 07:54:42.698 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 07:54:42.807 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 07:54:42.808 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-07:54:42.816 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+07:54:42.816 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 07:54:43.062 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 07:54:43.140 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -59,8 +59,8 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 2026-10-01T07:54:51.485+02:00  WARN 52253 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=1e023cdc-f320-45cf-b711-2793813b29c4
 [ERROR] Tests run: 67, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 12.59 s <<< FAILURE! -- in com.agilityhub.core.configuration.E8ContractIT
 [ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_impersonationReachesTheMemberRoutesOnly -- Time elapsed: 1.197 s <<< FAILURE!
-java.lang.AssertionError: 
-[POST /api/v1/billing/runs] 
+java.lang.AssertionError:
+[POST /api/v1/billing/runs]
 Expecting actual:
   "FORBIDDEN"
 to be in:
@@ -73,8 +73,8 @@ to be in:
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E8ContractIT.T_13_22_theDeferredMemberFiltersAnswer501 -- Time elapsed: 0.051 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[GET /api/v1/members {"items":[],"page":0,"size":50,"totalItems":0,"totalPages":0,"appliedFilters":[{"field":"leaveSource","op":"eq","value":"PACK_EXPIRED"}]}] 
+org.opentest4j.AssertionFailedError:
+[GET /api/v1/members {"items":[],"page":0,"size":50,"totalItems":0,"totalPages":0,"appliedFilters":[{"field":"leaveSource","op":"eq","value":"PACK_EXPIRED"}]}]
 expected: 501
  but was: 200
 	at com.agilityhub.core.configuration.E8ContractIT.error(E8ContractIT.java:177)
@@ -124,7 +124,7 @@ E8-T01 index leave_requests {"v": 2, "key": {"clubId": 1, "state": 1, "requested
 E8-T01 index leave_requests {"v": 2, "key": {"clubId": 1, "source": 1, "state": 1}, "name": "leave_club_source_state"}
 [ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.165 s <<< FAILURE! -- in com.agilityhub.core.configuration.E8PersistenceIT
 [ERROR] com.agilityhub.core.configuration.E8PersistenceIT.WP_12_A_theClubBillingBlockSurvivesEveryWriterAndTheStripeSecretsNeverLeave -- Time elapsed: 0.018 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: Billing[invoiceSeriesPattern={YYYY}, nextNumber=913, resetYearly=true]
  but was: null
@@ -133,28 +133,28 @@ expected: Billing[invoiceSeriesPattern={YYYY}, nextNumber=913, resetYearly=true]
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   E8ContractIT.T_12_21_T_13_24_impersonationReachesTheMemberRoutesOnly:217->error:178 [POST /api/v1/billing/runs] 
+[ERROR] Failures:
+[ERROR]   E8ContractIT.T_12_21_T_13_24_impersonationReachesTheMemberRoutesOnly:217->error:178 [POST /api/v1/billing/runs]
 Expecting actual:
   "FORBIDDEN"
 to be in:
   ["IMPERSONATION_DENIED"]
 
-[ERROR]   E8ContractIT.T_13_22_theDeferredMemberFiltersAnswer501:378->error:177 [GET /api/v1/members {"items":[],"page":0,"size":50,"totalItems":0,"totalPages":0,"appliedFilters":[{"field":"leaveSource","op":"eq","value":"PACK_EXPIRED"}]}] 
+[ERROR]   E8ContractIT.T_13_22_theDeferredMemberFiltersAnswer501:378->error:177 [GET /api/v1/members {"items":[],"page":0,"size":50,"totalItems":0,"totalPages":0,"appliedFilters":[{"field":"leaveSource","op":"eq","value":"PACK_EXPIRED"}]}]
 expected: 501
  but was: 200
-[ERROR]   E8PersistenceIT.WP_12_A_theClubBillingBlockSurvivesEveryWriterAndTheStripeSecretsNeverLeave:312 
+[ERROR]   E8PersistenceIT.WP_12_A_theClubBillingBlockSurvivesEveryWriterAndTheStripeSecretsNeverLeave:312
 expected: Billing[invoiceSeriesPattern={YYYY}, nextNumber=913, resetYearly=true]
  but was: null
 [ERROR] Tests run: 72, Failures: 3, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

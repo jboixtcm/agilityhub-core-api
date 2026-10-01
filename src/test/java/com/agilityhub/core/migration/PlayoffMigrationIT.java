@@ -26,7 +26,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     static final MappingConfig MAPPING=MappingConfig.load(null);
     static final String CLUB="playoff-test",OTHER="playoff-other";
     static final String BANK_KEY=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
-    @DynamicPropertySource static void bank(DynamicPropertyRegistry registry) { registry.add("core.migration.bank-key",() -> BANK_KEY); }
+    // Ruling E85: only BILLING_BANK_KEY is set; the migration and S12's vault share it (no MIGRATION_BANK_KEY any more).
+    @DynamicPropertySource static void bank(DynamicPropertyRegistry registry) { registry.add("core.billing.bank-key",() -> BANK_KEY); }
     @Autowired PlayoffImportService importer; @Autowired PlayoffPlanner planner; @Autowired MongoTemplate mongo;
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired com.agilityhub.core.identity.application.AccountService accounts;
@@ -101,6 +102,27 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(mongo.findById(CLUB,Document.class,"clubs").get("nextMemberNumber")).isEqualTo((long)max+1);
         var modified=mutate(0,Map.of("status","Bloqueado")); var plan=preview(modified);
         assertThat((Map<String,Object>)plan.changes().stream().filter(c -> c.entity().equals("members") && c.source().row()==2).findFirst().orElseThrow().fields().get("bookingBlock")).containsValue(true);
+    }
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.payments.application.BankAccountVault bankAccounts;
+    @org.springframework.beans.factory.annotation.Autowired org.springframework.core.env.Environment environment;
+    /**
+     * Ruling E85 (clarifies E43, round 2 of E8-T01): with only `BILLING_BANK_KEY` configured, `migration:apply` imports the IBANs
+     * and S12's {@code BankAccountVault} — the SEPA writer's only way to a full IBAN — reads every one of them back; Core no
+     * longer reads `MIGRATION_BANK_KEY`.
+     */
+    @SuppressWarnings("unchecked") @Test void E85_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban() throws Exception {
+        var report=apply(); assertThat(report.hasErrors()).isFalse();
+        int read=0; var members=input().files().get("members");
+        for (int ordinal=1; ordinal<=members.size(); ordinal++) {
+            var stored=member(ordinal); if (stored==null) { continue; }
+            var bank=(Map<String,Object>)stored.get("paymentMethod");
+            if (bank==null || !bank.containsKey("ibanEncrypted")) { continue; }
+            String iban=bankAccounts.resolve(bank,CLUB,String.valueOf(stored.get("_id")));
+            assertThat(iban.replace(" ","").toUpperCase()).as("member "+ordinal).isEqualTo(members.get(ordinal-1).get("iban").replace(" ","").toUpperCase());
+            read++;
+        }
+        assertThat(read).as("imported IBANs read back").isPositive();
+        assertThat(environment.getProperty("core.migration.bank-key")).as("no MIGRATION_BANK_KEY binding").isNull();
     }
     @Test void T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates() throws Exception {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(report.count("familyGroups","CREATED")).isEqualTo(1);

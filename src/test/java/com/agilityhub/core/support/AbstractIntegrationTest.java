@@ -23,6 +23,8 @@ public abstract class AbstractIntegrationTest {
     // Singleton lifecycle: no @Container, which would stop Mongo after each subclass.
     // Testcontainers' Ryuk cleans up when the test JVM exits.
     protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+    // E8-T01 round 2: ProviderSecretVault's key, so the ITs store a fixture Stripe webhook secret encrypted as production does.
+    protected static final String BILLING_SECRETS = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
     // Fixtures use MockClock; Mongo's wall-clock TTL worker would delete their historical
     // tokens/events nondeterministically. Keep TTL indexes and application expiry checks.
     protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7")
@@ -46,6 +48,7 @@ public abstract class AbstractIntegrationTest {
     @DynamicPropertySource
     static void mongoProperties(DynamicPropertyRegistry registry) {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
+        registry.add("core.billing.secrets-key", () -> BILLING_SECRETS);
         registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
     }
 

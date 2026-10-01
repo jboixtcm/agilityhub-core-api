@@ -748,6 +748,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E8-T01 round 2 (ruling E85; review `roadmap/reviews/E8-T01-20261001-0822-codex.md`):
+  - No `501` stub answers before its authorization and its references. `POST /checkout-sessions` with `bookingId` or
+    `upfrontPaymentIds` runs the signup checkout's role, member and club checks (`CheckoutService.authorize`), then needs the
+    booking and every upfront payment to be that member's in the club (another member's, another club's or an unknown one →
+    404) through the new shared port `BookingOwnerAccess` (bookings supplies `BookingOwners`). `POST /pack-balances` and
+    `POST /upfront-payments` need a dog of the named member; the `/me/*` stubs need the caller's member in the club (404; an
+    erased member's write → 409 `MEMBER_ERASED`).
+  - The Stripe webhook authenticates the body before anything else (`StripeWebhookSignatures`, R-12-21): HMAC-SHA256 over
+    `{t}.{body}` under the club's webhook secret, Stripe's 5-minute tolerance, constant-time comparison. A missing, wrong, stale
+    or another body's signature, an unknown club, a club without a secret or with one that does not decrypt → `401
+    WEBHOOK_SIGNATURE_INVALID` with a `SecurityEvent`, nothing else stored; then `BILLING` and `STRIPE` as before. The secret is
+    `paymentProviders.STRIPE.webhookSecretEnc`, decrypted by the new `ProviderSecretVault` with the new `BILLING_SECRETS_KEY`
+    (the key E8-T04 step 2 names; AES-GCM, associated data `{clubId}:STRIPE.{field}`; `.env.example`, `application.yml`,
+    `DEPLOY.md`). **The production Compose must forward `BILLING_SECRETS_KEY` before a club enables STRIPE** (without it every
+    webhook answers 401).
+  - `GET /me/inactivity-periods`: each period carries `version` (R-13-04, T-13-26). The four inactivity bodies publish `toMonth`
+    (and `comments`) nullable; both PATCH bodies keep field presence (`LifecycleRequests.MonthsPatch.patch()`).
+  - **One bank key** (ruling E85): `migration:apply` encrypts the imported IBANs with `BILLING_BANK_KEY` through
+    `BankAccountVault` (`MigrationBankVault` delegates; both vaults share `AesGcmCipher`). `MIGRATION_BANK_KEY` leaves the code,
+    `application.yml` and `.env.example`; no release used it. **A local database imported before needs a new
+    `migration:apply`**: its `ibanEncrypted` values were encrypted under the old key and no longer decrypt.
+  - `leave.reasons` defaults: the five MEMBER labels are mockup 15's in `ca` (S13 §10) — «Ja he après tot el que volia», «No trobo
+    temps per anar-hi», «No és el que esperava», «Condicionants meus aliens al club», «Altres» — with `es`/`en` proposals for
+    Josep's review; keys and audiences unchanged. Both `leave.reasons` rows of `CATALEG_PARAMETRES.md` follow.
+  - `CATALEG_ESDEVENIMENTS.md`: the main billing and inactivity/leave rows list the payloads the code publishes (S12/S13 §7).
+
+
 - E8-T02: the unique `invoice_club_series_number` index of `invoices` now covers the invoices that are not cancelled (partial on
   `status ∈ PENDING, COLLECTING, PAID, FAILED`): a rolled-back run keeps its cancelled invoices and gives its numbers back to the
   next generation (R-12-14). The index E8-T01 created is replaced at start-up. `Club.billing` gains `counters` (the next number

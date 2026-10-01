@@ -1,0 +1,158 @@
+[ERROR] Tests run: 10, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 0.545 s <<< FAILURE! -- in com.agilityhub.core.configuration.E8ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E8ResponseContractTest.T_13_08_theS13ContextJsonIsTheFixtureAndRoundTrips -- Time elapsed: 0.036 s <<< FAILURE!
+java.lang.AssertionError:
+periods[0]
+Expected: version
+     but none found
+
+	at org.skyscreamer.jsonassert.JSONAssert.assertEquals(JSONAssert.java:417)
+	at org.skyscreamer.jsonassert.JSONAssert.assertEquals(JSONAssert.java:394)
+	at org.skyscreamer.jsonassert.JSONAssert.assertEquals(JSONAssert.java:336)
+	at com.agilityhub.core.configuration.E8ResponseContractTest.T_13_08_theS13ContextJsonIsTheFixtureAndRoundTrips(E8ResponseContractTest.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ResponseContractTest.T_13_26_R_13_04_theInactivityBodiesPublishANullableEndAndThePatchKeepsFieldPresence -- Time elapsed: 0.059 s <<< FAILURE!
+java.lang.AssertionError:
+[InactivityRequest.toMonth]
+Expecting actual:
+  ["string"]
+to contain exactly in any order:
+  ["string", "null"]
+but could not find the following elements:
+  ["null"]
+
+	at com.agilityhub.core.configuration.E8ResponseContractTest.T_13_26_R_13_04_theInactivityBodiesPublishANullableEndAndThePatchKeepsFieldPresence(E8ResponseContractTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ResponseContractTest.T_13_26_R_13_04_theMemberContextGivesThePatchItsVersion -- Time elapsed: 0.019 s <<< FAILURE!
+java.lang.AssertionError:
+[MeInactivityPeriod gives the PATCH its version]
+Expecting ArrayList:
+  ["editable", "fromMonth", "id", "state"]
+to contain:
+  ["version"]
+but could not find the following element(s):
+  ["version"]
+
+	at com.agilityhub.core.configuration.E8ResponseContractTest.T_13_26_R_13_04_theMemberContextGivesThePatchItsVersion(E8ResponseContractTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ResponseContractTest.WP_12_A_WP_13_A_eventsHaveExactlyTheS12AndS13PayloadFieldsAndEnvelope -- Time elapsed: 0.062 s <<< FAILURE!
+java.lang.AssertionError:
+[InvoiceIssued main row lists kind]
+Expecting actual:
+  " invoiceId, memberId, period, total, paymentMethodType "
+to contain pattern:
+  "(?<![A-Za-z])kind(?![A-Za-z])"
+	at com.agilityhub.core.configuration.E8ResponseContractTest.WP_12_A_WP_13_A_eventsHaveExactlyTheS12AndS13PayloadFieldsAndEnvelope(E8ResponseContractTest.java:225)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ResponseContractTest.WP_12_A_WP_13_A_theBillingInactivityAndLeaveParametersCarryTheCanicDefaults -- Time elapsed: 0.080 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+Expecting actual:
+  ["He après el que volia",
+    "No trobo temps",
+    "No és el que esperava",
+    "Condicionants aliens",
+    "Altres"]
+to contain exactly (and in same order):
+  ["Ja he après tot el que volia",
+    "No trobo temps per anar-hi",
+    "No és el que esperava",
+    "Condicionants meus aliens al club",
+    "Altres"]
+but some elements were not found:
+  ["Ja he après tot el que volia",
+    "No trobo temps per anar-hi",
+    "Condicionants meus aliens al club"]
+and others were not expected:
+  ["He après el que volia", "No trobo temps", "Condicionants aliens"]
+
+	at com.agilityhub.core.configuration.E8ResponseContractTest.WP_12_A_WP_13_A_theBillingInactivityAndLeaveParametersCarryTheCanicDefaults(E8ResponseContractTest.java:340)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.045 s <<< FAILURE! -- in com.agilityhub.core.platform.application.ParameterCatalogContractTest
+[ERROR] com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults -- Time elapsed: 0.023 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[leave.reasons]
+expected: "`[{"key": "LEARNED_ENOUGH", "label": {"ca": "Ja he après tot el que volia", "es": "Ya he aprendido todo lo que quería", "en": "I have already learned everything I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps per anar-hi", "es": "No encuentro tiempo para ir", "en": "I cannot find the time to go"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants meus aliens al club", "es": "Circunstancias mías ajenas al club", "en": "Personal circumstances unrelated to the club"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]`"
+ but was: "`[{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]`"
+	at com.agilityhub.core.platform.application.ParameterCatalogContractTest.lambda$T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults$0(ParameterCatalogContractTest.java:26)
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:986)
+	at com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults(ParameterCatalogContractTest.java:22)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   E8ResponseContractTest.T_13_08_theS13ContextJsonIsTheFixtureAndRoundTrips:73 periods[0]
+Expected: version
+     but none found
+
+[ERROR]   E8ResponseContractTest.T_13_26_R_13_04_theInactivityBodiesPublishANullableEndAndThePatchKeepsFieldPresence:105 [InactivityRequest.toMonth]
+Expecting actual:
+  ["string"]
+to contain exactly in any order:
+  ["string", "null"]
+but could not find the following elements:
+  ["null"]
+
+[ERROR]   E8ResponseContractTest.T_13_26_R_13_04_theMemberContextGivesThePatchItsVersion:88 [MeInactivityPeriod gives the PATCH its version]
+Expecting ArrayList:
+  ["editable", "fromMonth", "id", "state"]
+to contain:
+  ["version"]
+but could not find the following element(s):
+  ["version"]
+
+[ERROR]   E8ResponseContractTest.WP_12_A_WP_13_A_eventsHaveExactlyTheS12AndS13PayloadFieldsAndEnvelope:225 [InvoiceIssued main row lists kind]
+Expecting actual:
+  " invoiceId, memberId, period, total, paymentMethodType "
+to contain pattern:
+  "(?<![A-Za-z])kind(?![A-Za-z])"
+[ERROR]   E8ResponseContractTest.WP_12_A_WP_13_A_theBillingInactivityAndLeaveParametersCarryTheCanicDefaults:340
+Expecting actual:
+  ["He après el que volia",
+    "No trobo temps",
+    "No és el que esperava",
+    "Condicionants aliens",
+    "Altres"]
+to contain exactly (and in same order):
+  ["Ja he après tot el que volia",
+    "No trobo temps per anar-hi",
+    "No és el que esperava",
+    "Condicionants meus aliens al club",
+    "Altres"]
+but some elements were not found:
+  ["Ja he après tot el que volia",
+    "No trobo temps per anar-hi",
+    "Condicionants meus aliens al club"]
+and others were not expected:
+  ["He après el que volia", "No trobo temps", "Condicionants aliens"]
+
+[ERROR]   ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults:22->lambda$T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults$0:26 [leave.reasons]
+expected: "`[{"key": "LEARNED_ENOUGH", "label": {"ca": "Ja he après tot el que volia", "es": "Ya he aprendido todo lo que quería", "en": "I have already learned everything I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps per anar-hi", "es": "No encuentro tiempo para ir", "en": "I cannot find the time to go"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants meus aliens al club", "es": "Circunstancias mías ajenas al club", "en": "Personal circumstances unrelated to the club"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]`"
+ but was: "`[{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]`"
+[ERROR] Tests run: 12, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

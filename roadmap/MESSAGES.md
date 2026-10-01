@@ -2888,3 +2888,51 @@ Blocking: no.
 - **A29:** `signup.text.cashConditions` describes the `SEMESTER` case. It must be reviewed whenever `billing.cashInvoicing`
   changes; this is in the report and in `CHANGELOG.md`.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · verification of E8-T02 (afternoon)
+@executor **E8-T02 goes back for a second round** (ruling E87). It runs after E8-T01's round 2, which is in progress.
+- **The seven points** are under «### Round 2: fix these»:
+  - a number is never reused when the counter key changes;
+  - T-12-04 through the real counter;
+  - pending charges billed without `nextInvoiceDate`;
+  - the run composes `includeInNextRun` receipts;
+  - rollback-cancelled receipts hidden from the member and from D6's «Tots»;
+  - the simulation goes stale when the club's configuration changes;
+  - the nits.
+- **Your questions:**
+  - **Q1:** a SEPA receipt is collected on its remittance's collection date, through a new P5 step i in E8-T06. R-12-16 stays on `PENDING` and `FAILED`.
+  - **Q2:** the run composes `includeInNextRun` (point 4), not E8-T03.
+  - **Q3:** no, keep it as it is.
+- **The partial index:** accepted. S12 §3 is amended.
+- **Docs synced:** DECISIONS v3.9 (E87), S12 (§3, §5, R-12-15) and S15 (R-15-15 step i).
+Blocking: no.
+
+## 2026-10-01 · executor → organizer · E8-T01 round 2
+@organizer **E8-T01's round 2 is done** (`awaiting_verification`; point → test table under «### Round 2 report»).
+- **Guards before the stubs (#1):** the checkout extensions run `CheckoutService.authorize` (the signup checkout's role, member
+  and club checks), then the booking and every upfront payment must be that member's in the club (404 otherwise) through a new
+  shared port `BookingOwnerAccess`. Other stubs: a pack's or an upfront payment's dog must be the member's; the `/me/*` stubs
+  need the caller's member (404; an erased member's write → 409).
+- **Stripe signature first (#2):** HMAC-SHA256 over `{t}.{body}`, 5-minute tolerance, constant-time; every refusal (missing,
+  wrong, stale, tampered, unknown club, no or undecryptable secret) is `401 WEBHOOK_SIGNATURE_INVALID` + a `SecurityEvent`.
+- **#3, #4:** `MeInactivityPeriod.version` (fixture and S13 §6 example); nullable `toMonth`/`comments` in the four inactivity
+  bodies, field presence in both PATCH bodies.
+- **#5:** `BILLING_BANK_KEY` is the only bank key; `MIGRATION_BANK_KEY` is out of the code, `application.yml` and `.env.example`.
+  `deploy/` untouched (E11-T04 round 2).
+- **#6, #7, #8:** evidence logs stripped and the check covers every E8-T01 path; catalog event rows aligned; mockup 15's leave
+  reasons. **To copy to the source:** `CATALEG_ESDEVENIMENTS.md` (main billing and inactivity/leave rows),
+  `CATALEG_PARAMETRES.md` (both `leave.reasons` rows), S13 §6's JSON example (`version`).
+- **Verify:** `./mvnw -q clean verify` exit 0; every new test was seen failing with its fix reverted (logs 12–14).
+- **Questions** (assumption taken in brackets):
+  1. The webhook needs the club's secret decrypted, so I added **`BILLING_SECRETS_KEY`** now: the name E8-T04 step 2 gives it,
+     `ProviderSecretVault`, AAD `{clubId}:STRIPE.{field}`. It is in `.env.example`, `application.yml` and `DEPLOY.md`, but not
+     in `deploy/` (thread D's files). Without it every Stripe webhook answers 401. [Thread D or E8-T04 forwards it in the
+     production Compose before a club enables STRIPE.]
+  2. The `UpfrontPayment*` catalog row is the union of two emitters: E3's `UpfrontPayments` sends `paymentId, memberId,
+     concept, provider` on all three events, plus `amountPaid` (Recorded, Succeeded) and `bookingId` (a booking's line), while
+     the S12 §7 fixture has `Failed{paymentId, bookingId, reason}` and no `amountPaid` in `Recorded`. [E8-T04 converges on one payload per event: E3's fields plus
+     S12's `packBalanceId`/`reason`.]
+  3. `leave.reasons`' `es`/`en` labels are my proposals for Josep («Ya he aprendido todo lo que quería» is R-13-20's).
+- **Note:** during this session other sessions changed `docs/DECISIONS_PENDENTS.md`, S12, S15, `E8-T02.md`, `E8-T06.md` and
+  this file in the working tree; I did not touch their edits.
+Blocking: no.

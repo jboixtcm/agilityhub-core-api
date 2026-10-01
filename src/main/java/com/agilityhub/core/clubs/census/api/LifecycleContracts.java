@@ -63,11 +63,12 @@ public final class LifecycleContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) InactivityDecision decision) { }
     public record InactivityPeriodPage(List<InactivityPeriodListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
-    @Schema(description = "A period of the caller in screen 14's context (S13 §6 JSON)")
+    @Schema(description = "A period of the caller in screen 14's context (S13 §6 JSON). version is the period's optimistic lock: the member's "
+            + "PATCH /me/inactivity-periods/{id} sends it back (R-13-04; an old one → 409 STALE_VERSION, T-13-26)")
     public record MeInactivityPeriod(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String fromMonth,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = MONTH) String toMonth, InactivityState state,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String comments, @Schema(requiredMode = NOT_REQUIRED, nullable = true) InactivityFee fee,
-            InactivityEditable editable) { }
+            InactivityEditable editable, @Schema(minimum = "0") long version) { }
     @Schema(description = "S13 §6 GET /me/inactivity-periods: screen 14's context. earliestFromMonth = proposedFromMonth = E(today) (R-13-01); "
             + "deadlineDay = inactivity.requestDeadlineDay; fee null without BILLING; the caller's periods, live ones first.")
     public record MeInactivityContext(@Schema(pattern = MONTH) String earliestFromMonth, @Schema(pattern = MONTH) String proposedFromMonth,

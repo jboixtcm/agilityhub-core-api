@@ -1,0 +1,33 @@
+unit/contract (surefire): tests=3652 failures=0 errors=0 skipped=0
+integration (failsafe): tests=1431 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E2ContractIT: tests=14 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E8ContractIT: tests=70 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E8PersistenceIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.ListFieldsContractIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffMigrationIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=19 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E5BackOfficeContractTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E8ResponseContractTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffAdapterTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.application.BankAccountVaultTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.application.StripeWebhookSignaturesTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.ParameterCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.MessageParityTest: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.domain.ErrorCatalogContractTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+coverage com.agilityhub.core.payments.application: lines 98.3 % branches 83.0 %
+coverage com.agilityhub.core.payments.domain: lines 100.0 % branches 86.5 %
+coverage com.agilityhub.core.payments.api: lines 97.9 % branches 77.1 %
+coverage com.agilityhub.core.clubs.census.application: lines 98.6 % branches 84.1 %
+coverage com.agilityhub.core.clubs.census.domain: lines 99.2 % branches 93.0 %
+coverage com.agilityhub.core.clubs.census.api: lines 95.3 % branches 100.0 %
+coverage com.agilityhub.core.platform.application: lines 98.4 % branches 89.4 %
+coverage com.agilityhub.core.shared.application.lists: lines 100.0 % branches 95.0 %
+coverage com.agilityhub.core.platform.application.definition: lines 97.7 % branches 95.6 %
+coverage com.agilityhub.core.migration.application: lines 99.5 % branches 88.0 %
+coverage com.agilityhub.core.clubs.bookings.application: lines 99.0 % branches 84.2 %

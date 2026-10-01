@@ -125,18 +125,18 @@
     {
       "key": "LEARNED_ENOUGH",
       "label": {
-        "ca": "He après el que volia",
-        "es": "He aprendido lo que quería",
-        "en": "I have learned what I wanted"
+        "ca": "Ja he après tot el que volia",
+        "es": "Ya he aprendido todo lo que quería",
+        "en": "I have already learned everything I wanted"
       },
       "audience": "MEMBER"
     },
     {
       "key": "NO_TIME",
       "label": {
-        "ca": "No trobo temps",
-        "es": "No encuentro tiempo",
-        "en": "I cannot find the time"
+        "ca": "No trobo temps per anar-hi",
+        "es": "No encuentro tiempo para ir",
+        "en": "I cannot find the time to go"
       },
       "audience": "MEMBER"
     },
@@ -152,9 +152,9 @@
     {
       "key": "EXTERNAL",
       "label": {
-        "ca": "Condicionants aliens",
-        "es": "Circunstancias ajenas",
-        "en": "External circumstances"
+        "ca": "Condicionants meus aliens al club",
+        "es": "Circunstancias mías ajenas al club",
+        "en": "Personal circumstances unrelated to the club"
       },
       "audience": "MEMBER"
     },

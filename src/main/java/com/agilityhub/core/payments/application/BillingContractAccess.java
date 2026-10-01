@@ -60,14 +60,15 @@ public class BillingContractAccess {
     private final CensusClubSettings clubSettings; private final com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     private final com.agilityhub.core.shared.application.TeamMemberAccess team;
     private final com.agilityhub.core.shared.application.BillingCensusAccess census;
+    private final com.agilityhub.core.shared.application.BookingOwnerAccess bookings;
     public BillingContractAccess(InvoiceRepository invoices, BillingRunRepository runs, BillingSimulationRepository simulations, RemittanceRepository remittances,
             UpfrontPaymentRepository upfront, PackBalanceRepository packs, com.agilityhub.core.payments.persistence.SignupCheckoutRepository checkouts,
             MemberIdentityAccess members, DogOwnerAccess dogs, ClubConfigService configs, CensusClubSettings clubSettings,
             com.agilityhub.core.shared.application.SignupCapabilities capabilities, com.agilityhub.core.shared.application.TeamMemberAccess team,
-            com.agilityhub.core.shared.application.BillingCensusAccess census) {
+            com.agilityhub.core.shared.application.BillingCensusAccess census, com.agilityhub.core.shared.application.BookingOwnerAccess bookings) {
         this.invoices = invoices; this.runs = runs; this.simulations = simulations; this.remittances = remittances; this.upfront = upfront;
         this.packs = packs; this.checkouts = checkouts; this.members = members; this.dogs = dogs; this.configs = configs;
-        this.clubSettings = clubSettings; this.capabilities = capabilities; this.team = team; this.census = census;
+        this.clubSettings = clubSettings; this.capabilities = capabilities; this.team = team; this.census = census; this.bookings = bookings;
     }
 
     public void tenant() { TenantContext.require(); }
@@ -111,6 +112,26 @@ public class BillingContractAccess {
     /** A dog of the open club (another club's or an unknown one → 404). */
     public void dog(String id) { if (dogs.ownerOf(id).isEmpty()) { throw notFound(); } }
     /**
+     * A dog of {@code memberId} in the open club (E8-T01 round 2: a pack or an upfront payment is the owner's): another member's,
+     * another club's or an unknown dog → 404.
+     */
+    public void memberDog(String memberId, String dogId) {
+        if (!dogs.ownerOf(dogId).map(memberId::equals).orElse(false)) { throw notFound(); }
+    }
+    /**
+     * `POST /checkout-sessions` with S12's `bookingId` or `upfrontPaymentIds` (E8-T01 round 2, AGENTS rule 4): after the role,
+     * member and club checks of the signup checkout ({@link CheckoutService#authorize}), the booking and every upfront payment
+     * named must be {@code memberId}'s in the open club. Another member's (also of the caller's family group), another club's or
+     * an unknown one → 404, before the stub, and nothing is written.
+     */
+    public void checkoutReferences(String memberId, String bookingId, Collection<String> upfrontPaymentIds) {
+        if (bookingId != null && !bookings.ownerOf(bookingId).map(memberId::equals).orElse(false)) { throw notFound(); }
+        if (upfrontPaymentIds == null) { return; }
+        for (String id : upfrontPaymentIds) {
+            if (id == null || !upfront.findById(id).map(payment -> memberId.equals(payment.memberId())).orElse(false)) { throw notFound(); }
+        }
+    }
+    /**
      * `GET /checkout-sessions/{id}` (S12 §6 «same as the creator»): the club's ADMIN reads any session of the club, a MEMBER
      * their own, and the anonymous signup screen the one of the member its `X-Signup-Token` capability names (S04 R-04-26).
      */
@@ -131,8 +152,9 @@ public class BillingContractAccess {
     public ListQuery invoiceList(MultiValueMap<String, String> params) { return ListQuery.parse(INVOICES, params); }
     public ListQuery remittanceList(MultiValueMap<String, String> params) { return ListQuery.parse(REMITTANCES, params); }
     /**
-     * `POST /webhooks/stripe/{clubId}` runs outside the tenant filter (no JWT, no host): the club must exist with `BILLING` and
-     * an enabled `STRIPE` provider, otherwise `404` («club sense Stripe», S12 §6), before the signature is looked at.
+     * `POST /webhooks/stripe/{clubId}` runs outside the tenant filter (no JWT, no host). Once {@link StripeWebhookSignatures}
+     * authenticated the body (E8-T01 round 2: before anything else), the club needs `BILLING` (404 MODULE_DISABLED) and an
+     * enabled `STRIPE` provider (`404`, «club sense Stripe», S12 §6).
      */
     public void stripeClub(String clubId) {
         com.agilityhub.core.platform.application.ClubConfig config;

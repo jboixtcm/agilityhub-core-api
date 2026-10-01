@@ -3768,12 +3768,12 @@ Anonymized Playoff files written; no input values or key logged.
 07:44:32.783 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 07:44:32.953 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 07:44:32.953 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-07:44:32.964 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+07:44:32.964 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 07:44:33.204 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 07:44:33.297 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -3836,7 +3836,7 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 2026-10-01T07:44:44.320+02:00  INFO 46758 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 1869 ms
 [ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.299 s <<< FAILURE! -- in com.agilityhub.core.configuration.E3ContractIT
 [ERROR] com.agilityhub.core.configuration.E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors -- Time elapsed: 1.978 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; a request with either answers 501 NOT_IMPLEMENTED after the same guards until E8-T04 serves them."
@@ -3904,7 +3904,7 @@ not to contain:
 2026-10-01T07:45:04.549+02:00  WARN 46758 --- [agilityhub-core-api] [           main] s.b.a.a.m.OnlyOnceLoggingDenyMeterFilter : Reached the maximum number of 'uri' tags for 'http.server.requests'.
 [ERROR] Tests run: 14, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.358 s <<< FAILURE! -- in com.agilityhub.core.configuration.E2ContractIT
 [ERROR] com.agilityhub.core.configuration.E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses -- Time elapsed: 0.015 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   ["MEMBER_VALIDATED",
@@ -10580,8 +10580,8 @@ E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 159 PENDING records (more than one dispatch() batch)
-[ERROR] Failures: 
-[ERROR]   E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses:277 
+[ERROR] Failures:
+[ERROR]   E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses:277
 Expecting actual:
   ["MEMBER_VALIDATED",
     "SIGNUP_REJECTED",
@@ -10730,7 +10730,7 @@ but the following elements were unexpected:
     "ACCOUNT_ERASED",
     "ONBOARDING_COMPLETED"]
 
-[ERROR]   E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors:159 
+[ERROR]   E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors:159
 Expecting actual:
   "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; a request with either answers 501 NOT_IMPLEMENTED after the same guards until E8-T04 serves them."
 not to contain:
@@ -10738,13 +10738,13 @@ not to contain:
 
 [ERROR] Tests run: 1390, Failures: 2, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

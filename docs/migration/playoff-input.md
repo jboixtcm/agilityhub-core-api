@@ -191,8 +191,10 @@ E8-T06 step 10); production allows a single `APPLY`.
   The target club and its catalogs must already exist. The importer only reads
   plans/levels/prices; missing or ambiguous mappings remain warnings with null
   links. It never creates seed catalogs or assigns a guessed current price.
-- Apply with valid bank accounts requires `MIGRATION_BANK_KEY`, a base64-encoded
-  32-byte AES key. Retain this key for S12 bank access. Stored IBANs use AES-GCM
+- Apply with valid bank accounts requires `BILLING_BANK_KEY`, a base64-encoded
+  32-byte AES key: the only bank key (ruling E85), the one S12's SEPA writer
+  decrypts with (`BankAccountVault`). `MIGRATION_BANK_KEY` is gone; a local
+  database imported with it needs a new apply. Stored IBANs use AES-GCM
   with fresh nonces and club/member authenticated context, plus `ibanLast4` for
   census displays. Plaintext IBANs are never persisted or included in reports.
 - `--env=production` (also enforced by the prod/production Spring profile)

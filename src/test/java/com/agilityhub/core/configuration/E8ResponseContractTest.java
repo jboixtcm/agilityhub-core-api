@@ -74,6 +74,64 @@ class E8ResponseContractTest {
         roundTrip("MeInactivityContext", fixture("e8-me-inactivity-periods"), LifecycleContracts.MeInactivityContext.class);
         assertThat(fixture("e8-me-inactivity-periods").at("/periods/0/toMonth").isNull()).as("an open period sends toMonth: null").isTrue();
     }
+    /**
+     * R-13-04, T-13-26 (round 2, review #3): screen 14 reopens on `GET /me/inactivity-periods`, and the member's PATCH needs the
+     * period's `version` (the individual GET is ADMIN-only). The published `MeInactivityPeriod` carries every field the PATCH
+     * requires, as a required integer, and the S13 §6 example (the fixture) sends it.
+     */
+    @Test void T_13_26_R_13_04_theMemberContextGivesThePatchItsVersion() throws Exception {
+        var schemas = mapper.readTree(Path.of("docs/openapi/openapi.json").toFile()).path("components").path("schemas");
+        var period = schemas.path("MeInactivityPeriod");
+        var patch = schemas.path("InactivityPatchRequest");
+        assertThat(strings(patch.path("required"))).containsExactly("version");
+        for (String field : strings(patch.path("required"))) {
+            assertThat(strings(period.path("required"))).as("MeInactivityPeriod gives the PATCH its " + field).contains(field);
+            assertThat(period.path("properties").path(field).path("type").asText()).as(field).isEqualTo(patch.path("properties").path(field).path("type").asText());
+        }
+        assertThat(period.at("/properties/version/type").asText()).isEqualTo("integer");
+        var context = mapper.treeToValue(fixture("e8-me-inactivity-periods"), LifecycleContracts.MeInactivityContext.class);
+        assertThat(context.periods()).isNotEmpty().allSatisfy(each -> assertThat(each.version()).isNotNegative());
+        assertThat(fixture("e8-me-inactivity-periods").at("/periods/0").has("version")).isTrue();
+    }
+
+    /**
+     * S13 §3, R-13-04 (round 2, review #4): `toMonth = null` is an open period, so the four inactivity bodies publish it nullable;
+     * the two PATCH bodies keep field presence — an omitted field is absent from the patch, `toMonth: null` opens the end,
+     * `comments: null` clears them — and refuse `fromMonth: null` and an unknown field.
+     */
+    @Test void T_13_26_R_13_04_theInactivityBodiesPublishANullableEndAndThePatchKeepsFieldPresence() throws Exception {
+        var schemas = mapper.readTree(Path.of("docs/openapi/openapi.json").toFile()).path("components").path("schemas");
+        for (String body : List.of("InactivityRequest", "InactivityPatchRequest", "AdminInactivityRequest", "AdminInactivityPatchRequest")) {
+            assertThat(strings(schemas.path(body).at("/properties/toMonth/type"))).as(body + ".toMonth").containsExactlyInAnyOrder("string", "null");
+            assertThat(strings(schemas.path(body).path("required"))).as(body).doesNotContain("toMonth");
+        }
+        for (String body : List.of("InactivityPatchRequest", "AdminInactivityPatchRequest")) {
+            assertThat(strings(schemas.path(body).at("/properties/fromMonth/type"))).as(body + ".fromMonth").containsExactly("string");
+            assertThat(strings(schemas.path(body).at("/properties/comments/type"))).as(body + ".comments").containsExactlyInAnyOrder("string", "null");
+        }
+        var omitted = mapper.readValue("{\"version\":4}", com.agilityhub.core.clubs.census.api.LifecycleRequests.InactivityPatchRequest.class);
+        assertThat(omitted.patch()).isEmpty();
+        assertThat(omitted.version).isEqualTo(4L);
+        var open = mapper.readValue("{\"toMonth\":null,\"version\":4}", com.agilityhub.core.clubs.census.api.LifecycleRequests.InactivityPatchRequest.class);
+        assertThat(open.patch()).containsOnlyKeys("toMonth").containsEntry("toMonth", null);
+        var moved = mapper.readValue("{\"fromMonth\":\"2026-11\",\"toMonth\":\"2027-02\",\"comments\":null,\"version\":4}",
+                com.agilityhub.core.clubs.census.api.LifecycleRequests.InactivityPatchRequest.class);
+        assertThat(moved.patch()).containsExactly(Map.entry("fromMonth", "2026-11"), Map.entry("toMonth", "2027-02"), new AbstractMap.SimpleEntry<>("comments", null));
+        var admin = mapper.readValue("{\"toMonth\":null,\"overrideDeadline\":true,\"version\":1}",
+                com.agilityhub.core.clubs.census.api.LifecycleRequests.AdminInactivityPatchRequest.class);
+        assertThat(admin.patch()).containsOnlyKeys("toMonth");
+        assertThat(admin.overrideDeadline).isTrue();
+        for (String refused : List.of("{\"fromMonth\":null,\"version\":4}", "{\"tomonth\":null,\"version\":4}")) {
+            assertThatThrownBy(() -> mapper.readValue(refused, com.agilityhub.core.clubs.census.api.LifecycleRequests.InactivityPatchRequest.class))
+                    .as(refused).isInstanceOf(com.fasterxml.jackson.databind.JsonMappingException.class);
+        }
+    }
+    private static List<String> strings(JsonNode node) {
+        var values = new ArrayList<String>();
+        if (node.isArray()) { node.forEach(value -> values.add(value.asText())); } else if (!node.isMissingNode()) { values.add(node.asText()); }
+        return values;
+    }
+
     private static String extract(String spec, String heading) {
         int start = spec.indexOf("```json", spec.indexOf(heading)) + "```json".length();
         return spec.substring(start, spec.indexOf("```", start));
@@ -153,6 +211,21 @@ class E8ResponseContractTest {
             // The outbox stores the envelope's JSON and hands the consumers the same record back.
             assertThat(mapper.readValue(mapper.writeValueAsString(event), event.getClass())).isEqualTo(event);
         }
+        // Round 2 (ruling E85, question 2): every event with a main row of the catalog lists there each field its payload carries;
+        // the eight S12/S13 §13 events live in Annex A (below).
+        int mainRows = 0;
+        for (var entry : fields.entrySet()) {
+            // The main table has four columns (event, payload, emitter, consumers); Annex A has three.
+            var main = catalog.lines().filter(line -> line.startsWith("| `") && line.split("\\|", -1).length == 6
+                    && line.split("\\|", -1)[1].contains("`" + entry.getKey() + "`")).findFirst();
+            if (main.isEmpty()) { continue; }
+            mainRows++;
+            String payload = main.get().split("\\|", -1)[2];
+            for (String field : entry.getValue().split(",")) {
+                assertThat(payload).as(entry.getKey() + " main row lists " + field).containsPattern("(?<![A-Za-z])" + field + "(?![A-Za-z])");
+            }
+        }
+        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(24);
         // The proposals of S12 §13 and S13 §13 are the Annex A rows.
         assertThat(row(catalog, "| `BillingRunCreated` ·")).contains("`BillingRunCompleted`", "`PackAdjusted{delta, reason}`", "`MemberCardInvalidated`");
         assertThat(row(catalog, "| `InactivityChanged` ·")).contains("`InactivityCancelled`", "`LeaveCancelled`", "`LeaveResolved{source, decision, cancelledBookings[]}`");
@@ -256,6 +329,18 @@ class E8ResponseContractTest {
         assertThat(catalog.get("leave.reasons").type()).isEqualTo("json");
         assertThat(reasons).extracting(reason -> reason.get("key")).containsExactly("LEARNED_ENOUGH", "NO_TIME", "NOT_EXPECTED", "EXTERNAL", "OTHER", "CLUB_DECISION", "PACK_EXPIRED");
         assertThat(reasons).allSatisfy(reason -> assertThat(new LinkedHashMap<Object, Object>((Map<?, ?>) reason.get("label"))).containsKeys("ca", "es", "en"));
+        // Round 2 (ruling E85, S13 §10): the MEMBER reasons' ca labels are mockup 15's, in its order; R-13-20's es example.
+        String mockup = Files.readString(Path.of("docs/pantalles/mobil/15-sollicitar-la-baixa.html"));
+        String line = mockup.lines().filter(each -> each.contains("· Ja he après")).findFirst().orElseThrow();
+        var labels = new ArrayList<String>();
+        var item = java.util.regex.Pattern.compile("· ([^<]+)").matcher(line);
+        while (item.find()) { labels.add(item.group(1).strip()); }
+        assertThat(labels).hasSize(5);
+        assertThat(reasons.stream().filter(reason -> "MEMBER".equals(reason.get("audience"))).map(reason -> String.valueOf(((Map<?, ?>) reason.get("label")).get("ca"))).toList())
+                .containsExactlyElementsOf(labels);
+        assertThat(((Map<?, ?>) reasons.getFirst().get("label")).get("es")).isEqualTo("Ya he aprendido todo lo que quería");
+        assertThat(reasons.stream().filter(reason -> !"MEMBER".equals(reason.get("audience"))).map(reason -> String.valueOf(((Map<?, ?>) reason.get("label")).get("ca"))).toList())
+                .containsExactly("Decisió del club", "Pack caducat");
         for (String name : family) {
             assertThat(catalog.get(name).block()).as(name).isEqualTo("billing");
             assertThat(catalog.get(name).editableBy()).as(name + " editable from D11").isEqualTo("CLUB");

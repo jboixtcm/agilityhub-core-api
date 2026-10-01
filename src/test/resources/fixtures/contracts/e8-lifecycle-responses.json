@@ -36,7 +36,7 @@
                "leftAt": null, "leftReason": null},
     "source": "MEMBER", "origin": "APP", "requestedAt": "2026-09-30T08:00:00Z",
     "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000017", "impersonatedMemberId": null},
-    "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "reason": "Condicionants aliens", "nps": 8, "comment": "Més classes de tarda", "state": "APPROVED",
+    "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "reason": "Condicionants meus aliens al club", "nps": 8, "comment": "Més classes de tarda", "state": "APPROVED",
     "decision": {"at": "2026-10-05T09:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000007", "decision": "APPROVED", "effectiveDate": "2026-10-31", "note": null},
     "executedAt": null, "cancelledAt": null, "cancelledBy": null, "cancelReason": null,
     "cancelledBookings": [{"type": "CLASS", "id": "c5d6e7f8-0000-4000-8000-00000000002c", "sessionDate": "2026-11-04"}], "packBalanceId": null, "version": 2
@@ -61,8 +61,8 @@
   "MeLeaveContext": {
     "offerInactivity": true, "fee": {"firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "followingMonths": {"amountMinor": 1000, "currency": "EUR"}},
     "defaultDate": "2026-09-30", "fullMonthIfLater": true, "npsEnabled": true,
-    "reasons": [{"key": "LEARNED_ENOUGH", "label": "He après el que volia"}, {"key": "NO_TIME", "label": "No trobo temps"},
-                {"key": "NOT_EXPECTED", "label": "No és el que esperava"}, {"key": "EXTERNAL", "label": "Condicionants aliens"}, {"key": "OTHER", "label": "Altres"}],
+    "reasons": [{"key": "LEARNED_ENOUGH", "label": "Ja he après tot el que volia"}, {"key": "NO_TIME", "label": "No trobo temps per anar-hi"},
+                {"key": "NOT_EXPECTED", "label": "No és el que esperava"}, {"key": "EXTERNAL", "label": "Condicionants meus aliens al club"}, {"key": "OTHER", "label": "Altres"}],
     "plannedLeave": null,
     "requests": [{"id": "f8091a2b-0000-4000-8000-00000000000f", "requestedDate": "2026-10-31", "reasonKey": "EXTERNAL", "nps": 8, "comment": "Més classes de tarda",
                   "state": "PENDING", "decision": null}]

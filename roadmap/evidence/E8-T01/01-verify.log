@@ -23,7 +23,7 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 07:36:03.624 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
 [ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.018 s <<< FAILURE! -- in com.agilityhub.core.configuration.E5BackOfficeContractTest
 [ERROR] com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch -- Time elapsed: 0.007 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   ["GET /api/v1/activities",
@@ -3839,8 +3839,8 @@ accounts: created=0 updated=0 skipped=0 errors=0
 Incidents: {REEXECUTION_UNSUPPORTED=1}
 members:3 members ERROR REEXECUTION_UNSUPPORTED field=status
 Anonymized Playoff files written; no input values or key logged.
-[ERROR] Failures: 
-[ERROR]   E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch:76 
+[ERROR] Failures:
+[ERROR]   E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch:76
 Expecting actual:
   ["GET /api/v1/activities",
     "GET /api/v1/activities/export",
@@ -3913,13 +3913,13 @@ but the following elements were unexpected:
 
 [ERROR] Tests run: 3591, Failures: 1, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

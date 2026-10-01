@@ -1,0 +1,563 @@
+14:49:38.443 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E8ContractIT]: E8ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:49:38.560 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E8ContractIT
+14:49:38.629 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+14:49:38.630 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+14:49:38.634 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+14:49:38.737 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+14:49:38.890 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+14:49:38.891 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+14:49:38.905 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+14:49:39.209 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+14:49:39.305 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+14:49:39.386 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: d1f9463e75e93355c91e90f41290df0c0639955b1491f9615d7846b937e49fb0
+14:49:39.580 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.370916S
+14:49:39.583 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+14:49:39.584 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+14:49:39.584 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+14:49:39.584 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+14:49:39.625 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: a8d0acfbf296b4e248fecee5351b8b8dff8d7f538d047224bf72d4182f342b74
+14:49:40.352 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.767659S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-01T14:49:41.332+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Starting E8ContractIT using Java [redacted] with PID 71899 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-01T14:49:41.334+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-01T14:49:42.349+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-01T14:49:42.399+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 46 ms. Found 0 MongoDB repository interfaces.
+2026-10-01T14:49:42.796+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1315befe], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@45649467, com.mongodb.Jep395RecordCodecProvider@e60c466, com.mongodb.KotlinCodecProvider@620e0d36]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58762], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5cd2adc7], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-01T14:49:42.802+02:00 INFO  [cluster-ClusterId{value='6abe56e6dcdfb42ef0fd048d', description='null'}-localhost:58762] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58762, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9920292, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=a8d0acfbf296:27017, hosts=[a8d0acfbf296:27017], passives=[], arbiters=[], primary='a8d0acfbf296:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abe56e3de9fb6e73c93563a, counter=6}, lastWriteDate=Thu Oct 01 14:49:40 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-01T14:49:46.510+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-01T14:49:46.510+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-01T14:49:46.511+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-01T14:49:46.557+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Started E8ContractIT in 5.402 seconds (process running for 8.492)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-01T14:49:50.818+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=dabf21b6-a856-41a1-9295-dacabcc6e521 clubId=- accountId=- : Init duration for springdoc-openapi is: 2094 ms
+2026-10-01T14:49:51.574+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=990953d0-1f1c-4fa2-865a-183199474fc3 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected status=400 code=VALIDATION_ERROR traceId=990953d0-1f1c-4fa2-865a-183199474fc3
+2026-10-01T14:49:51.585+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=a9745d4b-b206-4193-9c56-1122132d8d5c clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=a9745d4b-b206-4193-9c56-1122132d8d5c
+2026-10-01T14:49:51.593+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e925d971-acb8-480b-b2b6-3fc483d9ba63 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=e925d971-acb8-480b-b2b6-3fc483d9ba63
+2026-10-01T14:49:51.600+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ff5a2cb7-ecfe-4767-b9ef-d3b6436d4db1 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=ff5a2cb7-ecfe-4767-b9ef-d3b6436d4db1
+2026-10-01T14:49:51.605+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=aacd1616-5736-4289-b76b-903c2cbbce7e clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=aacd1616-5736-4289-b76b-903c2cbbce7e
+2026-10-01T14:49:51.639+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1aec4e49-88fe-437e-a31c-58028c0bd71f clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=1aec4e49-88fe-437e-a31c-58028c0bd71f
+[ERROR] Tests run: 70, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 18.25 s <<< FAILURE! -- in com.agilityhub.core.configuration.E8ContractIT
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_theCheckoutExtensionsAuthorizeAndCheckTheirReferencesBeforeTheStub -- Time elapsed: 0.113 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /api/v1/checkout-sessions {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"d3c6dd98-7e69-42ca-9d3e-da949b93266b"}]
+expected: 404
+ but was: 501
+	at com.agilityhub.core.configuration.E8ContractIT.error(E8ContractIT.java:214)
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_theCheckoutExtensionsAuthorizeAndCheckTheirReferencesBeforeTheStub(E8ContractIT.java:474)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses -- Time elapsed: 2.306 s <<< FAILURE!
+java.lang.AssertionError:
+[MeInactivityContext.periods[] required]
+Expecting ArrayList:
+  ["id", "fromMonth", "toMonth", "state", "comments", "fee", "editable"]
+to contain:
+  ["editable", "fromMonth", "id", "state", "version"]
+but could not find the following element(s):
+  ["version"]
+
+	at com.agilityhub.core.configuration.E8ContractIT.assertFixtureSchema(E8ContractIT.java:707)
+	at com.agilityhub.core.configuration.E8ContractIT.assertFixtureSchema(E8ContractIT.java:703)
+	at com.agilityhub.core.configuration.E8ContractIT.lambda$assertFixtureSchema$37(E8ContractIT.java:713)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.agilityhub.core.configuration.E8ContractIT.assertFixtureSchema(E8ContractIT.java:713)
+	at com.agilityhub.core.configuration.E8ContractIT.lambda$assertFixtureSchema$36(E8ContractIT.java:710)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at com.agilityhub.core.configuration.E8ContractIT.assertFixtureSchema(E8ContractIT.java:708)
+	at com.agilityhub.core.configuration.E8ContractIT.WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses(E8ContractIT.java:693)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub -- Time elapsed: 0.085 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /api/v1/pack-balances {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6a88d712-8d4d-4dc4-b1b4-d8bd6acadc32"}]
+expected: 404
+ but was: 501
+	at com.agilityhub.core.configuration.E8ContractIT.error(E8ContractIT.java:214)
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub(E8ContractIT.java:507)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_13_26_R_13_04_theInactivityBodiesTakeANullEndAndThePatchKeepsFieldPresence -- Time elapsed: 0.065 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[PATCH /api/v1/me/inactivity-periods/e8-period-a {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"4de313ec-8777-49e2-aee4-3f518778fd26"}]
+expected: 400
+ but was: 501
+	at com.agilityhub.core.configuration.E8ContractIT.error(E8ContractIT.java:214)
+	at com.agilityhub.core.configuration.E8ContractIT.T_13_26_R_13_04_theInactivityBodiesTakeANullEndAndThePatchKeepsFieldPresence(E8ContractIT.java:560)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_22_billingOffHidesEveryS12RouteAndTheLeaveRoutesStillAnswer -- Time elapsed: 0.218 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /webhooks/stripe/e8-club-a {"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"6b52ff22-a18f-4cd9-96da-10b3776e606c"}]
+expected: 401
+ but was: 404
+	at com.agilityhub.core.configuration.E8ContractIT.error(E8ContractIT.java:214)
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_22_billingOffHidesEveryS12RouteAndTheLeaveRoutesStillAnswer(E8ContractIT.java:306)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse -- Time elapsed: 0.083 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[made up]
+expected: 401
+ but was: 501
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse(E8ContractIT.java:366)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-01T14:49:56.659+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.migration.PlayoffMigrationIT]: PlayoffMigrationIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T14:49:56.684+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.PlayoffMigrationIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-01T14:49:56.710+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Starting PlayoffMigrationIT using Java [redacted] with PID 71899 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-01T14:49:56.710+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-01T14:49:57.031+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-01T14:49:57.069+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 37 ms. Found 0 MongoDB repository interfaces.
+2026-10-01T14:49:57.137+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@11efe93f], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@45649467, com.mongodb.Jep395RecordCodecProvider@e60c466, com.mongodb.KotlinCodecProvider@620e0d36]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58762], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2ce9de5], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-01T14:49:57.140+02:00 INFO  [cluster-ClusterId{value='6abe56f5dcdfb42ef0fd048e', description='null'}-localhost:58762] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58762, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2255917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=a8d0acfbf296:27017, hosts=[a8d0acfbf296:27017], passives=[], arbiters=[], primary='a8d0acfbf296:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abe56e3de9fb6e73c93563a, counter=6}, lastWriteDate=Thu Oct 01 14:49:56 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-01T14:50:00.919+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Started PlayoffMigrationIT in 4.222 seconds (process running for 22.853)
+2026-10-01T14:50:00.952+02:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs
+[ERROR] Tests run: 22, Failures: 2, Errors: 16, Skipped: 0, Time elapsed: 9.763 s <<< FAILURE! -- in com.agilityhub.core.migration.PlayoffMigrationIT
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.E85_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban -- Time elapsed: 0.107 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: null
+ but was: ""
+	at com.agilityhub.core.migration.PlayoffMigrationIT.E85_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban(PlayoffMigrationIT.java:114)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_principalAndFamilyHolderLeftBlockTheApplyWithTheirDependants -- Time elapsed: 0.262 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_principalAndFamilyHolderLeftBlockTheApplyWithTheirDependants(PlayoffMigrationIT.java:350)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates -- Time elapsed: 0.261 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates(PlayoffMigrationIT.java:128)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_B34_instructorsGetNoPlanNorWarningAndCompetitionGetsCompeticio1 -- Time elapsed: 0.219 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_B34_instructorsGetNoPlanNorWarningAndCompetitionGetsCompeticio1(PlayoffMigrationIT.java:232)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing -- Time elapsed: 0.378 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing(PlayoffMigrationIT.java:251)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_personsJoinRemovedOrChangedAfterALoadBlocksTheApply -- Time elapsed: 0.179 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_personsJoinRemovedOrChangedAfterALoadBlocksTheApply(PlayoffMigrationIT.java:299)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_personsFileAfterAFirstLoadBlocksTheApplyWithoutAnAliasConflict -- Time elapsed: 0.161 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_personsFileAfterAFirstLoadBlocksTheApplyWithoutAnAliasConflict(PlayoffMigrationIT.java:280)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_06_sharedEmailsHaveOneOwnerAndNoMailIsSent -- Time elapsed: 0.131 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_06_sharedEmailsHaveOneOwnerAndNoMailIsSent(PlayoffMigrationIT.java:144)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_mappingV2AppliesJoseAnswersB29ToB32 -- Time elapsed: 0.134 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_mappingV2AppliesJoseAnswersB29ToB32(PlayoffMigrationIT.java:217)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_activeRecordWithAccountThatComesBackLeftBlocksTheApply -- Time elapsed: 0.140 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_activeRecordWithAccountThatComesBackLeftBlocksTheApply(PlayoffMigrationIT.java:263)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections -- Time elapsed: 0.139 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections(PlayoffMigrationIT.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_sameNifAliasOfAnAccountHolderThatComesBackLeftBlocksTheApply -- Time elapsed: 0.139 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_sameNifAliasOfAnAccountHolderThatComesBackLeftBlocksTheApply(PlayoffMigrationIT.java:391)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved -- Time elapsed: 0.148 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved(PlayoffMigrationIT.java:439)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved -- Time elapsed: 0.120 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved(PlayoffMigrationIT.java:98)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_06_E32_samePersonFamilyAndActiveLeftPairsGetTheRightPersonsDogsAndAccounts -- Time elapsed: 0.121 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.apply(PlayoffMigrationIT.java:57)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_06_E32_samePersonFamilyAndActiveLeftPairsGetTheRightPersonsDogsAndAccounts(PlayoffMigrationIT.java:164)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_joinThatDisappearsWithItsRecordAbsentOrSkippedBlocksTheApply -- Time elapsed: 0.119 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_joinThatDisappearsWithItsRecordAbsentOrSkippedBlocksTheApply(PlayoffMigrationIT.java:324)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried -- Time elapsed: 0.120 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalStateException
+but was:
+  com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(90 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried(PlayoffMigrationIT.java:447)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_storedGroupOfAProtectedHolderIsNeverReplaced -- Time elapsed: 0.158 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.migration.application.MigrationApplyService$$SpringCGLIB$$0.validate(<generated>)
+	at com.agilityhub.core.migration.application.PlayoffImportService.importDirectory(PlayoffImportService.java:41)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_08_R_18_14_storedGroupOfAProtectedHolderIsNeverReplaced(PlayoffMigrationIT.java:369)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse:366 [made up]
+expected: 401
+ but was: 501
+[ERROR]   E8ContractIT.T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub:507->error:214 [POST /api/v1/pack-balances {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6a88d712-8d4d-4dc4-b1b4-d8bd6acadc32"}]
+expected: 404
+ but was: 501
+[ERROR]   E8ContractIT.T_12_21_T_13_24_theCheckoutExtensionsAuthorizeAndCheckTheirReferencesBeforeTheStub:474->error:214 [POST /api/v1/checkout-sessions {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"d3c6dd98-7e69-42ca-9d3e-da949b93266b"}]
+expected: 404
+ but was: 501
+[ERROR]   E8ContractIT.T_12_22_billingOffHidesEveryS12RouteAndTheLeaveRoutesStillAnswer:306->error:214 [POST /webhooks/stripe/e8-club-a {"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"6b52ff22-a18f-4cd9-96da-10b3776e606c"}]
+expected: 401
+ but was: 404
+[ERROR]   E8ContractIT.T_13_26_R_13_04_theInactivityBodiesTakeANullEndAndThePatchKeepsFieldPresence:560->error:214 [PATCH /api/v1/me/inactivity-periods/e8-period-a {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"4de313ec-8777-49e2-aee4-3f518778fd26"}]
+expected: 400
+ but was: 501
+[ERROR]   E8ContractIT.WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses:693->assertFixtureSchema:708->lambda$assertFixtureSchema$36:710->assertFixtureSchema:713->lambda$assertFixtureSchema$37:713->assertFixtureSchema:703->assertFixtureSchema:707 [MeInactivityContext.periods[] required]
+Expecting ArrayList:
+  ["id", "fromMonth", "toMonth", "state", "comments", "fee", "editable"]
+to contain:
+  ["editable", "fromMonth", "id", "state", "version"]
+but could not find the following element(s):
+  ["version"]
+
+[ERROR]   PlayoffMigrationIT.E85_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban:114
+expected: null
+ but was: ""
+[ERROR]   PlayoffMigrationIT.T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried:447
+Expecting actual throwable to be an instance of:
+  java.lang.IllegalStateException
+but was:
+  com.agilityhub.core.shared.domain.ApiException: PRODUCTION_REQUIRES_CONFIRMATION
+	at com.agilityhub.core.migration.application.MigrationBankVault.requireKey(MigrationBankVault.java:18)
+	at com.agilityhub.core.migration.application.MigrationApplyService.validate(MigrationApplyService.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(90 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR] Errors:
+[ERROR]   PlayoffMigrationIT.T_18_01_B34_instructorsGetNoPlanNorWarningAndCompetitionGetsCompeticio1:232->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections:76->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_01_mappingV2AppliesJoseAnswersB29ToB32:217->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved:98->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates:128->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_06_E32_samePersonFamilyAndActiveLeftPairsGetTheRightPersonsDogsAndAccounts:164->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_06_sharedEmailsHaveOneOwnerAndNoMailIsSent:144->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_activeRecordWithAccountThatComesBackLeftBlocksTheApply:263 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_joinThatDisappearsWithItsRecordAbsentOrSkippedBlocksTheApply:324 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_personsFileAfterAFirstLoadBlocksTheApplyWithoutAnAliasConflict:280 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_personsJoinRemovedOrChangedAfterALoadBlocksTheApply:299->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_principalAndFamilyHolderLeftBlockTheApplyWithTheirDependants:350 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_sameNifAliasOfAnAccountHolderThatComesBackLeftBlocksTheApply:391 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_R_18_14_storedGroupOfAProtectedHolderIsNeverReplaced:369 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing:251->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR]   PlayoffMigrationIT.T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved:439->apply:57 » Api PRODUCTION_REQUIRES_CONFIRMATION
+[ERROR] Tests run: 92, Failures: 8, Errors: 16, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

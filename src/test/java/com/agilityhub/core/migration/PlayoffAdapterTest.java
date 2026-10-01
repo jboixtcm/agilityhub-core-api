@@ -189,7 +189,7 @@ class PlayoffAdapterTest {
         for(String[] args:List.of(new String[]{},new String[]{"in","out","--bad"},new String[]{"in","out","--mapping"},new String[]{"in","out","--mapping="})) {
             assertThatThrownBy(() -> AnonymizeCommand.run(new DefaultApplicationArguments(args),key)).isInstanceOf(IllegalArgumentException.class);
         }
-        assertThatThrownBy(() -> new MigrationBankVault("").requireKey()).isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> new MigrationBankVault("not-base64").requireKey()).isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("")).requireKey()).isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("not-base64")).requireKey()).isInstanceOf(ApiException.class);
     }
 }

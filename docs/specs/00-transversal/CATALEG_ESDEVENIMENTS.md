@@ -58,17 +58,27 @@
 | `TaskCreated` / `TaskUpdated` / `TaskDeleted` / `TaskCompleted` | taskId, dogId, by (+ memberId a `TaskCreated` i `TaskCompleted`, E6-T01, 24-09) | S10 | N-20/N-21, D14 |
 | `AttachmentAdded` | attachmentId, entity | S10 | — |
 | **Facturació i pagaments** | | | |
-| `InvoiceIssued` | invoiceId, memberId, period, total, paymentMethodType | S12 | comptadors D6 |
-| `InvoiceCollecting` / `InvoicePaid` / `InvoiceFailed` / `InvoiceCancelled` | invoiceId, provider, collectionId, reason? | S12 | N-10/N-30/N-35, D6 |
-| `RemittanceSimulated` | remittanceDraftId, incidents[], totals | S12 | D6 |
-| `RemittanceGenerated` | remittanceId, invoiceIds[], xmlFileKey | S12 | avança proper rebut, auditoria |
-| `RemittanceRolledBack` | remittanceId, invoiceIds[] | S12 | retrocés de numeració i dates, auditoria |
-| `UpfrontPaymentRecorded` / `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, amountPaid (Succeeded), bookingId? (només les línies d'una reserva `SINGLE_CLASS`, S08 R-08-18; organitzador 24-09) | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
-| `PackOpened` / `PackConsumed` / `PackRefunded` / `PackLowBalance` / `PackExpiring` / `PackExpired` | packBalanceId, dogId, remaining | S08/S12/S15 | N-11, baixa prevista automàtica |
-| `StripeWebhookReceived` | eventId, type | S12 | processament idempotent |
+| `InvoiceIssued` | invoiceId, memberId, period, total, paymentMethodType, kind (PERIODIC · MANUAL · MIGRATED) | S12 | comptadors D6 |
+| `InvoiceCollecting` | invoiceId, provider, collectionId | S12 | D6 |
+| `InvoicePaid` | invoiceId, provider, paidAt | S12 | N-30 (`STRIPE`), D6 |
+| `InvoiceFailed` | invoiceId, provider, reason | S12 | N-10, N-35 (`STRIPE`), D6 |
+| `InvoiceCancelled` | invoiceId, reason | S12 | D6 |
+| `RemittanceSimulated` | simulationId, period, incidents[{memberId, code}], totals{count, total} | S12 | D6 |
+| `RemittanceGenerated` | remittanceId, runId, invoiceIds[], fileKey | S12 | avança proper rebut, auditoria |
+| `RemittanceRolledBack` | remittanceId, runId, invoiceIds[] | S12 | retrocés de numeració i dates, auditoria |
+| `UpfrontPaymentRecorded` / `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, amountPaid (Recorded, Succeeded), bookingId? (només les línies d'una reserva `SINGLE_CLASS`, S08 R-08-18; organitzador 24-09), packBalanceId? (Succeeded, el pack que obre, R-12-23), reason (Failed) | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
+| `PackOpened` | packBalanceId, memberId, dogId, expiresOn | S12 | anul·la la baixa prevista `PACK_EXPIRED` (S13 R-13-14) |
+| `PackConsumed` / `PackRefunded` | packBalanceId, memberId, dogId, bookingId, remaining | S08/S12 | — |
+| `PackLowBalance` | packBalanceId, memberId, dogId, remaining | S08/S12 | N-11a |
+| `PackExpiring` / `PackExpired` | packBalanceId, memberId, dogId, remaining, expiresOn | S15 | N-11b; `PackExpired` → baixa prevista automàtica (S13 R-13-14) |
+| `StripeWebhookReceived` | eventId, type, outcome (PROCESSED · IGNORED · FAILED) | S12 | processament idempotent |
 | **Inactivitat i baixa** | | | |
-| `InactivityRequested` / `InactivityResolved` / `InactivityStarted` / `InactivityEnded` | periodId, memberId, from, to, decision | S13/S15 | N-18, reserves dins l'interval → cancel·lades, quota |
-| `LeaveRequested` / `LeaveResolved` | requestId, memberId, requestedDate, effectiveDate | S13 | N-14/N-28, `MemberStatusChanged` amb data futura |
+| `InactivityRequested` | periodId, memberId, from, to (`null` = obert) | S13 | N-18a |
+| `InactivityResolved` | periodId, memberId, decision, from, to, fee? (`null` sense `BILLING`), cancelledBookings[] | S13 | N-18b, reserves dins l'interval → cancel·lades, quota |
+| `InactivityStarted` | periodId, memberId, from, to | S15 | — |
+| `InactivityEnded` | periodId, memberId, from, to, finishReason | S13/S15 | N-18c |
+| `LeaveRequested` | requestId, memberId, requestedDate, reasonKey | S13 | N-14 |
+| `LeaveResolved` | requestId, memberId, decision, source, effectiveDate, cancelledBookings[] | S13 | N-28, `MemberStatusChanged` amb data futura |
 | **Comunicacions** | | | |
 | `NotificationQueued` / `NotificationSent` / `NotificationFailed` | notificationId, channel | S11 | log |
 | `ClubPageChanged` | key, version, active | S05 (afegit 09-09) | log; S11 refresca la pàgina «Info» |

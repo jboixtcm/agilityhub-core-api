@@ -1,0 +1,18 @@
+operations added [] removed []
+op changed GET /api/v1/me/inactivity-periods | 404: 'MODULE_DISABLED' -> 'NOT_FOUND, MODULE_DISABLED'
+op changed GET /api/v1/me/inactivity-periods/preview | 404: 'MODULE_DISABLED' -> 'NOT_FOUND, MODULE_DISABLED'
+op changed GET /api/v1/me/leave-requests | 404: 'Not Found' -> 'NOT_FOUND'
+op changed GET /api/v1/me/pack-balances | 404: 'MODULE_DISABLED' -> 'NOT_FOUND, MODULE_DISABLED'
+op changed PATCH /api/v1/inactivity-periods/{id} | description
+op changed PATCH /api/v1/me/inactivity-periods/{id} | description
+op changed POST /api/v1/checkout-sessions | description
+op changed POST /api/v1/me/card-setup | 404: 'MODULE_DISABLED' -> 'NOT_FOUND, MODULE_DISABLED'; 409: 'IDEMPOTENCY_KEY_REUSED' -> 'MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED'
+op changed POST /api/v1/me/inactivity-periods | 404: 'MODULE_DISABLED' -> 'NOT_FOUND, MODULE_DISABLED'; 409: 'LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED' -> 'MEMBER_ERASED, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED'
+op changed POST /api/v1/me/leave-requests | 404: 'Not Found' -> 'NOT_FOUND'; 409: 'LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED' -> 'MEMBER_ERASED, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED'
+op changed POST /webhooks/stripe/{clubId} | description
+schemas added [] removed []
+schema changed AdminInactivityPatchRequest | comments: type string -> ['string', 'null']; fromMonth: type string -> string; overrideDeadline: type boolean -> boolean; toMonth: type string -> ['string', 'null']; description
+schema changed AdminInactivityRequest | comments: type string -> ['string', 'null']; toMonth: type string -> ['string', 'null']
+schema changed InactivityPatchRequest | comments: type string -> ['string', 'null']; fromMonth: type string -> string; toMonth: type string -> ['string', 'null']; description
+schema changed InactivityRequest | comments: type string -> ['string', 'null']; toMonth: type string -> ['string', 'null']
+schema changed MeInactivityPeriod | version: type None -> integer; required ['editable', 'fromMonth', 'id', 'state'] -> ['editable', 'fromMonth', 'id', 'state', 'version']; description

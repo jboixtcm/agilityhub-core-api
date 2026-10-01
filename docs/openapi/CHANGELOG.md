@@ -2,6 +2,28 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-01 · E8-T01 round 2 · guards before the stubs, the Stripe signature first, `MeInactivityPeriod.version`, nullable `toMonth`
+
+**No operation or schema added or removed; 5 schemas and 11 operations changed** (`roadmap/evidence/E8-T01/15-r2-contract-diff.log`).
+- `MeInactivityPeriod` gains the required `version` (int64, ≥ 0): the member's `PATCH /me/inactivity-periods/{id}` sends it back
+  (R-13-04, T-13-26). The S13 §6 example of `GET /me/inactivity-periods` carries it.
+- `InactivityRequest`, `AdminInactivityRequest`, `InactivityPatchRequest`, `AdminInactivityPatchRequest`: `toMonth` and `comments`
+  are nullable (`toMonth: null` = an open period, S13 §3). The two PATCH bodies keep field presence: an omitted field stays,
+  `toMonth: null` opens the period, `comments: null` clears them; `fromMonth: null` or an unknown field → `400 VALIDATION_ERROR`.
+  Required sets unchanged.
+- `POST /webhooks/stripe/{clubId}`: the description states the order — the `Stripe-Signature` (HMAC-SHA256 of `{t}.{raw body}`
+  under the club's webhook secret, 5-minute tolerance) is verified before anything else; an unknown club or a club without a
+  secret is `401 WEBHOOK_SIGNATURE_INVALID` too; then `BILLING` (404 `MODULE_DISABLED`) and `STRIPE` (404).
+- `POST /checkout-sessions`: the description states that `bookingId`/`upfrontPaymentIds` pass the signup checkout's role,
+  member and club checks and must be that member's in the club (another member's, another club's or unknown → 404) before
+  `NOT_IMPLEMENTED`.
+- `PATCH /me/inactivity-periods/{id}`, `PATCH /inactivity-periods/{id}`: descriptions state the field presence.
+- Error lists (the `/me/*` stubs now resolve the caller's member first): `GET /me/inactivity-periods`,
+  `GET /me/inactivity-periods/preview`, `GET /me/pack-balances` gain `404 NOT_FOUND`; `POST /me/card-setup` and
+  `POST /me/inactivity-periods` gain `404 NOT_FOUND` and `409 MEMBER_ERASED`; `GET /me/leave-requests` and
+  `POST /me/leave-requests` name their 404 `NOT_FOUND` (was the generic «Not Found»), and `POST /me/leave-requests` gains
+  `409 MEMBER_ERASED`.
+
 ## 2026-10-01 · E8-T02 · the S12 monthly cycle and the invoice actions are served (no schema change)
 
 **18 operations served, descriptions and three error lists changed; no path, schema or success status changed.** The operations

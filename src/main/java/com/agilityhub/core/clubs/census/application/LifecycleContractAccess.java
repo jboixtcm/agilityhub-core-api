@@ -64,6 +64,10 @@ public class LifecycleContractAccess {
     public void member(String id) { members.require(id); }
     /** A member a write is about to change: as {@link #member}, and an erased one → `409 MEMBER_ERASED` (S14 §5). */
     public void mutableMember(String id) { com.agilityhub.core.clubs.census.domain.CensusRules.mutable(members.require(id).erasedAt); }
+    /** The caller of a `/me/*` read is a member of the open club (E8-T01 round 2): a token naming none → 404. */
+    public void me() { member(callerMember()); }
+    /** The caller of a `/me/*` write: as {@link #me}, and an erased member → `409 MEMBER_ERASED`. */
+    public void mutableMe() { mutableMember(callerMember()); }
     public void period(String id) { periods.findById(id).orElseThrow(LifecycleContractAccess::notFound); }
     public void ownPeriod(String id) { periods.findOwn(id, callerMember()).orElseThrow(LifecycleContractAccess::notFound); }
     public void request(String id) { requests.findById(id).orElseThrow(LifecycleContractAccess::notFound); }

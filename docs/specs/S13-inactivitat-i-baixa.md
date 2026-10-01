@@ -182,7 +182,7 @@ Tenant pel JWT; `403` per rol no permès; `404` per recurs d'un altre club o mò
   "fee": {"firstMonth":{"amountMinor":2000,"currency":"EUR"},"followingMonths":{"amountMinor":1000,"currency":"EUR"}},
   "periods": [{"id":"ip1","fromMonth":"2026-10","toMonth":null,"state":"REQUESTED","comments":"Descans de la Duna",
                "fee":{"firstMonth":{"amountMinor":2000,"currency":"EUR"},"followingMonths":{"amountMinor":1000,"currency":"EUR"}},
-               "editable":{"fromMonth":true,"toMonth":true,"cancel":true}}] }
+               "editable":{"fromMonth":true,"toMonth":true,"cancel":true},"version":0}] }
 ```
 
 `ErrorCode` nous: `INACTIVITY_DEADLINE_PASSED` (422, `details.earliestMonth`), `INACTIVITY_OVERLAP` (409, `details.periodId, hint`), `INACTIVITY_INVALID_RANGE` (422), `INACTIVITY_INVALID_STATE` (409), `LEAVE_ALREADY_REQUESTED` (409), `LEAVE_ALREADY_SCHEDULED` (409), `LEAVE_DATE_INVALID` (422), `LEAVE_REASON_UNKNOWN` (400), `LEAVE_INVALID_STATE` (409), `NO_PLANNED_LEAVE` (409), `MEMBER_NOT_LEFT` (409), `MEMBER_LEAVING` (422, elegibilitat; el reutilitzen S07/S08/S09). Reutilitzats: `MEMBER_NOT_ACTIVE`, `INACTIVITY_PERIOD`, `STALE_VERSION`, `MODULE_DISABLED`, `IMPERSONATION_DENIED`. Transaccions Mongo: aprovació d'inactivitat amb anul·lacions (R-13-05/06), decisió de baixa amb anul·lacions i tancament d'inactivitats (R-13-10/12), execució de la baixa (R-13-13), consumidors de pack (R-13-14).

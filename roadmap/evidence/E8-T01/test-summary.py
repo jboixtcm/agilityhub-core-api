@@ -8,10 +8,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 CLASSES = ["E8ContractIT", "E8PersistenceIT", "E8ResponseContractTest", "BankAccountVaultTest", "ErrorCatalogContractTest", "EventCatalogContractTest",
            "OpenApiRequiredContractTest", "ArchitectureTest", "AuditContractTest", "ListFieldsContractIT", "E2ContractIT", "E3ContractIT",
-           "E5BackOfficeContractTest", "OpenApiSnapshotTest", "MessageParityTest", "ParameterCatalogContractTest"]
+           "E5BackOfficeContractTest", "OpenApiSnapshotTest", "MessageParityTest", "ParameterCatalogContractTest",
+           # Round 2 (01-10): the new and changed test classes.
+           "StripeWebhookSignaturesTest", "PlayoffMigrationIT", "PlayoffAdapterTest", "ClubDefinitionsIT"]
 PACKAGES = ["com/agilityhub/core/payments/application", "com/agilityhub/core/payments/domain", "com/agilityhub/core/payments/api",
             "com/agilityhub/core/clubs/census/application", "com/agilityhub/core/clubs/census/domain", "com/agilityhub/core/clubs/census/api",
-            "com/agilityhub/core/platform/application", "com/agilityhub/core/shared/application/lists", "com/agilityhub/core/platform/application/definition"]
+            "com/agilityhub/core/platform/application", "com/agilityhub/core/shared/application/lists", "com/agilityhub/core/platform/application/definition",
+            "com/agilityhub/core/migration/application", "com/agilityhub/core/clubs/bookings/application"]
 
 for name, folder in (("unit/contract (surefire)", "surefire-reports"), ("integration (failsafe)", "failsafe-reports")):
     totals = [0, 0, 0, 0]

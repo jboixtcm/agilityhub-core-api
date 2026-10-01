@@ -87,25 +87,26 @@ public class MyBillingController {
     @PostMapping("/api/v1/me/card-setup")
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED})
     @Operation(summary = "myCardSetup", description = ROLES + "R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in "
             + "mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 "
             + "PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host." + STUB,
             responses = @ApiResponse(responseCode = "201", description = "CardSetupLink", useReturnTypeSchema = true))
     public CardSetupLink myCardSetup(@Valid @RequestBody CardSetupRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
-        access.tenant();
+        // E8-T01 round 2: the caller's own member of the club first (a token without one → 404; erased → 409), then the stub.
+        access.mutableMember(access.me());
         throw new UnsupportedOperationException();
     }
 
     @GetMapping("/api/v1/me/pack-balances")
     @AllowsImpersonation
     @RequiresModule(Module.PACKS)
-    @ContractErrors({MODULE_DISABLED})
+    @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "myPackBalances", description = ROLES + "PACKS off → 404 MODULE_DISABLED. Screen 13 «Pack {n} — amb {gos}»: the packs of "
             + "the caller's dogs with their movements, the live ones first." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail[]", useReturnTypeSchema = true))
     public List<PackBalanceDetail> myPackBalances() {
-        access.tenant();
+        access.member(access.me());
         throw new UnsupportedOperationException();
     }
 }

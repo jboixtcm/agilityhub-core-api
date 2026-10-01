@@ -206,13 +206,21 @@ encryption. An archive without its OIDC/bank/backup keys is not a recovery plan.
   rollover uses the application's ring/rotation mechanism, retaining old public
   keys through token expiry; do not delete `signing_keys` or confuse that rollover
   with changing the master key. Restore tests must retain the master key separately.
-- `MIGRATION_BANK_KEY` protects imported bank data. No online re-encryption tool
-  is provided here: keep the old key until all records and retained backups can
-  be read by a reviewed migration. Never rotate it by just editing env.
-- `BILLING_BANK_KEY` is `BankAccountVault`'s key (ruling E43): the members'
-  encrypted IBANs, which only the SEPA remittance writer decrypts. The same rule
-  as `MIGRATION_BANK_KEY`: keep it for every retained record and backup, and
-  rotate it only with a reviewed re-encryption.
+- `BILLING_BANK_KEY` is the only bank key (rulings E43 and E85):
+  `BankAccountVault` encrypts the members' IBANs with it, `migration:apply`
+  included, and only the SEPA remittance writer decrypts them. No online
+  re-encryption tool is provided here: keep it for every retained record and
+  backup, and rotate it only with a reviewed re-encryption. Never rotate it by
+  just editing env.
+- `MIGRATION_BANK_KEY` is retired (ruling E85): Core no longer reads it. No
+  release imported bank data with it; a local database imported before needs a
+  new `migration:apply` with `BILLING_BANK_KEY`. The production Compose stops
+  forwarding it with E11-T04.
+- `BILLING_SECRETS_KEY` encrypts the clubs' payment-provider secrets
+  (`paymentProviders.STRIPE.webhookSecretEnc`, `secretKeyEnc`; ADR-009) with the
+  club and field as associated data. Without it every Stripe webhook answers
+  `401 WEBHOOK_SIGNATURE_INVALID`. Same rules as the bank key: escrow it, and
+  rotate it only by re-entering every club's secrets.
 - Changing `SIGNUP_CAPABILITY_KEY` invalidates outstanding signup capabilities
   and encrypted replay records; `BOOKING_CALENDAR_KEY` invalidates sent calendar
   links; `EMAIL_UNSUBSCRIBE_KEY` invalidates outstanding 30-day unsubscribe links.
@@ -315,8 +323,9 @@ and URIs are included because they must remain consistent across recovery.
 | `VAPID_SUBJECT` | Operator contact, `mailto:`/`https:`, supplied to push providers; update if contact changes. |
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
-| `MIGRATION_BANK_KEY` | Base64 32 random bytes for imported IBAN encryption; preserve for every retained record/backup, re-encrypt before rotation. |
-| `BILLING_BANK_KEY` | Base64 32 random bytes, `BankAccountVault`'s key for the members' encrypted IBANs (E43); required by production Compose and forwarded to Core (also the local seed); preserve and re-encrypt before rotation, like `MIGRATION_BANK_KEY`. |
+| `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); preserve and re-encrypt before rotation. |
+| `BILLING_SECRETS_KEY` | Base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Must be forwarded to Core before a club enables STRIPE (E8-T04); escrow it; rotation means re-entering every club's secrets. |
 | `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
 | `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ENDPOINT` | Private attachment bucket/region; optional HTTPS endpoint. Preserve objects and signed upload CORS when moving. |
@@ -361,9 +370,11 @@ Do not inherit any of these
 consumer/test settings into release Core.
 
 **Provider settings not yet implemented:** this checkout has no Stripe or Sentry
-environment contract. E8/release must document the actual Stripe API credential,
-per-club webhook signing secrets, storage/encryption and rotation before enabling
-CARD/Stripe, and the chosen Sentry DSN if deployed. Do not invent `STRIPE_*` or
+environment contract beyond `BILLING_SECRETS_KEY`: each club's Stripe API key and
+webhook signing secret live encrypted in its club document under that key
+(E8-T01 round 2). E8/release must document how a club enters them, the actual
+Stripe API credential and the rotation before enabling CARD/Stripe, and the
+chosen Sentry DSN if deployed. Do not invent `STRIPE_*` or
 `SENTRY_*` env names here and assume the API reads them. RSA OIDC signing keys
 live encrypted in Mongo, not in a separate env variable. Cloud/SSH/GHCR keys are
 host credentials, provisioned and rotated by their respective providers and kept
