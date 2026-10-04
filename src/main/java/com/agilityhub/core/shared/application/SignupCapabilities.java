@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 /** Server-key capabilities and encrypted anonymous replay responses. No capability is stored in clear. */
 @Component
 public class SignupCapabilities {
+    public static final String PAYMENT_RETRY_MARKER = "[PAYMENT_RETRY]";
     private final byte[] key;
     private final Clock clock;
     public SignupCapabilities(Environment env, Clock clock) {

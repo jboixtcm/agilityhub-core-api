@@ -17481,7 +17481,7 @@
         "type" : "object"
       },
       "SignupWarning" : {
-        "enum" : [ "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION", "CHECKOUT_PENDING", "PAID_EXCEEDS_QUOTE" ],
+        "enum" : [ "CARD_INVALID", "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION", "CHECKOUT_PENDING", "PAID_EXCEEDS_QUOTE" ],
         "type" : "string"
       },
       "SimulationKpis" : {
@@ -27554,7 +27554,7 @@
                 }
               }
             },
-            "description" : "PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -27564,7 +27564,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -29076,7 +29076,7 @@
     },
     "/api/v1/checkout-sessions" : {
       "post" : {
-        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; E8-T04 serves them. Until then a request with either first passes the same role, member and club checks as the signup checkout, then the booking and every upfront payment named must be that member's in the club (another member's, another club's or an unknown one → 404 NOT_FOUND), and only then answers NOT_IMPLEMENTED; it writes nothing.",
+        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session. E8-T01 (S12 §6): bookingId (S08 R-08-18, a PAY_TO_BOOK booking) and upfrontPaymentIds (the member's DUE rows, e.g. a pack from the app) are published; E8-T04 serves them. A request with either first passes the same role, member and club checks as the signup checkout, then checks booking and payment ownership (404 NOT_FOUND). E8-T04 opens the checkout after the local transaction commits.",
         "operationId" : "create_1",
         "parameters" : [ {
           "in" : "header",
@@ -29166,7 +29166,7 @@
                 }
               }
             },
-            "description" : "PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -29237,7 +29237,7 @@
     },
     "/api/v1/checkout-sessions/{id}" : {
       "get" : {
-        "description" : "Roles: the session's creator (S12 §6): ANON by host with the X-Signup-Token capability of the session's member (S04 R-04-26; without it → 401 UNAUTHENTICATED), the MEMBER it charges (also the impersonation token) or an ADMIN of the club (not impersonated); anyone else, another club's or an unknown session → 404. BILLING off → 404 MODULE_DISABLED. The return screens (19, 06) poll it (≤ 10 s) and show «Pagament rebut» only with PAID; the payment itself arrives by webhook. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01).",
+        "description" : "Roles: the session's creator (S12 §6): ANON by host with the X-Signup-Token capability of the session's member (S04 R-04-26; without it → 401 UNAUTHENTICATED), the MEMBER it charges (also the impersonation token) or an ADMIN of the club (not impersonated); anyone else, another club's or an unknown session → 404. BILLING off → 404 MODULE_DISABLED. The return screens (19, 06) poll it (≤ 10 s) and show «Pagament rebut» only with PAID; the payment itself arrives by webhook. Implemented in E8-T04; the webhook determines the status.",
         "operationId" : "checkoutSession",
         "parameters" : [ {
           "in" : "path",
@@ -43810,7 +43810,7 @@
     },
     "/api/v1/invoices/{id}/refund" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-20: a refund of a SUCCEEDED Stripe collection (amount absent = what is left); charge.refunded (webhook) adds it to the collection's refunds and to refundedTotal; PAYMENT_REFUNDED audit. A SEPA or manual invoice has no automatic refund (an adjustment invoice instead, T-12-17) → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID (rule 0, S12 §6 writes 409). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-20: a refund of a SUCCEEDED Stripe collection (amount absent = what is left); charge.refunded (webhook) adds it to the collection's refunds and to refundedTotal; PAYMENT_REFUNDED audit. A SEPA or manual invoice has no automatic refund (an adjustment invoice instead, T-12-17) → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID (rule 0, S12 §6 writes 409). Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "refundInvoice",
         "parameters" : [ {
           "in" : "path",
@@ -43907,7 +43907,7 @@
                 }
               }
             },
-            "description" : "REFUND_EXCEEDS_PAID, PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "REFUND_EXCEEDS_PAID, CURRENCY_MISMATCH, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -43917,7 +43917,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -43975,7 +43975,7 @@
     },
     "/api/v1/invoices/{id}/retry" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-18: a FAILED invoice charged again to the member's card (attempt + 1, idempotencyKey invoiceId:attempt) → COLLECTING; the result arrives by webhook. More than billing.stripeMaxAttempts → 409 MAX_ATTEMPTS {attempts, max}; no valid card → 422 NO_PAYMENT_METHOD; another state → 409 INVALID_STATE. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-18: a FAILED invoice charged again to the member's card (attempt + 1, idempotencyKey invoiceId:attempt) → COLLECTING; the result arrives by webhook. More than billing.stripeMaxAttempts → 409 MAX_ATTEMPTS {attempts, max}; no valid card → 422 NO_PAYMENT_METHOD; another state → 409 INVALID_STATE. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "retryInvoice",
         "parameters" : [ {
           "in" : "path",
@@ -44072,7 +44072,7 @@
                 }
               }
             },
-            "description" : "NO_PAYMENT_METHOD"
+            "description" : "NO_PAYMENT_METHOD, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -44082,7 +44082,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -47414,7 +47414,7 @@
     },
     "/api/v1/me/card-setup" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "myCardSetup",
         "parameters" : [ {
           "in" : "header",
@@ -47504,7 +47504,7 @@
                 }
               }
             },
-            "description" : "PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -47514,7 +47514,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -55149,7 +55149,7 @@
     },
     "/api/v1/members/{id}/card-setup-link" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-22: a Stripe Checkout session in mode=setup for the member (D10 «Targeta no vàlida»): the admin sends the link; setup_intent.succeeded saves the card and sends N-38. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED; another club's member → 404; an erased one → 409 MEMBER_ERASED. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-22: a Stripe Checkout session in mode=setup for the member (D10 «Targeta no vàlida»): the admin sends the link; setup_intent.succeeded saves the card and sends N-38. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED; another club's member → 404; an erased one → 409 MEMBER_ERASED. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "cardSetupLink",
         "parameters" : [ {
           "in" : "path",
@@ -55246,7 +55246,7 @@
                 }
               }
             },
-            "description" : "PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -55256,7 +55256,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -73142,7 +73142,7 @@
     },
     "/api/v1/upfront-payments/{id}/refund" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-20: the refund of a payment collected by Stripe Checkout (amount absent = what is left); charge.refunded adds it to refunds and a full one makes it REFUNDED; PAYMENT_REFUNDED audit. A MANUAL one has no automatic refund → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-20: the refund of a payment collected by Stripe Checkout (amount absent = what is left); charge.refunded adds it to refunds and a full one makes it REFUNDED; PAYMENT_REFUNDED audit. A MANUAL one has no automatic refund → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "refundUpfrontPayment",
         "parameters" : [ {
           "in" : "path",
@@ -73239,7 +73239,7 @@
                 }
               }
             },
-            "description" : "REFUND_EXCEEDS_PAID, PAYMENT_PROVIDER_NOT_ENABLED"
+            "description" : "REFUND_EXCEEDS_PAID, CURRENCY_MISMATCH, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID"
           },
           "429" : {
             "content" : {
@@ -73249,7 +73249,7 @@
                 }
               }
             },
-            "description" : "Too Many Requests",
+            "description" : "RATE_LIMITED",
             "headers" : {
               "Retry-After" : {
                 "description" : "Seconds before retrying",
@@ -77858,7 +77858,7 @@
     },
     "/webhooks/stripe/{clubId}" : {
       "post" : {
-        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: before anything else the Stripe-Signature header (t={unix seconds},v1={hex HMAC-SHA256 of \"{t}.{raw body}\"}) is verified with the club's webhook secret, with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. Contract only; returns 501 NOT_IMPLEMENTED after the signature and the club guards (E8-T01).",
+        "description" : "Roles: Stripe (signature), no bearer token. R-12-21: before anything else the Stripe-Signature header (t={unix seconds},v1={hex HMAC-SHA256 of \"{t}.{raw body}\"}) is verified with the club's webhook secret, with Stripe's 5-minute tolerance on t; a missing, wrong or stale signature, a tampered body, an unknown club or a club without a webhook secret → 401 WEBHOOK_SIGNATURE_INVALID and a SecurityEvent, nothing else stored. Then a club without BILLING → 404 MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04).",
         "operationId" : "receiveStripeEvent",
         "parameters" : [ {
           "in" : "path",

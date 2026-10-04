@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E8-T04 (S12 WP-12-D): per-club Stripe SDK and deterministic fake providers, durable card attempts and retries, asynchronous refunds, signature-first idempotent webhooks, card setup and invalidation, and recovery after lost responses. Provider calls execute after local commits with stable domain keys. Late booking captures refund once; expired payable signup rows settle normally. N-01 issues a 24-hour payment retry capability only in the outgoing email. The existing signup and booking checkout flows are retained. Audit actions, tenant/module/role checks, unified upfront event payloads, and provider-secret forwarding are covered by the payment test suites. Real Stripe-account acceptance requires test credentials.
+
 - E8-T03 (S12 WP-12-C, ADR-006): SEPA remittances.
   - `SepaRemittanceWriter` replaces E8-T02's local/test stub and its production null object. It writes the run's `SEPA_XML`
     collections as a pain.008.001.02 `CstmrDrctDbtInitn` file through JAXB classes generated at build time by xjc

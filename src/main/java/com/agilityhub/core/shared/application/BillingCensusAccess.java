@@ -46,6 +46,12 @@ public interface BillingCensusAccess {
     /** An `ACTIVE` family group: its holder pays (R-12-04). */
     record FamilyGroup(String id, String holderMemberId, List<String> memberIds) { }
 
+    record Card(String customerId, String paymentMethodId, String last4, String brand, boolean invalid) {
+        public boolean usable() { return !invalid && customerId != null && paymentMethodId != null; }
+    }
+    Optional<Card> card(String memberId);
+    void saveCard(String memberId, Card card);
+    List<String> invalidateCards(String customerId, String paymentMethodId);
     /** R-12-01: the members of the open club whose status is `ACTIVE` (members inside an inactivity period included). */
     List<BillingMember> activeMembers();
     Optional<BillingMember> member(String memberId);

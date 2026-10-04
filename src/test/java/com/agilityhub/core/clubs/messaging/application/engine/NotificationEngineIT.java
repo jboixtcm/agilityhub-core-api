@@ -480,10 +480,16 @@ class NotificationEngineIT extends EngineFixtures {
         deliver(CLUB, "InvoicePaid", Map.of("memberId", "member-laura", "provider", "STRIPE"));
         assertThat(stored(CLUB, "N-30")).isEmpty();
         deliver(CLUB, "InvoicePaid", Map.of("memberId", "member-laura", "provider", "SEPA_XML"));
-        assertThat(stored(CLUB, "N-30")).hasSize(1);
+        assertThat(stored(CLUB, "N-30")).isEmpty();
         parameter(CLUB, "billing.stripeReceiptEmail", false, "bool");
         deliver(CLUB, "InvoicePaid", Map.of("memberId", "member-laura", "provider", "STRIPE"));
+        assertThat(stored(CLUB, "N-30")).hasSize(1);
+
+        parameter(CLUB, "billing.stripeReceiptEmail", true, "bool");
+        deliver(CLUB, "UpfrontPaymentSucceeded", Map.of("memberId", "member-laura", "provider", "STRIPE"));
         assertThat(stored(CLUB, "N-30")).hasSize(2);
+        deliver(CLUB, "MemberCardInvalidated", Map.of("memberId", "member-laura", "reason", "NO_PAYMENT_METHOD"));
+        assertThat(stored(CLUB, "N-35")).hasSize(2);
 
         // Owner exceptions: the Annex A variant (N-32b from the back office → CLUB_CHANGES, its caps as channels), a channel the event
         // switches on (N-32a `notifyEmail`), a channel the owner sends itself (N-02's credential e-mail).

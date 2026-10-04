@@ -79,6 +79,12 @@ class DashboardBuildersTest {
         assertThat(PendingSignupBuilder.build(missing, period, 0, true, true, "en", "ca").card().items())
                 .allSatisfy(item -> { assertThat(item.pendingDays()).isZero(); assertThat(item.shortName()).doesNotContain("."); assertThat(item.planName()).isEqualTo("English Abonat"); });
     }
+    @Test void T_12_31_invalidCardAppearsInThePendingDashboardRowOnlyWithBilling() {
+        var row = new PendingSource("member", "Fictional", "Example", false, List.of(), null, "CARD", period.from(), true, true, false, false, false, false, true);
+        assertThat(PendingSignupBuilder.build(List.of(row), period, 7, true, false, "ca", "ca").card().items().getFirst().warnings())
+                .containsExactly(com.agilityhub.core.shared.application.contract.SignupWarning.CARD_INVALID);
+        assertThat(PendingSignupBuilder.build(List.of(row), period, 7, false, false, "ca", "ca").card().items().getFirst().warnings()).isNull();
+    }
     RiskReviewSource.Row risk(String id, int days, String time, int booked, String status, List<Notified> notified) {
         var date = period.today().plusDays(days);
         return new RiskReviewSource.Row(id, date, LocalTime.parse(time), label(id), label("Ring"), booked, status, notified,

@@ -369,13 +369,29 @@ tester destination for E7's optional real-SMS rehearsal, never a release setting
 Do not inherit any of these
 consumer/test settings into release Core.
 
-**Provider settings not yet implemented:** this checkout has no Stripe or Sentry
-environment contract beyond `BILLING_SECRETS_KEY`: each club's Stripe API key and
-webhook signing secret live encrypted in its club document under that key
-(E8-T01 round 2). E8/release must document how a club enters them, the actual
-Stripe API credential and the rotation before enabling CARD/Stripe, and the
-chosen Sentry DSN if deployed. Do not invent `STRIPE_*` or
-`SENTRY_*` env names here and assume the API reads them. RSA OIDC signing keys
+**Stripe providers (E8-T04):** Core uses each club's own account with the official
+Stripe Java SDK. Store `secretKeyEnc` and `webhookSecretEnc` encrypted by
+`ProviderSecretVault` using `BILLING_SECRETS_KEY` and the club/provider/field AAD;
+never copy ciphertext between clubs or fields. `mode` must match the API key's
+test/live prefix; configuration errors are 422. Local and test profiles resolve
+`FakePaymentProvider`; staging and production resolve the SDK. There is no global
+Stripe API key environment setting and no Connect account header. Key rotation
+means re-encrypting the club's secrets; lookups bypass the config cache.
+
+Register `/webhooks/stripe/{clubId}` for the Checkout, PaymentIntent, refund,
+SetupIntent, detached-method and deleted-customer events listed in S12 R-12-21.
+Receipts are signature-checked, stored uniquely, then processed transactionally;
+failed work and durable provider commands retry internally. Stripe's default
+24-hour Checkout expiration is separate from Core's shorter booking deadline;
+late booking captures are refunded once per payment intent. `compose.yaml`
+forwards the billing key. The administrative credential-entry UI remains a
+platform-console concern; never put plaintext credentials into seed files.
+
+`STRIPE_TEST_SECRET_KEY` / `STRIPE_TEST_WEBHOOK_SECRET` are optional inputs for an
+explicit real-account rehearsal, not deployment settings consumed by Core.
+Without them, fake-provider integration tests and SDK request/exception unit tests
+run locally; acceptance against Stripe remains unproven. Sentry's environment
+contract is still pending. RSA OIDC signing keys
 live encrypted in Mongo, not in a separate env variable. Cloud/SSH/GHCR keys are
 host credentials, provisioned and rotated by their respective providers and kept
 out of the Core container.
@@ -850,7 +866,7 @@ E3 runtime settings (all secrets remain environment-only):
 | `MAIL_LOCAL_DIRECTORY` | Local/test mailbox JSON directory; Compose uses `/app/mailbox` on a private named volume. N-01/N-02/N-03 mail can be correlated by `tags.notificationId` with the notification log. N-37 is APP-only. Copy messages using the mailbox recipe above, then remove the private copy. |
 | `ATTACHMENT_LOCAL_DIRECTORY` | Local uploaded-file directory (`/app/attachments` in Compose). Signup keys use `signup/<clubId>/<yyyyMM>/<uuid>/<filename>`; the month is club-local and the prefix is fixed by the adapter, not an environment setting. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ACCESS_KEY`, `ATTACHMENT_S3_SECRET_KEY`, optional `ATTACHMENT_S3_ENDPOINT` | Existing staging/prod private storage settings. Include `signup/` as well as `attachments/` in IAM/CORS verification. Signed signup PUT grants last 15 minutes; claimed documents must not be expired by a blanket signup-prefix lifecycle. |
-| `SPRING_PROFILES_ACTIVE` | `local`/`test` selects `FakeCheckoutGateway`, which returns `https://checkout.test/<sessionId>` and makes no Stripe call. It is unavailable in staging/prod. Real Stripe credentials, webhook wiring and checkout completion are E8; no new Stripe environment variable or public fake-completion route is introduced by E3. |
+| `SPRING_PROFILES_ACTIVE` | `local`/`test` selects `FakePaymentProvider` (the compatible `FakeCheckoutGateway` subclass), which returns `https://checkout.test/<sessionId>` and makes no Stripe call. It is unavailable in staging/prod. E8-T04 resolves the real SDK there from each club's encrypted credentials; this introduces no public fake-completion route. |
 
 The Cànic gate seed enables SEPA and manual payments; it does not enable CARD.
 The smoke verifies SEPA without an IBAN produces `ACCOUNT_NOT_PROVIDED`, then

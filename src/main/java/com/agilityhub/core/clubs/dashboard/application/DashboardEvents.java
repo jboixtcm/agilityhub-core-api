@@ -27,6 +27,8 @@ public class DashboardEvents {
     @Bean DomainEventHandler<Event> dashboardMemberStatusChanged(DashboardQuery query) { return handler("MemberStatusChanged", query); }
     @Bean DomainEventHandler<Event> dashboardLevelChanged(DashboardQuery query) { return handler("LevelChanged", query); }
     @Bean DomainEventHandler<Event> dashboardClubUpdated(DashboardQuery query) { return handler("ClubUpdated", query); }
+    @Bean DomainEventHandler<Event> dashboardCardInvalidated(DashboardQuery query) { return handler("MemberCardInvalidated", query); }
+    @Bean DomainEventHandler<Event> dashboardPaymentMethodChanged(DashboardQuery query) { return handler("MemberPaymentMethodChanged", query); }
     private DomainEventHandler<Event> handler(String type, DashboardQuery query) {
         return new DomainEventHandler<>() {
             public String eventType() { return type; }

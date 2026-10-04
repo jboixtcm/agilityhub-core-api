@@ -4,7 +4,7 @@
     {
       "code": "N-01",
       "title": "Solicitud recibida",
-      "body": "Hemos recibido tu solicitud para [[dogs]]. [[club_name]] la revisará.{has_upfront, select, true { Importe a pagar al club: [[upfront_total]]. [[payment_instructions]]} other {}}",
+      "body": "Hemos recibido tu solicitud para [[dogs]]. [[club_name]] la revisará.{has_upfront, select, true { Importe a pagar al club: [[upfront_total]]. [[payment_instructions]] [[pay_link]]} other {}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -533,7 +533,7 @@
     {
       "code": "N-35",
       "title": "No se ha podido cobrar la tarjeta",
-      "body": "No hemos podido cobrar [[amount]]: [[reason]]. Revisa la tarjeta desde la app.",
+      "body": "No hemos podido cobrar [[amount]]: [[reason]]. Revisa la tarjeta desde la app: [[retry_link]]",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

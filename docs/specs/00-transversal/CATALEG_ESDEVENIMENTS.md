@@ -66,7 +66,9 @@
 | `RemittanceSimulated` | simulationId, period, incidents[{memberId, code}], totals{count, total} | S12 | D6 |
 | `RemittanceGenerated` | remittanceId, runId, invoiceIds[], fileKey | S12 | avança proper rebut, auditoria |
 | `RemittanceRolledBack` | remittanceId, runId, invoiceIds[] | S12 | retrocés de numeració i dates, auditoria |
-| `UpfrontPaymentRecorded` / `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, amountPaid (Recorded, Succeeded), bookingId? (només les línies d'una reserva `SINGLE_CLASS`, S08 R-08-18; organitzador 24-09), packBalanceId? (Succeeded, el pack que obre, R-12-23), reason (Failed) | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
+| `UpfrontPaymentRecorded` | paymentId, memberId, concept, provider, amountPaid, bookingId? | S04/S12 | registre manual, auditoria |
+| `UpfrontPaymentSucceeded` | paymentId, memberId, concept, provider, amountPaid, bookingId?, packBalanceId? | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
+| `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, bookingId?, reason | S04/S12 | S08 allibera la reserva `PAYMENT_PENDING` |
 | `PackOpened` | packBalanceId, memberId, dogId, expiresOn | S12 | anul·la la baixa prevista `PACK_EXPIRED` (S13 R-13-14) |
 | `PackConsumed` / `PackRefunded` | packBalanceId, memberId, dogId, bookingId, remaining | S08/S12 | — |
 | `PackLowBalance` | packBalanceId, memberId, dogId, remaining | S08/S12 | N-11a |

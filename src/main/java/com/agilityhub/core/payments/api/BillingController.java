@@ -116,7 +116,7 @@ public class BillingController {
 
     @PostMapping("/api/v1/billing/runs/{id}/card-charges")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @ContractErrors({NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "chargeRunCards", description = ROLES + "R-12-13 [COBRA LES TARGETES]: an off-session PaymentIntent per CARD invoice of the "
             + "run (idempotencyKey = invoiceId, batches of 25), Collection SUBMITTED, invoice COLLECTING; run CHARGING until every Stripe collection "
             + "is resolved by webhook. An invoice without a valid card → FAILED{NO_PAYMENT_METHOD} + N-35, listed in skipped. CARD_CHARGES_STARTED "
@@ -126,7 +126,8 @@ public class BillingController {
     public CardChargesResult chargeRunCards(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.run(id);
         var result = cards.chargeRun(id);
-        return new CardChargesResult(result.submitted(), result.skipped().stream().map(skip -> new CardChargeSkip(skip.invoiceId(), skip.reason())).toList());
+        return transactions.keyed(202, () -> new CardChargesResult(result.submitted(), result.skipped().stream()
+                .map(skip -> new CardChargeSkip(skip.invoiceId(), skip.reason())).toList()), this::json);
     }
 
     @PostMapping("/api/v1/billing/runs/{id}/rollback")

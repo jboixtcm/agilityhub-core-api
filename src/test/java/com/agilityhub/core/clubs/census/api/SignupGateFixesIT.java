@@ -550,4 +550,23 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(review.at("/dogs/0/version").asLong()).isNotEqualTo(review.path("version").asLong());
         result(admin(patchJson("/dogs/"+dog,Map.of("version",review.at("/dogs/0/version").asLong(),"breed","Updated breed"))),200);
     }
+    @Test void T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw() throws Exception {
+        mongo.getCollection("clubs").updateOne(new Document("_id",club), new Document("$set", new Document("paymentProviders.STRIPE", new Document("enabled",true))));
+        configs.invalidate(club); signupService.invalidateConfiguration(club);
+        var mailbox = (com.agilityhub.core.clubs.messaging.application.FakeEmailSender) sender; mailbox.clear();
+        var body = request(); body.set("payment", mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        String id = submit(body).path("memberId").asText(); dispatch();
+        String mail = mailbox.lastTo(body.at("/person/emails/0").asText()).text();
+        var found = java.util.regex.Pattern.compile("signupToken=([A-Za-z0-9_.-]+)").matcher(mail);
+        assertThat(found.find()).as("N-01 offers the signup payment retry action").isTrue(); String token = found.group(1);
+        assertThat(collection("notifications").toString()).doesNotContain(token, "signupToken=");
+        var request = Map.of("memberId", id, "signupToken", token, "successUrl", "https://" + host + "/ok", "cancelUrl", "https://" + host + "/ko");
+        result(postJson("/checkout-sessions", request).header("Idempotency-Key", UUID.randomUUID()), 201);
+        var original = clock.instant();
+        try {
+            clock.setInstant(original.plusSeconds(86401));
+            assertThat(result(postJson("/checkout-sessions", request).header("Idempotency-Key", UUID.randomUUID()), 401).path("code").asText()).isEqualTo("UNAUTHENTICATED");
+        } finally { clock.setInstant(original); }
+    }
+
 }

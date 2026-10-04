@@ -93,6 +93,10 @@ public final class BillingDocuments {
         public List<Invoice> forIds(java.util.Collection<String> ids) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(List.copyOf(ids))), Invoice.class);
         }
+        public void refunded(String id, com.agilityhub.core.shared.domain.Money amount, java.time.Instant at) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("refundedTotal", amount)
+                    .set("updatedAt", at).inc("version", 1L), "invoices");
+        }
         /** R-12-27: the invoices of {@code memberIds}, newest first; a rolled-back one never reaches the member. */
         public List<Invoice> ofMembers(java.util.Collection<String> memberIds, int page, int size) {
             return mongo.find(live(tenantQuery().addCriteria(Criteria.where("memberId").in(List.copyOf(memberIds))))
@@ -194,6 +198,21 @@ public final class BillingDocuments {
             indexes.ensureIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("collection_club_remittance"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("providerRef", ASC).unique().partial(present("providerRef")).named("collection_club_provider_ref"));
         }
+        public java.util.Optional<Collection> byProviderReference(String reference) {
+            return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("providerRef").is(reference)), Collection.class));
+        }
+        public void submitted(String id, String providerRef) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("providerRef", providerRef), Collection.class);
+        }
+        public void resolve(String id, com.agilityhub.core.payments.domain.CollectionStatus status, String code, java.time.Instant at) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("status", status.name())
+                    .set("failureCode", code).set("resolvedAt", at), Collection.class);
+        }
+        public void refund(String id, Collection.Refund refund, boolean full) {
+            var update = new Update().push("refunds", refund);
+            if (full) { update.set("status", "REFUNDED"); }
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), update, Collection.class);
+        }
         /** The invoice's attempts, oldest first (the detail's `collections[]`). */
         public List<Collection> forInvoice(String invoiceId) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("invoiceId").is(invoiceId))
@@ -264,6 +283,29 @@ public final class BillingDocuments {
         /** R-12-11: the month's live run (`GENERATED`, `CHARGING`, `COMPLETED`), if any. */
         public java.util.Optional<BillingRun> live(String period) {
             return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("period").is(period).and("status").in(LIVE_RUN_STATUSES)), BillingRun.class));
+        }
+        public org.bson.Document cardRequest(String id, String reference) {
+            if (reference == null) { return null; }
+            var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("cardRequests.reference").is(reference)), org.bson.Document.class, "billing_runs");
+            return row == null ? null : row.getList("cardRequests", org.bson.Document.class).stream()
+                    .filter(request -> reference.equals(request.getString("reference"))).findFirst().orElse(null);
+        }
+        public void cardRequest(String id, String reference, java.util.List<String> operations, java.util.List<org.bson.Document> skipped) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().push("cardRequests", new org.bson.Document("reference", reference)
+                    .append("operations", operations).append("skipped", skipped)), "billing_runs");
+        }
+        public void resume(String id) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").in("COMPLETED", "CHARGING")),
+                    new Update().set("status", "CHARGING").unset("finishedAt").inc("version", 1L), "billing_runs");
+        }
+        public boolean charging(String id) {
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").in("GENERATED", "CHARGING")),
+                    new Update().set("status", "CHARGING").inc("version", 1L), "billing_runs").getMatchedCount() == 1;
+        }
+        public boolean progress(String id, int charged, int failed, boolean complete, java.time.Instant at) {
+            var update = new Update().set("byProvider.stripe.charged", charged).set("byProvider.stripe.failed", failed).inc("version", 1L);
+            if (complete) { update.set("status", "COMPLETED").set("finishedAt", at); }
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("CHARGING")), update, "billing_runs").getMatchedCount() == 1;
         }
         /** D6: the month's live run, else its latest rolled-back one. */
         public java.util.Optional<BillingRun> latest(String period) {

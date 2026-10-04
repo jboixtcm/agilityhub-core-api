@@ -17,6 +17,20 @@ import java.util.*;
  * whose process stopped leaves its claim to the retry.
  */
 public interface PaymentProvider {
+    enum Capability { CHECKOUT, OFF_SESSION, REFUND, CARD_SETUP, FORGET_CUSTOMER }
+    record OffSessionRequest(Money amount, String customerId, String paymentMethodId, String idempotencyKey, Map<String,String> metadata) { }
+    record OffSessionResult(String paymentIntentId, String status, String failureCode) { }
+    record RefundResult(String id, String status) { }
+    record WebhookEvent(String id, String type, Instant createdAt, com.fasterxml.jackson.databind.JsonNode object) { }
+    default boolean supports(Capability capability) { return false; }
+    default OffSessionResult createOffSessionPayment(OffSessionRequest request) { throw disabled(); }
+    default RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason) { throw disabled(); }
+    default WebhookEvent parseWebhook(String payload, String signatureHeader, String webhookSecret) { throw disabled(); }
+    default com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) { return null; }
+    default void forgetCustomer(String customerId) { throw disabled(); }
+    private static com.agilityhub.core.shared.domain.ApiException disabled() {
+        return new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
+    }
     /** The longest a single provider call may take, retries included (ruling E80): a small fraction of the 10-minute claim lease. */
     Duration MAX_CALL_TIMEOUT = Duration.ofSeconds(30);
     record Item(String paymentId,String description,Money amount) { }

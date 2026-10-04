@@ -34,6 +34,9 @@
     <!-- The pinned Spring Boot parent manages exact versions for starters,
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
+        <dependency>
+            <groupId>com.stripe</groupId><artifactId>stripe-java</artifactId><version>34.0.0</version>
+        </dependency>
         <!-- E11-T03 observability: Spring Boot 3 / Jakarta, disabled without SENTRY_DSN. -->
         <dependency>
             <groupId>io.sentry</groupId><artifactId>sentry-spring-boot-starter-jakarta</artifactId><version>8.58.0</version>

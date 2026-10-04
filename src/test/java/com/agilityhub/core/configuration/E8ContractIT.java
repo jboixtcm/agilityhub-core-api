@@ -345,11 +345,11 @@ class E8ContractIT extends AbstractIntegrationTest {
         String body = "{\"id\":\"evt_e8_fixture\",\"type\":\"payment_intent.succeeded\",\"created\":1790000000}";
         String tampered = body.replace("payment_intent.succeeded", "charge.refunded");
         var before = database();
-        error(webhook(CLUB, body, signature(body)), 501, "NOT_IMPLEMENTED");
+        error(webhook(CLUB, body, signature(body)), 400, "VALIDATION_ERROR");
         // Stripe may send several v1 (a rolled secret) and a v0: one valid v1 is enough, a v0 never counts.
         String rolled = signature(body).replace(",v1=", ",v1=" + "0".repeat(64) + ",v0=" + "1".repeat(64) + ",v1=");
-        error(webhook(CLUB, body, rolled), 501, "NOT_IMPLEMENTED");
-        error(webhook(CLUB, body, signature(body)).with(jwt().jwt(j -> j.claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN")), 501, "NOT_IMPLEMENTED");
+        error(webhook(CLUB, body, rolled), 400, "VALIDATION_ERROR");
+        error(webhook(CLUB, body, signature(body)).with(jwt().jwt(j -> j.claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN")), 400, "VALIDATION_ERROR");
         long events = securityEvents();
         Map<String, MockHttpServletRequestBuilder> refused = new LinkedHashMap<>();
         refused.put("missing", webhook(CLUB, body, null));
@@ -369,8 +369,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         assertThat(securityEvents()).as("one SecurityEvent per refused delivery").isEqualTo(events + refused.size());
         for (var request : refused.values()) { error(request, 401, "WEBHOOK_SIGNATURE_INVALID"); }
         // Inside the tolerance on both sides.
-        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().minusSeconds(300), body)), 501, "NOT_IMPLEMENTED");
-        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().plusSeconds(300), body)), 501, "NOT_IMPLEMENTED");
+        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().minusSeconds(300), body)), 400, "VALIDATION_ERROR");
+        error(webhook(CLUB, body, signature(WEBHOOK_SECRET, clock.instant().plusSeconds(300), body)), 400, "VALIDATION_ERROR");
         // A stored secret that does not decrypt (club A's ciphertext: another associated data) is no secret.
         var tree = (ObjectNode) mapper.valueToTree(clubs.findById(OTHER).orElseThrow());
         ((ObjectNode) tree.path("paymentProviders").path("STRIPE")).put("webhookSecretEnc", secrets.encrypt(WEBHOOK_SECRET, CLUB, "STRIPE", "webhookSecretEnc"));
@@ -443,19 +443,19 @@ class E8ContractIT extends AbstractIntegrationTest {
     }
 
     /**
-     * S12 §6 (E8-T01): `POST /checkout-sessions` keeps the E3-T03 signup checkout and publishes `bookingId` and
-     * `upfrontPaymentIds`; a request with either that passes every guard answers 501 until E8-T04, and writes nothing.
+     * S12 §6 (E8-T04): `POST /checkout-sessions` keeps the E3-T03 signup checkout and serves `bookingId` and
+     * `upfrontPaymentIds`; a request without payable rows is refused without writing an idempotency record.
      */
-    @Test void T_12_16_theCheckoutExtensionsAnswer501UntilE8T04() throws Exception {
+    @Test void T_12_16_theCheckoutExtensionsRejectPaidOrMissingRowsWithoutWrites() throws Exception {
         var before = database();
         for (String extension : List.of("\"bookingId\":\"e8-booking-a\"", "\"upfrontPaymentIds\":[\"e8-upfront-a\"]")) {
             for (String role : List.of("MEMBER", "ADMIN")) {
-                error(as(checkout("e8-member-a", extension), role), 501, "NOT_IMPLEMENTED");
+                error(as(checkout("e8-member-a", extension), role), 409, "INVALID_STATE");
             }
             error(checkout("e8-member-a", extension).header("Host", HOST), 401, "UNAUTHENTICATED");
-            error(checkout("e8-member-a", extension).header("Host", HOST).content(withToken("e8-member-a", extension, signupToken)), 501, "NOT_IMPLEMENTED");
+            error(checkout("e8-member-a", extension).header("Host", HOST).content(withToken("e8-member-a", extension, signupToken)), 409, "INVALID_STATE");
         }
-        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
+        var after = database();
         assertThat(after).isEqualTo(before);
     }
 
@@ -482,10 +482,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         error(as(checkout("e8-member-erased", "\"upfrontPaymentIds\":[\"e8-upfront-a\"]"), "ADMIN"), 409, "MEMBER_ERASED");
         error(checkout("e8-member-a", "\"bookingId\":\"e8-booking-a\"").header("Host", HOST).content(withToken("e8-member-a", "\"bookingId\":\"e8-booking-a\"", "not-a-capability")),
                 401, "UNAUTHENTICATED");
-        // An admin of the club reaches member B's own booking and payment: they are B's.
-        error(as(checkout("e8-member-b", "\"bookingId\":\"e8-booking-b\",\"upfrontPaymentIds\":[\"e8-upfront-b\"]"), "ADMIN"), 501, "NOT_IMPLEMENTED");
-        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
-        assertThat(after).as("no stub nor guard writes").isEqualTo(before);
+        assertThat(database()).as("guards write nothing, including idempotency records").isEqualTo(before);
+        mvc.perform(as(checkout("e8-member-b", "\"upfrontPaymentIds\":[\"e8-upfront-b\"]"), "ADMIN")).andExpect(status().isCreated());
     }
     private MockHttpServletRequestBuilder checkout(String memberId, String extension) {
         return post("/api/v1/checkout-sessions").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
@@ -536,10 +534,11 @@ class E8ContractIT extends AbstractIntegrationTest {
             assertThat(response.getStatus()).as(route.getKey() + " with another club's member").isEqualTo(404);
             response = mvc.perform(route.getValue().header("Host", HOST).with(erased)).andReturn().getResponse();
             assertThat(response.getStatus()).as(route.getKey() + " of an erased member").isEqualTo(writes.containsKey(route.getKey()) ? 409 : 501);
+            if (route.getKey().equals("POST /me/card-setup")) { continue; } // Success is proved separately; this assertion covers refused writes.
             response = mvc.perform(as(route.getValue(), "MEMBER")).andReturn().getResponse();
             assertThat(response.getStatus()).as(route.getKey() + " of the member").isEqualTo(501);
         }
-        var after = database(); after.remove("idempotency_records"); before.remove("idempotency_records");
+        var after = database();
         assertThat(after).isEqualTo(before);
     }
 

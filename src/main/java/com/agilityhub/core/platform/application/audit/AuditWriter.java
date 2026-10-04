@@ -30,7 +30,7 @@ public class AuditWriter {
      * has no changes and carries the batch in `details` (S14 §3).
      */
     static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED,
-            AuditAction.ANNOUNCEMENT_SENT);
+            AuditAction.ANNOUNCEMENT_SENT, AuditAction.CARD_CHARGES_STARTED, AuditAction.PAYMENT_REFUNDED, AuditAction.UPFRONT_PAYMENT_RECORDED);
 
     public void write(AuditCommand command) { write(command, (String) null); }
 

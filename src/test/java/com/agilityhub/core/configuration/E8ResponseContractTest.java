@@ -169,8 +169,8 @@ class E8ResponseContractTest {
         fields.put("InvoiceIssued", "invoiceId,memberId,period,total,paymentMethodType,kind"); fields.put("InvoiceCollecting", "invoiceId,provider,collectionId");
         fields.put("InvoicePaid", "invoiceId,provider,paidAt"); fields.put("InvoiceFailed", "invoiceId,provider,reason"); fields.put("InvoiceCancelled", "invoiceId,reason");
         fields.put("RemittanceSimulated", "simulationId,period,incidents,totals"); fields.put("RemittanceGenerated", "remittanceId,runId,invoiceIds,fileKey");
-        fields.put("RemittanceRolledBack", "remittanceId,runId,invoiceIds"); fields.put("UpfrontPaymentRecorded", "paymentId,memberId,concept,provider,bookingId");
-        fields.put("UpfrontPaymentSucceeded", "paymentId,concept,bookingId,packBalanceId,memberId"); fields.put("UpfrontPaymentFailed", "paymentId,bookingId,reason");
+        fields.put("RemittanceRolledBack", "remittanceId,runId,invoiceIds"); fields.put("UpfrontPaymentRecorded", "paymentId,memberId,concept,provider,amountPaid,bookingId");
+        fields.put("UpfrontPaymentSucceeded", "paymentId,concept,provider,amountPaid,bookingId,packBalanceId,memberId"); fields.put("UpfrontPaymentFailed", "paymentId,memberId,concept,provider,bookingId,reason");
         fields.put("PackOpened", "packBalanceId,memberId,dogId,expiresOn"); fields.put("PackConsumed", "packBalanceId,memberId,dogId,bookingId,remaining");
         fields.put("PackRefunded", "packBalanceId,memberId,dogId,bookingId,remaining"); fields.put("PackLowBalance", "packBalanceId,memberId,dogId,remaining");
         fields.put("PackExpiring", "packBalanceId,memberId,dogId,remaining,expiresOn"); fields.put("PackExpired", "packBalanceId,memberId,dogId,remaining,expiresOn");
@@ -221,6 +221,11 @@ class E8ResponseContractTest {
             if (main.isEmpty()) { continue; }
             mainRows++;
             String payload = main.get().split("\\|", -1)[2];
+            if (main.get().split("\\|", -1)[1].strip().equals("`" + entry.getKey() + "`")) {
+                String topLevel = payload.replaceAll("\\([^)]*\\)|\\{[^}]*}", "");
+                var declared = Arrays.stream(topLevel.split(",")).map(String::strip).map(field -> field.replaceAll("[?\\[\\]`]", "")).toList();
+                assertThat(declared).as(entry.getKey() + " catalog and payload in both directions").containsExactlyInAnyOrder(entry.getValue().split(","));
+            }
             for (String field : entry.getValue().split(",")) {
                 assertThat(payload).as(entry.getKey() + " main row lists " + field).containsPattern("(?<![A-Za-z])" + field + "(?![A-Za-z])");
             }

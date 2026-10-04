@@ -4,7 +4,7 @@
     {
       "code": "N-01",
       "title": "Sol·licitud rebuda",
-      "body": "Hem rebut la teva sol·licitud per a [[dogs]]. [[club_name]] la revisarà.{has_upfront, select, true { Import a pagar al club: [[upfront_total]]. [[payment_instructions]]} other {}}",
+      "body": "Hem rebut la teva sol·licitud per a [[dogs]]. [[club_name]] la revisarà.{has_upfront, select, true { Import a pagar al club: [[upfront_total]]. [[payment_instructions]] [[pay_link]]} other {}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -533,7 +533,7 @@
     {
       "code": "N-35",
       "title": "No s'ha pogut cobrar la targeta",
-      "body": "No hem pogut cobrar [[amount]]: [[reason]]. Revisa la targeta des de l'app.",
+      "body": "No hem pogut cobrar [[amount]]: [[reason]]. Revisa la targeta des de l'app: [[retry_link]]",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

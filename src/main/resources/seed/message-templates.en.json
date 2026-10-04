@@ -4,7 +4,7 @@
     {
       "code": "N-01",
       "title": "Signup received",
-      "body": "We have received your signup request for [[dogs]]. [[club_name]] will review it.{has_upfront, select, true { Amount to pay to the club: [[upfront_total]]. [[payment_instructions]]} other {}}",
+      "body": "We have received your signup request for [[dogs]]. [[club_name]] will review it.{has_upfront, select, true { Amount to pay to the club: [[upfront_total]]. [[payment_instructions]] [[pay_link]]} other {}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -533,7 +533,7 @@
     {
       "code": "N-35",
       "title": "Your card could not be charged",
-      "body": "We could not charge [[amount]]: [[reason]]. Check your card in the app.",
+      "body": "We could not charge [[amount]]: [[reason]]. Check your card in the app: [[retry_link]]",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

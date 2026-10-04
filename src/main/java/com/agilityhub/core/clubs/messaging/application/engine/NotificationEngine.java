@@ -157,8 +157,8 @@ public class NotificationEngine {
         return switch (spec.code()) {
             case "N-33" -> Boolean.TRUE.equals(config.get("messaging.notifyWeekOpening", Boolean.class));
             case "N-31" -> Boolean.TRUE.equals(config.get("messaging.notifyNewRingSetup", Boolean.class)) && "ACTIVE".equals(trigger.text("status"));
-            case "N-35" -> "STRIPE".equals(trigger.text("provider"));
-            case "N-30" -> !"STRIPE".equals(trigger.text("provider")) || !Boolean.TRUE.equals(config.get("billing.stripeReceiptEmail", Boolean.class));
+            case "N-35" -> trigger.type().equals("MemberCardInvalidated") || "STRIPE".equals(trigger.text("provider"));
+            case "N-30" -> trigger.type().equals("UpfrontPaymentSucceeded") || "STRIPE".equals(trigger.text("provider")) && !Boolean.TRUE.equals(config.get("billing.stripeReceiptEmail", Boolean.class));
             default -> true;
         };
     }

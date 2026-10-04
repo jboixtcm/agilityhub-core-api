@@ -192,7 +192,7 @@ public final class NotificationCatalog {
                 .modules(Module.ACTIVITIES).build());
         rows.add(code("N-33", OPERATIONAL, "WeekOpened").to(MEMBER, APP, PUSH).action(OPEN_BOOKING).vars("week_start").build());
         rows.add(code("N-34", OPERATIONAL, "SignupPendingAging").to(ADMINS, APP).action(OPEN_SIGNUP).vars("count", "oldest_days").build());
-        rows.add(code("N-35", PERSONAL, "InvoiceFailed").to(MEMBER, APP, EMAIL).action(OPEN_INVOICES).vars("amount", "reason", "retry_link")
+        rows.add(code("N-35", PERSONAL, "InvoiceFailed", "MemberCardInvalidated").to(MEMBER, APP, EMAIL).action(OPEN_INVOICES).vars("amount", "reason", "retry_link")
                 .modules(Module.BILLING).build());
         rows.add(code("N-36", CLUB_CHANGES, "BookingCreated", "BookingCancelled").to(MEMBER, APP, EMAIL, SMS).action(OPEN_BOOKING)
                 .vars("dog_name", "class_date", "class_time", "actor", "change").mandatory().build());

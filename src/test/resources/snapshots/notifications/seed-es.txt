@@ -2,9 +2,9 @@
 
 ## N-01 APPLICANT
 title: Solicitud recibida
-body: Hemos recibido tu solicitud para Duna (C), Rock (D). Club Agility Exemple la revisará. Importe a pagar al club: 45,00 €. Pagament en efectiu a la recepció del club
-email.text: Solicitud recibida⏎⏎Hemos recibido tu solicitud para Duna (C), Rock (D). Club Agility Exemple la revisará. Importe a pagar al club: 45,00 €. Pagament en efectiu a la recepció del club⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
-email.html.sha256: 40428053f2598976
+body: Hemos recibido tu solicitud para Duna (C), Rock (D). Club Agility Exemple la revisará. Importe a pagar al club: 45,00 €. Pagament en efectiu a la recepció del club https://app.example.test/pagament/exemple
+email.text: Solicitud recibida⏎⏎Hemos recibido tu solicitud para Duna (C), Rock (D). Club Agility Exemple la revisará. Importe a pagar al club: 45,00 €. Pagament en efectiu a la recepció del club https://app.example.test/pagament/exemple⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
+email.html.sha256: 426620ee86dbe962
 
 ## N-01 ADMINS
 title: Nueva solicitud de alta
@@ -234,9 +234,9 @@ body: Hay 3 solicitudes de alta pendientes; la más antigua lleva 5 días espera
 
 ## N-35 MEMBER
 title: No se ha podido cobrar la tarjeta
-body: No hemos podido cobrar 45,00 €: Documentació pendent. Revisa la tarjeta desde la app.
-email.text: No se ha podido cobrar la tarjeta⏎⏎No hemos podido cobrar 45,00 €: Documentació pendent. Revisa la tarjeta desde la app.⏎⏎Abre la app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
-email.html.sha256: aa630d5c2a79d067
+body: No hemos podido cobrar 45,00 €: Documentació pendent. Revisa la tarjeta desde la app: https://app.example.test/factures/exemple
+email.text: No se ha podido cobrar la tarjeta⏎⏎No hemos podido cobrar 45,00 €: Documentació pendent. Revisa la tarjeta desde la app: https://app.example.test/factures/exemple⏎⏎Abre la app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Responde a este correo para contactar con el club.
+email.html.sha256: bebdf030f45947fb
 
 ## N-36 MEMBER
 title: Reserva gestionada por el club

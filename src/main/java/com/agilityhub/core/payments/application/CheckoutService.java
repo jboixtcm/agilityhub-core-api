@@ -25,6 +25,11 @@ public class CheckoutService {
     private final ClubConfigService configs;private final SignupCheckoutRepository sessions;private final ObjectProvider<PaymentProvider> gateways;
     private final IdentityTransactions transactions;private final Clock clock;private final com.agilityhub.core.shared.application.IcuMessageSource messages;
     private final TransactionTemplate outside;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<PaymentRefunds> refunds;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BillingCensusAccess billingCensus;
+    @org.springframework.beans.factory.annotation.Autowired private UpfrontPaymentRepository upfront;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BookingOwnerAccess bookings;
+
     public CheckoutService(SignupPaymentAccess members,UpfrontPayments payments,CensusClubSettings clubs,ClubConfigService configs,
             SignupCheckoutRepository sessions,ObjectProvider<PaymentProvider> gateways,IdentityTransactions transactions,Clock clock,com.agilityhub.core.shared.application.IcuMessageSource messages,
             PlatformTransactionManager manager) {
@@ -196,7 +201,7 @@ public class CheckoutService {
             @Override public void afterCommit() { outside.executeWithoutResult(status -> action.run()); }
         });
     }
-    private void redirect(String value) {
+    public void redirect(String value) {
         try {
             var uri=URI.create(value);
             if(!"https".equals(uri.getScheme())||!clubs.appHost().equalsIgnoreCase(uri.getHost())||uri.getPort()!=-1||uri.getUserInfo()!=null) throw new IllegalArgumentException();
@@ -210,6 +215,7 @@ public class CheckoutService {
     public BookingCheckout prepareBooking(String memberId,String bookingId,UpfrontPayments.Charge charge,Instant expiresAt) {
         String paymentId=payments.createForBooking(memberId,charge,bookingId),id=UUID.randomUUID().toString();
         sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING","payment",List.of(paymentId),expiresAt,bookingId));
+        sessions.chargeAmount(id, charge.amount().amountMinor());
         payments.pending(memberId,List.of(paymentId),id);
         return new BookingCheckout(id,paymentId);
     }
@@ -234,6 +240,51 @@ public class CheckoutService {
             return null;
         });
     }
+    public void completeWebhook(String sessionId, String intent, com.agilityhub.core.shared.application.BillingCensusAccess.Card card, Instant at, long amount) {
+        var session = sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        if (session.status().equals("COMPLETE")) { return; }
+        members.lock();
+        for (String paymentId : session.upfrontPaymentIds()) {
+            var row = upfront.findById(paymentId).orElseThrow();
+            upfront.captured(paymentId, row.amountDue().minus(row.amountPaid()));
+        }
+        long captured = sessions.chargeAmount(sessionId).orElseGet(() -> session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow())
+                .mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum());
+        if (!"setup".equals(session.mode()) && (amount != captured || intent == null)) { throw new ApiException(ErrorCode.INVALID_STATE); }
+        if (session.bookingId() == null && (session.status().equals("EXPIRED") || !session.expiresAt().isAfter(at))) {
+            var rows = session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow()).toList();
+            long due = rows.stream().mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum();
+            if (!rows.isEmpty() && rows.stream().allMatch(p -> Set.of("DUE", "PARTIAL", "CHECKOUT_PENDING").contains(p.status())) && due == amount) {
+                payments.pending(session.memberId(), session.upfrontPaymentIds(), sessionId);
+                sessions.reopenForSettlement(sessionId);
+                payments.checkout(session.memberId(), sessionId, true, at);
+                members.card(session.memberId(), cardMap(card));
+                sessions.finish(sessionId, "COMPLETE", intent);
+                return;
+            }
+        }
+        if (session.bookingId() != null && bookings.cancelled(session.bookingId())) {
+            if (session.status().equals("PENDING")) { late(session, intent, "the booking was cancelled"); }
+            else { lateCompletion(session, intent, "the booking was cancelled"); }
+            return;
+        }
+        completed(session, intent, cardMap(card), at);
+    }
+    private Map<String, Object> cardMap(com.agilityhub.core.shared.application.BillingCensusAccess.Card card) {
+        var cardMap = new LinkedHashMap<String, Object>();
+        if (card != null) {
+            cardMap.put("stripeCustomerId", card.customerId()); cardMap.put("stripePaymentMethodId", card.paymentMethodId());
+            cardMap.put("last4", card.last4()); cardMap.put("brand", card.brand()); cardMap.put("invalid", false);
+        }
+        return cardMap;
+    }
+    public boolean completeSetup(SignupCheckoutSession session, com.agilityhub.core.shared.application.BillingCensusAccess.Card card, Instant at) {
+        if (!"PENDING".equals(session.status()) || !session.expiresAt().isAfter(at)) { return false; }
+        members.lock();
+        if (sessions.standaloneCardSetup(session.id())) { billingCensus.saveCard(session.memberId(), card); }
+        else { members.card(session.memberId(), cardMap(card)); }
+        return sessions.finish(session.id(), "COMPLETE", null);
+    }
     private void completed(SignupCheckoutSession session,String providerPaymentId,Map<String,Object> card,Instant paidAt) {
         String id=session.id();
         // E34: P7, P5's step h, a failed provider call, a rejection or a write that needed its rows past `expiresAt` (E79) expired the
@@ -256,6 +307,7 @@ public class CheckoutService {
         }
         if(!sessions.finish(id,"COMPLETE",providerPaymentId)) return;
         payments.checkout(session.memberId(),id,true,paidAt);
+        for (String payment : session.upfrontPaymentIds()) { upfront.stripe(payment, providerPaymentId, null); }
         if(session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method
     }
     /**
@@ -288,6 +340,10 @@ public class CheckoutService {
         lateCompletion(session,providerPaymentId,cause);
     }
     private void lateCompletion(SignupCheckoutSession session,String providerPaymentId,String cause) {
+        var rows = session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow()).toList();
+        String currency = configs.get(session.clubId()).club().currency();
+        long amount = sessions.chargeAmount(session.id()).orElseGet(() -> rows.stream().mapToLong(p -> p.amountDue().amountMinor()).sum());
+        refunds.getObject().late(session.id(), providerPaymentId, new Money(amount, currency));
         if(sessions.markLateCompletion(session.id(),providerPaymentId,clock.instant())) {
             LOG.warn("Late provider completion to refund: {} checkoutSessionId={} bookingId={} providerPaymentId={} clubId={}",
                     cause,session.id(),session.bookingId(),providerPaymentId,session.clubId());

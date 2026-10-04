@@ -17,11 +17,11 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * that club's webhook secret authenticates the call (security scheme `stripeSignature`). E8-T01 round 2: the body is
  * authenticated before anything else ({@link StripeWebhookSignatures}: an unknown club, a club without a secret, a missing,
  * wrong or stale signature or a tampered body → `401 WEBHOOK_SIGNATURE_INVALID` + a `SecurityEvent`); then the club needs
- * `BILLING` (404 MODULE_DISABLED) and an enabled `STRIPE` provider (404); then 501 NOT_IMPLEMENTED until E8-T04 stores the
- * `StripeEvent` once per `eventId` and processes it.
+ * `BILLING` (404 MODULE_DISABLED) and an enabled `STRIPE` provider (404). The event is durably stored before transactional processing.
  */
 @RestController
 public class StripeWebhookController {
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.StripeWebhooks webhooks;
     private final BillingContractAccess access;
     private final StripeWebhookSignatures signatures;
     public StripeWebhookController(BillingContractAccess access, StripeWebhookSignatures signatures) { this.access = access; this.signatures = signatures; }
@@ -36,7 +36,7 @@ public class StripeWebhookController {
             + "MODULE_DISABLED, without an enabled STRIPE provider → 404. The event is stored once per eventId (a second delivery → 200 with no "
             + "effect) and processed in a transaction by type (checkout.session.completed/expired, payment_intent.succeeded/payment_failed, "
             + "charge.refunded, setup_intent.succeeded, payment_method.detached, customer.deleted); an out-of-order event is IGNORED. 2xx as soon "
-            + "as the event is stored. Contract only; returns 501 NOT_IMPLEMENTED after the signature and the club guards (E8-T01).",
+            + "as the event is stored. Durable receipt, transactional processing and internal recovery (E8-T04).",
             responses = @ApiResponse(responseCode = "200", description = "Stored (processed, ignored or deferred)", content = @Content))
     public void receiveStripeEvent(@PathVariable String clubId,
             @RequestHeader(value = "Stripe-Signature", required = false) @Schema(description = "t=…,v1=… (Stripe's HMAC-SHA256 of the raw body)") String signature,
@@ -44,6 +44,6 @@ public class StripeWebhookController {
                     schema = @Schema(implementation = BillingRequests.StripeWebhookEvent.class))) @RequestBody byte[] body) {
         signatures.authenticate(clubId, signature, body);
         access.stripeClub(clubId);
-        throw new UnsupportedOperationException();
+        webhooks.receive(clubId, body);
     }
 }

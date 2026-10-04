@@ -1,0 +1,248 @@
+22:31:48.737 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CardPaymentsIT]: CardPaymentsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:31:48.974 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CardPaymentsIT
+22:31:49.127 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:31:49.129 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:31:49.136 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+22:31:49.398 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:31:49.659 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:31:49.660 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:31:49.676 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:31:50.009 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+22:32:20.038 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.12.0, configFile: /Users/jordib/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Timed out waiting for Process[pid=62163, exitValue="not exited"] to finish, timeout: 30 seconds, executed command [docker-credential-desktop, get]
+22:32:20.160 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: dba17a06...[truncated]
+22:32:20.395 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT30.386393S
+22:32:20.403 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:32:20.403 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:32:20.404 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:32:20.404 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:32:20.462 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: cea2ec55...[truncated]
+22:32:21.067 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.663187S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-04T22:32:22.243+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Starting CardPaymentsIT using Java [redacted] with PID 62162 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-04T22:32:22.246+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-04T22:32:24.270+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-04T22:32:24.356+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 78 ms. Found 0 MongoDB repository interfaces.
+2026-10-04T22:32:25.169+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5775a262], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@379a9dab, com.mongodb.Jep395RecordCodecProvider@35c395cc, com.mongodb.KotlinCodecProvider@553fe912]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58337], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2fa33765], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-04T22:32:25.181+02:00 INFO  [cluster-ClusterId{value='6ac2b7d9467ae45b222fc197', description='null'}-localhost:58337] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58337, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=18664500, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cea2ec55b1d1:27017, hosts=[cea2ec55b1d1:27017], passives=[], arbiters=[], primary='cea2ec55b1d1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac2b7d40c851d42a8972a6f, counter=6}, lastWriteDate=Sun Oct 04 22:32:21 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-04T22:32:30.580+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-04T22:32:30.580+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-04T22:32:30.581+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-04T22:32:30.642+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Started CardPaymentsIT in 8.748 seconds (process running for 42.836)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/agilityhub-e8-t04-m2/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-04T22:32:34.087+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=f32704dd-0975-432c-99f6-baa6e4c3212c clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=booking-late providerPaymentId=pi_booking clubId=bill-a
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 48.69 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CardPaymentsIT
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum -- Time elapsed: 2.022 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting all elements of:
+  [{"_class"="com.agilityhub.core.clubs.messaging.persistence.Notification", "_id"="b259fdd0-90b7-4920-9acf-f170f6a93458", "action"={"params"={}, "type"="OPEN_INVOICES"}, "audience"="MEMBER", "body"="No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app.", "category"="PERSONAL", "clubId"="bill-a", "code"="N-35", "color"="NEUTRAL", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "dedupKey"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0:N-35:MEMBER:bill-account-card-member", "deliveries"=[{"attempts"=0, "channel"="APP", "deliveredAt"=2026-08-25T10:00:00.000 (java.util.Date), "status"="DELIVERED", "target"="bill-account-card-member"},
+    {"attempts"=0, "channel"="EMAIL", "status"="SKIPPED_NO_CONTACT"}], "eventId"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0", "eventType"="InvoiceFailed", "icon"="bell", "locale"="ca", "recipient"={"accountId"="bill-account-card-member", "displayName"="Card Example", "memberId"="card-member"}, "subject"={"memberId"="card-member"}, "templateId"="6ac2b7e0467ae45b222fc199", "templateVersion"=0L, "title"="No s'ha pogut cobrar la targeta", "variables"={"amount"="60,00 €", "audience"="MEMBER", "club_name"="Club Agility Facturació", "entityId"="1ed54eeb-f3da-4603-bfb5-44f3e912ecf1", "gender"="other", "member_first_name"="Card", "member_last_names"="Example", "member_name"="Card Example", "reason"="card_declined"}}]
+to satisfy given requirements, but these elements did not:
+
+{"_class"="com.agilityhub.core.clubs.messaging.persistence.Notification", "_id"="b259fdd0-90b7-4920-9acf-f170f6a93458", "action"={"params"={}, "type"="OPEN_INVOICES"}, "audience"="MEMBER", "body"="No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app.", "category"="PERSONAL", "clubId"="bill-a", "code"="N-35", "color"="NEUTRAL", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "dedupKey"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0:N-35:MEMBER:bill-account-card-member", "deliveries"=[{"attempts"=0, "channel"="APP", "deliveredAt"=2026-08-25T10:00:00.000 (java.util.Date), "status"="DELIVERED", "target"="bill-account-card-member"},
+    {"attempts"=0, "channel"="EMAIL", "status"="SKIPPED_NO_CONTACT"}], "eventId"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0", "eventType"="InvoiceFailed", "icon"="bell", "locale"="ca", "recipient"={"accountId"="bill-account-card-member", "displayName"="Card Example", "memberId"="card-member"}, "subject"={"memberId"="card-member"}, "templateId"="6ac2b7e0467ae45b222fc199", "templateVersion"=0L, "title"="No s'ha pogut cobrar la targeta", "variables"={"amount"="60,00 €", "audience"="MEMBER", "club_name"="Club Agility Facturació", "entityId"="1ed54eeb-f3da-4603-bfb5-44f3e912ecf1", "gender"="other", "member_first_name"="Card", "member_last_names"="Example", "member_name"="Card Example", "reason"="card_declined"}}
+error: java.lang.AssertionError: 
+Expecting actual:
+  "No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app."
+to contain:
+  "/me/card-setup" 
+	at com.agilityhub.core.payments.api.CardPaymentsIT.lambda$T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum$1(CardPaymentsIT.java:86)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum(CardPaymentsIT.java:86)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum(CardPaymentsIT.java:86)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-04T22:32:37.338+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.PaymentCurlIT]: PaymentCurlIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-04T22:32:37.340+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.PaymentCurlIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-04T22:32:37.375+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : Starting PaymentCurlIT using Java [redacted] with PID 62162 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-04T22:32:37.376+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-04T22:32:38.224+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-04T22:32:38.267+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 41 ms. Found 0 MongoDB repository interfaces.
+2026-10-04T22:32:38.442+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-04T22:32:38.455+02:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-04T22:32:38.455+02:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-04T22:32:38.507+02:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-04T22:32:38.507+02:00 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1131 ms
+2026-10-04T22:32:38.537+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1777ca63], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@379a9dab, com.mongodb.Jep395RecordCodecProvider@35c395cc, com.mongodb.KotlinCodecProvider@553fe912]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58337], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@696f960], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-04T22:32:38.538+02:00 INFO  [cluster-ClusterId{value='6ac2b7e6467ae45b222fc19b', description='null'}-localhost:58337] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58337, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1516000, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cea2ec55b1d1:27017, hosts=[cea2ec55b1d1:27017], passives=[], arbiters=[], primary='cea2ec55b1d1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac2b7d40c851d42a8972a6f, counter=6}, lastWriteDate=Sun Oct 04 22:32:37 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-04T22:32:38.880+02:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-04T22:32:39.901+02:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-04T22:32:39.901+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-04T22:32:39.901+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-04T22:32:40.012+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 58385 (http) with context path '/'
+2026-10-04T22:32:40.067+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-04T22:32:40.067+02:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-04T22:32:40.068+02:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-04T22:32:40.083+02:00 INFO  [main] o.a.c.c.C.[Tomcat-1].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-04T22:32:40.083+02:00 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 68 ms
+2026-10-04T22:32:40.092+02:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-04T22:32:40.121+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 58387 (http) with context path '/'
+2026-10-04T22:32:40.142+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : Started PaymentCurlIT in 2.799 seconds (process running for 52.336)
+2026-10-04T22:32:40.609+02:00 INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-04T22:32:40.610+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-04T22:32:40.611+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+curl -X POST /api/v1/billing/runs/[id truncated]/card-charges -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/retry -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/refund -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+FakePaymentProvider operation=charge idempotencyKey=15e0f4d8...[truncated]
+FakePaymentProvider operation=charge idempotencyKey=15e0f4d8...[truncated]:2
+FakePaymentProvider operation=refund idempotencyKey=invoice-...[truncated]
+StripeEvent eventId=evt_curl_failed type=payment_intent.payment_failed outcome=PROCESSED
+StripeEvent eventId=evt_curl_paid type=payment_intent.succeeded outcome=PROCESSED
+StripeEvent eventId=evt_curl_late_failure type=payment_intent.payment_failed outcome=IGNORED
+StripeEvent eventId=evt_curl_refunded type=charge.refunded outcome=PROCESSED
+PASS curl sequence: charge -> failed webhook -> invoice FAILED -> retry -> success/duplicate/late failure -> refund -> invoice PAID, refundedTotal=6000 EUR
+2026-10-04T22:32:41.075+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupGateFixesIT]: SignupGateFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-04T22:32:41.134+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-04T22:32:41.150+02:00 INFO  [main] c.a.c.clubs.census.api.SignupGateFixesIT traceId= clubId= accountId= : Starting SignupGateFixesIT using Java [redacted] with PID 62162 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-04T22:32:41.150+02:00 INFO  [main] c.a.c.clubs.census.api.SignupGateFixesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-04T22:32:41.584+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-04T22:32:41.624+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 38 ms. Found 0 MongoDB repository interfaces.
+2026-10-04T22:32:41.704+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@ef48fec], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@379a9dab, com.mongodb.Jep395RecordCodecProvider@35c395cc, com.mongodb.KotlinCodecProvider@553fe912]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58337], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3994c313], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-04T22:32:41.706+02:00 INFO  [cluster-ClusterId{value='6ac2b7e9467ae45b222fc19c', description='null'}-localhost:58337] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58337, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1562750, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cea2ec55b1d1:27017, hosts=[cea2ec55b1d1:27017], passives=[], arbiters=[], primary='cea2ec55b1d1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac2b7d40c851d42a8972a6f, counter=6}, lastWriteDate=Sun Oct 04 22:32:41 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-04T22:32:42.755+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-04T22:32:42.755+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-04T22:32:42.756+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-04T22:32:42.788+02:00 INFO  [main] c.a.c.clubs.census.api.SignupGateFixesIT traceId= clubId= accountId= : Started SignupGateFixesIT in 1.652 seconds (process running for 54.982)
+[ERROR] Tests run: 24, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.89 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupGateFixesIT.T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw -- Time elapsed: 0.154 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[N-01 offers the signup payment retry action] 
+Expecting value to be true but was false
+	at com.agilityhub.core.clubs.census.api.SignupGateFixesIT.T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw(SignupGateFixesIT.java:561)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-04T22:32:51.971+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT]: NotificationEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-04T22:32:52.011+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-04T22:32:52.023+02:00 INFO  [main] c.a.c.c.m.a.engine.NotificationEngineIT traceId= clubId= accountId= : Starting NotificationEngineIT using Java [redacted] with PID 62162 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-04T22:32:52.023+02:00 INFO  [main] c.a.c.c.m.a.engine.NotificationEngineIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-04T22:32:52.326+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-04T22:32:52.360+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 33 ms. Found 0 MongoDB repository interfaces.
+2026-10-04T22:32:52.418+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@33c03b73], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@379a9dab, com.mongodb.Jep395RecordCodecProvider@35c395cc, com.mongodb.KotlinCodecProvider@553fe912]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58337], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5841a417], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-04T22:32:52.420+02:00 INFO  [cluster-ClusterId{value='6ac2b7f4467ae45b222fc338', description='null'}-localhost:58337] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58337, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1103875, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cea2ec55b1d1:27017, hosts=[cea2ec55b1d1:27017], passives=[], arbiters=[], primary='cea2ec55b1d1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac2b7d40c851d42a8972a6f, counter=6}, lastWriteDate=Sun Oct 04 22:32:51 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-04T22:32:53.315+02:00 INFO  [main] c.a.c.c.m.a.engine.NotificationEngineIT traceId= clubId= accountId= : Started NotificationEngineIT in 1.3 seconds (process running for 65.508)
+2026-10-04T22:32:53.335+02:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 1 dogs
+T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2): attempts run again after a conflict 101, where the engine met them {NotificationEngine.store → NotificationRepository.insertAll=101}, deliveries whose attempts ran out 0, redelivered 0
+E5-T07 outbox backlog discarded before NotificationEngineIT: 300 PENDING records (more than one dispatch() batch)
+E7-T03 R2 one variable list N-09: [dog_name, level_name, dog_name_article, club_name] → Values: dog_name=Lluna | level_name=C | dog_name_article=Lluna | club_name=Club Agility Exemple.
+E7-T03 R2 one variable list N-02: [member_first_name, gender, club_name] → Values: member_first_name=Anna | gender=female | club_name=Club Agility Exemple.
+2026-10-04T22:32:54.881+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for invoice_number
+2026-10-04T22:32:54.881+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for member_name
+2026-10-04T22:32:54.881+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for amount
+2026-10-04T22:32:54.881+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for reason
+2026-10-04T22:32:54.882+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for invoice_number
+2026-10-04T22:32:54.882+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for member_name
+2026-10-04T22:32:54.882+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for amount
+2026-10-04T22:32:54.882+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for reason
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for invoice_number
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for member_name
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for amount
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for reason
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for invoice_number
+2026-10-04T22:32:54.908+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for member_name
+2026-10-04T22:32:54.909+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for amount
+2026-10-04T22:32:54.909+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-10 has no value for reason
+2026-10-04T22:32:55.004+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-32b has no value for state
+2026-10-04T22:32:55.004+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-32b has no value for state
+2026-10-04T22:32:55.355+02:00 WARN  [main] c.a.c.c.m.a.engine.NotificationEngine traceId= clubId= accountId= : Inline notification dispatch failed; the poll retries it error=IllegalStateException
+2026-10-04T22:32:55.554+02:00 WARN  [main] c.a.c.c.m.a.engine.NotificationEngine traceId= clubId= accountId= : Announcement batch without its frozen template; nothing sent batchId=e7t04-batch-old templateId=6ac2b7f7467ae45b222fc412
+2026-10-04T22:32:55.886+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-37 has no value for change
+2026-10-04T22:32:55.886+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-37 has no value for change
+2026-10-04T22:32:55.904+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-37 has no value for change
+2026-10-04T22:32:55.904+02:00 WARN  [main] c.a.c.c.m.a.engine.TemplateRenderer traceId= clubId= accountId= : Notification template of N-37 has no value for change
+[ERROR] Failures: 
+[ERROR]   SignupGateFixesIT.T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw:561 [N-01 offers the signup payment retry action] 
+Expecting value to be true but was false
+[ERROR]   CardPaymentsIT.T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum:86 
+Expecting all elements of:
+  [{"_class"="com.agilityhub.core.clubs.messaging.persistence.Notification", "_id"="b259fdd0-90b7-4920-9acf-f170f6a93458", "action"={"params"={}, "type"="OPEN_INVOICES"}, "audience"="MEMBER", "body"="No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app.", "category"="PERSONAL", "clubId"="bill-a", "code"="N-35", "color"="NEUTRAL", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "dedupKey"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0:N-35:MEMBER:bill-account-card-member", "deliveries"=[{"attempts"=0, "channel"="APP", "deliveredAt"=2026-08-25T10:00:00.000 (java.util.Date), "status"="DELIVERED", "target"="bill-account-card-member"},
+    {"attempts"=0, "channel"="EMAIL", "status"="SKIPPED_NO_CONTACT"}], "eventId"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0", "eventType"="InvoiceFailed", "icon"="bell", "locale"="ca", "recipient"={"accountId"="bill-account-card-member", "displayName"="Card Example", "memberId"="card-member"}, "subject"={"memberId"="card-member"}, "templateId"="6ac2b7e0467ae45b222fc199", "templateVersion"=0L, "title"="No s'ha pogut cobrar la targeta", "variables"={"amount"="60,00 €", "audience"="MEMBER", "club_name"="Club Agility Facturació", "entityId"="1ed54eeb-f3da-4603-bfb5-44f3e912ecf1", "gender"="other", "member_first_name"="Card", "member_last_names"="Example", "member_name"="Card Example", "reason"="card_declined"}}]
+to satisfy given requirements, but these elements did not:
+
+{"_class"="com.agilityhub.core.clubs.messaging.persistence.Notification", "_id"="b259fdd0-90b7-4920-9acf-f170f6a93458", "action"={"params"={}, "type"="OPEN_INVOICES"}, "audience"="MEMBER", "body"="No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app.", "category"="PERSONAL", "clubId"="bill-a", "code"="N-35", "color"="NEUTRAL", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "dedupKey"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0:N-35:MEMBER:bill-account-card-member", "deliveries"=[{"attempts"=0, "channel"="APP", "deliveredAt"=2026-08-25T10:00:00.000 (java.util.Date), "status"="DELIVERED", "target"="bill-account-card-member"},
+    {"attempts"=0, "channel"="EMAIL", "status"="SKIPPED_NO_CONTACT"}], "eventId"="adc03723-ffd8-4cb5-92e4-e5d96aa4f0d0", "eventType"="InvoiceFailed", "icon"="bell", "locale"="ca", "recipient"={"accountId"="bill-account-card-member", "displayName"="Card Example", "memberId"="card-member"}, "subject"={"memberId"="card-member"}, "templateId"="6ac2b7e0467ae45b222fc199", "templateVersion"=0L, "title"="No s'ha pogut cobrar la targeta", "variables"={"amount"="60,00 €", "audience"="MEMBER", "club_name"="Club Agility Facturació", "entityId"="1ed54eeb-f3da-4603-bfb5-44f3e912ecf1", "gender"="other", "member_first_name"="Card", "member_last_names"="Example", "member_name"="Card Example", "reason"="card_declined"}}
+error: java.lang.AssertionError: 
+Expecting actual:
+  "No hem pogut cobrar 60,00 €: card_declined. Revisa la targeta des de l'app."
+to contain:
+  "/me/card-setup" 
+	at com.agilityhub.core.payments.api.CardPaymentsIT.lambda$T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum$1(CardPaymentsIT.java:86)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum(CardPaymentsIT.java:86)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR] Tests run: 52, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

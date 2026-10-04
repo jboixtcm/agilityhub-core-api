@@ -67,7 +67,7 @@ public class StripeWebhookSignatures {
     }
 
     /** Stripe's scheme: one `t`, at least one `v1` equal to HMAC-SHA256(secret, "{t}.{body}") in hex, `t` within the tolerance. */
-    static boolean valid(String header, byte[] body, String secret, Instant now) {
+    public static boolean valid(String header, byte[] body, String secret, Instant now) {
         if (header == null) { return false; }
         Long timestamp = null;
         List<byte[]> signatures = new ArrayList<>();

@@ -24,6 +24,7 @@ public final class PendingSignupBuilder {
     }
     private static List<SignupWarning> warnings(PendingSource source, boolean family) {
         var warnings = new ArrayList<SignupWarning>();
+        if ("CARD".equals(source.paymentMethodType()) && source.cardInvalid()) { warnings.add(SignupWarning.CARD_INVALID); }
         if (!source.imageConsent()) { warnings.add(SignupWarning.NO_IMAGE_CONSENT); }
         if ("SEPA_DD".equals(source.paymentMethodType()) && !source.accountProvided()) { warnings.add(SignupWarning.ACCOUNT_NOT_PROVIDED); }
         if (source.documentPending()) { warnings.add(SignupWarning.DOCUMENT_PENDING); }

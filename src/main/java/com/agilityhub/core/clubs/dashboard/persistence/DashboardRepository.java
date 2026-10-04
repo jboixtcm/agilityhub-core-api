@@ -79,7 +79,7 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
                         .append("in", condition(expr("$ne", fallback("$$latest", null), null), fallback("$$latest.granted", false), "$imageConsent"))), "$imageConsent"))));
         stages.add(new Document("$project", new Document("firstName", 1).append("lastName1", 1).append("status", 1)
                 .append("pendingDogs.name", 1).append("pendingDogs.breed", 1).append("requestedPlan.name", 1)
-                .append("paymentMethodType", "$paymentMethod.type").append("imageConsent", 1)
+                .append("cardInvalid", fallback("$paymentMethod.card.invalid", false)).append("paymentMethodType", "$paymentMethod.type").append("imageConsent", 1)
                 // R-04-18 (E3-T10): a migrated SEPA member has only `ibanLast4` (the IBAN is encrypted): the account is provided.
                 .append("accountProvided", expr("$or", expr("$ne", fallback("$paymentMethod.iban", ""), ""), expr("$ne", fallback("$paymentMethod.ibanLast4", ""), "")))
                 .append("documentPending", expr("$gt", expr("$size", "$pendingDocuments"), 0))
@@ -95,7 +95,7 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
             return new PendingSource(row.getString("_id"), row.getString("firstName"), row.getString("lastName1"), add, dogs,
                     plan.isEmpty() ? null : label(plan.getFirst().get("name")), row.getString("paymentMethodType"), row.getDate("submittedAt").toInstant(),
                     flag(row, "imageConsent"), flag(row, "accountProvided"), flag(row, "documentPending"), flag(row, "familyPending"),
-                    flag(row, "upfrontUnpaid"), flag(row, "readmission"));
+                    flag(row, "upfrontUnpaid"), flag(row, "readmission"), flag(row, "cardInvalid"));
         }).toList();
     }
     public List<LevelSource> levels() {

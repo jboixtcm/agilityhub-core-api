@@ -25,8 +25,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * S12 §6 invoices of D6 and D10 (R-12-10, R-12-16…20), ADMIN only, module `BILLING`. An issued invoice is immutable: there is
  * no PATCH (`405 METHOD_NOT_ALLOWED`, T-12-12), only the state actions below, each with the invoice's `version` where §6 takes
  * one, each its own transaction keyed by its `Idempotency-Key` (a repeat answers the stored response). E8-T02 serves the list,
- * the detail, the manual invoices, payments, failures, cancellations and the receipt PDF; retry and refund answer 501 until
- * E8-T04.
+ * the detail, the manual invoices, payments, failures, cancellations and the receipt PDF; E8-T04 serves retries and refunds.
  */
 @RestController
 @RequiresModule(Module.BILLING)
@@ -35,6 +34,8 @@ public class InvoicesController {
     static final String ROLES = BillingController.ROLES;
     static final String STUB = BillingController.STUB;
     static final String SERVED = BillingController.SERVED;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.CardPayments cards;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentRefunds refunds;
     private final BillingContractAccess access; private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final com.agilityhub.core.payments.application.InvoiceActions actions; private final com.agilityhub.core.payments.application.BillingTransactions transactions;
     private final com.agilityhub.core.payments.application.ReceiptPdf receipts; private final com.agilityhub.core.platform.application.ClubConfigService configs;
@@ -137,29 +138,33 @@ public class InvoicesController {
 
     @PostMapping("/api/v1/invoices/{id}/retry")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, STALE_VERSION, MAX_ATTEMPTS, IDEMPOTENCY_KEY_REUSED, NO_PAYMENT_METHOD})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, STALE_VERSION, MAX_ATTEMPTS, IDEMPOTENCY_KEY_REUSED, NO_PAYMENT_METHOD, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "retryInvoice", description = ROLES + "R-12-18: a FAILED invoice charged again to the member's card (attempt + 1, "
             + "idempotencyKey invoiceId:attempt) → COLLECTING; the result arrives by webhook. More than billing.stripeMaxAttempts → 409 MAX_ATTEMPTS "
-            + "{attempts, max}; no valid card → 422 NO_PAYMENT_METHOD; another state → 409 INVALID_STATE." + STUB,
+            + "{attempts, max}; no valid card → 422 NO_PAYMENT_METHOD; another state → 409 INVALID_STATE." + SERVED,
             responses = @ApiResponse(responseCode = "202", description = "Invoice", useReturnTypeSchema = true))
     public Invoice retryInvoice(@PathVariable String id, @Valid @RequestBody InvoiceRetryRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.invoice(id);
-        throw new UnsupportedOperationException();
+        String operation = cards.retry(id, request.version());
+        cards.execute(operation);
+        return keyed(202, () -> actions.detail(id));
     }
 
     @PostMapping("/api/v1/invoices/{id}/refund")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, REFUND_EXCEEDS_PAID, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, REFUND_EXCEEDS_PAID, CURRENCY_MISMATCH, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "refundInvoice", description = ROLES + "R-12-20: a refund of a SUCCEEDED Stripe collection (amount absent = what is left); "
             + "charge.refunded (webhook) adds it to the collection's refunds and to refundedTotal; PAYMENT_REFUNDED audit. A SEPA or manual "
             + "invoice has no automatic refund (an adjustment invoice instead, T-12-17) → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 "
-            + "INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID (rule 0, S12 §6 writes 409)." + STUB,
+            + "INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID (rule 0, S12 §6 writes 409)." + SERVED,
             responses = @ApiResponse(responseCode = "202", description = "RefundAccepted", useReturnTypeSchema = true))
     public RefundAccepted refundInvoice(@PathVariable String id, @Valid @RequestBody RefundRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.invoice(id);
-        throw new UnsupportedOperationException();
+        var result = refunds.invoice(id, request.amount(), request.reason(), "invoice-refund:" + id + ":" + idempotencyKey);
+        refunds.execute(result.id());
+        return transactions.keyed(202, () -> new RefundAccepted(result.id(), result.amount(), null), this::json);
     }
 
     @PostMapping("/api/v1/invoices/{id}/cancellation")

@@ -35,6 +35,8 @@ public class MyBillingController {
     static final String ROLES = "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. ";
     static final String STUB = BillingController.STUB;
     static final String SERVED = " Tenant comes from the JWT; another member's or another club's invoice → 404.";
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentCheckouts checkouts;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final BillingContractAccess access; private final com.agilityhub.core.payments.application.BillingQueries queries;
     private final com.agilityhub.core.payments.application.ReceiptPdf receipts; private final com.agilityhub.core.platform.application.ClubConfigService configs;
     public MyBillingController(BillingContractAccess access, com.agilityhub.core.payments.application.BillingQueries queries,
@@ -87,15 +89,19 @@ public class MyBillingController {
     @PostMapping("/api/v1/me/card-setup")
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "myCardSetup", description = ROLES + "R-12-22 [Actualitza la targeta] (N-35's retry_link): a Stripe Checkout session in "
             + "mode=setup for the caller; setup_intent.succeeded saves the new card (CARD.invalid = false) and sends N-38. STRIPE not enabled → 422 "
-            + "PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host." + STUB,
+            + "PAYMENT_PROVIDER_NOT_ENABLED. successUrl/cancelUrl on the club's app host." + BillingController.SERVED,
             responses = @ApiResponse(responseCode = "201", description = "CardSetupLink", useReturnTypeSchema = true))
     public CardSetupLink myCardSetup(@Valid @RequestBody CardSetupRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         // E8-T01 round 2: the caller's own member of the club first (a token without one → 404; erased → 409), then the stub.
         access.mutableMember(access.me());
-        throw new UnsupportedOperationException();
+        var result = checkouts.create(access.me(), null, java.util.List.of(), true, request.successUrl(), request.cancelUrl(), created -> {
+            try { return mapper.writeValueAsBytes(new CardSetupLink(created.checkoutUrl())); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+        return new CardSetupLink(result.checkoutUrl());
     }
 
     @GetMapping("/api/v1/me/pack-balances")

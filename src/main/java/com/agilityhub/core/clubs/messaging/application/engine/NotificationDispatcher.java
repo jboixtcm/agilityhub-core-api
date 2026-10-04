@@ -90,6 +90,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * has claimed since.</p>
  */
 public class NotificationDispatcher {
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.SignupCapabilities paymentCapabilities;
     private static final Logger LOG = LoggerFactory.getLogger(NotificationDispatcher.class);
     static final Duration LEASE = Duration.ofMinutes(2);
     /** The lease a provider call needs: twice the providers' own bound (5 s to connect + 10 s for the answer). */
@@ -200,6 +201,16 @@ public class NotificationDispatcher {
         String unsubscribe = origin != null && memberId != null ? origin + "/comunicats/baixa?t=" + unsubscribes.issue(notification.clubId(), memberId) : null;
         var tags = new LinkedHashMap<String, String>(); tags.put("clubId", notification.clubId()); tags.put("notificationId", notification.id());
         var message = emails.render(notification, delivery.target(), settings, app -> emailSettings.appOrigin(notification.clubId(), app).orElse(null), unsubscribe, tags);
+        // N-01 retains only a marker. Issue the 24-hour capability in memory at delivery, never in the notification document.
+        String signupMemberId = notification.subject() == null ? null : notification.subject().memberId();
+        if ("N-01".equals(notification.code()) && notification.audience() == com.agilityhub.core.clubs.messaging.domain.NotificationAudience.APPLICANT
+                && signupMemberId != null && origin != null && message.text().contains(com.agilityhub.core.shared.application.SignupCapabilities.PAYMENT_RETRY_MARKER)) {
+            String link = origin + "/alta/pagament#memberId=" + signupMemberId + "&signupToken=" + paymentCapabilities.issue(signupMemberId);
+            String marker = com.agilityhub.core.shared.application.SignupCapabilities.PAYMENT_RETRY_MARKER;
+            message = new com.agilityhub.core.clubs.messaging.application.EmailMessage(message.to(), message.subject(),
+                    message.html().replace(marker, link.replace("&", "&amp;")), message.text().replace(marker, link), message.from(), message.replyTo(),
+                    message.locale(), message.tags(), message.headers());
+        }
         if (!leaseCoversCall(delivery)) { return Outcome.ABANDONED; }
         var result = email.send(message);
         if (result.sent()) { return Outcome.of(SendResult.accepted(result.providerMessageId())); }

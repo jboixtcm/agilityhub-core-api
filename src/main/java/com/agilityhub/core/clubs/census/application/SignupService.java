@@ -147,6 +147,7 @@ public class SignupService implements SignupPaymentAccess {
     }
     public <T> T write(java.util.function.Supplier<T> work) { return transactions.getObject().write(work); }
     public void card(String id,Map<String,Object> card) {
+        if (card == null || card.isEmpty()) { return; }
         var member=access.mutableMember(id);
         // A3-01: a rejected signup's record (LEFT, or a readmission restored to LEFT) never takes a card.
         if(!Set.of("PENDING","ACTIVE").contains(member.status)) return;
@@ -155,7 +156,11 @@ public class SignupService implements SignupPaymentAccess {
             if("CARD".equals(map(submitted(member).get("paymentMethod")).get("type"))) { putSubmitted(member,"paymentMethod",object("type","CARD","card",card));access.members.save(member); }
             return;
         }
-        if("CARD".equals(map(member.paymentMethod).get("type"))) { member.paymentMethod=object("type","CARD","card",card);access.members.save(member); }
+        if("CARD".equals(map(member.paymentMethod).get("type")) && !card.isEmpty()) {
+            member.paymentMethod=object("type","CARD","card",card); member.updatedAt=clock.instant(); access.members.save(member);
+            events.emit("MemberPaymentMethodChanged", "Member", id, object("memberId", id, "type", "CARD", "masked", "···· " + card.get("last4")));
+            refreshDashboard();
+        }
     }
     /**
      * R-04-27 (E3-T09): `POST /signup` and the anonymous routes decide `SIGNUP_CLOSED` on the committed club and parameters,

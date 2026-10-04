@@ -9,8 +9,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-@Component
-@Profile("(local | test) & !staging & !prod")
 public class FakeCheckoutGateway implements PaymentProvider {
     private final Map<String,Request> requests=new ConcurrentHashMap<>();private final ObjectProvider<CheckoutService> checkout;
     private final java.util.Set<String> expired=ConcurrentHashMap.newKeySet();

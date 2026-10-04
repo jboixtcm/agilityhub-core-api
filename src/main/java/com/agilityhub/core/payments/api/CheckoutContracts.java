@@ -10,7 +10,7 @@ public final class CheckoutContracts {
     private CheckoutContracts() { }
     /**
      * E8-T01 (S12 §6): `bookingId` (S08 R-08-18, a PAY_TO_BOOK booking) and `upfrontPaymentIds` (S12 §13-11, packs from the
-     * app) extend the signup checkout; E8-T04 serves them, until then a request with either answers 501 NOT_IMPLEMENTED.
+     * app) extend the signup checkout through the same recoverable provider operation (E8-T04).
      */
     public record CheckoutSessionRequest(@NotBlank @Schema(format = "uuid") String memberId,
             @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY,

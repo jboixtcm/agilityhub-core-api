@@ -25,7 +25,14 @@ public final class DashboardData {
     public record PendingSource(String memberId, String firstName, String lastName, boolean addDog,
             List<PendingDog> dogs, LocalizedText planName, String paymentMethodType, Instant submittedAt,
             boolean imageConsent, boolean accountProvided, boolean documentPending, boolean familyPending,
-            boolean upfrontUnpaid, boolean readmission) { }
+            boolean upfrontUnpaid, boolean readmission, boolean cardInvalid) {
+        public PendingSource(String memberId, String firstName, String lastName, boolean addDog,
+                List<PendingDog> dogs, LocalizedText planName, String paymentMethodType, Instant submittedAt,
+                boolean imageConsent, boolean accountProvided, boolean documentPending, boolean familyPending, boolean upfrontUnpaid, boolean readmission) {
+            this(memberId, firstName, lastName, addDog, dogs, planName, paymentMethodType, submittedAt, imageConsent, accountProvided, documentPending,
+                    familyPending, upfrontUnpaid, readmission, false);
+        }
+    }
     public record RiskReview(String reviewTime, int lookaheadDays, boolean autoCancelSameDay, int count, List<RiskItem> items) { }
     public enum RiskStatus { CANCELLED, AT_RISK, WILL_CANCEL, PENDING_DECISION }
     public record RiskItem(String classSessionId, LocalDate date, String startTime, String displayDescription,

@@ -3088,3 +3088,10 @@ Blocking: no.
 - **E8-T03 overlap:** I adapted `RemittancesIT.R_12_19_…`. Its negative receipt can no longer be created with the flag, so the
   flag is set in Mongo, as on a receipt stored before the fix.
 Blocking: no.
+
+
+## 2026-10-04 · E8-T04 · @organizer / @jordi
+
+- Step 14 explicitly authorizes the `CATALEG_ESDEVENIMENTS.md` change: the three upfront events now have separate rows, matching the emitter and fixtures in both directions. Please copy the rows to the source and web catalogs.
+- Catalog alignment proposal: N-35 currently lists only `InvoiceFailed`; S12 R-12-22 and this task explicitly require it for `MemberCardInvalidated`. The implementation uses the existing N-35 and event, with `retry_link=/me/card-setup`; please add that trigger to the source notification catalog. No new notification, event, parameter or error code was introduced.
+- Blocked: Stripe test account — @jordi. No `STRIPE_TEST_SECRET_KEY` / `STRIPE_TEST_WEBHOOK_SECRET` is available. Fake-provider proofs and SDK request/error unit tests are being completed; real account acceptance, actual card declines/3DS, Stripe signature delivery and customer deletion remain unproven. This is the task's allowed external-input limitation, not a roadmap blocker.

@@ -27,6 +27,9 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class UpfrontPaymentsController {
     static final String ROLES = BillingController.ROLES;
     static final String STUB = BillingController.STUB;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentRefunds refunds;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingTransactions transactions;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final BillingContractAccess access;
     public UpfrontPaymentsController(BillingContractAccess access) { this.access = access; }
 
@@ -57,14 +60,18 @@ public class UpfrontPaymentsController {
 
     @PostMapping("/api/v1/upfront-payments/{id}/refund")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, REFUND_EXCEEDS_PAID, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, REFUND_EXCEEDS_PAID, CURRENCY_MISMATCH, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "refundUpfrontPayment", description = ROLES + "R-12-20: the refund of a payment collected by Stripe Checkout (amount absent "
             + "= what is left); charge.refunded adds it to refunds and a full one makes it REFUNDED; PAYMENT_REFUNDED audit. A MANUAL one has no "
-            + "automatic refund → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID." + STUB,
+            + "automatic refund → 422 PAYMENT_PROVIDER_NOT_ENABLED; not PAID → 409 INVALID_STATE; more than paid → 422 REFUND_EXCEEDS_PAID." + BillingController.SERVED,
             responses = @ApiResponse(responseCode = "202", description = "RefundAccepted", useReturnTypeSchema = true))
     public RefundAccepted refundUpfrontPayment(@PathVariable String id, @Valid @RequestBody RefundRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.upfrontPayment(id);
-        throw new UnsupportedOperationException();
+        var result = refunds.upfront(id, request.amount(), request.reason(), "upfront-refund:" + id + ":" + idempotencyKey);
+        refunds.execute(result.id());
+        return transactions.keyed(202, () -> new RefundAccepted(result.id(), result.amount(), null), value -> {
+            try { return mapper.writeValueAsBytes(value); } catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
     }
 }

@@ -136,7 +136,8 @@ public class CensusNotificationFacts implements NotificationFactsPort {
             String instructions = Boolean.TRUE.equals(payload.get("checkoutRequired")) ? null : settings.manualInstructions(locale);
             builder.value("APPLICANT", "upfront_total", new Money(due, string(total.get("currency"))))
                     .value("APPLICANT", "payment_instructions", instructions == null ? "" : instructions)
-                    .value("APPLICANT", "pay_link", "");
+                    .value("APPLICANT", "pay_link", Boolean.TRUE.equals(payload.get("checkoutRequired"))
+                            ? com.agilityhub.core.shared.application.SignupCapabilities.PAYMENT_RETRY_MARKER : "");
         }
         // R-04-20: the applicant's copy is capped per address; the admins always get theirs.
         if (email != null && cap.admitted(trigger.eventId(), trigger.clubId(), trigger.type(), email)) {

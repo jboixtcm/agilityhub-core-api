@@ -2,6 +2,10 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-04 · E8-T04 · Stripe card payments and checkout
+
+Provider routes now serve card charging, retries, refunds, card setup, checkout status and the existing checkout extensions. Webhooks return 200 after durable receipt, including deferred processing. `SignupWarning` adds `CARD_INVALID` for pending dashboard rows. Existing signup request and response fields remain compatible; errors use the catalog statuses (notably signature 401 and refund-overpayment 422).
+
 ## 2026-10-01 · E8-T07 · rolled back comes from the run; the waiting manual receipts are in the simulation
 
 **Two schemas changed (additive), seven descriptions changed; no operation, status or error list changed.**

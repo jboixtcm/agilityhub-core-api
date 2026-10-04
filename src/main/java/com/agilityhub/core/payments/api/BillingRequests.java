@@ -50,7 +50,7 @@ public final class BillingRequests {
     public record PackAdjustmentRequest(@NotNull Integer delta, @NotBlank @Size(max = 500) String reason,
             @Schema(requiredMode = NOT_REQUIRED, description = "Required to reopen an EXPIRED pack (R-12-24)") LocalDate expiresOn) { }
 
-    /** A Stripe event as Stripe posts it; only `id` and `type` are read before the signature is verified. */
+    /** A Stripe event as Stripe posts it; no field is read before the raw body signature is verified. */
     @Schema(description = "Stripe's event envelope (https://docs.stripe.com/api/events/object); any other key is accepted and ignored")
     public record StripeWebhookEvent(@Schema(example = "evt_123") String id, @Schema(example = "payment_intent.succeeded") String type,
             @Schema(requiredMode = NOT_REQUIRED, description = "Unix seconds") Long created) { }

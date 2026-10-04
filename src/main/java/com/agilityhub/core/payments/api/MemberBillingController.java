@@ -27,6 +27,8 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class MemberBillingController {
     static final String ROLES = BillingController.ROLES;
     static final String STUB = BillingController.STUB;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentCheckouts checkouts;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final BillingContractAccess access; private final com.agilityhub.core.payments.application.PendingChargeService charges;
     public MemberBillingController(BillingContractAccess access, com.agilityhub.core.payments.application.PendingChargeService charges) {
         this.access = access; this.charges = charges;
@@ -34,15 +36,19 @@ public class MemberBillingController {
 
     @PostMapping("/api/v1/members/{id}/card-setup-link")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, PAYMENT_PROVIDER_NOT_ENABLED, PROVIDER_CONFIG_INVALID, RATE_LIMITED})
     @Operation(summary = "cardSetupLink", description = ROLES + "R-12-22: a Stripe Checkout session in mode=setup for the member (D10 «Targeta "
             + "no vàlida»): the admin sends the link; setup_intent.succeeded saves the card and sends N-38. STRIPE not enabled → 422 "
-            + "PAYMENT_PROVIDER_NOT_ENABLED; another club's member → 404; an erased one → 409 MEMBER_ERASED." + STUB,
+            + "PAYMENT_PROVIDER_NOT_ENABLED; another club's member → 404; an erased one → 409 MEMBER_ERASED." + BillingController.SERVED,
             responses = @ApiResponse(responseCode = "201", description = "CardSetupLink", useReturnTypeSchema = true))
     public CardSetupLink cardSetupLink(@PathVariable String id, @Valid @RequestBody CardSetupRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(id);
-        throw new UnsupportedOperationException();
+        var result = checkouts.create(id, null, java.util.List.of(), true, request.successUrl(), request.cancelUrl(), created -> {
+            try { return mapper.writeValueAsBytes(new CardSetupLink(created.checkoutUrl())); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+        return new CardSetupLink(result.checkoutUrl());
     }
 
     @GetMapping("/api/v1/members/{id}/pending-charges")

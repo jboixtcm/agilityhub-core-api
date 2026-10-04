@@ -22,9 +22,41 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.string;
  */
 @Service
 public class BillingCensusAdapter implements BillingCensusAccess {
+    @org.springframework.beans.factory.annotation.Autowired private CensusEvents events;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupService> signups;
     private final CensusAccess census; private final Clock clock;
     public BillingCensusAdapter(CensusAccess census, Clock clock) { this.census = census; this.clock = clock; }
 
+    @Override public Optional<Card> card(String memberId) {
+        return census.members.findById(memberId).filter(member -> "CARD".equals(map(member.paymentMethod).get("type"))).map(member -> {
+            var card = map(member.paymentMethod.get("card"));
+            return new Card(string(card.get("stripeCustomerId")), string(card.get("stripePaymentMethodId")), string(card.get("last4")),
+                    string(card.get("brand")), Boolean.TRUE.equals(card.get("invalid")));
+        });
+    }
+    @com.agilityhub.core.platform.application.audit.Audited(action = com.agilityhub.core.platform.application.audit.AuditAction.MEMBER_PAYMENT_METHOD_CHANGED,
+            entityType = "'Member'", entity = "#memberId", member = "#memberId")
+    @Override public void saveCard(String memberId, Card card) {
+        var member = census.mutableMember(memberId);
+        var stored = new LinkedHashMap<String, Object>();
+        stored.put("stripeCustomerId", card.customerId()); stored.put("stripePaymentMethodId", card.paymentMethodId());
+        stored.put("last4", card.last4()); stored.put("brand", card.brand()); stored.put("invalid", card.invalid());
+        member.paymentMethod = Map.of("type", "CARD", "card", stored); member.updatedAt = clock.instant(); census.members.save(member);
+        signups.getObject().refreshDashboard();
+        if (!card.invalid()) { events.emit("MemberPaymentMethodChanged", "Member", memberId, Map.of("memberId", memberId, "type", "CARD", "masked", "···· " + card.last4())); }
+    }
+    @Override public List<String> invalidateCards(String customerId, String paymentMethodId) {
+        var criteria = Criteria.where("paymentMethod.type").is("CARD");
+        if (customerId != null) { criteria.and("paymentMethod.card.stripeCustomerId").is(customerId); }
+        if (paymentMethodId != null) { criteria.and("paymentMethod.card.stripePaymentMethodId").is(paymentMethodId); }
+        if (customerId == null && paymentMethodId == null) { return List.of(); }
+        var changed = new ArrayList<String>();
+        for (var member : census.members.matching(criteria)) {
+            var old = card(member.id).orElseThrow();
+            if (!old.invalid()) { saveCard(member.id, new Card(old.customerId(), old.paymentMethodId(), old.last4(), old.brand(), true)); changed.add(member.id); }
+        }
+        return changed;
+    }
     @Override public List<BillingMember> activeMembers() {
         return census.members.matching(Criteria.where("status").is("ACTIVE")).stream().map(BillingCensusAdapter::view).toList();
     }

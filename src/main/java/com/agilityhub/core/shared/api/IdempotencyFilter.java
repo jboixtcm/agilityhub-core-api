@@ -75,8 +75,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      * (`BillingTransactions`), storing their answer there: the run, the rollback, a manual invoice, the payments, the failure
      * and the cancellation of an invoice.
      */
-    static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(simulations|runs|runs/[^/]+/rollback)"
-            + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation)");
+    static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(simulations|runs|runs/[^/]+/(rollback|card-charges))"
+            + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation|retry|refund)"
+            + "|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
 
     /**
      * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header

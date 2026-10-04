@@ -2,9 +2,9 @@
 
 ## N-01 APPLICANT
 title: Signup received
-body: We have received your signup request for Duna (C), Rock (D). Club Agility Exemple will review it. Amount to pay to the club: €45.00. Pagament en efectiu a la recepció del club
-email.text: Signup received⏎⏎We have received your signup request for Duna (C), Rock (D). Club Agility Exemple will review it. Amount to pay to the club: €45.00. Pagament en efectiu a la recepció del club⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: ae04bf20fee4fa3d
+body: We have received your signup request for Duna (C), Rock (D). Club Agility Exemple will review it. Amount to pay to the club: €45.00. Pagament en efectiu a la recepció del club https://app.example.test/pagament/exemple
+email.text: Signup received⏎⏎We have received your signup request for Duna (C), Rock (D). Club Agility Exemple will review it. Amount to pay to the club: €45.00. Pagament en efectiu a la recepció del club https://app.example.test/pagament/exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 38770721e60c2f51
 
 ## N-01 ADMINS
 title: New signup request
@@ -234,9 +234,9 @@ body: There are 3 pending signup requests; the oldest has been waiting for 5 day
 
 ## N-35 MEMBER
 title: Your card could not be charged
-body: We could not charge €45.00: Documentació pendent. Check your card in the app.
-email.text: Your card could not be charged⏎⏎We could not charge €45.00: Documentació pendent. Check your card in the app.⏎⏎Open the app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 81da64ce0147e117
+body: We could not charge €45.00: Documentació pendent. Check your card in the app: https://app.example.test/factures/exemple
+email.text: Your card could not be charged⏎⏎We could not charge €45.00: Documentació pendent. Check your card in the app: https://app.example.test/factures/exemple⏎⏎Open the app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: f13e345c67ceb520
 
 ## N-36 MEMBER
 title: Booking managed by the club

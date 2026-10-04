@@ -9,6 +9,34 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SignupCheckoutRepository extends TenantRepository<SignupCheckoutSession> {
     public SignupCheckoutRepository(MongoTemplate mongo) { super(mongo,SignupCheckoutSession.class); }
+    @Override public SignupCheckoutSession insert(SignupCheckoutSession session) {
+        var saved = super.insert(session);
+        if (session.providerRequest() != null) { chargeAmount(session.id(), session.providerRequest().lines().stream().mapToLong(i -> i.amount().amountMinor()).sum()); }
+        return saved;
+    }
+    public void chargeAmount(String id, long amount) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("chargeAmountMinor", amount), SignupCheckoutSession.class);
+    }
+    public void markStandaloneCardSetup(String id) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("standaloneCardSetup", true), SignupCheckoutSession.class);
+    }
+    public boolean standaloneCardSetup(String id) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("standaloneCardSetup").is(true)), SignupCheckoutSession.class);
+    }
+    public java.util.Optional<Long> chargeAmount(String id) {
+        var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id)), org.bson.Document.class, "checkout_sessions");
+        return row == null || !(row.get("chargeAmountMinor") instanceof Number value) ? java.util.Optional.empty() : java.util.Optional.of(value.longValue());
+    }
+    public void reopenForSettlement(String id) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("EXPIRED")), new Update().set("status", "PENDING"), SignupCheckoutSession.class);
+    }
+    public void providerSession(String id, String providerId) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("providerSessionId", providerId), SignupCheckoutSession.class);
+    }
+    public java.util.Optional<String> providerSession(String id) {
+        var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id)), org.bson.Document.class, "checkout_sessions");
+        return java.util.Optional.ofNullable(row == null ? null : row.getString("providerSessionId"));
+    }
     /** A `PENDING` session ends; the provider request it kept for a retry (its customer's e-mail included) goes with it (E5-T30). */
     public boolean finish(String id,String status,String providerPaymentId) {
         var update=new Update().set("status",status).unset("providerRequest");if(providerPaymentId!=null) update.set("providerPaymentId",providerPaymentId);
@@ -24,7 +52,7 @@ public class SignupCheckoutRepository extends TenantRepository<SignupCheckoutSes
      */
     public java.util.Optional<SignupCheckoutSession> openFor(String memberId,String requestRef,Instant now) {
         return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("requestRef").is(requestRef)
-                .and("status").is("PENDING").and("bookingId").is(null).and("expiresAt").gt(now).and("providerRequest").ne(null)),SignupCheckoutSession.class));
+                .and("status").is("PENDING").and("expiresAt").gt(now).and("providerRequest").ne(null)),SignupCheckoutSession.class));
     }
     /** The member's open signup checkouts whose `expiresAt` has passed ({@code now} included): the provider can no longer complete them. */
     public java.util.List<SignupCheckoutSession> lapsedSignup(String memberId,Instant now) {

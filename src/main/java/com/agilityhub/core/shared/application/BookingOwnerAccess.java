@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface BookingOwnerAccess {
     /** The owner (`memberId`, the dog's owner) of a class booking of the open tenant; empty when the club has no such booking. */
     Optional<String> ownerOf(String bookingId);
+    record Checkout(String sessionId, String url) { }
+    default boolean cancelled(String bookingId) { return false; }
+    default Optional<Checkout> checkout(String bookingId) { return Optional.empty(); }
 }

@@ -25,6 +25,7 @@ public class UpfrontPayments {
      * A `null` submission matches the rows written before submissions existed.
      */
     public record Submission(String dogId,String submissionId) { }
+    @org.springframework.beans.factory.annotation.Autowired private PaymentAudits audit;
     private final UpfrontPaymentRepository repository;
     private final SignupCheckoutRepository sessions;
     private final EventPublisher events;
@@ -102,6 +103,7 @@ public class UpfrontPayments {
             if (paid.equals(p.amountDue())) { opened(p,clock.instant()); }
             // CATALEG_ESDEVENIMENTS (E3-T10): the payload names the member, like Succeeded/Failed.
             emit("UpfrontPaymentRecorded",p,Map.of("paymentId",p.id(),"memberId",p.memberId(),"concept",p.concept(),"provider","MANUAL","amountPaid",new Money(allocated,amount.currency())));
+            audit.recorded(p.id(), memberId, new Money(allocated, amount.currency()));
         }
         if (remaining>0) { throw new ApiException(ErrorCode.INVALID_STATE); }
     }
@@ -218,11 +220,14 @@ public class UpfrontPayments {
             if(complete) {
                 repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session,paidAt));
                 opened(p,paidAt);
+                if (p.packBalanceId() != null) { payload.put("packBalanceId", p.packBalanceId()); }
                 payload.put("amountPaid",p.amountDue().minus(p.amountPaid()));emit("UpfrontPaymentSucceeded",p,payload);
             } else if(booking) {
                 repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));
-                emit("UpfrontPaymentFailed",p,payload);
-            } else repository.update(released(p));
+                payload.put("reason", "CHECKOUT_EXPIRED"); emit("UpfrontPaymentFailed",p,payload);
+            } else {
+                repository.update(released(p)); payload.put("reason", "CHECKOUT_EXPIRED"); emit("UpfrontPaymentFailed", p, payload);
+            }
         }
     }
     /** The row as it was before the checkout ({@link #pending}): `PARTIAL` with its payment's provider and `paidAt`, or `DUE` with none. */
