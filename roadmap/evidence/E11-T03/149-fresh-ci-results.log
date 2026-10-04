@@ -1,0 +1,11 @@
+COMMAND python3 roadmap/evidence/E11-T03/published-ci-proof.py 37230006169
+https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37230006169
+workflow completed failure
+Secret scan completed failure
+Dependency vulnerability audit completed success
+Build and tests completed success
+Publish API image completed skipped
+Scan image (${{ matrix.arch }}) completed skipped
+
+exit 0
+elapsed_seconds 2.239

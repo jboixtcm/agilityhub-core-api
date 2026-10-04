@@ -30,6 +30,18 @@ args = parser.parse_args()
 log=(EVIDENCE/args.log).read_text()
 assert re.search(r'^exit 0$', log, re.M), 'A complete successful PIT run is required'
 summary['wallSecondsIncludingLockWait']=float(re.search(r'elapsed_seconds ([0-9.]+)',log).group(1))
+regressions = [
+    ('waitlist hold capacity', 'WaitlistService', 'Replaced long addition with subtraction', 'T_08_22_R_08_15_'),
+    ('logout revocation event', 'TokenService', '::revoked', 'T_01_10_revokeIsIdempotent'),
+    ('session-limit revocation event', 'TokenService', '::revoked', 'T_01_06_maximumSessions'),
+]
+for label, class_name, description, test in regressions:
+    matches = [mutation for mutation in root
+               if mutation.findtext('mutatedClass').endswith('.' + class_name)
+               and description in mutation.findtext('description')
+               and test in (mutation.findtext('killingTest') or '')]
+    assert matches and all(mutation.get('status') == 'KILLED' for mutation in matches), label
+    print('PASS assertion kill:', label, 'by', test)
 (EVIDENCE/'pitest-class-statuses.json').write_text(json.dumps({name: dict(counts) for name, counts in sorted(classes.items())},indent=2)+'\n')
 (EVIDENCE/'pitest-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
 (EVIDENCE/'pitest-survivors.json').write_text(json.dumps(survivors,indent=2)+'\n')

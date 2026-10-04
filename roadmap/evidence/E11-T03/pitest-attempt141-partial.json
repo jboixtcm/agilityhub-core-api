@@ -1,0 +1,10 @@
+{
+  "complete": false,
+  "reason": "Interim snapshot before the sandbox refused a cross-invocation signal; the original run remains active under its one-hour deadline",
+  "completeRecords": 602,
+  "statuses": {
+    "KILLED": 482,
+    "SURVIVED": 96,
+    "NO_COVERAGE": 24
+  }
+}

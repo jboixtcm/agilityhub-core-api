@@ -1,0 +1,12 @@
+COMMAND python3 bin/security-secret-policy-test.py --gitleaks .local/security-tools/gitleaks
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/security-secret-policy-test.py", line 57, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/security-secret-policy-test.py", line 42, in main
+    assert code == 0 and not findings, 'Non-secret identifiers must be accepted'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Non-secret identifiers must be accepted
+
+exit 1
+elapsed_seconds 0.337

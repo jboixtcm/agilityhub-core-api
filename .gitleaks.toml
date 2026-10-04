@@ -43,3 +43,11 @@ condition = "AND"
 paths = ['''(^|/)\.env\.example$''']
 regexTarget = "match"
 regexes = ['''^ATTACHMENT_S3_ACCESS_KEY=\nATTACHMENT_S3_SECRET_KEY=$''']
+
+[[allowlists]]
+description = "E11-T03: this exact export test argument is a fictional XML filename, not a credential; adjacent or changed values remain scanned."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''src/test/java/com/agilityhub/core/clubs/common/application/ExportFileStoreAdapterTest\.java$''']
+regexTarget = "match"
+regexes = ['''^key", "remesa-2026-09\.xml"$''']

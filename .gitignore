@@ -60,3 +60,7 @@ __pycache__/
 # Reusable security and mutation caches are local build outputs.
 .local/security-tools/
 .local/pitest/
+.local/e11-maven/
+.local/e11-buildx/
+.local/e11-openapi-committed.json
+.local/e11-broken.Dockerfile

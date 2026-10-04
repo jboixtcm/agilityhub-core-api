@@ -1,0 +1,18 @@
+COMMAND python3 roadmap/evidence/E11-T03/published-ci-proof.py 36908241634
+https://github.com/jboixtcm/agilityhub-core-api/actions/runs/36908241634
+workflow completed success
+Dependency vulnerability audit completed success
+Secret scan completed success
+Build and tests completed success
+Scan image (amd64) completed success
+step: Scan image secrets and fixable CRITICAL vulnerabilities -> success
+step: Compose startup, HTTPS headers, CORS, logs, health and branding -> success
+step: Prove the compose smoke rejects an image that cannot start -> success
+2026-10-01T19:02:10.8773834Z [36;1mecho 'PASS: the compose smoke refused the broken image' >> "$GITHUB_STEP_SUMMARY"[0m
+2026-10-01T19:03:06.3738353Z  Container e11-t04-deb47d2c-core-1  Error
+2026-10-01T19:03:06.3738742Z dependency failed to start: container e11-t04-deb47d2c-core-1 is unhealthy
+Scan image (arm64) completed success
+Publish API image completed success
+
+exit 0
+elapsed_seconds 2.667

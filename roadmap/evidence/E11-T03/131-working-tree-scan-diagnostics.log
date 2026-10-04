@@ -1,0 +1,9 @@
+COMMAND python3 roadmap/evidence/E11-T03/working-tree-secret-scan.py --gitleaks /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/security-tools/gitleaks
+Scanned publishable changed files; local caches excluded
+COMMAND /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/security-tools/gitleaks dir --no-banner --redact --config /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.gitleaks.toml --report-format json --report-path /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-publishable-scan-47inkwks/scan-report.json /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-publishable-scan-47inkwks
+9:57PM INF scanned ~57843875 bytes (57.84 MB) in 2.81s
+9:57PM WRN leaks found: 1
+{"File": "/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-publishable-scan-47inkwks/bin/security-secret-policy-test.py", "StartLine": 29, "RuleID": "generic-api-key"}
+
+exit 1
+elapsed_seconds 3.955

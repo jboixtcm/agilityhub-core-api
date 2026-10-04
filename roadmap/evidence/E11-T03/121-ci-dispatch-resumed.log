@@ -1,0 +1,5 @@
+COMMAND gh workflow run ci.yml --ref main
+https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37230006169
+
+exit 0
+elapsed_seconds 2.150

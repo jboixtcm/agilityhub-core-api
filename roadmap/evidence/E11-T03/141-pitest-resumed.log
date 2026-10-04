@@ -1,0 +1,31 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage
+22:04:57 PIT >> INFO : Verbose logging is disabled. If you encounter a problem, please enable it before reporting an issue.
+22:04:57 PIT >> INFO : Created 448 mutation test units in pre scan
+22:04:57 PIT >> INFO : Sending 541 test classes to minion
+22:04:57 PIT >> INFO : Sent tests to minion
+22:05:33 PIT >> INFO : MINION : Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+22:05:33 PIT >> INFO : MINION : WARNING: A Java agent has been loaded dynamically (/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/e11-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+22:05:33 PIT >> INFO : MINION : WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+22:05:33 PIT >> INFO : MINION : WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+22:05:33 PIT >> INFO : MINION : WARNING: Dynamic loading of agents will be disallowed by default in a future release
+22:05:33 PIT >> INFO : MINION : OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\22:07:13 PIT >> INFO : MINION : VALIDATION_ERROR {}
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+22:07:13 PIT >> INFO : MINION : Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+|/-\|/-\|/-\|/-22:07:14 PIT >> INFO : Calculated coverage in 137 seconds.
+22:07:14 PIT >> INFO : 2 tests took longer than 2000 ms
+22:07:14 PIT >> INFO : Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.identity.api.MongoRequestTimeoutIT]/[method:T_08_40_E85_httpIsBoundedButExportsAndManualJobsFollowTheBackgroundRule()]) took 3476 ms
+22:07:14 PIT >> INFO : Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.api.AttendanceIT]/[method:R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat()]) covered 5900 blocks
+22:07:15 PIT >> WARNING : Found more than one mutation similar on same line in a finally block. Can't correct for inlining.
+22:07:15 PIT >> INFO : Incremental analysis reduced number of mutations by 0
+22:07:15 PIT >> INFO : Created 179 mutation test units
+/-\|/22:26:39 PIT >> WARNING : Minion exited abnormally due to TIMED_OUT
+-22:44:00 PIT >> WARNING : Minion exited abnormally due to MEMORY_ERROR
+\|/-\|/-\|/-\|/-\|/-\|/-\|/-

@@ -24,6 +24,10 @@ def main():
         dedup = 'dedupKey="' + secrets.token_urlsafe(32) + '"'
         (evidence / 'fixture.log').write_text(trace + '\n' + key + '\n' + dedup + '\n')
         (root / '.env.example').write_text('ATTACHMENT_S3_ACCESS_KEY=\nATTACHMENT_S3_SECRET_KEY=\n')
+        export_fixture = root / 'src/test/java/com/agilityhub/core/clubs/common/application/ExportFileStoreAdapterTest.java'
+        export_fixture.parent.mkdir(parents=True)
+        filename_argument = 'downloadUrl("key", "%s");' % 'remesa-2026-09.xml'
+        export_fixture.write_text(filename_argument + '\n')
 
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
@@ -37,13 +41,16 @@ def main():
         code, findings = scan()
         assert code == 0 and not findings, 'Non-secret identifiers must be accepted'
         print('PASS UUID trace/idempotency identifiers and empty example variables')
+        print('PASS the exact fictional export filename argument')
         (evidence / 'fixture.log').write_text(trace + ' api_key="' + secrets.token_urlsafe(32) + '"\n'
                                             + dedup + ' api_key="' + secrets.token_urlsafe(32) + '"\n'
                                             + 'Idempotency-Key:"' + secrets.token_urlsafe(32) + '"\n')
         (root / '.env.example').write_text('ATTACHMENT_S3_ACCESS_KEY=' + secrets.token_urlsafe(32) + '\n')
+        export_fixture.write_text(filename_argument + ' api_key="' + secrets.token_urlsafe(32) + '"\n'
+                                  + 'downloadUrl("key", "' + secrets.token_urlsafe(32) + '");\n')
         code, findings = scan()
-        assert code == 1 and len(findings) == 4, 'Every injected secret must remain detected'
-        print('PASS credentials beside trace/dedup, non-UUID key, and populated example key all fail')
+        assert code == 1 and len(findings) == 6, 'Every injected secret must remain detected'
+        print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, and changed filename all fail')
 
 
 if __name__ == '__main__':
