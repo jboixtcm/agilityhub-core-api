@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_E11_T04_02_production_local_core (deploy.test_round2.DeploymentReviewTest.test_E11_T04_02_production_local_core)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_round2.py", line 39, in test_E11_T04_02_production_local_core
+    self.assertIn('ingress', local['services']['caddy']['networks'])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'ingress' not found in {'default': {'ipv4_address': '172.30.240.10'}}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.227s
+
+FAILED (failures=1)

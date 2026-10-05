@@ -79,8 +79,9 @@ The private identity is supplied only to an explicit verification/recovery run.
 
 The local proof boots Core with **prod**, fictional non-blank provider credentials
 and real S3 adapters pointing at MinIO. Only the one-shot seed uses `local`.
-The network is internal, so fictional credentials cannot initiate Internet
-provider traffic. Actual provider delivery and Stripe acceptance remain E12
+Core's network is internal, so fictional credentials cannot initiate Internet
+provider traffic. Only Caddy also joins an ingress bridge for Docker Desktop's
+published loopback ports. Actual provider delivery and Stripe acceptance remain E12
 prerequisites; production-profile construction and billing-key wiring are proven.
 
 ### Local rehearsal, including required failures
@@ -124,6 +125,10 @@ username/password and `authSource=admin&replicaSet=rs0&directConnection=true`.
 The `*.localhost` hosts use Caddy's internal CA. `local_certs`, the approval
 fixture and MinIO exist only in the override; Core still uses production providers. This proves static serving, not a browser test of the
 real web artifacts; the release smoke must use their actual builds.
+The smoke keeps public URLs, Origin and OIDC callbacks at standard HTTPS port 443;
+curl's `--connect-to` maps only the transport to the random loopback port. This
+preserves production same-origin checks behind Caddy. A manual browser rehearsal
+needs standard-port forwarding; a random port in Origin is a different origin.
 
 The normal domain-admission policy rejects localhost (`HOST_RESERVED`). The
 local-only `local-hosts` one-shot fixture therefore maps the two seeded
@@ -182,10 +187,11 @@ removes the container and its anonymous volume; normal exits also erase the work
 directory. After a host crash, inspect and remove only that orphaned ops
 container/anonymous volume before resuming; never share `/work` between runs.
 Use encrypted Docker/host storage because restore creates plaintext. For backup
-and restore, reserve at least `4 × (dataSize + indexSize) + 1 GiB` free space on
+and restore, reserve at least `4 × sum(size + totalIndexSize) + 1 GiB` free space on
 Docker's disk (minimum 1 GiB), accounting for two ciphertext copies and, on
-restore, the decoded archive, Mongo data/indexes and journal. `dbStats` supplies
-the backup estimate; the uploaded metadata and encrypted manifest preserve it
+restore, the decoded archive, Mongo data/indexes and journal. `collStats` supplies
+the backup estimate across restorable collections, using only the built-in backup
+role (`dbStats` is not permitted by that role). The uploaded metadata and encrypted manifest preserve it
 for restore. Both refuse insufficient free space before creating the dump or
 restored database. Growth can still exhaust storage mid-run: errors fail closed.
 RAM does not scale with dump size: one BSON record, gzip/age buffers and an 8 MiB

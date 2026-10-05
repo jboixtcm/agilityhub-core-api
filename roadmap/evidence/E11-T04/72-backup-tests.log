@@ -1,0 +1,16 @@
+test_E11_T04_archive_stream_tracks_only_the_actual_oplog (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_dump_failure_closes_source_without_lock_or_upload (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_inventory_excludes_internal_cluster_keys (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_low_space_refused (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_no_backup_or_escape_fails_before_writing (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_prefix_filters_outside_keys_among_valid_pages (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_restore_checks_disk_before_download (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_size_estimate_uses_backup_role_collection_stats (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_snapshot_counts_all_collections_at_one_timestamp (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_successful_backup_needs_only_list_and_put (test_backup.BackupSafetyTest) ... BACKUP_OK key=mongo/20261005T095741Z-8db2309138a849119fc47664c8acd427.tar collections=1 snapshot=100:1 retention=S3-lifecycle
+ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.063s
+
+OK

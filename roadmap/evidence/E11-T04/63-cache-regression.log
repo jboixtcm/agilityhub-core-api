@@ -1,0 +1,27 @@
+test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) ... 
+  test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) (route='/') ... FAIL
+  test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) (route='/a/deep/link') ... FAIL
+
+======================================================================
+FAIL: test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) (route='/')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_round2.py", line 84, in test_E11_T04_05_real_caddy_index_headers
+    self.assertEqual('no-cache', response.headers.get('Cache-Control'))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'no-cache' != None
+
+======================================================================
+FAIL: test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) (route='/a/deep/link')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_round2.py", line 84, in test_E11_T04_05_real_caddy_index_headers
+    self.assertEqual('no-cache', response.headers.get('Cache-Control'))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'no-cache' != None
+
+----------------------------------------------------------------------
+Ran 1 test in 0.625s
+
+FAILED (failures=2)
+PASS real Caddy runtime test rejects the reinstated cache defect; checkout unchanged

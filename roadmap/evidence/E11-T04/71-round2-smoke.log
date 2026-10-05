@@ -1,0 +1,456 @@
+heavy.sh: 11:57 waiting for the host lock, held by: 11:55 agilityhub-core-web: pnpm e2e:docker E8-W01
+heavy.sh: 12:10 got the host lock after 13 min 1 s
+PASS prod Core, local seed, both billing keys, private network with no provider egress
+IMAGE revision=unlabelled id=sha256:56046740bf74[truncated]
+PASS helper contains exact current source and pinned Mongo 7.0.41
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-ivsqt78p/local.env -p e11-t04-e7903487 -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml up -d --wait --wait-timeout 420
+ Network e11-t04-e7903487_ingress Creating 
+ Volume e11-t04-e7903487_minio-data Creating 
+ Volume e11-t04-e7903487_caddy-config Creating 
+ Volume e11-t04-e7903487_minio-data Creating 
+ Volume e11-t04-e7903487_caddy-data Creating 
+ Container e11-t04-e7903487-ask-stub-1 Creating 
+ Volume e11-t04-e7903487_caddy-config Creating 
+ Volume e11-t04-e7903487_mongo-data Creating 
+ Volume e11-t04-e7903487_attachments Creating 
+ Volume e11-t04-e7903487_mongo-data Creating 
+ Volume e11-t04-e7903487_attachments Creating 
+ Volume e11-t04-e7903487_exports Creating 
+ Volume e11-t04-e7903487_exports Creating 
+ Volume e11-t04-e7903487_caddy-data Creating 
+ Network e11-t04-e7903487_ingress Creating 
+ Volume e11-t04-e7903487_exports Created 
+ Volume e11-t04-e7903487_exports Created 
+ Volume e11-t04-e7903487_caddy-config Created 
+ Volume e11-t04-e7903487_caddy-config Created 
+ Volume e11-t04-e7903487_minio-data Created 
+ Volume e11-t04-e7903487_minio-data Created 
+ Container e11-t04-e7903487-minio-1 Creating 
+ Volume e11-t04-e7903487_mongo-data Created 
+ Volume e11-t04-e7903487_mongo-data Created 
+ Container e11-t04-e7903487-mongo-1 Creating 
+ Volume e11-t04-e7903487_attachments Created 
+ Volume e11-t04-e7903487_attachments Created 
+ Volume e11-t04-e7903487_caddy-data Created 
+ Volume e11-t04-e7903487_caddy-data Created 
+ Network e11-t04-e7903487_ingress Created 
+ Network e11-t04-e7903487_ingress Created 
+ Container e11-t04-e7903487-minio-1 Created 
+ Container e11-t04-e7903487-ask-stub-1 Created 
+ Container e11-t04-e7903487-mongo-1 Created 
+ Container e11-t04-e7903487-seed-1 Creating 
+ Container e11-t04-e7903487-seed-1 Created 
+ Container e11-t04-e7903487-local-hosts-1 Creating 
+ Container e11-t04-e7903487-local-hosts-1 Created 
+ Container e11-t04-e7903487-core-1 Creating 
+ Container e11-t04-e7903487-core-1 Created 
+ Container e11-t04-e7903487-caddy-1 Creating 
+ Container e11-t04-e7903487-caddy-1 Created 
+ Container e11-t04-e7903487-mongo-1 Starting 
+ Container e11-t04-e7903487-minio-1 Starting 
+ Container e11-t04-e7903487-ask-stub-1 Starting 
+ Container e11-t04-e7903487-ask-stub-1 Started 
+ Container e11-t04-e7903487-minio-1 Started 
+ Container e11-t04-e7903487-mongo-1 Started 
+ Container e11-t04-e7903487-mongo-1 Waiting 
+ Container e11-t04-e7903487-mongo-1 Healthy 
+ Container e11-t04-e7903487-seed-1 Starting 
+ Container e11-t04-e7903487-seed-1 Started 
+ Container e11-t04-e7903487-seed-1 Waiting 
+ Container e11-t04-e7903487-seed-1 Exited 
+ Container e11-t04-e7903487-local-hosts-1 Starting 
+ Container e11-t04-e7903487-local-hosts-1 Started 
+ Container e11-t04-e7903487-mongo-1 Waiting 
+ Container e11-t04-e7903487-local-hosts-1 Waiting 
+ Container e11-t04-e7903487-local-hosts-1 Exited 
+ Container e11-t04-e7903487-mongo-1 Healthy 
+ Container e11-t04-e7903487-core-1 Starting 
+ Container e11-t04-e7903487-core-1 Started 
+ Container e11-t04-e7903487-core-1 Waiting 
+ Container e11-t04-e7903487-core-1 Healthy 
+ Container e11-t04-e7903487-caddy-1 Starting 
+ Container e11-t04-e7903487-caddy-1 Started 
+ Container e11-t04-e7903487-caddy-1 Waiting 
+ Container e11-t04-e7903487-seed-1 Waiting 
+ Container e11-t04-e7903487-core-1 Waiting 
+ Container e11-t04-e7903487-local-hosts-1 Waiting 
+ Container e11-t04-e7903487-ask-stub-1 Waiting 
+ Container e11-t04-e7903487-minio-1 Waiting 
+ Container e11-t04-e7903487-mongo-1 Waiting 
+ Container e11-t04-e7903487-ask-stub-1 Healthy 
+ Container e11-t04-e7903487-core-1 Healthy 
+ Container e11-t04-e7903487-local-hosts-1 Exited 
+ Container e11-t04-e7903487-seed-1 Exited 
+ Container e11-t04-e7903487-mongo-1 Healthy 
+ Container e11-t04-e7903487-minio-1 Healthy 
+ Container e11-t04-e7903487-caddy-1 Healthy 
+
+STARTUP_EXIT 0
+PASS authenticated production topology became healthy with local override
+RUNNER_CONTEXT DEPLOY_ENV_FILE=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-ivsqt78p/local.env DEPLOY_LOCAL=1 COMPOSE_PROJECT_NAME=e11-t04-e7903487
+PASS Caddy HTTPS health UP (trusted internal CA, no -k)
+PASS branding resolves canic by each preserved front Host
+PASS three SPAs: /, /index.html and deep links serve index with Cache-Control: no-cache
+PASS proxy refresh rotates host-only ah_refresh; Secure HttpOnly SameSite=Strict Path=/oauth2/token
+PASS old refresh cookie rejected through Caddy
+PASS TLS certificate issued only for approved.localhost; real bridge forwards host=; other host denied
+PASS Mongo rejects unauthenticated reads; internal ask route is not public
+PASS MinIO lifecycle is 30 days; normal backup container has only the public recipient
+PASS ops memory is 1 GiB and its anonymous work volume disappears with the container
+COMMAND bin/backup-mongo  -> exit 0
+BACKUP_OK key=mongo/20261005T101124Z-14488455b60c4aca8a4958ed3927cd05.tar collections=77 snapshot=1791195080:13 retention=S3-lifecycle
+Container e11-t04-e7903487-backup-run-ea685e6b8566 Creating 
+ Container e11-t04-e7903487-backup-run-ea685e6b8566 Created
+COMMAND bin/restore-mongo --verify -> exit 0
+COUNT admin.system.users source=3 restored=3
+COUNT admin.system.version source=2 restored=2
+COUNT agilityhub.accounts source=191 restored=191
+COUNT agilityhub.activities source=4 restored=4
+COUNT agilityhub.activity_registrations source=47 restored=47
+COUNT agilityhub.announcements source=0 restored=0
+COUNT agilityhub.attachment_uploads source=10 restored=10
+COUNT agilityhub.attachment_write_locks source=1 restored=1
+COUNT agilityhub.attachments source=1 restored=1
+COUNT agilityhub.attendances source=26 restored=26
+COUNT agilityhub.audit_entries source=120 restored=120
+COUNT agilityhub.billing_locks source=0 restored=0
+COUNT agilityhub.billing_runs source=0 restored=0
+COUNT agilityhub.billing_simulations source=0 restored=0
+COUNT agilityhub.bookings source=75 restored=75
+COUNT agilityhub.catalog_seed_references source=7 restored=7
+COUNT agilityhub.catalog_write_locks source=4 restored=4
+COUNT agilityhub.census_write_locks source=1 restored=1
+COUNT agilityhub.class_sessions source=125 restored=125
+COUNT agilityhub.club_pages source=3 restored=3
+COUNT agilityhub.clubs source=1 restored=1
+COUNT agilityhub.collections source=0 restored=0
+COUNT agilityhub.demo_seed_runs source=2 restored=2
+COUNT agilityhub.dog_documents source=246 restored=246
+COUNT agilityhub.dogs source=246 restored=246
+COUNT agilityhub.domain_events source=918 restored=918
+COUNT agilityhub.export_account_locks source=0 restored=0
+COUNT agilityhub.export_jobs source=0 restored=0
+COUNT agilityhub.export_write_locks source=0 restored=0
+COUNT agilityhub.family_groups source=12 restored=12
+COUNT agilityhub.faq_entries source=7 restored=7
+COUNT agilityhub.followup_items source=2 restored=2
+COUNT agilityhub.followup_read_marks source=0 restored=0
+COUNT agilityhub.handoff_codes source=0 restored=0
+COUNT agilityhub.idempotency_records source=0 restored=0
+COUNT agilityhub.impersonation_grants source=0 restored=0
+COUNT agilityhub.inactivity_periods source=0 restored=0
+COUNT agilityhub.instructors source=3 restored=3
+COUNT agilityhub.invoices source=0 restored=0
+COUNT agilityhub.job_locks source=0 restored=0
+COUNT agilityhub.job_runs source=0 restored=0
+COUNT agilityhub.leave_requests source=0 restored=0
+COUNT agilityhub.levels source=10 restored=10
+COUNT agilityhub.magic_link_tokens source=0 restored=0
+COUNT agilityhub.members source=194 restored=194
+COUNT agilityhub.memberships source=191 restored=191
+COUNT agilityhub.message_templates source=52 restored=52
+COUNT agilityhub.notifications source=0 restored=0
+COUNT agilityhub.oidc_browser_sessions source=0 restored=0
+COUNT agilityhub.oidc_codes source=0 restored=0
+COUNT agilityhub.oidc_flows source=0 restored=0
+COUNT agilityhub.pack_balances source=0 restored=0
+COUNT agilityhub.parameters source=5 restored=5
+COUNT agilityhub.pending_charges source=0 restored=0
+COUNT agilityhub.plans source=6 restored=6
+COUNT agilityhub.prices source=6 restored=6
+COUNT agilityhub.push_subscriptions source=1 restored=1
+COUNT agilityhub.refresh_tokens source=2 restored=2
+COUNT agilityhub.remittances source=0 restored=0
+COUNT agilityhub.ring_blocks source=13 restored=13
+COUNT agilityhub.ring_slot_locks source=290 restored=290
+COUNT agilityhub.rings source=5 restored=5
+COUNT agilityhub.saved_views source=0 restored=0
+COUNT agilityhub.seat_holds source=0 restored=0
+COUNT agilityhub.seat_locks source=28 restored=28
+COUNT agilityhub.security_events source=1 restored=1
+COUNT agilityhub.sendgrid_webhook_receipts source=0 restored=0
+COUNT agilityhub.signing_keys source=1 restored=1
+COUNT agilityhub.signup_notification_admissions source=0 restored=0
+COUNT agilityhub.stripe_events source=0 restored=0
+COUNT agilityhub.tasks source=2 restored=2
+COUNT agilityhub.team_write_locks source=1 restored=1
+COUNT agilityhub.training_bookings source=13 restored=13
+COUNT agilityhub.upfront_payments source=6 restored=6
+COUNT agilityhub.waitlist_entries source=9 restored=9
+COUNT agilityhub.week_templates source=3 restored=3
+COUNT agilityhub.weeks source=9 restored=9
+RESTORE_OK key=mongo/20261005T101124Z-14488455b60c4aca8a4958ed3927cd05.tar collections=77 atClusterTime=[1791195080, 13]
+Container e11-t04-e7903487-backup-run-82101d77b82a Creating 
+ Container e11-t04-e7903487-backup-run-82101d77b82a Created
+COMMAND bin/restore-mongo --verify mongo/20261005T101124Z-14488455b60c4aca8a4958ed3927cd05.tar -> exit 0
+COUNT admin.system.users source=3 restored=3
+COUNT admin.system.version source=2 restored=2
+COUNT agilityhub.accounts source=191 restored=191
+COUNT agilityhub.activities source=4 restored=4
+COUNT agilityhub.activity_registrations source=47 restored=47
+COUNT agilityhub.announcements source=0 restored=0
+COUNT agilityhub.attachment_uploads source=10 restored=10
+COUNT agilityhub.attachment_write_locks source=1 restored=1
+COUNT agilityhub.attachments source=1 restored=1
+COUNT agilityhub.attendances source=26 restored=26
+COUNT agilityhub.audit_entries source=120 restored=120
+COUNT agilityhub.billing_locks source=0 restored=0
+COUNT agilityhub.billing_runs source=0 restored=0
+COUNT agilityhub.billing_simulations source=0 restored=0
+COUNT agilityhub.bookings source=75 restored=75
+COUNT agilityhub.catalog_seed_references source=7 restored=7
+COUNT agilityhub.catalog_write_locks source=4 restored=4
+COUNT agilityhub.census_write_locks source=1 restored=1
+COUNT agilityhub.class_sessions source=125 restored=125
+COUNT agilityhub.club_pages source=3 restored=3
+COUNT agilityhub.clubs source=1 restored=1
+COUNT agilityhub.collections source=0 restored=0
+COUNT agilityhub.demo_seed_runs source=2 restored=2
+COUNT agilityhub.dog_documents source=246 restored=246
+COUNT agilityhub.dogs source=246 restored=246
+COUNT agilityhub.domain_events source=918 restored=918
+COUNT agilityhub.export_account_locks source=0 restored=0
+COUNT agilityhub.export_jobs source=0 restored=0
+COUNT agilityhub.export_write_locks source=0 restored=0
+COUNT agilityhub.family_groups source=12 restored=12
+COUNT agilityhub.faq_entries source=7 restored=7
+COUNT agilityhub.followup_items source=2 restored=2
+COUNT agilityhub.followup_read_marks source=0 restored=0
+COUNT agilityhub.handoff_codes source=0 restored=0
+COUNT agilityhub.idempotency_records source=0 restored=0
+COUNT agilityhub.impersonation_grants source=0 restored=0
+COUNT agilityhub.inactivity_periods source=0 restored=0
+COUNT agilityhub.instructors source=3 restored=3
+COUNT agilityhub.invoices source=0 restored=0
+COUNT agilityhub.job_locks source=0 restored=0
+COUNT agilityhub.job_runs source=0 restored=0
+COUNT agilityhub.leave_requests source=0 restored=0
+COUNT agilityhub.levels source=10 restored=10
+COUNT agilityhub.magic_link_tokens source=0 restored=0
+COUNT agilityhub.members source=194 restored=194
+COUNT agilityhub.memberships source=191 restored=191
+COUNT agilityhub.message_templates source=52 restored=52
+COUNT agilityhub.notifications source=0 restored=0
+COUNT agilityhub.oidc_browser_sessions source=0 restored=0
+COUNT agilityhub.oidc_codes source=0 restored=0
+COUNT agilityhub.oidc_flows source=0 restored=0
+COUNT agilityhub.pack_balances source=0 restored=0
+COUNT agilityhub.parameters source=5 restored=5
+COUNT agilityhub.pending_charges source=0 restored=0
+COUNT agilityhub.plans source=6 restored=6
+COUNT agilityhub.prices source=6 restored=6
+COUNT agilityhub.push_subscriptions source=1 restored=1
+COUNT agilityhub.refresh_tokens source=2 restored=2
+COUNT agilityhub.remittances source=0 restored=0
+COUNT agilityhub.ring_blocks source=13 restored=13
+COUNT agilityhub.ring_slot_locks source=290 restored=290
+COUNT agilityhub.rings source=5 restored=5
+COUNT agilityhub.saved_views source=0 restored=0
+COUNT agilityhub.seat_holds source=0 restored=0
+COUNT agilityhub.seat_locks source=28 restored=28
+COUNT agilityhub.security_events source=1 restored=1
+COUNT agilityhub.sendgrid_webhook_receipts source=0 restored=0
+COUNT agilityhub.signing_keys source=1 restored=1
+COUNT agilityhub.signup_notification_admissions source=0 restored=0
+COUNT agilityhub.stripe_events source=0 restored=0
+COUNT agilityhub.tasks source=2 restored=2
+COUNT agilityhub.team_write_locks source=1 restored=1
+COUNT agilityhub.training_bookings source=13 restored=13
+COUNT agilityhub.upfront_payments source=6 restored=6
+COUNT agilityhub.waitlist_entries source=9 restored=9
+COUNT agilityhub.week_templates source=3 restored=3
+COUNT agilityhub.weeks source=9 restored=9
+RESTORE_OK key=mongo/20261005T101124Z-14488455b60c4aca8a4958ed3927cd05.tar collections=77 atClusterTime=[1791195080, 13]
+Container e11-t04-e7903487-backup-run-4c5539f89d62 Creating 
+ Container e11-t04-e7903487-backup-run-4c5539f89d62 Created
+COMMAND bin/restore-mongo --verify -> exit 2
+
+Configuration error: BACKUP_AGE_IDENTITY is required for verification only
+COMMAND bin/backup-mongo  -> exit 2
+
+Configuration error: BACKUP_AGE_RECIPIENT is required; no container, dump or S3 object was created
+COMMAND bin/backup-mongo  -> exit 2
+
+Configuration error: BACKUP_S3_BUCKET is required; no container, dump or S3 object was created
+PASS missing recipient and bucket fail before container/dump/upload
+COMMAND isolated proof.py -> exit 0
+PASS backup principal has only backup role and cannot write
+PASS snapshot counts exclude the later live write (source snapshot=3, live=4)
+BACKUP_OK key=mongo/20261005T101132Z-cb2b8fd308654de7af1fde5943a856e8.tar collections=78 snapshot=1791195092:1 retention=S3-lifecycle
+PASS transaction insert/update/delete completed DURING mongodump in 0.002s
+COUNT admin.system.users source=3 restored=3
+COUNT admin.system.version source=2 restored=2
+COUNT agilityhub.accounts source=191 restored=191
+COUNT agilityhub.activities source=4 restored=4
+COUNT agilityhub.activity_registrations source=47 restored=47
+COUNT agilityhub.announcements source=0 restored=0
+COUNT agilityhub.attachment_uploads source=10 restored=10
+COUNT agilityhub.attachment_write_locks source=1 restored=1
+COUNT agilityhub.attachments source=1 restored=1
+COUNT agilityhub.attendances source=26 restored=26
+COUNT agilityhub.audit_entries source=120 restored=120
+COUNT agilityhub.backup_probe source=3 restored=3
+COUNT agilityhub.billing_locks source=0 restored=0
+COUNT agilityhub.billing_runs source=0 restored=0
+COUNT agilityhub.billing_simulations source=0 restored=0
+COUNT agilityhub.bookings source=75 restored=75
+COUNT agilityhub.catalog_seed_references source=7 restored=7
+COUNT agilityhub.catalog_write_locks source=4 restored=4
+COUNT agilityhub.census_write_locks source=1 restored=1
+COUNT agilityhub.class_sessions source=125 restored=125
+COUNT agilityhub.club_pages source=3 restored=3
+COUNT agilityhub.clubs source=1 restored=1
+COUNT agilityhub.collections source=0 restored=0
+COUNT agilityhub.demo_seed_runs source=2 restored=2
+COUNT agilityhub.dog_documents source=246 restored=246
+COUNT agilityhub.dogs source=246 restored=246
+COUNT agilityhub.domain_events source=918 restored=918
+COUNT agilityhub.export_account_locks source=0 restored=0
+COUNT agilityhub.export_jobs source=0 restored=0
+COUNT agilityhub.export_write_locks source=0 restored=0
+COUNT agilityhub.family_groups source=12 restored=12
+COUNT agilityhub.faq_entries source=7 restored=7
+COUNT agilityhub.followup_items source=2 restored=2
+COUNT agilityhub.followup_read_marks source=0 restored=0
+COUNT agilityhub.handoff_codes source=0 restored=0
+COUNT agilityhub.idempotency_records source=0 restored=0
+COUNT agilityhub.impersonation_grants source=0 restored=0
+COUNT agilityhub.inactivity_periods source=0 restored=0
+COUNT agilityhub.instructors source=3 restored=3
+COUNT agilityhub.invoices source=0 restored=0
+COUNT agilityhub.job_locks source=0 restored=0
+COUNT agilityhub.job_runs source=0 restored=0
+COUNT agilityhub.leave_requests source=0 restored=0
+COUNT agilityhub.levels source=10 restored=10
+COUNT agilityhub.magic_link_tokens source=0 restored=0
+COUNT agilityhub.members source=194 restored=194
+COUNT agilityhub.memberships source=191 restored=191
+COUNT agilityhub.message_templates source=52 restored=52
+COUNT agilityhub.notifications source=0 restored=0
+COUNT agilityhub.oidc_browser_sessions source=0 restored=0
+COUNT agilityhub.oidc_codes source=0 restored=0
+COUNT agilityhub.oidc_flows source=0 restored=0
+COUNT agilityhub.pack_balances source=0 restored=0
+COUNT agilityhub.parameters source=5 restored=5
+COUNT agilityhub.pending_charges source=0 restored=0
+COUNT agilityhub.plans source=6 restored=6
+COUNT agilityhub.prices source=6 restored=6
+COUNT agilityhub.push_subscriptions source=1 restored=1
+COUNT agilityhub.refresh_tokens source=2 restored=2
+COUNT agilityhub.remittances source=0 restored=0
+COUNT agilityhub.ring_blocks source=13 restored=13
+COUNT agilityhub.ring_slot_locks source=290 restored=290
+COUNT agilityhub.rings source=5 restored=5
+COUNT agilityhub.saved_views source=0 restored=0
+COUNT agilityhub.seat_holds source=0 restored=0
+COUNT agilityhub.seat_locks source=28 restored=28
+COUNT agilityhub.security_events source=1 restored=1
+COUNT agilityhub.sendgrid_webhook_receipts source=0 restored=0
+COUNT agilityhub.signing_keys source=1 restored=1
+COUNT agilityhub.signup_notification_admissions source=0 restored=0
+COUNT agilityhub.stripe_events source=0 restored=0
+COUNT agilityhub.tasks source=2 restored=2
+COUNT agilityhub.team_write_locks source=1 restored=1
+COUNT agilityhub.training_bookings source=13 restored=13
+COUNT agilityhub.upfront_payments source=6 restored=6
+COUNT agilityhub.waitlist_entries source=9 restored=9
+COUNT agilityhub.week_templates source=3 restored=3
+COUNT agilityhub.weeks source=9 restored=9
+RESTORE_OK key=mongo/20261005T101132Z-cb2b8fd308654de7af1fde5943a856e8.tar collections=78 atClusterTime=[1791195092, 1]
+PASS concurrent-write backup restores exact snapshot counts
+PASS low disk refuses before producing any dump
+
+COMMAND bin/restore-mongo --verify mongo/20000101T000000Z-42b367317d450f8df852b666df145cf3.tar -> exit 1
+
+Container e11-t04-e7903487-backup-run-f13028dab401 Creating 
+ Container e11-t04-e7903487-backup-run-f13028dab401 Created 
+FAILED: age failed (exit 1); private tool output suppressed
+PASS authenticated decryption rejects tampered ciphertext before Mongo starts
+COMMAND bin/restore-mongo --verify mongo/20000102T000000Z-6a4e7779b7099dae05a9c1a8e172ff91.tar -> exit 1
+COUNT admin.system.users source=3 restored=3
+COUNT admin.system.version source=2 restored=2
+COUNT agilityhub.accounts source=192 restored=191
+COUNT agilityhub.activities source=4 restored=4
+COUNT agilityhub.activity_registrations source=47 restored=47
+COUNT agilityhub.announcements source=0 restored=0
+COUNT agilityhub.attachment_uploads source=10 restored=10
+COUNT agilityhub.attachment_write_locks source=1 restored=1
+COUNT agilityhub.attachments source=1 restored=1
+COUNT agilityhub.attendances source=26 restored=26
+COUNT agilityhub.audit_entries source=120 restored=120
+COUNT agilityhub.billing_locks source=0 restored=0
+COUNT agilityhub.billing_runs source=0 restored=0
+COUNT agilityhub.billing_simulations source=0 restored=0
+COUNT agilityhub.bookings source=75 restored=75
+COUNT agilityhub.catalog_seed_references source=7 restored=7
+COUNT agilityhub.catalog_write_locks source=4 restored=4
+COUNT agilityhub.census_write_locks source=1 restored=1
+COUNT agilityhub.class_sessions source=125 restored=125
+COUNT agilityhub.club_pages source=3 restored=3
+COUNT agilityhub.clubs source=1 restored=1
+COUNT agilityhub.collections source=0 restored=0
+COUNT agilityhub.demo_seed_runs source=2 restored=2
+COUNT agilityhub.dog_documents source=246 restored=246
+COUNT agilityhub.dogs source=246 restored=246
+COUNT agilityhub.domain_events source=918 restored=918
+COUNT agilityhub.export_account_locks source=0 restored=0
+COUNT agilityhub.export_jobs source=0 restored=0
+COUNT agilityhub.export_write_locks source=0 restored=0
+COUNT agilityhub.family_groups source=12 restored=12
+COUNT agilityhub.faq_entries source=7 restored=7
+COUNT agilityhub.followup_items source=2 restored=2
+COUNT agilityhub.followup_read_marks source=0 restored=0
+COUNT agilityhub.handoff_codes source=0 restored=0
+COUNT agilityhub.idempotency_records source=0 restored=0
+COUNT agilityhub.impersonation_grants source=0 restored=0
+COUNT agilityhub.inactivity_periods source=0 restored=0
+COUNT agilityhub.instructors source=3 restored=3
+COUNT agilityhub.invoices source=0 restored=0
+COUNT agilityhub.job_locks source=0 restored=0
+COUNT agilityhub.job_runs source=0 restored=0
+COUNT agilityhub.leave_requests source=0 restored=0
+COUNT agilityhub.levels source=10 restored=10
+COUNT agilityhub.magic_link_tokens source=0 restored=0
+COUNT agilityhub.members source=194 restored=194
+COUNT agilityhub.memberships source=191 restored=191
+COUNT agilityhub.message_templates source=52 restored=52
+COUNT agilityhub.notifications source=0 restored=0
+COUNT agilityhub.oidc_browser_sessions source=0 restored=0
+COUNT agilityhub.oidc_codes source=0 restored=0
+COUNT agilityhub.oidc_flows source=0 restored=0
+COUNT agilityhub.pack_balances source=0 restored=0
+COUNT agilityhub.parameters source=5 restored=5
+COUNT agilityhub.pending_charges source=0 restored=0
+COUNT agilityhub.plans source=6 restored=6
+COUNT agilityhub.prices source=6 restored=6
+COUNT agilityhub.push_subscriptions source=1 restored=1
+COUNT agilityhub.refresh_tokens source=2 restored=2
+COUNT agilityhub.remittances source=0 restored=0
+COUNT agilityhub.ring_blocks source=13 restored=13
+COUNT agilityhub.ring_slot_locks source=290 restored=290
+COUNT agilityhub.rings source=5 restored=5
+COUNT agilityhub.saved_views source=0 restored=0
+COUNT agilityhub.seat_holds source=0 restored=0
+COUNT agilityhub.seat_locks source=28 restored=28
+COUNT agilityhub.security_events source=1 restored=1
+COUNT agilityhub.sendgrid_webhook_receipts source=0 restored=0
+COUNT agilityhub.signing_keys source=1 restored=1
+COUNT agilityhub.signup_notification_admissions source=0 restored=0
+COUNT agilityhub.stripe_events source=0 restored=0
+COUNT agilityhub.tasks source=2 restored=2
+COUNT agilityhub.team_write_locks source=1 restored=1
+COUNT agilityhub.training_bookings source=13 restored=13
+COUNT agilityhub.upfront_payments source=6 restored=6
+COUNT agilityhub.waitlist_entries source=9 restored=9
+COUNT agilityhub.week_templates source=3 restored=3
+COUNT agilityhub.weeks source=9 restored=9
+Container e11-t04-e7903487-backup-run-2170d8530b34 Creating 
+ Container e11-t04-e7903487-backup-run-2170d8530b34 Created 
+FAILED: Collection count mismatch
+PASS authenticated false count fails verification
+COMMAND bin/restore-mongo  -> exit 2
+
+Configuration error: Usage: bin/restore-mongo --verify [object-key]
+PASS restore requires --verify and has no live destination
+E11-T04 ALL CHECKS PASSED
+CLEANUP disposable project, volumes and private credentials removed

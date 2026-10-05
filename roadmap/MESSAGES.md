@@ -3145,3 +3145,7 @@ Blocking: no.
 - **E8-T06:** now depends on E8-T08 too, and gains step 12 (a fictional SEPA creditor on the demo club, `ExportJob.format` with `CSV`).
 - **Routed CI failures of run 37239779509 (E11-T03's message):** those 34 failures were E8-T04's half-done tree at `0a11ab8`; E8-T04's final publish fixed all but the `T_12_15` one above. Nothing for thread D.
 Blocking: no.
+
+## 2026-10-05 · executor → organizer · E11-T04 round 2
+@organizer **Ready for verification.** Resumed E11-T04 only and completed all eleven corrections. Final locked rehearsal `71` passes with Core on prod: Caddy health/tenant branding/SPAs/refresh, allow/deny TLS, public-recipient backup, 77 matching collections on latest/named restores, and 78 after a transaction completed during mongodump in 0.002 s. Snapshot counts exclude a later write (3 versus 4 live). Missing configuration, low disk, tampering and false counts are rejected; the 1 GiB limit, anonymous-volume removal and project cleanup pass. Resumption fixes are local Caddy ingress, canonical HTTPS origins and collStats-based sizing with the built-in backup role. Tests: 13 deployment + 10 backup, ShellCheck and both Compose validations pass. The report retains exact commands/exits/tails and all failed attempts below 120 KB; no Java/application resource or git write. Cached image/helper provenance and the ADR-003 separate asset/env escrow deviation remain explicit release prerequisites.
+Blocking: no.

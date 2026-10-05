@@ -1,0 +1,24 @@
+test_E11_T04_size_estimate_uses_backup_role_collection_stats (test_backup.BackupSafetyTest) ... ERROR
+
+======================================================================
+ERROR: test_E11_T04_size_estimate_uses_backup_role_collection_stats (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 28, in test_E11_T04_size_estimate_uses_backup_role_collection_stats
+    self.assertEqual(backup.GIB + 4 * 1536, backup.estimate_space(client))
+  File "/tests/backup.py", line 107, in estimate_space
+    stats = client[database].command('dbStats')
+  File "/usr/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1179, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/tests/test_backup.py", line 23, in command
+    raise OperationFailure('not authorized', code=13)
+pymongo.errors.OperationFailure: not authorized
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (errors=1)

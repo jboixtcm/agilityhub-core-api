@@ -142,6 +142,8 @@ def main():
             assert resolved['services']['seed']['environment']['SPRING_PROFILES_ACTIVE'] == 'local'
             assert not resolved['services']['core']['environment'].get('SMS_ALLOWED_NUMBERS')
             assert resolved['networks']['default']['internal']
+            assert set(resolved['services']['core']['networks']) == {'default'}
+            assert 'ingress' in resolved['services']['caddy']['networks']
             print('PASS prod Core, local seed, both billing keys, private network with no provider egress', flush=True)
             mongo_image = resolved['services']['mongo']['image']
             if run(['docker', 'image', 'inspect', mongo_image], check=False).returncode:
@@ -198,10 +200,10 @@ def main():
 
             def request(host, path, form=None, cookie=None, expected=200, extra_headers=(), bearer=None, method=None, json_body=None):
                 command = ['curl', '-4', '--silent', '--show-error', '--cacert', str(work / 'ca.crt'), '--noproxy', '*',
-                           '--resolve', f'{host}:{port}:127.0.0.1', '--max-time', '30', '-D', str(work / 'headers'),
+                           '--connect-to', f'{host}:443:127.0.0.1:{port}', '--max-time', '30', '-D', str(work / 'headers'),
                            '-o', str(work / 'body'), '-w', '%{http_code}']
                 if form is not None:
-                    command += ['--data-binary', '@-', '-H', 'Content-Type: application/x-www-form-urlencoded', '-H', f'Origin: https://{host}:{port}']
+                    command += ['--data-binary', '@-', '-H', 'Content-Type: application/x-www-form-urlencoded', '-H', f'Origin: https://{host}']
                 if method is not None:
                     command += ['--request', method]
                 if json_body is not None:
@@ -214,7 +216,7 @@ def main():
                     command += ['-H', '@' + str(work / 'bearer-header')]
                 for header in extra_headers:
                     command += ['-H', header]
-                command += [f'https://{host}:{port}{path}']
+                command += [f'https://{host}{path}']
                 payload = json_body.encode() if json_body is not None else urllib.parse.urlencode(form).encode() if form else None
                 result = run(command, input=payload)
                 status = int(result.stdout)
@@ -293,8 +295,8 @@ def main():
             print('PASS old refresh cookie rejected through Caddy', flush=True)
             request('core.localhost', '/internal/domains/allowed?host=unknown.invalid', expected=404)
             denied_tls = run(['curl', '--silent', '--show-error', '--cacert', str(work / 'ca.crt'), '--noproxy', '*',
-                              '--resolve', f'unapproved.localhost:{port}:127.0.0.1', '--max-time', '10',
-                              f'https://unapproved.localhost:{port}/'], check=False)
+                              '--connect-to', f'unapproved.localhost:443:127.0.0.1:{port}', '--max-time', '10',
+                              'https://unapproved.localhost/'], check=False)
             assert denied_tls.returncode != 0
             body, headers = request('approved.localhost', '/')
             assert '<h1>AgilityHub clubs</h1>' in body
@@ -310,7 +312,7 @@ def main():
             assert unauth.returncode != 0
             print('PASS Mongo rejects unauthenticated reads; internal ask route is not public', flush=True)
             if args.security_only:
-                own = f'https://clubsadmin.localhost:{port}'
+                own = 'https://clubsadmin.localhost'
                 _, headers = request('clubs.localhost', '/api/v1/branding', extra_headers=(f'Origin: {own}',))
                 assert 'access-control-allow-origin: ' + own in headers.lower()
                 assert 'access-control-allow-credentials:' not in headers.lower()
@@ -328,6 +330,19 @@ def main():
                    "assert s.get_bucket_lifecycle_configuration(Bucket=os.environ['BACKUP_S3_BUCKET'])['Rules'][0]['Expiration']['Days']==30")
             helper("import os; assert 'BACKUP_AGE_IDENTITY' not in os.environ; assert os.environ['BACKUP_AGE_RECIPIENT'].startswith('age1')")
             print('PASS MinIO lifecycle is 30 days; normal backup container has only the public recipient', flush=True)
+            probe = docker('run', '--rm', '--no-deps', '-d', '--entrypoint', 'sleep', 'backup', '120', text=True).stdout.strip()
+            info = json.loads(run(['docker', 'inspect', probe], text=True).stdout)[0]
+            assert info['HostConfig']['Memory'] == 1024 ** 3
+            volume = next(mount['Name'] for mount in info['Mounts']
+                          if mount['Destination'] == '/work' and mount['Type'] == 'volume')
+            run(['docker', 'stop', '-t', '1', probe])
+            for attempt in range(50):
+                if run(['docker', 'volume', 'inspect', volume], check=False).returncode != 0:
+                    break
+                time.sleep(0.1)
+            else:
+                raise AssertionError('Anonymous ops work volume survived its container')
+            print('PASS ops memory is 1 GiB and its anonymous work volume disappears with the container', flush=True)
             output = script('backup-mongo')
             key = re.search(r'BACKUP_OK key=(\S+)', output).group(1)
             script('restore-mongo', '--verify')

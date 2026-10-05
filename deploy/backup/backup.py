@@ -102,10 +102,10 @@ def check_space(work, estimate):
 
 def estimate_space(client):
     total = 0
-    for database in client.list_database_names():
-        if database not in ('local', 'config'):
-            stats = client[database].command('dbStats')
-            total += stats['dataSize'] + stats['indexSize']
+    # Mongo's built-in backup role permits collStats, but not dbStats.
+    for database, name, _ in inventory(client):
+        stats = client[database].command('collStats', name)
+        total += stats['size'] + stats['totalIndexSize']
     # Up to two ciphertext copies for backup; restore has archive plus a database.
     # Reserve growth/compression uncertainty and Mongo journal/preallocation space.
     return max(GIB, int(total * 4 + GIB))

@@ -4,14 +4,14 @@ services:
     environment: &local-environment
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATA_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
-      AUTH_ISSUER: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}
-      OIDC_LOGIN_URL: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}/login
-      OIDC_ID_WEB_REDIRECT_URI: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}/oidc/callback
-      OIDC_ID_WEB_LOGOUT_URI: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}/
-      OIDC_CLUBS_APP_REDIRECT_URI: https://clubs.localhost:${LOCAL_HTTPS_PORT:-8443}/oidc/callback
-      OIDC_CLUBS_APP_LOGOUT_URI: https://clubs.localhost:${LOCAL_HTTPS_PORT:-8443}/
-      OIDC_CLUBS_ADMIN_REDIRECT_URI: https://clubsadmin.localhost:${LOCAL_HTTPS_PORT:-8443}/oidc/callback
-      OIDC_CLUBS_ADMIN_LOGOUT_URI: https://clubsadmin.localhost:${LOCAL_HTTPS_PORT:-8443}/
+      AUTH_ISSUER: https://id.localhost
+      OIDC_LOGIN_URL: https://id.localhost/login
+      OIDC_ID_WEB_REDIRECT_URI: https://id.localhost/oidc/callback
+      OIDC_ID_WEB_LOGOUT_URI: https://id.localhost/
+      OIDC_CLUBS_APP_REDIRECT_URI: https://clubs.localhost/oidc/callback
+      OIDC_CLUBS_APP_LOGOUT_URI: https://clubs.localhost/
+      OIDC_CLUBS_ADMIN_REDIRECT_URI: https://clubsadmin.localhost/oidc/callback
+      OIDC_CLUBS_ADMIN_LOGOUT_URI: https://clubsadmin.localhost/
       # Like the consumer stack, only ID is global; the two other local hosts belong to the demo club.
       CORS_PLATFORM_HOSTS: id.localhost
       SMS_ALLOWED_NUMBERS: ""
@@ -71,6 +71,10 @@ services:
       seed:
         condition: service_completed_successfully
   caddy:
+    # Docker Desktop needs a non-internal bridge for published loopback ports.
+    # Only the proxy joins it; Core retains no provider egress.
+    networks:
+      ingress: {}
     depends_on:
       ask-stub:
         condition: service_started
@@ -122,3 +126,4 @@ volumes:
 networks:
   default:
     internal: true
+  ingress: {}

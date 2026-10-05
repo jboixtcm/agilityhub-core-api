@@ -152,6 +152,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Disk work is private and disposable, with memory/free-space guards. The local proof boots Core in prod,
   checks both billing keys, index caching and positive/negative TLS approval; the runbook adds cron failure
   alerts and separate encrypted escrow for the ADR-003 assets outside the Mongo archive.
+  The resumed rehearsal gives Caddy a separate local ingress bridge while Core remains isolated from
+  provider egress; a real Caddy regression test checks cache headers on root, index and deep-link requests.
+  Canonical HTTPS origins survive local port mapping, and backup sizing uses collection statistics that
+  the built-in backup role permits.
 - E6-T06 (ruling E75, S10 §6 and CONVENCIONS_API §4 amended 30-09): the D14 and D12 contract gaps of the web's E6-W03.
   - `GET /followup/filter-values` (INSTRUCTOR, ADMIN; `TASKS`): D14's filter values for `kind`, `memberId`, `dogId`,
     `authorAccountId` («Creador») and `unread`, each counted over the whole filtered set; `unread` is the caller's own.

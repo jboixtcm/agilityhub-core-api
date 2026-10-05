@@ -1,0 +1,1 @@
+env LOCAL_MONGODB_URI=mongodb://fictional:fictional@mongo/agilityhub SEED_PASSWORD=fictional docker compose --env-file deploy/.env.prod.example -f deploy/compose.prod.yaml -f deploy/compose.prod.local.yaml config

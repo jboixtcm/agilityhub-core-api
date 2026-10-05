@@ -1,0 +1,1 @@
+docker run --rm --network none --entrypoint /opt/backup/bin/python -v /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/backup:/tests:ro -w /tests agilityhub-backup:2 -B -m unittest -v test_backup.BackupSafetyTest.test_E11_T04_size_estimate_uses_backup_role_collection_stats

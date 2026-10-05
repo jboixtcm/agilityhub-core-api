@@ -1,0 +1,7 @@
+PASS Organizer verification, other tasks and protected bank-key text unchanged; no application source/resource edits
+PASS 22 evidence sections contain exact commands, exits and literal log tails
+PASS new logs are unignored and contain no private age identity, full JWT or populated authorization/cookie header
+PASS final project containers=0
+PASS final project networks=0
+PASS final project volumes=0
+PASS task bytes=87645

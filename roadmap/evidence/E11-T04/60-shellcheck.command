@@ -1,0 +1,1 @@
+docker run --rm --network none -v /Users/jordib/dev/agilityhub/agilityhub-core-api-c:/mnt:ro -w /mnt koalaman/shellcheck:v0.10.0 bin/backup-mongo bin/restore-mongo bin/deploy-smoke deploy/mongo-entrypoint.sh

@@ -2,8 +2,12 @@
 import json
 from pathlib import Path
 import re
+import socket
 import subprocess
+import tempfile
+import time
 import unittest
+import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -30,10 +34,15 @@ class DeploymentReviewTest(unittest.TestCase):
         core = local['services']['core']['environment']
         self.assertEqual('prod', core['SPRING_PROFILES_ACTIVE'])
         self.assertEqual('local', local['services']['seed']['environment']['SPRING_PROFILES_ACTIVE'])
+        self.assertEqual('https://clubs.localhost/oidc/callback', core['OIDC_CLUBS_APP_REDIRECT_URI'])
         for prefix in ('EXPORT', 'ATTACHMENT'):
             self.assertEqual('http://minio:9000', core[prefix + '_S3_ENDPOINT'])
         for key in ('SENDGRID_API_KEY', 'TWILIO_AUTH_TOKEN', 'VAPID_PRIVATE_KEY'):
             self.assertTrue(core[key])
+        self.assertTrue(local['networks']['default']['internal'])
+        self.assertEqual({'default'}, set(local['services']['core']['networks']))
+        self.assertIn('ingress', local['services']['caddy']['networks'])
+        self.assertFalse(local['networks']['ingress'].get('internal', False))
 
     def test_E11_T04_03_bounded_disk_work(self):
         ops = self.prod['services']['backup']
@@ -46,6 +55,37 @@ class DeploymentReviewTest(unittest.TestCase):
     def test_E11_T04_05_spa_cache_after_rewrite(self):
         caddy = (ROOT / 'deploy/Caddyfile').read_text()
         self.assertRegex(caddy, r'route\s*\{\s*try_files[^\n]+\n\s*header /index.html Cache-Control "no-cache"')
+
+    def test_E11_T04_05_real_caddy_index_headers(self):
+        # Run the real snippets, without the API or an entire Compose stack.
+        caddy = (ROOT / 'deploy/Caddyfile').read_text()
+        snippets = caddy[caddy.index('(security_headers)'):caddy.index('{$ID_HOST}')]
+        with socket.socket() as sock:
+            sock.bind(('127.0.0.1', 0))
+            port = sock.getsockname()[1]
+        with tempfile.TemporaryDirectory(prefix='e11-caddy-') as directory:
+            path = Path(directory)
+            (path / 'Caddyfile').write_text(snippets + '\nhttp://:8080 {\n import spa /srv\n}\n')
+            (path / 'index.html').write_text('fictional SPA')
+            container = subprocess.check_output([
+                'docker', 'run', '--rm', '-d', '-p', f'127.0.0.1:{port}:8080',
+                '-v', str(path / 'Caddyfile') + ':/etc/caddy/Caddyfile:ro',
+                '-v', directory + ':/srv:ro', 'caddy:2.10.2-alpine'], text=True).strip()
+            try:
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+                for attempt in range(50):
+                    try:
+                        response = opener.open(f'http://127.0.0.1:{port}/', timeout=1)
+                        response.close()
+                        break
+                    except OSError:
+                        time.sleep(0.1)
+                for route in ('/', '/index.html', '/a/deep/link'):
+                    with self.subTest(route=route), opener.open(f'http://127.0.0.1:{port}{route}', timeout=3) as response:
+                        self.assertEqual('no-cache', response.headers.get('Cache-Control'))
+                        self.assertEqual(b'fictional SPA', response.read())
+            finally:
+                subprocess.run(['docker', 'rm', '-f', container], check=True, capture_output=True)
 
     def test_E11_T04_06_cron_alert_and_lock_exit(self):
         cron = re.search(r'```cron\n(.*?)\n```', self.doc, re.S).group(1)

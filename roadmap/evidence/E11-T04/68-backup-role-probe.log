@@ -1,0 +1,146 @@
+[
+  {
+    "resource": {
+      "anyResource": true
+    },
+    "actions": [
+      "collStats",
+      "listCollections",
+      "listIndexes",
+      "listSearchIndexes"
+    ]
+  },
+  {
+    "resource": {
+      "db": "",
+      "collection": ""
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "system_buckets": ""
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "cluster": true
+    },
+    "actions": [
+      "appendOplogNote",
+      "getParameter",
+      "listDatabases",
+      "serverStatus",
+      "setUserWriteBlockMode",
+      "useUUID"
+    ]
+  },
+  {
+    "resource": {
+      "db": "config",
+      "collection": ""
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "local",
+      "collection": ""
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "local",
+      "collection": "replset.election"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "local",
+      "collection": "replset.minvalid"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "",
+      "collection": "system.js"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "",
+      "collection": "system.users"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "",
+      "collection": "system.profile"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "admin",
+      "collection": "system.backup_users"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "admin",
+      "collection": "system.roles"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "admin",
+      "collection": "system.version"
+    },
+    "actions": [
+      "find"
+    ]
+  },
+  {
+    "resource": {
+      "db": "config",
+      "collection": "settings"
+    },
+    "actions": [
+      "find",
+      "insert",
+      "update"
+    ]
+  }
+]
+PASS built-in backup role permits collStats but not dbStats; no additional role needed
+CLEANUP isolated role probe removed

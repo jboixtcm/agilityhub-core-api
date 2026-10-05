@@ -10,10 +10,23 @@ from unittest.mock import MagicMock, patch
 import boto3
 from bson import BSON, Timestamp
 from botocore.stub import Stubber
+from pymongo.errors import OperationFailure
 import backup
 
 
 class BackupSafetyTest(unittest.TestCase):
+    def test_E11_T04_size_estimate_uses_backup_role_collection_stats(self):
+        client = MagicMock()
+        client.list_database_names.return_value = ['fictional']
+        def command(name, *args):
+            if name == 'dbStats':
+                raise OperationFailure('not authorized', code=13)
+            self.assertEqual(('collStats', 'rows'), (name, *args))
+            return {'size': 512, 'totalIndexSize': 1024, 'ok': 1.0}
+        client.__getitem__.return_value.command.side_effect = command
+        with patch.object(backup, 'inventory', return_value=[('fictional', 'rows', {})]):
+            self.assertEqual(backup.GIB + 4 * 1536, backup.estimate_space(client))
+
     def test_E11_T04_snapshot_counts_all_collections_at_one_timestamp(self):
         client = MagicMock()
         client.__getitem__.return_value.command.side_effect = [
