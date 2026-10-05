@@ -20,6 +20,9 @@ public class PaymentProviderRegistry implements PaymentProvider {
     }
     public PaymentProvider resolve() {
         if (!clubs.stripe(TenantContext.require()).map(config -> config.enabled()).orElse(false)) { return DISABLED; }
+        return implementation();
+    }
+    private PaymentProvider implementation() {
         return fake.getIfAvailable(() -> null) == null ? stripe : fake.getObject();
     }
     public void require(Capability capability) {
@@ -33,7 +36,8 @@ public class PaymentProviderRegistry implements PaymentProvider {
     @Override public com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) { return resolve().cardDetails(object); }
     @Override public void forgetCustomer(String customerId) { resolve().forgetCustomer(customerId); }
     @Override public void complete(String id) { resolve().complete(id); }
-    @Override public void expire(String id) { resolve().expire(id); }
+    // Disabling new payments must not prevent closing a session opened by an already running request (S04 R-04-26).
+    @Override public void expire(String id) { implementation().expire(id); }
     @Override public Duration callTimeout() { return MAX_CALL_TIMEOUT; }
     private static final PaymentProvider DISABLED = new PaymentProvider() {
         private ApiException error() { return new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }

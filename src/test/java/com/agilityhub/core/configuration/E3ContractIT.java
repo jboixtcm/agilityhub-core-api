@@ -171,7 +171,8 @@ class E3ContractIT extends AbstractIntegrationTest {
                 "CheckoutSessionRequest", "CheckoutSession", "AddDogSignupRequest", "AddDogSignupResult", "MemberSignupView", "ValidationRequest",
                 "ValidationDryRun", "ValidationResult", "RejectionRequest", "RejectionResult")) { assertThat(schema.path(name).path("properties").isEmpty()).as(name).isFalse(); }
         // CHECKOUT_PENDING: the D2 dryRun warning of S04 §5 / E39; PAID_EXCEEDS_QUOTE: E39b, in the dryRun and the validation (E3-T08).
-        assertThat(strings(schema.at("/SignupWarning/enum"))).containsExactly("NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","FAMILY_HOLDER_NOT_FOUND","UPFRONT_UNPAID","READMISSION","CHECKOUT_PENDING","PAID_EXCEEDS_QUOTE");
+        // E8-T04 / R-12-22: the shared D1 warning also exposes an invalid saved card.
+        assertThat(strings(schema.at("/SignupWarning/enum"))).containsExactly("CARD_INVALID","NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","FAMILY_HOLDER_NOT_FOUND","UPFRONT_UNPAID","READMISSION","CHECKOUT_PENDING","PAID_EXCEEDS_QUOTE");
         properties(schema, "SignupUpfrontReview", "lines,totalDue,totalPaid,paidExceedsQuote,firstMonth");
         // E3-T12 (web E3-W07, R-04-15): the first month D2 names, optional (only with a FIRST_MONTH line).
         properties(schema, "SignupFirstMonth", "option,portion,startDate,amountDue");

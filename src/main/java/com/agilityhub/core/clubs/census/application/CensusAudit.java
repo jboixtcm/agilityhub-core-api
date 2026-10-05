@@ -14,7 +14,8 @@ public class CensusAudit {
     /** {@code ibanLast4}: the account of a migrated member, whose IBAN is only stored encrypted (E42: a PATCH can clear it). */
     public record Bank(@AuditField @Sensitive String iban, @AuditField String type, @AuditField String holderName,
             @AuditField @Sensitive(Sensitive.Strategy.MASK_ID_DOCUMENT) String holderTaxId, @AuditField String channel,
-            @AuditField String last4, @AuditField String brand, @AuditField String ibanLast4) { }
+            @AuditField String last4, @AuditField String brand, @AuditField String ibanLast4,
+            @AuditField Boolean invalid) { }
     public record IdentityDocument(@AuditField String type, @AuditField @Sensitive(Sensitive.Strategy.MASK_ID_DOCUMENT) String number) { }
     @Bean AuditableLoader censusMemberAudit(CensusRepository<Member> repo, ObjectMapper mapper) { return loader("Member", repo, mapper); }
     @Bean AuditableLoader censusDogAudit(CensusRepository<Dog> repo, ObjectMapper mapper) { return loader("Dog", repo, mapper); }
@@ -45,6 +46,7 @@ public class CensusAudit {
     static Bank bank(Map<String,Object> payment) {
         var pay = map(payment); var sepa = map(pay.getOrDefault("sepa", pay)); var card = map(pay.getOrDefault("card", pay));
         return new Bank(string(sepa.get("iban")), string(pay.get("type")), string(sepa.get("holderName")),
-                string(sepa.get("holderTaxId")), string(pay.get("channel")), string(card.get("last4")), string(card.get("brand")), string(sepa.get("ibanLast4")));
+                string(sepa.get("holderTaxId")), string(pay.get("channel")), string(card.get("last4")), string(card.get("brand")), string(sepa.get("ibanLast4")),
+                "CARD".equals(pay.get("type")) ? Boolean.TRUE.equals(card.get("invalid")) : null);
     }
 }

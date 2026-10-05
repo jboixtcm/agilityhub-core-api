@@ -44,6 +44,13 @@ class S04ErrorContractTest {
     /** Only an insert can meet another member's identity document; the D2 commands save a member with its own. */
     private static final Map<String, String> SAVED_MEMBER = Map.of("ID_DOCUMENT_ALREADY_EXISTS", "the member is saved with its unchanged document",
             "CHIP_ALREADY_EXISTS", "no dog is inserted and no chip changes");
+    /** R-04-23: rejection commits locally even when the subsequent provider expiry fails (CheckoutProviderFailureTest). */
+    private static final Map<String, String> REJECTED_MEMBER = Map.of(
+            "ID_DOCUMENT_ALREADY_EXISTS", SAVED_MEMBER.get("ID_DOCUMENT_ALREADY_EXISTS"),
+            "CHIP_ALREADY_EXISTS", SAVED_MEMBER.get("CHIP_ALREADY_EXISTS"),
+            "PAYMENT_PROVIDER_NOT_ENABLED", "CheckoutService.expireAtProvider catches the provider failure after commit",
+            "PROVIDER_CONFIG_INVALID", "CheckoutService.expireAtProvider catches the provider failure after commit",
+            "RATE_LIMITED", "CheckoutService.expireAtProvider catches the provider failure after commit");
 
     record Route(String name, Class<?> controller, String method, Set<String> crossCutting, Map<String, String> notAnswered) { }
     static final Class<?> SIGNUP = com.agilityhub.core.clubs.census.api.SignupController.class;
@@ -61,7 +68,7 @@ class S04ErrorContractTest {
                             "ID_DOCUMENT_ALREADY_EXISTS", SAVED_MEMBER.get("ID_DOCUMENT_ALREADY_EXISTS"))),
             new Route("GET /members/{id}/signup", SIGNUP, "review", Set.of(), Map.of("VALIDATION_ERROR", "the quote uses the options stored at submission")),
             new Route("POST /members/{id}/validation", SIGNUP, "validate", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
-            new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
+            new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), REJECTED_MEMBER),
             // Round 2, point 4 (S04 §6, D2): the census PATCH routes also edit a pending signup (`patchPending`).
             new Route("PATCH /members/{id}", com.agilityhub.core.clubs.census.api.MembersController.class, "updateMember", Set.of("VALIDATION_ERROR"),
                     Map.of("CHIP_ALREADY_EXISTS", "a member PATCH saves no dog")),

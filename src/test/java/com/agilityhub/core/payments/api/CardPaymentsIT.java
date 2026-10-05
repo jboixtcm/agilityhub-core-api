@@ -132,6 +132,28 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(6000);
         assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
     }
+    @Test void T_12_17_refundDeliveredBeforePaymentSuccessIsDeferredAndReplayedOnce() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        String paymentIntent = intent(invoice);
+        var refund = Map.<String, Object>of("id", "ch_early_refund", "payment_intent", paymentIntent, "currency", "eur",
+                "refunds", Map.of("data", List.of(Map.of("id", "re_early_refund", "amount", 6000, "status", "succeeded"))));
+        webhook("evt_early_refund", "charge.refunded", refund);
+        assertThat(mongo.findById("evt_early_refund", Document.class, "stripe_events").getString("outcome")).isEqualTo("FAILED");
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isZero();
+
+        webhook("evt_success_after_refund", "payment_intent.succeeded", Map.of("id", paymentIntent));
+        recovery.recover(); recovery.recover();
+        webhook("evt_early_refund", "charge.refunded", refund);
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(6000);
+        var collection = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("invoiceId").is(invoice)), Document.class, "collections");
+        assertThat(collection.getString("status")).isEqualTo("REFUNDED");
+        assertThat(collection.getList("refunds", Document.class)).hasSize(1);
+        assertThat(events("InvoicePaid")).hasSize(1);
+        assertThat(mongo.findById("evt_early_refund", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("COMPLETED");
+    }
     @Test void T_12_31_setupReplacesAnInvalidCardAndDetachedInvalidatesIt() throws Exception {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("card-member")), new Update().set("paymentMethod.card.invalid", true), "members");
         fake.card("pm_new", new BillingCensusAccess.Card("cus_card-member", "pm_new", "1234", "visa", false));
@@ -141,9 +163,19 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getString("last4")).isEqualTo("1234");
         assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getBoolean("invalid")).isFalse();
         assertThat(events("MemberPaymentMethodChanged")).hasSize(1);
+        var cardAudits = Query.query(Criteria.where("clubId").is(CLUB).and("action").is("MEMBER_PAYMENT_METHOD_CHANGED"));
+        assertThat(mongo.count(cardAudits, "audit_entries")).isEqualTo(1);
         outbox.dispatch();
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-38")), "notifications")).isPositive();
         webhook("evt_detached", "payment_method.detached", Map.of("id", "pm_new"));
+        assertThat(mongo.count(cardAudits, "audit_entries")).isEqualTo(2);
+        assertThat(mongo.find(cardAudits, Document.class, "audit_entries").stream()
+                .flatMap(entry -> entry.getList("changes", Document.class).stream()))
+                .anySatisfy(change -> {
+                    assertThat(change.getString("path")).isEqualTo("paymentMethod.invalid");
+                    assertThat(change.get("before")).isEqualTo(false);
+                    assertThat(change.get("after")).isEqualTo(true);
+                });
         try (var tenant = TenantContext.open(CLUB)) {
             assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getBoolean("invalid")).isTrue();
         }
@@ -290,6 +322,7 @@ class CardPaymentsIT extends BillingItSupport {
                 "metadata", Map.of("operationId", session, "memberId", "card-member")));
         assertThat(mongo.findById(session, Document.class, "checkout_sessions").getString("status")).isEqualTo("COMPLETE");
         assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class).getString("last4")).isEqualTo("5555");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("MEMBER_PAYMENT_METHOD_CHANGED")), "audit_entries")).isEqualTo(1);
     }
     @Test void T_12_16_rejectedSignupCompletionRefundsOnceWithoutRevivingCancelledRows() throws Exception {
         try (var tenant = TenantContext.open(CLUB)) {

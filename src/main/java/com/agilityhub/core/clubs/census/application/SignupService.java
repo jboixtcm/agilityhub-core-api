@@ -146,6 +146,7 @@ public class SignupService implements SignupPaymentAccess {
         access.mutableMember(id);
     }
     public <T> T write(java.util.function.Supplier<T> work) { return transactions.getObject().write(work); }
+    @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")
     public void card(String id,Map<String,Object> card) {
         if (card == null || card.isEmpty()) { return; }
         var member=access.mutableMember(id);

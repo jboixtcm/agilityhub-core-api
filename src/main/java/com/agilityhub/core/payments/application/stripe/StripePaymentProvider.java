@@ -25,10 +25,11 @@ public class StripePaymentProvider implements PaymentProvider {
     public StripePaymentProvider(ClubPaymentProviders settings, ProviderSecretVault vault, StripeCalls calls, SignupCheckoutRepository sessions) {
         this.settings = settings; this.vault = vault; this.calls = calls; this.sessions = sessions;
     }
-    private StripeClient client() {
+    private StripeClient client() { return client(true); }
+    private StripeClient client(boolean requireEnabled) {
         String club = TenantContext.require();
         var config = settings.stripe(club).orElseThrow(() -> new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
-        if (!config.enabled()) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
+        if (requireEnabled && !config.enabled()) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
         String key;
         try { key = vault.decrypt(config.secretKeyEnc(), club, "STRIPE", "secretKeyEnc"); }
         catch (RuntimeException invalid) { throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID); }
@@ -130,6 +131,7 @@ public class StripePaymentProvider implements PaymentProvider {
     @Override public void expire(String sessionId) {
         var reference = sessions.providerSession(sessionId);
         if (reference.isEmpty()) { return; }
-        var client = client(); calls.call(() -> client.v1().checkout().sessions().expire(reference.get(), options("expire:" + sessionId)));
+        // An existing checkout can still capture money after the club disabled new Stripe payments.
+        var client = client(false); calls.call(() -> client.v1().checkout().sessions().expire(reference.get(), options("expire:" + sessionId)));
     }
 }

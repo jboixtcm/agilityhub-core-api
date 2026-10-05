@@ -118,6 +118,21 @@ class StripePaymentProviderTest {
         }
         assertThat(new StripePaymentProvider(clubs, vault, new StripeCalls(), sessions).newClient("sk_test_example")).isNotNull();
     }
+    @Test void T_12_16_disabledProviderStillExpiresAnExistingCheckoutButCannotCreateOne() throws Exception {
+        configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
+        when(clubs.stripe("club-a")).thenReturn(Optional.of(new StripeProviderSettings(false, null, "encrypted-example", null, "test", null)));
+        when(sessions.providerSession("operation")).thenReturn(Optional.of("cs_existing"));
+        try (var tenant = TenantContext.open("club-a")) {
+            provider.expire("operation");
+            assertThatThrownBy(() -> provider.createOffSessionPayment(new PaymentProvider.OffSessionRequest(
+                    new Money(100, "EUR"), "cus_example", "pm_example", "invoice", Map.of())))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
+        }
+        var options = ArgumentCaptor.forClass(RequestOptions.class);
+        verify(client.v1().checkout().sessions()).expire(eq("cs_existing"), options.capture());
+        assertThat(options.getValue().getIdempotencyKey()).isEqualTo("expire:operation");
+        verify(client.v1().paymentIntents(), never()).create(any(PaymentIntentCreateParams.class), any(RequestOptions.class));
+    }
     @Test void T_12_30_aDeclinedIntentKeepsItsReferenceAndOtherErrorsMapSafely() throws Exception {
         configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
         var exception = new com.stripe.exception.CardException("private", null, "card_declined", null, "expired_card", null, 402, null);

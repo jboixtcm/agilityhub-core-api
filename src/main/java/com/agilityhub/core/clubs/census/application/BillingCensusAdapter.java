@@ -24,6 +24,7 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.string;
 public class BillingCensusAdapter implements BillingCensusAccess {
     @org.springframework.beans.factory.annotation.Autowired private CensusEvents events;
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupService> signups;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<BillingCensusAdapter> audited;
     private final CensusAccess census; private final Clock clock;
     public BillingCensusAdapter(CensusAccess census, Clock clock) { this.census = census; this.clock = clock; }
 
@@ -53,7 +54,8 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         var changed = new ArrayList<String>();
         for (var member : census.members.matching(criteria)) {
             var old = card(member.id).orElseThrow();
-            if (!old.invalid()) { saveCard(member.id, new Card(old.customerId(), old.paymentMethodId(), old.last4(), old.brand(), true)); changed.add(member.id); }
+            // Use the proxy so invalidation records the same audited payment-method change as card setup.
+            if (!old.invalid()) { audited.getObject().saveCard(member.id, new Card(old.customerId(), old.paymentMethodId(), old.last4(), old.brand(), true)); changed.add(member.id); }
         }
         return changed;
     }

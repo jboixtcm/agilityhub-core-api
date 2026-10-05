@@ -98,7 +98,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
     static final String ACTIVITY = "par-activity", TASK = "par-task", WEEK = "par-week-42", PLAN = "par-plan", LEVEL_C = "par-lv-c", LEVEL_D = "par-lv-d";
     static final List<String> DATA = List.of("members", "dogs", "accounts", "memberships", "instructors", "levels", "rings", "plans", "parameters", "class_sessions",
             "bookings", "waitlist_entries", "attendances", "training_bookings", "activities", "activity_registrations", "tasks", "weeks", "message_templates",
-            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements", "invoices");
+            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements", "invoices", "upfront_payments");
     /**
      * The templated codes whose events no owner of this repository explains yet: their facts are the event's payload until
      * their stage writes the owner (and adds the code's case to this test).
@@ -107,7 +107,6 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
             "N-11a", "PackLowBalance: packs, S12 (E8-T05)", "N-11b", "PackExpiring / PackExpired: packs, S12 (E8-T05)",
             "N-18b", "InactivityResolved: inactivity periods, S13 (E8-T05)", "N-18c", "InactivityEnded: inactivity periods, S13 (E8-T05)",
             "N-28", "LeaveResolved: leave requests, S13 (E8-T05)",
-            "N-30", "InvoicePaid (E8-T02) / UpfrontPaymentSucceeded: the receipt is Stripe's while billing.stripeReceiptEmail = true (the default); E8-T04",
             "N-31", "RingSetupChanged: course setups, S16 (later stage)",
             "N-50", "no event: the S14 export worker triggers it directly (not produced yet)"));
 
@@ -138,6 +137,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
                 "instructions", Map.of("values", Map.of("ca", "Paga a la recepció del club.", "es", "Paga en la recepción del club."), "defaultLocale", "ca")))));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(CLUB);
         parameter("messaging.notifyWeekOpening", true); parameter("jobs.alertAdminsOnFailure", true); parameter("levels.enabled", true);
+        parameter("billing.stripeReceiptEmail", false);
         // Census: Laura (two dogs), Núria (an applicant), Marta (an instructor), an administrator.
         account("par-laura", "MEMBER", LAURA); member(LAURA, "par-laura", "Laura", "Serra", "Puig", "FEMALE", "ACTIVE");
         dog(DUNA, LAURA, "Duna", "FEMALE", LEVEL_C, "ACTIVE"); dog(ROCK, LAURA, "Rock", "MALE", LEVEL_C, "ACTIVE");
@@ -184,6 +184,15 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
                 "···· 4242", "Laura Serra", null, "4242", null), com.agilityhub.core.payments.domain.InvoiceStatus.FAILED,
                 com.agilityhub.core.payments.domain.InvoiceKind.PERIODIC, "par-run", null, false, null, null, NOW, "La targeta ha estat rebutjada", null, null, zero, null, 1L,
                 NOW, "par-admin", NOW, "par-admin"));
+        // E8-T04: both real N-30 variants; upfront payments have no invoice number.
+        var paidInvoice = mongo.findById("par-invoice", Document.class, "invoices");
+        paidInvoice.put("_id", "par-paid-invoice"); paidInvoice.put("number", 913L); paidInvoice.put("displayNumber", "2026-0913");
+        paidInvoice.put("status", "PAID"); paidInvoice.put("paidAt", java.util.Date.from(NOW));
+        paidInvoice.put("failedAt", null); paidInvoice.put("failureReason", null);
+        mongo.insert(paidInvoice, "invoices");
+        mongo.insert(new com.agilityhub.core.payments.persistence.UpfrontPayment("par-upfront", CLUB, LAURA, DUNA, "ENTRY_FEE", "ENTRY_FEE",
+                fee, fee, "PAID", "STRIPE", "par-checkout", NOW, NOW, null, "par-submission", null, null, null,
+                new com.agilityhub.core.payments.persistence.UpfrontPayment.StripeRefs("pi_parity", null), null, null, List.of(), null));
         ((FakeEmailSender) email).clear();
         logs.list.clear(); logs.start(); ((Logger) LoggerFactory.getLogger(TemplateRenderer.class)).addAppender(logs);
     }
@@ -243,7 +252,7 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         var upfront = Map.<String, Object>of("amountMinor", 4500, "currency", "EUR");
         cases.add(new Case("N-01", "SignupSubmitted", "par-aggregate", Map.of("memberId", NURIA, "dogIds", List.of(KIRA), "planId", PLAN, "paymentMethodType", "MANUAL",
                 "locale", "ca", "dogNames", List.of("Kira"), "upfrontTotal", upfront),
-                Map.of("pay_link", "the provider's checkout link is E8-T04's; with MANUAL instructions the census gives an empty pay_link")));
+                Map.of("pay_link", "with MANUAL instructions the census gives an empty pay_link; the Stripe retry capability is delivery-only")));
         cases.add(new Case("N-02", "MemberValidated", Map.of("memberId", LAURA)));
         cases.add(new Case("N-03", "SignupRejected", Map.of("memberId", NURIA, "reason", "Documentació incompleta", "dogIds", List.of(KIRA), "memberWasActive", false,
                 "locale", "ca")));
@@ -271,6 +280,10 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         // E7-T04: «Enviar comunicat» to Laura (the batch is stored with the installed template, see `install`).
         cases.add(new Case("N-24", "AnnouncementSent", Map.of("batchId", "par-batch", "recipientCount", 1, "filters", List.of())));
         cases.add(new Case("N-29", "BookingBlockChanged", Map.of("memberId", LAURA, "reason", "Quota pendent", "active", true)));
+        cases.add(new Case("N-30", "InvoicePaid", Map.of("invoiceId", "par-paid-invoice", "provider", "STRIPE", "paidAt", NOW.toString())));
+        cases.add(new Case("N-30", "UpfrontPaymentSucceeded", "par-upfront", Map.of("paymentId", "par-upfront", "memberId", LAURA,
+                "concept", "ENTRY_FEE", "provider", "STRIPE", "amountPaid", Map.of("amountMinor", 6000, "currency", "EUR")),
+                Map.of("invoice_number", "an upfront payment has no issued invoice")));
         cases.add(new Case("N-32a", "ActivityPublished", Map.of("activityId", ACTIVITY, "notifyEmail", true)));
         cases.add(new Case("N-32b", "ActivityRegistrationChanged", Map.of("activityId", ACTIVITY, "memberId", LAURA, "state", "ACTIVE", "origin", "APP")));
         cases.add(new Case("N-32c", "ActivityCancelled", Map.of("activityId", ACTIVITY, "adminText", "Suspès per la pluja.", "affected", List.of(Map.of("memberId", LAURA)))));

@@ -1,0 +1,100 @@
+src/test/java/com/agilityhub/core/clubs/dashboard/domain/DashboardBuildersTest.java:82:    @Test void T_12_31_invalidCardAppearsInThePendingDashboardRowOnlyWithBilling() {
+src/test/java/com/agilityhub/core/clubs/census/api/SignupGateFixesIT.java:553:    @Test void T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw() throws Exception {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:20:    @Test void T_12_04_theSeriesIsTheIssueYearAndTheNumberHasFourDigits() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:30:    @Test void T_12_04_withAYearlyResetANewYearIsANewCounterWithoutItTheNumbersGoOn() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:41:    @Test void T_12_05_taxIsRoundedHalfEvenPerLineAndTheInvoiceIsTheSumOfItsLines() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:64:    @Test void T_12_05_anotherCurrencyIsCurrencyMismatch() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:71:    @Test void T_12_29b_theCollectionDayIsADayOfTheBilledMonthAndZeroIsItsLastDay() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:79:    @Test void T_12_29b_twoBusinessDaysAfterTheGenerationDay() {
+src/test/java/com/agilityhub/core/payments/domain/InvoiceArithmeticTest.java:89:    @Test void T_12_08_presentChargesPendingVoidsASecondMarkNeverDuplicatesAndALateCancellationCharges() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:54:    @Test void T_12_01_aMonthlyMemberGetsOneLineAtThePriceCurrentOnTheIssueDateAndTheDateAdvances() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:65:    @Test void T_12_01_anInactiveMonthIsBilledAsTheInactivityFeeInsteadOfTheMonthlyFee() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:79:    @Test void T_12_01_aPackHasNoPeriodicLineAndSingleClassesAreOneLineEach() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:96:    @Test void T_12_01_R_12_25_unbilledChargesAreDueWithoutANextInvoiceDateAndTheRunGivesNoDate() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:138:    @Test void T_12_01_pendingLeftNotDueWithoutAMethodOrAfterTheLeaveAreOutOfTheMonth() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:153:    @Test void T_12_01_R_12_28_theMethodIncidentsSkipOnlyAMemberWithSomethingToBill() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:195:    @Test void T_12_28_noCurrentPriceSkipsTheMemberMaintenanceBillsItsFeeAndAZeroTotalIssuesNothingButAdvances() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:209:    @Test void T_12_02_theFamilyHolderPaysTheMembersGetNoInvoiceAndModuleOffBillsEveryoneOnTheirOwn() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:239:    @Test void T_12_03_cashBySemesterBillsTheRestOfTheNaturalHalfYearFromTheFirstUnpaidMonth() {
+src/test/java/com/agilityhub/core/payments/domain/InvoicingRulesTest.java:264:    @Test void T_12_03_cashMonthlyIsOneLineAMonthAndSepaIsNeverBilledBySemester() {
+src/test/java/com/agilityhub/core/payments/domain/SepaDirectDebitsTest.java:14:    @Test void T_12_06_textsAreInTheSepaCharacterSetAndCutOnACharacterBoundary() {
+src/test/java/com/agilityhub/core/payments/domain/SepaDirectDebitsTest.java:27:    @Test void T_12_06_messageAndBlockIdentifiersStayWithin35AndKeepTheirSequence() {
+src/test/java/com/agilityhub/core/payments/domain/SepaDirectDebitsTest.java:37:    @Test void T_12_06_frstOnlyForANewMandateWithUseFrst() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:33:    @Test void T_12_32_modeMismatchAndMissingKeysFailBeforeAnyNetworkCall() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:48:    @Test void T_12_15_offSessionAndRefundUseExplicitDomainKeysAndPerClubClient() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:67:    @Test void T_12_16_checkoutParametersAndSavedProviderReferenceAreStable() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:85:    @Test void T_12_31_setupAndExpandedCardUseTheClubAccount() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:121:    @Test void T_12_16_disabledProviderStillExpiresAnExistingCheckoutButCannotCreateOne() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:136:    @Test void T_12_30_aDeclinedIntentKeepsItsReferenceAndOtherErrorsMapSafely() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:158:    @Test void T_12_32_disabledTenantAndAlreadyDeletedCustomerAreHandledWithoutLeakingProviderErrors() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripeCallsTest.java:11:    @Test void T_12_15_rateLimitRetriesTwiceWithBoundedExponentialBackoff() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripeCallsTest.java:18:    @Test void T_12_32_providerErrorsNeverExposeMessagesAndAreNotRetried() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:79:    @Test void T_12_06_withUseFrstOffTheCanicGetsOneRcurBlockWithItsCountAndTotal() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:99:    @Test void T_12_06_withUseFrstOnANewMandateIsFrstAndOneAlreadySentIsRcur() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:115:    @Test void T_12_06_canicNuriaIsTransliteratedAndALongDescriptionIsCutAt140() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:126:    @Test void T_12_06_aLongClubSlugKeepsTheMessageIdWithin35CharactersAndItsSequence() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:136:    @Test void T_12_06_aCollectionDateTooSoonIs422WithTheEarliestDayAndWritesNothing() {
+src/test/java/com/agilityhub/core/payments/application/sepa/SepaRemittanceWriterTest.java:147:    @Test void T_12_06_aMemberWithoutAnIbanNeverReachesTheWriterAndTheWriterRefusesOne() {
+src/test/java/com/agilityhub/core/payments/application/BillingTransactionsTest.java:32:    @Test void T_12_10_aConflictIsRetriedWholeOtherFailuresAreNotAndExhaustedRetriesAreStaleVersion() {
+src/test/java/com/agilityhub/core/payments/application/BillingTransactionsTest.java:43:    @Test void T_12_10_aKeyedWriteLocksItsKeyAndStoresTheAnswerOfTheAttemptThatCommits() {
+src/test/java/com/agilityhub/core/payments/application/CheckoutProviderFailureTest.java:24:    void T_04_23_T_12_16_rejectionKeepsLocalExpiryWhenProviderExpiryFails(ErrorCode code) {
+src/test/java/com/agilityhub/core/payments/api/InvoiceNumberingIT.java:34:    @Test void T_12_04_theImportedNumberOpensTheSeriesAndANewYearWithTheResetStartsAt0001() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceNumberingIT.java:41:    @Test void T_12_04_withoutTheResetTheNumbersGoOnIntoTheNewYear() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceNumberingIT.java:49:    @Test void T_12_04_R_12_08_togglingTheYearlyResetFromD11NeverReusesANumber() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceNumberingIT.java:72:    @Test void T_12_04_R_12_14_afterARollbackTheOtherKeyStartsFromTheCounterOfTheSameSeries() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceNumberingIT.java:139:    @Test void T_12_04_R_12_14_aPatternCounterIsTheSameSeriesOnlyWhenTheSeriesHasReceipts() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java:42:    @Test void T_12_11_theFictionalCensusRemittanceIsTheGoldenFileValidatesCarriesTheFullIbanAndNoResponseDoes() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java:87:    @Test void T_12_13_aRolledBackRemittanceKeepsItsFileItsLinkAndItsRow() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java:115:    void T_12_30_aSubmittedRemittanceEndsTheRollbackAndTheSubmissionIsAuditedOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java:178:    @Test void T_12_32_R_12_28_aClubWithoutSepaGeneratesNoRemittanceAndListsNone() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/RemittancesIT.java:263:    @Test void T_12_21_theLocalLinkAuthorisesItselfOnlyWithItsOwnSignatureAndTime() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:26:    @Test void T_12_09_theSimulationListsTheSixIncidentsTheCashMembersThePreviewAndTheKpisAndKeepsOnePerMonth() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:74:    void T_12_09_T_12_29_theRunNumbersTheInvoicesAdvancesOnlyTheIncludedMembersAndAuditsOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:135:    @Test void T_12_09_aRunNeedsTheMonthsSimulationTakenAfterTheLastRelevantChange() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:154:    @Test void T_12_09_R_12_07_aChangeOfTheClubsProvidersOrModulesMakesTheSimulationStale() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:185:    @Test void T_12_10_twoSimultaneousRunsGiveOne201AndOne409AndTheSameKeyAnswersTheSameRun() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:228:    void T_12_13_aRollbackGivesBackNumbersDatesAndChargesAndASecondRunReproducesTheNumbers() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:276:    @Test void T_12_13_aSubmittedRemittanceAPaidInvoiceOrALaterInvoiceBlockTheRollback() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:296:    @Test void T_12_13_aCompletedRunAnswersRunNotRollbackableWithItsReason() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:311:    @Test void T_12_13_R_12_27_aReceiptCancelledByARollbackOnlyShowsUnderTheCancelledFilter() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:357:    @Test void T_12_18_R_12_19_aReceiptWithAZeroOrNegativeTotalIsNeverDirectDebitedAndTheAdminSettlesItByHand() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:400:    void T_12_13_R_12_14_aRollbackReissuesItsWholeBlockAlsoAfterTheAdminCancelledOneOfItsReceipts() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:444:    @Test void T_12_09_R_12_07_R_12_19_theWaitingManualReceiptsAreInThePreviewAndInTheRemittanceKpi() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:475:    @Test void T_12_09_R_12_07_R_12_19_aWaitingReceiptWhoseMemberCannotBeDebitedIsAnIncidentAndStaysOut() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:505:    @Test void T_12_09_R_12_07_aFlaggedReceiptCreatedAfterTheSimulationMakesItStale() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:518:    @Test void T_12_09_R_12_07_R_12_25_aPendingChargeCreatedAfterTheSimulationMakesItStale() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:541:    @Test void T_12_19_R_12_14_rolledBackComesFromTheRunAndTheAdminsReasonIsFreeText() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:601:    void T_12_18_R_12_19_aManualSepaReceiptWithIncludeInNextRunJoinsTheNextRemittanceAndARollbackReturnsIt() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:664:    @Test void T_12_23_aRunAt2330InBuenosAiresKeepsTheClubsLocalDay() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:679:    @Test void T_12_29b_theCollectionDayParameterTheExplicitDateAndTheTwoBusinessDays() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:706:    @Test void T_12_32_aManualOnlyClubGetsPendingInvoicesWithoutRemittanceAndTheTextsAreFrozenInTheClubsLanguage() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/BillingCycleIT.java:721:    @Test void T_12_22_withoutBillingTheCycleIsNotThereAndNothingIsWritten() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:64:    @Test @AuditCovers(AuditAction.CARD_CHARGES_STARTED) void T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:79:    @Test void T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:100:    @Test void T_12_30_missingCardIsSkippedAndRetryRequiresCurrentCard() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:108:    @Test void T_12_31_synchronousExpiredCardInvalidatesOnlyTheChargedMethod() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:118:    @Test @AuditCovers(AuditAction.PAYMENT_REFUNDED) void T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:135:    @Test void T_12_17_refundDeliveredBeforePaymentSuccessIsDeferredAndReplayedOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:157:    @Test void T_12_31_setupReplacesAnInvalidCardAndDetachedInvalidatesIt() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:191:    @Test void T_12_32_tenantRoleModuleAndManualGuards() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:203:    @Test void T_12_15_badSignatureWritesOnlySecurityEvent() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:207:    @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:215:    @Test @AuditCovers(AuditAction.UPFRONT_PAYMENT_RECORDED) void T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:238:    @Test void T_12_16_expiredBookingRefundsExactlyOnceAndPrivacyDeletionIsRecoverable() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:254:    @Test void T_12_15_storedUnknownPaymentIsDeferredAndReprocessed() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:264:    @Test void T_12_17_cancellationPoliciesRefundCreditOrLeaveThePaymentAndRefundTargetIsExact() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:286:    @Test void T_12_15_lostResponseReusesRunAndRetryCommandsDespiteChangedVersion() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:303:    @Test void T_12_16_signupCommitFailureReusesOneProviderSetupSession() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:327:    @Test void T_12_16_rejectedSignupCompletionRefundsOnceWithoutRevivingCancelledRows() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:48:    void T_12_14_fourCashInvoicesPaidInBulkAllOrNone() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:78:    void T_12_14_T_12_30_aBankReturnFailsACollectingInvoiceAndAPaidOneWithItsSepaCollectionAndNotifiesTheAdmins() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:116:    void T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:163:    @Test void T_12_12_anIssuedInvoiceHasNoPatchItsRepositoryNeverReplacesItAndCollectionsAreAppendOnly() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:183:    @Test void T_12_20_aMemberReadsTheirOwnReceiptsAndTheirFamilyHoldersWithThePdfAndNeverAnIban() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:222:    @Test void T_12_20_theReceiptNamesTheTaxAfterTheClubsCountryProfile() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:238:    @Test void T_12_21_anotherClubsAdminGets404AndMembersInstructorsAndImpersonationAre403() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/InvoiceActionsIT.java:256:    @Test void T_12_32_twoPaymentsWithTheSameKeyPayOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/PendingChargesIT.java:68:    @Test void T_12_08_presentChargesOnceAtTheClassDatePriceVoidsBackToPendingAndALateCancellationCharges() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/PendingChargesIT.java:118:    @Test void T_12_08_R_12_25_aSingleClassMemberWithoutANextInvoiceDateIsBilledForTheirCharges() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/PendingChargesIT.java:138:    @Test void T_12_22_withoutSingleClassAnAttendanceChargesNothing() {
+src/test/java/com/agilityhub/core/payments/api/PaymentCurlIT.java:32:    @Test void T_12_15_T_12_17_curlChargeFailureRetrySuccessDuplicateAndRefund() throws Exception {

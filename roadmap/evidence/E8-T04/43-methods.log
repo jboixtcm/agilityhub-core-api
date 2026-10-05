@@ -1,0 +1,28 @@
+src/test/java/com/agilityhub/core/clubs/census/api/SignupGateFixesIT.java:553:    @Test void T_12_16_N01PaymentRetryLinkWorksExpiresAndIsNeverStoredRaw() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/PaymentCurlIT.java:32:    @Test void T_12_15_T_12_17_curlChargeFailureRetrySuccessDuplicateAndRefund() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:33:    @Test void T_12_32_modeMismatchAndMissingKeysFailBeforeAnyNetworkCall() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:48:    @Test void T_12_15_offSessionAndRefundUseExplicitDomainKeysAndPerClubClient() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:67:    @Test void T_12_16_checkoutParametersAndSavedProviderReferenceAreStable() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:85:    @Test void T_12_31_setupAndExpandedCardUseTheClubAccount() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:121:    @Test void T_12_30_aDeclinedIntentKeepsItsReferenceAndOtherErrorsMapSafely() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:143:    @Test void T_12_32_disabledTenantAndAlreadyDeletedCustomerAreHandledWithoutLeakingProviderErrors() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:64:    @Test @AuditCovers(AuditAction.CARD_CHARGES_STARTED) void T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:79:    @Test void T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:100:    @Test void T_12_30_missingCardIsSkippedAndRetryRequiresCurrentCard() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:108:    @Test void T_12_31_synchronousExpiredCardInvalidatesOnlyTheChargedMethod() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:118:    @Test @AuditCovers(AuditAction.PAYMENT_REFUNDED) void T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:135:    @Test void T_12_17_refundDeliveredBeforePaymentSuccessIsDeferredAndReplayedOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:157:    @Test void T_12_31_setupReplacesAnInvalidCardAndDetachedInvalidatesIt() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:191:    @Test void T_12_32_tenantRoleModuleAndManualGuards() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:203:    @Test void T_12_15_badSignatureWritesOnlySecurityEvent() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:207:    @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:215:    @Test @AuditCovers(AuditAction.UPFRONT_PAYMENT_RECORDED) void T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:238:    @Test void T_12_16_expiredBookingRefundsExactlyOnceAndPrivacyDeletionIsRecoverable() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:254:    @Test void T_12_15_storedUnknownPaymentIsDeferredAndReprocessed() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:264:    @Test void T_12_17_cancellationPoliciesRefundCreditOrLeaveThePaymentAndRefundTargetIsExact() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:286:    @Test void T_12_15_lostResponseReusesRunAndRetryCommandsDespiteChangedVersion() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:303:    @Test void T_12_16_signupCommitFailureReusesOneProviderSetupSession() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:327:    @Test void T_12_16_rejectedSignupCompletionRefundsOnceWithoutRevivingCancelledRows() throws Exception {
+src/test/java/com/agilityhub/core/clubs/dashboard/domain/DashboardBuildersTest.java:82:    @Test void T_12_31_invalidCardAppearsInThePendingDashboardRowOnlyWithBilling() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripeCallsTest.java:11:    @Test void T_12_15_rateLimitRetriesTwiceWithBoundedExponentialBackoff() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripeCallsTest.java:18:    @Test void T_12_32_providerErrorsNeverExposeMessagesAndAreNotRetried() {

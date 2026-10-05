@@ -96,6 +96,11 @@ public class PaymentRefunds {
     public boolean settled(String intent, String refundId, Money amount, Instant at, String reason) {
         var collection = collections.byProviderReference(intent).orElse(null);
         if (collection != null) {
+            // Stripe may deliver a refund before payment_intent.succeeded. Keep the inbox item pending until that
+            // success has settled the receipt; otherwise a full refund would prevent the later success from paying it.
+            if (collection.status() != CollectionStatus.SUCCEEDED && collection.status() != CollectionStatus.REFUNDED) {
+                throw new ApiException(ErrorCode.INVALID_STATE);
+            }
             var refunds = collection.refunds() == null ? List.<Collection.Refund>of() : collection.refunds();
             if (refunds.stream().anyMatch(r -> r.providerRef().equals(refundId))) { return false; }
             long total = refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum() + amount.amountMinor();

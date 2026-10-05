@@ -274,7 +274,7 @@ class NotificationMatrixTest {
     static NotificationTrigger trigger(NotificationSpec spec, String type) {
         var payload = new LinkedHashMap<String, Object>();
         payload.put("bookingId", "booking-matrix"); payload.put("batchId", BATCH); payload.put("status", "ACTIVE");
-        payload.put("provider", spec.code().equals("N-35") ? "STRIPE" : "SEPA_XML");
+        payload.put("provider", Set.of("N-30", "N-35").contains(spec.code()) ? "STRIPE" : "SEPA_XML");
         return new NotificationTrigger("event-" + spec.code() + "-" + type, type, CLUB, "Aggregate", "aggregate-matrix", NOW, payload, null, null, DomainEvent.Origin.SYSTEM);
     }
 
@@ -307,6 +307,8 @@ class NotificationMatrixTest {
         var values = new LinkedHashMap<String, Object>();
         new ParameterCatalog(new ObjectMapper()).entries().forEach((key, definition) -> { if (definition.defaultValue() != null) { values.put(key, definition.defaultValue()); } });
         values.put("messaging.notifyWeekOpening", true); values.put("messaging.notifyNewRingSetup", true);
+        // S12 R-12-21: the channel matrix uses an eligible Stripe receipt; NotificationEngineIT also proves suppression.
+        values.put("billing.stripeReceiptEmail", false);
         return values;
     }
     static IcuMessageSource messages() {
