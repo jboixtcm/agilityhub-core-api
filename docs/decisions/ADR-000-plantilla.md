@@ -31,7 +31,7 @@ Què implica (bo i dolent): cost, manteniment, dependències, reversibilitat, im
 | ADR-003 | Hosting i entorns (dev/staging/prod) | RNF-06: pic de concurrència diumenge 20:00 |
 | ADR-004 | Autenticació i gestió d'identitat | Depèn de Q-06 |
 | ADR-005 | Proveïdor d'email transaccional | RF-NOT: volum baix, tracking d'obertura opcional |
-| ADR-006 | Generació del fitxer SEPA (pain.008) | Llibreria vs implementació pròpia |
+| ADR-006 | Generació del fitxer SEPA (pain.008) | **Acceptada 05-10** (JAXB/xjc des de l'XSD; esquema DK fins que arribi el del banc) |
 | ADR-007 | Web responsive/PWA vs app nativa | Resolta dins ADR-001 (PWA; Capacitor si cal) |
 | ADR-008 | Estratègia de migració de dades des de Playoff | **Acceptada 03-09** (detall a S18) |
 | ADR-009 | Pagaments multi-proveïdor (SEPA · Stripe · manual) | **Acceptada 03-09** |

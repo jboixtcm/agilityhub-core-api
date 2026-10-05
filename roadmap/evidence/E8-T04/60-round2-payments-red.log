@@ -1,0 +1,150 @@
+10:07:03.617 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CardPaymentsIT]: CardPaymentsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:07:03.780 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CardPaymentsIT
+10:07:03.875 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+10:07:03.877 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+10:07:03.882 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+10:07:04.047 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+10:07:04.244 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+10:07:04.244 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+10:07:04.258 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+10:07:04.515 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+10:07:04.568 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+10:07:04.655 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 58a71b73...[truncated]
+10:07:04.810 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.295027S
+10:07:04.814 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+10:07:04.814 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+10:07:04.815 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+10:07:04.815 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+10:07:04.847 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 208a797e...[truncated]
+10:07:05.178 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.363329S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-05T10:07:05.900+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Starting CardPaymentsIT using Java [redacted] with PID 89011 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-05T10:07:05.902+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-05T10:07:07.015+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-05T10:07:07.068+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 49 ms. Found 0 MongoDB repository interfaces.
+2026-10-05T10:07:07.550+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@74f37601], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@fac5c40, com.mongodb.Jep395RecordCodecProvider@727a8739, com.mongodb.KotlinCodecProvider@5b14b79e]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50141], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@34388183], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-05T10:07:07.558+02:00 INFO  [cluster-ClusterId{value='6ac35aab...[truncated]', description='null'}-localhost:50141] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50141, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=13979042, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=208a797ef66b:27017, hosts=[208a797ef66b:27017], passives=[], arbiters=[], primary='208a797ef66b:27017', tagSet=TagSet{[]}, electionId=7fffffff...[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6ac35aa8...[truncated], counter=6}, lastWriteDate=Mon Oct 05 10:07:05 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-05T10:07:11.164+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-05T10:07:11.164+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-05T10:07:11.165+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-05T10:07:11.199+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Started CardPaymentsIT in 5.533 seconds (process running for 8.136)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/private/tmp/agilityhub-e8-t04-m2/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-05T10:07:12.598+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=651ae4f6-f3be-43b5-8127-fb782dbc52d7 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=null providerPaymentId=pi_rejected clubId=bill-a
+2026-10-05T10:07:13.051+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=7f6f2154-6a5e-45c3-b39d-94508fe89fdd clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=383c4c9a-7ba3-44f9-819d-693979f923eb bookingId=null providerPaymentId=pi_a clubId=bill-a
+2026-10-05T10:07:14.835+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=12229d7b-9416-424c-955c-972a388a5bf5 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=8d702b5d-2952-4a39-83fe-[redacted]=booking-late providerPaymentId=pi_booking clubId=bill-a
+E5-T07 outbox backlog discarded before CardPaymentsIT: 103 PENDING records (more than one dispatch() batch)
+[ERROR] Tests run: 24, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 14.30 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CardPaymentsIT
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards -- Time elapsed: 0.731 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[{"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"dac5dc03-b00c-4d6d-bcb4-14a790063015"}]
+expected: 200
+ but was: 401
+	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:197)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.assertCardInvalid(CardPaymentsIT.java:486)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards(CardPaymentsIT.java:471)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking -- Time elapsed: 0.184 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: "IGNORED"
+ but was: "PROCESSED"
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking(CardPaymentsIT.java:429)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows -- Time elapsed: 0.272 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: {"_class"="com.agilityhub.core.payments.persistence.UpfrontPayment", "_id"="9f23f036-f8cb-444a-9603-fd7eed95af5b", "amountDue"={"amountMinor"=1000L, "currency"="EUR"}, "amountPaid"={"amountMinor"=1000L, "currency"="EUR"}, "checkoutSessionId"="945a0134-e27a-419b-97df-a53975b6e9cd", "clubId"="bill-a", "concept"="ENTRY_FEE", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "memberId"="card-member", "paidAt"=2026-08-25T10:00:00.000 (java.util.Date), "provider"="STRIPE", "signupConcept"="ENTRY_FEE", "status"="PAID", "stripe"={"chargeId"=null, "paymentIntentId"="pi_b"}, "stripeCapturedAmount"={"_class"="com.agilityhub.core.shared.domain.Money", "amountMinor"=1000L, "currency"="EUR"}, "submissionId"="round-two"}
+ but was: {"_class"="com.agilityhub.core.payments.persistence.UpfrontPayment", "_id"="9f23f036-f8cb-444a-9603-fd7eed95af5b", "amountDue"={"amountMinor"=1000L, "currency"="EUR"}, "amountPaid"={"amountMinor"=1000L, "currency"="EUR"}, "checkoutSessionId"="945a0134-e27a-419b-97df-a53975b6e9cd", "clubId"="bill-a", "concept"="ENTRY_FEE", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "memberId"="card-member", "paidAt"=2026-08-25T10:00:00.000 (java.util.Date), "provider"="STRIPE", "refunds"=[{"amount"={"amountMinor"=1000L, "currency"="EUR"}, "at"=2026-08-25T10:00:00.000 (java.util.Date), "providerRef"="re_fake_fa4a1159-4235-369e-90d2-df18b6ebe8da", "reason"="requested_by_customer"}], "signupConcept"="ENTRY_FEE", "status"="REFUNDED", "stripe"={"chargeId"=null, "paymentIntentId"="pi_a"}, "stripeCapturedAmount"={"_class"="com.agilityhub.core.shared.domain.Money", "amountMinor"=0L, "currency"="EUR"}, "submissionId"="round-two"}
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows(CardPaymentsIT.java:381)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts -- Time elapsed: 0.834 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts(CardPaymentsIT.java:457)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce -- Time elapsed: 0.087 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: null
+ but was: 2026-08-25T10:00:00.000 (java.util.Date)
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce(CardPaymentsIT.java:394)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance -- Time elapsed: 0.097 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: "PAID"
+ but was: "REFUNDED"
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance(CardPaymentsIT.java:413)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   CardPaymentsIT.T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts:457
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking:429
+expected: "IGNORED"
+ but was: "PROCESSED"
+[ERROR]   CardPaymentsIT.T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows:381
+expected: {"_class"="com.agilityhub.core.payments.persistence.UpfrontPayment", "_id"="9f23f036-f8cb-444a-9603-fd7eed95af5b", "amountDue"={"amountMinor"=1000L, "currency"="EUR"}, "amountPaid"={"amountMinor"=1000L, "currency"="EUR"}, "checkoutSessionId"="945a0134-e27a-419b-97df-a53975b6e9cd", "clubId"="bill-a", "concept"="ENTRY_FEE", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "memberId"="card-member", "paidAt"=2026-08-25T10:00:00.000 (java.util.Date), "provider"="STRIPE", "signupConcept"="ENTRY_FEE", "status"="PAID", "stripe"={"chargeId"=null, "paymentIntentId"="pi_b"}, "stripeCapturedAmount"={"_class"="com.agilityhub.core.shared.domain.Money", "amountMinor"=1000L, "currency"="EUR"}, "submissionId"="round-two"}
+ but was: {"_class"="com.agilityhub.core.payments.persistence.UpfrontPayment", "_id"="9f23f036-f8cb-444a-9603-fd7eed95af5b", "amountDue"={"amountMinor"=1000L, "currency"="EUR"}, "amountPaid"={"amountMinor"=1000L, "currency"="EUR"}, "checkoutSessionId"="945a0134-e27a-419b-97df-a53975b6e9cd", "clubId"="bill-a", "concept"="ENTRY_FEE", "createdAt"=2026-08-25T10:00:00.000 (java.util.Date), "memberId"="card-member", "paidAt"=2026-08-25T10:00:00.000 (java.util.Date), "provider"="STRIPE", "refunds"=[{"amount"={"amountMinor"=1000L, "currency"="EUR"}, "at"=2026-08-25T10:00:00.000 (java.util.Date), "providerRef"="re_fake_fa4a1159-4235-369e-90d2-df18b6ebe8da", "reason"="requested_by_customer"}], "signupConcept"="ENTRY_FEE", "status"="REFUNDED", "stripe"={"chargeId"=null, "paymentIntentId"="pi_a"}, "stripeCapturedAmount"={"_class"="com.agilityhub.core.shared.domain.Money", "amountMinor"=0L, "currency"="EUR"}, "submissionId"="round-two"}
+[ERROR]   CardPaymentsIT.T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance:413
+expected: "PAID"
+ but was: "REFUNDED"
+[ERROR]   CardPaymentsIT.T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce:394
+expected: null
+ but was: 2026-08-25T10:00:00.000 (java.util.Date)
+[ERROR]   CardPaymentsIT.T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards:471->assertCardInvalid:486->BillingItSupport.ok:197 [{"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"dac5dc03-b00c-4d6d-bcb4-14a790063015"}]
+expected: 200
+ but was: 401
+[ERROR] Tests run: 24, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -26,7 +26,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * S12 §6 member routes (screen 12 «Rebuts», the card banner, screen 13's pack): MEMBER, also the impersonation token
  * (MATRIU «Facturació»: a member reads their own invoices, and with R-12-27 those of their family group's holder); a token
  * without MEMBER → 403. Module `BILLING` (R-12-27: off → 404), `PACKS` for the pack. The invoices and their receipt are served
- * (E8-T02); card setup and packs run their guards and answer 501 NOT_IMPLEMENTED until E8-T04 and E8-T05.
+ * (E8-T02); card setup opens a provider setup session; packs remain guarded stubs until E8-T05.
  */
 @RestController
 @RequiresModule(Module.BILLING)

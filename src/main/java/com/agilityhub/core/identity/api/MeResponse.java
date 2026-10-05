@@ -13,7 +13,16 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIR
 public record MeResponse(@Schema(requiredMode = REQUIRED) MeAccount account,
         @Schema(requiredMode = NOT_REQUIRED) @JsonInclude(JsonInclude.Include.NON_NULL) MembershipSummary membership,
         @Schema(requiredMode = NOT_REQUIRED) @JsonInclude(JsonInclude.Include.NON_NULL) Impersonation impersonation,
-        @Schema(requiredMode = REQUIRED) List<String> features) {
+        @Schema(requiredMode = REQUIRED) List<String> features,
+        @Schema(requiredMode = NOT_REQUIRED, description = "Current member's payment method; absent without BILLING or a member")
+        @JsonInclude(JsonInclude.Include.NON_NULL) MemberPaymentMethod paymentMethod) {
+    public MeResponse(MeAccount account, MembershipSummary membership, Impersonation impersonation, List<String> features) {
+        this(account, membership, impersonation, features, null);
+    }
+    @Schema(name = "MePaymentMethod")
+    public record MemberPaymentMethod(@Schema(requiredMode = REQUIRED, allowableValues = {"CARD", "SEPA_DD", "MANUAL"}) String type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Present only for CARD; true when the saved card is invalid")
+            @JsonInclude(JsonInclude.Include.NON_NULL) Boolean invalid) { }
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record MeAccount(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "email") String email,

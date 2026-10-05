@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentPrivacy implements PaymentPrivacyPort {
+    @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingTransactions tx; private final Clock clock;
     public PaymentPrivacy(PaymentOperationRepository operations, PaymentProviderRegistry provider, BillingTransactions tx, Clock clock) {
         this.operations = operations; this.provider = provider; this.tx = tx; this.clock = clock;
@@ -24,6 +25,6 @@ public class PaymentPrivacy implements PaymentPrivacyPort {
     }
     public void execute(String id) {
         var op = operations.findById(id).orElseThrow(); if (op.resultId() != null) { return; }
-        provider.forgetCustomer(op.providerRef()); tx.run(() -> { operations.completed(id, op.providerRef()); return null; });
+        retries.execute(op, () -> { provider.forgetCustomer(op.providerRef()); tx.run(() -> { operations.completed(id, op.providerRef()); return null; }); });
     }
 }

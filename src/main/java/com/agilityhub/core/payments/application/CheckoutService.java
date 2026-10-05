@@ -244,20 +244,17 @@ public class CheckoutService {
         var session = sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         if (session.status().equals("COMPLETE")) { return; }
         members.lock();
-        for (String paymentId : session.upfrontPaymentIds()) {
-            var row = upfront.findById(paymentId).orElseThrow();
-            upfront.captured(paymentId, row.amountDue().minus(row.amountPaid()));
-        }
         long captured = sessions.chargeAmount(sessionId).orElseGet(() -> session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow())
                 .mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum());
         if (!"setup".equals(session.mode()) && (amount != captured || intent == null)) { throw new ApiException(ErrorCode.INVALID_STATE); }
         if (session.bookingId() == null && (session.status().equals("EXPIRED") || !session.expiresAt().isAfter(at))) {
             var rows = session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow()).toList();
             long due = rows.stream().mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum();
-            if (!rows.isEmpty() && rows.stream().allMatch(p -> Set.of("DUE", "PARTIAL", "CHECKOUT_PENDING").contains(p.status())) && due == amount) {
+            if (!rows.isEmpty() && rows.stream().allMatch(p -> Set.of("DUE", "PARTIAL").contains(p.status())
+                    || ("CHECKOUT_PENDING".equals(p.status()) && sessionId.equals(p.checkoutSessionId()))) && due == amount) {
                 payments.pending(session.memberId(), session.upfrontPaymentIds(), sessionId);
                 sessions.reopenForSettlement(sessionId);
-                payments.checkout(session.memberId(), sessionId, true, at);
+                settleRows(session, intent, at);
                 members.card(session.memberId(), cardMap(card));
                 sessions.finish(sessionId, "COMPLETE", intent);
                 return;
@@ -306,9 +303,19 @@ public class CheckoutService {
             return;
         }
         if(!sessions.finish(id,"COMPLETE",providerPaymentId)) return;
-        payments.checkout(session.memberId(),id,true,paidAt);
-        for (String payment : session.upfrontPaymentIds()) { upfront.stripe(payment, providerPaymentId, null); }
+        settleRows(session, providerPaymentId, paidAt);
         if(session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method
+    }
+    /** References and captured amounts belong only to rows this checkout actually settles. */
+    private void settleRows(SignupCheckoutSession session, String intent, Instant at) {
+        for (String id : session.upfrontPaymentIds()) {
+            var row = upfront.findById(id).orElseThrow();
+            if ("CHECKOUT_PENDING".equals(row.status()) && session.id().equals(row.checkoutSessionId())) {
+                upfront.captured(id, row.amountDue().minus(row.amountPaid()));
+                upfront.stripe(id, intent, null);
+            }
+        }
+        payments.checkout(session.memberId(), session.id(), true, at);
     }
     /**
      * The provider expired the session: a `PENDING` one goes to `EXPIRED` and gives its rows back (a signup row to its payable

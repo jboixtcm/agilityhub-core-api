@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 /** R-12-13/18: durable attempts before network calls; batch size 25, stable domain idempotency keys and webhook-owned settlement. */
 @Service
 public class CardPayments implements CardChargingPort {
+    @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
     @org.springframework.beans.factory.annotation.Autowired private PaymentAudits audit;
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final BillingRunRepository runs;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingCensusAccess census;
@@ -105,15 +106,17 @@ public class CardPayments implements CardChargingPort {
     public void execute(String operationId) {
         var operation = operations.findById(operationId).orElseThrow();
         if (operation.resultId() != null) { return; }
-        var result = provider.createOffSessionPayment(operation.charge());
-        tx.run(() -> {
-            collections.submitted(operation.providerRef(), result.paymentIntentId());
-            operations.completed(operationId, result.paymentIntentId());
-            if ("failed".equals(result.status()) || "requires_action".equals(result.status())) {
-                resolve(collections.findById(operation.providerRef()).orElseThrow(), false,
-                        result.failureCode() == null ? "authentication_required" : result.failureCode(), clock.instant());
-            }
-            return null;
+        retries.execute(operation, () -> {
+            var result = provider.createOffSessionPayment(operation.charge());
+            tx.run(() -> {
+                collections.submitted(operation.providerRef(), result.paymentIntentId());
+                operations.completed(operationId, result.paymentIntentId());
+                if ("failed".equals(result.status()) || "requires_action".equals(result.status())) {
+                    resolve(collections.findById(operation.providerRef()).orElseThrow(), false,
+                            result.failureCode() == null ? "authentication_required" : result.failureCode(), clock.instant());
+                }
+                return null;
+            });
         });
     }
     public boolean settle(String paymentIntentId, String collectionId, boolean success, String code, Instant at) {

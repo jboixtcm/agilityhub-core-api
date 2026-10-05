@@ -45,6 +45,8 @@ public final class CensusResponses {
     @Schema(description = "No full IBAN, card credentials or setup intent IDs.")
     public record PaymentMethodView(
             @Schema(requiredMode = REQUIRED) PaymentMethodType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Present only for CARD; true when the saved card is invalid")
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean invalid,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String maskedAccount,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String holderName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String channel) { }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 /** R-12-20: reserves refundable amounts transactionally; the provider call is a recoverable command and only the webhook settles it. */
 @Service
 public class PaymentRefunds {
+    @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
     public record Accepted(String id, Money amount, String providerRef) { }
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final UpfrontPaymentRepository upfront;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingTransactions tx;
@@ -79,21 +80,37 @@ public class PaymentRefunds {
         operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", sessionId, reference,
                 amount, key, "LATE_COMPLETION", null, null, clock.instant(), null));
     }
-    public void executeLate() { for (var op : operations.lateRefunds()) { execute(op.id()); } }
+    public void executeLate() {
+        for (var op : operations.lateRefunds()) {
+            try { execute(op.id()); } catch (RuntimeException deferred) { /* The bounded retry checkpoint has been saved. */ }
+        }
+    }
     public void execute(String id) {
         var op = operations.findById(id).orElseThrow();
         if (op.resultId() != null) { return; }
-        var result = provider.refund(op.providerRef(), op.amount(), op.key(), op.reason());
-        tx.run(() -> {
-            if (operations.findById(id).orElseThrow().resultId() == null) {
-                operations.completed(id, result.id());
-                String type = op.kind().equals("REFUND_INVOICE") ? "Invoice" : op.kind().equals("REFUND_LATE") ? "CheckoutSession" : "UpfrontPayment";
-                audit.refunded(type, op.targetId(), op.amount(), result.id(), op.reason());
-            }
-            return null;
+        retries.execute(op, () -> {
+            var result = provider.refund(op.providerRef(), op.amount(), op.key(), op.reason(), op.id());
+            tx.run(() -> {
+                if (operations.findById(id).orElseThrow().resultId() == null) {
+                    operations.completed(id, result.id());
+                    String type = op.kind().equals("REFUND_INVOICE") ? "Invoice" : op.kind().equals("REFUND_LATE") ? "CheckoutSession" : "UpfrontPayment";
+                    audit.refunded(type, op.targetId(), op.amount(), result.id(), op.reason());
+                }
+                return null;
+            });
         });
     }
-    public boolean settled(String intent, String refundId, Money amount, Instant at, String reason) {
+    public boolean settled(String intent, String refundId, Money amount, Instant at, String stripeReason, String operationId) {
+        // Metadata is durable before the external call; resultId may still be absent when Stripe delivers the webhook.
+        var operation = operationId == null ? operations.forResult(refundId).orElse(null)
+                : operations.findById(operationId).orElseThrow(() -> new ApiException(ErrorCode.INVALID_STATE));
+        if (operation != null && (!operation.kind().startsWith("REFUND") || !Objects.equals(operation.providerRef(), intent)
+                || !operation.amount().equals(amount))) { throw new ApiException(ErrorCode.INVALID_STATE); }
+        String reason = operation == null ? stripeReason : operation.reason();
+        String actor = operation == null ? null : operation.actorId();
+        if (operation != null && "REFUND_LATE".equals(operation.kind())) {
+            return operations.refundSettled(operation.id(), new UpfrontPayment.Refund(amount, refundId, at, reason, actor));
+        }
         var collection = collections.byProviderReference(intent).orElse(null);
         if (collection != null) {
             // Stripe may deliver a refund before payment_intent.succeeded. Keep the inbox item pending until that
@@ -105,13 +122,15 @@ public class PaymentRefunds {
             if (refunds.stream().anyMatch(r -> r.providerRef().equals(refundId))) { return false; }
             long total = refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum() + amount.amountMinor();
             if (!amount.currency().equals(collection.amount().currency()) || total > collection.amount().amountMinor()) { throw new ApiException(ErrorCode.REFUND_EXCEEDS_PAID); }
-            collections.refund(collection.id(), new Collection.Refund(amount, refundId, at, reason, null), total == collection.amount().amountMinor());
+            collections.refund(collection.id(), new Collection.Refund(amount, refundId, at, reason, actor), total == collection.amount().amountMinor());
             invoices.refunded(collection.invoiceId(), new Money(total, amount.currency()), clock.instant()); return true;
         }
         var payments = upfront.forIntent(intent);
-        var requested = operations.forResult(refundId).filter(op -> op.kind().equals("REFUND_UPFRONT"));
-        if (requested.isPresent()) { payments = payments.stream().filter(p -> p.id().equals(requested.get().targetId())).toList(); }
-        if (payments.isEmpty()) { return false; }
+        if (operation != null) {
+            if (!"REFUND_UPFRONT".equals(operation.kind())) { throw new ApiException(ErrorCode.INVALID_STATE); }
+            payments = payments.stream().filter(p -> p.id().equals(operation.targetId())).toList();
+        }
+        if (payments.isEmpty()) { throw new ApiException(ErrorCode.INVALID_STATE); }
         if (amount.amountMinor() <= 0 || payments.stream().anyMatch(p -> !p.amountPaid().currency().equals(amount.currency()))) {
             throw new ApiException(ErrorCode.CURRENCY_MISMATCH);
         }
@@ -125,7 +144,7 @@ public class PaymentRefunds {
             long refunded = payment.refunds() == null ? 0 : payment.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
             long part = Math.min(remaining, paid - refunded);
             if (part > 0) {
-                upfront.refund(payment.id(), new UpfrontPayment.Refund(new Money(part, amount.currency()), refundId, at, reason, null), part + refunded == paid);
+                upfront.refund(payment.id(), new UpfrontPayment.Refund(new Money(part, amount.currency()), refundId, at, reason, actor), part + refunded == paid);
                 remaining -= part; changed = true;
             }
         }

@@ -339,11 +339,15 @@ class E8ContractIT extends AbstractIntegrationTest {
      * anything else: Stripe's HMAC-SHA256 of "{t}.{body}" under the club's webhook secret, with a 5-minute tolerance. A missing,
      * made-up, wrong, stale or another body's signature, an unknown club, a club without a secret and one whose stored secret
      * does not decrypt → 401 WEBHOOK_SIGNATURE_INVALID with a SecurityEvent each and nothing else stored. A valid signature
-     * reaches the club guards (STRIPE disabled → 404) and then 501 until E8-T04; a bearer of another club changes nothing.
+     * reaches the club guards (STRIPE disabled → 404) and then payload validation; a bearer of another club changes nothing.
      */
     @Test void T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse() throws Exception {
         String body = "{\"id\":\"evt_e8_fixture\",\"type\":\"payment_intent.succeeded\",\"created\":1790000000}";
         String tampered = body.replace("payment_intent.succeeded", "charge.refunded");
+        // Another test class may already have delivered a valid event for an unrelated tenant.
+        mongo.save(new Document("_id", "evt_round2_foreign").append("eventId", "evt_round2_foreign").append("clubId", "round2-other")
+                .append("type", "payment_method.detached").append("receivedAt", java.util.Date.from(clock.instant()))
+                .append("processedAt", java.util.Date.from(clock.instant())).append("outcome", "IGNORED"), "stripe_events");
         var before = database();
         error(webhook(CLUB, body, signature(body)), 400, "VALIDATION_ERROR");
         // Stripe may send several v1 (a rolled secret) and a v0: one valid v1 is enough, a v0 never counts.
@@ -385,14 +389,14 @@ class E8ContractIT extends AbstractIntegrationTest {
         error(webhook(OTHER, body, null), 401, "WEBHOOK_SIGNATURE_INVALID");
         var after = database(); after.remove("clubs"); before.remove("clubs");
         assertThat(after).as("nothing but the security events is stored").isEqualTo(before);
-        assertThat(mongo.getCollection("stripe_events").countDocuments()).isZero();
+        assertThat(mongo.getCollection("stripe_events").countDocuments(new Document("clubId", new Document("$in", List.of(CLUB, OTHER))))).isZero();
     }
     private MockHttpServletRequestBuilder webhook(String clubId, String body, String signature) {
         var request = post("/webhooks/stripe/" + clubId).contentType("application/json").content(body);
         return signature == null ? request : request.header("Stripe-Signature", signature);
     }
     private long securityEvents() {
-        return mongo.getCollection("security_events").countDocuments(new Document("type", "WEBHOOK_SIGNATURE_INVALID"));
+        return mongo.getCollection("security_events").countDocuments(new Document("type", "WEBHOOK_SIGNATURE_INVALID").append("clubId", new Document("$in", java.util.Arrays.asList(CLUB, OTHER, null))));
     }
 
     /** The bodies, months and list queries are validated before the stub; an issued invoice has no PATCH (T-12-12); MEMBER_ERASED. */

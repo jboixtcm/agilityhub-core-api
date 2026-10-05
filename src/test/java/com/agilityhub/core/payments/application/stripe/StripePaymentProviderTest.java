@@ -54,7 +54,7 @@ class StripePaymentProviderTest {
         try (var tenant = TenantContext.open("club-a")) {
             var result = provider.createOffSessionPayment(new PaymentProvider.OffSessionRequest(new Money(1200, "EUR"), "cus_example", "pm_example", "invoice:2", Map.of("clubId", "club-a")));
             assertThat(result.paymentIntentId()).isEqualTo("pi_example");
-            assertThat(provider.refund("pi_example", new Money(200, "EUR"), "refund-key", "Reason").id()).isEqualTo("re_example");
+            assertThat(provider.refund("pi_example", new Money(200, "EUR"), "refund-key", "Reason", "operation-refund").id()).isEqualTo("re_example");
             provider.forgetCustomer("cus_example");
         }
         var params = ArgumentCaptor.forClass(PaymentIntentCreateParams.class); var options = ArgumentCaptor.forClass(RequestOptions.class);
@@ -62,6 +62,9 @@ class StripePaymentProviderTest {
         assertThat(params.getValue().getConfirm()).isTrue(); assertThat(params.getValue().getOffSession()).isEqualTo(true);
         assertThat(params.getValue().getAmount()).isEqualTo(1200); assertThat(params.getValue().getCurrency()).isEqualTo("eur");
         assertThat(options.getValue().getIdempotencyKey()).isEqualTo("invoice:2"); assertThat(options.getValue().getStripeAccount()).isNull();
+        var refundParams = ArgumentCaptor.forClass(RefundCreateParams.class);
+        verify(client.v1().refunds()).create(refundParams.capture(), any(RequestOptions.class));
+        assertThat(refundParams.getValue().getMetadata()).isEqualTo(Map.of("reason", "Reason", "operationId", "operation-refund"));
         verify(vault, times(3)).decrypt("encrypted-example", "club-a", "STRIPE", "secretKeyEnc");
     }
     @Test void T_12_16_checkoutParametersAndSavedProviderReferenceAreStable() throws Exception {
@@ -77,6 +80,7 @@ class StripePaymentProviderTest {
         var params = ArgumentCaptor.forClass(SessionCreateParams.class); var options = ArgumentCaptor.forClass(RequestOptions.class);
         verify(client.v1().checkout().sessions()).create(params.capture(), options.capture());
         assertThat(params.getValue().getMode()).isEqualTo(SessionCreateParams.Mode.PAYMENT);
+        assertThat(params.getValue().toMap()).containsEntry("payment_method_types", List.of("card"));
         assertThat(params.getValue().getMetadata()).containsEntry("operationId", "operation").containsEntry("upfrontPaymentIds", "payment");
         assertThat(params.getValue().getClientReferenceId()).isEqualTo("booking");
         assertThat(options.getValue().getIdempotencyKey()).isEqualTo("operation");
@@ -101,6 +105,7 @@ class StripePaymentProviderTest {
             verify(client.v1().checkout().sessions()).create(params.capture(), any(RequestOptions.class));
             assertThat(params.getValue().getCustomer()).isEqualTo("cus_example"); assertThat(params.getValue().getCustomerEmail()).isNull();
             assertThat(params.getValue().getCurrency()).isEqualTo("gbp");
+            assertThat(params.getValue().toMap()).containsEntry("payment_method_types", List.of("card"));
             assertThat(params.getValue().getSetupIntentData().getMetadata()).containsEntry("operationId", "setup-op");
             assertThat(provider.cardDetails(mapper.valueToTree(Map.of("payment_intent", "pi_example"))).last4()).isEqualTo("4242");
             assertThat(provider.cardDetails(mapper.valueToTree(Map.of("payment_method", "pm_example", "customer", "cus_example"))).usable()).isTrue();

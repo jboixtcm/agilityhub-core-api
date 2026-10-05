@@ -1,0 +1,34 @@
+src/test/java/com/agilityhub/core/payments/api/PaymentCurlIT.java:32:    @Test void T_12_15_T_12_17_curlChargeFailureRetrySuccessDuplicateAndRefund() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:33:    @Test void T_12_32_modeMismatchAndMissingKeysFailBeforeAnyNetworkCall() {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:48:    @Test void T_12_15_offSessionAndRefundUseExplicitDomainKeysAndPerClubClient() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:70:    @Test void T_12_16_checkoutParametersAndSavedProviderReferenceAreStable() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:89:    @Test void T_12_31_setupAndExpandedCardUseTheClubAccount() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:126:    @Test void T_12_16_disabledProviderStillExpiresAnExistingCheckoutButCannotCreateOne() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:141:    @Test void T_12_30_aDeclinedIntentKeepsItsReferenceAndOtherErrorsMapSafely() throws Exception {
+src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java:163:    @Test void T_12_32_disabledTenantAndAlreadyDeletedCustomerAreHandledWithoutLeakingProviderErrors() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:67:    @Test @AuditCovers(AuditAction.CARD_CHARGES_STARTED) void T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:82:    @Test void T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:103:    @Test void T_12_30_missingCardIsSkippedAndRetryRequiresCurrentCard() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:111:    @Test void T_12_31_synchronousExpiredCardInvalidatesOnlyTheChargedMethod() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:121:    @Test @AuditCovers(AuditAction.PAYMENT_REFUNDED) void T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:138:    @Test void T_12_17_refundDeliveredBeforePaymentSuccessIsDeferredAndReplayedOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:160:    @Test void T_12_31_setupReplacesAnInvalidCardAndDetachedInvalidatesIt() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:194:    @Test void T_12_32_tenantRoleModuleAndManualGuards() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:206:    @Test void T_12_15_badSignatureWritesOnlySecurityEvent() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:210:    @Test void T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:218:    @Test @AuditCovers(AuditAction.UPFRONT_PAYMENT_RECORDED) void T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:241:    @Test void T_12_16_expiredBookingRefundsExactlyOnceAndPrivacyDeletionIsRecoverable() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:257:    @Test void T_12_15_storedUnknownPaymentIsDeferredAndReprocessed() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:267:    @Test void T_12_17_cancellationPoliciesRefundCreditOrLeaveThePaymentAndRefundTargetIsExact() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:289:    @Test void T_12_15_lostResponseReusesRunAndRetryCommandsDespiteChangedVersion() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:306:    @Test void T_12_16_signupCommitFailureReusesOneProviderSetupSession() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:330:    @Test void T_12_16_rejectedSignupCompletionRefundsOnceWithoutRevivingCancelledRows() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:369:    @Test void T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:389:    @Test void T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:403:    @Test void T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:421:    @Test void T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:439:    void T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:474:    @Test void T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:500:    @Test void T_12_15_chargingRunAcceptsAnotherCommandWithoutResubmittingInvoices() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:507:    @Test void T_12_17_pendingRefundKeepsOnlyAllowListedMetadata() throws Exception {
+src/test/java/com/agilityhub/core/payments/api/CardPaymentsIT.java:516:    @Test void T_12_15_recoveryUsesTheClubsAttemptLimitAndRetainsItsDeadline() throws Exception {

@@ -19,7 +19,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
  * S12 §6 billing routes of a member's D10 card (R-12-22, R-12-25), ADMIN only, module `BILLING`. The pending charges are served
- * (E8-T02); the card-setup link runs its guards and answers 501 NOT_IMPLEMENTED until E8-T04.
+ * (E8-T02); the card-setup link opens a provider setup session after its guards.
  */
 @RestController
 @RequiresModule(Module.BILLING)

@@ -34,10 +34,13 @@ class CardPaymentsIT extends BillingItSupport {
     @Autowired PaymentPrivacy privacy;
     @Autowired PaymentBookingCancellations cancellations;
     @Autowired CardPayments cards;
+    @Autowired PaymentRefunds refunds;
+    @Autowired StripeInbox inbox;
+    @Autowired PaymentOperationRepository operations;
     @Autowired com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     @BeforeEach void stripe() {
         for (String collection : List.of("payment_operations", "stripe_events", "checkout_sessions", "upfront_payments")) {
-            mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), collection);
+            mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         fake.reset();
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
@@ -143,7 +146,7 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isZero();
 
         webhook("evt_success_after_refund", "payment_intent.succeeded", Map.of("id", paymentIntent));
-        recovery.recover(); recovery.recover();
+        clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover(); recovery.recover();
         webhook("evt_early_refund", "charge.refunded", refund);
         assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
         assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(6000);
@@ -225,7 +228,7 @@ class CardPaymentsIT extends BillingItSupport {
         webhook("evt_expired", "checkout.session.expired", Map.of("id", "cs_example", "metadata", Map.of("operationId", session)));
         assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("PARTIAL");
         fake.card("pi_signup", new BillingCensusAccess.Card("cus_card-member", "pm_recovered", "1234", "visa", false));
-        webhook("evt_paid_late", "checkout.session.completed", Map.of("id", "cs_example", "payment_intent", "pi_signup", "amount_total", 800,
+        webhook("evt_paid_late", "checkout.session.completed", Map.of("id", "cs_example", "payment_intent", "pi_signup", "amount_total", 800, "payment_status", "paid",
                 "metadata", Map.of("operationId", session)));
         assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("PAID");
         assertThat(ok(as(get("/api/v1/checkout-sessions/" + session), CLUB, "MEMBER", "card-member"), 200).path("status").asText()).isEqualTo("PAID");
@@ -241,7 +244,7 @@ class CardPaymentsIT extends BillingItSupport {
             session = tx.run(() -> checkouts.prepareBooking("card-member", "booking-late", new UpfrontPayments.Charge("SINGLE_CLASS", null, new Money(1200, "EUR")), clock.instant().plusSeconds(900))).sessionId();
             checkouts.expire(session);
         }
-        var object = Map.<String, Object>of("id", "cs_booking", "payment_intent", "pi_booking", "amount_total", 1200, "metadata", Map.of("operationId", session));
+        var object = Map.<String, Object>of("id", "cs_booking", "payment_intent", "pi_booking", "amount_total", 1200, "payment_status", "paid", "metadata", Map.of("operationId", session));
         webhook("evt_booking_late", "checkout.session.completed", object);
         webhook("evt_booking_late_again", "checkout.session.completed", object);
         recovery.recover(); recovery.recover();
@@ -256,7 +259,7 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(mongo.findById("evt_early", Document.class, "stripe_events").getString("outcome")).isEqualTo("FAILED");
         String run = runId(generated()), invoice = invoiceId(); charge(run);
         mongo.updateFirst(Query.query(Criteria.where("invoiceId").is(invoice)), new Update().set("providerRef", "pi_unknown"), "collections");
-        recovery.recover();
+        clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover();
         assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
         assertThat(mongo.findById("evt_early", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
     }
@@ -334,11 +337,195 @@ class CardPaymentsIT extends BillingItSupport {
         String session = checkout.path("checkoutSessionId").asText();
         try (var tenant = TenantContext.open(CLUB)) { checkouts.expire(session); }
         mongo.updateFirst(Query.query(Criteria.where("_id").is(payment)), new Update().set("status", "CANCELLED"), "upfront_payments");
-        var object = Map.<String, Object>of("id", "cs_rejected", "payment_intent", "pi_rejected", "amount_total", 1000, "metadata", Map.of("operationId", session));
+        var object = Map.<String, Object>of("id", "cs_rejected", "payment_intent", "pi_rejected", "amount_total", 1000, "payment_status", "paid", "metadata", Map.of("operationId", session));
         webhook("evt_rejected", "checkout.session.completed", object); webhook("evt_rejected_duplicate", "checkout.session.completed", object);
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).singleElement().satisfies(call -> assertThat(call.key()).isEqualTo("late:pi_rejected"));
         assertThat(mongo.findById(payment, Document.class, "upfront_payments").getString("status")).isEqualTo("CANCELLED");
         assertThat(events("UpfrontPaymentSucceeded")).isEmpty();
     }
 
+
+    String signupCheckout(List<String> rows) throws Exception {
+        return ok(admin(keyed(post("/api/v1/checkout-sessions"), Map.of("memberId", "card-member", "upfrontPaymentIds", rows,
+                "successUrl", "https://" + HOST + "/ok", "cancelUrl", "https://" + HOST + "/ko"))), 201).path("checkoutSessionId").asText();
+    }
+    List<String> signupRows(int count) {
+        try (var tenant = TenantContext.open(CLUB)) {
+            tx.run(() -> { upfront.create("card-member", "round-two", java.util.stream.IntStream.range(0, count)
+                    .mapToObj(i -> new UpfrontPayments.Charge(i == 0 ? "ENTRY_FEE" : "FIRST_MONTH", null, new Money(1000, "EUR"))).toList()); return null; });
+        }
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB)).with(org.springframework.data.domain.Sort.by("_id")), Document.class, "upfront_payments")
+                .stream().map(d -> d.getString("_id")).toList();
+    }
+    Map<String, Object> completion(String session, String intent, long amount, String status) {
+        return Map.of("id", "cs_" + session, "payment_intent", intent, "amount_total", amount, "payment_status", status,
+                "metadata", Map.of("operationId", session));
+    }
+    Document paymentRow(String id) { return mongo.findById(id, Document.class, "upfront_payments"); }
+    Map<String, Object> refundObject(String intent, String id, long amount, Map<String, String> metadata) {
+        return Map.of("id", "ch_round_two", "payment_intent", intent, "currency", "eur", "refunds", Map.of("data",
+                List.of(Map.of("id", id, "amount", amount, "status", "succeeded", "reason", "requested_by_customer", "metadata", metadata))));
+    }
+    @Test void T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows() throws Exception {
+        var rows = signupRows(1); String a = signupCheckout(rows);
+        try (var tenant = TenantContext.open(CLUB)) { checkouts.expire(a); }
+        String b = signupCheckout(rows);
+        webhook("evt_b_paid", "checkout.session.completed", completion(b, "pi_b", 1000, "paid"));
+        Document paid = paymentRow(rows.getFirst());
+        webhook("evt_a_late", "checkout.session.completed", completion(a, "pi_a", 1000, "paid"));
+        var op = mongo.findOne(Query.query(Criteria.where("key").is("late:pi_a")), Document.class, "payment_operations");
+        assertThat(op).isNotNull();
+        webhook("evt_a_refund", "charge.refunded", refundObject("pi_a", op.getString("resultId"), 1000,
+                Map.of("operationId", op.getString("_id"), "reason", "LATE_COMPLETION")));
+        webhook("evt_a_late_again", "checkout.session.completed", completion(a, "pi_a", 1000, "paid"));
+        assertThat(paymentRow(rows.getFirst())).isEqualTo(paid);
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).singleElement()
+                .satisfies(c -> assertThat(((Map<?, ?>) c.request()).get("chargeId")).isEqualTo("pi_a"));
+        assertThat(mongo.findById("evt_a_refund", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        var settled = mongo.findById(op.getString("_id"), Document.class, "payment_operations").get("refund", Document.class);
+        assertThat(settled.getString("reason")).isEqualTo("LATE_COMPLETION");
+        assertThat(settled.get("byAccountId")).isNull();
+    }
+    @Test void T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce() throws Exception {
+        var rows = signupRows(1); String session = signupCheckout(rows);
+        var refund = refundObject("pi_early_signup", "re_early_signup", 1000, Map.of());
+        webhook("evt_signup_refund_first", "charge.refunded", refund);
+        var pending = mongo.findById("evt_signup_refund_first", Document.class, "stripe_events");
+        assertThat(pending.get("processedAt")).isNull();
+        assertThat(pending.getString("outcome")).isEqualTo("FAILED");
+        webhook("evt_signup_paid_second", "checkout.session.completed", completion(session, "pi_early_signup", 1000, "paid"));
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+        clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover(); recovery.recover();
+        webhook("evt_signup_refund_first", "charge.refunded", refund);
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("REFUNDED");
+        assertThat(paymentRow(rows.getFirst()).getList("refunds", Document.class)).hasSize(1);
+    }
+    @Test void T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance() throws Exception {
+        var rows = signupRows(2); String session = signupCheckout(rows);
+        webhook("evt_two_paid", "checkout.session.completed", completion(session, "pi_two", 2000, "paid"));
+        fake.beforeRefundReturn((call, result) -> {
+            String operation = ((Map<?, ?>) call.request()).get("operationId").toString();
+            assertThat(mongo.findById(operation, Document.class, "payment_operations").getString("resultId")).isNull();
+            fake.deliverWebhook("charge.refunded", Map.of("eventId", "evt_second_refund", "created", clock.instant().getEpochSecond(), "object",
+                    refundObject("pi_two", result.id(), 1000, Map.of("operationId", operation, "reason", "Admin correction", "private", "must-not-be-retained"))));
+            assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+            assertThat(paymentRow(rows.get(1)).getString("status")).isEqualTo("REFUNDED");
+            assertThat(paymentRow(rows.get(1)).getList("refunds", Document.class)).singleElement().satisfies(r -> {
+                assertThat(r.getString("reason")).isEqualTo("Admin correction"); assertThat(r.getString("byAccountId")).isEqualTo("bill-admin");
+            });
+        });
+        ok(admin(keyed(post("/api/v1/upfront-payments/" + rows.get(1) + "/refund"), Map.of("reason", "Admin correction"))), 202);
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
+    }
+
+    @Test void T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking() throws Exception {
+        var rows = signupRows(1); String signup = signupCheckout(rows), booking;
+        try (var tenant = TenantContext.open(CLUB)) {
+            booking = tx.run(() -> checkouts.prepareBooking("card-member", "booking-unpaid", new UpfrontPayments.Charge("SINGLE_CLASS", null,
+                    new Money(1200, "EUR")), clock.instant().plusSeconds(900))).sessionId();
+        }
+        for (var entry : Map.of(signup, 1000, booking, 1200).entrySet()) {
+            webhook("evt_unpaid_" + entry.getKey(), "checkout.session.completed", completion(entry.getKey(), "pi_unpaid_" + entry.getKey(), entry.getValue(), "unpaid"));
+            var event = mongo.findById("evt_unpaid_" + entry.getKey(), Document.class, "stripe_events");
+            assertThat(event.getString("outcome")).isEqualTo("IGNORED");
+            assertThat(event.getString("reason")).isEqualTo("PAYMENT_NOT_PAID");
+            assertThat(mongo.findById(entry.getKey(), Document.class, "checkout_sessions").getString("status")).isEqualTo("PENDING");
+        }
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "upfront_payments"))
+                .allSatisfy(p -> assertThat(p.getString("status")).isEqualTo("CHECKOUT_PENDING"));
+        assertThat(events("UpfrontPaymentSucceeded")).isEmpty();
+    }
+    @Test @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        try (var tenant = TenantContext.open(CLUB)) {
+            for (int i = 100; i >= 0; i--) {
+                String id = "evt_poison_" + i;
+                inbox.receive(new StripeEvent(id, CLUB, id, "charge.refunded", clock.instant().minusSeconds(102 - i), null, null, "fixture"),
+                        new Document("created", clock.instant().getEpochSecond()).append("object", refundObject("pi_unknown_" + i, "re_unknown_" + i, 1000, Map.of())));
+            }
+            inbox.receive(new StripeEvent("evt_recoverable", CLUB, "evt_recoverable", "payment_method.detached", clock.instant(), null, null, "fixture"),
+                    new Document("created", clock.instant().getEpochSecond()).append("object", Map.of("id", "pm_card-member")));
+        }
+        try (var tenant = TenantContext.open(OTHER)) {
+            for (int i = 100; i >= 0; i--) { operations.insert(new PaymentOperation("poison_" + i, OTHER, "FORGET", "cus_" + i, "cus_" + i,
+                    null, "forget_" + i, null, null, null, clock.instant().minusSeconds(102 - i), null)); }
+        }
+        try (var tenant = TenantContext.open(CLUB)) { privacy.forgetCustomer("cus_recoverable"); }
+        recovery.recover();
+        assertThat(mongo.findById("evt_recoverable", Document.class, "stripe_events").get("processedAt")).isNull();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("forget"))).isEmpty();
+        recovery.recover();
+        assertThat(mongo.findById("evt_recoverable", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("forget"))).hasSize(1);
+        var event = mongo.findById("evt_poison_0", Document.class, "stripe_events");
+        assertThat(event.getInteger("attempts")).isEqualTo(1);
+        assertThat(event.getDate("nextAttemptAt").toInstant()).isAfter(clock.instant());
+        for (int i = 0; i < 2; i++) { clock.setInstant(clock.instant().plusSeconds(3600)); recovery.recover(); recovery.recover(); }
+        for (String collection : List.of("stripe_events", "payment_operations")) {
+            var row = mongo.findById(collection.equals("stripe_events") ? "evt_poison_0" : "poison_0", Document.class, collection);
+            assertThat(row.getInteger("attempts")).isEqualTo(3); assertThat(row.getString("outcome")).isEqualTo("FAILED");
+            assertThat(row.getDate("processedAt")).isNotNull(); assertThat(row.get("nextAttemptAt")).isNull();
+        }
+        assertThat(inbox.pending()).noneMatch(e -> e.id().startsWith("evt_poison_"));
+        assertThat(operations.pending()).noneMatch(o -> o.id().startsWith("poison_"));
+        assertThat(output.getOut()).contains("Stripe event recovery exhausted: eventId=evt_poison_0", "Payment operation recovery exhausted: eventId=poison_0")
+                .doesNotContain("cus_recoverable");
+        // Profile tests may configure the shared logger for text or JSON; both must carry the real MDC trace.
+        String warning = output.getOut().lines().filter(line -> line.contains("Payment operation recovery exhausted: eventId=poison_0 ")).findFirst().orElseThrow();
+        assertThat(warning).contains("WARN").containsPattern("(?:traceId=|\"traceId\":\")[0-9a-f-]{36}");
+    }
+    @Test void T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards() throws Exception {
+        mongo.save(new com.agilityhub.core.identity.persistence.Account("bill-member", "round2@example.test", "Card Example", "ca", null, Set.of(),
+                com.agilityhub.core.identity.persistence.Account.Status.ACTIVE, null, Map.of(), false, NOW));
+        mongo.save(new com.agilityhub.core.identity.persistence.Membership("round2-membership", "bill-member", CLUB, "card-member",
+                Set.of(com.agilityhub.core.identity.domain.Role.MEMBER), com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.MEMBER));
+        assertCardInvalid(false);
+        webhook("evt_view_detached", "payment_method.detached", Map.of("id", "pm_card-member")); assertCardInvalid(true);
+        fake.card("pm_view_new", new BillingCensusAccess.Card("cus_card-member", "pm_view_new", "1234", "visa", false));
+        var result = ok(as(keyed(post("/api/v1/me/card-setup"), Map.of("successUrl", "https://" + HOST + "/ok", "cancelUrl", "https://" + HOST + "/ko")),
+                CLUB, "MEMBER", "card-member"), 201);
+        String session = result.path("checkoutUrl").asText().replace("https://checkout.test/", "");
+        webhook("evt_view_setup", "setup_intent.succeeded", Map.of("id", "seti_view", "payment_method", "pm_view_new", "metadata", Map.of("memberId", "card-member", "operationId", session)));
+        assertCardInvalid(false);
+        error(as(get("/api/v1/members/card-member"), OTHER, "ADMIN", null), 404, "NOT_FOUND");
+        for (var method : List.of(cash(), sepa(IBAN))) {
+            mongo.updateFirst(Query.query(Criteria.where("_id").is("card-member")), new Update().set("paymentMethod", method), "members");
+            assertThat(ok(admin(get("/api/v1/members/card-member")), 200).path("paymentMethod").has("invalid")).isFalse();
+            assertThat(ok(as(get("/api/v1/me"), CLUB, "MEMBER", "card-member"), 200).path("paymentMethod").has("invalid")).isFalse();
+        }
+    }
+    void assertCardInvalid(boolean invalid) throws Exception {
+        for (var response : List.of(ok(admin(get("/api/v1/members/card-member")), 200), ok(as(get("/api/v1/me"), CLUB, "MEMBER", "card-member"), 200))) {
+            assertThat(response.path("paymentMethod").path("invalid").isBoolean()).isTrue();
+            assertThat(response.path("paymentMethod").path("invalid").asBoolean()).isEqualTo(invalid);
+        }
+    }
+    @Test void T_12_15_chargingRunAcceptsAnotherCommandWithoutResubmittingInvoices() throws Exception {
+        String run = runId(generated()); charge(run);
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("CHARGING");
+        charge(run); assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+        assertThat(BillingController.class.getMethod("chargeRunCards", String.class, UUID.class).getAnnotation(io.swagger.v3.oas.annotations.Operation.class).description())
+                .contains("GENERATED or CHARGING").doesNotContain("Until E8-T04");
+    }
+    @Test void T_12_17_pendingRefundKeepsOnlyAllowListedMetadata() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_safe_refund", "charge.refunded", refundObject(intent(invoice), "re_safe", 1000,
+                Map.of("operationId", "unknown-operation", "reason", "Correction", "email", "private@example.test")));
+        var work = mongo.findById("evt_safe_refund", Document.class, "stripe_events").get("work", Document.class);
+        var refund = work.get("object", Document.class).get("refunds", Document.class).getList("data", Document.class).getFirst();
+        assertThat(refund.get("metadata", Document.class)).containsExactlyInAnyOrderEntriesOf(Map.of("operationId", "unknown-operation", "reason", "Correction"));
+        assertThat(work.toJson()).doesNotContain("private@example.test");
+    }
+    @Test void T_12_15_recoveryUsesTheClubsAttemptLimitAndRetainsItsDeadline() throws Exception {
+        parameter(CLUB, "billing.stripeMaxAttempts", 2);
+        webhook("evt_limit", "charge.refunded", refundObject("pi_unknown_limit", "re_limit", 1000, Map.of()));
+        var first = mongo.findById("evt_limit", Document.class, "stripe_events");
+        assertThat(first.getInteger("attempts")).isEqualTo(1);
+        recovery.recover(); assertThat(mongo.findById("evt_limit", Document.class, "stripe_events").getInteger("attempts")).isEqualTo(1);
+        clock.setInstant(first.getDate("nextAttemptAt").toInstant()); recovery.recover();
+        var last = mongo.findById("evt_limit", Document.class, "stripe_events");
+        assertThat(last.getInteger("attempts")).isEqualTo(2); assertThat(last.getDate("processedAt")).isNotNull();
+        clock.setInstant(clock.instant().plusSeconds(3600)); recovery.recover();
+        assertThat(mongo.findById("evt_limit", Document.class, "stripe_events")).isEqualTo(last);
+    }
 }

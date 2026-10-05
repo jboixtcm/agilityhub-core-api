@@ -1,0 +1,19 @@
+curl -X POST /api/v1/billing/runs/[id truncated]/card-charges -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/retry -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/refund -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+FakePaymentProvider operation=charge idempotencyKey=33fc8950...[truncated]
+FakePaymentProvider operation=charge idempotencyKey=33fc8950...[truncated]:2
+FakePaymentProvider operation=refund idempotencyKey=invoice-...[truncated]
+StripeEvent eventId=evt_curl_failed type=payment_intent.payment_failed outcome=PROCESSED
+StripeEvent eventId=evt_curl_paid type=payment_intent.succeeded outcome=PROCESSED
+StripeEvent eventId=evt_curl_late_failure type=payment_intent.payment_failed outcome=IGNORED
+StripeEvent eventId=evt_curl_refunded type=charge.refunded outcome=PROCESSED
+PASS curl sequence: charge -> failed webhook -> invoice FAILED -> retry -> success/duplicate/late failure -> refund -> invoice PAID, refundedTotal=6000 EUR

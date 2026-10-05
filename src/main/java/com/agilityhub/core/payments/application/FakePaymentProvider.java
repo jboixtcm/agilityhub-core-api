@@ -29,7 +29,9 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     public void fail(String code) { outcomes.add("failed:" + code); }
     public void requireAction() { outcomes.add("requires_action"); }
     public List<Call> calls() { synchronized (calls) { return List.copyOf(calls); } }
-    public void reset() { calls.clear(); results.clear(); outcomes.clear(); cards.clear(); }
+    private java.util.function.BiConsumer<Call, RefundResult> beforeRefundReturn = (call, result) -> {};
+    public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
+    public void reset() { calls.clear(); results.clear(); outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);
@@ -48,10 +50,18 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
         });
     }
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason) {
+        return refund(chargeId, amount, idempotencyKey, reason, null);
+    }
+    @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
         String club = TenantContext.require(), key = club + ":refund:" + idempotencyKey;
         return (RefundResult) results.computeIfAbsent(key, ignored -> {
-            calls.add(new Call(club, "refund", idempotencyKey, Map.of("chargeId", chargeId, "amount", amount, "reason", reason)));
-            return new RefundResult("re_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)), "succeeded");
+            var request = new LinkedHashMap<String, Object>(Map.of("chargeId", chargeId, "amount", amount, "reason", reason));
+            if (operationId != null) { request.put("operationId", operationId); }
+            var call = new Call(club, "refund", idempotencyKey, request);
+            calls.add(call);
+            var result = new RefundResult("re_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)), "succeeded");
+            beforeRefundReturn.accept(call, result);
+            return result;
         });
     }
     @Override public WebhookEvent parseWebhook(String payload, String signature, String secret) { return PaymentWebhookParser.authenticate(payload, signature, secret, clock); }

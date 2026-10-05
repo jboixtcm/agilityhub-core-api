@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class PaymentOperationRepository extends TenantRepository<PaymentOperation> {
-    public PaymentOperationRepository(MongoTemplate mongo) { super(mongo, PaymentOperation.class); }
+    private final java.time.Clock clock;
+    public PaymentOperationRepository(MongoTemplate mongo, java.time.Clock clock) { super(mongo, PaymentOperation.class); this.clock = clock; }
     @jakarta.annotation.PostConstruct public void indexes() {
         mongo.indexOps(PaymentOperation.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("key", org.springframework.data.domain.Sort.Direction.ASC).unique());
@@ -31,13 +32,26 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
         return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("resultId").is(reference)), PaymentOperation.class));
     }
     public List<PaymentOperation> lateRefunds() {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("REFUND_LATE").and("resultId").is(null)), PaymentOperation.class);
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("kind").is("REFUND_LATE").and("resultId").is(null).and("processedAt").is(null))
+                .addCriteria(PaymentRetryState.due(clock.instant())).with(org.springframework.data.domain.Sort.by("createdAt", "_id")).limit(100), PaymentOperation.class);
     }
     public void completed(String id, String reference) {
-        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("resultId", reference), PaymentOperation.class);
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("resultId", reference).set("processedAt", clock.instant()).set("outcome", "PROCESSED").inc("attempts", 1).unset("nextAttemptAt"), PaymentOperation.class);
+    }
+    public boolean refundSettled(String id, UpfrontPayment.Refund refund) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund").is(null)),
+                new Update().set("refund", refund), PaymentOperation.class).getModifiedCount() == 1;
+    }
+    public boolean ready(String id) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))
+                .addCriteria(PaymentRetryState.due(clock.instant())), PaymentOperation.class);
+    }
+    public boolean failed(String id, java.time.Instant now, int max) {
+        return PaymentRetryState.failed(mongo, tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null)), "payment_operations", now, max);
     }
     /** Dispatcher inventory only; each command is subsequently re-read and executed inside its own tenant scope. */
     public List<PaymentOperation> pending() {
-        return mongo.find(org.springframework.data.mongodb.core.query.Query.query(Criteria.where("resultId").is(null)).limit(100), PaymentOperation.class);
+        return mongo.find(org.springframework.data.mongodb.core.query.Query.query(Criteria.where("resultId").is(null).and("processedAt").is(null))
+                .addCriteria(PaymentRetryState.due(clock.instant())).with(org.springframework.data.domain.Sort.by("createdAt", "_id")).limit(100), PaymentOperation.class);
     }
 }

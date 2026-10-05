@@ -28,7 +28,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 /**
  * S12 §6 monthly cycle of D6 (R-12-07…14, R-12-26), ADMIN only, module `BILLING`; the impersonation token is refused
  * (`IMPERSONATION_DENIED`) and MEMBER/INSTRUCTOR get 403 (MATRIU «Facturació»). E8-T02 serves the month, the simulation,
- * the run and its rollback; the card charges go to `CardChargingPort` (its null object answers 422 until E8-T04) and the
+ * the run and its rollback; the card charges go to `CardChargingPort` and the
  * accounting export stays 501 until E8-T06. Error statuses are CATALEG_ERRORS' (rule 0), whatever S12 §6 writes.
  */
 @RestController
@@ -120,8 +120,8 @@ public class BillingController {
     @Operation(summary = "chargeRunCards", description = ROLES + "R-12-13 [COBRA LES TARGETES]: an off-session PaymentIntent per CARD invoice of the "
             + "run (idempotencyKey = invoiceId, batches of 25), Collection SUBMITTED, invoice COLLECTING; run CHARGING until every Stripe collection "
             + "is resolved by webhook. An invoice without a valid card → FAILED{NO_PAYMENT_METHOD} + N-35, listed in skipped. CARD_CHARGES_STARTED "
-            + "audit. A run not GENERATED → 409 INVALID_STATE; STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. Until E8-T04 there is no "
-            + "card provider: every call answers 422 PAYMENT_PROVIDER_NOT_ENABLED after the guards." + SERVED,
+            + "audit. A run must be GENERATED or CHARGING; any other state → 409 INVALID_STATE. Already submitted invoices are not charged again. "
+            + "STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED." + SERVED,
             responses = @ApiResponse(responseCode = "202", description = "CardChargesResult", useReturnTypeSchema = true))
     public CardChargesResult chargeRunCards(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.run(id);

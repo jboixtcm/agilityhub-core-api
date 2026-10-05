@@ -9,7 +9,7 @@ print(f"clean verify exit={verification_exit}")
 changed = {"CardPaymentsIT", "PaymentCurlIT", "StripePaymentProviderTest", "StripeCallsTest", "E8ContractIT",
            "E8ResponseContractTest", "SignupGateFixesIT", "DashboardBuildersTest", "NotificationEngineIT",
            "S04ErrorContractTest", "NotificationMatrixTest", "NotificationCatalogContractTest", "CheckoutProviderFailureTest", "E3ContractIT",
-           "TemplateVariableParityIT"}
+           "TemplateVariableParityIT", "OpenApiSnapshotTest"}
 required = {"ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "SignupCensusCorrectionsIT"}
 found = set()
 failed = verification_exit != 0

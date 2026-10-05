@@ -38,10 +38,9 @@ class NotificationCatalogContractTest {
     /** The «Variables disponibles» line: its variable list ends at «Sintaxi»; its last sentence names the general variables (E66). */
     static final String AVAILABLE = "## Variables disponibles (claus de codi; etiqueta en l'idioma de l'admin a D9)";
     static final Pattern GENERAL_SENTENCE = Pattern.compile("`([a-z_]+)` és una variable general");
-    /** Events the row does not name: S11 §7 (N-15/N-23), E5-T03 (N-46), and S12 R-12-22 / E8-T04 step 8 (N-35).
-     * The N-35 row alignment is proposed in roadmap/MESSAGES.md; the event and notification already belong to the catalogs. */
+    /** Events the row does not name: S11 §7 (N-15/N-23) and E5-T03 (N-46). */
     static final Map<String, Set<String>> EXTRA_EVENTS = Map.of("N-15", Set.of("WaitlistNotified"), "N-23", Set.of("DogDocumentPending"),
-            "N-46", Set.of("WaitlistConsolidated", "BookingCreated"), "N-35", Set.of("MemberCardInvalidated"));
+            "N-46", Set.of("WaitlistConsolidated", "BookingCreated"));
     /** Names a row writes that are no emitting event: N-15's SeatReleased (it leads to WaitlistNotified), N-46's reverted offer, N-50's ExportJob. */
     static final Map<String, Set<String>> NOT_EMITTED = Map.of("N-15", Set.of("SeatReleased"), "N-46", Set.of("WaitlistNotified"), "N-50", Set.of("ExportJob"));
 
@@ -289,8 +288,6 @@ class NotificationCatalogContractTest {
         assertThat(NotificationCatalog.specs().stream().filter(s -> s.eventTypes().isEmpty()).map(NotificationSpec::code)).containsExactly("N-50", "N-53");
         String s11 = Files.readString(S11);
         for (String extra : List.of("WaitlistNotified", "DogDocumentPending")) { assertThat(s11).contains("`" + extra); }
-        assertThat(Files.readString(Path.of("docs/specs/S12-facturacio-i-pagaments.md")))
-                .contains("`InvoiceFailed{STRIPE}` · `MemberCardInvalidated`");
         // Variables: «Variables disponibles», the Annex's «Variables noves», the 24-09 additions and the S11 formatting list.
         var lines = Files.readAllLines(CATALOG);
         var allowed = new TreeSet<String>();

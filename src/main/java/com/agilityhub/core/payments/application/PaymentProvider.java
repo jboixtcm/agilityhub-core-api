@@ -25,6 +25,9 @@ public interface PaymentProvider {
     default boolean supports(Capability capability) { return false; }
     default OffSessionResult createOffSessionPayment(OffSessionRequest request) { throw disabled(); }
     default RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason) { throw disabled(); }
+    default RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
+        return refund(chargeId, amount, idempotencyKey, reason);
+    }
     default WebhookEvent parseWebhook(String payload, String signatureHeader, String webhookSecret) { throw disabled(); }
     default com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) { return null; }
     default void forgetCustomer(String customerId) { throw disabled(); }

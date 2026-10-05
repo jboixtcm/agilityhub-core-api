@@ -51,6 +51,9 @@ public class MeController {
                 account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending());
         if (membership == null) { return new MeResponse(publicAccount, null, null, List.of()); }
         var details = census.bootstrap(membership.memberId());
+        var method = clubs.get(TenantContext.require()).modules().contains(com.agilityhub.core.platform.application.Module.BILLING)
+                ? census.paymentMethod(membership.memberId()) : null;
+        var paymentMethod = method == null ? null : new MeResponse.MemberPaymentMethod(method.type(), method.invalid());
         var gender = details.gender() == null ? null : MeResponse.Gender.valueOf(details.gender());
         var current = com.agilityhub.core.shared.application.CurrentUser.current();
         if (current != null && current.impersonation() != null) {
@@ -60,7 +63,7 @@ public class MeController {
                     account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending()),
                     new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.of(Profile.MEMBER), Profile.MEMBER, List.of(Profile.MEMBER),
                             membership.memberId(), null, null, false, gender, details.lastDogForClass(), details.lastDogForTraining()), new MeResponse.Impersonation(current.impersonation().actorName(), memberName),
-                    clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
+                    clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList(), paymentMethod);
         }
         var profiles = membership.roles().stream().map(role -> Profile.valueOf(role.name())).sorted().toList();
         var defaultProfile = membership.defaultProfile() == null ? null : Profile.valueOf(membership.defaultProfile().name());
@@ -70,7 +73,7 @@ public class MeController {
         return new MeResponse(publicAccount,
                 new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.copyOf(profiles), activeProfile, profiles,
                         membership.memberId(), membership.instructorId(), defaultProfile, membership.rememberProfile(), gender, details.lastDogForClass(), details.lastDogForTraining()), null,
-                clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
+                clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList(), paymentMethod);
     }
 
     @PatchMapping("/api/v1/me")

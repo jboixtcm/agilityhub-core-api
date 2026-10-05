@@ -25,6 +25,15 @@ public class MemberIdentityQuery implements com.agilityhub.core.shared.applicati
         return members.findById(memberId).map(member -> String.join(" ", java.util.stream.Stream.of(member.firstName, member.lastName1, member.lastName2)
                 .filter(part -> part != null && !part.isBlank()).toList())).filter(name -> !name.isBlank());
     }
+    @Override public PaymentMethod paymentMethod(String memberId) {
+        if (memberId == null) { return null; }
+        return members.findById(memberId).filter(member -> member.erasedAt == null && member.paymentMethod != null).map(member -> {
+            var method = member.paymentMethod;
+            String type = (String) method.get("type");
+            var card = method.get("card") instanceof java.util.Map<?, ?> nested ? nested : method;
+            return new PaymentMethod(type, "CARD".equals(type) ? Boolean.TRUE.equals(card.get("invalid")) : null);
+        }).orElse(null);
+    }
     @Override public Bootstrap bootstrap(String memberId) {
         if (memberId == null) { return new Bootstrap(null, null, null); }
         return members.findById(memberId).map(member -> new Bootstrap(member.gender, member.lastDogForClass, member.lastDogForTraining))

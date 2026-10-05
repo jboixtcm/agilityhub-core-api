@@ -1,0 +1,4 @@
+heavy.sh: 11:21 waiting for the host lock, held by: 11:21 agilityhub-core-web: pnpm turbo run lint typecheck test build
+heavy.sh: 11:23 got the host lock after 1 min 15 s
+Starting disposable development build Compose stack
+Building the current working tree image

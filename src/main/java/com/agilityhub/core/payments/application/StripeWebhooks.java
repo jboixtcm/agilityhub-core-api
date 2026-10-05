@@ -22,6 +22,7 @@ public class StripeWebhooks {
     private final CheckoutService checkouts; private final SignupCheckoutRepository sessions; private final UpfrontPaymentRepository upfront;
     private final BillingCensusAccess census; private final BillingEvents events; private final Clock clock; private final ObjectMapper mapper;
     private final PaymentProviderRegistry provider;
+    @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
     public StripeWebhooks(StripeInbox inbox, BillingTransactions tx, CardPayments cards, PaymentRefunds refunds, CheckoutService checkouts,
             SignupCheckoutRepository sessions, UpfrontPaymentRepository upfront, BillingCensusAccess census, BillingEvents events, Clock clock,
             ObjectMapper mapper, PaymentProviderRegistry provider) {
@@ -46,12 +47,14 @@ public class StripeWebhooks {
             var object = mapper.valueToTree(work.get("object"));
             var at = Instant.ofEpochSecond(((Number) work.get("created")).longValue());
             // Card metadata may require a provider read (the webhook carries an id, not an expanded PaymentMethod).
-            var card = Set.of("setup_intent.succeeded", "checkout.session.completed").contains(row.type())
+            var card = ("setup_intent.succeeded".equals(row.type()) || ("checkout.session.completed".equals(row.type()) && "paid".equals(text(object, "payment_status"))))
                     ? provider.cardDetails(object) : null;
             tx.run(() -> {
                 inbox.lock(id);
                 if (inbox.findById(id).orElseThrow().processedAt() != null) { return null; }
-                boolean changed = handle(row.type(), object, at, card);
+                boolean unpaid = "checkout.session.completed".equals(row.type()) && !"paid".equals(text(object, "payment_status"));
+                boolean changed = !unpaid && handle(row.type(), object, at, card);
+                if (unpaid) { inbox.reason(id, "PAYMENT_NOT_PAID"); }
                 String outcome = changed ? "PROCESSED" : "IGNORED";
                 inbox.outcome(id, outcome, clock.instant());
                 events.publish(BillingEvent.Kind.StripeWebhookReceived, id, Map.of("eventId", id, "type", row.type(), "outcome", outcome));
@@ -62,8 +65,9 @@ public class StripeWebhooks {
         } catch (RuntimeException deferred) {
             try { tx.run(() -> {
                 var event = inbox.findById(id).orElseThrow();
-                inbox.outcome(id, "FAILED", clock.instant());
-                if (!"FAILED".equals(event.outcome())) { events.publish(BillingEvent.Kind.StripeWebhookReceived, id,
+                if (event.processedAt() != null) { return null; }
+                if (inbox.failed(id, clock.instant(), retries.maxAttempts())) { retries.warn("Stripe event", id); }
+                if (event.outcome() != StripeEventOutcome.FAILED) { events.publish(BillingEvent.Kind.StripeWebhookReceived, id,
                         Map.of("eventId", id, "type", event.type(), "outcome", "FAILED")); }
                 return null;
             }); }
@@ -88,7 +92,6 @@ public class StripeWebhooks {
                 if ("setup".equals(session.mode())) { yield false; } // SetupIntent owns card replacement, independent of Checkout event order.
                 String intent = text(object, "payment_intent");
                 checkouts.completeWebhook(session.id(), intent, card, at, object.path("amount_total").asLong());
-                for (String payment : session.upfrontPaymentIds()) { upfront.stripe(payment, intent, null); }
                 yield true;
             }
             case "checkout.session.expired" -> {
@@ -108,7 +111,7 @@ public class StripeWebhooks {
                     if (!"succeeded".equals(refund.path("status").asText("succeeded"))) { continue; }
                     changed |= refunds.settled(text(object, "payment_intent"), refund.path("id").asText(),
                             new Money(refund.path("amount").asLong(), object.path("currency").asText().toUpperCase(Locale.ROOT)),
-                            at, refund.path("metadata").path("reason").asText("requested_by_customer"));
+                            at, refund.path("reason").asText("requested_by_customer"), text(refund.path("metadata"), "operationId"));
                 }
                 yield changed;
             }
@@ -125,7 +128,7 @@ public class StripeWebhooks {
     }
     private static Document safe(JsonNode object) {
         var result = new Document();
-        for (String key : List.of("id", "amount_total", "amount", "currency", "customer", "payment_method", "payment_intent", "setup_intent", "setup_future_usage")) {
+        for (String key : List.of("id", "payment_status", "amount_total", "amount", "currency", "customer", "payment_method", "payment_intent", "setup_intent", "setup_future_usage")) {
             var value = object.path(key);
             if (value.isTextual()) { result.put(key, value.asText()); }
             else if (value.isNumber()) { result.put(key, value.asLong()); }
@@ -141,7 +144,13 @@ public class StripeWebhooks {
         result.put("last_payment_error", error);
         var refunds = new ArrayList<Document>();
         for (var refund : object.path("refunds").path("data")) {
-            refunds.add(new Document("id", refund.path("id").asText()).append("amount", refund.path("amount").asLong()).append("status", refund.path("status").asText("succeeded")));
+            var refundMetadata = new Document();
+            for (String key : List.of("operationId", "reason")) {
+                if (refund.path("metadata").path(key).isTextual()) { refundMetadata.put(key, refund.path("metadata").path(key).asText()); }
+            }
+            refunds.add(new Document("id", refund.path("id").asText()).append("amount", refund.path("amount").asLong())
+                    .append("status", refund.path("status").asText("succeeded")).append("reason", refund.path("reason").asText("requested_by_customer"))
+                    .append("metadata", refundMetadata));
         }
         result.put("refunds", new Document("data", refunds)); return result;
     }

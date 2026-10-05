@@ -54,12 +54,12 @@ public class StripePaymentProvider implements PaymentProvider {
         metadata.put("operationId", request.sessionId());
         var params = SessionCreateParams.builder().setMode(SessionCreateParams.Mode.valueOf(request.mode().toUpperCase(Locale.ROOT)))
                 .setSuccessUrl(request.successUrl()).setCancelUrl(request.cancelUrl()).setClientReferenceId(request.clientReferenceId())
-                .putAllMetadata(metadata); // Stripe defaults to 24h; Core enforces its shorter booking deadline and refunds late captures.
+                .putAllMetadata(metadata).putExtraParam("payment_method_types", List.of("card")); // Stripe defaults to 24h; Core enforces its shorter booking deadline and refunds late captures.
         if (!"setup".equals(request.mode()) && request.customerEmail() != null) { params.setCustomerEmail(request.customerEmail()); }
         if ("setup".equals(request.mode())) {
             var customer = calls.call(() -> client.v1().customers().create(CustomerCreateParams.builder().putMetadata("memberId", request.memberId()).build(), options("customer:" + request.memberId())));
             params.setCustomer(customer.getId());
-            params.setCurrency(request.metadata().getOrDefault("currency", "EUR").toString().toLowerCase(Locale.ROOT)).addAllowedPaymentMethodType(SessionCreateParams.AllowedPaymentMethodType.CARD)
+            params.setCurrency(request.metadata().getOrDefault("currency", "EUR").toString().toLowerCase(Locale.ROOT))
                     .setSetupIntentData(SessionCreateParams.SetupIntentData.builder().putAllMetadata(metadata).build());
         } else {
             var payment = SessionCreateParams.PaymentIntentData.builder().putAllMetadata(metadata);
@@ -95,8 +95,12 @@ public class StripePaymentProvider implements PaymentProvider {
         });
     }
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason) {
+        return refund(chargeId, amount, idempotencyKey, reason, null);
+    }
+    @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
         var client = client();
         var builder = RefundCreateParams.builder().setAmount(amount.amountMinor()).putMetadata("reason", reason);
+        if (operationId != null) { builder.putMetadata("operationId", operationId); }
         if (chargeId.startsWith("pi_")) { builder.setPaymentIntent(chargeId); } else { builder.setCharge(chargeId); }
         var refund = calls.call(() -> client.v1().refunds().create(builder.build(), options(idempotencyKey)));
         return new RefundResult(refund.getId(), refund.getStatus());

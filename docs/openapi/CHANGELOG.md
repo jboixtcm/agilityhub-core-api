@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-05 · E8-T04 round 2 · card invalidation and card-charge states
+
+- `PaymentMethodView.invalid` on member responses is a boolean present only for `type = CARD`; it is absent for other methods.
+- `GET /me` adds optional `paymentMethod {type, invalid?}` (`MePaymentMethod`), scoped to the current member with BILLING enabled. Provider identifiers and card credentials are never exposed. `invalid` is present only for CARD.
+- `POST /billing/runs/{id}/card-charges` documents GENERATED or CHARGING and skips invoices already submitted; the obsolete E8-T04 stub description is removed.
+
 ## 2026-10-04 · E8-T04 · Stripe card payments and checkout
 
 Provider routes now serve card charging, retries, refunds, card setup, checkout status and the existing checkout extensions. Webhooks return 200 after durable receipt, including deferred processing. `SignupWarning` adds `CARD_INVALID` for pending dashboard rows. Existing signup request and response fields remain compatible; errors use the catalog statuses (notably signature 401 and refund-overpayment 422).

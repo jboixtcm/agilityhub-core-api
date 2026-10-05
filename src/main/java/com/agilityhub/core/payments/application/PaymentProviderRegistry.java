@@ -32,6 +32,7 @@ public class PaymentProviderRegistry implements PaymentProvider {
     @Override public String createCheckoutSession(Request request) { return resolve().createCheckoutSession(request); }
     @Override public OffSessionResult createOffSessionPayment(OffSessionRequest request) { return resolve().createOffSessionPayment(request); }
     @Override public RefundResult refund(String id, Money amount, String key, String reason) { return resolve().refund(id, amount, key, reason); }
+    @Override public RefundResult refund(String id, Money amount, String key, String reason, String operationId) { return resolve().refund(id, amount, key, reason, operationId); }
     @Override public WebhookEvent parseWebhook(String payload, String signature, String secret) { return resolve().parseWebhook(payload, signature, secret); }
     @Override public com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) { return resolve().cardDetails(object); }
     @Override public void forgetCustomer(String customerId) { resolve().forgetCustomer(customerId); }

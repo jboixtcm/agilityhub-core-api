@@ -10228,6 +10228,10 @@
           },
           "membership" : {
             "$ref" : "#/components/schemas/MembershipSummary"
+          },
+          "paymentMethod" : {
+            "$ref" : "#/components/schemas/MePaymentMethod",
+            "description" : "Current member's payment method; absent without BILLING or a member"
           }
         },
         "required" : [ "account", "features" ],
@@ -10767,6 +10771,20 @@
           }
         },
         "required" : [ "items", "page", "size", "totalItems", "unreadCount" ],
+        "type" : "object"
+      },
+      "MePaymentMethod" : {
+        "properties" : {
+          "invalid" : {
+            "description" : "Present only for CARD; true when the saved card is invalid",
+            "type" : "boolean"
+          },
+          "type" : {
+            "enum" : [ "CARD", "SEPA_DD", "MANUAL" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "type" ],
         "type" : "object"
       },
       "MeProfile" : {
@@ -13167,6 +13185,10 @@
           },
           "holderName" : {
             "type" : [ "string", "null" ]
+          },
+          "invalid" : {
+            "description" : "Present only for CARD; true when the saved card is invalid",
+            "type" : "boolean"
           },
           "maskedAccount" : {
             "type" : [ "string", "null" ]
@@ -27467,7 +27489,7 @@
     },
     "/api/v1/billing/runs/{id}/card-charges" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-13 [COBRA LES TARGETES]: an off-session PaymentIntent per CARD invoice of the run (idempotencyKey = invoiceId, batches of 25), Collection SUBMITTED, invoice COLLECTING; run CHARGING until every Stripe collection is resolved by webhook. An invoice without a valid card → FAILED{NO_PAYMENT_METHOD} + N-35, listed in skipped. CARD_CHARGES_STARTED audit. A run not GENERATED → 409 INVALID_STATE; STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. Until E8-T04 there is no card provider: every call answers 422 PAYMENT_PROVIDER_NOT_ENABLED after the guards. Tenant comes from the JWT; another club's resource → 404.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-13 [COBRA LES TARGETES]: an off-session PaymentIntent per CARD invoice of the run (idempotencyKey = invoiceId, batches of 25), Collection SUBMITTED, invoice COLLECTING; run CHARGING until every Stripe collection is resolved by webhook. An invoice without a valid card → FAILED{NO_PAYMENT_METHOD} + N-35, listed in skipped. CARD_CHARGES_STARTED audit. A run must be GENERATED or CHARGING; any other state → 409 INVALID_STATE. Already submitted invoices are not charged again. STRIPE not enabled → 422 PAYMENT_PROVIDER_NOT_ENABLED. Tenant comes from the JWT; another club's resource → 404.",
         "operationId" : "chargeRunCards",
         "parameters" : [ {
           "in" : "path",

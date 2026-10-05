@@ -1,0 +1,1151 @@
+10:12:09.353 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E8ContractIT]: E8ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:12:09.627 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E8ContractIT
+10:12:09.802 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+10:12:09.805 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+10:12:09.813 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+10:12:10.150 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+10:12:10.508 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+10:12:10.509 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+10:12:10.528 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+10:12:11.355 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+10:12:11.448 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+10:12:11.892 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: bfeef21e...[truncated]
+10:12:12.235 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.8803S
+10:12:12.243 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+10:12:12.243 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+10:12:12.244 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+10:12:12.244 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+10:12:12.422 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 67a01d7b...[truncated]
+10:12:13.455 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT1.210708S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-05T10:12:18.502+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Starting E8ContractIT using Java [redacted] with PID 91674 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-05T10:12:18.506+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-05T10:12:21.288+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-05T10:12:21.377+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 82 ms. Found 0 MongoDB repository interfaces.
+2026-10-05T10:12:22.397+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@379a9dab], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@35c395cc, com.mongodb.Jep395RecordCodecProvider@553fe912, com.mongodb.KotlinCodecProvider@2fa33765]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50415], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@4cb790ff], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-05T10:12:22.424+02:00 INFO  [cluster-ClusterId{value='6ac35be6...[truncated]', description='null'}-localhost:50415] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50415, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=33340542, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=67a01d7b52d9:27017, hosts=[67a01d7b52d9:27017], passives=[], arbiters=[], primary='67a01d7b52d9:27017', tagSet=TagSet{[]}, electionId=7fffffff...[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6ac35bdc...[truncated], counter=6}, lastWriteDate=Mon Oct 05 10:12:17 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-05T10:12:29.406+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-05T10:12:29.406+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-05T10:12:29.408+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-05T10:12:29.473+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Started E8ContractIT in 11.425 seconds (process running for 21.342)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/agilityhub-e8-t04-m2/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-05T10:12:33.658+02:00 ERROR [main] c.a.core.shared.api.ApiExceptionHandler traceId=feddf49d-9650-44ce-b5ed-269c391b3adb clubId=e8-club-a accountId=e8-ADMIN : Unhandled request exception traceId=feddf49d-9650-44ce-b5ed-269c391b3adb
+org.springframework.data.mapping.model.MappingInstantiationException
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:278)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$DefaultConversionContext.convert(MappingMongoConverter.java:2420)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$ConversionContext.convert(MappingMongoConverter.java:2232)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$MongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:1998)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2057)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2016)
+	at org.springframework.data.mapping.model.PersistentEntityParameterValueProvider.getParameterValue(PersistentEntityParameterValueProvider.java:72)
+	at org.springframework.data.mapping.model.ValueExpressionParameterValueProvider.getParameterValue(ValueExpressionParameterValueProvider.java:56)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.extractInvocationArguments(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:273)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$DefaultConversionContext.convert(MappingMongoConverter.java:2420)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$ConversionContext.convert(MappingMongoConverter.java:2232)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$MongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:1998)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2057)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2016)
+	at org.springframework.data.mapping.model.PersistentEntityParameterValueProvider.getParameterValue(PersistentEntityParameterValueProvider.java:72)
+	at org.springframework.data.mapping.model.ValueExpressionParameterValueProvider.getParameterValue(ValueExpressionParameterValueProvider.java:56)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.extractInvocationArguments(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:273)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:458)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:454)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:126)
+	at org.springframework.data.mongodb.core.MongoTemplate$ReadDocumentCallback.doWith(MongoTemplate.java:3322)
+	at org.springframework.data.mongodb.core.MongoTemplate.executeFindOneInternal(MongoTemplate.java:2913)
+	at org.springframework.data.mongodb.core.MongoTemplate.doFindOne(MongoTemplate.java:2567)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:848)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:835)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.payments.persistence.BillingDocuments$BillingRunRepository$$SpringCGLIB$$0.findById(<generated>)
+	at com.agilityhub.core.payments.application.CardPayments.progress(CardPayments.java:163)
+	at com.agilityhub.core.payments.application.CardPayments.lambda$chargeRun$3(CardPayments.java:49)
+	at com.agilityhub.core.payments.application.BillingTransactions.lambda$run$0(BillingTransactions.java:36)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.payments.application.BillingTransactions.run(BillingTransactions.java:36)
+	at com.agilityhub.core.payments.application.CardPayments.chargeRun(CardPayments.java:33)
+	at com.agilityhub.core.payments.api.BillingController.chargeRunCards(BillingController.java:128)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89)
+	at com.agilityhub.core.shared.api.IdempotentReplayAspect.handler(IdempotentReplayAspect.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631)
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.proceed(AuthorizationManagerBeforeMethodInterceptor.java:268)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization(AuthorizationManagerBeforeMethodInterceptor.java:263)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:196)
+	at org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke(DeferringMethodInterceptor.java:44)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.payments.api.BillingController$$SpringCGLIB$$0.chargeRunCards(<generated>)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.IdempotencyFilter.execute(IdempotencyFilter.java:201)
+	at com.agilityhub.core.shared.api.IdempotencyFilter.doFilterInternal(IdempotencyFilter.java:97)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.SentryUserFilter.doFilterInternal(SentryUserFilter.java:56)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestLocaleFilter.doFilterInternal(RequestLocaleFilter.java:24)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:490)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:351)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:83)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:129)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AuthenticationFilter.doFilterInternal(AuthenticationFilter.java:177)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.identity.api.CurrentUserFilter.doFilterInternal(CurrentUserFilter.java:35)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.AccountStateFilter.doFilterInternal(AccountStateFilter.java:36)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.TenantFilter.doFilterInternal(TenantFilter.java:97)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.RateLimitFilter.doFilterInternal(RateLimitFilter.java:82)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:334)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:225)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$4(HandlerMappingIntrospector.java:267)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.configuration.MongoTimeoutConfiguration$2.doFilterInternal(MongoTimeoutConfiguration.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:43)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.tracing.SentryTracingFilter.doFilterInternal(SentryTracingFilter.java:120)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.SentrySpringFilter.doFilterInternal(SentrySpringFilter.java:80)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.configuration.E8ContractIT.served(E8ContractIT.java:88)
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBeforeItsAnswerOrItsStub(E8ContractIT.java:223)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.params.ArgumentCountValidator.interceptTestTemplateMethod(ArgumentCountValidator.java:45)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestTemplateMethod(TimeoutExtension.java:99)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:231)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:209)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$0(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$1(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.executeForProvider(TestTemplateTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:103)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:43)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: java.lang.IllegalArgumentException
+	at org.springframework.util.Assert.notNull(Assert.java:181)
+	at com.agilityhub.core.payments.persistence.BillingRun$Totals_Instantiator_o7t4il.newInstance(Unknown Source)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:276)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$DefaultConversionContext.convert(MappingMongoConverter.java:2420)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$ConversionContext.convert(MappingMongoConverter.java:2232)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$MongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:1998)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2057)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2016)
+	at org.springframework.data.mapping.model.PersistentEntityParameterValueProvider.getParameterValue(PersistentEntityParameterValueProvider.java:72)
+	at org.springframework.data.mapping.model.ValueExpressionParameterValueProvider.getParameterValue(ValueExpressionParameterValueProvider.java:56)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.extractInvocationArguments(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:273)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$DefaultConversionContext.convert(MappingMongoConverter.java:2420)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$ConversionContext.convert(MappingMongoConverter.java:2232)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$MongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:1998)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2057)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2016)
+	at org.springframework.data.mapping.model.PersistentEntityParameterValueProvider.getParameterValue(PersistentEntityParameterValueProvider.java:72)
+	at org.springframework.data.mapping.model.ValueExpressionParameterValueProvider.getParameterValue(ValueExpressionParameterValueProvider.java:56)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.extractInvocationArguments(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:273)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:458)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:454)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:126)
+	at org.springframework.data.mongodb.core.MongoTemplate$ReadDocumentCallback.doWith(MongoTemplate.java:3322)
+	at org.springframework.data.mongodb.core.MongoTemplate.executeFindOneInternal(MongoTemplate.java:2913)
+	at org.springframework.data.mongodb.core.MongoTemplate.doFindOne(MongoTemplate.java:2567)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:848)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:835)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.payments.persistence.BillingDocuments$BillingRunRepository$$SpringCGLIB$$0.findById(<generated>)
+	at com.agilityhub.core.payments.application.CardPayments.progress(CardPayments.java:163)
+	at com.agilityhub.core.payments.application.CardPayments.lambda$chargeRun$3(CardPayments.java:49)
+	at com.agilityhub.core.payments.application.BillingTransactions.lambda$run$0(BillingTransactions.java:36)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.payments.application.BillingTransactions.run(BillingTransactions.java:36)
+	at com.agilityhub.core.payments.application.CardPayments.chargeRun(CardPayments.java:33)
+	at com.agilityhub.core.payments.api.BillingController.chargeRunCards(BillingController.java:128)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89)
+	at com.agilityhub.core.shared.api.IdempotentReplayAspect.handler(IdempotentReplayAspect.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631)
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.proceed(AuthorizationManagerBeforeMethodInterceptor.java:268)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization(AuthorizationManagerBeforeMethodInterceptor.java:263)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:196)
+	at org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke(DeferringMethodInterceptor.java:44)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.payments.api.BillingController$$SpringCGLIB$$0.chargeRunCards(<generated>)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.IdempotencyFilter.execute(IdempotencyFilter.java:201)
+	at com.agilityhub.core.shared.api.IdempotencyFilter.doFilterInternal(IdempotencyFilter.java:97)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.SentryUserFilter.doFilterInternal(SentryUserFilter.java:56)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestLocaleFilter.doFilterInternal(RequestLocaleFilter.java:24)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:490)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:351)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:83)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:129)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AuthenticationFilter.doFilterInternal(AuthenticationFilter.java:177)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.identity.api.CurrentUserFilter.doFilterInternal(CurrentUserFilter.java:35)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.AccountStateFilter.doFilterInternal(AccountStateFilter.java:36)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.TenantFilter.doFilterInternal(TenantFilter.java:97)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.RateLimitFilter.doFilterInternal(RateLimitFilter.java:82)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:334)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:225)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$4(HandlerMappingIntrospector.java:267)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.configuration.MongoTimeoutConfiguration$2.doFilterInternal(MongoTimeoutConfiguration.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:43)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.tracing.SentryTracingFilter.doFilterInternal(SentryTracingFilter.java:120)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at io.sentry.spring.jakarta.SentrySpringFilter.doFilterInternal(SentrySpringFilter.java:80)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.configuration.E8ContractIT.served(E8ContractIT.java:88)
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBeforeItsAnswerOrItsStub(E8ContractIT.java:223)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.params.ArgumentCountValidator.interceptTestTemplateMethod(ArgumentCountValidator.java:45)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestTemplateMethod(TimeoutExtension.java:99)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:231)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:209)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$0(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$1(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.executeForProvider(TestTemplateTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:103)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:43)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-05T10:12:41.871+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=c178cfb0-623d-413e-9481-21b4eb02976d clubId=- accountId=- : Init duration for springdoc-openapi is: 2160 ms
+2026-10-05T10:12:42.866+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=5daf9f20-a6f2-4720-84dc-be3bf6a3c38b clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected status=400 code=VALIDATION_ERROR traceId=5daf9f20-a6f2-4720-84dc-be3bf6a3c38b
+2026-10-05T10:12:42.875+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3abe75cd-e72e-48a0-aecd-5b5413833a95 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=3abe75cd-e72e-48a0-aecd-5b5413833a95
+2026-10-05T10:12:42.883+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=fd32bb92-95d7-458e-ac8e-3e047b7753b4 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-05T10:12:42.889+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=db0cbb11-e2dc-4676-9e4e-f0008ab8197a clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=db0cbb11-e2dc-4676-9e4e-f0008ab8197a
+2026-10-05T10:12:42.893+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=0b4e111f-37b8-4c0b-95da-e85661f2b110 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=0b4e111f-37b8-4c0b-95da-e85661f2b110
+2026-10-05T10:12:42.923+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7a2a36fe-1174-4c69-ac2d-30034b352ccd clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=7a2a36fe-1174-4c69-ac2d-30034b352ccd
+2026-10-05T10:12:43.053+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ca9081fa-39a1-45cc-90ca-369107ec8c0d clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-05T10:12:43.055+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=b5d12a6b-e4e0-4e68-876c-3f401f93a958 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=b5d12a6b-e4e0-4e68-876c-3f401f93a958
+2026-10-05T10:12:43.058+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=2a7b6153-6c38-4f07-a73a-e9a81a528286 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=2a7b6153-6c38-4f07-a73a-e9a81a528286
+2026-10-05T10:12:43.061+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=67feccdd-3113-4bdb-a55c-81359c800cd9 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=67feccdd-3113-4bdb-a55c-81359c800cd9
+2026-10-05T10:12:43.072+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=31fd73f8-a45c-4d63-be8d-ad76bce603ba clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=31fd73f8-a45c-4d63-be8d-ad76bce603ba
+2026-10-05T10:12:43.075+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=768dc3cc-5c34-4d8d-b00e-a7b392e5536b clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=768dc3cc-5c34-4d8d-b00e-a7b392e5536b
+2026-10-05T10:12:43.077+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f47e5c5c-5907-49a8-8715-7e427fdbae5d clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=f47e5c5c-5907-49a8-8715-7e427fdbae5d
+2026-10-05T10:12:43.079+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e691bf9c-3880-4ad1-bfff-3f07e3c0f465 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=e691bf9c-3880-4ad1-bfff-3f07e3c0f465
+2026-10-05T10:12:43.670+02:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=347e1ce0-64d7-469b-8166-02b266d42eac clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+[ERROR] Tests run: 70, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 34.90 s <<< FAILURE! -- in com.agilityhub.core.configuration.E8ContractIT
+[ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse -- Time elapsed: 0.082 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[one SecurityEvent per refused delivery]
+expected: 10L
+ but was: 9L
+	at com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse(E8ContractIT.java:373)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-05T10:12:44.131+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CardPaymentsIT]: CardPaymentsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-05T10:12:44.157+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CardPaymentsIT
+2026-10-05T10:12:44.467+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=40a65364-7830-4926-9e9c-94fcd7b4c79c clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=e8300a4c-4166-4e96-b55e-[redacted]=null providerPaymentId=pi_rejected clubId=bill-a
+2026-10-05T10:12:44.831+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=2843029f-ec5e-40ff-8e0b-5acf6e2247d2 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=c5e22e7f-ad6b-4c90-a8be-5ce396f289cf bookingId=null providerPaymentId=pi_a clubId=bill-a
+2026-10-05T10:12:45.955+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=8ab52605-5e00-4897-b34b-04fdadfa3ae5 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=9ca793b0-[redacted]=booking-late providerPaymentId=pi_booking clubId=bill-a
+2026-10-05T10:12:47.678+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a1bf819b-452f-4bd1-8c5a-a9a4e7226a5d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_0 traceId=a1bf819b-452f-4bd1-8c5a-a9a4e7226a5d
+2026-10-05T10:12:47.686+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b15b94a7-c376-46f4-b423-4e9c21f552d2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_1 traceId=b15b94a7-c376-46f4-b423-4e9c21f552d2
+2026-10-05T10:12:47.690+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ab6bb237-f6b5-4575-bb1a-6d012f992445 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_2 traceId=ab6bb237-f6b5-4575-bb1a-6d012f992445
+2026-10-05T10:12:47.694+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3aaf53c4-0e4a-458d-a05a-16c5b237272c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_3 traceId=3aaf53c4-0e4a-458d-a05a-16c5b237272c
+2026-10-05T10:12:47.699+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3fa50dc5-3eee-4436-8304-43eb69511a1d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_4 traceId=3fa50dc5-3eee-4436-8304-43eb69511a1d
+2026-10-05T10:12:47.702+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c0532a15-bb90-4187-ad37-a67e190892f5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_5 traceId=c0532a15-[redacted]
+2026-10-05T10:12:47.706+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a94092a7-080e-4539-8d7f-927991159f7f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_6 traceId=a94092a7-080e-4539-8d7f-927991159f7f
+2026-10-05T10:12:47.708+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=467cc729-3a01-47bd-aa2f-7a6d2a00e3be clubId= accountId= : Payment operation recovery exhausted: eventId=poison_7 traceId=467cc729-3a01-47bd-aa2f-7a6d2a00e3be
+2026-10-05T10:12:47.711+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e16e1c5a-8b71-4a8b-9fea-e6e13b881c38 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_8 traceId=e16e1c5a-8b71-4a8b-9fea-e6e13b881c38
+2026-10-05T10:12:47.715+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1674fd55-abee-407d-8aca-8aadfcf732b6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_9 traceId=1674fd55-abee-407d-8aca-8aadfcf732b6
+2026-10-05T10:12:47.718+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f83badeb-b460-4174-ae7a-5c9e8c89bbe6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_10 traceId=f83badeb-b460-4174-ae7a-5c9e8c89bbe6
+2026-10-05T10:12:47.722+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2b51a831-82d1-4cea-9e7f-29a4a182f328 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_11 traceId=2b51a831-82d1-4cea-9e7f-29a4a182f328
+2026-10-05T10:12:47.725+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=31c819ac-0157-4cce-9515-de1a99f93bd5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_12 traceId=31c819ac-0157-4cce-9515-de1a99f93bd5
+2026-10-05T10:12:47.728+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=918d6b74-c13f-40b1-b046-ef646c5b14c4 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_13 traceId=918d6b74-c13f-40b1-b046-ef646c5b14c4
+2026-10-05T10:12:47.731+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4e03c9a3-beb9-493b-a68f-96ffacedbcdc clubId= accountId= : Payment operation recovery exhausted: eventId=poison_14 traceId=4e03c9a3-beb9-493b-a68f-96ffacedbcdc
+2026-10-05T10:12:47.733+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ba564557-5bf2-46ed-927f-86e28c60ffd6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_15 traceId=[redacted]
+2026-10-05T10:12:47.737+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cdbe7e54-e901-4311-9cad-468908943988 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_16 traceId=cdbe7e54-e901-4311-9cad-468908943988
+2026-10-05T10:12:47.740+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3526c706-dd55-4695-b0e9-0b3c395e9594 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_17 traceId=3526c706-[redacted]
+2026-10-05T10:12:47.742+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9e61e8d4-bd90-44b7-a579-fc0d7f9a900a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_18 traceId=9e61e8d4-[redacted]
+2026-10-05T10:12:47.745+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=aa0e0d3d-159e-451d-9f92-406cbc39e0b9 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_19 traceId=aa0e0d3d-159e-451d-9f92-406cbc39e0b9
+2026-10-05T10:12:47.748+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b38e20c-9b4d-4be3-9bf7-25a6416b81d5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_20 traceId=8b38e20c-9b4d-4be3-9bf7-25a6416b81d5
+2026-10-05T10:12:47.751+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d739ea38-dca5-4b15-ba17-d1ad7d987aec clubId= accountId= : Payment operation recovery exhausted: eventId=poison_21 traceId=d739ea38-dca5-4b15-[redacted]
+2026-10-05T10:12:47.754+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d299ed0a-57bd-4c7a-81ca-603d6cced66d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_22 traceId=d299ed0a-57bd-4c7a-81ca-603d6cced66d
+2026-10-05T10:12:47.757+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2ea132b6-2761-4ca7-8fc0-0ac921e565db clubId= accountId= : Payment operation recovery exhausted: eventId=poison_23 traceId=2ea132b6-2761-4ca7-8fc0-0ac921e565db
+2026-10-05T10:12:47.764+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2a7c7928-a001-4275-864e-6b621ccd8524 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_24 traceId=2a7c7928-a001-4275-864e-6b621ccd8524
+2026-10-05T10:12:47.769+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dc0f18e2-4702-4ad0-82d0-569e359b5d1d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_25 traceId=dc0f18e2-4702-4ad0-82d0-569e359b5d1d
+2026-10-05T10:12:47.773+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=11fda2ec-7114-41cc-86d6-38644606edfc clubId= accountId= : Payment operation recovery exhausted: eventId=poison_26 traceId=11fda2ec-7114-41cc-86d6-38644606edfc
+2026-10-05T10:12:47.778+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bac81e93-ab5c-402f-9fb3-e55fade78a8a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_27 traceId=bac81e93-ab5c-402f-9fb3-e55fade78a8a
+2026-10-05T10:12:47.782+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=59c45337-2d8b-4a4e-adcc-c4f41e48467e clubId= accountId= : Payment operation recovery exhausted: eventId=poison_28 traceId=59c45337-2d8b-4a4e-adcc-c4f41e48467e
+2026-10-05T10:12:47.787+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=aae32782-0e73-492c-8bbc-72b5986a04d0 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_29 traceId=aae32782-0e73-492c-8bbc-72b5986a04d0
+2026-10-05T10:12:47.791+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a28924c6-e7bf-444b-8531-876a1f51ac5e clubId= accountId= : Payment operation recovery exhausted: eventId=poison_30 traceId=a28924c6-e7bf-444b-8531-876a1f51ac5e
+2026-10-05T10:12:47.802+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=41522bf8-19f4-4fa2-93c3-2c51945cd9f7 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_31 traceId=41522bf8-19f4-4fa2-93c3-2c51945cd9f7
+2026-10-05T10:12:47.805+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bd9c156e-d23d-4821-aafa-7f34b03bc647 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_32 traceId=bd9c156e-d23d-4821-aafa-7f34b03bc647
+2026-10-05T10:12:47.809+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=97054633-13c1-4c42-ba60-f0329c70c7d2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_33 traceId=97054633-13c1-4c42-[redacted]
+2026-10-05T10:12:47.813+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fd65204c-66ff-44d8-b9bf-2c7091d49729 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_34 traceId=[redacted]
+2026-10-05T10:12:47.816+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f5025f5d-c28c-487a-95a7-ceb4d4df68fd clubId= accountId= : Payment operation recovery exhausted: eventId=poison_35 traceId=f5025f5d-c28c-487a-95a7-ceb4d4df68fd
+2026-10-05T10:12:47.819+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=74fc3153-95aa-4b97-9ebc-cd9b235c6982 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_36 traceId=74fc3153-95aa-4b97-9ebc-cd9b235c6982
+2026-10-05T10:12:47.821+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3e4ada22-f140-4685-a912-e8bd8a17d598 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_37 traceId=3e4ada22-f140-4685-a912-e8bd8a17d598
+2026-10-05T10:12:47.824+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6f16a108-7757-4606-ab6b-d5ba31ad2f76 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_38 traceId=6f16a108-7757-4606-ab6b-d5ba31ad2f76
+2026-10-05T10:12:47.826+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e9d7342b-6f5b-4d7f-b8d6-4ef8a05f2d60 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_39 traceId=e9d7342b-6f5b-4d7f-b8d6-4ef8a05f2d60
+2026-10-05T10:12:47.828+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d6719a7d-72eb-4f2e-bc7f-1715b0273314 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_40 traceId=d6719a7d-72eb-4f2e-bc7f-1715b0273314
+2026-10-05T10:12:47.831+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4d7eb24d-1586-4e7f-a0c6-8ba0a613ee27 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_41 traceId=4d7eb24d-1586-4e7f-a0c6-8ba0a613ee27
+2026-10-05T10:12:47.833+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4ff735c4-4832-4caf-b1d0-40590c202fa2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_42 traceId=4ff735c4-4832-4caf-b1d0-40590c202fa2
+2026-10-05T10:12:47.836+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7d13a03d-76c4-456c-926a-057f29128bcb clubId= accountId= : Payment operation recovery exhausted: eventId=poison_43 traceId=7d13a03d-76c4-456c-926a-057f29128bcb
+2026-10-05T10:12:47.838+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5e966cfc-1201-40d7-97c1-06254a4398ae clubId= accountId= : Payment operation recovery exhausted: eventId=poison_44 traceId=5e966cfc-1201-40d7-97c1-06254a4398ae
+2026-10-05T10:12:47.840+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2b0a62d7-7d19-4541-89ab-0dfeda5cb48a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_45 traceId=2b0a62d7-7d19-4541-89ab-0dfeda5cb48a
+2026-10-05T10:12:47.842+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b9b5416c-80a7-48e7-9957-d5c69e826847 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_46 traceId=b9b5416c-80a7-48e7-9957-d5c69e826847
+2026-10-05T10:12:47.844+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1cae7725-734b-4bba-a9c8-b98f66358d78 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_47 traceId=1cae7725-734b-4bba-a9c8-b98f66358d78
+2026-10-05T10:12:47.848+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=be4a6696-9d0d-4065-9c51-c906444722be clubId= accountId= : Payment operation recovery exhausted: eventId=poison_48 traceId=be4a6696-9d0d-4065-9c51-c906444722be
+2026-10-05T10:12:47.850+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=58605130-b3e6-4120-8c54-f52d9e758da1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_49 traceId=58605130-b3e6-4120-8c54-f52d9e758da1
+2026-10-05T10:12:47.853+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ca4f4c0e-e330-4cc4-928c-71992a338df0 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_50 traceId=ca4f4c0e-e330-4cc4-928c-71992a338df0
+2026-10-05T10:12:47.855+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3a81c131-6366-4aa4-8076-3117b7b648f2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_51 traceId=3a81c131-6366-4aa4-8076-3117b7b648f2
+2026-10-05T10:12:47.857+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e7adc6a1-c5e0-4bd8-94e2-83a73825ff04 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_52 traceId=e7adc6a1-c5e0-4bd8-94e2-83a73825ff04
+2026-10-05T10:12:47.860+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4a38a866-3111-4930-bfad-d7438ca8dd71 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_53 traceId=4a38a866-3111-4930-bfad-d7438ca8dd71
+2026-10-05T10:12:47.863+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4f7c9323-0dd2-4625-8765-862fe0633064 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_54 traceId=4f7c9323-0dd2-4625-8765-862fe0633064
+2026-10-05T10:12:47.865+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=08c6fff6-aa7d-4a2d-9d50-bbc52c3663df clubId= accountId= : Payment operation recovery exhausted: eventId=poison_55 traceId=08c6fff6-aa7d-4a2d-9d50-bbc52c3663df
+2026-10-05T10:12:47.867+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fa16078a-ae2b-4e57-b9ec-bfff8d8a9910 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_56 traceId=[redacted]
+2026-10-05T10:12:47.869+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ad902957-8865-4ce2-90dd-b2a7ceaa44cf clubId= accountId= : Payment operation recovery exhausted: eventId=poison_57 traceId=[redacted]
+2026-10-05T10:12:47.872+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=85f00b95-5a50-4dd7-95f1-17a959aa0747 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_58 traceId=85f00b95-5a50-4dd7-95f1-17a959aa0747
+2026-10-05T10:12:47.874+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7583e2e6-a83c-4779-afd9-06fef0a6d025 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_59 traceId=7583e2e6-a83c-4779-afd9-06fef0a6d025
+2026-10-05T10:12:47.876+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2c434a08-7b97-4f96-ab3b-92d63d479683 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_60 traceId=2c434a08-7b97-4f96-ab3b-92d63d479683
+2026-10-05T10:12:47.879+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f96a4c22-0576-48ae-9ee9-6380f97e68f8 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_61 traceId=f96a4c22-0576-48ae-9ee9-6380f97e68f8
+2026-10-05T10:12:47.881+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=04854ee6-b033-4f77-acfc-33f8de1be255 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_62 traceId=04854ee6-b033-4f77-acfc-33f8de1be255
+2026-10-05T10:12:47.883+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c9cad9c6-e7c8-4cf5-aeb6-d1122521fd6a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_63 traceId=c9cad9c6-e7c8-4cf5-aeb6-d1122521fd6a
+2026-10-05T10:12:47.885+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4ac8a363-c9cd-4789-8bcc-f2ac6bf9b5ed clubId= accountId= : Payment operation recovery exhausted: eventId=poison_64 traceId=4ac8a363-c9cd-4789-8bcc-f2ac6bf9b5ed
+2026-10-05T10:12:47.887+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6fbbf923-eae4-4585-a84b-59359868e42b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_65 traceId=6fbbf923-eae4-4585-a84b-59359868e42b
+2026-10-05T10:12:47.889+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=56628ce2-777b-4b1d-b9a9-270bfe825277 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_66 traceId=56628ce2-777b-4b1d-b9a9-270bfe825277
+2026-10-05T10:12:47.892+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a3ee74f8-733c-4e48-b26d-b7083ebe55e6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_67 traceId=a3ee74f8-733c-4e48-b26d-b7083ebe55e6
+2026-10-05T10:12:47.894+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4bb94b8b-020e-4095-8cf0-d8352f635b1c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_68 traceId=4bb94b8b-020e-4095-8cf0-d8352f635b1c
+2026-10-05T10:12:47.896+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4dc72708-0c4a-41d3-bd4f-01d8a3d43d94 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_69 traceId=4dc72708-0c4a-41d3-bd4f-01d8a3d43d94
+2026-10-05T10:12:47.898+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e60728af-8357-4dc3-bb72-e370640a2700 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_70 traceId=e60728af-8357-4dc3-[redacted]
+2026-10-05T10:12:47.900+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=eb7af23a-5141-42a7-9591-53f746ddeba7 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_71 traceId=eb7af23a-5141-42a7-9591-53f746ddeba7
+2026-10-05T10:12:47.902+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a484bf14-d56f-48c3-89cf-25efcfddfe62 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_72 traceId=a484bf14-d56f-48c3-89cf-25efcfddfe62
+2026-10-05T10:12:47.905+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0ed5631e-5369-4bcb-b2ea-8a2a3c73a1aa clubId= accountId= : Payment operation recovery exhausted: eventId=poison_73 traceId=0ed5631e-5369-4bcb-b2ea-8a2a3c73a1aa
+2026-10-05T10:12:47.907+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2948d5cb-5c4c-4c7b-91f4-402756a6dfc1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_74 traceId=2948d5cb-5c4c-4c7b-91f4-402756a6dfc1
+2026-10-05T10:12:47.909+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7d385dea-1e3b-45fc-b1c8-71a345c30eda clubId= accountId= : Payment operation recovery exhausted: eventId=poison_75 traceId=7d385dea-1e3b-45fc-b1c8-71a345c30eda
+2026-10-05T10:12:47.911+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7f83f709-6bed-48bd-ab2f-2aaa85528334 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_76 traceId=7f83f709-6bed-48bd-ab2f-2aaa85528334
+2026-10-05T10:12:47.914+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96875370-b4fc-4dfe-9a3d-ac2d95c02e64 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_77 traceId=96875370-b4fc-4dfe-9a3d-ac2d95c02e64
+2026-10-05T10:12:47.916+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9e17b3cc-b9ab-4179-8866-f7094448be61 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_78 traceId=9e17b3cc-b9ab-4179-8866-f7094448be61
+2026-10-05T10:12:47.918+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=716cb3fd-e262-43ce-938f-02836996b194 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_79 traceId=716cb3fd-e262-43ce-938f-02836996b194
+2026-10-05T10:12:47.920+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0c26e09c-9069-4f3b-a8f2-a4dffed8644c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_80 traceId=0c26e09c-9069-4f3b-a8f2-a4dffed8644c
+2026-10-05T10:12:47.922+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=12f984f6-2930-442b-a0c6-d979bc27cac3 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_81 traceId=12f984f6-2930-442b-a0c6-d979bc27cac3
+2026-10-05T10:12:47.924+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=964ec68c-79c1-46bf-a995-0a8b656ee454 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_82 traceId=964ec68c-79c1-46bf-a995-0a8b656ee454
+2026-10-05T10:12:47.927+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5d07ba5d-08a9-4664-a532-bdd5e4ed6d1f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_83 traceId=5d07ba5d-08a9-4664-a532-bdd5e4ed6d1f
+2026-10-05T10:12:47.929+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f473a963-c33c-4526-ae89-ae7d486622d2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_84 traceId=f473a963-c33c-4526-[redacted]
+2026-10-05T10:12:47.932+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a476cd7b-a099-4b2a-afe3-0cea8fc6dfde clubId= accountId= : Payment operation recovery exhausted: eventId=poison_85 traceId=a476cd7b-a099-4b2a-afe3-0cea8fc6dfde
+2026-10-05T10:12:47.934+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4b677676-cc57-41b1-b254-6dad137f569d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_86 traceId=4b677676-[redacted]
+2026-10-05T10:12:47.936+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3dd57c08-6193-4eff-bf01-972335200fc4 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_87 traceId=3dd57c08-6193-4eff-[redacted]
+2026-10-05T10:12:47.938+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96f0118a-1387-434f-a068-a707d85e7827 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_88 traceId=96f0118a-1387-434f-a068-a707d85e7827
+2026-10-05T10:12:47.940+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dc162b2e-210f-4c30-814f-89da589ee9ba clubId= accountId= : Payment operation recovery exhausted: eventId=poison_89 traceId=[redacted]
+2026-10-05T10:12:47.943+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d9aed2f1-0d4e-4d35-a57d-bf0f721e051d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_90 traceId=d9aed2f1-0d4e-4d35-a57d-bf0f721e051d
+2026-10-05T10:12:47.945+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d446d90f-83f8-49cc-8aa6-7b62296df92b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_91 traceId=d446d90f-83f8-49cc-8aa6-7b62296df92b
+2026-10-05T10:12:47.947+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=523fe7f0-d2a3-46db-8b4b-529b6e356d0a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_92 traceId=523fe7f0-d2a3-46db-8b4b-529b6e356d0a
+2026-10-05T10:12:47.949+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7941e0b3-b1bc-4c4b-ac73-313e6611c064 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_93 traceId=7941e0b3-b1bc-4c4b-[redacted]
+2026-10-05T10:12:47.951+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bb613a8d-3f38-41c0-bde7-377687e95ee0 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_94 traceId=[redacted]
+2026-10-05T10:12:47.954+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d701e01a-faa3-4706-a68c-d56221c4b1a4 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_95 traceId=d701e01a-faa3-4706-a68c-d56221c4b1a4
+2026-10-05T10:12:47.956+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=05abd47d-1537-40a3-9391-e23ca4febb52 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_96 traceId=05abd47d-1537-40a3-9391-e23ca4febb52
+2026-10-05T10:12:47.958+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e8f10dc1-a98b-4f0a-87f7-15591b0fd094 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_97 traceId=e8f10dc1-a98b-4f0a-87f7-15591b0fd094
+2026-10-05T10:12:47.960+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e597ab78-09e9-432b-b586-a8b6df2a953f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_98 traceId=e597ab78-09e9-432b-b586-a8b6df2a953f
+2026-10-05T10:12:47.962+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6a57f0f9-1882-4dab-beeb-a8fab6522b5a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_99 traceId=6a57f0f9-1882-4dab-beeb-a8fab6522b5a
+2026-10-05T10:12:47.966+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0dc00efc-128e-4fcc-afeb-2afbf8702204 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_0 traceId=0dc00efc-128e-4fcc-afeb-2afbf8702204
+2026-10-05T10:12:47.969+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7db81f35-f056-4277-999a-68ef718f2370 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_1 traceId=7db81f35-f056-4277-999a-68ef718f2370
+2026-10-05T10:12:47.973+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=845b963f-86d3-45c1-948e-8f70b07f0ae1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_2 traceId=845b963f-86d3-45c1-948e-8f70b07f0ae1
+2026-10-05T10:12:47.977+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9e85733a-cb9b-4add-98de-2974376e8852 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_3 traceId=9e85733a-cb9b-4add-98de-2974376e8852
+2026-10-05T10:12:47.980+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6a429886-f4ea-47d6-8c8e-3c6a4965c96e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_4 traceId=6a429886-f4ea-47d6-8c8e-3c6a4965c96e
+2026-10-05T10:12:47.984+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cffe22f2-b599-4759-b028-0efc4efd6b37 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_5 traceId=cffe22f2-b599-4759-b028-0efc4efd6b37
+2026-10-05T10:12:47.987+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f06859ed-1c08-4b1c-ab32-bc3ac34185d7 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_6 traceId=f06859ed-1c08-4b1c-[redacted]
+2026-10-05T10:12:47.991+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c0040f49-2b49-4c7e-b5d9-fb97e3de3505 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_7 traceId=c0040f49-2b49-4c7e-b5d9-fb97e3de3505
+2026-10-05T10:12:47.994+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=43ab5536-e2fe-48a5-bf02-4c5eb529fa5f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_8 traceId=43ab5536-e2fe-48a5-[redacted]
+2026-10-05T10:12:47.998+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e6179690-0777-49a9-976b-efd14d494aee clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_9 traceId=e6179690-0777-49a9-976b-efd14d494aee
+2026-10-05T10:12:48.001+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a27765f3-66bf-47ea-94bf-ba2de836d544 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_10 traceId=a27765f3-66bf-47ea-94bf-ba2de836d544
+2026-10-05T10:12:48.006+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3c137462-249e-4f92-b122-cdf8f2fce7ba clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_11 traceId=3c137462-249e-4f92-b122-cdf8f2fce7ba
+2026-10-05T10:12:48.010+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0bf63782-e428-4cd1-b35f-0258d974428c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_12 traceId=0bf63782-e428-4cd1-b35f-0258d974428c
+2026-10-05T10:12:48.014+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=32391bc0-046f-4d16-9591-864f4aec3445 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_13 traceId=32391bc0-046f-4d16-9591-864f4aec3445
+2026-10-05T10:12:48.017+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7ff619fc-9d26-470f-93f7-80aefa059aa5 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_14 traceId=7ff619fc-9d26-470f-93f7-80aefa059aa5
+2026-10-05T10:12:48.021+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f05f8e7b-ba18-40ec-8532-118978fc7072 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_15 traceId=f05f8e7b-[redacted]
+2026-10-05T10:12:48.025+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=14053194-2d6a-475d-9074-1998d530c8fc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_16 traceId=14053194-2d6a-475d-9074-1998d530c8fc
+2026-10-05T10:12:48.028+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4512f06a-53ed-4a97-a3b4-cfa89ad11936 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_17 traceId=4512f06a-53ed-4a97-a3b4-cfa89ad11936
+2026-10-05T10:12:48.032+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e522dea9-9774-4d26-8d45-a7fac46bf395 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_18 traceId=e522dea9-9774-4d26-8d45-a7fac46bf395
+2026-10-05T10:12:48.035+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ac386307-f39a-4148-b52f-6b003b94ad22 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_19 traceId=[redacted]
+2026-10-05T10:12:48.039+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=37ca3772-b499-4112-ba50-156f7ff03f29 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_20 traceId=37ca3772-b499-4112-[redacted]
+2026-10-05T10:12:48.042+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=55cb429f-576c-4fa4-a1f2-a7f6e56ec0cc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_21 traceId=55cb429f-576c-4fa4-a1f2-a7f6e56ec0cc
+2026-10-05T10:12:48.046+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c1711140-d8f5-45fc-8c1c-179407d62aaa clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_22 traceId=c1711140-d8f5-45fc-8c1c-179407d62aaa
+2026-10-05T10:12:48.050+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=93b851f8-7740-4411-b238-362747785656 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_23 traceId=93b851f8-7740-4411-b238-362747785656
+2026-10-05T10:12:48.053+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b4f1bbfd-a13c-4499-ab05-bd1a39e5f0ad clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_24 traceId=b4f1bbfd-a13c-4499-[redacted]
+2026-10-05T10:12:48.056+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a578e415-5757-4d1d-a0dd-35ab94ab6dd5 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_25 traceId=a578e415-5757-4d1d-a0dd-35ab94ab6dd5
+2026-10-05T10:12:48.060+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=44dde20b-dbb5-4a80-9f5d-4a9a969b2cb8 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_26 traceId=44dde20b-dbb5-4a80-9f5d-4a9a969b2cb8
+2026-10-05T10:12:48.064+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a36bb762-3a89-4144-9436-e82277540c84 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_27 traceId=a36bb762-3a89-4144-9436-e82277540c84
+2026-10-05T10:12:48.068+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=256ea8e3-a822-47a2-8193-e69a70579134 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_28 traceId=256ea8e3-a822-47a2-8193-e69a70579134
+2026-10-05T10:12:48.073+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=805d5f60-f6d9-442d-84f1-c1c2b1d3606d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_29 traceId=805d5f60-f6d9-442d-84f1-c1c2b1d3606d
+2026-10-05T10:12:48.077+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=25c80ec8-88ba-43ce-85c5-ee89e252a4e2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_30 traceId=25c80ec8-88ba-43ce-85c5-ee89e252a4e2
+2026-10-05T10:12:48.080+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=03db2201-2614-45bb-b7eb-b5eb7551d0ae clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_31 traceId=03db2201-2614-45bb-b7eb-b5eb7551d0ae
+2026-10-05T10:12:48.084+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=764bdc4c-9ca4-498f-a0ec-43fbd942eace clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_32 traceId=764bdc4c-9ca4-498f-a0ec-43fbd942eace
+2026-10-05T10:12:48.087+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=245965f2-3a95-4bf5-84d1-9b80a50cc425 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_33 traceId=245965f2-3a95-4bf5-84d1-9b80a50cc425
+2026-10-05T10:12:48.091+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=849d0086-dd60-4318-9f6e-c3aa72dac79f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_34 traceId=849d0086-[redacted]
+2026-10-05T10:12:48.095+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=df3dedbc-1b86-442a-8885-e52b81ee16b2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_35 traceId=df3dedbc-1b86-442a-8885-e52b81ee16b2
+2026-10-05T10:12:48.099+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6840d4ba-73b0-4938-91bd-29a2ebfda164 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_36 traceId=6840d4ba-73b0-4938-91bd-29a2ebfda164
+2026-10-05T10:12:48.102+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=87f8b2a9-157c-490e-a812-c845439e8e6b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_37 traceId=87f8b2a9-157c-490e-a812-c845439e8e6b
+2026-10-05T10:12:48.106+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cf928f19-5785-4eab-9db8-4eb5aaa4fa35 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_38 traceId=[redacted]
+2026-10-05T10:12:48.110+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=55318cb0-b1e0-42a8-bc1d-e91316cb3028 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_39 traceId=55318cb0-b1e0-42a8-bc1d-e91316cb3028
+2026-10-05T10:12:48.113+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2780a451-5417-4e89-87a2-4058bf18867b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_40 traceId=2780a451-5417-4e89-87a2-4058bf18867b
+2026-10-05T10:12:48.117+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e527494e-b5e8-400c-8b91-e7ff949da985 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_41 traceId=e527494e-b5e8-400c-8b91-e7ff949da985
+2026-10-05T10:12:48.121+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=793e002e-6df2-4c72-a9c4-d2aa262719dd clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_42 traceId=793e002e-6df2-4c72-a9c4-d2aa262719dd
+2026-10-05T10:12:48.124+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b3617897-7871-4be9-baf8-72b4c3a0ef86 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_43 traceId=b3617897-7871-4be9-baf8-72b4c3a0ef86
+2026-10-05T10:12:48.128+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f8e57423-8339-4317-90f6-bac7231e5ea7 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_44 traceId=f8e57423-8339-4317-90f6-bac7231e5ea7
+2026-10-05T10:12:48.132+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=77914362-2b67-4ac5-a16c-68c421306f7a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_45 traceId=77914362-2b67-4ac5-a16c-68c421306f7a
+2026-10-05T10:12:48.136+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0649c8b1-9199-40d6-8b7f-91da57dd3e5f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_46 traceId=0649c8b1-9199-40d6-8b7f-91da57dd3e5f
+2026-10-05T10:12:48.139+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b53be8f2-b838-4bff-80d5-c1e06567225e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_47 traceId=b53be8f2-b838-4bff-80d5-c1e06567225e
+2026-10-05T10:12:48.143+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dedd3030-cbe1-40a0-b5ae-9ab2f4d36ebc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_48 traceId=dedd3030-cbe1-40a0-b5ae-9ab2f4d36ebc
+2026-10-05T10:12:48.146+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d3b6c7e0-e6bc-4c51-9c17-1715cf130efe clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_49 traceId=d3b6c7e0-e6bc-4c51-9c17-1715cf130efe
+2026-10-05T10:12:48.150+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e058a03a-5b4a-482c-963b-37e4299afc64 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_50 traceId=e058a03a-5b4a-482c-963b-37e4299afc64
+2026-10-05T10:12:48.154+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8d7fe88e-06f6-48d9-9987-b5dfc046f816 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_51 traceId=8d7fe88e-06f6-48d9-9987-b5dfc046f816
+2026-10-05T10:12:48.158+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c88289ac-9f49-4f96-b4ff-79797aa334f0 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_52 traceId=c88289ac-9f49-4f96-b4ff-79797aa334f0
+2026-10-05T10:12:48.161+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d56ef4db-4edc-48dd-9a05-f5c957bd94e7 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_53 traceId=d56ef4db-4edc-48dd-9a05-f5c957bd94e7
+2026-10-05T10:12:48.165+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9139db65-1816-467b-a65c-71935799cca8 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_54 traceId=9139db65-1816-467b-a65c-71935799cca8
+2026-10-05T10:12:48.168+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=54355dd5-7b95-406b-a0ec-5ee5c3fefb4a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_55 traceId=54355dd5-7b95-406b-a0ec-5ee5c3fefb4a
+2026-10-05T10:12:48.172+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b7d1d5e-a2a5-464b-8f70-7848eaee2941 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_56 traceId=8b7d1d5e-a2a5-464b-8f70-7848eaee2941
+2026-10-05T10:12:48.175+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b8c5f7e1-b9cf-4203-991a-a406b8cc7736 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_57 traceId=b8c5f7e1-b9cf-4203-991a-a406b8cc7736
+2026-10-05T10:12:48.179+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bea2c40b-ea08-402e-a2f3-ae1884c7470f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_58 traceId=bea2c40b-[redacted]
+2026-10-05T10:12:48.182+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=787fa59a-14a2-4d45-bddc-738632caf1e6 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_59 traceId=787fa59a-14a2-4d45-bddc-738632caf1e6
+2026-10-05T10:12:48.185+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0e53254e-ad5c-45ff-b5df-e1629ca232c1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_60 traceId=0e53254e-ad5c-45ff-b5df-e1629ca232c1
+2026-10-05T10:12:48.189+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8ae444b0-d0e7-430b-b8b1-c5426acc1727 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_61 traceId=8ae444b0-d0e7-430b-b8b1-c5426acc1727
+2026-10-05T10:12:48.193+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3b89a546-1b90-416c-847a-415bc29ed6b4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_62 traceId=3b89a546-1b90-416c-847a-415bc29ed6b4
+2026-10-05T10:12:48.196+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1c5be929-5e4b-42f9-afdd-ffa72de5eb2b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_63 traceId=1c5be929-5e4b-42f9-afdd-ffa72de5eb2b
+2026-10-05T10:12:48.200+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8301da8c-3f8e-42ed-87cf-f76aeb548a0c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_64 traceId=8301da8c-3f8e-42ed-87cf-f76aeb548a0c
+2026-10-05T10:12:48.204+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=eee6b8ce-c842-4f0b-ad58-7a3cc76c450a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_65 traceId=eee6b8ce-c842-4f0b-[redacted]
+2026-10-05T10:12:48.207+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c0401222-a7ae-4569-9643-950bd49c56c2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_66 traceId=c0401222-a7ae-4569-9643-950bd49c56c2
+2026-10-05T10:12:48.211+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7c110ed5-e507-43cf-8ed3-2fe7bc431302 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_67 traceId=7c110ed5-e507-43cf-8ed3-2fe7bc431302
+2026-10-05T10:12:48.214+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0657f9c2-a5e0-4cc9-ab6a-66b69a30621e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_68 traceId=0657f9c2-a5e0-4cc9-ab6a-66b69a30621e
+2026-10-05T10:12:48.218+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a9e59e26-edf6-41bd-832d-6764f33ddb18 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_69 traceId=a9e59e26-edf6-41bd-832d-6764f33ddb18
+2026-10-05T10:12:48.221+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=20254326-2213-45aa-99aa-70d2df7ee5a6 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_70 traceId=20254326-2213-45aa-99aa-70d2df7ee5a6
+2026-10-05T10:12:48.225+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b38dba1e-8dae-467d-8956-341c5d36371e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_71 traceId=b38dba1e-8dae-467d-8956-341c5d36371e
+2026-10-05T10:12:48.229+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=552faec9-87da-4e37-80ae-32e4caf913ca clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_72 traceId=552faec9-87da-4e37-80ae-32e4caf913ca
+2026-10-05T10:12:48.232+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cb866df1-7dc1-4a44-bd06-4cb542c32d84 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_73 traceId=[redacted]
+2026-10-05T10:12:48.236+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4602652f-a24a-4e79-87a7-d5f2ca8aea5c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_74 traceId=4602652f-a24a-4e79-87a7-d5f2ca8aea5c
+2026-10-05T10:12:48.240+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fd9040e2-913f-4f0a-bd3c-6e171e946917 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_75 traceId=[redacted]
+2026-10-05T10:12:48.244+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=301b382b-4809-4db9-a91e-fef95147f0ed clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_76 traceId=301b382b-4809-4db9-a91e-fef95147f0ed
+2026-10-05T10:12:48.248+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=93d75878-dc4a-499d-875d-023affaa2cd2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_77 traceId=93d75878-dc4a-499d-875d-023affaa2cd2
+2026-10-05T10:12:48.251+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=02d62c56-d162-47ad-abb6-82859e2551cf clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_78 traceId=02d62c56-d162-47ad-abb6-82859e2551cf
+2026-10-05T10:12:48.254+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=19d26ccb-4f3e-437e-aa62-8cac414c3d52 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_79 traceId=19d26ccb-4f3e-437e-[redacted]
+2026-10-05T10:12:48.258+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=167b6d93-f530-4272-9cf2-7b5c161d517e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_80 traceId=167b6d93-f530-4272-9cf2-7b5c161d517e
+2026-10-05T10:12:48.262+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b148ba9a-8333-4d8e-965b-89f9c4114ac4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_81 traceId=b148ba9a-8333-4d8e-965b-89f9c4114ac4
+2026-10-05T10:12:48.265+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b4f3042b-fcea-4577-87cb-3822cc7304e3 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_82 traceId=b4f3042b-fcea-4577-87cb-3822cc7304e3
+2026-10-05T10:12:48.269+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=be509073-c863-497b-8154-0ce35e5ba23d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_83 traceId=[redacted]
+2026-10-05T10:12:48.272+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a44c4870-342a-479a-bb5e-e51155c27ce0 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_84 traceId=a44c4870-342a-479a-bb5e-e51155c27ce0
+2026-10-05T10:12:48.276+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=11e6c0d8-5ae8-4d3f-b717-02131f18af40 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_85 traceId=11e6c0d8-5ae8-4d3f-b717-02131f18af40
+2026-10-05T10:12:48.279+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=39037fb2-bd44-43de-8878-4ca4239ac5cb clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_86 traceId=39037fb2-[redacted]
+2026-10-05T10:12:48.283+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2a80ca19-f113-49e9-afa0-1d955755dee9 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_87 traceId=2a80ca19-f113-49e9-afa0-1d955755dee9
+2026-10-05T10:12:48.287+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7477868d-afac-4590-bee7-ff7650298e44 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_88 traceId=7477868d-afac-4590-bee7-ff7650298e44
+2026-10-05T10:12:48.290+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8982c237-ef9a-4b23-b47c-b36d73e3154c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_89 traceId=8982c237-ef9a-4b23-b47c-b36d73e3154c
+2026-10-05T10:12:48.294+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ea06530a-59a8-449f-8e25-9da7e45d6ac3 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_90 traceId=[redacted]
+2026-10-05T10:12:48.298+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=42c82481-c775-4ec3-8ca3-48eaf7c3b8c6 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_91 traceId=42c82481-c775-4ec3-8ca3-48eaf7c3b8c6
+2026-10-05T10:12:48.302+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=66e76839-ff06-4a86-96a1-65fa9f67657b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_92 traceId=66e76839-[redacted]
+2026-10-05T10:12:48.306+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9de0c972-1008-4438-bdfb-d62a4f6f466b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_93 traceId=9de0c972-1008-4438-bdfb-d62a4f6f466b
+2026-10-05T10:12:48.310+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=06ed672a-f505-4549-af9c-2d04f51c383f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_94 traceId=06ed672a-f505-4549-af9c-2d04f51c383f
+2026-10-05T10:12:48.314+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=70eea712-72e8-40d3-ab48-5c27b580c0ab clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_95 traceId=70eea712-72e8-40d3-[redacted]
+2026-10-05T10:12:48.318+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=db656e18-bd0e-4fdf-aa25-7bdf3d1c597d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_96 traceId=[redacted]
+2026-10-05T10:12:48.322+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dff4754c-bef9-463a-9523-304f8aa0cebd clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_97 traceId=dff4754c-bef9-463a-9523-304f8aa0cebd
+2026-10-05T10:12:48.325+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6c016e00-a425-4380-a854-bfa52f07a9d4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_98 traceId=6c016e00-a425-4380-a854-bfa52f07a9d4
+2026-10-05T10:12:48.329+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=016a5c1d-16ed-4e55-aec0-c8024425ce4e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_99 traceId=016a5c1d-16ed-4e55-aec0-c8024425ce4e
+2026-10-05T10:12:48.333+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=155c3883-91e7-454c-afe3-b4d8e2f61188 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_100 traceId=155c3883-91e7-454c-afe3-b4d8e2f61188
+2026-10-05T10:12:48.336+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f9d9b673-5b29-456c-8901-9bce2738034a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_100 traceId=f9d9b673-5b29-456c-8901-9bce2738034a
+E5-T07 outbox backlog discarded before CardPaymentsIT: 305 PENDING records (more than one dispatch() batch)
+2026-10-05T10:12:50.626+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.PaymentCurlIT]: PaymentCurlIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-05T10:12:50.627+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.PaymentCurlIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-05T10:12:50.664+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : Starting PaymentCurlIT using Java [redacted] with PID 91674 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-05T10:12:50.664+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-05T10:12:51.303+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-05T10:12:51.337+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 33 ms. Found 0 MongoDB repository interfaces.
+2026-10-05T10:12:51.516+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-05T10:12:51.527+02:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-05T10:12:51.528+02:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-05T10:12:51.569+02:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-05T10:12:51.569+02:00 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 904 ms
+2026-10-05T10:12:51.601+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6bcd4e72], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@35c395cc, com.mongodb.Jep395RecordCodecProvider@553fe912, com.mongodb.KotlinCodecProvider@2fa33765]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50415], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2293d082], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-05T10:12:51.603+02:00 INFO  [cluster-ClusterId{value='6ac35c03...[truncated]', description='null'}-localhost:50415] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50415, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1457250, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=67a01d7b52d9:27017, hosts=[67a01d7b52d9:27017], passives=[], arbiters=[], primary='67a01d7b52d9:27017', tagSet=TagSet{[]}, electionId=7fffffff...[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6ac35bdc...[truncated], counter=6}, lastWriteDate=Mon Oct 05 10:12:50 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-05T10:12:51.835+02:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-05T10:12:52.504+02:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-05T10:12:52.504+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-05T10:12:52.504+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-05T10:12:52.580+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 50477 (http) with context path '/'
+2026-10-05T10:12:52.619+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-05T10:12:52.620+02:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-05T10:12:52.620+02:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-05T10:12:52.631+02:00 INFO  [main] o.a.c.c.C.[Tomcat-1].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-05T10:12:52.631+02:00 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 49 ms
+2026-10-05T10:12:52.638+02:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-05T10:12:52.662+02:00 INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 50478 (http) with context path '/'
+2026-10-05T10:12:52.677+02:00 INFO  [main] c.a.core.payments.api.PaymentCurlIT traceId= clubId= accountId= : Started PaymentCurlIT in 2.048 seconds (process running for 44.547)
+2026-10-05T10:12:52.695+02:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs
+2026-10-05T10:12:53.115+02:00 INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-05T10:12:53.115+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-05T10:12:53.117+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+curl -X POST /api/v1/billing/runs/[id truncated]/card-charges -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/retry -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/refund -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+FakePaymentProvider operation=charge idempotencyKey=96bab66b...[truncated]
+FakePaymentProvider operation=charge idempotencyKey=96bab66b...[truncated]:2
+FakePaymentProvider operation=refund idempotencyKey=invoice-...[truncated]
+StripeEvent eventId=evt_curl_failed type=payment_intent.payment_failed outcome=PROCESSED
+StripeEvent eventId=evt_curl_paid type=payment_intent.succeeded outcome=PROCESSED
+StripeEvent eventId=evt_curl_late_failure type=payment_intent.payment_failed outcome=IGNORED
+StripeEvent eventId=evt_curl_refunded type=charge.refunded outcome=PROCESSED
+PASS curl sequence: charge -> failed webhook -> invoice FAILED -> retry -> success/duplicate/late failure -> refund -> invoice PAID, refundedTotal=6000 EUR
+[ERROR] Failures:
+[ERROR]   E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse:373 [one SecurityEvent per refused delivery]
+expected: 10L
+ but was: 9L
+[ERROR] Tests run: 96, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

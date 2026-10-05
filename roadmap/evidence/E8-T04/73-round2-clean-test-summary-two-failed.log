@@ -1,0 +1,23 @@
+clean verify exit=1
+surefire totals: tests=3689, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=17, failures=0, errors=0, skipped=0
+  DashboardBuildersTest: tests=7, failures=0, errors=0, skipped=0
+  NotificationMatrixTest: tests=2681, failures=0, errors=0, skipped=0
+  NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+  E8ResponseContractTest: tests=10, failures=0, errors=0, skipped=0
+  S04ErrorContractTest: tests=2, failures=0, errors=0, skipped=0
+  CheckoutProviderFailureTest: tests=3, failures=0, errors=0, skipped=0
+  StripeCallsTest: tests=2, failures=0, errors=0, skipped=0
+  StripePaymentProviderTest: tests=7, failures=0, errors=0, skipped=0
+  AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+  EventCatalogContractTest: tests=2, failures=0, errors=0, skipped=0
+failsafe totals: tests=1487, failures=1, errors=0, skipped=0
+  SignupCensusCorrectionsIT: tests=19, failures=0, errors=0, skipped=0
+  SignupGateFixesIT: tests=24, failures=0, errors=0, skipped=0
+  NotificationEngineIT: tests=14, failures=0, errors=0, skipped=0
+  TemplateVariableParityIT: tests=2, failures=0, errors=0, skipped=0
+  E3ContractIT: tests=17, failures=0, errors=0, skipped=0
+  E8ContractIT: tests=70, failures=0, errors=0, skipped=0
+  OpenApiSnapshotTest: tests=10, failures=0, errors=0, skipped=0
+  CardPaymentsIT: tests=26, failures=1, errors=0, skipped=0
+  PaymentCurlIT: tests=1, failures=0, errors=0, skipped=0

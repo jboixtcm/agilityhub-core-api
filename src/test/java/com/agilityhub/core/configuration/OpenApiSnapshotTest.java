@@ -229,7 +229,14 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 "OnboardingState", "OnboardingField", "RequiredConsent", "HandoffResponse", "ImpersonationTokenResponse", "PlatformAccountRequest");
         assertThat(document.path("paths").has("/auth/magic-link")).isFalse();
         assertThat(names(document.at("/components/schemas/Me/properties")))
-                .containsExactlyInAnyOrder("account", "membership", "impersonation", "features");
+                .containsExactlyInAnyOrder("account", "membership", "impersonation", "features", "paymentMethod");
+        assertThat(document.at("/components/schemas/Me/properties/paymentMethod/$ref").asText()).isEqualTo("#/components/schemas/MePaymentMethod");
+        assertThat(strings(document.at("/components/schemas/Me/required"))).doesNotContain("paymentMethod");
+        assertThat(names(document.at("/components/schemas/MePaymentMethod/properties"))).containsExactlyInAnyOrder("type", "invalid");
+        for (String schema : List.of("MePaymentMethod", "PaymentMethodView")) {
+            assertThat(document.at("/components/schemas/" + schema + "/properties/invalid/type").asText()).isEqualTo("boolean");
+            assertThat(strings(document.at("/components/schemas/" + schema + "/required"))).doesNotContain("invalid");
+        }
         assertThat(document.at("/components/schemas/Me/properties/account/$ref").asText()).isEqualTo("#/components/schemas/MeAccount");
         assertThat(names(document.at("/components/schemas/MeAccount/properties")))
                 .containsExactlyInAnyOrder("id", "email", "name", "locale", "platformRoles", "hasPassword", "emailVerifiedAt", "onboardingPending");

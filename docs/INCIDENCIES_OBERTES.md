@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.9 · 01-10-2026** (v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.0 · 05-10-2026** (v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -65,6 +65,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-53 | 01-10 | api (contracte i seed, petits) | Preguntes d'api d'E6-W04, E7-W05 i E5-W05: `TaskItem.doneBy`, `UploadUrl.uploadUrl` relatiu, els comptadors de simulació de P8, el comptador d'adjunts de `FollowupItem`, un límit superior per a `read-all`, les etiquetes amb espai final de `/bookings/filter-values`, `isoWeekStart` a l'ítem de P1, el «Berta» del seed, la resta de codis d'S10 que han passat a 422, els camps obligatoris de `Member` que l'esborrament anul·la, i les claus d'idempotència de `POST /jobs/{name}/trigger` i de la llista d'espera | Baixa | oberta — E11-T02 (el punt 10, E11-T01) |
 | INC-54 | 01-10 | api (comunicacions, menors) | Menors d'E7-T07: `bin/e7-smoke-test.py` a la CI, la resposta de la llista permesa enregistrada d'una execució real, els canals comparats sense ordre, noms de proves, i els formats en anglès de `ClubFormats` (R-11-05) | Baixa | oberta — E11-T02 |
 | INC-55 | 01-10 | web (preferències, mocks) | Menors de la ronda 2 d'E7-W07: una negativa de l'api ha de treure només la preferència que nomena, i una tria que ja ha rebut el seu `2xx` ha de sortir de la safata; un sol magatzem de reserves per als mons del mock | Baixa | oberta — E11-W02 |
+| INC-56 | 05-10 | web (e2e del nucli, rigor) | Menors de la ronda 2 d'E7-W03: l'asserció del correu N-13 (`SKIPPED_BY_PREFERENCE` exacte), la sonda `TEMPLATE_MANDATORY` incondicional, la restauració de la plantilla dins d'un `finally`, i les captures de notificacions preses després de l'edició de la plantilla | Baixa | oberta — E11-W02 |
 
 ---
 
@@ -133,6 +134,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 14. **N-08a i la pista:** el mockup 11 escriu «· Central», però `ring_name` no és una variable d'N-08a. Si s'hi afegeix, la fila del catàleg, el seed i S11 §8 canvien en el mateix commit. Fins aleshores s'accepta la diferència amb el mockup.
 15. **Els comptadors de P4:** la simulació compta `WOULD_REMIND` i l'execució real `classReminders` i `trainingReminders`. Un sol joc de noms, com al punt 3 per a P8.
 16. **El registre d'avisos** no mostra el `batchId` d'un comunicat: «un sol lot» només es veu pel nombre de files. Les files d'un comunicat han de portar el seu `batchId`.
+17. **La revisió de la imatge publicada** (E7-W03 ronda 2, 05-10): la imatge `:main` del registre no porta l'etiqueta `org.opencontainers.image.revision`, i `/health` no diu quina revisió serveix. Cal afegir l'etiqueta al `docker build` de la CI i la revisió a la resposta de `/health`, perquè el web pugui enregistrar contra quin commit de l'api ha passat les proves. Ho fa la ronda 2 d'E11-T04 (`deploy/` i la publicació de la CI).
 
 **On mirar**: els informes d'E6-W04, d'E7-W05 i d'E7-W03, i la ronda 2 d'E5-W05 (web).
 
@@ -167,6 +169,22 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 3. **Un sol magatzem de reserves** per als mons del mock (R2-A6, acceptada de moment): avui els inscrits es reparteixen a la primera lectura d'un món del personal, i el món de l'abonat no compta aquestes reserves.
 
 **On mirar**: `packages/api-client/src/preferences-saver.ts` i `mocks/fixtures/bookings.ts`.
+
+---
+
+## INC-56 · Menors de la ronda 2 d'E7-W03 (web, e2e del nucli)
+
+**Gravetat**: baixa. La porta E7 del web està tancada amb altres assercions de les mateixes execucions; aquests punts fan la prova més estricta, no canvien el producte.
+
+**Origen**: la revisió de la ronda 2 d'E7-W03 (`roadmap/reviews/E7-W03-20261005-0820-codex.md`); verificació de l'organitzador del 05-10 al matí (decisió E90).
+
+**Què cal fer** (`apps/clubs/e2e/core/e7-core.spec.ts`):
+1. **El correu d'N-13 amb la preferència apagada** s'ha d'assertar com a `SKIPPED_BY_PREFERENCE` exacte, no com a «no és `SENT`»; i `settledDetail` no ha de caure en silenci a un valor per defecte quan la fila no hi és.
+2. **La sonda de `TEMPLATE_MANDATORY`** ha de ser incondicional: la plantilla d'N-05 és obligatòria per catàleg, així que la prova asserta `mandatory === true` i després el `422` quan s'intenta desactivar. Avui la sonda només s'executa si la lectura prèvia diu `mandatory`.
+3. **La restauració de la plantilla editada al pas 5** va dins d'un `finally`, perquè una asserció fallida no deixi la plantilla del club del seed canviada per a la resta de la suite.
+4. **Les captures de notificacions (ca/es)** s'han de prendre després de l'edició de la plantilla, perquè mostrin el text editat.
+
+**On mirar**: l'informe de la ronda 2 d'E7-W03 i la seva revisió.
 
 ---
 
