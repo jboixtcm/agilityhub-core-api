@@ -31,6 +31,13 @@ public class LeaveController {
     static final String MEMBER_ROLES = "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. ";
     static final String ADMIN_ROLES = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. ";
     static final String STUB = InactivityController.STUB;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LeaveRequestService service;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleViews views;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleTransactions transactions;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.lists.ListEngine lists;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.CensusQuery queries;
+    private <T> T mapped(Object value, Class<T> type) { return mapper.convertValue(value, type); }
     private final LifecycleContractAccess access;
     public LeaveController(LifecycleContractAccess access) { this.access = access; }
 
@@ -40,11 +47,11 @@ public class LeaveController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND})
     @Operation(summary = "myLeaveContext", description = MEMBER_ROLES + "Screen 15's context (S13 §6): the inactivity offer (INACTIVITY on and a "
             + "plan that may request it), the fee with BILLING, today in the club's time zone, leave.fullMonthIfLater, leave.npsEnabled, the MEMBER "
-            + "reasons of leave.reasons in the reader's locale, the caller's planned leave and requests." + STUB,
+            + "reasons of leave.reasons in the reader's locale, the caller's planned leave and requests.",
             responses = @ApiResponse(responseCode = "200", description = "MeLeaveContext", useReturnTypeSchema = true))
     public MeLeaveContext myLeaveContext() {
         access.me();
-        throw new UnsupportedOperationException();
+        return mapped(views.leaveContext(access.callerMember()), MeLeaveContext.class);
     }
 
     @PostMapping("/api/v1/me/leave-requests")
@@ -57,11 +64,11 @@ public class LeaveController {
             + "or BACKOFFICE under impersonation, audited); LeaveRequested → N-14 with the localized reason. Only an ACTIVE member (422 "
             + "MEMBER_NOT_ACTIVE), one PENDING request (409 LEAVE_ALREADY_REQUESTED) and no planned leave (409 LEAVE_ALREADY_SCHEDULED); "
             + "requestedDate today or later (422 LEAVE_DATE_INVALID); reasonKey of leave.reasons (422 LEAVE_REASON_UNKNOWN, rule 0: S13 writes "
-            + "400); nps only with leave.npsEnabled (403 READ_ONLY, §1: T-13-15 writes 400). The same Idempotency-Key answers the same request." + STUB,
+            + "400); nps only with leave.npsEnabled (403 READ_ONLY, §1: T-13-15 writes 400). The same Idempotency-Key answers the same request.",
             responses = @ApiResponse(responseCode = "201", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest requestLeave(@Valid @RequestBody LeaveCreateRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMe();
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapped(views.request(service.request(access.callerMember(), request.requestedDate(), request.reasonKey(), request.nps(), request.comment())), LeaveRequest.class));
     }
 
     @PostMapping("/api/v1/me/leave-requests/{id}/cancellation")
@@ -70,11 +77,11 @@ public class LeaveController {
     @ContractErrors({NOT_FOUND, LEAVE_INVALID_STATE})
     @Operation(summary = "withdrawMyLeave", description = MEMBER_ROLES + "R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, "
             + "WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, "
-            + "also of the caller's family group → 404." + STUB,
+            + "also of the caller's family group → 404.",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest withdrawMyLeave(@PathVariable String id) {
         access.ownRequest(id);
-        throw new UnsupportedOperationException();
+        access.mutableMe(); return transactions.run(() -> mapped(views.request(service.withdraw(id)), LeaveRequest.class));
     }
 
     @GetMapping("/api/v1/leave-requests")
@@ -86,24 +93,24 @@ public class LeaveController {
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "leaveRequests", description = ADMIN_ROLES + "«Inactivitats i baixes» › «Baixes» (universal list, CONVENCIONS_API §4): "
             + "by default state:eq:PENDING ordered by requestedAt; q searches the member's name. An undeclared filter, sort or fields key → 400 "
-            + "INVALID_FILTER." + STUB,
+            + "INVALID_FILTER.",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequestPage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = LeaveRequestPage.class))))
     public Object leaveRequests(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
         access.tenant();
         access.requestList(params);
-        throw new UnsupportedOperationException();
+        return lists.list("leave-requests", params);
     }
 
     @GetMapping("/api/v1/leave-requests/{id}")
     @PreAuthorize(InactivityController.ADMIN)
     @ContractErrors({NOT_FOUND})
     @Operation(summary = "leaveRequest", description = ADMIN_ROLES + "D10's drawer: the request with its decision and cancelled bookings. Another "
-            + "club's → 404 (T-13-24)." + STUB,
+            + "club's → 404 (T-13-24).",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest leaveRequest(@PathVariable String id) {
         access.request(id);
-        throw new UnsupportedOperationException();
+        return mapped(views.request(service.get(id)), LeaveRequest.class);
     }
 
     @PostMapping("/api/v1/leave-requests/{id}/decision")
@@ -112,11 +119,11 @@ public class LeaveController {
     @Operation(summary = "decideLeave", description = ADMIN_ROLES + "R-13-10 [Aprova] / [Denega] of a PENDING request (409 LEAVE_INVALID_STATE). "
             + "APPROVED: effectiveDate (default requestedDate, today or later: 422 LEAVE_DATE_INVALID) becomes Member.leaveDate; bookings after it are "
             + "cancelled (R-13-12), live inactivity periods closed; the member stays active up to leaveDate included. LeaveResolved → N-28, "
-            + "LEAVE_RESOLVED audit; the answer's member carries the leaveDate. Idempotent by effect." + STUB,
+            + "LEAVE_RESOLVED audit; the answer's member carries the leaveDate. Idempotent by effect.",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest decideLeave(@PathVariable String id, @Valid @RequestBody LeaveDecisionRequest request) {
         access.request(id);
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapped(views.request(service.decide(id, request.decision(), request.effectiveDate(), request.note())), LeaveRequest.class));
     }
 
     @PostMapping("/api/v1/members/{id}/leave")
@@ -125,11 +132,11 @@ public class LeaveController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MEMBER_NOT_ACTIVE, LEAVE_ALREADY_SCHEDULED, LEAVE_DATE_INVALID, LEAVE_REASON_UNKNOWN})
     @Operation(summary = "scheduleLeave", description = ADMIN_ROLES + "R-13-10 direct leave from D10: an APPROVED LeaveRequest{source ADMIN, "
             + "origin BACKOFFICE} with the same effects as an approval; a PENDING one becomes CANCELLED{ADMIN}. Only an ACTIVE member (422 "
-            + "MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED). Another club's member → 404; an erased one → 409 MEMBER_ERASED." + STUB,
+            + "MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED). Another club's member → 404; an erased one → 409 MEMBER_ERASED.",
             responses = @ApiResponse(responseCode = "201", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest scheduleLeave(@PathVariable String id, @Valid @RequestBody DirectLeaveRequest request) {
         access.mutableMember(id);
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapped(views.request(service.direct(id, request.effectiveDate(), request.reasonKey(), request.note())), LeaveRequest.class));
     }
 
     @DeleteMapping("/api/v1/members/{id}/planned-leave")
@@ -138,11 +145,11 @@ public class LeaveController {
     @ContractErrors({NOT_FOUND, MEMBER_ERASED, NO_PLANNED_LEAVE, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "cancelPlannedLeave", description = ADMIN_ROLES + "R-13-15 [Anul·la la baixa prevista]: an ACTIVE member with a leaveDate "
             + "loses it, its LeaveRequest becomes CANCELLED{ADMIN}, LeaveCancelled → N-28 (variant), LEAVE_CANCELLED audit; billing returns to "
-            + "normal; the cancelled bookings are not restored. Without a planned leave → 422 NO_PLANNED_LEAVE (rule 0, S13 writes 409). No body." + STUB,
+            + "normal; the cancelled bookings are not restored. Without a planned leave → 422 NO_PLANNED_LEAVE (rule 0, S13 writes 409). No body.",
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void cancelPlannedLeave(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(id);
-        throw new UnsupportedOperationException();
+        transactions.run(() -> { service.cancelPlanned(id); return null; });
     }
 
     @PostMapping("/api/v1/members/{id}/reactivation")
@@ -151,10 +158,10 @@ public class LeaveController {
     @Operation(summary = "reactivateMember", description = ADMIN_ROLES + "R-13-16 [Reactiva l'abonat]: a LEFT member becomes ACTIVE with the same "
             + "number (leaveHistory +1, leaveDate/leftAt/leftReason cleared, Membership ACTIVE, dogs stay INACTIVE, no entry fee); "
             + "MemberStatusChanged{LEFT→ACTIVE}, audited. With BILLING planId, priceId and nextInvoiceDate are required (400 VALIDATION_ERROR). "
-            + "Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409)." + STUB,
+            + "Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409).",
             responses = @ApiResponse(responseCode = "200", description = "Member", useReturnTypeSchema = true))
     public CensusResponses.Member reactivateMember(@PathVariable String id, @Valid @RequestBody ReactivationRequest request) {
         access.mutableMember(id);
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> { service.reactivate(id, request.planId(), request.priceId(), request.nextInvoiceDate()); return mapped(queries.member(id, true), CensusResponses.Member.class); });
     }
 }

@@ -80,7 +80,10 @@ public class BookingCancellationService {
      * a SYSTEM cancellation is never late.
      */
     public int cancelFutureByMember(String memberId, BookingActor by, BookingCancelReason reason) {
-        var live = bookings.liveForMember(memberId, context.now());
+        return cancelFutureByMember(memberId, by, reason, context.now());
+    }
+    public int cancelFutureByMember(String memberId, BookingActor by, BookingCancelReason reason, Instant after) {
+        var live = bookings.liveForMember(memberId, after);
         return transactions.write(live.stream().map(Booking::classSessionId).toList(), () -> {
             int count = 0;
             for (var b : live) {

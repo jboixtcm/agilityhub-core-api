@@ -25,6 +25,16 @@ public class BillingCatalogAccess {
     public record BillingPlan(String id, String code, String type, String billingMode, int dogsIncluded, LocalizedText name, String chargeMode) { }
     /** A price current on the asked day: its amount (club currency or not, R-12-09) and its tax percentage (null = 0). */
     public record BillingPrice(String id, Money amount, BigDecimal taxPercent) { }
+    public record PackTerms(String planId, int sessions, int validityMonths) { }
+
+    /** Pack terms remain behind the catalog application boundary. Unknown plans are always 404. */
+    public PackTerms pack(String planId) {
+        var plan = plans.findById(planId).orElseThrow(() -> new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND));
+        if (plan.pack() == null || plan.type() != com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PlanType.PACK) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.PLAN_NOT_PACK);
+        }
+        return new PackTerms(plan.id(), plan.pack().sessions(), plan.pack().validityMonths());
+    }
 
     private final PlanRepository plans; private final PriceRepository prices; private final PriceResolver resolver;
     public BillingCatalogAccess(PlanRepository plans, PriceRepository prices, PriceResolver resolver) {

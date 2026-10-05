@@ -1,8 +1,8 @@
 package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.clubs.catalogs.application.BillingCatalogAccess;
-import com.agilityhub.core.payments.application.ports.InactivityFeePort;
-import com.agilityhub.core.payments.application.ports.LeaveBillingPort;
+import com.agilityhub.core.shared.application.InactivityFeePort;
+import com.agilityhub.core.shared.application.LeaveBillingPort;
 import com.agilityhub.core.payments.domain.BillingIncidentCode;
 import com.agilityhub.core.payments.domain.InvoiceLineOrigin;
 import com.agilityhub.core.payments.domain.InvoicingRules;

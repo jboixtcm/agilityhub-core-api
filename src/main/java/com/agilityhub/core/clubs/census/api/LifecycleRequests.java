@@ -30,13 +30,13 @@ public final class LifecycleRequests {
     public record InactivityRequest(@NotBlank @Pattern(regexp = MONTH) @Schema(pattern = MONTH) String fromMonth,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = MONTH, description = OPEN_END) @Pattern(regexp = MONTH) String toMonth,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) String comments) { }
-    @Schema(description = "R-13-04: only the fields sent change; an unknown field → 400 VALIDATION_ERROR")
+    @Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE, description = "R-13-04: only the fields sent change; an unknown field → 400 VALIDATION_ERROR")
     public static final class InactivityPatchRequest extends MonthsPatch { }
     public record AdminInactivityRequest(@NotBlank @Schema(format = "uuid") String memberId, @NotBlank @Pattern(regexp = MONTH) @Schema(pattern = MONTH) String fromMonth,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = MONTH, description = OPEN_END) @Pattern(regexp = MONTH) String toMonth,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) String comments,
             @Schema(requiredMode = NOT_REQUIRED, description = "«Salta el termini del dia {D}» (R-13-03, audited)") Boolean overrideDeadline) { }
-    @Schema(description = "R-13-04 from D-screens: only the fields sent change; an unknown field → 400 VALIDATION_ERROR")
+    @Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE, description = "R-13-04 from D-screens: only the fields sent change; an unknown field → 400 VALIDATION_ERROR")
     public static final class AdminInactivityPatchRequest extends MonthsPatch {
         @Schema(requiredMode = NOT_REQUIRED, description = "«Salta el termini del dia {D}» (R-13-03, audited)") public Boolean overrideDeadline;
     }
@@ -48,7 +48,7 @@ public final class LifecycleRequests {
         @Schema(requiredMode = NOT_REQUIRED, pattern = MONTH, description = "Omitted = the start stays; never null") @Pattern(regexp = MONTH) public String fromMonth;
         @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = MONTH, description = PATCH_END) @Pattern(regexp = MONTH) public String toMonth;
         @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Omitted = the comments stay; null clears them") @Size(max = 500) public String comments;
-        @NotNull @PositiveOrZero public Long version;
+        @NotNull @PositiveOrZero @Schema(minimum = "0") public Long version;
         @JsonIgnore private final Set<String> present = new HashSet<>();
         @JsonSetter("fromMonth") public void setFromMonth(String value) {
             if (value == null) { throw new IllegalArgumentException("fromMonth is never null"); }

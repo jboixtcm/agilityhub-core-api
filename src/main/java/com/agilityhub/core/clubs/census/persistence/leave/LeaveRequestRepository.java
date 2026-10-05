@@ -12,6 +12,15 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 @Repository
 public class LeaveRequestRepository extends TenantRepository<LeaveRequest> {
     public LeaveRequestRepository(MongoTemplate mongo) { super(mongo, LeaveRequest.class); }
+    public java.util.List<LeaveRequest> ofMember(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), LeaveRequest.class);
+    }
+    public LeaveRequest save(LeaveRequest value, Long expected) {
+        var saved = mongo.findAndReplace(tenantQuery(value.clubId()).addCriteria(Criteria.where("_id").is(value.id()).and("version").is(expected)),
+                value, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());
+        if (saved == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
+        return saved;
+    }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(LeaveRequest.class);

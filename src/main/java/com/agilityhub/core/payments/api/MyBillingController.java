@@ -32,6 +32,9 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 @RequiresModule(Module.BILLING)
 @PreAuthorize("hasRole('MEMBER')")
 public class MyBillingController {
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PackBalanceService packs;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PackViews packViews;
+
     static final String ROLES = "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. ";
     static final String STUB = BillingController.STUB;
     static final String SERVED = " Tenant comes from the JWT; another member's or another club's invoice → 404.";
@@ -113,6 +116,6 @@ public class MyBillingController {
             responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail[]", useReturnTypeSchema = true))
     public List<PackBalanceDetail> myPackBalances() {
         access.member(access.me());
-        throw new UnsupportedOperationException();
+        return packs.list(access.me(), null).stream().map(p -> mapper.convertValue(packViews.view(p), PackBalanceDetail.class)).toList();
     }
 }

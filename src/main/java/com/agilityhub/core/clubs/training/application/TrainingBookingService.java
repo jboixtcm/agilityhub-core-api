@@ -208,7 +208,13 @@ public class TrainingBookingService {
     }
     /** S15 P5c / S13 leave (E8 schedules it): the member's future ACTIVE bookings → CANCELLED (`SYSTEM`, reason; no N-07 for MEMBER_LEFT). */
     public int cancelFutureByMember(String memberId, TrainingCancelledBy by, TrainingCancelReason reason) {
-        return system(bookings.activeAfter("memberId", memberId, context.now()), by, reason);
+        return cancelFutureByMember(memberId, by, reason, context.now());
+    }
+    public int cancelFutureByMember(String memberId, TrainingCancelledBy by, TrainingCancelReason reason, Instant after) {
+        return system(bookings.activeAfter("memberId", memberId, after), by, reason);
+    }
+    public int cancelForLifecycle(List<TrainingBooking> bookings, boolean leave) {
+        return system(bookings, TrainingCancelledBy.SYSTEM, leave ? TrainingCancelReason.MEMBER_LEFT : TrainingCancelReason.INACTIVITY);
     }
     /** S13 `InactivityResolved{APPROVED}` (E8): ACTIVE bookings of the member whose local session date is inside `[from, to]`. */
     public int cancelForInactivity(String memberId, LocalDate from, LocalDate to) {

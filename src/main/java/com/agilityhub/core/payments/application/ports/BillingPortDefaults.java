@@ -15,17 +15,6 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 public class BillingPortDefaults {
-    @Bean @ConditionalOnMissingBean(InactivityFeePort.class)
-    InactivityFeePort inactivityFees() {
-        return new InactivityFeePort() {
-            @Override public Optional<com.agilityhub.core.shared.domain.Money> feeFor(String memberId, java.time.YearMonth month) { return Optional.empty(); }
-            @Override public List<MemberFee> feesForMonth(java.time.YearMonth month) { return List.of(); }
-        };
-    }
-    @Bean @ConditionalOnMissingBean(LeaveBillingPort.class)
-    LeaveBillingPort leaveBilling() { return memberId -> Optional.empty(); }
-    @Bean @ConditionalOnMissingBean(PackBalanceOpeningPort.class)
-    PackBalanceOpeningPort packOpening() { return (memberId, dogId, upfrontPaymentId, paidOn) -> { }; }
     @Bean @ConditionalOnMissingBean(CardChargingPort.class)
     CardChargingPort cardCharging() { return runId -> { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }; }
 }

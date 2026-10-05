@@ -1,0 +1,95 @@
+12:57:41.014 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:57:41.186 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+12:57:41.271 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:57:41.273 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:57:41.277 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+12:57:41.453 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:57:41.630 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:57:41.631 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:57:41.643 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:57:41.895 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+12:57:41.998 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:57:42.076 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 591c2f2f94ebe29eab1b6093d897483e0198f6649ea341322322b5575499ea52
+12:57:42.262 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.367722S
+12:57:42.267 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:57:42.267 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:57:42.267 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:57:42.267 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:57:42.302 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 5f0dfedabd80a1ed7b602a7a9c13640e66d001f9bede8c6ee8815262076cf6e7
+12:57:42.717 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.449973S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-05T12:57:43.573+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : Starting LifecycleIT using Java [redacted] with PID 49957 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-05T12:57:43.574+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-05T12:57:44.715+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-05T12:57:44.761+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 42 ms. Found 0 MongoDB repository interfaces.
+2026-10-05T12:57:45.205+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@81368c9], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@20e51471, com.mongodb.Jep395RecordCodecProvider@1c0cea8e, com.mongodb.KotlinCodecProvider@224876e9]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52951], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@310e0749], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-05T12:57:45.211+02:00 INFO  [cluster-ClusterId{value='6ac382a9e4a275c5b5a6b954', description='null'}-localhost:52951] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52951, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12509041, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=5f0dfedabd80:27017, hosts=[5f0dfedabd80:27017], passives=[], arbiters=[], primary='5f0dfedabd80:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac382a629d12fe174a11c5e, counter=6}, lastWriteDate=Mon Oct 05 12:57:43 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-05T12:57:48.707+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-05T12:57:48.707+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-05T12:57:48.708+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-05T12:57:48.745+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : Started LifecycleIT in 5.418 seconds (process running for 8.23)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e8-t05-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 14, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 11.68 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.LifecycleIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain -- Time elapsed: 0.158 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[POST /inactivity-periods/9c9633ae-c73a-4222-88c9-9e7ed057a32c/decision {"code":"INACTIVITY_INVALID_STATE","message":"L'estat actual no permet aquesta operació d'inactivitat.","details":{},"traceId":"56be797d-b814-415e-bbac-95de8d6f8acd"}] 
+expected: 422
+ but was: 409
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain(LifecycleIT.java:69)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_15_onePendingRequestAndDisabledNps -- Time elapsed: 0.118 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[POST /me/leave-requests {"code":"LEAVE_ALREADY_REQUESTED","message":"Ja s'ha sol·licitat la baixa.","details":{},"traceId":"6cdac0e1-8251-4492-9408-e3b642ea30d2"}] 
+expected: 422
+ but was: 409
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_15_onePendingRequestAndDisabledNps(LifecycleIT.java:98)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain:69->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods/9c9633ae-c73a-4222-88c9-9e7ed057a32c/decision {"code":"INACTIVITY_INVALID_STATE","message":"L'estat actual no permet aquesta operació d'inactivitat.","details":{},"traceId":"56be797d-b814-415e-bbac-95de8d6f8acd"}] 
+expected: 422
+ but was: 409
+[ERROR]   LifecycleIT.T_13_15_onePendingRequestAndDisabledNps:98->BookingFixtures.call:138 [POST /me/leave-requests {"code":"LEAVE_ALREADY_REQUESTED","message":"Ja s'ha sol·licitat la baixa.","details":{},"traceId":"6cdac0e1-8251-4492-9408-e3b642ea30d2"}] 
+expected: 422
+ but was: 409
+[ERROR] Tests run: 14, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

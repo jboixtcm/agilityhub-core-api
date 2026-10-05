@@ -16,10 +16,6 @@ class BillingPortDefaultsTest {
     final BillingPortDefaults defaults = new BillingPortDefaults();
 
     @Test void E8_T02_theNullObjectsKnowNoFeeNoLeaveNoPackAndNoCardProvider() {
-        assertThat(defaults.inactivityFees().feeFor("member", YearMonth.of(2026, 9))).isEmpty();
-        assertThat(defaults.inactivityFees().feesForMonth(YearMonth.of(2026, 9))).isEmpty();
-        assertThat(defaults.leaveBilling().lastInvoicedMonth("member")).isEmpty();
-        assertThatCode(() -> defaults.packOpening().open("member", "dog", "payment", LocalDate.of(2026, 6, 12))).doesNotThrowAnyException();
         assertThatThrownBy(() -> defaults.cardCharging().chargeRun("run"))
                 .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
     }
@@ -34,7 +30,7 @@ class BillingPortDefaultsTest {
         var result = new CardChargingPort.Result(11, java.util.List.of(new CardChargingPort.Skip("invoice-1", "NO_PAYMENT_METHOD")));
         assertThat(result.submitted()).isEqualTo(11);
         assertThat(result.skipped()).singleElement().extracting(CardChargingPort.Skip::reason).isEqualTo("NO_PAYMENT_METHOD");
-        var fee = new InactivityFeePort.MemberFee("member", new com.agilityhub.core.shared.domain.Money(2000, "EUR"), true);
+        var fee = new com.agilityhub.core.shared.application.InactivityFeePort.MemberFee("member", new com.agilityhub.core.shared.domain.Money(2000, "EUR"), true);
         assertThat(fee.firstMonth()).isTrue();
         assertThat(fee.fee().amountMinor()).isEqualTo(2000);
     }

@@ -87,11 +87,14 @@ public class ActivityRegistrationService {
     }
     public int cancelForInactivity(String memberId,LocalDate from,LocalDate to) {
         if(!context.enabled(Module.ACTIVITIES) || !context.enabled(Module.INACTIVITY) || !Boolean.TRUE.equals(context.config().get("inactivity.cancelBookingsOnApproval",Boolean.class))) return 0;
-        return cancelMatching(memberId,RegistrationCancelReason.INACTIVITY,a -> !a.date().isBefore(from) && !a.date().isAfter(to));
+        return cancelMatching(memberId,RegistrationCancelReason.INACTIVITY,a -> !a.date().isBefore(from) && (to == null || !a.date().isAfter(to)));
     }
     public int cancelForMemberLeft(String memberId) {
+        return cancelForMemberLeft(memberId, context.clock.instant());
+    }
+    public int cancelForMemberLeft(String memberId, Instant after) {
         if(!context.enabled(Module.ACTIVITIES)) return 0;
-        return cancelMatching(memberId,RegistrationCancelReason.MEMBER_LEFT,a -> context.times(a).startsAt().isAfter(context.clock.instant()));
+        return cancelMatching(memberId,RegistrationCancelReason.MEMBER_LEFT,a -> context.times(a).startsAt().isAfter(after));
     }
     private int cancelMatching(String memberId,RegistrationCancelReason reason,java.util.function.Predicate<Activity> match) {
         // Only the activities of live registrations: the transaction skips the CANCELLED ones, so their lanes are not needed.

@@ -75,7 +75,7 @@ public class LifecycleContractAccess {
     public ListQuery periodList(MultiValueMap<String, String> params) { return ListQuery.parse(INACTIVITY_PERIODS, params); }
     public ListQuery requestList(MultiValueMap<String, String> params) { return ListQuery.parse(LEAVE_REQUESTS, params); }
     /** The member a `/me/*` call acts for: the impersonated member under impersonation (R-13-18), else the token's. */
-    String callerMember() {
+    public String callerMember() {
         var user = CurrentUser.current();
         if (user != null && user.impersonation() != null) { return user.impersonation().memberId(); }
         var authentication = SecurityContextHolder.getContext().getAuthentication();

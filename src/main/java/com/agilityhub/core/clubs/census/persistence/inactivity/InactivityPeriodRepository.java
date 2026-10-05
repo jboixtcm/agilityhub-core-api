@@ -12,6 +12,18 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 @Repository
 public class InactivityPeriodRepository extends TenantRepository<InactivityPeriod> {
     public InactivityPeriodRepository(MongoTemplate mongo) { super(mongo, InactivityPeriod.class); }
+    public java.util.List<InactivityPeriod> ofMember(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), InactivityPeriod.class);
+    }
+    public java.util.List<InactivityPeriod> inStates(String... states) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in((Object[]) states)), InactivityPeriod.class);
+    }
+    public InactivityPeriod save(InactivityPeriod value, Long expected) {
+        var saved = mongo.findAndReplace(tenantQuery(value.clubId()).addCriteria(Criteria.where("_id").is(value.id()).and("version").is(expected)),
+                value, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());
+        if (saved == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
+        return saved;
+    }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(InactivityPeriod.class);

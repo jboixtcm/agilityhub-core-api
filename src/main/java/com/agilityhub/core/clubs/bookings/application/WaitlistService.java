@@ -225,7 +225,18 @@ public class WaitlistService {
     }
     /** S15 P5c / S13 leave handling, inside the caller's transaction when there is one: every live entry of the member's dogs, silently. */
     public int cancelByMember(String memberId, WaitlistCancelReason reason) {
-        var live = waitlist.liveForMember(memberId);
+        return cancelByMember(memberId, reason, null);
+    }
+    public int cancelByMember(String memberId, WaitlistCancelReason reason, Instant after) {
+        return cancelEntries(waitlist.liveForMember(memberId).stream().filter(e -> after == null || e.classStartsAt().isAfter(after)).toList(), reason);
+    }
+    public int cancelForInactivity(String memberId, java.time.LocalDate from, java.time.LocalDate to) {
+        return cancelEntries(waitlist.liveForMember(memberId).stream().filter(e -> {
+            var date = e.classStartsAt().atZone(context.zone()).toLocalDate();
+            return !date.isBefore(from) && (to == null || !date.isAfter(to));
+        }).toList(), WaitlistCancelReason.INACTIVITY);
+    }
+    public int cancelEntries(List<WaitlistEntry> live, WaitlistCancelReason reason) {
         var byClass = live.stream().collect(Collectors.groupingBy(WaitlistEntry::classSessionId, LinkedHashMap::new, Collectors.toList()));
         return transactions.write(List.copyOf(byClass.keySet()), () -> {
             int count = 0; var now = context.now();

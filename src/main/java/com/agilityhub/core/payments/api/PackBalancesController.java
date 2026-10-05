@@ -27,6 +27,12 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class PackBalancesController {
     static final String ROLES = BillingController.ROLES + "PACKS off → 404 MODULE_DISABLED. ";
     static final String STUB = BillingController.STUB;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PackBalanceService service;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PackViews views;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.catalogs.application.BillingCatalogAccess catalog;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingTransactions transactions;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    private PackBalanceDetail mapped(com.agilityhub.core.payments.persistence.PackBalance p) { return mapper.convertValue(views.view(p), PackBalanceDetail.class); }
     private final BillingContractAccess access;
     public PackBalancesController(BillingContractAccess access) { this.access = access; }
 
@@ -35,14 +41,14 @@ public class PackBalancesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "packBalances", description = ROLES + "D10 «Pack {n} — {consumides} consumides · {disponibles} disponibles · caduca el "
             + "{data}»: the packs of a member (memberId) or of a dog (dogId), at least one of the two; with their movements. Another club's member "
-            + "or dog → 404." + STUB,
+            + "or dog → 404.",
             responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail[]", useReturnTypeSchema = true))
     public List<PackBalanceDetail> packBalances(@RequestParam(required = false) @Schema(format = "uuid") String memberId,
             @RequestParam(required = false) @Schema(format = "uuid") String dogId) {
         if (memberId == null && dogId == null) { throw BillingContractAccess.invalid("memberId"); }
         if (memberId != null) { access.member(memberId); }
         if (dogId != null) { access.dog(dogId); }
-        throw new UnsupportedOperationException();
+        return service.list(memberId, dogId).stream().map(this::mapped).toList();
     }
 
     @PostMapping("/api/v1/pack-balances")
@@ -51,23 +57,24 @@ public class PackBalancesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, PLAN_NOT_PACK})
     @Operation(summary = "openPackBalance", description = ROLES + "A pack opened by hand (migration, a gift): sessionsTotal defaults to the "
             + "plan's pack.sessions and expiresOn to openedOn + validityMonths − 1 day (R-12-23); PackOpened. A plan that is not a pack → 422 "
-            + "PLAN_NOT_PACK; another club's member or dog → 404; an erased member → 409 MEMBER_ERASED." + STUB,
+            + "PLAN_NOT_PACK; another club's member or dog → 404; an erased member → 409 MEMBER_ERASED.",
             responses = @ApiResponse(responseCode = "201", description = "PackBalanceDetail", useReturnTypeSchema = true))
     public PackBalanceDetail openPackBalance(@Valid @RequestBody PackBalanceRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
+        catalog.plan(request.planId()).orElseThrow(() -> new com.agilityhub.core.shared.domain.ApiException(NOT_FOUND));
         access.mutableMember(request.memberId());
         access.memberDog(request.memberId(), request.dogId());
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapped(service.open(request.memberId(), request.dogId(), request.planId(), null, request.openedOn(), request.sessionsTotal(), request.expiresOn(), request.reason())));
     }
 
     @PostMapping("/api/v1/pack-balances/{id}/adjustments")
     @RequiresModule(Module.PACKS)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, PACK_NEGATIVE})
     @Operation(summary = "adjustPackBalance", description = ROLES + "R-12-24 [Ajusta]: an ADJUST movement of delta sessions with its reason; it may "
-            + "reopen an EXPIRED pack with a new expiresOn (required then). Below zero → 422 PACK_NEGATIVE. PackAdjusted, PACK_ADJUSTED audit." + STUB,
+            + "reopen an EXPIRED pack with a new expiresOn (required then). Below zero → 422 PACK_NEGATIVE. PackAdjusted, PACK_ADJUSTED audit.",
             responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail", useReturnTypeSchema = true))
     public PackBalanceDetail adjustPackBalance(@PathVariable String id, @Valid @RequestBody PackAdjustmentRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.pack(id);
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapped(service.adjust(id, request.delta(), request.reason(), request.expiresOn())));
     }
 }

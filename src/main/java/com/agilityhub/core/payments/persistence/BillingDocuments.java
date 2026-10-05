@@ -341,6 +341,25 @@ public final class BillingDocuments {
     @Repository
     public static class PackBalanceRepository extends TenantRepository<PackBalance> {
         public PackBalanceRepository(MongoTemplate mongo) { super(mongo, PackBalance.class); }
+        public List<PackBalance> of(String memberId, String dogId) {
+            var query = tenantQuery();
+            if (memberId != null) { query.addCriteria(Criteria.where("memberId").is(memberId)); }
+            if (dogId != null) { query.addCriteria(Criteria.where("dogId").is(dogId)); }
+            return mongo.find(query.with(Sort.by(ASC, "expiresOn", "_id")), PackBalance.class);
+        }
+        public java.util.Optional<PackBalance> forPayment(String id) {
+            return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("upfrontPaymentId").is(id)), PackBalance.class));
+        }
+        public java.util.Optional<PackBalance> forBooking(String id) {
+            return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("movements.bookingId").is(id)), PackBalance.class));
+        }
+        /** Replace only the version read by this transaction; movements are appended by the service. */
+        public PackBalance save(PackBalance balance, Long expectedVersion) {
+            var result = mongo.findAndReplace(tenantQuery(balance.clubId()).addCriteria(Criteria.where("_id").is(balance.id()).and("version").is(expectedVersion)),
+                    balance, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());
+            if (result == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
+            return result;
+        }
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(PackBalance.class);
