@@ -1,0 +1,605 @@
+[
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "cancelLocked",
+    "lineNumber": "244",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "cancelLocked",
+    "lineNumber": "237",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "classes",
+    "lineNumber": "107",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "classes",
+    "lineNumber": "106",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Optional::ifPresent"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "classes",
+    "lineNumber": "107",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Optional::ifPresent"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "classes",
+    "lineNumber": "108",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/WaitlistService::classes"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$10",
+    "lineNumber": "120",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$10"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$11",
+    "lineNumber": "127",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$11"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$13",
+    "lineNumber": "119",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$9",
+    "lineNumber": "116",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$9"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$full$15",
+    "lineNumber": "141",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$full$15"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$join$0",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$leave$4",
+    "lineNumber": "90",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$4"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$leave$5",
+    "lineNumber": "94",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$5"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$leave$6",
+    "lineNumber": "93",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$offer$16",
+    "lineNumber": "158",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$offer$16"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$offer$22",
+    "lineNumber": "156",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$reachable$3",
+    "lineNumber": "83",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$reachable$3"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$startedBy$23",
+    "lineNumber": "205",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$startedBy$23"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$sweep$24",
+    "lineNumber": "219",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "offerNext",
+    "lineNumber": "151",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "reachable",
+    "lineNumber": "84",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "reachable",
+    "lineNumber": "84",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "reachable",
+    "lineNumber": "84",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::reachable"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "215",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "214",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "214",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "215",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "214",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::sweepStarted"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "sweepStarted",
+    "lineNumber": "215",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::sweepStarted"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "110",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced integer multiplication with division"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "73",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "73",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "86",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "86",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "107",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "109",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "110",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "111",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "113",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "createAndSend",
+    "lineNumber": "113",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "lambda$createAndSend$3",
+    "lineNumber": "92",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "access",
+    "lineNumber": "224",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "authorizationCode",
+    "lineNumber": "99",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::authorizationCode"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "device",
+    "lineNumber": "233",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "device",
+    "lineNumber": "235",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "device",
+    "lineNumber": "235",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "device",
+    "lineNumber": "230",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/identity/application/TokenService::device"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "handoff",
+    "lineNumber": "94",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::handoff"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "issue",
+    "lineNumber": "207",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/RefreshTokenRepository::extendFamilyRetention"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$magicLink$1",
+    "lineNumber": "79",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$magicLink$1",
+    "lineNumber": "80",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::lambda$magicLink$1"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$profile$4",
+    "lineNumber": "152",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$refresh$2",
+    "lineNumber": "124",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::lambda$refresh$2"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$refresh$3",
+    "lineNumber": "133",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$refresh$3",
+    "lineNumber": "125",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$refresh$3",
+    "lineNumber": "136",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/RefreshTokenRepository::revokeFamily"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$refresh$3",
+    "lineNumber": "137",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::lambda$refresh$3"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$requireFamily$5",
+    "lineNumber": "160",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::lambda$requireFamily$5"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "lambda$revokeSession$9",
+    "lineNumber": "183",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "login",
+    "lineNumber": "96",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::login"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "login",
+    "lineNumber": "106",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "login",
+    "lineNumber": "116",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::recordLogin"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "login",
+    "lineNumber": "117",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/MembershipRepository::accessed"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "password",
+    "lineNumber": "57",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::password"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "refresh",
+    "lineNumber": "120",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TokenService::refresh"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TokenService",
+    "mutatedMethod": "refresh",
+    "lineNumber": "142",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/shared/application/SecurityEvents::record"
+  }
+]

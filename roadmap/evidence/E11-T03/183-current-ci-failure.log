@@ -1,0 +1,10 @@
+READ-ONLY CI failure detail for https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37278662489
+2026-10-05T07:52:20.1587743Z [ERROR] com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse -- Time elapsed: 0.276 s <<< FAILURE!
+2026-10-05T07:52:20.1589686Z expected: 0L
+2026-10-05T07:52:20.1589942Z  but was: 4L
+2026-10-05T07:52:20.1590534Z 	at com.agilityhub.core.configuration.E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse(E8ContractIT.java:388)
+2026-10-05T07:53:30.2810765Z [ERROR]   E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse:388 
+2026-10-05T07:53:30.2811642Z expected: 0L
+2026-10-05T07:53:30.2811966Z  but was: 4L
+2026-10-05T07:53:30.2812677Z [ERROR] Tests run: 1478, Failures: 1, Errors: 0, Skipped: 0
+exit 0

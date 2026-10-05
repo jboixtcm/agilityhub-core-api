@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[3]
 NAMES = {'SecurityInventoryIT', 'SecurityHardeningIT', 'AnonymousRateLimitsTest', 'RequestTraceFilterTest',
          'LogPrivacyTest', 'MongoTimeoutConfigurationTest', 'CorsIT', 'ClubCorsConfigurationSourceTest',
          'HealthIndependenceIT', 'ActivityIT', 'SignupSecurityFixesIT', 'WaitlistIT', 'IdentityCoreIT',
-         'MongoRequestTimeoutIT', 'DemoScenarioSeedIT', 'TrainingIT'}
+         'MongoRequestTimeoutIT', 'DemoScenarioSeedIT', 'TrainingIT', 'WaitlistRulesTest'}
 for directory in ('surefire-reports', 'failsafe-reports'):
     reports = sorted((ROOT / 'target' / directory).glob('TEST-*.xml'))
     assert reports, f'Missing {directory}'

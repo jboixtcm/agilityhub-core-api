@@ -1,0 +1,4 @@
+COMMAND cmp /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/e11-openapi-committed.json docs/openapi/openapi.json
+
+exit 0
+elapsed_seconds 0.011

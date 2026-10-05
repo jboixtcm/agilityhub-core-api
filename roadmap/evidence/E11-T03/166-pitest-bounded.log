@@ -1,0 +1,112 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Pmutation '-DtargetClasses=com.agilityhub.core.clubs.bookings.application.WaitlistService,com.agilityhub.core.clubs.bookings.domain.BookingLimits*,com.agilityhub.core.clubs.bookings.domain.WaitlistRules,com.agilityhub.core.identity.application.TokenService,com.agilityhub.core.identity.application.PasswordService,com.agilityhub.core.identity.application.MagicLinkService' -DtargetTests=com.agilityhub.core.clubs.bookings.api.WaitlistIT,com.agilityhub.core.clubs.bookings.domain.BookingRulesTest,com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest,com.agilityhub.core.identity.api.IdentityCoreIT -DmutationUnitSize=10 test-compile org.pitest:pitest-maven:mutationCoverage
+heavy.sh: 09:49 waiting for the host lock, held by: 09:48 agilityhub-core-web: pnpm e2e:docker E8-W02
+heavy.sh: 09:51 got the host lock after 1 min 30 s
+9:51:29 PIT >> INFO : Verbose logging is disabled. If you encounter a problem, please enable it before reporting an issue.
+9:51:29 PIT >> INFO : Created 44 mutation test units in pre scan
+9:51:30 PIT >> INFO : Sending 4 test classes to minion
+9:51:30 PIT >> INFO : Sent tests to minion
+9:51:37 PIT >> INFO : MINION : Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+9:51:37 PIT >> INFO : MINION : WARNING: A Java agent has been loaded dynamically (/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/e11-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+9:51:37 PIT >> INFO : MINION : WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+9:51:37 PIT >> INFO : MINION : WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+9:51:37 PIT >> INFO : MINION : WARNING: Dynamic loading of agents will be disallowed by default in a future release
+9:51:37 PIT >> INFO : MINION : OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|9:51:58 PIT >> INFO : Calculated coverage in 28 seconds.
+9:51:58 PIT >> INFO : 1 tests took longer than 2000 ms
+9:51:58 PIT >> INFO : Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.api.WaitlistIT]/[method:T_08_21_fifoOffersTheFirstEntryUntilConfirmByAndTheExpiryMovesToTheNext()]) took 2289 ms
+9:51:58 PIT >> INFO : Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.identity.api.IdentityCoreIT]/[method:R_01_05_T_01_09_aResetLinkSetsANewPasswordOnceWithoutCurrentAndALoginLinkDoesNot()]) covered 391 blocks
+9:51:58 PIT >> INFO : Incremental analysis reduced number of mutations by 81
+9:51:58 PIT >> INFO : Created 29 mutation test units
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\9:56:18 PIT >> INFO : Completed in 288 seconds
+================================================================================
+- Mutators
+================================================================================
+> org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator
+>> Generated 9 Killed 8 (89%)
+> KILLED 8 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator
+>> Generated 1 Killed 1 (100%)
+> KILLED 1 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator
+>> Generated 11 Killed 9 (82%)
+> KILLED 9 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 1 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator
+>> Generated 54 Killed 35 (65%)
+> KILLED 35 SURVIVED 18 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 1 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator
+>> Generated 20 Killed 13 (65%)
+> KILLED 13 SURVIVED 4 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 3 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator
+>> Generated 44 Killed 30 (68%)
+> KILLED 30 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 13 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.MathMutator
+>> Generated 8 Killed 7 (88%)
+> KILLED 7 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator
+>> Generated 17 Killed 15 (88%)
+> KILLED 15 SURVIVED 2 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator
+>> Generated 6 Killed 6 (100%)
+> KILLED 6 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator
+>> Generated 159 Killed 138 (87%)
+> KILLED 138 SURVIVED 12 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 9 
+--------------------------------------------------------------------------------
+================================================================================
+- Timings
+================================================================================
+> pre-scan for mutations : < 1 second
+> scan classpath : < 1 second
+> coverage and dependency analysis : 27 seconds
+> build mutation tests : < 1 second
+> run mutation analysis : 4 minutes and 20 seconds
+--------------------------------------------------------------------------------
+> Total  : 4 minutes and 48 seconds
+--------------------------------------------------------------------------------
+> 1 tests took longer than 2000 ms
+> Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.api.WaitlistIT]/[method:T_08_21_fifoOffersTheFirstEntryUntilConfirmByAndTheExpiryMovesToTheNext()]) took 2289 ms
+> Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.identity.api.IdentityCoreIT]/[method:R_01_05_T_01_09_aResetLinkSetsANewPasswordOnceWithoutCurrentAndALoginLinkDoesNot()]) covered 391 blocks
+================================================================================
+- Statistics
+================================================================================
+>> Line Coverage (for mutated classes only): 365/386 (95%)
+>> 4 tests examined
+>> Generated 329 mutations Killed 262 (80%)
+>> Mutations with no coverage 27. Test strength 87%
+>> Ran 521 tests (1.58 tests per mutation)
+Enhanced functionality available at https://www.arcmutate.com/
+
+Build messages:- 
+* Project uses Spring, but the Arcmutate Spring plugin is not present. (https://docs.arcmutate.com/docs/spring.html)
+
+exit 0
+elapsed_seconds 381.686

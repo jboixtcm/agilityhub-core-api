@@ -1,0 +1,35 @@
+COMMAND python3 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/mutation-summary.py --log 166-pitest-bounded.log --prefix pitest-bounded
+PASS assertion kill: waitlist hold capacity by T_08_22_R_08_15_
+PASS assertion kill: logout revocation event by T_01_10_revokeIsIdempotent
+PASS assertion kill: session-limit revocation event by T_01_06_maximumSessions
+PASS assertion kill: password exact minimum by T_01_09_E11_passwordMinimum
+PASS assertion kill: reset permission consumed with current password by T_01_09_E11_currentPassword
+PASS assertion kill: other sessions persist revocation by T_01_09_passwordChangePreserves
+PASS assertion kill: inactive membership cannot receive a magic link by T_01_08_E11_inactiveMembership
+PASS assertion kill: late cancellation window is not attendance by T_08_08_waitingListLimits
+{
+  "bookings": {
+    "total": 158,
+    "statuses": {
+      "KILLED": 128,
+      "SURVIVED": 16,
+      "NO_COVERAGE": 14
+    },
+    "pitDetectedPercent": 81.01,
+    "testKilledPercent": 81.01
+  },
+  "identity": {
+    "total": 171,
+    "statuses": {
+      "KILLED": 134,
+      "SURVIVED": 24,
+      "NO_COVERAGE": 13
+    },
+    "pitDetectedPercent": 78.36,
+    "testKilledPercent": 78.36
+  },
+  "wallSecondsIncludingLockWait": 381.686
+}
+
+exit 0
+elapsed_seconds 0.077

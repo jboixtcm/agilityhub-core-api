@@ -1,0 +1,29 @@
+{
+  "com.agilityhub.core.clubs.bookings.application.WaitlistService": {
+    "KILLED": 84,
+    "SURVIVED": 16,
+    "NO_COVERAGE": 14
+  },
+  "com.agilityhub.core.clubs.bookings.domain.BookingLimits": {
+    "KILLED": 14
+  },
+  "com.agilityhub.core.clubs.bookings.domain.BookingLimits$Result": {
+    "KILLED": 7
+  },
+  "com.agilityhub.core.clubs.bookings.domain.WaitlistRules": {
+    "KILLED": 23
+  },
+  "com.agilityhub.core.identity.application.MagicLinkService": {
+    "KILLED": 35,
+    "SURVIVED": 10,
+    "NO_COVERAGE": 2
+  },
+  "com.agilityhub.core.identity.application.PasswordService": {
+    "KILLED": 22
+  },
+  "com.agilityhub.core.identity.application.TokenService": {
+    "KILLED": 77,
+    "SURVIVED": 14,
+    "NO_COVERAGE": 11
+  }
+}

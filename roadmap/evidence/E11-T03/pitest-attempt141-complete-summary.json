@@ -1,0 +1,26 @@
+{
+  "source": "Inherited attempt 141; complete XML, runner exit not captured; not final verification",
+  "packages": {
+    "bookings": {
+      "total": 2049,
+      "statuses": {
+        "KILLED": 1518,
+        "SURVIVED": 272,
+        "NO_COVERAGE": 257,
+        "TIMED_OUT": 2
+      },
+      "testKilledPercent": 74.08
+    },
+    "identity": {
+      "total": 1311,
+      "statuses": {
+        "KILLED": 1011,
+        "SURVIVED": 114,
+        "NO_COVERAGE": 182,
+        "MEMORY_ERROR": 1,
+        "TIMED_OUT": 3
+      },
+      "testKilledPercent": 77.12
+    }
+  }
+}

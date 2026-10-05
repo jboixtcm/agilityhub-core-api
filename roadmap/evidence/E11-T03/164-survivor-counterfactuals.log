@@ -1,0 +1,138 @@
+COMMAND python3 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/identity-survivor-proof.py
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.117 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest
+[ERROR] com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest.T_08_08_waitingListLimitsPerClassPerDogWeekAttendedAndAcceptance -- Time elapsed: 0.095 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest.T_08_08_waitingListLimitsPerClassPerDogWeekAttendedAndAcceptance(WaitlistRulesTest.java:44)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+09:48:36.325 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:48:36.547 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+09:48:36.663 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+09:48:36.666 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+09:48:36.673 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+09:48:36.943 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+09:48:37.267 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+09:48:37.268 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+09:48:37.284 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+09:48:37.634 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+09:48:37.728 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+09:48:38.388 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: [hash truncated]
+09:48:38.574 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.939418S
+09:48:38.578 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+09:48:38.578 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+09:48:38.579 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+09:48:38.579 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+09:48:38.615 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: [hash truncated]
+09:48:39.028 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.449499S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-05T09:48:39.811+02:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Starting IdentityCoreIT using Java [redacted] with PID 74067 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-05T09:48:39.813+02:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-05T09:48:41.369+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-05T09:48:41.440+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 65 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/e11-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-05T09:48:43.067+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@bc21b3f], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@408880cc, com.mongodb.Jep395RecordCodecProvider@28c14224, com.mongodb.KotlinCodecProvider@754a9dfa]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:63896], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6e4a6b8f], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-05T09:48:43.080+02:00 INFO  [cluster-ClusterId{value='6ac3565ae310cdea114f39e6', description='null'}-localhost:63896] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:63896, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=22941666, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=517d60fd3550:27017, hosts=[517d60fd3550:27017], passives=[], arbiters=[], primary='517d60fd3550:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac35656d9bdfe4968c71347, counter=6}, lastWriteDate=Mon Oct 05 09:48:39 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-05T09:48:47.827+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-05T09:48:47.827+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-05T09:48:47.828+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-05T09:48:47.871+02:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 8.317 seconds (process running for 12.607)
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 13.34 s <<< FAILURE! -- in com.agilityhub.core.identity.api.IdentityCoreIT
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary -- Time elapsed: 0.464 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary(IdentityCoreIT.java:240)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_08_E11_inactiveMembershipNeverCreatesOrSendsAMagicLink -- Time elapsed: 0.395 s <<< FAILURE!
+java.lang.AssertionError: 
+[SUSPENDED] 
+Expecting empty but was: [MagicLinkToken[redacted]]
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_08_E11_inactiveMembershipNeverCreatesOrSendsAMagicLink(IdentityCoreIT.java:263)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_E11_currentPasswordAlsoConsumesTheResetSessionsPermission -- Time elapsed: 0.220 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the change itself consumes the reset permission] 
+expected: null
+ but was: 2026-01-01T00:15:00Z
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_E11_currentPasswordAlsoConsumesTheResetSessionsPermission(IdentityCoreIT.java:251)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26 -- Time elapsed: 0.290 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: REVOKED
+ but was: ACTIVE
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26(IdentityCoreIT.java:224)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   WaitlistRulesTest.T_08_08_waitingListLimitsPerClassPerDogWeekAttendedAndAcceptance:44 
+Expecting value to be false but was true
+[ERROR]   IdentityCoreIT.T_01_08_E11_inactiveMembershipNeverCreatesOrSendsAMagicLink:263 [SUSPENDED] 
+Expecting empty but was: [MagicLinkToken[redacted]]
+[ERROR]   IdentityCoreIT.T_01_09_E11_currentPasswordAlsoConsumesTheResetSessionsPermission:251 [the change itself consumes the reset permission] 
+expected: null
+ but was: 2026-01-01T00:15:00Z
+[ERROR]   IdentityCoreIT.T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary:240 Status expected:<200> but was:<400>
+[ERROR]   IdentityCoreIT.T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26:224 
+expected: REVOKED
+ but was: ACTIVE
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+Nested Maven exit: 1
+PASS expected assertion failure: T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary
+PASS expected assertion failure: T_01_09_E11_currentPasswordAlsoConsumesTheResetSessionsPermission
+PASS expected assertion failure: T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26
+PASS expected assertion failure: T_01_08_E11_inactiveMembershipNeverCreatesOrSendsAMagicLink
+PASS expected assertion failure: T_08_08_waitingListLimitsPerClassPerDogWeekAttendedAndAcceptance
+RESTORED all production sources byte-for-byte
+
+exit 0
+elapsed_seconds 28.724

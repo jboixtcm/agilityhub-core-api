@@ -38,6 +38,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     @Autowired MembershipService membershipService;
     @Autowired MagicLinkService magicLinks;
     @Autowired TokenService tokens;
+    @Autowired AuthSettings authSettings;
     @Autowired IdentityTransactions transactions;
     @Autowired EventPublisher events;
     @Autowired OutboxDispatcher dispatcher;
@@ -219,8 +220,50 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         verify(compromised).contains("Fictional new password");
         assertThat(events("PasswordChanged")).isNotEmpty();
         assertThat(((FakeEmailSender) emailSender).lastTo(account.email()).text()).doesNotContain("Fictional new password");
+        var otherSession = mongo.findOne(Query.query(Criteria.where("tokenHash").is(TokenService.digest(refreshValue(other)))), RefreshToken.class);
+        assertThat(otherSession.status()).isEqualTo(RefreshToken.Status.REVOKED);
+        assertThat(otherSession.revokedAt()).isEqualTo(clock.instant());
         refresh(refreshValue(other), HOST, "clubs-app").andExpect(status().isBadRequest());
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk());
+    }
+
+    @Test void T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary() throws Exception {
+        var first = login();
+        int minimum;
+        try (var scope = TenantContext.open("club-a")) { minimum = authSettings.integer("auth.passwordMinLength"); }
+        var request = put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json");
+        String shortPassword = "x".repeat(minimum - 2) + "🐕";
+        mvc.perform(request.content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", shortPassword, "repeat", shortPassword))))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("PASSWORD_TOO_SHORT"));
+        String exactPassword = "x" + shortPassword;
+        mvc.perform(request.content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", exactPassword, "repeat", exactPassword))))
+                .andExpect(status().isOk());
+        assertThat(passwords.verify(exactPassword, accounts.findById("account-a").orElseThrow().passwordHash())).isTrue();
+    }
+
+    @Test void T_01_09_E11_currentPasswordAlsoConsumesTheResetSessionsPermission() throws Exception {
+        createMagic(MagicLinkToken.Purpose.RESET);
+        var reset = readTokens(magic(linkToken(), "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse());
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(reset)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional reset password", "repeat", "Fictional reset password"))))
+                .andExpect(status().isOk());
+        var currentSession = mongo.findOne(Query.query(Criteria.where("tokenHash").is(TokenService.digest(refreshValue(reset)))), RefreshToken.class);
+        assertThat(currentSession.passwordResetUntil()).as("the change itself consumes the reset permission").isNull();
+        var renewed = readTokens(refresh(refreshValue(reset), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(renewed)).contentType("application/json")
+                .content("{\"new\":\"Fictional second password\",\"repeat\":\"Fictional second password\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+    }
+
+    @Test void T_01_08_E11_inactiveMembershipNeverCreatesOrSendsAMagicLink() {
+        for (String status : List.of("SUSPENDED", "ERASED")) {
+            mongo.updateFirst(Query.query(Criteria.where("clubId").is("club-a").and("accountId").is("account-a")),
+                    new Update().set("status", status), Membership.class);
+            createMagic(MagicLinkToken.Purpose.LOGIN);
+            assertThat(mongo.findAll(MagicLinkToken.class)).as(status).isEmpty();
+            assertThat(events("MagicLinkRequested")).as(status).isEmpty();
+            assertThat(((FakeEmailSender) emailSender).messages()).as(status).isEmpty();
+        }
     }
 
     @Test void T_01_09_optionalPasswordCurrentMismatchMinimumLengthEmailAndCompromisedPolicy() throws Exception {

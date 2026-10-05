@@ -1,0 +1,7 @@
+COMMAND .local/security-tools/gitleaks git --no-banner --redact --config .gitleaks.toml .
+9:45AM INF 431 commits scanned.
+9:45AM INF scanned ~308498463 bytes (308.50 MB) in 16.8s
+9:45AM INF no leaks found
+
+exit 0
+elapsed_seconds 17.069

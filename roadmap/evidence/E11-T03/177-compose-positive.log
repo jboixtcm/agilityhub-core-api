@@ -1,0 +1,88 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke --image-tag e11-security-oct05 --security-only
+heavy.sh: 10:08 waiting for the host lock, held by: 10:08 agilityhub-core-web: pnpm e2e:docker E8-W02
+heavy.sh: 10:12 got the host lock after 4 min 1 s
+PASS deployment forwards the bank encryption key to Core
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-48je2ze9/local.env -p e11-t04-d8b87b4a -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-48je2ze9/security.yaml up -d --wait --wait-timeout 420
+Volume e11-t04-d8b87b4a_mailbox Creating 
+ Network e11-t04-d8b87b4a_default Creating 
+ Volume e11-t04-d8b87b4a_attachments Creating 
+ Volume e11-t04-d8b87b4a_mongo-data Creating 
+ Volume e11-t04-d8b87b4a_caddy-config Creating 
+ Volume e11-t04-d8b87b4a_exports Creating 
+ Volume e11-t04-d8b87b4a_caddy-data Creating 
+ Volume e11-t04-d8b87b4a_mongo-data Creating 
+ Volume e11-t04-d8b87b4a_exports Creating 
+ Volume e11-t04-d8b87b4a_caddy-data Creating 
+ Volume e11-t04-d8b87b4a_caddy-config Creating 
+ Network e11-t04-d8b87b4a_default Creating 
+ Volume e11-t04-d8b87b4a_mailbox Creating 
+ Volume e11-t04-d8b87b4a_attachments Creating 
+ Volume e11-t04-d8b87b4a_caddy-data Created 
+ Volume e11-t04-d8b87b4a_caddy-data Created 
+ Volume e11-t04-d8b87b4a_caddy-config Created 
+ Volume e11-t04-d8b87b4a_caddy-config Created 
+ Volume e11-t04-d8b87b4a_mailbox Created 
+ Volume e11-t04-d8b87b4a_mailbox Created 
+ Volume e11-t04-d8b87b4a_mongo-data Created 
+ Volume e11-t04-d8b87b4a_mongo-data Created 
+ Volume e11-t04-d8b87b4a_exports Created 
+ Volume e11-t04-d8b87b4a_exports Created 
+ Volume e11-t04-d8b87b4a_attachments Created 
+ Volume e11-t04-d8b87b4a_attachments Created 
+ Network e11-t04-d8b87b4a_default Created 
+ Network e11-t04-d8b87b4a_default Created 
+ Container e11-t04-d8b87b4a-mongo-1 Creating 
+ Container e11-t04-d8b87b4a-mongo-1 Created 
+ Container e11-t04-d8b87b4a-seed-1 Creating 
+ Container e11-t04-d8b87b4a-seed-1 Created 
+ Container e11-t04-d8b87b4a-local-hosts-1 Creating 
+ Container e11-t04-d8b87b4a-local-hosts-1 Created 
+ Container e11-t04-d8b87b4a-core-1 Creating 
+ Container e11-t04-d8b87b4a-core-1 Created 
+ Container e11-t04-d8b87b4a-caddy-1 Creating 
+ Container e11-t04-d8b87b4a-caddy-1 Created 
+ Container e11-t04-d8b87b4a-mongo-1 Starting 
+ Container e11-t04-d8b87b4a-mongo-1 Started 
+ Container e11-t04-d8b87b4a-mongo-1 Waiting 
+ Container e11-t04-d8b87b4a-mongo-1 Healthy 
+ Container e11-t04-d8b87b4a-seed-1 Starting 
+ Container e11-t04-d8b87b4a-seed-1 Started 
+ Container e11-t04-d8b87b4a-seed-1 Waiting 
+ Container e11-t04-d8b87b4a-seed-1 Exited 
+ Container e11-t04-d8b87b4a-local-hosts-1 Starting 
+ Container e11-t04-d8b87b4a-local-hosts-1 Started 
+ Container e11-t04-d8b87b4a-mongo-1 Waiting 
+ Container e11-t04-d8b87b4a-local-hosts-1 Waiting 
+ Container e11-t04-d8b87b4a-local-hosts-1 Exited 
+ Container e11-t04-d8b87b4a-mongo-1 Healthy 
+ Container e11-t04-d8b87b4a-core-1 Starting 
+ Container e11-t04-d8b87b4a-core-1 Started 
+ Container e11-t04-d8b87b4a-core-1 Waiting 
+ Container e11-t04-d8b87b4a-core-1 Healthy 
+ Container e11-t04-d8b87b4a-caddy-1 Starting 
+ Container e11-t04-d8b87b4a-caddy-1 Started 
+ Container e11-t04-d8b87b4a-mongo-1 Waiting 
+ Container e11-t04-d8b87b4a-core-1 Waiting 
+ Container e11-t04-d8b87b4a-caddy-1 Waiting 
+ Container e11-t04-d8b87b4a-seed-1 Waiting 
+ Container e11-t04-d8b87b4a-local-hosts-1 Waiting 
+ Container e11-t04-d8b87b4a-local-hosts-1 Exited 
+ Container e11-t04-d8b87b4a-seed-1 Exited 
+ Container e11-t04-d8b87b4a-core-1 Healthy 
+ Container e11-t04-d8b87b4a-mongo-1 Healthy 
+ Container e11-t04-d8b87b4a-caddy-1 Healthy
+PASS authenticated production topology became healthy with local override
+RUNNER_CONTEXT DEPLOY_ENV_FILE=/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-48je2ze9/local.env DEPLOY_LOCAL=1 COMPOSE_PROJECT_NAME=e11-t04-d8b87b4a
+PASS Caddy HTTPS health UP (trusted internal CA, no -k)
+PASS branding resolves canic by each preserved front Host
+PASS all three mounted SPA index fixtures and deep-link fallback
+PASS JSON request log {"timestamp": "2026-10-05T08:13:17.455280305Z", "level": "WARN", "logger": "com.agilityhub.core.shared.api.ApiExceptionHandler", "message": "Framework request rejected code=VALIDATION_ERROR traceId=dd6afa17-7fc8-46f4-af6a-f9d824a6d26e", "traceId": "dd6afa17-7fc8-46f4-af6a-f9d824a6d26e", "clubId": "0340741b-33e1-4c73-a02f-c1bb312a6086", "accountId": "c50a39fb-dd4b-4690-84b7-1ee4f63774d9", "exception": ""}
+PASS proxy refresh rotates host-only ah_refresh; Secure HttpOnly SameSite=Strict Path=/oauth2/token
+PASS old refresh cookie rejected through Caddy
+PASS unapproved on-demand TLS host fails closed while E10 approval is unavailable
+PASS Mongo rejects unauthenticated reads; internal ask route is not public
+PASS HTTPS API/token/SPA headers and own/unknown origins through Caddy
+CLEANUP disposable project, volumes and private credentials removed
+
+exit 0
+elapsed_seconds 282.950

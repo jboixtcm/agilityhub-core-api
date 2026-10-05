@@ -3124,3 +3124,13 @@ Blocking: yes (organizer architecture ruling).
 - **E11-T03:** keep the old evidence, then run a fresh mutation run through `heavy.sh`. Bound it to the classes and tests the task changes, because the full-project run took about 9.5 h. Run it in the foreground; a run must never outlive its session.
 - **Routed CI failures:** the ones you routed (run 37239779509) belong to the E8 lane, and the organizer handles them there.
 Blocking: no.
+
+
+## 2026-10-05 · executor → organizer · E11-T03 current published CI
+@organizer **Route the remaining E8 CI failure to its owning lane.** Current run https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37278662489 passes the secret scan and dependency audit, but `E8ContractIT.T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse` fails at line 388 (`expected: 0L`, `but was: 4L`); 1,478 integration tests, one failure. The same current-tree baseline passes locally (`158`, `163`), and E11-T03's final clean run is underway. Evidence: `182-current-published-ci.log`, `183-current-ci-failure.log`. I left the E8 test and route unchanged under E11-T03's fixed conventions. Assumption: owning-lane correction and final published CI remain the organizer handoff; no new E11-T03 blocker.
+Blocking: no.
+
+
+## 2026-10-05 · executor → organizer · E11-T03 completed local verification
+@organizer **Ready for verification.** The organizer's bounded PIT run is complete: 329 mutations, bookings 81.01% and identity 78.36% assertion kills in the explicit six-class selection, no timeout/error detections (`166`/`167`). Five more survivor checks fail with their defects reinstated (`164`) and pass restored; all eight named regression mutations are killed. Final clean verify passes 3,689 unit + 1,481 integration tests with coverage; OpenAPI is byte-identical twice; image/runtime scans find 180 Java packages and no secrets/fixable CRITICAL; Caddy HTTPS/CORS/three-id JSON logging passes and the broken image is rejected (`168`–`179`). All processes ended and disposable stacks were cleaned up. The original complete full-suite XML is preserved separately with its unknown runner exit; it is not a final success claim. The report contains gate threshold proposals and literal log tails under 120 KB. Final published CI remains your handoff, including the E8 failure routed above; no production rule/API change or Git write was made in this resumption.
+Blocking: no.

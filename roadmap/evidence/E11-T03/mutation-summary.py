@@ -26,6 +26,7 @@ for package,values in results.items():
                             testKilledPercent=round(100*counts.get('KILLED',0)/len(values),2))
 parser = argparse.ArgumentParser()
 parser.add_argument('--log', required=True)
+parser.add_argument('--prefix', default='pitest')
 args = parser.parse_args()
 log=(EVIDENCE/args.log).read_text()
 assert re.search(r'^exit 0$', log, re.M), 'A complete successful PIT run is required'
@@ -34,6 +35,11 @@ regressions = [
     ('waitlist hold capacity', 'WaitlistService', 'Replaced long addition with subtraction', 'T_08_22_R_08_15_'),
     ('logout revocation event', 'TokenService', '::revoked', 'T_01_10_revokeIsIdempotent'),
     ('session-limit revocation event', 'TokenService', '::revoked', 'T_01_06_maximumSessions'),
+    ('password exact minimum', 'PasswordService', 'changed conditional boundary', 'T_01_09_E11_passwordMinimum'),
+    ('reset permission consumed with current password', 'PasswordService', '::clearPasswordReset', 'T_01_09_E11_currentPassword'),
+    ('other sessions persist revocation', 'PasswordService', '::revokeOthers', 'T_01_09_passwordChangePreserves'),
+    ('inactive membership cannot receive a magic link', 'MagicLinkService', 'replaced boolean return with true', 'T_01_08_E11_inactiveMembership'),
+    ('late cancellation window is not attendance', 'WaitlistRules', 'replaced boolean return with true', 'T_08_08_waitingListLimits'),
 ]
 for label, class_name, description, test in regressions:
     matches = [mutation for mutation in root
@@ -42,8 +48,10 @@ for label, class_name, description, test in regressions:
                and test in (mutation.findtext('killingTest') or '')]
     assert matches and all(mutation.get('status') == 'KILLED' for mutation in matches), label
     print('PASS assertion kill:', label, 'by', test)
-(EVIDENCE/'pitest-class-statuses.json').write_text(json.dumps({name: dict(counts) for name, counts in sorted(classes.items())},indent=2)+'\n')
-(EVIDENCE/'pitest-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
-(EVIDENCE/'pitest-survivors.json').write_text(json.dumps(survivors,indent=2)+'\n')
-(EVIDENCE/'pitest-mutations.xml.gz').write_bytes(gzip.compress(source.read_bytes(),mtime=0))
+for suffix, value in [('class-statuses', {name: dict(counts) for name, counts in sorted(classes.items())}),
+                      ('summary', summary), ('survivors', survivors)]:
+    with (EVIDENCE / f'{args.prefix}-{suffix}.json').open('x') as output:
+        output.write(json.dumps(value, indent=2) + '\n')
+with (EVIDENCE / f'{args.prefix}-mutations.xml.gz').open('xb') as output:
+    output.write(gzip.compress(source.read_bytes(), mtime=0))
 print(json.dumps(summary,indent=2))

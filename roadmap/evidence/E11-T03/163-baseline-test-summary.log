@@ -1,0 +1,23 @@
+COMMAND python3 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/test-summary.py
+com.agilityhub.core.clubs.bookings.domain.WaitlistRulesTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.LogPrivacyTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.MongoTimeoutConfigurationTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.platform.api.ClubCorsConfigurationSourceTest tests=3 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.AnonymousRateLimitsTest tests=19 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.RequestTraceFilterTest tests=1 failures=0 errors=0 skipped=0
+surefire-reports TOTAL tests=3689 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.activities.application.ActivityIT tests=33 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.bookings.api.WaitlistIT tests=18 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT tests=50 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.census.application.DemoScenarioSeedIT tests=6 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.training.api.TrainingIT tests=23 failures=0 errors=0 skipped=0
+com.agilityhub.core.configuration.SecurityInventoryIT tests=1 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.CorsIT tests=6 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.IdentityCoreIT tests=28 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.MongoRequestTimeoutIT tests=2 failures=0 errors=0 skipped=0
+com.agilityhub.core.identity.api.SecurityHardeningIT tests=5 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.api.HealthIndependenceIT tests=5 failures=0 errors=0 skipped=0
+failsafe-reports TOTAL tests=1478 failures=0 errors=0 skipped=0
+
+exit 0
+elapsed_seconds 0.181

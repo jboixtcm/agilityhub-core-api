@@ -1,0 +1,31 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh docker build -t ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05-broken --file /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/e11-broken.Dockerfile .
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from e11-broken.Dockerfile
+#1 transferring dockerfile: 135B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 218B done
+#3 DONE 0.0s
+
+#4 [1/1] FROM ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05@sha256:[hash truncated]
+#4 resolve ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05@sha256:[hash truncated] done
+#4 DONE 0.0s
+
+#5 exporting to image
+#5 exporting layers done
+#5 exporting manifest sha256:[hash truncated] done
+#5 exporting config sha256:[hash truncated] done
+#5 exporting attestation manifest sha256:[hash truncated] done
+#5 exporting manifest list sha256:[hash truncated] done
+#5 naming to ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05-broken done
+#5 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05-broken
+#5 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:e11-security-oct05-broken done
+#5 DONE 0.0s
+
+exit 0
+elapsed_seconds 0.491

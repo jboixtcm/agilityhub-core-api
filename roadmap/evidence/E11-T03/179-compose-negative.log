@@ -1,0 +1,76 @@
+COMMAND /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke --image-tag e11-security-oct05-broken --security-only
+PASS deployment forwards the bank encryption key to Core
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-2q2112ag/local.env -p e11-t04-b44e71bf -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml -f /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-2q2112ag/security.yaml up -d --wait --wait-timeout 420
+Volume e11-t04-b44e71bf_mailbox Creating 
+ Volume e11-t04-b44e71bf_caddy-data Creating 
+ Volume e11-t04-b44e71bf_mailbox Creating 
+ Volume e11-t04-b44e71bf_mongo-data Creating 
+ Volume e11-t04-b44e71bf_mongo-data Creating 
+ Volume e11-t04-b44e71bf_caddy-config Creating 
+ Volume e11-t04-b44e71bf_caddy-config Creating 
+ Volume e11-t04-b44e71bf_attachments Creating 
+ Volume e11-t04-b44e71bf_attachments Creating 
+ Volume e11-t04-b44e71bf_caddy-data Creating 
+ Network e11-t04-b44e71bf_default Creating 
+ Volume e11-t04-b44e71bf_exports Creating 
+ Volume e11-t04-b44e71bf_exports Creating 
+ Network e11-t04-b44e71bf_default Creating 
+ Volume e11-t04-b44e71bf_caddy-config Created 
+ Volume e11-t04-b44e71bf_caddy-config Created 
+ Volume e11-t04-b44e71bf_exports Created 
+ Volume e11-t04-b44e71bf_exports Created 
+ Volume e11-t04-b44e71bf_caddy-data Created 
+ Volume e11-t04-b44e71bf_caddy-data Created 
+ Volume e11-t04-b44e71bf_attachments Created 
+ Volume e11-t04-b44e71bf_attachments Created 
+ Volume e11-t04-b44e71bf_mailbox Created 
+ Volume e11-t04-b44e71bf_mailbox Created 
+ Volume e11-t04-b44e71bf_mongo-data Created 
+ Volume e11-t04-b44e71bf_mongo-data Created 
+ Network e11-t04-b44e71bf_default Created 
+ Network e11-t04-b44e71bf_default Created 
+ Container e11-t04-b44e71bf-mongo-1 Creating 
+ Container e11-t04-b44e71bf-mongo-1 Created 
+ Container e11-t04-b44e71bf-seed-1 Creating 
+ Container e11-t04-b44e71bf-seed-1 Created 
+ Container e11-t04-b44e71bf-local-hosts-1 Creating 
+ Container e11-t04-b44e71bf-local-hosts-1 Created 
+ Container e11-t04-b44e71bf-core-1 Creating 
+ Container e11-t04-b44e71bf-core-1 Created 
+ Container e11-t04-b44e71bf-caddy-1 Creating 
+ Container e11-t04-b44e71bf-caddy-1 Created 
+ Container e11-t04-b44e71bf-mongo-1 Starting 
+ Container e11-t04-b44e71bf-mongo-1 Started 
+ Container e11-t04-b44e71bf-mongo-1 Waiting 
+ Container e11-t04-b44e71bf-mongo-1 Healthy 
+ Container e11-t04-b44e71bf-seed-1 Starting 
+ Container e11-t04-b44e71bf-seed-1 Started 
+ Container e11-t04-b44e71bf-seed-1 Waiting 
+ Container e11-t04-b44e71bf-seed-1 Exited 
+ Container e11-t04-b44e71bf-local-hosts-1 Starting 
+ Container e11-t04-b44e71bf-local-hosts-1 Started 
+ Container e11-t04-b44e71bf-mongo-1 Waiting 
+ Container e11-t04-b44e71bf-local-hosts-1 Waiting 
+ Container e11-t04-b44e71bf-local-hosts-1 Exited 
+ Container e11-t04-b44e71bf-mongo-1 Healthy 
+ Container e11-t04-b44e71bf-core-1 Starting 
+ Container e11-t04-b44e71bf-core-1 Started 
+ Container e11-t04-b44e71bf-core-1 Waiting 
+ Container e11-t04-b44e71bf-core-1 Error dependency core failed to start
+dependency failed to start: container e11-t04-b44e71bf-core-1 is unhealthy
+seed: seed-1  | 16 changes (applied)
+seed: seed-1  | {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+seed: seed-1  | 452 changes (demo seed)
+seed: seed-1  | {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegi
+seed: seed-1  | 384 changes (demo planning, week start 2026-10-05)
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 309, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 132, in main
+    raise RuntimeError('Local stack failed readiness')
+RuntimeError: Local stack failed readiness
+
+exit 1
+elapsed_seconds 32.332

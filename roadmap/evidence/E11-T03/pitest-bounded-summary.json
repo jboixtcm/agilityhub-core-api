@@ -1,0 +1,23 @@
+{
+  "bookings": {
+    "total": 158,
+    "statuses": {
+      "KILLED": 128,
+      "SURVIVED": 16,
+      "NO_COVERAGE": 14
+    },
+    "pitDetectedPercent": 81.01,
+    "testKilledPercent": 81.01
+  },
+  "identity": {
+    "total": 171,
+    "statuses": {
+      "KILLED": 134,
+      "SURVIVED": 24,
+      "NO_COVERAGE": 13
+    },
+    "pitDetectedPercent": 78.36,
+    "testKilledPercent": 78.36
+  },
+  "wallSecondsIncludingLockWait": 381.686
+}

@@ -38,6 +38,11 @@ class WaitlistRulesTest {
         var future = limit(booking("fri", BookingState.ACTIVE, "2026-10-09T20:00"), booking("thu", BookingState.CANCELLED, "2026-10-08T18:50"));
         assertThat(WaitlistRules.attended(future)).isFalse();
         assertThat(WaitlistRules.join(join(0, 1, future))).isEmpty();
+        // E11-T03 survivor: a future booking in its late-cancellation window is not an attended class.
+        var upcoming = limit(booking("tue", BookingState.ACTIVE, "2026-10-06T12:00"));
+        assertThat(upcoming.notSelectable()).extracting(BookingLimits.Blocked::reason).containsExactly(BookingLimits.Reason.LATE_WINDOW);
+        assertThat(WaitlistRules.attended(upcoming)).isFalse();
+        assertThat(WaitlistRules.join(join(0, 1, upcoming))).isEmpty();
         // Acceptance: at the limit with a swappable booking the entry is taken; with none the dog could never take the seat.
         var swappable = limit(booking("mon", BookingState.ACTIVE, "2026-10-05T18:50"), booking("fri", BookingState.ACTIVE, "2026-10-09T20:00"));
         assertThat(swappable.reached()).isTrue(); assertThat(swappable.swappable()).hasSize(1);
