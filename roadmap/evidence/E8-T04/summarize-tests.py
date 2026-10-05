@@ -9,8 +9,9 @@ print(f"clean verify exit={verification_exit}")
 changed = {"CardPaymentsIT", "PaymentCurlIT", "StripePaymentProviderTest", "StripeCallsTest", "E8ContractIT",
            "E8ResponseContractTest", "SignupGateFixesIT", "DashboardBuildersTest", "NotificationEngineIT",
            "S04ErrorContractTest", "NotificationMatrixTest", "NotificationCatalogContractTest", "CheckoutProviderFailureTest", "E3ContractIT",
-           "TemplateVariableParityIT", "OpenApiSnapshotTest"}
-required = {"ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "SignupCensusCorrectionsIT"}
+           "TemplateVariableParityIT", "OpenApiSnapshotTest", "E4PersistenceIT"}
+required = {"ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "SignupCensusCorrectionsIT",
+            "DemoSeedActorTest", "DemoScenarioSeedIT", "ListFieldsContractIT", "SecurityHeadersIT", "E4ContractIT"}
 found = set()
 failed = verification_exit != 0
 for lane in ("surefire", "failsafe"):

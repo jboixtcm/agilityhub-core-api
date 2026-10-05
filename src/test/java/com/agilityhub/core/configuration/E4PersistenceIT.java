@@ -72,7 +72,7 @@ class E4PersistenceIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(A)) {
             templates.insert(entity(WeekTemplate.class, "template-one", A, Map.of("kind", "WEEKDAYS", "name", "Example")));
             assertThatThrownBy(() -> templates.insert(entity(WeekTemplate.class, "template-two", A, Map.of("kind", "WEEKDAYS", "name", "EXAMPLE")))).isInstanceOf(DuplicateKeyException.class);
-            templates.insert(entity(WeekTemplate.class, "template-saturday", A, Map.of("kind", "SATURDAY", "name", "EXAMPLE")));
+            templates.insert(entity(WeekTemplate.class, "e4-persistence-template-saturday", A, Map.of("kind", "SATURDAY", "name", "EXAMPLE")));
             weeks.insert(entity(Week.class, "week-one", A, Map.of("startDate", "2026-09-14")));
             assertThatThrownBy(() -> weeks.insert(entity(Week.class, "week-two", A, Map.of("startDate", "2026-09-14")))).isInstanceOf(DuplicateKeyException.class);
             activities.insert(entity(Activity.class, "activity-one", A, Map.of("slug", "example-event")));

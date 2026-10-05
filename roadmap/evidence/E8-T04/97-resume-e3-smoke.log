@@ -1,0 +1,6 @@
+heavy.sh: 12:10 waiting for the host lock, held by: 12:10 agilityhub-core-api-c: bin/deploy-smoke --image-tag main --skip-helper-builds --evidence-prefix roadmap/evidence/E11-T04/71-child
+heavy.sh: 12:11 got the host lock after 1 min 0 s
+Starting disposable development build Compose stack
+Building the current working tree image
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: docker build failed (exit 1; exception classes: none; private output withheld)

@@ -1,10 +1,12 @@
 package com.agilityhub.core.support;
 
+import com.agilityhub.core.shared.application.DemoSeedActor;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -45,6 +47,12 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private MongoTemplate sharedDatabase;
 
+    @Autowired
+    private DemoSeedActor.ProfileGuard demoProfileGuard;
+
+    @Autowired
+    private Environment environment;
+
     @DynamicPropertySource
     static void mongoProperties(DynamicPropertyRegistry registry) {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
@@ -55,6 +63,12 @@ public abstract class AbstractIntegrationTest {
     @BeforeEach
     void resetClock() {
         clock.setInstant(IntegrationTestConfiguration.INITIAL_INSTANT);
+    }
+
+    /** Cached test contexts share the static seed guard; bind the actual profile of the context being exercised. */
+    @BeforeEach
+    void restoreDemoProfileGuard() {
+        demoProfileGuard.setEnvironment(environment);
     }
 
     /**

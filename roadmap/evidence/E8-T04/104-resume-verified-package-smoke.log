@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T04/smoke-verified-package.py", line 17, in <module>
+    assert entry in entries and archive.read(entry) == path.read_bytes(), f'Packaged class/resource differs: {entry}'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Packaged class/resource differs: BOOT-INF/classes/META-INF/build-info.properties

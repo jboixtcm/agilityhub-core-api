@@ -1,0 +1,11 @@
+PASS verified JAR matches all 2884 compiled classes/resources (excluding refreshed build.time only)
+Verified JAR sha256=ec2ebbe0...[truncated]
+ERROR: failed to build: failed to update builder last activity time: open /Users/jordib/.docker/buildx/activity/.tmp-desktop-linux3590100709: operation not permitted
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T04/smoke-verified-package.py", line 39, in <module>
+    subprocess.run(['docker', 'build', '--tag', image, str(context)], check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['docker', 'build', '--tag', 'agilityhub-e8-t04-verified:local', '/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/agilityhub-e8-t04-image-2bg8nv18']' returned non-zero exit status 1.

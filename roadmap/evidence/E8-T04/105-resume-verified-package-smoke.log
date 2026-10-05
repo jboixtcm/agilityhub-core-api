@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T04/smoke-verified-package.py", line 20, in <module>
+    assert stable(archive.read(entry)) == stable(path.read_bytes()), 'Packaged build identity differs'
+                  ~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/zipfile/__init__.py", line 1690, in read
+    with self.open(name, "r", pwd) as fp:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/zipfile/__init__.py", line 1727, in open
+    zinfo = self.getinfo(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/zipfile/__init__.py", line 1655, in getinfo
+    raise KeyError(
+        'There is no item named %r in the archive' % name)
+KeyError: "There is no item named 'BOOT-INF/classes/META-INF/build-info.properties' in the archive"

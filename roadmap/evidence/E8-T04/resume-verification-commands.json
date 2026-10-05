@@ -1,0 +1,46 @@
+[
+  {
+    "log": "roadmap/evidence/E8-T04/92-resume-fixture-regressions.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/92-resume-fixture-regressions.log ./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -Dit.test=E4ContractIT,E4PersistenceIT,ListFieldsContractIT,SecurityHeadersIT,DemoScenarioSeedIT -DskipTests=false -Dfailsafe.runOrder=random -Dfailsafe.runOrder.random.seed=20261005"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/93-resume-clean-random-one.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/93-resume-clean-random-one.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify -Dsurefire.runOrder=random -Dfailsafe.runOrder=random -Dsurefire.runOrder.random.seed=2026100501 -Dfailsafe.runOrder.random.seed=2026100501"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/94-resume-test-summary-one.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/94-resume-test-summary-one.log python3 roadmap/evidence/E8-T04/summarize-tests.py roadmap/evidence/E8-T04/93-resume-clean-random-one.log.exit"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/95-resume-clean-random-two.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/95-resume-clean-random-two.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify -Dsurefire.runOrder=random -Dfailsafe.runOrder=random -Dsurefire.runOrder.random.seed=2026100502 -Dfailsafe.runOrder.random.seed=2026100502"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/96-resume-test-summary-two.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/96-resume-test-summary-two.log python3 roadmap/evidence/E8-T04/summarize-tests.py roadmap/evidence/E8-T04/95-resume-clean-random-two.log.exit"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/98-resume-openapi.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/98-resume-openapi.log python3 roadmap/evidence/E8-T04/verify-resume-openapi.py"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/99-resume-secret-scan.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/99-resume-secret-scan.log python3 roadmap/evidence/E8-T04/check-stripe-secrets.py"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/100-resume-payment-proofs.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/100-resume-payment-proofs.log python3 roadmap/evidence/E8-T04/extract-resume-proofs.py roadmap/evidence/E8-T04/95-resume-clean-random-two.log"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/101-resume-diff-check.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/101-resume-diff-check.log git diff --check"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/107-resume-verified-package-smoke.log",
+    "command": "HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/107-resume-verified-package-smoke.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh python3 roadmap/evidence/E8-T04/smoke-verified-package.py"
+  },
+  {
+    "log": "roadmap/evidence/E8-T04/108-resume-final-secret-scan.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/108-resume-final-secret-scan.log python3 roadmap/evidence/E8-T04/check-stripe-secrets.py"
+  }
+]

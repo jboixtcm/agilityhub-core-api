@@ -1,0 +1,86 @@
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.73kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 DONE 10.8s
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 11.1s
+
+#4 [internal] load .dockerignore
+#4 DONE 0.0s
+
+#5 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abc...[truncated]
+#5 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abc...[truncated] 0.0s done
+#5 DONE 0.0s
+
+#6 [stage-1  1/12] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e62...[truncated]
+#6 resolve docker.io/library/eclipse-temurin:21-jre@sha256:cff19e62...[truncated] 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 11.97MB 0.2s done
+#7 DONE 0.2s
+
+#8 [build 3/8] WORKDIR /workspace
+#8 CACHED
+
+#9 [build 4/8] COPY .mvn/ .mvn/
+#9 CACHED
+
+#10 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [build 5/8] COPY mvnw pom.xml ./
+#11 CACHED
+
+#12 [build 6/8] COPY src/ src/
+#12 DONE 0.1s
+
+#13 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#13 DONE 0.0s
+
+#14 [build 8/8] RUN ./mvnw -B -q -DskipTests package
+#14 831.2 [ERROR] Failed to execute goal on project agilityhub-core-api: Could not resolve dependencies for project com.agilityhub:agilityhub-core-api:jar:0.1.0-SNAPSHOT
+#14 831.2 [ERROR] dependency: software.amazon.awssdk:s3:jar:2.54.14 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact software.amazon.awssdk:s3:jar:2.54.14 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 4,367,099; received: 4,053,824)
+#14 831.2 [ERROR] dependency: org.apache.poi:poi-ooxml:jar:5.5.1 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.poi:poi-ooxml:jar:5.5.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 2,052,603; received: 1,132,352)
+#14 831.2 [ERROR] dependency: org.apache.poi:poi:jar:5.5.1 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.poi:poi:jar:5.5.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 3,006,527; received: 573,440)
+#14 831.2 [ERROR] dependency: commons-codec:commons-codec:jar:1.18.0 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact commons-codec:commons-codec:jar:1.18.0 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 373,045; received: 80,507)
+#14 831.2 [ERROR] dependency: org.apache.commons:commons-math3:jar:3.6.1 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.commons:commons-math3:jar:3.6.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 2,213,560; received: 142,409)
+#14 831.2 [ERROR] dependency: org.apache.poi:poi-ooxml-lite:jar:5.5.1 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.poi:poi-ooxml-lite:jar:5.5.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 5,995,475; received: 3,059,768)
+#14 831.2 [ERROR] dependency: org.bouncycastle:bcprov-jdk18on:jar:1.85.2 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.bouncycastle:bcprov-jdk18on:jar:1.85.2 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 10,280,518; received: 2,272,640)
+#14 831.2 [ERROR] dependency: org.apache.tomcat.embed:tomcat-embed-core:jar:10.1.60 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.tomcat.embed:tomcat-embed-core:jar:10.1.60 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 3,720,122; received: 228,827)
+#14 831.2 [ERROR] dependency: org.apache.tomcat.embed:tomcat-embed-websocket:jar:10.1.60 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.apache.tomcat.embed:tomcat-embed-websocket:jar:10.1.60 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 289,806; received: 253,486)
+#14 831.2 [ERROR] dependency: org.springframework:spring-web:jar:6.2.19 (compile)
+#14 831.2 [ERROR] 	Could not transfer artifact org.springframework:spring-web:jar:6.2.19 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 2,096,068; received: 97,384)
+#14 831.2 [ERROR] -> [Help 1]
+#14 831.2 [ERROR]
+#14 831.2 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+#14 831.2 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+#14 831.2 [ERROR]
+#14 831.2 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+#14 831.2 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+#14 ERROR: process "/bin/sh -c ./mvnw -B -q -DskipTests package" did not complete successfully: exit code: 1
+------
+ > [build 8/8] RUN ./mvnw -B -q -DskipTests package:
+831.2 [ERROR] 	Could not transfer artifact org.apache.tomcat.embed:tomcat-embed-websocket:jar:10.1.60 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 289,806; received: 253,486)
+831.2 [ERROR] dependency: org.springframework:spring-web:jar:6.2.19 (compile)
+831.2 [ERROR] 	Could not transfer artifact org.springframework:spring-web:jar:6.2.19 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 2,096,068; received: 97,384)
+831.2 [ERROR] -> [Help 1]
+831.2 [ERROR]
+831.2 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+831.2 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+831.2 [ERROR]
+831.2 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+831.2 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+------
