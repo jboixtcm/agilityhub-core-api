@@ -1,0 +1,5 @@
+COMMAND /bin/kill -TERM 57369
+kill: 57369: Operation not permitted
+
+exit 1
+elapsed_seconds 0.007

@@ -1,0 +1,49 @@
+COMMAND python3 roadmap/evidence/E11-T03/blocked-ci-proof.py
+https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37239779509
+workflow completed failure
+Dependency vulnerability audit completed success
+Build and tests completed failure
+Secret scan completed success
+Scan image (${{ matrix.arch }}) completed skipped
+Publish API image completed skipped
+[ERROR] Tests run: 2681, Failures: 32, Errors: 0, Skipped: 0, Time elapsed: 5.067 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationMatrixTest
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.032 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.706 s <<< FAILURE! -- in com.agilityhub.core.configuration.S04ErrorContractTest
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=ON contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=ON contact=ABSENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+[ERROR]   NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs:286 [N-35 event types] 
+[ERROR]   S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow:87 [POST /members/{id}/rejection throws PAYMENT_PROVIDER_NOT_ENABLED (via com.agilityhub.core.payments.application.PaymentProviderRegistry$1.error()) but does not document it
+[ERROR] Tests run: 3685, Failures: 34, Errors: 0, Skipped: 0
+
+exit 1
+elapsed_seconds 2.633

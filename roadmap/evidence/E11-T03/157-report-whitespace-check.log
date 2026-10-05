@@ -1,0 +1,162 @@
+COMMAND git diff --check
+roadmap/tasks/E11-T03.md:580: trailing whitespace.
++ Container e11-t04-9818d63e-seed-1 Started 
+roadmap/tasks/E11-T03.md:581: trailing whitespace.
++ Container e11-t04-9818d63e-seed-1 Waiting 
+roadmap/tasks/E11-T03.md:582: trailing whitespace.
++ Container e11-t04-9818d63e-seed-1 Exited 
+roadmap/tasks/E11-T03.md:583: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Starting 
+roadmap/tasks/E11-T03.md:584: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Started 
+roadmap/tasks/E11-T03.md:585: trailing whitespace.
++ Container e11-t04-9818d63e-mongo-1 Waiting 
+roadmap/tasks/E11-T03.md:586: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Waiting 
+roadmap/tasks/E11-T03.md:587: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Exited 
+roadmap/tasks/E11-T03.md:588: trailing whitespace.
++ Container e11-t04-9818d63e-mongo-1 Healthy 
+roadmap/tasks/E11-T03.md:589: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Starting 
+roadmap/tasks/E11-T03.md:590: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Started 
+roadmap/tasks/E11-T03.md:591: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Waiting 
+roadmap/tasks/E11-T03.md:592: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Healthy 
+roadmap/tasks/E11-T03.md:593: trailing whitespace.
++ Container e11-t04-9818d63e-caddy-1 Starting 
+roadmap/tasks/E11-T03.md:594: trailing whitespace.
++ Container e11-t04-9818d63e-caddy-1 Started 
+roadmap/tasks/E11-T03.md:595: trailing whitespace.
++ Container e11-t04-9818d63e-seed-1 Waiting 
+roadmap/tasks/E11-T03.md:596: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Waiting 
+roadmap/tasks/E11-T03.md:597: trailing whitespace.
++ Container e11-t04-9818d63e-mongo-1 Waiting 
+roadmap/tasks/E11-T03.md:598: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Waiting 
+roadmap/tasks/E11-T03.md:599: trailing whitespace.
++ Container e11-t04-9818d63e-caddy-1 Waiting 
+roadmap/tasks/E11-T03.md:600: trailing whitespace.
++ Container e11-t04-9818d63e-local-hosts-1 Exited 
+roadmap/tasks/E11-T03.md:601: trailing whitespace.
++ Container e11-t04-9818d63e-mongo-1 Healthy 
+roadmap/tasks/E11-T03.md:602: trailing whitespace.
++ Container e11-t04-9818d63e-seed-1 Exited 
+roadmap/tasks/E11-T03.md:603: trailing whitespace.
++ Container e11-t04-9818d63e-core-1 Healthy 
+roadmap/tasks/E11-T03.md:631: trailing whitespace.
++ Container e11-t04-ab2c6d53-local-hosts-1 Created 
+roadmap/tasks/E11-T03.md:632: trailing whitespace.
++ Container e11-t04-ab2c6d53-core-1 Creating 
+roadmap/tasks/E11-T03.md:633: trailing whitespace.
++ Container e11-t04-ab2c6d53-core-1 Created 
+roadmap/tasks/E11-T03.md:634: trailing whitespace.
++ Container e11-t04-ab2c6d53-caddy-1 Creating 
+roadmap/tasks/E11-T03.md:635: trailing whitespace.
++ Container e11-t04-ab2c6d53-caddy-1 Created 
+roadmap/tasks/E11-T03.md:636: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Starting 
+roadmap/tasks/E11-T03.md:637: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Started 
+roadmap/tasks/E11-T03.md:638: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Waiting 
+roadmap/tasks/E11-T03.md:639: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Healthy 
+roadmap/tasks/E11-T03.md:640: trailing whitespace.
++ Container e11-t04-ab2c6d53-seed-1 Starting 
+roadmap/tasks/E11-T03.md:641: trailing whitespace.
++ Container e11-t04-ab2c6d53-seed-1 Started 
+roadmap/tasks/E11-T03.md:642: trailing whitespace.
++ Container e11-t04-ab2c6d53-seed-1 Waiting 
+roadmap/tasks/E11-T03.md:643: trailing whitespace.
++ Container e11-t04-ab2c6d53-seed-1 Exited 
+roadmap/tasks/E11-T03.md:644: trailing whitespace.
++ Container e11-t04-ab2c6d53-local-hosts-1 Starting 
+roadmap/tasks/E11-T03.md:645: trailing whitespace.
++ Container e11-t04-ab2c6d53-local-hosts-1 Started 
+roadmap/tasks/E11-T03.md:646: trailing whitespace.
++ Container e11-t04-ab2c6d53-local-hosts-1 Waiting 
+roadmap/tasks/E11-T03.md:647: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Waiting 
+roadmap/tasks/E11-T03.md:648: trailing whitespace.
++ Container e11-t04-ab2c6d53-mongo-1 Healthy 
+roadmap/tasks/E11-T03.md:649: trailing whitespace.
++ Container e11-t04-ab2c6d53-local-hosts-1 Exited 
+roadmap/tasks/E11-T03.md:650: trailing whitespace.
++ Container e11-t04-ab2c6d53-core-1 Starting 
+roadmap/tasks/E11-T03.md:651: trailing whitespace.
++ Container e11-t04-ab2c6d53-core-1 Started 
+roadmap/tasks/E11-T03.md:652: trailing whitespace.
++ Container e11-t04-ab2c6d53-core-1 Waiting 
+roadmap/tasks/E11-T03.md:779: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:780: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:781: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:782: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:783: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:784: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:785: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:786: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=true pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:787: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:788: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:789: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:790: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:791: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:792: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:793: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:794: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER APP email=false pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:795: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:796: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:797: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:798: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:799: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:800: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:801: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:802: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=true pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:803: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:804: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:805: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:806: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=true modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:807: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=ON contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:808: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=ON contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:809: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=CHANNELS_OFF contact=PRESENT: one notification] 
+roadmap/tasks/E11-T03.md:810: trailing whitespace.
++[ERROR]   NotificationMatrixTest.T_11_02_everyR1CodeTimesAudienceChannelPreferenceModuleAndContactThroughTheEngine:141 [N-30 MEMBER EMAIL email=false pushNews=false modules=CHANNELS_OFF contact=ABSENT: one notification] 
+roadmap/tasks/E11-T03.md:811: trailing whitespace.
++[ERROR]   NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs:286 [N-35 event types] 
+
+exit 2
+elapsed_seconds 0.039

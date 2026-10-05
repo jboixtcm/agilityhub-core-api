@@ -1,0 +1,39 @@
+COMMAND python3 roadmap/evidence/E11-T03/blocked-runtime-diagnostics.py
+Observed at 2026-10-05T05:28:29.279332+00:00
+Host lock what: 22:04 agilityhub-core-api-c: ./mvnw -q -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage
+Host lock pid: 57363
+READ: lsof -p 57363 -a -d cwd,1,2 -F pcfin
+p57363
+cbash
+fcwd
+i47405452
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c
+f1
+i49445917
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/141-pitest-resumed.log
+f2
+i49445917
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/141-pitest-resumed.log
+READ: lsof -p 57369 -a -d cwd,1,2 -F pcfin
+p57369
+cjava
+fcwd
+i47405452
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c
+f1
+i49445917
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/141-pitest-resumed.log
+f2
+i49445917
+n/Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T03/141-pitest-resumed.log
+Checkout log inode: 49501226
+Checkout log bytes: 4484
+Checkout log has recorded exit: False
+Mutation XML complete: False
+Complete records in incomplete output: 3274
+Partial statuses: {'KILLED': 2474, 'SURVIVED': 378, 'NO_COVERAGE': 416, 'TIMED_OUT': 5, 'MEMORY_ERROR': 1}
+No package score inferred from an incomplete run.
+No process signalled, lock removed, container stopped or build output changed by this diagnostic.
+
+exit 0
+elapsed_seconds 0.185

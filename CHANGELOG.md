@@ -71,6 +71,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   inventory; Tomcat 10.1.60 and Netty 4.1.137.Final address the image scan blockers. Mutation history stays in an ignored local cache.
   The secret scanner accepts only the exact fictional XML filename in the export-store fixture; regression checks still
   reject credentials beside that filename and changed values. Resumed verification retains separate logs for every attempt.
+  Verification resumption on 05-10 is blocked by an inherited PIT process that the sandbox cannot terminate; the task
+  retains its incomplete-run diagnostics and current CI failures for recovery without treating prior results as final.
   E8 joins the security/mutation gate at E11-T06.
 
 - E8-T01 (S12 WP-12-A, S13 WP-13-A): the billing, payments, packs, inactivity and leave contract.
