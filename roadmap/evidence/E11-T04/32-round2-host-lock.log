@@ -1,0 +1,6 @@
+UTC: 2026-10-05T05:32:38.686835+00:00
+/tmp/agilityhub-heavy.lock/pid: bytes=6, modifiedUTC=2026-10-04T20:04:49.806753+00:00
+57363
+/tmp/agilityhub-heavy.lock/what: bytes=104, modifiedUTC=2026-10-04T20:04:49.810146+00:00
+22:04 agilityhub-core-api-c: ./mvnw -q -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage
+target/pit-reports/mutations.xml: bytes=2859008, modifiedUTC=2026-10-05T05:31:00.611430+00:00
