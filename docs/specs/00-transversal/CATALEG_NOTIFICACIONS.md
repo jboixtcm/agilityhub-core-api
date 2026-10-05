@@ -53,7 +53,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-32c | Activitat cancel·lada pel club | `ActivityCancelled` | CLUB_CHANGES | inscrits → APP+EMAIL+SMS | activity_title, date, admin_text | — | S06 |
 | N-33 | Ja pots reservar la setmana vinent | `WeekOpened` (si `messaging.notifyWeekOpening`) | OPERATIONAL | MEMBER → APP+PUSH | week_start | OPEN_BOOKING | S15 |
 | N-34 | Sol·licituds d'alta pendents des de fa dies | `SignupPendingAging` (diari) | OPERATIONAL | ADMINS → APP | count, oldest_days | OPEN_SIGNUP | S15 |
-| N-35 | Cobrament fallit (targeta) | `InvoiceFailed{STRIPE}` | PERSONAL | MEMBER → APP+EMAIL | amount, reason, retry_link | OPEN_INVOICES | S12 |
+| N-35 | Cobrament fallit (targeta) | `InvoiceFailed{STRIPE}` · `MemberCardInvalidated` (R-12-22, `retry_link = /me/card-setup`) | PERSONAL | MEMBER → APP+EMAIL | amount, reason, retry_link | OPEN_INVOICES | S12 |
 | N-36 | Reserva feta/anul·lada pel club en nom teu | `BookingCreated/Cancelled{origin=BACKOFFICE}` | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, class_date, class_time, actor: «el club», change | OPEN_BOOKING | S08 |
 | N-37 | Nou gos afegit / gos donat de baixa | `DogRegistered` · `DogDeactivated` | PERSONAL | MEMBER → APP | dog_name | OPEN_DOG | S03 |
 | N-38 | Canvi de mètode de pagament / IBAN | `MemberPaymentMethodChanged` | PERSONAL | MEMBER → EMAIL | masked_account | — | S12 |

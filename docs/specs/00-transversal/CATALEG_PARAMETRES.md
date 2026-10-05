@@ -173,7 +173,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `files.maxAttachmentsPerEntity` | int | 10 | sistema | S10 |
 | `messaging.sms.transliterateToGsm7` | bool | true | Comunicacions | S11 |
 | `messaging.push.ttlMinutes` | int | 1440 | sistema | S11 |
-| `billing.invoiceSeriesPattern` · `billing.invoiceResetYearly` | string · bool | `{YYYY}` · true | Quotes i remesa | S12 |
+| `billing.invoiceSeriesPattern` · `billing.invoiceResetYearly` | string · bool | `{YYYY}` · true | Quotes i remesa | S12 (la sèrie només admet el joc de caràcters SEPA `a-zA-Z0-9/-?:().,'+` i espai, i el `displayNumber` expandit ha de cabre en 35 caràcters: és l'`EndToEndId` del pain.008 — organitzador 05-10, E90) |
 | `billing.cashInvoicing` | enum `MONTHLY · SEMESTER` | **SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets). `MONTHLY` és igualment de producte: la clau **s'edita des de D11** i les dues branques estan provades (Jordi 09-09, A29); en canviar-la, repassa `signup.text.cashConditions` | Quotes i remesa | S12 |
 | `billing.taxIncluded` | bool | true | Quotes i remesa | S12 |
 | `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (dia **del mes que es factura**: 1–28, o `0` = últim dia) | false (Josep 08-09: el banc accepta `RCUR` per a tot) · `pain.008.001.02` · **1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay` | Quotes i remesa | S12 |
