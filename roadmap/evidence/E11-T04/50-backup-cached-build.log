@@ -1,0 +1,11 @@
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+Sending build context to Docker daemon  76.85kB
+Step 1/2 : FROM agilityhub-backup:e11-t04
+ ---> 5de6c2dab86a
+Step 2/2 : COPY backup.py /opt/backup/backup.py
+ ---> cf0177c64212
+Successfully built cf0177c64212
+Successfully tagged agilityhub-backup:2

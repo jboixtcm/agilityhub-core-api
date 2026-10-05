@@ -1,0 +1,9 @@
+{
+  "Rules": [{
+    "ID": "expire-mongo-backups", "Status": "Enabled",
+    "Filter": {"Prefix": "mongo/"},
+    "Expiration": {"Days": 30},
+    "NoncurrentVersionExpiration": {"NoncurrentDays": 30},
+    "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 1}
+  }]
+}

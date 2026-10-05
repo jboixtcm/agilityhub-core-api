@@ -1,21 +1,30 @@
-"""Encrypted full-replica backup and isolated restore verification; no live restore mode."""
+"""Streaming, public-key-only backup and isolated verification of a replica dump."""
 import datetime as dt
+import gzip
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import signal
+import struct
 import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
 import time
 import uuid
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
+from bson import BSON, Timestamp
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
+
+GIB = 1024 ** 3
+TRANSFER = TransferConfig(multipart_chunksize=8 * 1024 ** 2, max_concurrency=1, use_threads=False)
 
 
 class Failure(Exception):
@@ -25,120 +34,229 @@ class Failure(Exception):
 def run(command, **kwargs):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=900, **kwargs)
     if result.returncode:
-        # Database tools may put document values and credential-bearing URIs in errors.
         raise Failure(f'{command[0]} failed (exit {result.returncode}); private tool output suppressed')
     return result.stdout
 
 
-def configuration():
-    for key in ('BACKUP_ENCRYPTION_KEY', 'BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY',
-                'BACKUP_S3_SECRET_KEY', 'MONGO_BACKUP_USERNAME', 'MONGO_BACKUP_PASSWORD'):
+def configuration(mode):
+    required = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY']
+    required += (['BACKUP_AGE_RECIPIENT', 'MONGO_BACKUP_USERNAME', 'MONGO_BACKUP_PASSWORD']
+                 if mode == 'backup' else ['BACKUP_AGE_IDENTITY'])
+    for key in required:
         if not os.environ.get(key):
             raise Failure(f'Missing {key}')
     prefix = os.environ.get('BACKUP_S3_PREFIX', 'mongo/')
     if not re.fullmatch(r'[A-Za-z0-9_/-]+/', prefix) or '..' in prefix or prefix.startswith('/'):
         raise Failure('Invalid BACKUP_S3_PREFIX')
-    retention = int(os.environ.get('BACKUP_RETENTION_DAYS', '30'))
-    if not 1 <= retention <= 36500:
-        raise Failure('Invalid BACKUP_RETENTION_DAYS')
-    # Validate the identity before opening Mongo, S3 or writing any file.
-    identity = os.environ['BACKUP_ENCRYPTION_KEY'].encode() + b'\n'
-    recipient = run(['age-keygen', '-y'], input=identity).decode().strip()
+    recipient = os.environ.get('BACKUP_AGE_RECIPIENT', '')
+    identity = (os.environ.get('BACKUP_AGE_IDENTITY', '') + '\n').encode()
+    if mode == 'backup':
+        # Validate even the checksum, without writing any file or contacting Mongo/S3.
+        run(['age', '-r', recipient], input=b'')
+    else:
+        run(['age-keygen', '-y'], input=identity)
     s3 = boto3.client('s3', endpoint_url=os.environ.get('BACKUP_S3_ENDPOINT') or None,
                       region_name=os.environ.get('BACKUP_S3_REGION', 'eu-west-3'),
                       aws_access_key_id=os.environ['BACKUP_S3_ACCESS_KEY'],
                       aws_secret_access_key=os.environ['BACKUP_S3_SECRET_KEY'],
                       config=Config(signature_version='s3v4', s3={'addressing_style': 'path'},
                                     connect_timeout=10, read_timeout=60, retries={'max_attempts': 3}))
-    return s3, os.environ['BACKUP_S3_BUCKET'], prefix, retention, identity, recipient
+    return s3, os.environ['BACKUP_S3_BUCKET'], prefix, recipient, identity
 
 
-def counts(client):
-    result = {}
+def inventory(client):
+    result = []
     for database in sorted(client.list_database_names()):
-        # local is replica machinery; config is transient sessions/transactions.
-        # mongodump's restorable user data includes admin users/roles/version.
         if database in ('local', 'config'):
             continue
         for collection in client[database].list_collections():
             name = collection['name']
             if collection['type'] != 'collection' or name == 'system.profile':
                 continue
-            # Internal cluster-time keys are not readable by Mongo's backup role
-            # or included by mongodump; the replacement replica generates them.
             if database == 'admin' and name == 'system.keys':
                 continue
-            try:
-                result[f'{database}.{name}'] = client[database][name].count_documents({})
-            except OperationFailure as error:
-                raise Failure(f'Count failed for {database}.{name}; MongoDB code={error.code}') from None
+            # listCollections is not a snapshot read. Retain UUID/options metadata
+            # so a concurrent DDL change invalidates this attempt, never a false proof.
+            result.append((database, name, collection))
+    return sorted(result, key=lambda row: row[:2])
+
+
+def counts(client, catalog=None, timestamp=None):
+    result = {}
+    for database, name, _ in catalog if catalog is not None else inventory(client):
+        if timestamp is None:
+            result[f'{database}.{name}'] = client[database][name].count_documents({})
+        else:
+            response = client[database].command({
+                'aggregate': name, 'pipeline': [{'$count': 'n'}], 'cursor': {},
+                'readConcern': {'level': 'snapshot', 'atClusterTime': timestamp}, 'maxTimeMS': 60000})
+            rows = response['cursor']['firstBatch']
+            result[f'{database}.{name}'] = rows[0]['n'] if rows else 0
     return dict(sorted(result.items()))
+
+
+def check_space(work, estimate):
+    if estimate < GIB or shutil.disk_usage(work).free < estimate:
+        raise Failure('Insufficient private work disk space for the estimated backup/restore')
+
+
+def estimate_space(client):
+    total = 0
+    for database in client.list_database_names():
+        if database not in ('local', 'config'):
+            stats = client[database].command('dbStats')
+            total += stats['dataSize'] + stats['indexSize']
+    # Up to two ciphertext copies for backup; restore has archive plus a database.
+    # Reserve growth/compression uncertainty and Mongo journal/preallocation space.
+    return max(GIB, int(total * 4 + GIB))
+
+
+def copy_archive(source, target):
+    """Observe archive 0.1 framing while forwarding bytes, buffering at most one BSON.
+
+    Mongo tools' common/archive format: magic, prelude block, namespace blocks.
+    Only namespace headers and captured oplog documents are decoded. No user data
+    is logged or retained. The inclusive captured oplog ends at dump.oplogEnd.
+    """
+    def read(size, eof=False):
+        value = source.read(size)
+        if eof and not value:
+            return value
+        if len(value) != size:
+            raise Failure('Truncated mongodump archive')
+        target.write(value)
+        return value
+
+    if read(4) != struct.pack('<I', 0x8199e26d):
+        raise Failure('Unsupported mongodump archive')
+    prelude = True
+    last = None
+    namespaces = set()
+    while True:
+        raw = read(4, eof=True)
+        if not raw:
+            break
+        size = struct.unpack('<i', raw)[0]
+        if not 5 <= size <= 16 * 1024 ** 2 + 16384:
+            raise Failure('Invalid archive header size')
+        header = BSON(raw + read(size - 4)).decode()
+        if prelude and header.get('version') != '0.1':
+            raise Failure('Unsupported archive version')
+        oplog = not prelude and header.get('db') == '' and header.get('collection') == 'oplog'
+        while True:
+            raw = read(4)
+            size = struct.unpack('<i', raw)[0]
+            if size == -1:
+                break
+            if not 5 <= size <= 16 * 1024 ** 2 + 16384:
+                raise Failure('Invalid archive document size')
+            doc = raw + read(size - 4)
+            if prelude:
+                meta = BSON(doc).decode()
+                if meta.get('db') not in ('', 'local', 'config') and meta.get('type') != 'view':
+                    namespaces.add(meta['db'] + '.' + meta['collection'])
+            if oplog:
+                stamp = BSON(doc).decode().get('ts')
+                if not isinstance(stamp, Timestamp) or (last is not None and stamp < last):
+                    raise Failure('Invalid captured oplog timestamp')
+                last = stamp
+        prelude = False
+    if last is None:
+        # The pinned tool includes the start entry even on an idle replica (gte/lte).
+        raise Failure('Missing captured oplog end timestamp')
+    return last, namespaces
+
+
+def stream_dump(work, recipient):
+    credentials = work / 'dump-config.json'
+    credentials.write_text(json.dumps({'password': os.environ['MONGO_BACKUP_PASSWORD']}))
+    encrypted = work / 'dump.archive.gz.age'
+    dump = subprocess.Popen(['mongodump', '--host=mongo:27017',
+                             '--username=' + os.environ['MONGO_BACKUP_USERNAME'],
+                             '--authenticationDatabase=admin', '--config=' + str(credentials),
+                             '--oplog', '--archive'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    encrypt = None
+    timer = None
+    try:
+        encrypt = subprocess.Popen(['age', '-r', recipient, '-o', str(encrypted)],
+                                   stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        def expire():
+            for process in (dump, encrypt):
+                if process.poll() is None:
+                    process.kill()
+        timer = threading.Timer(900, expire)
+        timer.start()
+        with gzip.GzipFile(fileobj=encrypt.stdin, mode='wb', mtime=0) as compressed:
+            stamp, namespaces = copy_archive(dump.stdout, compressed)
+        encrypt.stdin.close()
+        dump.stdout.close()
+        if dump.wait(timeout=20) or encrypt.wait(timeout=20):
+            raise Failure('Dump/encryption pipeline failed; nothing uploaded')
+        return stamp, namespaces
+    finally:
+        if timer:
+            timer.cancel()
+        for process in (dump, encrypt):
+            if process is not None:
+                if process.poll() is None:
+                    process.kill()
+                process.wait()
+                for pipe in (process.stdin, process.stdout):
+                    if pipe and not pipe.closed:
+                        pipe.close()
+        credentials.unlink(missing_ok=True)
 
 
 def objects(s3, bucket, prefix):
     found = []
     for page in s3.get_paginator('list_objects_v2').paginate(Bucket=bucket, Prefix=prefix):
         for item in page.get('Contents', []):
+            if not item['Key'].startswith(prefix):
+                continue
             suffix = item['Key'][len(prefix):]
-            if re.fullmatch(r'\d{8}T\d{6}Z-[a-f0-9]{32}\.tar\.age', suffix):
+            if re.fullmatch(r'\d{8}T\d{6}Z-[a-f0-9]{32}\.tar', suffix):
                 found.append(item)
     return found
 
 
-def prune(s3, bucket, prefix, retention, current):
-    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=retention)
-    expired = [item['Key'] for item in objects(s3, bucket, prefix)
-               if item['Key'] != current and item['LastModified'] < cutoff]
-    for old in expired:
-        s3.delete_object(Bucket=bucket, Key=old)
-    return len(expired)
-
-
-def backup(s3, bucket, prefix, retention, identity, recipient, work):
-    # Check destination access before locking Mongo or producing a dump.
+def backup(s3, bucket, prefix, recipient, identity, work):
     s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
     source = MongoClient('mongodb://mongo:27017/?replicaSet=rs0&directConnection=true',
                          username=os.environ['MONGO_BACKUP_USERNAME'],
                          password=os.environ['MONGO_BACKUP_PASSWORD'], authSource='admin',
-                         serverSelectionTimeoutMS=10000, socketTimeoutMS=60000)
-    source.admin.command('ping')
-    credentials = work / 'dump-config.json'
-    credentials.write_text(json.dumps({'password': os.environ['MONGO_BACKUP_PASSWORD']}))
-    dump = work / 'dump.archive.gz'
-    locked = False
+                         serverSelectionTimeoutMS=10000, socketTimeoutMS=65000)
     try:
-        # Count and dump the same snapshot. Never compare a later, changing live DB.
-        source.admin.command({'fsync': 1, 'lock': True})
-        locked = True
-        manifest = {'format': 1, 'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(),
-                    'counts': counts(source), 'excludedDatabases': ['config', 'local']}
-        run(['mongodump', '--host=mongo:27017', '--username=' + os.environ['MONGO_BACKUP_USERNAME'],
-             '--authenticationDatabase=admin', '--config=' + str(credentials), '--oplog',
-             '--gzip', '--archive=' + str(dump)])
-        if manifest['counts'] != counts(source):
-            raise Failure('Source changed while locked; refusing backup')
+        source.admin.command('ping')
+        estimate = estimate_space(source)
+        check_space(work, estimate)
+        before = inventory(source)
+        stamp, namespaces = stream_dump(work, recipient)
+        if namespaces != {db + '.' + name for db, name, _ in before}:
+            raise Failure('Dump collection set differs from source catalog')
+        manifest = {'format': 2, 'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(),
+                    'atClusterTime': [stamp.time, stamp.inc], 'workBytes': estimate,
+                    'counts': counts(source, before, stamp)}
+        if before != inventory(source):
+            raise Failure('Source catalog changed during backup; retry without DDL')
     finally:
-        if locked:
-            source.admin.command({'fsyncUnlock': 1})
         source.close()
-    credentials.unlink()
-    (work / 'manifest.json').write_text(json.dumps(manifest, sort_keys=True))
+    run(['age', '-r', recipient, '-o', str(work / 'manifest.json.age')],
+        input=json.dumps(manifest, sort_keys=True).encode())
     archive = work / 'backup.tar'
     with tarfile.open(archive, 'w') as bundle:
-        for filename in ('manifest.json', 'dump.archive.gz'):
-            bundle.add(work / filename, arcname=filename)
-    encrypted = work / 'backup.tar.age'
-    run(['age', '-r', recipient, '-o', str(encrypted), str(archive)])
-    key = prefix + dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex + '.tar.age'
-    s3.upload_file(str(encrypted), bucket, key, ExtraArgs={'ContentType': 'application/octet-stream'})
-    if s3.head_object(Bucket=bucket, Key=key)['ContentLength'] != encrypted.stat().st_size:
-        raise Failure('Uploaded size mismatch; retention not run')
-    # Delete only our named objects, only after a successful upload, never an unrelated prefix.
-    deleted = prune(s3, bucket, prefix, retention, key)
-    print(f'BACKUP_OK key={key} collections={len(manifest["counts"])} retentionDeleted={deleted}')
+        for name in ('manifest.json.age', 'dump.archive.gz.age'):
+            bundle.add(work / name, arcname=name)
+    for name in ('manifest.json.age', 'dump.archive.gz.age'):
+        (work / name).unlink()
+    key = prefix + dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex + '.tar'
+    # The cron principal has only PutObject and ListBucket, no read or deletion.
+    s3.upload_file(str(archive), bucket, key, ExtraArgs={
+        'ContentType': 'application/x-tar', 'Metadata': {'work-bytes': str(estimate)}}, Config=TRANSFER)
+    print(f'BACKUP_OK key={key} collections={len(manifest["counts"])} snapshot={stamp.time}:{stamp.inc} retention=S3-lifecycle')
+    return key
 
 
-def restore(s3, bucket, prefix, retention, identity, recipient, work, named):
+def restore(s3, bucket, prefix, recipient, identity, work, named):
     available = objects(s3, bucket, prefix)
     if named:
         if named not in {item['Key'] for item in available}:
@@ -148,30 +266,35 @@ def restore(s3, bucket, prefix, retention, identity, recipient, work, named):
         key = max(available, key=lambda item: (item['LastModified'], item['Key']))['Key']
     else:
         raise Failure('No backup found under the configured prefix')
-    encrypted = work / 'backup.tar.age'
-    s3.download_file(bucket, key, str(encrypted))
-    keyfile = work / 'identity'
-    keyfile.write_bytes(identity)
+    info = s3.head_object(Bucket=bucket, Key=key)
+    estimate = int(info.get('Metadata', {}).get('work-bytes', '0'))
+    check_space(work, max(estimate, info['ContentLength'] * 3))
     archive = work / 'backup.tar'
-    # Authenticate the entire archive before extracting it or starting Mongo.
-    run(['age', '-d', '-i', str(keyfile), '-o', str(archive), str(encrypted)])
+    s3.download_file(bucket, key, str(archive), Config=TRANSFER)
     with tarfile.open(archive, 'r:') as bundle:
         members = bundle.getmembers()
-        if sorted(m.name for m in members) != ['dump.archive.gz', 'manifest.json'] or not all(m.isfile() for m in members):
+        if sorted(m.name for m in members) != ['dump.archive.gz.age', 'manifest.json.age'] or not all(m.isfile() for m in members):
             raise Failure('Unexpected archive contents')
         for member in members:
             with bundle.extractfile(member) as source, (work / member.name).open('wb') as target:
-                import shutil
-                shutil.copyfileobj(source, target)
-    manifest = json.loads((work / 'manifest.json').read_text())
-    if manifest.get('format') != 1 or not isinstance(manifest.get('counts'), dict):
+                shutil.copyfileobj(source, target, 1024 * 1024)
+    archive.unlink()
+    keyfile = work / 'identity'
+    keyfile.write_bytes(identity)
+    manifest = json.loads(run(['age', '-d', '-i', str(keyfile), str(work / 'manifest.json.age')]))
+    if manifest.get('format') != 2 or not isinstance(manifest.get('counts'), dict):
         raise Failure('Unsupported manifest')
+    check_space(work, manifest['workBytes'])
+    # Authenticate all ciphertext before starting the isolated database.
+    run(['age', '-d', '-i', str(keyfile), '-o', str(work / 'dump.archive.gz'), str(work / 'dump.archive.gz.age')])
+    for name in ('identity', 'manifest.json.age', 'dump.archive.gz.age'):
+        (work / name).unlink()
     data = work / 'mongo'
     data.mkdir()
     with (work / 'mongo.log').open('wb') as logfile:
-        # A fresh standalone in this disposable container, no port published and TTL disabled.
         mongo = subprocess.Popen(['mongod', '--dbpath', str(data), '--port', '27018', '--bind_ip', '127.0.0.1',
-                                  '--setParameter', 'ttlMonitorEnabled=false'], stdout=logfile, stderr=logfile)
+                                  '--wiredTigerCacheSizeGB', '0.25', '--setParameter', 'ttlMonitorEnabled=false'],
+                                 stdout=logfile, stderr=logfile)
         client = MongoClient('mongodb://127.0.0.1:27018/?directConnection=true', serverSelectionTimeoutMS=1000)
         try:
             for attempt in range(60):
@@ -188,11 +311,10 @@ def restore(s3, bucket, prefix, retention, identity, recipient, work, named):
                  '--gzip', '--oplogReplay', '--stopOnError'])
             restored = counts(client)
             for name in sorted(set(manifest['counts']) | set(restored)):
-                expected, actual = manifest['counts'].get(name), restored.get(name)
-                print(f'COUNT {name} source={expected} restored={actual}')
+                print(f'COUNT {name} source={manifest["counts"].get(name)} restored={restored.get(name)}')
             if restored != manifest['counts']:
                 raise Failure('Collection count mismatch')
-            print(f'RESTORE_OK key={key} collections={len(restored)} sourceSnapshot={manifest["createdAt"]}')
+            print(f'RESTORE_OK key={key} collections={len(restored)} atClusterTime={manifest["atClusterTime"]}')
         finally:
             client.close()
             mongo.terminate()
@@ -209,7 +331,7 @@ def main():
     options = sys.argv[1:]
     if options != ['backup'] and not (len(options) in (2, 3) and options[:2] == ['restore', '--verify']):
         raise Failure('Use backup or restore --verify [object-key]')
-    config = configuration()
+    config = configuration(options[0])
     with tempfile.TemporaryDirectory(prefix='mongo-', dir='/work') as directory:
         if options[0] == 'backup':
             backup(*config, Path(directory))
@@ -227,6 +349,5 @@ if __name__ == '__main__':
         print(f'FAILED: MongoDB code={error.code}; private details suppressed', file=sys.stderr)
         sys.exit(1)
     except Exception as error:
-        # SDK exceptions can contain URIs, keys or document contents. Never log their values.
         print(f'FAILED: {type(error).__name__}; provider/database details suppressed', file=sys.stderr)
         sys.exit(1)

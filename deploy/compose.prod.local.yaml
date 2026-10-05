@@ -2,7 +2,7 @@
 services:
   core:
     environment: &local-environment
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATA_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
       AUTH_ISSUER: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}
       OIDC_LOGIN_URL: https://id.localhost:${LOCAL_HTTPS_PORT:-8443}/login
@@ -14,23 +14,17 @@ services:
       OIDC_CLUBS_ADMIN_LOGOUT_URI: https://clubsadmin.localhost:${LOCAL_HTTPS_PORT:-8443}/
       # Like the consumer stack, only ID is global; the two other local hosts belong to the demo club.
       CORS_PLATFORM_HOSTS: id.localhost
-      SENDGRID_API_KEY: ""
-      SENDGRID_WEBHOOK_PUBLIC_KEY: ""
-      TWILIO_ACCOUNT_SID: ""
-      TWILIO_AUTH_TOKEN: ""
-      TWILIO_MESSAGING_SERVICE_SID: ""
       SMS_ALLOWED_NUMBERS: ""
-      VAPID_PUBLIC_KEY: ""
-      VAPID_PRIVATE_KEY: ""
-      VAPID_SUBJECT: ""
-      MAIL_LOCAL_DIRECTORY: /app/mailbox
-      EXPORT_LOCAL_DIRECTORY: /app/exports
-      ATTACHMENT_LOCAL_DIRECTORY: /app/attachments
+      BILLING_SECRETS_KEY: ${BILLING_SECRETS_KEY}
+      EXPORT_S3_BUCKET: fictional-exports
+      EXPORT_S3_ENDPOINT: http://minio:9000
+      EXPORT_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY}
+      EXPORT_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY}
+      ATTACHMENT_S3_BUCKET: fictional-attachments
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+      ATTACHMENT_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY}
+      ATTACHMENT_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY}
       SHARED_SCHEDULING_ENABLED: "false"
-    volumes:
-      - mailbox:/app/mailbox
-      - exports:/app/exports
-      - attachments:/app/attachments
     depends_on:
       local-hosts:
         condition: service_completed_successfully
@@ -38,6 +32,9 @@ services:
     image: ghcr.io/jboixtcm/agilityhub-core-api:${IMAGE_TAG}
     environment:
       <<: *local-environment
+      SPRING_PROFILES_ACTIVE: local
+      EXPORT_LOCAL_DIRECTORY: /app/exports
+      ATTACHMENT_LOCAL_DIRECTORY: /app/attachments
       SEED_PASSWORD: ${SEED_PASSWORD:?Set a fictional local SEED_PASSWORD}
       OIDC_MASTER_KEY: ${OIDC_MASTER_KEY}
       SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY}
@@ -61,7 +58,8 @@ services:
   local-hosts:
     # The real domain admission policy reserves localhost. Only this disposable
     # local fixture maps the seeded tenant before Core starts; no release hook.
-    image: mongo:7.0
+    image: mongo:7.0.41@sha256:8102f674c3d5b5c3b5a248397778b8d148a998c6409f390ff62628eb617f0847
+    pull_policy: never
     environment:
       LOCAL_MONGODB_URI: ${LOCAL_MONGODB_URI}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-agilityhub}
@@ -73,9 +71,13 @@ services:
       seed:
         condition: service_completed_successfully
   caddy:
+    depends_on:
+      ask-stub:
+        condition: service_started
     environment:
       ACME_EMAIL: operator@example.test
       CADDY_LOCAL_OPTIONS: local_certs
+      CADDY_ASK_UPSTREAM: ask-stub:8080
       ID_HOST: id.localhost
       CLUBS_HOST: clubs.localhost
       ADMIN_HOST: clubsadmin.localhost
@@ -88,6 +90,12 @@ services:
       - ./local/id:/srv/id:ro
       - ./local/clubs:/srv/clubs:ro
       - ./local/clubsadmin:/srv/clubsadmin:ro
+  ask-stub:
+    image: python:3.12-slim
+    command: [python, -B, /ask.py]
+    volumes:
+      - ./local/ask.py:/ask.py:ro
+    restart: "no"
   minio:
     image: agilityhub-minio:2025-10-15-local
     build:
@@ -108,7 +116,9 @@ services:
     environment:
       BACKUP_S3_ENDPOINT: http://minio:9000
 volumes:
-  mailbox:
   exports:
   attachments:
   minio-data:
+networks:
+  default:
+    internal: true

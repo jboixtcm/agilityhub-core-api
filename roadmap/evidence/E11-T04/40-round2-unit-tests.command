@@ -1,0 +1,1 @@
+docker run --rm --network none --entrypoint /opt/backup/bin/python -v /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/backup:/tests:ro -w /tests agilityhub-backup:e11-t04 -B -m unittest -v test_backup

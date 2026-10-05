@@ -1,0 +1,35 @@
+heavy.sh: 10:47 waiting for the host lock, held by: 10:45 agilityhub-core-api: ./mvnw -q clean verify -Dsurefire.runOrder=random -Dfailsafe.runOrder=random
+heavy.sh: 10:56 got the host lock after 9 min 31 s
+PASS prod Core, local seed, both billing keys, private network with no provider egress
+IMAGE revision=unlabelled id=sha256:56046740bf74[truncated]
+COMMAND docker compose --env-file /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-t04-z8wuz2yc/local.env -p e11-t04-017f0ab5 -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.yaml -f /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/compose.prod.local.yaml build backup minio
+BUILD_EXIT 1
+ Image agilityhub-minio:2025-10-15-local Building 
+ Image agilityhub-backup:2 Building 
+Dockerfile.minio:8
+
+--------------------
+
+   6 |     RUN CGO_ENABLED=0 go build -buildvcs=false -o /out/minio .
+
+   7 |     
+
+   8 | >>> FROM debian:bookworm-slim
+
+   9 |     RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+
+  10 |         && rm -rf /var/lib/apt/lists/*
+
+--------------------
+
+target minio: failed to solve: debian:bookworm-slim: failed to resolve source metadata for docker.io/library/debian:bookworm-slim: failed to do request: Head "https://registry-1.docker.io/v2/library/debian/manifests/bookworm-slim": dialing registry-1.docker.io:443 container via direct connection because Docker Desktop has no HTTPS proxy: connecting to registry-1.docker.io:443: dial tcp: lookup registry-1.docker.io: no such host
+
+
+CLEANUP disposable project, volumes and private credentials removed
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 362, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/local-proof.py", line 151, in main
+    raise RuntimeError('Backup image build failed')
+RuntimeError: Backup image build failed

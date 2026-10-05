@@ -29,9 +29,11 @@
     import api_proxy
     handle {
         root * {args[0]}
-        try_files {path} /index.html
-        header /index.html Cache-Control "no-cache"
-        file_server
+        route {
+            try_files {path} /index.html
+            header /index.html Cache-Control "no-cache"
+            file_server
+        }
     }
 }
 
@@ -55,7 +57,7 @@ http://127.0.0.1:9080 {
     @ask path /ask
     handle @ask {
         rewrite * /internal/domains/allowed?host={query.domain}
-        reverse_proxy core:8080
+        reverse_proxy {$CADDY_ASK_UPSTREAM}
     }
     respond 404
 }
@@ -69,14 +71,18 @@ https:// {
     @club_admin host {$CLUB_ADMIN_HOSTS}
     handle @club_admin {
         root * /srv/clubsadmin
-        try_files {path} /index.html
-        header /index.html Cache-Control "no-cache"
-        file_server
+        route {
+            try_files {path} /index.html
+            header /index.html Cache-Control "no-cache"
+            file_server
+        }
     }
     handle {
         root * /srv/clubs
-        try_files {path} /index.html
-        header /index.html Cache-Control "no-cache"
-        file_server
+        route {
+            try_files {path} /index.html
+            header /index.html Cache-Control "no-cache"
+            file_server
+        }
     }
 }

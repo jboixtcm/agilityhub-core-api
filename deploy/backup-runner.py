@@ -28,17 +28,21 @@ def main():
     if config.returncode:
         raise ValueError('Compose configuration failed; check DEPLOY_ENV_FILE and required variables')
     environment = json.loads(config.stdout)['services']['backup']['environment']
-    for key in ('BACKUP_ENCRYPTION_KEY', 'BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY'):
+    required = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ACCESS_KEY', 'BACKUP_S3_SECRET_KEY']
+    if arguments[0] == 'backup':
+        required.append('BACKUP_AGE_RECIPIENT')
+    elif not os.environ.get('BACKUP_AGE_IDENTITY'):
+        raise ValueError('BACKUP_AGE_IDENTITY is required for verification only')
+    for key in required:
         if not environment.get(key):
             raise ValueError(f'{key} is required; no container, dump or S3 object was created')
-    if not environment['BACKUP_ENCRYPTION_KEY'].startswith('AGE-SECRET-KEY-1'):
-        raise ValueError('BACKUP_ENCRYPTION_KEY must be an age identity')
+    if arguments[0] == 'backup' and not environment['BACKUP_AGE_RECIPIENT'].startswith('age1'):
+        raise ValueError('BACKUP_AGE_RECIPIENT must be a public age recipient')
     if not environment.get('BACKUP_S3_PREFIX', '').endswith('/') or environment['BACKUP_S3_PREFIX'] == '/':
         raise ValueError('BACKUP_S3_PREFIX must be nonempty and end with /')
-    if not 1 <= int(environment['BACKUP_RETENTION_DAYS']) <= 36500:
-        raise ValueError('BACKUP_RETENTION_DAYS must be 1..36500')
     # No --build or --pull: image preparation belongs to deployment, not cron.
-    return subprocess.call(command + ['run', '--rm', '--no-deps', '-T', 'backup'] + arguments)
+    extra = ['-e', 'BACKUP_AGE_IDENTITY'] if arguments[0] == 'restore' else []
+    return subprocess.call(command + ['run', '--rm', '--no-deps', '-T', *extra, 'backup'] + arguments)
 
 
 if __name__ == '__main__':

@@ -146,8 +146,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Club-domain on-demand TLS fails closed pending E10-T02's approval endpoint; real deployment remains E12-T01.
   The resumed local proof also checks that the deployment forwards E8's `BILLING_BANK_KEY` to Core;
   the production example and local seed now supply it.
-  Round 2 remains pending: the inherited mutation run still holds the shared host lock, and this sandbox
-  cannot inspect it. The task records the host-access blocker; no round-two deployment change is claimed.
+  Round 2 streams the dump into age and compares snapshot counts at the captured oplog's final timestamp,
+  with no write lock. The backup account has only Mongo's backup role; cron uses a public recipient and
+  Put/List credentials, while S3 lifecycle applies retention and a separate identity is used for restore.
+  Disk work is private and disposable, with memory/free-space guards. The local proof boots Core in prod,
+  checks both billing keys, index caching and positive/negative TLS approval; the runbook adds cron failure
+  alerts and separate encrypted escrow for the ADR-003 assets outside the Mongo archive.
 - E6-T06 (ruling E75, S10 §6 and CONVENCIONS_API §4 amended 30-09): the D14 and D12 contract gaps of the web's E6-W03.
   - `GET /followup/filter-values` (INSTRUCTOR, ADMIN; `TASKS`): D14's filter values for `kind`, `memberId`, `dogId`,
     `authorAccountId` («Creador») and `unread`, each counted over the whole filtered set; `unread` is the caller's own.

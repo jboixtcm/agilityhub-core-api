@@ -1,0 +1,82 @@
+prefix guard removed -> exit 1
+test_E11_T04_prefix_filters_outside_keys_among_valid_pages (test_backup.BackupSafetyTest) ... FAIL
+
+======================================================================
+FAIL: test_E11_T04_prefix_filters_outside_keys_among_valid_pages (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 63, in test_E11_T04_prefix_filters_outside_keys_among_valid_pages
+    self.assertEqual(['mongo/' + key], [r['Key'] for r in backup.objects(s3, 'fictional', 'mongo/')])
+AssertionError: Lists differ: ['mon[52 chars].tar'] != ['mon[52 chars].tar', 'other/20000101T000000Z-aaaaaaaaaaaaaaa[18 chars]tar']
+
+Second list contains 1 additional elements.
+First extra element 1:
+'other/20000101T000000Z-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.tar'
+
+- ['mongo/20000101T000000Z-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.tar']
+?                                                               ^
+
++ ['mongo/20000101T000000Z-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.tar',
+?                                                               ^
+
++  'other/20000101T000000Z-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.tar']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.059s
+
+FAILED (failures=1)
+
+snapshot replaced with live reads -> exit 1
+test_E11_T04_snapshot_counts_all_collections_at_one_timestamp (test_backup.BackupSafetyTest) ... FAIL
+
+======================================================================
+FAIL: test_E11_T04_snapshot_counts_all_collections_at_one_timestamp (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 23, in test_E11_T04_snapshot_counts_all_collections_at_one_timestamp
+    self.assertEqual({'fictional.rows': 7, 'fictional.empty': 0}, backup.counts(
+AssertionError: {'fictional.rows': 7, 'fictional.empty': 0} != {'fictional.empty': <MagicMock name='mock.__getitem__[163 chars]76'>}
+- {'fictional.empty': 0, 'fictional.rows': 7}
++ {'fictional.empty': <MagicMock name='mock.__getitem__().__getitem__().count_documents()' id='281473371871776'>,
++  'fictional.rows': <MagicMock name='mock.__getitem__().__getitem__().count_documents()' id='281473371871776'>}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+free space guard removed -> exit 1
+test_E11_T04_low_space_refused (test_backup.BackupSafetyTest) ... FAIL
+
+======================================================================
+FAIL: test_E11_T04_low_space_refused (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 76, in test_E11_T04_low_space_refused
+    with self.assertRaisesRegex(backup.Failure, 'Insufficient'):
+AssertionError: Failure not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+
+oplog timestamp taken from another namespace -> exit 1
+test_E11_T04_archive_stream_tracks_only_the_actual_oplog (test_backup.BackupSafetyTest) ... ERROR
+
+======================================================================
+ERROR: test_E11_T04_archive_stream_tracks_only_the_actual_oplog (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tests/test_backup.py", line 47, in test_E11_T04_archive_stream_tracks_only_the_actual_oplog
+    self.assertEqual((Timestamp(100, 2), {'fictional.rows'}), backup.copy_archive(io.BytesIO(raw), out))
+  File "/tests/backup.py", line 161, in copy_archive
+    raise Failure('Invalid captured oplog timestamp')
+backup.Failure: Invalid captured oplog timestamp
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)
+
+PASS all four reinstated defects rejected; working tree unchanged

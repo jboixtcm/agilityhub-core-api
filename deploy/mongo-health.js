@@ -14,7 +14,7 @@ if (!admin.getUser(process.env.MONGODB_USERNAME)) {
 }
 if (!admin.getUser(process.env.MONGO_BACKUP_USERNAME)) {
     admin.createUser({user: process.env.MONGO_BACKUP_USERNAME, pwd: process.env.MONGO_BACKUP_PASSWORD,
-        roles: [{role: 'backup', db: 'admin'}, {role: 'hostManager', db: 'admin'}]});
+        roles: [{role: 'backup', db: 'admin'}]});
 }
 // Test both accounts too: stale environment credentials must make startup fail.
 const app = new Mongo('mongodb://127.0.0.1:27017/?directConnection=true').getDB('admin');

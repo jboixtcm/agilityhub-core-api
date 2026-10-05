@@ -8,7 +8,8 @@ x-logging: &logging
 
 services:
   mongo:
-    image: mongo:7.0
+    image: mongo:7.0.41@sha256:8102f674c3d5b5c3b5a248397778b8d148a998c6409f390ff62628eb617f0847
+    pull_policy: never
     restart: unless-stopped
     entrypoint: [bash, /opt/deploy/mongo-entrypoint.sh]
     environment:
@@ -77,8 +78,8 @@ services:
       VAPID_SUBJECT: ${VAPID_SUBJECT:?Set VAPID_SUBJECT}
       SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY:?Set SIGNUP_CAPABILITY_KEY}
       BOOKING_CALENDAR_KEY: ${BOOKING_CALENDAR_KEY:?Set BOOKING_CALENDAR_KEY}
-      MIGRATION_BANK_KEY: ${MIGRATION_BANK_KEY:-}
       BILLING_BANK_KEY: ${BILLING_BANK_KEY:?Set BILLING_BANK_KEY}
+      BILLING_SECRETS_KEY: ${BILLING_SECRETS_KEY:?Set BILLING_SECRETS_KEY}
       EXPORT_S3_BUCKET: ${EXPORT_S3_BUCKET:?Set EXPORT_S3_BUCKET}
       EXPORT_S3_REGION: ${EXPORT_S3_REGION:?Set EXPORT_S3_REGION}
       EXPORT_S3_ENDPOINT: ${EXPORT_S3_ENDPOINT:-}
@@ -116,6 +117,7 @@ services:
     environment:
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
       CADDY_LOCAL_OPTIONS: ""
+      CADDY_ASK_UPSTREAM: core:8080
       ID_HOST: ${ID_HOST:-id.agilitydoghub.com}
       CLUBS_HOST: ${CLUBS_HOST:-clubs.agilitydoghub.com}
       ADMIN_HOST: ${ADMIN_HOST:-clubsadmin.agilitydoghub.com}
@@ -145,21 +147,21 @@ services:
 
   backup:
     profiles: [ops]
-    image: agilityhub-backup:e11-t04
+    image: agilityhub-backup:2
     build: ./backup
-    # Decrypted dumps, keys and a restore database disappear with this container.
-    tmpfs: [/work:mode=0700]
+    # A separate anonymous disk volume is removed by compose run --rm.
+    volumes: [/work]
+    mem_limit: 1g
     environment:
       MONGO_BACKUP_USERNAME: ${MONGO_BACKUP_USERNAME:?Set MONGO_BACKUP_USERNAME}
       MONGO_BACKUP_PASSWORD: ${MONGO_BACKUP_PASSWORD:?Set MONGO_BACKUP_PASSWORD}
-      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:-}
       BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
       BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-mongo/}
       BACKUP_S3_REGION: ${BACKUP_S3_REGION:-eu-west-3}
       BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
       BACKUP_S3_ACCESS_KEY: ${BACKUP_S3_ACCESS_KEY:-}
       BACKUP_S3_SECRET_KEY: ${BACKUP_S3_SECRET_KEY:-}
-      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
     logging: *logging
 
 networks:

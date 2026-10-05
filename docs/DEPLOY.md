@@ -10,13 +10,14 @@ directory and proxies `/api/*`, `/oauth2/*`, `/.well-known/*` and `/connect/logo
 to the same Core process. The original Host and host-only cookies survive.
 
 Requirements: Docker, Compose **2.24.4+** (the local override uses `!override`),
-Python 3 and curl on the operator host; outbound access to GHCR, Docker Hub,
+Python 3, curl and OpenSSL on the operator host; outbound access to GHCR, Docker Hub,
 Debian/Ubuntu package repositories and PyPI when building the backup tool.
 `deploy/.env.prod.example` is a complete placeholder inventory, not usable
 credentials. Keep the populated file outside the checkout, mode 0600. Pass it
 with `--env-file`; never paste `compose config` output from a populated file into
 logs, tickets or evidence. It expands secrets. Core gets only its own credentials;
-the backup principal and encryption identity go only to the `ops` service.
+the backup principal and public age recipient go only to the `ops` service.
+The private identity is supplied only to an explicit verification/recovery run.
 
 ### Prepare and deploy
 
@@ -38,8 +39,14 @@ the backup principal and encryption identity go only to the `ops` service.
    base64 of 512 random bytes. Keep it stable on this one-node set. On a new
    volume Mongo's official entrypoint creates the root account, and the health
    bootstrap creates `rs0`, the app account (`readWrite` on its database only)
-   and backup account (`backup` plus `hostManager`, needed for `fsync`). Existing
+   and backup account (Mongo's built-in `backup` role only). Existing
    users are **never reset from env**; a stale app/backup password fails health.
+   On a pre-round-2 installation, an operator must replace the stored backup
+   user's roles with only `{role: "backup", db: "admin"}` before enabling cron;
+   changing the bootstrap file alone does not revoke an existing `hostManager`.
+   Mongo and the backup build share an immutable 7.0.41 digest. `pull_policy:
+   never` prevents automatic replacement; explicitly pull that exact digest on
+   first installation. Any Mongo/tool upgrade needs a fresh restore proof.
 4. From the installed checkout, set the non-secret file path below. Validate
    without printing resolved credentials, build the ops image once, and on an
    existing deployment take and verify a pre-deploy backup. Do not run the local
@@ -50,8 +57,9 @@ the backup principal and encryption identity go only to the `ops` service.
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml config --quiet
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml build backup
    bin/backup-mongo
+   # Supply BACKUP_AGE_IDENTITY from encrypted escrow for this command only.
    bin/restore-mongo --verify
-   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml pull core caddy mongo
+   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml pull core caddy
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420
    ```
 
@@ -69,27 +77,39 @@ the backup principal and encryption identity go only to the `ops` service.
    use the verified database recovery procedure below. Record the chosen
    recovery point and any data after it that must be reconciled.
 
-The prod profile is intentionally strict about provider configuration. This task
-proves the topology with the local adapters; real production-profile provider
-startup and E8 payments remain release prerequisites, not claimed by the proof.
+The local proof boots Core with **prod**, fictional non-blank provider credentials
+and real S3 adapters pointing at MinIO. Only the one-shot seed uses `local`.
+The network is internal, so fictional credentials cannot initiate Internet
+provider traffic. Actual provider delivery and Stripe acceptance remain E12
+prerequisites; production-profile construction and billing-key wiring are proven.
 
 ### Local rehearsal, including required failures
 
 ```sh
-/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke
+# Run through the host lock wrapper (heavy.sh):
+heavy.sh bin/deploy-smoke
 # Select an already available compatible published image tag if needed:
-# .../heavy.sh bin/deploy-smoke --image-tag sha-<reviewed-commit>
+# heavy.sh bin/deploy-smoke --image-tag sha-<reviewed-commit>
 ```
 
 `bin/deploy-smoke` creates a random Compose project, free loopback ports, a private
 temporary env file and generated keys. It builds the backup helper and **local-only**
 MinIO, applies the fictional Cànic/demo seed, validates Caddy, trusts the copied
 Caddy root CA explicitly (no `curl -k`), checks health, branding, all three mounted
-HTML fixtures/deep links, login/refresh rotation and rejection of the reused
+HTML fixtures/deep links with `Cache-Control: no-cache`, login/refresh rotation and rejection of the reused
 cookie. It checks unauthenticated Mongo reads fail, then backs up to private MinIO
-and restores latest and named archives. Missing encryption key/bucket, tampering
-and a restore without `--verify` must fail. The project, volumes, plaintext and
+and restores latest and named archives. The live proof writes a transaction while
+the dump is open, then proves snapshot counts exclude a later write. Missing
+public recipient/bucket/restore identity, low work space, tampering and a restore
+without `--verify` must fail. The project, volumes, plaintext and
 credentials are removed even after a failed assertion. Other stacks are untouched.
+
+When registry access is temporarily unavailable, `--skip-helper-builds` uses
+already prepared helpers and refuses a backup image whose installed Python
+source differs from the checkout or whose Mongo version is not 7.0.41. Keep the
+pinned dependency image/build provenance; this option is a local rehearsal aid,
+not evidence of a fresh dependency build. `--evidence-prefix <new-path-prefix>`
+writes each verification command, exit and output separately without overwriting.
 
 MinIO's former Docker Hub/Quay images were unavailable during this proof.
 `deploy/local/Dockerfile.minio` builds the pinned
@@ -101,8 +121,8 @@ Manual local configuration uses the same base file plus
 `-f deploy/compose.prod.local.yaml`, `DEPLOY_LOCAL=1`, its own `COMPOSE_PROJECT_NAME`
 and env file, generated credentials and `LOCAL_MONGODB_URI` with URL-encoded
 username/password and `authSource=admin&replicaSet=rs0&directConnection=true`.
-The `*.localhost` hosts use Caddy's internal CA. `local_certs` and local providers
-exist only in the override. This proves static serving, not a browser test of the
+The `*.localhost` hosts use Caddy's internal CA. `local_certs`, the approval
+fixture and MinIO exist only in the override; Core still uses production providers. This proves static serving, not a browser test of the
 real web artifacts; the release smoke must use their actual builds.
 
 The normal domain-admission policy rejects localhost (`HOST_RESERVED`). The
@@ -123,48 +143,78 @@ object. Exit **0** means success; **2** is host configuration/usage failure;
 **1** is a runtime failure (Docker may return its own nonzero startup status).
 Alert on **every nonzero exit**, and on the absence of a daily `BACKUP_OK`.
 
-The helper validates the age identity and S3 destination, then briefly locks the
-source's writes with `fsync`, counts each restorable collection and runs a full
-authenticated `mongodump --oplog --gzip`. It unlocks in `finally` before encryption
-or upload. This deliberate write pause makes the source count manifest and dump
-describe the same point in time. Schedule away from booking opening; monitor the
-duration. `mongodump` has a 15-minute ceiling; errors and SIGTERM release the lock.
-Host power loss or SIGKILL can bypass cleanup: alert if writes stall, stop any
-remaining backup container and, after confirming no backup is still active, run
-`db.fsyncUnlock()` in an authenticated operator session. Never blindly unlock
-another operator's maintenance lock. Run only one backup at a time (cron `flock`).
+The helper validates the public recipient and destination, estimates storage and
+streams `mongodump --oplog --archive` through a bounded archive observer, gzip
+and `age`. **No `fsync` or write lock** is used. The observer retains at most one
+BSON document and reads the last timestamp in the captured oplog, which the
+pinned tool copies with inclusive start/end bounds. It then counts every
+collection using `aggregate` with `readConcern: snapshot` and that exact
+`atClusterTime`. A later write cannot affect these counts. The count manifest and
+dump are separately age-encrypted and packaged as `<timestamp>-<id>.tar`; there
+is no plaintext dump or tar during backup. Mongo includes the start oplog entry
+even when idle. Missing/unsupported framing, a changed collection catalog,
+expired snapshot history, an oplog rollover or a pipeline failure aborts without
+uploading. Avoid DDL/user/role maintenance during backups; ordinary application
+writes continue. This is a count comparison, not content/index equality.
 
-The packed dump and manifest are authenticated/encrypted with **age**, using
-`BACKUP_ENCRYPTION_KEY` (an `AGE-SECRET-KEY-1…` identity) from the environment.
-Generate one privately with `age-keygen`; preserve its secret line in the env
-file and in separate encrypted key escrow. Never store it in the backup bucket.
-Plaintext, tool credential files and the verifier database live only in the ops
-container's `/work` tmpfs (allow enough RAM/swap for dump, tar and restore).
-Provision encrypted host swap or disable swap. Mongo tool output is suppressed
-because its errors can contain document values; public logs contain collection
-counts and object keys only. Container inspection is privileged and exposes env.
+The implementation follows Mongo's [snapshot read contract](https://www.mongodb.com/docs/v7.0/reference/read-concern-snapshot/)
+and the pinned tools' [inclusive oplog bounds](https://github.com/mongodb/mongo-tools/blob/100.18.0/mongodump/oplog_dump.go)
+and [archive 0.1 framing](https://github.com/mongodb/mongo-tools/blob/100.18.0/common/archive/archive.go).
+All counts must finish within retained snapshot history; if Mongo refuses the
+snapshot, alert and retry after checking load/history capacity. Never replace a
+failed snapshot count with a live count. The dump/encryption pipeline has a
+15-minute watchdog that reaps both processes. SIGTERM cleans up too; no source
+unlock or recovery action is ever necessary.
 
-The S3 principal needs ListBucket (restricted to `BACKUP_S3_PREFIX`) and
-Get/Put/DeleteObject in that prefix. The bucket
-must already exist. Deny public access, use TLS to S3, and restrict this principal
-independently of export/attachment credentials. Only objects named
-`<prefix><UTC timestamp>-<random id>.tar.age` are candidates for retention.
-After a successful upload and size check, objects older than
-`BACKUP_RETENTION_DAYS` (30 by default, by S3 LastModified) are deleted; an upload
-failure never triggers retention. On a versioned bucket, configure noncurrent
-version expiry/abort-incomplete-multipart lifecycle too: delete markers alone do
-not remove old versions. Media buckets keep their separate versioning policy.
+Generate an age key with `age-keygen` in a secure operator environment. Install
+only its **public** `age1…` recipient as `BACKUP_AGE_RECIPIENT` in the cron env;
+keep the `AGE-SECRET-KEY-1…` identity in off-host encrypted escrow. Supply it as
+`BACKUP_AGE_IDENTITY` in the operator's environment only while running
+`bin/restore-mongo --verify`; the runner passes it only to that container, never
+to normal backup runs. Verification uses a separate S3 principal with
+GetObject/ListBucket, supplied through a private `DEPLOY_ENV_FILE`; the normal
+cron principal has only PutObject/ListBucket on its prefix. No private identity
+belongs in the cron env or backup bucket.
+
+The helper uses a **private anonymous disk volume** at `/work`, with mode-0700
+per-run directories and a **1 GiB container memory limit**. `compose run --rm`
+removes the container and its anonymous volume; normal exits also erase the work
+directory. After a host crash, inspect and remove only that orphaned ops
+container/anonymous volume before resuming; never share `/work` between runs.
+Use encrypted Docker/host storage because restore creates plaintext. For backup
+and restore, reserve at least `4 × (dataSize + indexSize) + 1 GiB` free space on
+Docker's disk (minimum 1 GiB), accounting for two ciphertext copies and, on
+restore, the decoded archive, Mongo data/indexes and journal. `dbStats` supplies
+the backup estimate; the uploaded metadata and encrypted manifest preserve it
+for restore. Both refuse insufficient free space before creating the dump or
+restored database. Growth can still exhaust storage mid-run: errors fail closed.
+RAM does not scale with dump size: one BSON record, gzip/age buffers and an 8 MiB
+single-worker S3 transfer; the isolated Mongo cache is 256 MiB. Reserve at least
+1 GiB additional RAM for the helper and leave headroom for the live stack.
+
+Provision retention as an **S3 lifecycle policy**, not cron deletion:
+`deploy/backup/lifecycle.json` expires current/noncurrent objects after 30 days
+and abandons incomplete multipart uploads after one day. An operator with bucket
+administration privileges changes its prefix/days and applies it with
+`aws s3api put-bucket-lifecycle-configuration --bucket <backup-bucket>
+--lifecycle-configuration file://deploy/backup/lifecycle.json`, then reads it
+back before enabling cron. The cron principal cannot change that rule or delete
+objects; `deploy/backup/writer-policy.json` is its prefix-scoped IAM template
+(replace the fictional bucket/prefix). Deny public access and require TLS in
+production. Local MinIO proves lifecycle acceptance/readback; AWS permissions
+and elapsed lifecycle expiry are release checks. Media buckets retain their own
+versioning policies. Old format-1 `.tar.age` archives remain covered by prefix
+retention but require the retained format-1 verifier and escrowed identity.
 
 Daily Linux cron on a host configured to **UTC** (02:15 UTC, no DST gap; dedicated
-operator, directory/log/lock writable, mail or monitoring
-hook configured for failure; **A13 supersedes ADR-003's older weekly wording**):
+operator, directory/log/lock writable, a monitored syslog error sink configured for failure; **A13 supersedes ADR-003's older weekly wording**):
 
 ```cron
-15 2 * * * cd /opt/agilityhub/core && DEPLOY_ENV_FILE=/etc/agilityhub/core.env /usr/bin/flock -n /var/lock/agilityhub-backup.lock bin/backup-mongo >> /var/log/agilityhub-backup.log 2>&1
+15 2 * * * cd /opt/agilityhub/core && DEPLOY_ENV_FILE=/etc/agilityhub/core.env /usr/bin/flock -n -E 75 /var/lock/agilityhub-backup.lock bin/backup-mongo >> /var/log/agilityhub-backup.log 2>&1 || { rc=$?; /usr/bin/logger -p user.err -t agilityhub-backup "backup failed exit=$rc (75=lock busy)"; exit "$rc"; }
 ```
 
-`--verify` downloads the latest completed object (or the specified key), fully
-authenticates/decrypts it before extraction, rejects unexpected tar members, and
+`--verify` downloads the latest completed object (or the specified key), rejects
+unexpected tar members, fully authenticates/decrypts both encrypted members, and
 runs `mongorestore --oplogReplay --stopOnError` in a **temporary standalone Mongo
 inside the disposable ops container**, bound only to its loopback. TTL is disabled
 there so expired historical rows cannot disappear during comparison. Every
@@ -177,9 +227,9 @@ count equality is not a byte-for-byte content or index equivalence claim. The
 manifest is the **source at backup time**, not today's changing live database.
 
 Disaster recovery at E12: stop Core/writers; retain the damaged volume; download
-the selected archive with the backup S3 principal into private recovery storage;
-decrypt with the escrowed identity (`age -d -i <private-identity-file>`), inspect
-the tar's two expected members, then restore `dump.archive.gz` with
+the selected archive with the read-only recovery S3 principal into private storage;
+inspect the tar's two expected encrypted members, decrypt each with the escrowed
+identity (`age -d -i <private-identity-file>`), then restore `dump.archive.gz` with
 `mongorestore --gzip --archive=<file> --oplogReplay --stopOnError` into a **new**
 isolated Mongo 7 volume. First run the supplied `--verify` on that object. Restore
 the deployment secrets from escrow (especially OIDC/bank keys), initialize the
@@ -189,10 +239,12 @@ same recovery point as needed, start Core and perform the deployment smoke.
 This promotion is an operator-controlled release action; the script only verifies
 in isolation. Do not clone production personal data into shared staging.
 
-Backups contain Mongo data/users/index metadata, **not** `dist`, Docker volumes,
-Caddy private keys or the environment file. Retain versioned web/image artifacts;
-back up Caddy's persistent data/config and the env/key escrow separately with
-encryption. An archive without its OIDC/bank/backup keys is not a recovery plan.
+**ADR-003 §Backups deviation:** these archives contain Mongo data/users/index
+metadata, **not** `dist`, Docker volumes, Caddy private keys or the environment
+file, which ADR-003 included in the same package. Retain versioned web/image artifacts;
+back up Caddy's persistent data/config and the env/key escrow separately into
+an operator-owned encrypted off-host recovery store with separate access and
+retention. Verify that escrow on D0/D+7; this script does not implement it. An archive without its OIDC/bank/backup keys is not a recovery plan.
 
 ### Keys and provider rotation
 
@@ -239,9 +291,10 @@ encryption. An archive without its OIDC/bank/backup keys is not a recovery plan.
   revoke the old credential. Retain SendGrid webhook verification overlap only
   if supported by the provider/application. Rotate the Learn secret in concert
   with Learn (A30: it remains unconnected until the SaaS phase).
-- Backup age identity: install the new identity for new backups, verify one,
+- Backup age pair: install the new **public recipient** for new backups, verify one
+  with its separately supplied identity,
   keep every old identity in escrow until every archive encrypted for it has
-  expired. Select the matching identity through a private env file to verify an
+  expired. Supply the matching identity only in the verification environment for an
   old named archive. Retention must not remove the only usable recovery point.
 
 ### Logs and D+7 support
@@ -283,7 +336,11 @@ Register/verify ownership and the club's role-specific hosts and OIDC callbacks
 before pointing CNAME records here. Add verified **admin** aliases to the
 space-separated `CLUB_ADMIN_HOSTS` and recreate Caddy; other approved aliases
 serve the member SPA. Check branding, SPA selection, HTTPS, cookie refresh and
-revocation after each change. Do not enable an unconditional `ask` responder.
+revocation after each change. Do not enable an unconditional `ask` responder. Production fixes
+`CADDY_ASK_UPSTREAM=core:8080`. Only the local override uses `ask-stub:8080`, which
+approves exactly `approved.localhost` and records its received query. The smoke
+obtains a trusted certificate for that host, checks `host=approved.localhost`
+arrived at the stub, and confirms another hostname is denied.
 See [Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls).
 
 ### Environment inventory (source, purpose and rotation)
@@ -298,7 +355,7 @@ and URIs are included because they must remain consistent across recovery.
 | `MONGO_ROOT_USERNAME`, `MONGO_ROOT_PASSWORD` | Dedicated bootstrap/operations account, generated by the operator; update stored user and env together. Never used by Core. |
 | `MONGODB_DATABASE` | Application database name chosen for this deployment; changing selects another database, it does not migrate data. |
 | `MONGODB_USERNAME`, `MONGODB_PASSWORD` | Generated least-privilege application login in `admin`; rotate stored user and recreate Core together. |
-| `MONGO_BACKUP_USERNAME`, `MONGO_BACKUP_PASSWORD` | Separate generated backup/hostManager login; rotate stored user and backup env together. |
+| `MONGO_BACKUP_USERNAME`, `MONGO_BACKUP_PASSWORD` | Separate generated backup-only login; rotate stored user and backup env together. |
 | `MONGO_REPLICA_KEY` | Base64 512 random bytes, operator-generated replica-set shared secret; Mongo recreates a private 0400 key file on tmpfs. Coordinated restart to rotate. |
 | `DEPLOY_SUBNET`, `CADDY_IPV4_ADDRESS`, `TRUSTED_PROXY_PATTERN` | Operator-selected free bridge subnet, fixed proxy IP and exact escaped Java regex; update together and re-check forwarded scheme/address. |
 | `AUTH_ISSUER` | Stable public ID HTTPS origin from the approved DNS plan. Changing invalidates issuer validation and client discovery. |
@@ -325,7 +382,7 @@ and URIs are included because they must remain consistent across recovery.
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
 | `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); preserve and re-encrypt before rotation. |
-| `BILLING_SECRETS_KEY` | Base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Must be forwarded to Core before a club enables STRIPE (E8-T04); escrow it; rotation means re-entering every club's secrets. |
+| `BILLING_SECRETS_KEY` | Operator-generated, escrowed base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Required and forwarded by production Compose and the local rehearsal; rotation means re-entering every club's secrets. |
 | `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
 | `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ENDPOINT` | Private attachment bucket/region; optional HTTPS endpoint. Preserve objects and signed upload CORS when moving. |
@@ -336,11 +393,11 @@ and URIs are included because they must remain consistent across recovery.
 | `ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`, `CORE_HOST` | Four approved public DNS hostnames; default ADR-003 domains. DNS/certificate/client change, not a key rotation. |
 | `CLUB_ADMIN_HOSTS` | Space-separated verified club admin aliases for SPA selection; default `unused.invalid`. Coordinate E10 domain verification/Caddy recreation. |
 | `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned built SPA dist folders. Switch all with the matching backend tag; retain previous paths for rollback. |
-| `BACKUP_ENCRYPTION_KEY` | Private native age identity generated with `age-keygen`; separate encrypted escrow. Keep old identities through archive expiry. |
+| `BACKUP_AGE_RECIPIENT` | Public native age recipient from operator `age-keygen`; the only encryption material installed for cron. Change for future backups after verifying its escrowed identity. |
+| `BACKUP_AGE_IDENTITY` | Private age identity, restored from encrypted off-host escrow into the operator environment only for verification/recovery; never in the cron env. Retain old identities through archive expiry. |
 | `BACKUP_S3_BUCKET`, `BACKUP_S3_REGION`, `BACKUP_S3_ENDPOINT` | Pre-provisioned private backup bucket/region; optional HTTPS endpoint. Local override alone uses `http://minio:9000`. |
 | `BACKUP_S3_PREFIX` | Deployment-specific nonempty relative prefix ending in `/` (default `mongo/`); restrict IAM and retention to it. |
-| `BACKUP_S3_ACCESS_KEY`, `BACKUP_S3_SECRET_KEY` | Dedicated backup Get/Put/Delete/List principal from S3 provisioning; rotate after a new backup and verified restore. |
-| `BACKUP_RETENTION_DAYS` | Integer 1..36500, default 30. Operator retention policy; existing objects older than the new cutoff are removed after the next upload. |
+| `BACKUP_S3_ACCESS_KEY`, `BACKUP_S3_SECRET_KEY` | Dedicated cron Put/List principal from S3 provisioning. Verification uses a separate private env file with Get/List credentials. Rotate after a backup and separate verified restore. |
 | `DEPLOY_ENV_FILE`, `COMPOSE_PROJECT_NAME` | Operator host settings: private env-file path and optional isolated Compose project name. Set the same values for backup and deployment. |
 | `DEPLOY_LOCAL` | Host runner switch (`1`) for the fictional override only; never set in release cron. |
 | `LOCAL_MONGODB_URI`, `LOCAL_HTTP_PORT`, `LOCAL_HTTPS_PORT`, `SEED_PASSWORD` | Local-only authenticated URI, loopback ports and fictional seed credential generated by the smoke. No release values. |
@@ -349,10 +406,10 @@ Fixed wiring in the production Compose (not additional operator choices):
 `SPRING_PROFILES_ACTIVE=prod`, `SERVER_PORT=8080`, `MONGODB_HOST=mongo`,
 `MONGODB_PORT=27017`, `MONGODB_REPLICA_SET=rs0`, `MONGODB_AUTH_DATABASE=admin`;
 Mongo's `MONGO_INITDB_ROOT_USERNAME`/`MONGO_INITDB_ROOT_PASSWORD` receive the root
-values above. `CADDY_LOCAL_OPTIONS` is empty in production. The local override
-sets it to `local_certs`, changes `SPRING_PROFILES_ACTIVE` and
-`SPRING_DATA_MONGODB_URI`, uses `MAIL_LOCAL_DIRECTORY`, `EXPORT_LOCAL_DIRECTORY`
-and `ATTACHMENT_LOCAL_DIRECTORY`, and supplies MinIO's
+values above. `CADDY_LOCAL_OPTIONS` is empty in production; `CADDY_ASK_UPSTREAM` is fixed to
+`core:8080`. The local override sets `local_certs`, uses a fixture ask upstream,
+sets `SPRING_DATA_MONGODB_URI`, keeps Core on `prod` and uses `local` only for
+the seed (`EXPORT_LOCAL_DIRECTORY` and `ATTACHMENT_LOCAL_DIRECTORY`). It supplies MinIO's
 `MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD` from the generated S3 credentials.
 `BUILDX_CONFIG` in the smoke is a disposable build-metadata directory, not a key.
 

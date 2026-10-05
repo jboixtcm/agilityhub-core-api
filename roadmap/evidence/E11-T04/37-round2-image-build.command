@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh docker build --label org.opencontainers.image.revision=949febc -t ghcr.io/jboixtcm/agilityhub-core-api:sha-949febc .

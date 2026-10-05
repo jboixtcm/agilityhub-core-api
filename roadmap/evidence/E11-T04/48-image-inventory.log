@@ -1,0 +1,13 @@
+Image: ghcr.io/jboixtcm/agilityhub-core-api:main
+Immutable local image ID: sha256:56046740bf741fa1...[truncated]
+Registry manifest: ghcr.io/jboixtcm/agilityhub-core-api@sha256:56046740bf74...[truncated]
+Source revision label: absent
+build.artifact=agilityhub-core-api
+build.group=com.agilityhub
+build.name=AgilityHub Core API
+build.time=2026-10-01T18\:58\:56.094Z
+build.version=0.1.0-SNAPSHOT
+PASS E8-T01 class: BankAccountVault
+PASS E8-T01 class: ProviderSecretVault
+PASS application environment contract: BILLING_BANK_KEY
+PASS application environment contract: BILLING_SECRETS_KEY

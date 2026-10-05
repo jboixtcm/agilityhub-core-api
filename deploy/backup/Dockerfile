@@ -1,4 +1,4 @@
-FROM mongo:7.0
+FROM mongo:7.0.41@sha256:8102f674c3d5b5c3b5a248397778b8d148a998c6409f390ff62628eb617f0847
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv age \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv /opt/backup \

@@ -1,0 +1,16 @@
+test_E11_T04_01_no_write_lock (__main__.DeploymentReviewTest.test_E11_T04_01_no_write_lock) ... ok
+test_E11_T04_02_production_local_core (__main__.DeploymentReviewTest.test_E11_T04_02_production_local_core) ... ok
+test_E11_T04_03_bounded_disk_work (__main__.DeploymentReviewTest.test_E11_T04_03_bounded_disk_work) ... ok
+test_E11_T04_04_backup_only_role (__main__.DeploymentReviewTest.test_E11_T04_04_backup_only_role) ... ok
+test_E11_T04_05_spa_cache_after_rewrite (__main__.DeploymentReviewTest.test_E11_T04_05_spa_cache_after_rewrite) ... ok
+test_E11_T04_06_cron_alert_and_lock_exit (__main__.DeploymentReviewTest.test_E11_T04_06_cron_alert_and_lock_exit) ... ok
+test_E11_T04_07_allow_path_uses_same_bridge (__main__.DeploymentReviewTest.test_E11_T04_07_allow_path_uses_same_bridge) ... ok
+test_E11_T04_08_public_recipient_and_lifecycle (__main__.DeploymentReviewTest.test_E11_T04_08_public_recipient_and_lifecycle) ... ok
+test_E11_T04_09_retired_key_absent (__main__.DeploymentReviewTest.test_E11_T04_09_retired_key_absent) ... ok
+test_E11_T04_10_portable_docs_and_pinned_images (__main__.DeploymentReviewTest.test_E11_T04_10_portable_docs_and_pinned_images) ... ok
+test_E11_T04_11_billing_provider_key (__main__.DeploymentReviewTest.test_E11_T04_11_billing_provider_key) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.103s
+
+OK
