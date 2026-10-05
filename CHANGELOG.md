@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Documentation
+
+- E8-T05: recorded a blocking conflict between the task's census dependency direction and the existing architecture gates. Implementation awaits an organizer ruling; no product behavior changed.
+
 ### Added
 
 - E8-T04 (S12 WP-12-D): per-club Stripe SDK and deterministic fake providers, durable card attempts and retries, asynchronous refunds, signature-first idempotent webhooks, card setup and invalidation, and recovery after lost responses. Provider calls execute after local commits with stable domain keys. Late booking captures refund once; expired payable signup rows settle normally. N-01 issues a 24-hour payment retry capability only in the outgoing email. The existing signup and booking checkout flows are retained. Audit actions, tenant/module/role checks, unified upfront event payloads, and provider-secret forwarding are covered by the payment test suites. Real Stripe-account acceptance requires test credentials.

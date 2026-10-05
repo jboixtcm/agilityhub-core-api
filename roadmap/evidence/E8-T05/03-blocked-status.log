@@ -1,0 +1,3 @@
+WARN: E8-T06: ready but dependency E8-T05 is blocked
+E8-T05: status -> blocked
+STATUS.md rendered (116 tasks)

@@ -1,0 +1,20 @@
+roadmap/tasks/E8-T05.md:57: - Context direction (ArchUnit): `clubs.census` implements the ports declared by `clubs.bookings.application.ports` and `payments.application.ports`; it calls S07/S08/S09 **synchronously** through their `application` services (S13 §7), never by event; `payments` never imports `clubs.census.persistence`.
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:224:     static final ArchRule CENSUS_THROUGH_PORTS = noClasses()
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:225:             .that(new DescribedPredicate<>("are census classes outside E3's signup payment callers") {
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:226:                 @Override public boolean test(JavaClass type) {
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:227:                     return type.getPackageName().startsWith(BASE_PACKAGE + "clubs.census")
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:228:                             && SIGNUP_PAYMENT_CALLERS.stream().noneMatch(caller -> type.getName().equals(caller) || type.getName().startsWith(caller + "$"));
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:229:                 }
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:230:             })
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:231:             .should().dependOnClassesThat().resideInAnyPackage(BASE_PACKAGE + "payments..", BASE_PACKAGE + "clubs.bookings..",
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:232:                     BASE_PACKAGE + "clubs.training..", BASE_PACKAGE + "clubs.activities..")
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:233:             .because("E8-T01: clubs.census → payments.application only through ports in clubs.census.application.ports");
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java:47:     }).should().beFreeOfCycles();
+src/test/java/com/agilityhub/core/arch/ArchitectureTest.java:22:     static final ArchRule E0_T01_contextsHaveNoCycles = ArchitectureRules.CONTEXT_CYCLES;
+src/test/java/com/agilityhub/core/arch/ArchitectureTest.java:65:     static final ArchRule E8_T01_censusReachesPaymentsAndBookingsOnlyThroughPorts = ArchitectureRules.CENSUS_THROUGH_PORTS;
+src/main/java/com/agilityhub/core/clubs/bookings/application/BookingChecks.java:6: import com.agilityhub.core.clubs.census.application.BookingMemberAccess;
+src/main/java/com/agilityhub/core/clubs/training/application/TrainingBookingService.java:6: import com.agilityhub.core.clubs.census.application.TrainingMemberAccess;
+src/main/java/com/agilityhub/core/clubs/activities/application/ActivityContext.java:6: import com.agilityhub.core.clubs.census.application.ActivityMemberAccess;
+Static finding: the requested census -> bookings/training/activities calls add reverse context edges.
+Static finding: census implementing a payments/bookings port is also forbidden by CENSUS_THROUGH_PORTS.
+No product code changed; no test failure is claimed. Organizer ruling needed on the required dependency direction.
