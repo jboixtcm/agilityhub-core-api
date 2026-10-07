@@ -17,14 +17,16 @@ public final class ActivityEligibility {
         if (!times.registrationOpen(now)) throw new ApiException(ErrorCode.REGISTRATION_CLOSED,
                 Map.of("reason", now.isBefore(times.registrationOpensAt()) ? "NOT_YET_OPEN" : "CLOSED", "opensAt", times.registrationOpensAt(), "closesAt", times.registrationClosesAt()));
         if (!"ACTIVE".equals(member.status()) || !member.membershipActive()) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE);
-        if (member.leaveDate() != null && !date.isBefore(member.leaveDate())) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE, Map.of("reason", "LEAVING"));
         for (var block : List.of(member.block(), member.actorBlock())) if (Boolean.TRUE.equals(block.get("active"))) {
             var details = new LinkedHashMap<String,Object>();
             for (String key : List.of("reason", "since")) if (block.get(key) != null) details.put(key, block.get(key));
             throw new ApiException(ErrorCode.BOOKING_BLOCKED, details);
         }
-        if (inactivityEnabled) for (var period : member.inactivity()) if (!date.isBefore(period.from()) && !date.isAfter(period.to()))
-            throw new ApiException(ErrorCode.INACTIVITY_PERIOD, Map.of("from", period.from(), "to", period.to()));
+        if (inactivityEnabled) for (var period : member.inactivity()) if (!date.isBefore(period.from()) && (period.to() == null || !date.isAfter(period.to()))) {
+            var details = new LinkedHashMap<String,Object>(); details.put("from", period.from()); details.put("to", period.to());
+            throw new ApiException(ErrorCode.INACTIVITY_PERIOD, details);
+        }
+        if (member.leaveDate() != null && date.isAfter(member.leaveDate())) throw new ApiException(ErrorCode.MEMBER_LEAVING, Map.of("leaveDate", member.leaveDate()));
         if (!admitted(member.dogs(), levels, levelsEnabled, dogId)) throw new ApiException(ErrorCode.LEVEL_NOT_ALLOWED);
         if (registered) throw new ApiException(ErrorCode.ALREADY_REGISTERED);
     }

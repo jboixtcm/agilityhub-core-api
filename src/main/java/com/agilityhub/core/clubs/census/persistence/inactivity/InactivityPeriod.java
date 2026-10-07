@@ -20,8 +20,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("inactivity_periods")
 public record InactivityPeriod(@Id String id, String clubId, String memberId, @AuditField String fromMonth, @AuditField String toMonth,
         String comments, @AuditField InactivityState state, LifecycleOrigin origin, Instant requestedAt, Requester requestedBy,
-        @AuditField Decision decision, FeeSnapshot feeSnapshot, Instant startedAt, Instant finishedAt, InactivityFinishReason finishReason,
-        Instant cancelledAt, LifecycleCanceller cancelledBy, InactivityCancelReason cancelReason, List<CancelledBooking> cancelledBookings,
+        @AuditField Decision decision, FeeSnapshot feeSnapshot, Instant startedAt, @AuditField Instant finishedAt, @AuditField InactivityFinishReason finishReason,
+        Instant cancelledAt, LifecycleCanceller cancelledBy, @AuditField InactivityCancelReason cancelReason, List<CancelledBooking> cancelledBookings,
         List<HistoryEntry> history, @Version Long version, Instant createdAt, Instant updatedAt) implements TenantEntity {
     /** R-13-05: `deadlineOverridden` only when the admin skipped R-13-03's day-25 rule (audited). */
     public record Decision(Instant at, String byAccountId, LifecycleDecision decision, String note, boolean deadlineOverridden) { }

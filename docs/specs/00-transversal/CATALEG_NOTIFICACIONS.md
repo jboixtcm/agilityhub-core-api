@@ -26,7 +26,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-09 | Canvi de nivell | `DogLevelChanged` | PERSONAL | MEMBER → APP+EMAIL | dog_name, level_name | OPEN_DOG | S03 |
 | N-10 | Rebut impagat / cobrament fallit | `InvoiceFailed` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, invoice_number, amount, reason | OPEN_INVOICES | S12 |
 | N-11a | Pack a punt d'esgotar-se | `PackLowBalance` | PERSONAL | MEMBER → APP+EMAIL | dog_name, pack_remaining | OPEN_DOG | S12 |
-| N-11b | Pack a punt de caducar / caducat | `PackExpiring` · `PackExpired` | PERSONAL | MEMBER → APP+EMAIL | dog_name, pack_expiry | OPEN_DOG | S12 |
+| N-11b | Pack a punt de caducar / caducat | `PackExpiring` · `PackExpired` | PERSONAL | MEMBER → APP+EMAIL | dog_name, pack_expiry, pack_remaining | OPEN_DOG | S12 |
 | N-13 | Recordatori de classe/entrenament | `ReminderDue` (scheduler) | OPERATIONAL | MEMBER → APP+PUSH (EMAIL segons preferència) | dog_name, date, time, ring_name | OPEN_BOOKING | S11 |
 | N-14 | Sol·licitud de baixa rebuda | `LeaveRequested` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, requested_date, reason | OPEN_MEMBER | S13 |
 | N-15 | **S'ha alliberat una plaça!** | `SeatReleased` (si > llindar) | OPERATIONAL (SMS activat a la plantilla) | MEMBER en espera (tots o el primer FIFO) → APP+**SMS**+PUSH | dog_name, class_date, class_time, confirm_by (FIFO), mode, entityId | CLAIM_SEAT | S08 |

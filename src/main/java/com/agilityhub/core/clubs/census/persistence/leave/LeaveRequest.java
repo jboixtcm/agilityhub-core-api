@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("leave_requests")
 public record LeaveRequest(@Id String id, String clubId, String memberId, LeaveSource source, LifecycleOrigin origin, Instant requestedAt,
         Requester requestedBy, String requestedDate, String reasonKey, Integer nps, String comment, @AuditField LeaveRequestState state,
-        @AuditField Decision decision, Instant executedAt, Instant cancelledAt, LifecycleCanceller cancelledBy, LeaveCancelReason cancelReason,
+        @AuditField Decision decision, @AuditField Instant executedAt, Instant cancelledAt, LifecycleCanceller cancelledBy, LeaveCancelReason cancelReason,
         List<CancelledBooking> cancelledBookings, String packBalanceId, @Version Long version, Instant createdAt, Instant updatedAt) implements TenantEntity {
     /** `effectiveDate` is null on a `DENIED` decision. */
     public record Decision(Instant at, String byAccountId, LifecycleDecision decision, String effectiveDate, String note) { }

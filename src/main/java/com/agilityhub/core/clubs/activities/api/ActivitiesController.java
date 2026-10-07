@@ -208,7 +208,7 @@ public class ActivitiesController {
     @PostMapping("/api/v1/activity-registrations")
     @PreAuthorize(MEMBER)
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, ACTIVITY_FULL, LEVEL_NOT_ALLOWED, ALREADY_REGISTERED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, ACTIVITY_FULL, LEVEL_NOT_ALLOWED, ALREADY_REGISTERED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "register", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "ActivityRegistration", useReturnTypeSchema = true))
     public ActivityRegistration register(@Valid @RequestBody ActivityRegistrationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         return mutation(request.activityId(),() -> service.register(request.activityId(),Boolean.TRUE.equals(request.joinWaitlist())),ActivityRegistration.class,201);

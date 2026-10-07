@@ -18,8 +18,7 @@ import static com.agilityhub.core.payments.api.BillingRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
- * S12 §6 pack balances of D10 (R-12-23, R-12-24), ADMIN only, modules `BILLING` and `PACKS` (off → 404). Every operation runs
- * its guards and then answers 501 NOT_IMPLEMENTED until E8-T05.
+ * S12 §6 pack balances of D10 (R-12-23, R-12-24), ADMIN only, modules `BILLING` and `PACKS` (off → 404). Every operation enforces its tenant and role guards.
  */
 @RestController
 @RequiresModule(Module.BILLING)

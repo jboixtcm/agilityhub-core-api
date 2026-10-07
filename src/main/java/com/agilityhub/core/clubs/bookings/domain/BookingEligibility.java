@@ -8,8 +8,8 @@ import java.util.*;
 /**
  * S08 R-08-04/05/06/17 — the one ordered list of booking checks, shared by `/seat-holds`, `/bookings`,
  * `/waitlist-entries` and `claim` so they cannot drift apart. The first failing check wins:
- * dog accessible and ACTIVE (404) → owner and booker ACTIVE → booking block of either → leaving (end of the
- * local leave day on, A20c / S15 §13-6) → inactivity period → level → class ACTIVE and not started → week open → pack.
+ * dog accessible and ACTIVE (404) → owner and booker ACTIVE → booking block of either → inactivity period → leaving
+ * (after the local leave day, S13 R-13-07) → level → class ACTIVE and not started → week open → pack.
  */
 public final class BookingEligibility {
     public record Person(String status, boolean blocked, String blockReason, LocalDate leaveDate) { }
@@ -33,13 +33,13 @@ public final class BookingEligibility {
                 throw new ApiException(ErrorCode.BOOKING_BLOCKED, details);
             }
         }
-        if (leaving(in.owner().leaveDate(), in.classStartsAt(), in.zone())) {
-            throw new ApiException(ErrorCode.CLASS_NOT_BOOKABLE, Map.of("reason", "LEAVING"));
-        }
         if (in.inactivity().isPresent()) {
             var period = in.inactivity().get(); var details = new LinkedHashMap<String, Object>();
             details.put("from", period.from().toString()); if (period.to() != null) { details.put("to", period.to().toString()); }
             throw new ApiException(ErrorCode.INACTIVITY_PERIOD, details);
+        }
+        if (leaving(in.owner().leaveDate(), in.classStartsAt(), in.zone())) {
+            throw new ApiException(ErrorCode.MEMBER_LEAVING, Map.of("leaveDate", in.owner().leaveDate()));
         }
         if (!levelAllowed(in.levelsEnabled(), in.dogLevelId(), in.classLevelIds())) { throw new ApiException(ErrorCode.LEVEL_NOT_ALLOWED); }
         if (!in.classActive() || !in.now().isBefore(in.classStartsAt())) { throw new ApiException(ErrorCode.CLASS_NOT_BOOKABLE); }

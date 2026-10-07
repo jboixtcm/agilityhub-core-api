@@ -39,7 +39,7 @@ public class LeaveRequestService {
     public void reason(String key, boolean admin) {
         if (key == null && admin) { return; }
         boolean allowed = ((List<?>) census.config().get("leave.reasons", List.class)).stream().map(CensusValues::map)
-                .anyMatch(r -> Objects.equals(key, r.get("key")) && (admin || !Set.of("CLUB_DECISION", "PACK_EXPIRED").contains(key)));
+                .anyMatch(r -> Objects.equals(key, r.get("key")) && (admin || "MEMBER".equals(r.get("audience"))));
         if (!allowed) { throw new ApiException(ErrorCode.LEAVE_REASON_UNKNOWN); }
     }
     private LeaveEdit draft(String memberId, LocalDate date, String reason, LeaveSource source) {
@@ -90,17 +90,13 @@ public class LeaveRequestService {
                 .map(b -> new CancelledBooking(CancelledBookingType.valueOf(b.type()), b.id(), b.sessionDate().toString())).toList();
     }
     void closePeriods(String memberId, LocalDate effective, boolean execute) {
-        for (var p : periods.ofMember(memberId)) {
-            var e = new InactivityEdit(p);
-            if (p.state() == InactivityState.ACTIVE) {
-                e.toMonth = YearMonth.from(effective).toString(); e.finishReason = InactivityFinishReason.LEAVE;
-                if (execute) { e.state = InactivityState.FINISHED; e.finishedAt = clock.instant(); }
-            } else if (p.state() == InactivityState.REQUESTED || p.state() == InactivityState.APPROVED) {
-                inactivity.cancelled(e, LifecycleCanceller.SYSTEM, InactivityCancelReason.LEAVE);
-            } else { continue; }
-            inactivity.save(e, p.version());
-            if (e.state == InactivityState.CANCELLED) { inactivity.emit("InactivityCancelled", e.snapshot(), Map.of("by", LifecycleCanceller.SYSTEM, "reason", InactivityCancelReason.LEAVE)); }
-        }
+        for (var p : periods.ofMember(memberId)) { inactivity.closeForLeave(p.id(), effective, execute); }
+    }
+    @Transactional
+    @Audited(action = AuditAction.LEAVE_RESOLVED, entityType = "'LeaveRequest'", entity = "#id")
+    public void markExecuted(String id) {
+        var old = get(id); if (old.executedAt() != null) { return; }
+        var e = new LeaveEdit(old); e.executedAt = clock.instant(); save(e, old.version());
     }
     @Transactional
     @Audited(action = AuditAction.LEAVE_CANCELLED, entityType = "'LeaveRequest'", entity = "#id")
@@ -137,6 +133,35 @@ public class LeaveRequestService {
         member.leftAt = null; member.leftReason = null;
         if (census.enabled(Module.BILLING)) { member.planId = planId; member.priceId = priceId; member.nextInvoiceDate = nextInvoiceDate; }
         census.members.save(member); statuses.transition(id, "ACTIVE", today(), null);
+    }
+    @Transactional
+    @Audited(action = AuditAction.LEAVE_RESOLVED, entityType = "'Member'", entity = "#memberId", member = "#memberId")
+    public LeaveRequest packExpired(String memberId, String packId) {
+        if (!census.enabled(Module.PACKS)) { return null; }
+        census.members.lock(); var member = census.members.findById(memberId).orElse(null); var pack = census.references.packById(packId);
+        if (member == null || member.erasedAt != null || !"ACTIVE".equals(member.status) || member.leaveDate != null || pack.isEmpty()
+                || !memberId.equals(pack.get("memberId")) || !"EXPIRED".equals(pack.get("state"))
+                || !"PACK".equals(census.references.plan(member.planId).get("type")) || census.references.livePack(memberId, today())
+                || requests.ofMember(memberId).stream().anyMatch(r -> packId.equals(r.packBalanceId()))) { return null; }
+        var effective = LocalDate.parse(pack.get("expiresOn").toString()).plusDays(census.config().get("leave.packExpiryGraceDays", Integer.class));
+        var e = draft(memberId, effective, "PACK_EXPIRED", LeaveSource.PACK_EXPIRED); e.packBalanceId = packId;
+        approve(e, member, effective, null); var result = requests.insert(e.snapshot());
+        emit("LeaveResolved", result, Map.of("decision", LifecycleDecision.APPROVED)); return result;
+    }
+    @Transactional
+    @Audited(action = AuditAction.LEAVE_CANCELLED, entityType = "'Member'", entity = "#memberId", member = "#memberId")
+    public void packOpened(String memberId) {
+        if (!census.enabled(Module.PACKS)) { return; }
+        census.members.lock(); var m = census.members.findById(memberId).orElse(null);
+        if (m != null && "ACTIVE".equals(m.status) && m.leaveDate != null && m.leaveRequestId != null
+                && get(m.leaveRequestId).source() == LeaveSource.PACK_EXPIRED && census.references.livePack(memberId, today())) { cancelPlanned(memberId, true); }
+    }
+    @Transactional
+    public void closeForLeft(String memberId) {
+        census.members.lock(); var m = census.members.findById(memberId).orElse(null);
+        if (m == null || !"LEFT".equals(m.status)) { return; }
+        closePeriods(memberId, m.leaveDate == null ? today() : m.leaveDate, true);
+        for (var r : requests.ofMember(memberId)) { if (r.state() == LeaveRequestState.PENDING) { cancelRequest(r, LifecycleCanceller.SYSTEM, LeaveCancelReason.ADMIN); } }
     }
     LeaveRequest save(LeaveEdit e, Long expected) { e.version = expected + 1; e.updatedAt = clock.instant(); return requests.save(e.snapshot(), expected); }
     void emit(String type, LeaveRequest r, Map<String, Object> extra) {

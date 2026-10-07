@@ -84,8 +84,14 @@ class MessageTemplateSeedTest {
             String code = row.group(1), body = row.group(3);
             var seeded = seed.of(code).orElseThrow();
             var quoted = quoted(body);
-            assertThat(row.group(2)).as(code + " title").isEqualTo(seeded.title().get("ca"));
-            assertThat(quoted.getFirst()).as(code + " body").isEqualTo(seeded.body().get("ca"));
+            if (code.equals("N-28")) {
+                // E8-T05 adds planned/denied/cancelled variants; legacy events retain the approved S11 copy.
+                assertThat(seeded.title().get("ca")).contains("other {" + row.group(2) + "}");
+                assertThat(seeded.body().get("ca")).contains("other {" + quoted.getFirst() + "}");
+            } else {
+                assertThat(row.group(2)).as(code + " title").isEqualTo(seeded.title().get("ca"));
+                assertThat(quoted.getFirst()).as(code + " body").isEqualTo(seeded.body().get("ca"));
+            }
             if (body.contains("SMS: «")) { assertThat(quoted.get(1)).as(code + " SMS").isEqualTo(seeded.smsBody().get("ca")); }
             checked.add(code);
         }

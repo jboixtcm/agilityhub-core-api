@@ -42,24 +42,27 @@ public class CensusReferences extends TenantRepository<Member> {
                 }).toList();
     }
     public List<Map<String,Object>> approvedInactivity(String memberId) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), Document.class, "inactivity_periods").stream()
-                .filter(row -> Set.of("APPROVED", "ACTIVE").contains(Objects.toString(row.getOrDefault("state", row.get("status")), "")))
-                .filter(row -> row.get("from") != null && row.get("to") != null)
-                .map(row -> object("from", date(row.get("from")), "to", date(row.get("to")))).toList();
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in("APPROVED", "ACTIVE")), Document.class, "inactivity_periods").stream()
+                .map(row -> object("from", YearMonth.parse(row.getString("fromMonth")).atDay(1),
+                        "to", row.get("toMonth") == null ? null : YearMonth.parse(row.getString("toMonth")).atEndOfMonth())).toList();
+    }
+    public boolean inactive(String memberId, LocalDate today) {
+        return approvedInactivity(memberId).stream().anyMatch(p -> !date(p.get("from")).isAfter(today) && (p.get("to") == null || !date(p.get("to")).isBefore(today)));
     }
     public LocalDate inactivityEnd(String memberId, LocalDate today) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), Document.class, "inactivity_periods").stream()
-                .filter(row -> !Set.of("CANCELLED", "REJECTED", "DENIED").contains(String.valueOf(row.get("status"))))
-                .filter(row -> row.get("from") != null && row.get("to") != null)
-                .filter(row -> !date(row.get("from")).isAfter(today) && !date(row.get("to")).isBefore(today))
-                .map(row -> date(row.get("to"))).max(Comparator.naturalOrder()).orElse(null);
+        return approvedInactivity(memberId).stream().filter(p -> !date(p.get("from")).isAfter(today) && (p.get("to") == null || !date(p.get("to")).isBefore(today)))
+                .map(p -> Optional.ofNullable(date(p.get("to")))).findFirst().orElse(Optional.empty()).orElse(null);
     }
     public Map<String,Object> pack(String dogId, LocalDate today) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId)), Document.class, "pack_balances").stream()
-                .filter(row -> number(row.get("remaining")) > 0 && !Set.of("CLOSED", "EXPIRED", "CANCELLED").contains(String.valueOf(row.get("status"))))
-                .filter(row -> row.get("expiresOn") == null || !date(row.get("expiresOn")).isBefore(today))
-                .map(row -> object("id", row.get("_id"), "remaining", number(row.get("remaining")), "total", number(row.get("total")), "expiresOn", date(row.get("expiresOn"))))
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId).and("state").is("ACTIVE").and("remaining").gt(0)
+                .and("expiresOn").gte(today.toString())).with(Sort.by("expiresOn", "_id")), Document.class, "pack_balances").stream()
+                .map(row -> object("id", row.get("_id"), "remaining", number(row.get("remaining")), "total", number(row.get("sessionsTotal")), "expiresOn", date(row.get("expiresOn"))))
                 .findFirst().orElse(Map.of());
+    }
+    public Map<String,Object> packById(String id) { return one("pack_balances", "_id", id); }
+    public boolean livePack(String memberId, LocalDate today) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").is("ACTIVE")
+                .and("expiresOn").gte(today.toString())), "pack_balances");
     }
     public List<Map<String,Object>> futureBookings(String dogId, Instant now) {
         var result = new ArrayList<Map<String,Object>>();

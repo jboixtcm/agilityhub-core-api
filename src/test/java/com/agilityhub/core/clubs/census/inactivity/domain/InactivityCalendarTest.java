@@ -31,6 +31,13 @@ class InactivityCalendarTest {
         fails(() -> InactivityCalendar.change(m("2026-09"), null, m("2026-09"), m("2026-11"), m("2027-01")), ErrorCode.INACTIVITY_DEADLINE_PASSED);
         InactivityCalendar.change(m("2026-09"), m("2026-11"), m("2026-09"), null, m("2026-12"));
     }
+    @Test void T_13_03_movingTheStartCannotChangeAnAlreadyFixedMonth() {
+        var earliest = m("2026-12");
+        fails(() -> InactivityCalendar.change(m("2026-11"), m("2027-03"), m("2026-12"), m("2027-03"), earliest), ErrorCode.INACTIVITY_DEADLINE_PASSED);
+        fails(() -> InactivityCalendar.change(m("2026-12"), m("2027-03"), m("2026-11"), m("2027-03"), earliest), ErrorCode.INACTIVITY_DEADLINE_PASSED);
+        assertThatCode(() -> InactivityCalendar.change(m("2026-12"), m("2027-03"), m("2027-01"), m("2027-03"), earliest)).doesNotThrowAnyException();
+        assertThat(InactivityCalendar.mayChange(m("2026-11"), LocalDate.parse("2026-11-24"), 25)).isFalse();
+    }
     @Test void T_13_04_rangesRejectReversedAndTooDistantMonthsAndDetectAdjacency() {
         assertThat(InactivityCalendar.overlapsOrAdjacent(m("2026-11"), m("2026-12"), m("2026-12"), m("2027-01"))).isTrue();
         assertThat(InactivityCalendar.overlapsOrAdjacent(m("2026-11"), m("2026-12"), m("2027-01"), m("2027-01"))).isTrue();

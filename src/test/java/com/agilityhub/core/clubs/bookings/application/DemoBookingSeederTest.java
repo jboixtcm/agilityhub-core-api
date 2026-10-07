@@ -25,7 +25,7 @@ class DemoBookingSeederTest {
         var classes = mock(ClassSessionBookingAccess.class); var members = mock(DemoMembers.class);
         when(catalogs.ringIdsByShortName()).thenReturn(Map.of("CEN", "ring-cen"));
         when(sessions.slot(any(), any(), any())).thenReturn(Optional.empty());
-        var seeder = new DemoBookingSeeder(sessions, catalogs, new ObjectMapper().findAndRegisterModules(), null, classes, members, null);
+        var seeder = new DemoBookingSeeder(sessions, catalogs, new ObjectMapper().findAndRegisterModules(), null, classes, members);
         var specification = Map.<String, Object>of("bookings", List.of(row(0), row(1), row(2)));
         // Weeks 0 and 1 were kept (one of them possibly validated by the run); only week 2 was generated.
         var counts = seeder.apply(new DemoSeedStep.Input(specification, 42, MONDAY, "admin", Set.of(), List.of(), MONDAY, true, new TreeSet<>(Set.of(2))));

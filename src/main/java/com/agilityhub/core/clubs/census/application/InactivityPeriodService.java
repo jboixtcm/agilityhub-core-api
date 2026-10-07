@@ -26,6 +26,12 @@ public class InactivityPeriodService {
     public YearMonth earliest() { return InactivityCalendar.earliest(local.today(TenantContext.require()), census.config().get("inactivity.requestDeadlineDay", Integer.class)); }
     public InactivityPeriod get(String id) { return periods.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public List<InactivityPeriod> ofMember(String id) { return periods.ofMember(id); }
+    public record Window(String fromMonth, String toMonth) { }
+    public Optional<Window> covering(String id, LocalDate date) {
+        if (!census.enabled(Module.INACTIVITY)) { return Optional.empty(); }
+        return periods.ofMember(id).stream().filter(p -> p.state() == InactivityState.APPROVED || p.state() == InactivityState.ACTIVE)
+                .filter(p -> InactivityCalendar.covers(ym(p.fromMonth()), ym(p.toMonth()), YearMonth.from(date))).map(p -> new Window(p.fromMonth(), p.toMonth())).findFirst();
+    }
     private YearMonth month() { return YearMonth.from(local.today(TenantContext.require())); }
     private static YearMonth ym(String value) { return value == null ? null : YearMonth.parse(value); }
     private void validMember(String id) {
@@ -127,6 +133,19 @@ public class InactivityPeriodService {
         var h = new ArrayList<>(e.history); h.add(new InactivityPeriod.HistoryEntry(clock.instant(), actor(), e.fromMonth, to, ChangeSource.ADMIN)); e.history = List.copyOf(h);
         if (ym(to).isBefore(month())) { e.state = InactivityState.FINISHED; e.finishReason = InactivityFinishReason.ADMIN; e.finishedAt = clock.instant(); }
         var result = save(e, old.version()); emit(e.state == InactivityState.FINISHED ? "InactivityEnded" : "InactivityChanged", result, Map.of()); return result;
+    }
+    @Transactional
+    @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#id")
+    public void closeForLeave(String id, LocalDate effective, boolean execute) {
+        var p = get(id); var e = new InactivityEdit(p);
+        if (p.state() == InactivityState.ACTIVE) {
+            e.toMonth = YearMonth.from(effective).toString(); e.finishReason = InactivityFinishReason.LEAVE;
+            if (execute) { e.state = InactivityState.FINISHED; e.finishedAt = clock.instant(); }
+        } else if (p.state() == InactivityState.REQUESTED || p.state() == InactivityState.APPROVED) {
+            cancelled(e, LifecycleCanceller.SYSTEM, InactivityCancelReason.LEAVE);
+        } else { return; }
+        var saved = save(e, p.version());
+        if (e.state == InactivityState.CANCELLED) { emit("InactivityCancelled", saved, Map.of("by", LifecycleCanceller.SYSTEM, "reason", InactivityCancelReason.LEAVE)); }
     }
     void cancelled(InactivityEdit e, LifecycleCanceller by, InactivityCancelReason reason) {
         e.state = InactivityState.CANCELLED; e.cancelledAt = clock.instant(); e.cancelledBy = by; e.cancelReason = reason;

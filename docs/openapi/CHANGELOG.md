@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-07 · E8-T05 · packs, inactivity and leave
+
+- The reserved pack, manual upfront-payment and S13 lifecycle routes now serve their documented operations.
+- `POST /members/{id}/plan-change` (ADMIN, BILLING, Idempotency-Key) changes the current plan and price and creates a discounted DUE entry fee for an eligible pack-to-monthly change. `effectiveMonth`, when supplied, must equal the current club-local month.
+- Member lists expose `leaveSource`, `inactivityUntil` and `hasPendingRequest`; member overview adds `inactivity` and `plannedLeave`. Inactivity detail adds nullable `bookingsInside` when automatic cancellation is disabled.
+- Booking, waitlist and activity operations publish the catalog `MEMBER_LEAVING` response after the inclusive leave day.
+- Free training enforces the dog owner's inclusive leave day (`MEMBER_LEAVING` afterwards) and inactivity period; its published errors include `MEMBER_LEAVING` and `DOG_NOT_ACTIVE`.
+- Inactivity PATCH schemas reject unknown fields and require a nonnegative version. Erased-member writes remain 409; lifecycle state/duplicate conflicts follow the current error catalog (409).
+
 ## 2026-10-05 · E8-T04 round 2 · card invalidation and card-charge states
 
 - `PaymentMethodView.invalid` on member responses is a boolean present only for `type = CARD`; it is absent for other methods.

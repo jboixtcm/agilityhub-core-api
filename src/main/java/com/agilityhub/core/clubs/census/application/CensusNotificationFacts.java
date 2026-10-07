@@ -46,18 +46,21 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class CensusNotificationFacts implements NotificationFactsPort {
     private static final Set<String> TYPES = Set.of("SignupSubmitted", "MemberValidated", "SignupRejected", "DogLevelChanged", "DogRegistered", "DogDeactivated",
-            "BookingBlockChanged", "DogDocumentPending", "DocumentReminderDue", "MemberPaymentMethodChanged");
+            "BookingBlockChanged", "DogDocumentPending", "DocumentReminderDue", "MemberPaymentMethodChanged",
+            "InactivityRequested", "InactivityResolved", "InactivityEnded", "InactivityChanged", "LeaveRequested", "LeaveResolved", "LeaveCancelled",
+            "PackLowBalance", "PackExpiring", "PackExpired");
     private final CensusAccess access; private final CensusClubSettings settings; private final SignupRecipientCap cap;
-    private final DocumentService documents;
+    private final DocumentService documents; private final com.agilityhub.core.shared.application.IcuMessageSource texts;
 
     public CensusNotificationFacts(CensusAccess access, CensusClubSettings settings, SignupRecipientCap cap,
-            DocumentService documents) {
-        this.access = access; this.settings = settings; this.cap = cap; this.documents = documents;
+            DocumentService documents, com.agilityhub.core.shared.application.IcuMessageSource texts) {
+        this.access = access; this.settings = settings; this.cap = cap; this.documents = documents; this.texts = texts;
     }
 
     @Override public Set<String> eventTypes() { return TYPES; }
 
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
+        if (Set.of("N-11a", "N-11b", "N-14", "N-18a", "N-18b", "N-18c", "N-18d", "N-28").contains(code)) { return lifecycle(trigger, code); }
         return switch (trigger.type()) {
             case "SignupSubmitted", "SignupRejected", "MemberValidated" -> signup(trigger);
             case "DogLevelChanged" -> dog(trigger, trigger.text("dogId")).map(builder -> builder.value("level_name", level(trigger.text("after"))).build());
@@ -74,6 +77,38 @@ public class CensusNotificationFacts implements NotificationFactsPort {
             case "MemberPaymentMethodChanged" -> member(trigger).map(builder -> builder.value("masked_account", trigger.text("masked")).build());
             default -> Optional.empty();
         };
+    }
+
+    private Optional<NotificationFacts> lifecycle(NotificationTrigger t, String code) {
+        String id = t.text("memberId"); var member = id == null ? null : access.members.findById(id).orElse(null);
+        if (member == null || member.erasedAt != null || code.equals("N-18c") && "LEAVE".equals(t.text("finishReason"))) { return Optional.empty(); }
+        var builder = NotificationFacts.builder().subject(NotificationSubject.member(id)).value("entityId", id);
+        if (Set.of("N-14", "N-18a", "N-18d").contains(code)) { builder.audiences("ADMINS"); } else { builder.member(id, t.text("dogId")); }
+        builder.value("member_name", Stream.of(member.firstName, member.lastName1, member.lastName2).filter(Objects::nonNull).collect(Collectors.joining(" ")))
+                .value("from_month", Objects.toString(t.text("from"), "")).value("to_month", Objects.toString(t.text("to"), ""))
+                .value("decision", t.type().equals("LeaveCancelled") ? "CANCELLED" : Objects.toString(t.text("decision"), ""))
+                .value("source", Objects.toString(t.text("source"), "")).value("admin_text", new NotificationValues.Localized(locale -> Objects.toString(t.text("admin_text"), "")
+                        + (t.payload().get("bookingsInside") instanceof Number n && n.intValue() > 0
+                        ? " " + texts.format("notif.N-18b.bookingsInside", Map.of("count", n.intValue()), locale) : "")))
+                .value("cancelled_count", t.payload().get("cancelledBookings") instanceof Collection<?> c ? c.size() : 0)
+                .value("effective_date", Objects.toString(t.text("effectiveDate"), "")).value("requested_date", Objects.toString(t.text("requestedDate"), ""));
+        if (code.equals("N-28")) {
+            builder.value("dog_name", access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("memberId").is(id)).stream()
+                    .map(d -> d.name).filter(Objects::nonNull).collect(Collectors.joining(", ")));
+        }
+        var fee = map(map(t.payload().get("fee")).get("firstMonth"));
+        builder.value("fee", fee.get("amountMinor") instanceof Number n ? new Money(n.longValue(), string(fee.get("currency"))) : "");
+        builder.value("reason", new NotificationValues.Localized(locale -> rows(access.config().get("leave.reasons", List.class)).stream()
+                .filter(r -> Objects.equals(r.get("key"), t.text("reasonKey"))).findFirst().map(r -> {
+                    var labels = map(r.get("label")); if (labels.containsKey("values")) { labels = map(labels.get("values")); }
+                    return Objects.toString(labels.getOrDefault(locale.getLanguage(), labels.get(access.config().club().defaultLocale())), "");
+                }).orElse("")));
+        if (code.startsWith("N-11")) {
+            var dog = access.dogs.findById(t.text("dogId")).orElse(null); if (dog == null) { return Optional.empty(); }
+            builder.value("dog_name", dog.name).value("pack_remaining", t.payload().getOrDefault("remaining", 0))
+                    .value("pack_expiry", Objects.toString(t.text("expiresOn"), "")).value("entityId", dog.id).subject(NotificationSubject.dog(dog.id));
+        }
+        return Optional.of(builder.build());
     }
 
     /** The dog's owner as the MEMBER subject (one notification per dog). */

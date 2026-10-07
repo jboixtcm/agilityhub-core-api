@@ -15,6 +15,7 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class CensusQuery {
     private final CensusAccess access; private final DocumentService documents; private final AttachmentService attachments;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<LifecycleViews> lifecycle;
     private final ClubClock clock;
     public CensusQuery(CensusAccess access, DocumentService documents, AttachmentService attachments, ClubClock clock) {
         this.access = access; this.documents = documents; this.attachments = attachments; this.clock = clock;
@@ -23,6 +24,9 @@ public class CensusQuery {
     public String fullName(Member member) { return String.join(" ", List.of(member.firstName == null ? "" : member.firstName,
             member.lastName1 == null ? "" : member.lastName1, member.lastName2 == null ? "" : member.lastName2)).strip(); }
     public Map<String,Object> status(Member member) {
+        if ("ACTIVE".equals(member.status) && member.erasedAt == null && access.enabled(Module.INACTIVITY) && access.references.inactive(member.id, today())) {
+            return object("kind", "INACTIVE_PERIOD", "label", "INACTIVE_PERIOD", "date", access.references.inactivityEnd(member.id, today()));
+        }
         var status = CensusRules.status(member.status, member.leaveDate, access.enabled(Module.INACTIVITY)
                 ? access.references.inactivityEnd(member.id, today()) : null, member.erasedAt, today());
         return object("kind", status.kind(), "label", status.kind(), "date", status.date());
@@ -166,6 +170,8 @@ public class CensusQuery {
             var view = object("id", dog.id, "name", dog.name, "breed", dog.breed, "level", level(dog.levelId), "pack", pack(dog.id), "pendingDocuments", documents.pending(dog.id));
             if (access.enabled(Module.FREE_TRAINING)) { view.put("freeTrainingAllowed", access.free(dog).allowed()); } return view;
         }).toList(), "notificationPreferences", preferences(member), "recentAudit", access.references.recentAudit(id));
+        result.put("plannedLeave", lifecycle.getObject().plannedLeave(id));
+        if (access.enabled(Module.INACTIVITY)) { result.put("inactivity", lifecycle.getObject().overviewInactivity(id)); }
         if (access.enabled(Module.FAMILY_GROUP) && member.familyGroupId != null) { result.put("familyGroup", family(member.familyGroupId)); }
         if (access.enabled(Module.BILLING)) {
             var invoices = access.references.invoices(id); result.put("recentInvoices", invoices.stream().limit(2).toList()); result.put("invoicesCount", invoices.size());

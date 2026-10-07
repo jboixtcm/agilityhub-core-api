@@ -26,7 +26,7 @@ public class LeaveScheduler {
                     leaves.sweep(member.id, member.leaveDate); leaves.closePeriods(member.id, member.leaveDate, true);
                     member.leftAt = clock.instant(); member.leftReason = request == null ? "MIGRATED" : request.source() == LeaveSource.MEMBER ? "LEAVE_REQUEST" : request.source().name();
                     census.members.save(member); statuses.transition(member.id, "LEFT", member.leaveDate, member.leftReason);
-                    if (request != null) { var e = new LeaveEdit(request); e.executedAt = clock.instant(); leaves.save(e, request.version()); }
+                    if (request != null) { leaves.markExecuted(request.id()); }
                     return true;
                 });
                 if (changed) { count++; }

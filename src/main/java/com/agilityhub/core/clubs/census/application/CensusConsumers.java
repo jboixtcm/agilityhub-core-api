@@ -14,6 +14,15 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 /** Durable handler bean names are the outbox's per-consumer checkpoints. */
 @Configuration
 public class CensusConsumers {
+    @Bean DomainEventHandler<CensusEvent> censusPackExpired(LeaveRequestService leaves, LifecycleTransactions transactions) {
+        return handler("PackExpired", e -> transactions.run(() -> leaves.packExpired(string(e.payload().get("memberId")), string(e.payload().get("packBalanceId")))));
+    }
+    @Bean DomainEventHandler<CensusEvent> censusPackRenewed(LeaveRequestService leaves, LifecycleTransactions transactions) {
+        return handler("PackOpened", e -> transactions.run(() -> { leaves.packOpened(string(e.payload().get("memberId"))); return null; }));
+    }
+    @Bean DomainEventHandler<CensusEvent> censusCloseLeftPeriods(LeaveRequestService leaves, LifecycleTransactions transactions) {
+        return handler("MemberStatusChanged", e -> { if ("LEFT".equals(e.payload().get("after"))) { transactions.run(() -> { leaves.closeForLeft(string(e.payload().get("memberId"))); return null; }); } });
+    }
     @Bean DomainEventHandler<CensusEvent> censusLastClassDog(CensusAccess access) { return handler("BookingCreated", event -> remember(access, event, false)); }
     @Bean DomainEventHandler<CensusEvent> censusLastTrainingDog(CensusAccess access) { return handler("TrainingBooked", event -> remember(access, event, true)); }
     @Bean DomainEventHandler<CensusEvent> censusMemberLeft(CensusAccess access, DogService dogs, ClubClock clock) {

@@ -1,0 +1,9 @@
+heavy.sh: 10:42 waiting for the host lock, held by: 10:38 agilityhub-core-api: bin/e5-smoke
+heavy.sh: 10:44 got the host lock after 1 min 30 s
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-clean-plugin:3.4.1:clean (default-clean) on project agilityhub-core-api: Failed to clean project: Failed to delete /Users/jordib/dev/agilityhub/agilityhub-core-api/target/classes/com/agilityhub/core/clubs/common -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

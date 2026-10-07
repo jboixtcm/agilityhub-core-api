@@ -181,7 +181,10 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED, description = "S04 virtual field; E3-T03 projection") Boolean signupPending,
             @Schema(requiredMode = NOT_REQUIRED) List<DogSummary> pendingDogs,
             @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.shared.application.contract.SignupWarning> warnings,
-            @Schema(requiredMode = NOT_REQUIRED) MemberListSignup signup) { }
+            @Schema(requiredMode = NOT_REQUIRED) MemberListSignup signup,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) com.agilityhub.core.clubs.census.domain.LeaveSource leaveSource,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate inactivityUntil,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean hasPendingRequest) { }
     public record MemberListSignup(@Schema(requiredMode = REQUIRED) Instant submittedAt) { }
     public record License(
             @Schema(requiredMode = REQUIRED, maxLength = 20) String organisation,
@@ -391,7 +394,9 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2) List<InvoiceSummary> recentInvoices,
             @Schema(requiredMode = NOT_REQUIRED) long invoicesCount,
             @Schema(requiredMode = REQUIRED) @Size(max = 2) List<AuditSummary> recentAudit,
-            @Schema(requiredMode = NOT_REQUIRED) NextInvoice nextInvoice) { }
+            @Schema(requiredMode = NOT_REQUIRED) NextInvoice nextInvoice,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, Object> inactivity,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LifecycleContracts.PlannedLeave plannedLeave) { }
     public record LevelChangeResult(
             @Schema(requiredMode = REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) Instant levelAssignedAt) { }

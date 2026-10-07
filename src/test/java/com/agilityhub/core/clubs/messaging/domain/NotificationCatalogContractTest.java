@@ -39,7 +39,7 @@ class NotificationCatalogContractTest {
     static final String AVAILABLE = "## Variables disponibles (claus de codi; etiqueta en l'idioma de l'admin a D9)";
     static final Pattern GENERAL_SENTENCE = Pattern.compile("`([a-z_]+)` és una variable general");
     /** Events the row does not name: S11 §7 (N-15/N-23) and E5-T03 (N-46). */
-    static final Map<String, Set<String>> EXTRA_EVENTS = Map.of("N-15", Set.of("WaitlistNotified"), "N-23", Set.of("DogDocumentPending"),
+    static final Map<String, Set<String>> EXTRA_EVENTS = Map.of("N-28", Set.of("LeaveCancelled"),"N-15", Set.of("WaitlistNotified"), "N-23", Set.of("DogDocumentPending"),
             "N-46", Set.of("WaitlistConsolidated", "BookingCreated"));
     /** Names a row writes that are no emitting event: N-15's SeatReleased (it leads to WaitlistNotified), N-46's reverted offer, N-50's ExportJob. */
     static final Map<String, Set<String>> NOT_EMITTED = Map.of("N-15", Set.of("SeatReleased"), "N-46", Set.of("WaitlistNotified"), "N-50", Set.of("ExportJob"));

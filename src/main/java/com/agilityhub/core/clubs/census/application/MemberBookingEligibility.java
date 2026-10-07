@@ -22,6 +22,19 @@ public class MemberBookingEligibility {
         if (!"ACTIVE".equals(actor.status) || !"ACTIVE".equals(owner.status)) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
         if (!"ACTIVE".equals(dog.status)) { throw new ApiException(ErrorCode.DOG_NOT_ACTIVE); }
     }
+    public void check(String actorMemberId, String dogId, java.time.LocalDate sessionDate) {
+        check(actorMemberId, dogId);
+        var owner = access.mutableMember(access.dogs.require(dogId).memberId);
+        if (access.enabled(Module.INACTIVITY)) {
+            access.references.approvedInactivity(owner.id).stream().filter(p -> !date(p.get("from")).isAfter(sessionDate)
+                    && (p.get("to") == null || !date(p.get("to")).isBefore(sessionDate))).findFirst().ifPresent(p -> {
+                        throw new ApiException(ErrorCode.INACTIVITY_PERIOD, object("from", p.get("from"), "to", p.get("to")));
+                    });
+        }
+        if (owner.leaveDate != null && sessionDate.isAfter(owner.leaveDate)) {
+            throw new ApiException(ErrorCode.MEMBER_LEAVING, java.util.Map.of("leaveDate", owner.leaveDate));
+        }
+    }
     private void blocked(Member member) {
         var block = map(member.bookingBlock);
         if (Boolean.TRUE.equals(block.get("active"))) { throw new ApiException(ErrorCode.BOOKING_BLOCKED, select(block, "reason", "since")); }

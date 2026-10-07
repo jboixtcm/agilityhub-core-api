@@ -51,6 +51,7 @@ public final class LifecycleContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant cancelledAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LifecycleCanceller cancelledBy,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) InactivityCancelReason cancelReason, List<CancelledBooking> cancelledBookings,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, minimum = "0") Integer bookingsInside,
             List<InactivityHistoryEntry> history, InactivityEditable editable, long version) { }
     @Schema(description = "A row of «Inactivitats» (universal list, CONVENCIONS_API §4): only the row id is required, fields= leaves out the rest")
     @com.agilityhub.core.shared.application.contract.SparseListItem

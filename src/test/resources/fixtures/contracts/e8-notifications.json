@@ -1,7 +1,7 @@
 {
   "N-10": {"event": "InvoiceFailed", "variables": ["member_name", "invoice_number", "amount", "reason"], "action": "OPEN_INVOICES"},
   "N-11a": {"event": "PackLowBalance", "variables": ["dog_name", "pack_remaining"], "action": "OPEN_DOG"},
-  "N-11b": {"event": "PackExpiring", "variables": ["dog_name", "pack_expiry"], "action": "OPEN_DOG"},
+  "N-11b": {"event": "PackExpiring", "variables": ["dog_name", "pack_expiry", "pack_remaining"], "action": "OPEN_DOG"},
   "N-14": {"event": "LeaveRequested", "variables": ["member_name", "requested_date", "reason"], "action": "OPEN_MEMBER"},
   "N-18a": {"event": "InactivityRequested", "variables": ["member_name", "from_month", "to_month"], "action": "OPEN_MEMBER"},
   "N-18b": {"event": "InactivityResolved", "variables": ["from_month", "to_month", "decision", "fee", "admin_text", "cancelled_count"], "action": null},

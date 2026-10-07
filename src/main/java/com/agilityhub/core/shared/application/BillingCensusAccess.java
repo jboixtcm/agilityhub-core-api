@@ -49,6 +49,10 @@ public interface BillingCensusAccess {
     record Card(String customerId, String paymentMethodId, String last4, String brand, boolean invalid) {
         public boolean usable() { return !invalid && customerId != null && paymentMethodId != null; }
     }
+    /** Serialize a plan change with other census decisions in the caller's transaction. */
+    String packPlan(String memberId, String dogId);
+    String lockPlan(String memberId);
+    void changePlan(String memberId, String planId, String priceId);
     Optional<Card> card(String memberId);
     void saveCard(String memberId, Card card);
     List<String> invalidateCards(String customerId, String paymentMethodId);

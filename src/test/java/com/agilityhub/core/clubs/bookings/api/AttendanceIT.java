@@ -362,7 +362,7 @@ class AttendanceIT extends BookingFixtures {
         for (boolean singleClass : List.of(true, false)) {
             fixtures(); S12Double.RECEIVED.clear();
             if (!singleClass) { modules(Arrays.stream(Module.values()).filter(m -> m != Module.SINGLE_CLASS).toArray(Module[]::new)); }
-            mongo.save(new Document("_id", "s08-plan-single").append("clubId", CLUB).append("type", "SINGLE_CLASS")
+            mongo.save(planDocument("s08-plan-single", "SINGLE_CLASS")
                     .append("singleClass", new Document("chargeMode", "CHARGE_ON_ATTENDANCE")), "plans");
             mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("planId", "s08-plan-single"), "members");
             var duna = id(book(as("laura"), "wed", "s08-d-duna"));

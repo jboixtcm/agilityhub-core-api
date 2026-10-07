@@ -1,0 +1,73 @@
+clean verify exit code: 0
+surefire: tests=3700, failures=0, errors=0, skipped=0
+com.agilityhub.core.arch.ArchitectureTest: tests=17, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.activities.domain.ActivityRulesTest: tests=10, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.application.BookingPortsTest: tests=8, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.application.DemoBookingSeederTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.domain.BookingRulesTest: tests=16, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.application.LifecycleRulesTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.inactivity.domain.InactivityCalendarTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.NotificationSeedSnapshotTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E8ResponseContractTest: tests=10, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.packs.PackBalanceServiceTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2, failures=0, errors=0, skipped=0
+failsafe: tests=1519, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.AttendanceIT: tests=19, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.BookingsIT: tests=20, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleCurlIT: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleIT: tests=24, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT: tests=7, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.api.CensusIT: tests=44, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT: tests=2, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.training.api.TrainingIT: tests=26, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E8ContractIT: tests=71, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+Shared fixture/helpers (not executable classes): ArchitectureRules, BookingFixtures, TrainingFixtures
+Spec method inventory:
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleCurlIT.java: T_13_08_T_13_16_T_13_22_curlApprovalOverviewLeaveAndList
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_12_07_adjustWritesTheBalanceAndItsAuditInOneTransaction
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_12_07_manualPaymentOpensOnlyWhenFullyPaidAndRecordsTheWholeMovementCycle
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_08_requestUsesDeadlineAndReplaysTheSameKey
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_09_approvalCancelsAllFourKindsAndRefundsOnlyTheOwnersPack
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_09_lastOwnerFailureRollsBackTheDecisionAndEarlierCancellations
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_10_disabledCancellationKeepsBookings
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_12_adminOverrideIsRecordedAndRequired
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_13_extensionKeepsTheFeeSnapshotAndAppendsHistory
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_14_withdrawalRespectsTheApprovedDeadline
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_15_invalidLeaveInputsAndWithdrawalKeepTheStoredStateConsistent
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_15_onePendingRequestAndDisabledNps
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_17_leaveTakesEffectTheNextDayAndRunsOnce
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_18_T_13_19_directLeaveSupersedesPendingAndCancellationClearsTheDate
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_20_expirySchedulesOneLeaveAndRenewalCancelsIt
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_20_packToMonthlyWritesDiscountedDueEntryAndAuditsWithoutMovingInvoiceDate
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_21_reactivationKeepsNumberAndInactiveDogsAndDoesNotChargeEntry
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_22_plannedLeaveFiltersOverviewAndProtectedSystemView
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_23_previewHasMonthlyFeesAndOmitsDisabledModuleCounts
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_24_memberCannotReachAFamilyMembersPeriodAndInstructorIsForbidden
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_25_billingOffOmitsFeesAndInactivityOffBlocksTheRoute
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_26_stalePatchCannotOverwriteANewerEdit
+src/test/java/com/agilityhub/core/clubs/bookings/api/LifecycleIT.java: T_13_26_twoConcurrentDecisionsCommitOnlyOneApproval
+src/test/java/com/agilityhub/core/clubs/census/application/LifecycleRulesTest.java: T_13_05_onlyApprovedActiveOrFinishedMonthsUseTheFrozenFee
+src/test/java/com/agilityhub/core/clubs/census/application/LifecycleRulesTest.java: T_13_06_leaveBillingIncludesTheFinalMonthAccordingToTheParameter
+src/test/java/com/agilityhub/core/clubs/census/application/LifecycleRulesTest.java: T_13_07_eligibilityUsesTheDogsOwnerAndIncludesTheLeaveDate
+src/test/java/com/agilityhub/core/clubs/census/inactivity/domain/InactivityCalendarTest.java: T_13_01_deadlineIsInclusiveAndClampedToTheMonthsLastDay
+src/test/java/com/agilityhub/core/clubs/census/inactivity/domain/InactivityCalendarTest.java: T_13_02_theSameInstantHasDifferentDeadlinesInMadridAndBuenosAires
+src/test/java/com/agilityhub/core/clubs/census/inactivity/domain/InactivityCalendarTest.java: T_13_03_movingTheStartCannotChangeAnAlreadyFixedMonth
+src/test/java/com/agilityhub/core/clubs/census/inactivity/domain/InactivityCalendarTest.java: T_13_03_shorteningExtendingAndClosingAnOpenPeriodOnlyFlipModifiableMonths
+src/test/java/com/agilityhub/core/clubs/census/inactivity/domain/InactivityCalendarTest.java: T_13_04_rangesRejectReversedAndTooDistantMonthsAndDetectAdjacency
+src/test/java/com/agilityhub/core/clubs/training/api/TrainingIT.java: T_13_07_trainingUsesTheDogOwnerForLeaveAndInactivity
+src/test/java/com/agilityhub/core/clubs/training/api/TrainingIT.java: T_13_09_T_13_16_trainingCancellationsFollowDogOwnership
+src/test/java/com/agilityhub/core/payments/application/packs/PackBalanceServiceTest.java: T_12_07_T_12_31_consumesEarliestQualifyingPackAndWarnsOnlyOnce
+src/test/java/com/agilityhub/core/payments/application/packs/PackBalanceServiceTest.java: T_12_07_adjustRejectsNegativeBalancesAndRequiresANewExpiryToReopen
+src/test/java/com/agilityhub/core/payments/application/packs/PackBalanceServiceTest.java: T_12_07_openUsesInclusiveValidityAndIsIdempotentPerPayment
+src/test/java/com/agilityhub/core/payments/application/packs/PackBalanceServiceTest.java: T_12_22_packsOffDoesNotReadOrWriteBalances
+src/test/java/com/agilityhub/core/payments/application/packs/PackBalanceServiceTest.java: T_12_31_refundAfterExpiryIsRecordedOnceAndRemainsUnusable
+T_13_07 asserted output: 2026-10-30 ALLOWED; 2026-11-03 INACTIVITY_PERIOD; 2027-01-02 ALLOWED; leave day ALLOWED; next day MEMBER_LEAVING; inactivity wins when both apply.
+Inactivity calendar coverage BRANCH: 91.67%
+Inactivity calendar coverage LINE: 100.0%

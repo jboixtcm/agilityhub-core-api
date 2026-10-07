@@ -30,11 +30,12 @@ public class E8ContractConfiguration implements WebMvcConfigurer {
             "com.agilityhub.core.payments.api.RemittancesController", "com.agilityhub.core.payments.api.InvoicesController",
             "com.agilityhub.core.payments.api.MyBillingController", "com.agilityhub.core.payments.api.UpfrontPaymentsController",
             "com.agilityhub.core.payments.api.PackBalancesController", "com.agilityhub.core.payments.api.MemberBillingController",
+            "com.agilityhub.core.payments.api.MemberPlanChangeController",
             "com.agilityhub.core.clubs.census.api.InactivityController", "com.agilityhub.core.clubs.census.api.LeaveController");
     /** The E8 forms with a nullable object or enum reference: published as the union `anyOf [$ref, null]`. */
     static final List<String> NULLABLE_REFERENCES = List.of("InvoicePaymentMethod", "BillingRunResult", "BillingPeriod", "UpfrontPayment",
             "UpfrontPaymentProvider", "InactivityPeriod", "InactivityPeriodListItem", "MeInactivityPeriod", "MeInactivityContext", "LeaveMember",
-            "LeaveRequest", "MeLeaveRequest", "MeLeaveContext");
+            "LeaveRequest", "MeLeaveRequest", "MeLeaveContext", "MemberListItem", "MemberOverview");
     static final List<Class<?>> DETAILS = List.of(BillingContracts.RunNotRollbackableDetails.class, BillingContracts.CollectionDateTooSoonDetails.class,
             BillingContracts.MaxAttemptsDetails.class, LifecycleContracts.InactivityDeadlineDetails.class, LifecycleContracts.InactivityOverlapDetails.class,
             LifecycleContracts.MemberLeavingDetails.class);

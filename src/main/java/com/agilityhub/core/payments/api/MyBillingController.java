@@ -112,7 +112,7 @@ public class MyBillingController {
     @RequiresModule(Module.PACKS)
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "myPackBalances", description = ROLES + "PACKS off → 404 MODULE_DISABLED. Screen 13 «Pack {n} — amb {gos}»: the packs of "
-            + "the caller's dogs with their movements, the live ones first." + STUB,
+            + "the caller's dogs with their movements, the live ones first.",
             responses = @ApiResponse(responseCode = "200", description = "PackBalanceDetail[]", useReturnTypeSchema = true))
     public List<PackBalanceDetail> myPackBalances() {
         access.member(access.me());

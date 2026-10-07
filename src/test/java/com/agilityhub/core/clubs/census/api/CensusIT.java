@@ -303,7 +303,7 @@ class CensusIT extends AbstractIntegrationTest {
         field("members", "two", "status", "LEFT"); error(admin(body(post("/api/v1/dogs/dog-one/transfer"), Map.of("toMemberId", "two"))), ErrorCode.TARGET_MEMBER_NOT_ACTIVE);
         field("members", "two", "status", "ACTIVE"); reference("bookings", "future", "dog-one", "ACTIVE", clock.instant().plusSeconds(100));
         error(admin(body(post("/api/v1/dogs/dog-one/transfer"), Map.of("toMemberId", "two"))), ErrorCode.DOG_HAS_FUTURE_BOOKINGS);
-        mongo.remove(new Query(), "bookings"); mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-one").append("remaining", 2).append("total", 10), "pack_balances");
+        mongo.remove(new Query(), "bookings"); mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-one").append("remaining", 2).append("sessionsTotal", 10).append("state", "ACTIVE").append("expiresOn", "2027-12-31"), "pack_balances");
         error(admin(body(post("/api/v1/dogs/dog-one/transfer"), Map.of("toMemberId", "two"))), ErrorCode.DOG_HAS_OPEN_PACK);
         mongo.remove(new Query(), "pack_balances"); var before = dog("dog-one").levelHistory;
         admin(body(post("/api/v1/dogs/dog-one/transfer"), Map.of("toMemberId", "two"))).andExpect(status().isOk()).andExpect(jsonPath("$.memberId").value("two"));
@@ -364,7 +364,7 @@ class CensusIT extends AbstractIntegrationTest {
         family();
         field("dogs", "dog-two", "licenses", List.of(object("organisation", "EXAMPLE", "number", "123", "category", "M", "grade", "2", "division", "2D")));
         field("dogs", "dog-two", "handlerName", "Example Handler");
-        mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-two").append("remaining", 4).append("total", 10), "pack_balances");
+        mongo.insert(new Document("_id", "pack").append("clubId", CLUB).append("dogId", "dog-two").append("remaining", 4).append("sessionsTotal", 10).append("state", "ACTIVE").append("expiresOn", "2027-12-31"), "pack_balances");
         task("pending", "PENDING", null); task("recent", "DONE", clock.instant().minus(Duration.ofDays(30))); task("old", "DONE", clock.instant().minus(Duration.ofDays(31)));
         var response = json(own(get("/api/v1/me/dogs")), 200); assertThat(response.path("dogs")).hasSize(2); assertThat(response.toString()).doesNotContain("chip", "handlerName", "passwordHash", "dog-family");
         assertThat(response.path("dogs").get(0).path("tasks").path("items")).hasSize(2);

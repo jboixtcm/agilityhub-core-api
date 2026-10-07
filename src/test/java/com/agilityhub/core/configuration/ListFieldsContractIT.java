@@ -73,7 +73,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
      * The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves
      * invoices, E8-T03 remittances).
      */
-    static final Set<String> STUBS = Set.of("/api/v1/inactivity-periods", "/api/v1/leave-requests");
+    static final Set<String> STUBS = Set.of();
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -267,6 +267,17 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                 "ES0000000000000000009876", null), List.of("list-fields-collection"), 1, fee,
                 new com.agilityhub.core.payments.persistence.Remittance.SequenceBreakdown(0, 1), "remittances/" + canic + "/2026-09/canic-2026-09-1.xml",
                 clock.instant(), null, com.agilityhub.core.payments.domain.RemittanceStatus.GENERATED, null, null, 0L, clock.instant(), "list-fields-admin"));
+        // E8-T05: live S13 rows, including the null optional fields returned by ListEngine.
+        var monthlyPlan = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("type").is("MONTHLY")), org.bson.Document.class, "plans");
+        var lifecycleMember = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("status").is("ACTIVE").and("planId").is(monthlyPlan.getString("_id"))), org.bson.Document.class, "members").getString("_id");
+        mongo.save(new org.bson.Document("_id", "list-fields-period").append("clubId", canic).append("memberId", lifecycleMember)
+                .append("fromMonth", "2026-10").append("toMonth", null).append("comments", null).append("state", "REQUESTED").append("origin", "APP")
+                .append("requestedAt", now).append("decision", null).append("feeSnapshot", null).append("history", List.of()).append("cancelledBookings", List.of())
+                .append("version", 0L).append("createdAt", now).append("updatedAt", now), "inactivity_periods");
+        mongo.save(new org.bson.Document("_id", "list-fields-leave").append("clubId", canic).append("memberId", lifecycleMember)
+                .append("source", "MEMBER").append("state", "PENDING").append("origin", "APP").append("requestedAt", now).append("requestedDate", "2026-10-31")
+                .append("reasonKey", "EXTERNAL").append("nps", null).append("comment", null).append("decision", null).append("cancelledBookings", List.of())
+                .append("version", 0L).append("createdAt", now).append("updatedAt", now), "leave_requests");
         return canic;
     }
     String registeredActivity(String club) {

@@ -25,8 +25,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * S13 §6 inactivity periods (screens 14 and 12, D10's «Inactivitat», «Inactivitats i baixes»), module `INACTIVITY` on every
  * route (off → 404). Member routes: MEMBER, also the impersonation token (`origin = BACKOFFICE`, R-13-18), on their own
  * periods only (another member's, also of their family group → 404). Admin routes: ADMIN without impersonation
- * (`IMPERSONATION_DENIED`); INSTRUCTOR → 403 (MATRIU «Inactivitat / baixa»). Every operation runs its guards and then
- * answers 501 NOT_IMPLEMENTED until E8-T05. Error statuses are CATALEG_ERRORS' (§1 and rule 0), whatever S13 §6 writes.
+ * (`IMPERSONATION_DENIED`); INSTRUCTOR → 403 (MATRIU «Inactivitat / baixa»). Lifecycle operations run inside a Mongo transaction. Error statuses are CATALEG_ERRORS' (§1 and rule 0), whatever S13 §6 writes.
  */
 @RestController
 @RequiresModule(Module.INACTIVITY)
@@ -35,7 +34,6 @@ public class InactivityController {
     static final String ADMIN = "hasRole('ADMIN') and principal.claims['imp'] != true";
     static final String MEMBER_ROLES = "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. ";
     static final String ADMIN_ROLES = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. ";
-    static final String STUB = " Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.";
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.InactivityPeriodService service;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleViews views;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleTransactions transactions;
@@ -105,8 +103,8 @@ public class InactivityController {
             + "period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod changeMyInactivity(@PathVariable String id, @Valid @RequestBody InactivityPatchRequest request) {
-        access.ownPeriod(id);
-        access.mutableMe(); return transactions.run(() -> mapped(views.period(service.change(id, request.patch(), request.version, false, false)), InactivityPeriod.class));
+        access.mutableMe();
+        access.ownPeriod(id); return transactions.run(() -> mapped(views.period(service.change(id, request.patch(), request.version, false, false)), InactivityPeriod.class));
     }
 
     @PostMapping("/api/v1/me/inactivity-periods/{id}/cancellation")
@@ -118,8 +116,8 @@ public class InactivityController {
             + "shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404.",
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod withdrawMyInactivity(@PathVariable String id) {
-        access.ownPeriod(id);
-        access.mutableMe(); return transactions.run(() -> mapped(views.period(service.cancel(id, false)), InactivityPeriod.class));
+        access.mutableMe();
+        access.ownPeriod(id); return transactions.run(() -> mapped(views.period(service.cancel(id, false)), InactivityPeriod.class));
     }
 
     @GetMapping("/api/v1/inactivity-periods")

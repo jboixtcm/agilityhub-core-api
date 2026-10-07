@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Bean;
 /**
  * S08 adapters and port defaults. Ordered before the S06 and S14 null objects, so the real `ClassBookingsPort` and
  * `BookingActivity` replace them (E5-T02 retires E4-T05's demo adapter); every bean backs off when an application or
- * test bean is registered. The E8 ports start as null objects; local/test register the in-memory ones; E6-T02 serves
+ * test bean is registered. E8 supplies durable pack and inactivity adapters; E6-T02 serves
  * `AttendanceStatePort` with {@link AttendanceStates}. The
  * waiting-list consolidation port is served by {@link WaitlistTransitions} (E5-T03, same context).
  */
@@ -31,16 +31,6 @@ public class BookingsAutoConfiguration {
     }
     @Bean @ConditionalOnMissingBean(BookingActivity.class)
     BookingActivity bookingActivity(BookingRepository bookings, BookingMemberAccess census) { return new BookingActivityAdapter(bookings, census); }
-    @Bean @ConditionalOnMissingBean(InactivityPort.class)
-    InactivityPort noInactivity() { return (memberId, date) -> Optional.empty(); }
-    @Bean @ConditionalOnMissingBean(PackBalancePort.class)
-    PackBalancePort noPacks() {
-        return new PackBalancePort() {
-            public Optional<Balance> balance(String memberId, String dogId) { return Optional.empty(); }
-            public String consume(String memberId, String dogId, String bookingId) { return null; }
-            public String refund(String memberId, String dogId, String bookingId, java.time.LocalDate today) { return null; }
-        };
-    }
     /**
      * Without S10 follow-up (the composition root's `FollowupPortConfiguration` registers it since E6-T03): no tasks, notes or
      * observations, and not {@link DogFollowupPort#available()}, so the sheet and the card leave `pendingTasksCount` and the

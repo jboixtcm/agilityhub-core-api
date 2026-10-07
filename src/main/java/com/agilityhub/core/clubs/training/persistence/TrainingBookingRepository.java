@@ -48,6 +48,11 @@ public class TrainingBookingRepository extends TenantRepository<TrainingBooking>
     public List<TrainingBooking> activeAfter(String field, String value, Instant after) {
         return mongo.find(tenantQuery().addCriteria(active().and(field).is(value).and("startsAt").gt(after)).with(Sort.by("startsAt", "_id")), TrainingBooking.class);
     }
+    public List<TrainingBooking> activeForDogsAfter(Collection<String> dogIds, Instant after) {
+        if (dogIds.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(active().and("dogId").in(dogIds).and("startsAt").gt(after))
+                .with(Sort.by("startsAt", "_id")), TrainingBooking.class);
+    }
     /** `/me/training-bookings`: bookings made by the given members or for the given dogs, optionally filtered. */
     public List<TrainingBooking> visible(Collection<String> memberIds, Collection<String> dogIds, TrainingBookingState state, Instant from, Instant to) {
         var criteria = new Criteria().orOperator(Criteria.where("memberId").in(memberIds), Criteria.where("dogId").in(dogIds));

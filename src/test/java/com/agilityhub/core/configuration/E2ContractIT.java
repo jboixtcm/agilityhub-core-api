@@ -183,7 +183,7 @@ class E2ContractIT extends AbstractIntegrationTest {
                 "dogs", "id,name,breed,levelId,memberId,ownerName,handlerName,status,freeTrainingAllowed,hasLicense,licenseOrganisation,hasPendingDocuments,sex,birthDate,chip,registeredAt,levelAssignedAt",
                 "audit-entries", "at,action,entityType,entityId,memberId,actorAccountId,actorRole,impersonatedMemberId,origin");
         var columns = Map.of(
-                "members", "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument",
+                "members", "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument,leaveSource,inactivityUntil,hasPendingRequest",
                 "dogs", "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt",
                 "audit-entries", "at,action,entityLabel,actorName,impersonatedName,changes,origin,details");
         lists.forEach((resource, sort) -> {

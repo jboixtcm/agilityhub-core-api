@@ -90,9 +90,9 @@ email.html.sha256: 5e8c6b03f95c3be3
 
 ## N-11b MEMBER
 title: Pack expiry
-body: Duna's pack expires on 8/31/26.
-email.text: Pack expiry⏎⏎Duna's pack expires on 8/31/26.⏎⏎Open the app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 2da74dfd65792f4c
+body: Duna's pack expiry: 8/31/26. Remaining sessions: 2.
+email.text: Pack expiry⏎⏎Duna's pack expiry: 8/31/26. Remaining sessions: 2.⏎⏎Open the app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 9a7f25700ef4fa15
 
 ## N-13 MEMBER
 title: Class reminder
@@ -136,9 +136,9 @@ body: Laura Serra Puig has asked for an inactivity period from September 2026 to
 
 ## N-18b MEMBER
 title: Inactivity approved
-body: The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
-email.text: Inactivity approved⏎⏎The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 22e720e60d8615b5
+body: The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.
+email.text: Inactivity approved⏎⏎The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8925eb44dbe6f9ed
 
 ## N-18c MEMBER
 title: You are active again
@@ -179,10 +179,10 @@ email.text: Message from the club⏎⏎Club Agility Exemple has sent you a messa
 email.html.sha256: 51f094c6a53af0da
 
 ## N-28 MEMBER
-title: Confirmation of your leaving
-body: Hello Laura, we confirm that your membership of Club Agility Exemple ended on August 31, 2026. Thank you for the time we have shared — the doors will always be open for you and for Duna. See you soon!
-email.text: Confirmation of your leaving⏎⏎Hello Laura, we confirm that your membership of Club Agility Exemple ended on August 31, 2026. Thank you for the time we have shared — the doors will always be open for you and for Duna. See you soon!⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 580c434e65eb13d9
+title: Planned leave confirmed
+body: Your leave is scheduled for August 31, 2026. You can remain active through that date. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 later bookings cancelled.
+email.text: Planned leave confirmed⏎⏎Your leave is scheduled for August 31, 2026. You can remain active through that date. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 later bookings cancelled.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 3c385500efca8f25
 
 ## N-29 MEMBER
 title: Bookings blocked

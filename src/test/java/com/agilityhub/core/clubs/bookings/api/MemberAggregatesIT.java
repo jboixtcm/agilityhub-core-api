@@ -257,7 +257,7 @@ class MemberAggregatesIT extends BookingFixtures {
         // PACK_EMPTY and the pack card (PACKS): Toby's pack is used up; Duna's is expiring; module off → no card.
         openPack("s08-m-joan", "s08-d-toby", 10, 10, LocalDate.parse("2026-12-31"));
         openPack("s08-m-laura", "s08-d-duna", 10, 6, LocalDate.parse("2026-10-09"));
-        mongo.save(new Document("_id", "s08-pack-plan").append("clubId", CLUB).append("type", "PACK")
+        mongo.save(planDocument("s08-pack-plan", "PACK")
                 .append("name", new Document("values", new Document("ca", "Pack 10").append("es", "Bono 10")).append("defaultLocale", "ca")), "plans");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-joan")), new Update().set("planId", "s08-pack-plan"), "members");
         var empty = bookable("joan", "s08-d-toby", 200);
@@ -273,10 +273,10 @@ class MemberAggregatesIT extends BookingFixtures {
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.PACKS).toArray(Module[]::new));
         assertThat(bookable("joan", "s08-d-toby", 200).path("pack").isNull()).isTrue();
         assertThat(row(bookable("joan", "s08-d-toby", 200), "fri").path("state").asText()).isEqualTo("BOOKABLE");
-        modules(Module.values()); packs.clear();
+        modules(Module.values()); mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "pack_balances");
 
         // SINGLE_CLASS: the terms and each row's price; module off → none.
-        mongo.save(new Document("_id", "s08-plan").append("clubId", CLUB).append("type", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "CHARGE_ON_ATTENDANCE")), "plans");
+        mongo.save(planDocument("s08-plan", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "CHARGE_ON_ATTENDANCE")), "plans");
         mongo.save(new Document("_id", "s08-price").append("clubId", CLUB).append("planId", "s08-plan").append("amount", new Document("amountMinor", 1200L).append("currency", "EUR")), "prices");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-pere")), new Update().set("planId", "s08-plan").set("priceId", "s08-price"), "members");
         var single = bookable("pere", null, 200);
@@ -293,9 +293,9 @@ class MemberAggregatesIT extends BookingFixtures {
         assertThat(row(leaving, "fri").path("state").asText()).as(leaving.toString()).isEqualTo("BOOKABLE");
         assertThat(row(leaving, "sat").path("state").asText()).isEqualTo("NOT_BOOKABLE"); assertThat(row(leaving, "sat").path("notBookableReason").asText()).isEqualTo("LEAVING");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-pere")), new Update().unset("leaveDate"), "members");
-        try (var tenant = TenantContext.open(CLUB)) { inactivity.approve("s08-m-pere", LocalDate.parse("2026-10-12"), LocalDate.parse("2026-10-31")); }
+        try (var tenant = TenantContext.open(CLUB)) { approveInactivity("s08-m-pere", LocalDate.parse("2026-10-12"), LocalDate.parse("2026-10-31")); }
         var inactive = bookable("pere", null, 200);
-        assertThat(row(inactive, "fri").path("state").asText()).isEqualTo("BOOKABLE");
+        assertThat(row(inactive, "fri").path("notBookableReason").asText()).isEqualTo("INACTIVITY");
         assertThat(row(inactive, "mon").path("notBookableReason").asText()).isEqualTo("INACTIVITY");
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.INACTIVITY).toArray(Module[]::new));
         assertThat(row(bookable("pere", null, 200), "mon").path("state").asText()).isEqualTo("BOOKABLE");

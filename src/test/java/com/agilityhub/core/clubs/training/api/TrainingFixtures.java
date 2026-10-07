@@ -1,6 +1,5 @@
 package com.agilityhub.core.clubs.training.api;
 
-import com.agilityhub.core.clubs.bookings.application.ports.InMemoryInactivity;
 import com.agilityhub.core.clubs.training.application.ports.RingSetupPort;
 import com.agilityhub.core.platform.application.*;
 import com.agilityhub.core.platform.application.Module;
@@ -45,10 +44,10 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     static final String MUN = "s09-r-mun", CEN = "s09-r-cen", CAR = "s09-r-car", CAD = "s09-r-cad", PET = "s09-r-pet";
     static final List<String> DATA = List.of("training_bookings", "bookings", "ring_blocks", "class_sessions", "weeks", "members", "dogs", "family_groups", "memberships",
             "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records", "impersonation_sessions",
-            "export_jobs", "catalog_write_locks", "census_write_locks", "ring_slot_locks", "week_templates");
+            "export_jobs", "catalog_write_locks", "census_write_locks", "ring_slot_locks", "week_templates", "inactivity_periods");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
-    @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events; @Autowired TestRingSetups setups;
+    @Autowired TransactionTemplate tx; @Autowired EventPublisher events; @Autowired TestRingSetups setups;
     @Autowired com.agilityhub.core.clubs.training.application.TrainingGridCache cache;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
@@ -63,7 +62,7 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     }
 
     @BeforeEach void fixtures() {
-        clock.setInstant(NOW); inactivity.clear(); setups.setups.clear();
+        clock.setInstant(NOW); setups.setups.clear();
         for (String collection : DATA) { mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection); }
         mongo.remove(Query.query(Criteria.where("_id").regex("^s09-")), "accounts");
         mongo.remove(Query.query(Criteria.where("_id").in(CLUB, OTHER)), Club.class);

@@ -40,16 +40,16 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     static final List<String> DATA = List.of("bookings", "seat_holds", "seat_locks", "waitlist_entries", "class_sessions", "members", "dogs", "family_groups",
             "memberships", "accounts", "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records",
             "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions", "attendances", "ring_blocks", "training_bookings", "tasks",
-            "push_subscriptions");
+            "push_subscriptions", "pack_balances", "inactivity_periods", "leave_requests");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
-    @Autowired InMemoryPackBalances packs; @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;
+    @Autowired PackBalancePort packs; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
     static Instant local(String dateTime) { return LocalDateTime.parse(dateTime).atZone(MADRID).toInstant(); }
 
     @BeforeEach void fixtures() {
-        clock.setInstant(NOW); packs.clear(); inactivity.clear();
+        clock.setInstant(NOW);
         for (String collection : DATA) { mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection); }
         mongo.remove(Query.query(Criteria.where("_id").regex("^s08-")), "accounts");
         mongo.remove(Query.query(Criteria.where("_id").in(CLUB, OTHER)), Club.class);
@@ -182,15 +182,33 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     }
     String code(JsonNode error) { return error.path("code").asText(); }
     /** R-08-18: Laura and Pere on a fictional SINGLE_CLASS plan that pays to book (12,00 €). */
+    Document planDocument(String id, String type) {
+        return new Document("_id", id).append("clubId", CLUB).append("type", type).append("dogsIncluded", 1)
+                .append("showOnSignup", true).append("showOnWeb", true).append("order", 0).append("active", true).append("version", 0L)
+                .append("entryFee", new Document("mode", "STANDARD")).append("name", new Document("values", new Document("ca", "Plan")).append("defaultLocale", "ca"));
+    }
     void payToBook() {
-        mongo.save(new Document("_id", "s08-plan").append("clubId", CLUB).append("type", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "PAY_TO_BOOK")), "plans");
+        mongo.save(planDocument("s08-plan", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "PAY_TO_BOOK")), "plans");
         mongo.save(new Document("_id", "s08-price").append("clubId", CLUB).append("planId", "s08-plan").append("amount", new Document("amountMinor", 1200L).append("currency", "EUR")), "prices");
         mongo.updateMulti(Query.query(Criteria.where("_id").in("s08-m-laura", "s08-m-pere")),
                 new org.springframework.data.mongodb.core.query.Update().set("planId", "s08-plan").set("priceId", "s08-price"), "members");
     }
+    void approveInactivity(String memberId, LocalDate from, LocalDate to) {
+        mongo.save(new Document("_id", UUID.randomUUID().toString()).append("clubId", CLUB).append("memberId", memberId)
+                .append("fromMonth", YearMonth.from(from).toString()).append("toMonth", to == null ? null : YearMonth.from(to).toString())
+                .append("state", "APPROVED").append("origin", "BACKOFFICE").append("history", List.of()).append("cancelledBookings", List.of())
+                .append("version", 0L), "inactivity_periods");
+    }
     String checkoutSession(String bookingId) { return booking(bookingId).get("charge", Document.class).getString("checkoutSessionId"); }
     Document line(String bookingId) { return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(bookingId)), Document.class, "upfront_payments"); }
     void openPack(String memberId, String dogId, int total, int consumed, LocalDate expiresOn) {
-        try (var tenant = TenantContext.open(CLUB)) { packs.open(memberId, dogId, total, consumed, expiresOn); }
+        String planId = "s08-pack-plan";
+        mongo.save(planDocument(planId, "PACK")
+                .append("name", new Document("values", new Document("ca", "Pack")).append("defaultLocale", "ca"))
+                .append("pack", new Document("sessions", total).append("validityMonths", 5)), "plans");
+        mongo.save(new Document("_id", UUID.randomUUID().toString()).append("clubId", CLUB).append("memberId", memberId).append("dogId", dogId)
+                .append("planId", planId).append("sessionsTotal", total).append("consumed", consumed).append("remaining", total - consumed)
+                .append("openedOn", "2026-06-01").append("expiresOn", expiresOn == null ? "2027-01-31" : expiresOn.toString())
+                .append("state", "ACTIVE").append("version", 0L).append("movements", List.of()).append("sourceIds", Map.of()), "pack_balances");
     }
 }

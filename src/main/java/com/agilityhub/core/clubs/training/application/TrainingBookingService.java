@@ -1,7 +1,6 @@
 package com.agilityhub.core.clubs.training.application;
 
 import com.agilityhub.core.clubs.bookings.application.BookingQueryService;
-import com.agilityhub.core.clubs.bookings.application.ports.InactivityPort;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.clubs.census.application.TrainingMemberAccess;
 import com.agilityhub.core.clubs.scheduling.application.RingScheduleAccess;
@@ -34,13 +33,13 @@ public class TrainingBookingService {
     public record Booked(TrainingBooking booking, Counter counter) { }
     private final TrainingContext context; private final TrainingTransactions transactions; private final TrainingBookingRepository bookings;
     private final TrainingMemberAccess census; private final TrainingEligibilityService eligibility; private final TrainingSlotService slots;
-    private final BookingQueryService classBookings; private final InactivityPort inactivity; private final TrainingEvents events; private final TrainingAudit audit;
+    private final BookingQueryService classBookings; private final TrainingEvents events; private final TrainingAudit audit;
     private final PlanningCatalogAccess catalogs; private final RingScheduleAccess schedule;
     public TrainingBookingService(TrainingContext context, TrainingTransactions transactions, TrainingBookingRepository bookings, TrainingMemberAccess census,
-            TrainingEligibilityService eligibility, TrainingSlotService slots, BookingQueryService classBookings, InactivityPort inactivity, TrainingEvents events,
+            TrainingEligibilityService eligibility, TrainingSlotService slots, BookingQueryService classBookings, TrainingEvents events,
             TrainingAudit audit, PlanningCatalogAccess catalogs, RingScheduleAccess schedule) {
         this.context = context; this.transactions = transactions; this.bookings = bookings; this.census = census; this.eligibility = eligibility;
-        this.slots = slots; this.classBookings = classBookings; this.inactivity = inactivity; this.events = events; this.audit = audit; this.catalogs = catalogs;
+        this.slots = slots; this.classBookings = classBookings; this.events = events; this.audit = audit; this.catalogs = catalogs;
         this.schedule = schedule;
     }
     /**
@@ -72,12 +71,7 @@ public class TrainingBookingService {
         if (!booker.active()) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
         if (booker.blocked()) { throw new ApiException(ErrorCode.BOOKING_BLOCKED, Map.of("reason", Objects.toString(booker.blockReason(), ""))); }
         var date = startsAt.atZone(zone).toLocalDate();
-        if (context.enabled(Module.INACTIVITY)) {
-            inactivity.covering(booker.id(), date).ifPresent(p -> {
-                var details = new LinkedHashMap<String, Object>(); details.put("from", p.from().toString()); if (p.to() != null) { details.put("to", p.to().toString()); }
-                throw new ApiException(ErrorCode.INACTIVITY_PERIOD, details);
-            });
-        }
+        census.checkBooking(actor.memberId(), dog.id(), date);
         switch (TrainingGrid.placement(startsAt, context.openingHours().get(date.getDayOfWeek()), context.holidays().contains(date), zone, slotMinutes)) {
             case CLOSED -> throw new ApiException(ErrorCode.CLUB_CLOSED);
             case OFF_GRID -> throw new ApiException(ErrorCode.SLOT_NOT_ON_GRID);
@@ -211,7 +205,10 @@ public class TrainingBookingService {
         return cancelFutureByMember(memberId, by, reason, context.now());
     }
     public int cancelFutureByMember(String memberId, TrainingCancelledBy by, TrainingCancelReason reason, Instant after) {
-        return system(bookings.activeAfter("memberId", memberId, after), by, reason);
+        return system(futureOwnedBy(memberId, after), by, reason);
+    }
+    public List<TrainingBooking> futureOwnedBy(String memberId, Instant after) {
+        return bookings.activeForDogsAfter(census.ownedDogIds(memberId), after);
     }
     public int cancelForLifecycle(List<TrainingBooking> bookings, boolean leave) {
         return system(bookings, TrainingCancelledBy.SYSTEM, leave ? TrainingCancelReason.MEMBER_LEFT : TrainingCancelReason.INACTIVITY);
@@ -220,7 +217,7 @@ public class TrainingBookingService {
     public int cancelForInactivity(String memberId, LocalDate from, LocalDate to) {
         if (!context.enabled(Module.INACTIVITY) || !context.flag("inactivity.cancelBookingsOnApproval")) { return 0; }
         var zone = context.zone();
-        var inside = bookings.activeAfter("memberId", memberId, context.now()).stream().filter(b -> {
+        var inside = futureOwnedBy(memberId, context.now()).stream().filter(b -> {
             var date = b.startsAt().atZone(zone).toLocalDate(); return !date.isBefore(from) && (to == null || !date.isAfter(to));
         }).toList();
         return system(inside, TrainingCancelledBy.SYSTEM, TrainingCancelReason.INACTIVITY);

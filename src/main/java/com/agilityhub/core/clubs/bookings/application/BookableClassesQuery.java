@@ -87,12 +87,13 @@ public class BookableClassesQuery {
             if (!s.startsAt().isAfter(now) || taken.contains(s.id()) || !BookingEligibility.levelAllowed(levelsEnabled, dog.levelId(), s.levelIds())) { continue; }
             var week = weeks.week(s.startsAt()); var relative = weeks.relative(s.startsAt(), now); var date = s.startsAt().atZone(zone).toLocalDate();
             BookableRow.NotBookable reason = blocked ? BookableRow.NotBookable.BLOCKED
-                    : BookingEligibility.leaving(owner.leaveDate(), s.startsAt(), zone) ? BookableRow.NotBookable.LEAVING
-                    : inactivityOn && inactivity.covering(owner.id(), date).isPresent() ? BookableRow.NotBookable.INACTIVITY : null;
+                    : inactivityOn && inactivity.covering(owner.id(), date).isPresent() ? BookableRow.NotBookable.INACTIVITY
+                    : BookingEligibility.leaving(owner.leaveDate(), s.startsAt(), zone) ? BookableRow.NotBookable.LEAVING : null;
             boolean limitDone = relative != RelativeWeek.LATER
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
+            var sessionPack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), date) : Optional.<PackBalancePort.Balance>empty();
             var row = BookableRow.resolve(new BookableRow.Input(reason, relative == RelativeWeek.LATER,
-                    pack.isPresent() && BookingEligibility.packEmpty(new BookingEligibility.Pack(pack.get().available(), pack.get().expiresOn()), date),
+                    sessionPack.isPresent() && BookingEligibility.packEmpty(new BookingEligibility.Pack(sessionPack.get().available(), sessionPack.get().expiresOn()), date),
                     limitDone, s.booked() >= s.capacity(), waitlistOn, s.waiting(), waitlistMax));
             var label = labels.get(context.clubId() + ":" + s.id() + ":" + s.version() + ":" + locale.toLanguageTag(), key -> views.labels(s));
             var out = new LinkedHashMap<String, Object>();

@@ -183,7 +183,7 @@
     {
       "code": "N-11b",
       "title": "Pack expiry",
-      "body": "[[dog_name]]'s pack expires on [[pack_expiry]].",
+      "body": "[[dog_name]]'s pack expiry: [[pack_expiry]]. Remaining sessions: [[pack_remaining]].",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -293,7 +293,7 @@
     {
       "code": "N-18b",
       "title": "{decision, select, APPROVED {Inactivity approved} other {Inactivity refused}}",
-      "body": "{decision, select, APPROVED {The club has approved the inactivity period from [[from_month]] to [[to_month]].} other {The club has not approved the inactivity period from [[from_month]] to [[to_month]].}} [[admin_text]]",
+      "body": "{decision, select, APPROVED {The club has approved the inactivity period from [[from_month]] to [[to_month]].} other {The club has not approved the inactivity period from [[from_month]] to [[to_month]].}} [[admin_text]] {cancelled_count, plural, =0 {} one { # booking cancelled.} other { # bookings cancelled.}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -404,8 +404,8 @@
     },
     {
       "code": "N-28",
-      "title": "Confirmation of your leaving",
-      "body": "Hello [[member_first_name]], we confirm that your membership of [[club_name]] ended on [[effective_date]]. Thank you for the time we have shared — the doors will always be open for you and for [[dog_name]]. See you soon!",
+      "title": "{decision, select, CANCELLED {Planned leave cancelled} DENIED {Leave request refused} APPROVED {Planned leave confirmed} other {Confirmation of your leaving}}",
+      "body": "{decision, select, APPROVED {{decision, select, CANCELLED {Your planned leave has been cancelled. Cancelled bookings are not restored.} DENIED {The club has refused your leave request.} other {{source, select, PACK_EXPIRED {Your pack has expired. Your leave is scheduled for [[effective_date]].} other {Your leave is scheduled for [[effective_date]]. You can remain active through that date.}}}} [[admin_text]] {cancelled_count, plural, =0 {} one {# later booking cancelled.} other {# later bookings cancelled.}}} CANCELLED {Your planned leave has been cancelled. Cancelled bookings are not restored.} DENIED {The club has refused your leave request. [[admin_text]]} other {Hello [[member_first_name]], we confirm that your membership of [[club_name]] ended on [[effective_date]]. Thank you for the time we have shared — the doors will always be open for you and for [[dog_name]]. See you soon!}}",
       "icon": "doc",
       "color": "NEUTRAL",
       "matrix": {

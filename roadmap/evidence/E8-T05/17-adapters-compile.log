@@ -1,0 +1,23 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/bookings/application/DemoBookingSeederTest.java:[28,22] constructor DemoBookingSeeder in class com.agilityhub.core.clubs.bookings.application.DemoBookingSeeder cannot be applied to given types;
+  required: com.agilityhub.core.clubs.scheduling.application.ClassSessionService,com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess,com.fasterxml.jackson.databind.ObjectMapper,com.agilityhub.core.clubs.bookings.application.BookingContext,com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess,com.agilityhub.core.clubs.bookings.application.DemoMembers,com.agilityhub.core.payments.application.PackBalanceService,com.agilityhub.core.clubs.catalogs.application.PlanService
+  found:    com.agilityhub.core.clubs.scheduling.application.ClassSessionService,com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess,com.fasterxml.jackson.databind.ObjectMapper,<nulltype>,com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess,com.agilityhub.core.clubs.bookings.application.DemoMembers,<nulltype>
+  reason: actual and formal argument lists differ in length
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/training/api/TrainingIT.java:[288,55] cannot find symbol
+  symbol:   variable inactivity
+  location: class com.agilityhub.core.clubs.training.api.TrainingIT
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/bookings/application/DemoBookingSeederTest.java:[28,22] constructor DemoBookingSeeder in class com.agilityhub.core.clubs.bookings.application.DemoBookingSeeder cannot be applied to given types;
+[ERROR]   required: com.agilityhub.core.clubs.scheduling.application.ClassSessionService,com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess,com.fasterxml.jackson.databind.ObjectMapper,com.agilityhub.core.clubs.bookings.application.BookingContext,com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess,com.agilityhub.core.clubs.bookings.application.DemoMembers,com.agilityhub.core.payments.application.PackBalanceService,com.agilityhub.core.clubs.catalogs.application.PlanService
+[ERROR]   found:    com.agilityhub.core.clubs.scheduling.application.ClassSessionService,com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess,com.fasterxml.jackson.databind.ObjectMapper,<nulltype>,com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess,com.agilityhub.core.clubs.bookings.application.DemoMembers,<nulltype>
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/training/api/TrainingIT.java:[288,55] cannot find symbol
+[ERROR]   symbol:   variable inactivity
+[ERROR]   location: class com.agilityhub.core.clubs.training.api.TrainingIT
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

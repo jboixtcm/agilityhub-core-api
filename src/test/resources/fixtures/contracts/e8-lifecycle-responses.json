@@ -6,7 +6,7 @@
     "decision": {"at": "2026-10-20T10:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000007", "decision": "APPROVED", "note": null, "deadlineOverridden": false},
     "feeSnapshot": {"firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "followingMonths": {"amountMinor": 1000, "currency": "EUR"}},
     "startedAt": null, "finishedAt": null, "finishReason": null, "cancelledAt": null, "cancelledBy": null, "cancelReason": null,
-    "cancelledBookings": [{"type": "CLASS", "id": "c5d6e7f8-0000-4000-8000-00000000000c", "sessionDate": "2026-11-03"},
+    "bookingsInside": null, "cancelledBookings": [{"type": "CLASS", "id": "c5d6e7f8-0000-4000-8000-00000000000c", "sessionDate": "2026-11-03"},
                           {"type": "TRAINING", "id": "c5d6e7f8-0000-4000-8000-00000000001c", "sessionDate": "2026-11-02"}],
     "history": [{"at": "2026-10-20T08:00:00Z", "byAccountId": "708192a3-0000-4000-8000-000000000017", "fromMonth": "2026-11", "toMonth": "2026-12", "source": "MEMBER"}],
     "editable": {"fromMonth": true, "toMonth": true, "cancel": true}, "version": 2
@@ -16,7 +16,7 @@
     "fromMonth": "2026-10", "toMonth": null, "comments": null, "state": "CANCELLED", "origin": "BACKOFFICE", "requestedAt": "2026-09-24T08:00:00Z",
     "requestedBy": {"accountId": "708192a3-0000-4000-8000-000000000007", "impersonatedMemberId": "1a2b3c4d-0000-4000-8000-000000000001"},
     "decision": null, "feeSnapshot": null, "startedAt": null, "finishedAt": null, "finishReason": null, "cancelledAt": "2026-09-25T08:00:00Z",
-    "cancelledBy": "MEMBER", "cancelReason": "WITHDRAWN", "cancelledBookings": [], "history": [],
+    "cancelledBy": "MEMBER", "cancelReason": "WITHDRAWN", "bookingsInside": null, "cancelledBookings": [], "history": [],
     "editable": {"fromMonth": false, "toMonth": false, "cancel": false}, "version": 1
   },
   "InactivityPeriodPage": {

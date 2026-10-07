@@ -33,7 +33,9 @@ public class LifecycleViews {
         return object("id", p.id(), "member", member(p.memberId()), "fromMonth", p.fromMonth(), "toMonth", p.toMonth(), "comments", p.comments(), "state", p.state(),
                 "origin", p.origin(), "requestedAt", p.requestedAt(), "requestedBy", p.requestedBy(), "decision", p.decision(), "feeSnapshot", p.feeSnapshot(),
                 "startedAt", p.startedAt(), "finishedAt", p.finishedAt(), "finishReason", p.finishReason(), "cancelledAt", p.cancelledAt(), "cancelledBy", p.cancelledBy(),
-                "cancelReason", p.cancelReason(), "cancelledBookings", p.cancelledBookings(), "history", p.history(), "editable", editable(p), "version", p.version());
+                "cancelReason", p.cancelReason(), "cancelledBookings", p.cancelledBookings(), "bookingsInside",
+                census.config().get("inactivity.cancelBookingsOnApproval", Boolean.class) ? null : bookings.inside(p.memberId(), YearMonth.parse(p.fromMonth()).atDay(1),
+                        p.toMonth() == null ? null : YearMonth.parse(p.toMonth()).atEndOfMonth(), false, false).size(), "history", p.history(), "editable", editable(p), "version", p.version());
     }
     public Map<String, Object> request(LeaveRequest r) {
         var member = census.members.require(r.memberId()); var m = member(r.memberId());
@@ -66,6 +68,15 @@ public class LifecycleViews {
         var r = m.leaveRequestId == null ? null : leaves.get(m.leaveRequestId);
         return object("date", m.leaveDate, "source", r == null ? LeaveSource.MIGRATED : r.source(), "requestId", m.leaveRequestId,
                 "since", r == null || r.decision() == null ? m.updatedAt : r.decision().at(), "cancellable", true);
+    }
+    public Map<String, Object> overviewInactivity(String memberId) {
+        var today = YearMonth.from(local.today(TenantContext.require())); var out = new LinkedHashMap<String, Object>();
+        for (var p : inactivity.ofMember(memberId)) {
+            String key = p.state() == InactivityState.REQUESTED ? "pendingRequest" : p.state() == InactivityState.ACTIVE || p.state() == InactivityState.APPROVED
+                    ? (YearMonth.parse(p.fromMonth()).isAfter(today) ? "upcoming" : "current") : null;
+            if (key != null) { out.put(key, object("id", p.id(), "fromMonth", p.fromMonth(), "toMonth", p.toMonth(), "state", p.state(), "fee", p.feeSnapshot())); }
+        }
+        return out;
     }
     public Map<String, Object> leaveContext(String memberId) {
         var m = census.members.require(memberId);

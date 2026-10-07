@@ -98,7 +98,7 @@ class NotificationSeedSnapshotTest {
         values.put("concept", "Quota d'agost"); values.put("pack_remaining", 2); values.put("pack_expiry", LocalDate.parse("2026-08-31"));
         values.put("requested_date", LocalDate.parse("2026-08-31")); values.put("effective_date", LocalDate.parse("2026-08-31"));
         values.put("from_month", YearMonth.parse("2026-09")); values.put("to_month", YearMonth.parse("2026-10")); values.put("decision", "APPROVED");
-        values.put("cancelled_count", 3); values.put("confirm_by", Instant.parse("2026-08-12T15:00:00Z")); values.put("mode", "FIFO");
+        values.put("source", "MEMBER"); values.put("cancelled_count", 3); values.put("confirm_by", Instant.parse("2026-08-12T15:00:00Z")); values.put("mode", "FIFO");
         values.put("entityId", "entity-example"); values.put("calendar_links", "https://app.example.test/calendari/exemple.ics");
         values.put("review_time", "07:30"); values.put("review_day", LocalDate.parse("2026-08-12")); values.put("auto_cancel", "true");
         values.put("dogs_count", 1); values.put("instructor_name", "Marta"); values.put("task_excerpt", "Treballar el contacte a la zona de salts");

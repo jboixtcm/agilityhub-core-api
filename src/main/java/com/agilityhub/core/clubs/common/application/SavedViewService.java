@@ -21,6 +21,13 @@ public class SavedViewService {
         String account = ListAccess.account(); lists.dataset(key);
         return repository.visible(key, account).stream().map(this::publicView).toList();
     }
+    @Transactional public void seedPlannedLeaves() {
+        String id = TenantContext.require() + ":planned-leaves";
+        if (repository.findById(id).isPresent()) { return; }
+        var data = new SavedViewData(id, "SYSTEM", "members", "Baixes previstes", List.of("fullName", "dogs", "plan", "leaveDate", "leaveSource"),
+                List.of(new Filter("displayStatus", com.agilityhub.core.shared.application.contract.ApiContracts.FilterOperator.eq, "LEAVE_SCHEDULED")), List.of("leaveDate,asc"), true, 0);
+        repository.insert(new SavedView(id, TenantContext.require(), data, clock.instant(), clock.instant()));
+    }
     public SavedViewData get(String id) { return publicView(read(id)); }
     private SavedView read(String id) {
         String account = ListAccess.account();
@@ -29,6 +36,7 @@ public class SavedViewService {
         return view;
     }
     private void writable(SavedView view) {
+        if ("SYSTEM".equals(view.data().ownerAccountId())) { throw new ApiException(ErrorCode.FORBIDDEN); }
         if (!view.data().ownerAccountId().equals(ListAccess.account()) && !ListAccess.admin()) { throw new ApiException(ErrorCode.FORBIDDEN); }
     }
     @Transactional

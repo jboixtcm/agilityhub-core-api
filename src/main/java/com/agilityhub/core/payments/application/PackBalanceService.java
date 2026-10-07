@@ -40,7 +40,7 @@ public class PackBalanceService implements PackBalanceOpeningPort {
     public void open(String memberId, String dogId, String upfrontPaymentId, LocalDate paidOn) {
         if (!enabled() || packs.forPayment(upfrontPaymentId).isPresent()) { return; }
         var member = census.member(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        open(memberId, dogId, member.planId(), upfrontPaymentId, paidOn, null, null, null);
+        open(memberId, dogId, census.packPlan(memberId, dogId), upfrontPaymentId, paidOn, null, null, null);
     }
 
     @Transactional @RequiresModule(Module.PACKS)
@@ -70,7 +70,11 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         var usable = all.stream().filter(p -> usable(p, classDate)).findFirst();
         if (usable.isPresent()) { return usable.map(PackBalanceService::summary); }
         boolean packPlan = census.member(memberId).flatMap(m -> catalog.plan(m.planId())).map(p -> "PACK".equals(p.type())).orElse(false);
-        return packPlan || !all.isEmpty() ? Optional.of(new Balance(null, 0, 0, 0, null)) : Optional.empty();
+        if (!all.isEmpty()) {
+            var p = all.getLast();
+            return Optional.of(new Balance(p.id(), p.sessionsTotal(), p.consumed(), 0, LocalDate.parse(p.expiresOn())));
+        }
+        return packPlan ? Optional.of(new Balance(null, 0, 0, 0, null)) : Optional.empty();
     }
     public record Balance(String id, int total, int consumed, int remaining, LocalDate expiresOn) { }
     private static Balance summary(PackBalance p) {

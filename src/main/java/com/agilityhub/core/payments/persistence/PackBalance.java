@@ -21,7 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Document("pack_balances")
 public record PackBalance(@Id String id, String clubId, String memberId, String dogId, String planId, String upfrontPaymentId,
-        int sessionsTotal, int consumed, int remaining, String openedOn, @AuditField String expiresOn, @AuditField PackBalanceState state,
+        int sessionsTotal, int consumed, @AuditField int remaining, String openedOn, @AuditField String expiresOn, @AuditField PackBalanceState state,
         List<Movement> movements, Instant expiryWarnedAt, Instant expiredAt, Instant lowBalanceNotifiedAt, Map<String, Object> sourceIds,
         @Version Long version, Instant createdAt, String createdByAccountId) implements TenantEntity {
     public record Movement(String id, PackMovementType type, int delta, String bookingId, String reason, String byAccountId, Instant at) { }

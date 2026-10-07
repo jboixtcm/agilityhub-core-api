@@ -195,9 +195,10 @@ final class ArchitectureRules {
             .because("E6-T01: owning contexts register their Job beans; the platform never imports them");
 
     /**
-     * E8-T01 (fixed conventions): `payments` reaches the club contexts only through `clubs.catalogs.application` and
-     * `clubs.census.application`; the adapters of S08's `PackBalancePort`/`InactivityPort` (E8-T05) and of the census ports are
-     * the providers' side, so payments never imports bookings, training, activities, scheduling or another clubs context.
+     * E90 preserves this boundary and the no-cycle gate. Payments calls census through shared.application
+     * (BillingCensusAccess, InactivityFeePort, LeaveBillingPort); catalog access uses catalogs.application.
+     * Booking pack/inactivity adapters belong to bookings.application. Census declares cancellation ports,
+     * implemented synchronously by bookings, training and activities; PackBalanceOpeningPort stays in payments.
      */
     static final ArchRule PAYMENTS_CLUB_DEPENDENCIES = noClasses()
             .that().resideInAPackage(BASE_PACKAGE + "payments..")

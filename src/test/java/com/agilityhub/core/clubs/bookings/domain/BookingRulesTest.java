@@ -216,13 +216,14 @@ class BookingRulesTest {
         assertThat(BookingEligibility.packEmpty(new BookingEligibility.Pack(1, null), LocalDate.parse("2026-11-05"))).isFalse();
         var base = input(true, List.of(), "level-c");
         assertCode(() -> BookingEligibility.check(with(base, "pack", Optional.of(new BookingEligibility.Pack(0, null)))), ErrorCode.PACK_EMPTY);
-        // Order: dog → member → block → leaving → inactivity → level → class → week → pack.
+        // S13 R-13-07: dog → member → block → inactivity → leaving → level → class → week → pack.
         assertCode(() -> BookingEligibility.check(with(with(base, "dogActive", false), "owner", person("PENDING", false, null))), ErrorCode.DOG_NOT_ACCESSIBLE);
         assertCode(() -> BookingEligibility.check(with(base, "booker", person("LEFT", true, "x"))), ErrorCode.MEMBER_NOT_ACTIVE);
         var blocked = assertCode(() -> BookingEligibility.check(with(base, "owner", person("ACTIVE", true, "rebut impagat"))), ErrorCode.BOOKING_BLOCKED);
         assertThat(blocked.details()).containsEntry("reason", "rebut impagat");
         var leaving = with(base, "owner", new BookingEligibility.Person("ACTIVE", false, null, LocalDate.parse("2026-10-14")));
-        assertCode(() -> BookingEligibility.check(leaving), ErrorCode.CLASS_NOT_BOOKABLE);
+        assertCode(() -> BookingEligibility.check(leaving), ErrorCode.MEMBER_LEAVING);
+        assertCode(() -> BookingEligibility.check(with(leaving, "inactivity", Optional.of(new BookingEligibility.Period(LocalDate.parse("2026-10-01"), null)))), ErrorCode.INACTIVITY_PERIOD);
         assertThatCode(() -> BookingEligibility.check(with(base, "owner", new BookingEligibility.Person("ACTIVE", false, null, LocalDate.parse("2026-10-15")))))
                 .as("a class on the leave day itself is still bookable").doesNotThrowAnyException();
         var inactive = assertCode(() -> BookingEligibility.check(with(base, "inactivity", Optional.of(new BookingEligibility.Period(LocalDate.parse("2026-10-01"), LocalDate.parse("2026-10-31"))))), ErrorCode.INACTIVITY_PERIOD);

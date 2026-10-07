@@ -77,7 +77,7 @@ public class BookingConfirmationService {
             var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null, null)).orElse(null);
             boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();
             String id = UUID.randomUUID().toString();
-            String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id) : null;
+            String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id, s.startsAt().atZone(context.zone()).toLocalDate()) : null;
             String entry = context.enabled(Module.WAITLIST) ? waitlist.consolidate(s.id(), subject.dog().id(), id, hold.waitlistEntryId() != null, actor).orElse(null) : null;
             SingleClassChargePort.Pending checkout = null;
             if (payToBook) { // R-08-18: the due line and the session only; the provider is called after the commit (openCheckout)

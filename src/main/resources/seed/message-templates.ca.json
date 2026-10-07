@@ -183,7 +183,7 @@
     {
       "code": "N-11b",
       "title": "Caducitat del bo",
-      "body": "El bo de [[dog_name]] caduca el [[pack_expiry]].",
+      "body": "Caducitat del pack de [[dog_name]]: [[pack_expiry]]. Sessions restants: [[pack_remaining]].",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -293,7 +293,7 @@
     {
       "code": "N-18b",
       "title": "{decision, select, APPROVED {Inactivitat aprovada} other {Inactivitat denegada}}",
-      "body": "{decision, select, APPROVED {El club ha aprovat el període d'inactivitat de [[from_month]] a [[to_month]].} other {El club no ha aprovat el període d'inactivitat de [[from_month]] a [[to_month]].}} [[admin_text]]",
+      "body": "{decision, select, APPROVED {El club ha aprovat el període d'inactivitat de [[from_month]] a [[to_month]].} other {El club no ha aprovat el període d'inactivitat de [[from_month]] a [[to_month]].}} [[admin_text]] {cancelled_count, plural, =0 {} one { # reserva anul·lada.} other { # reserves anul·lades.}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {
@@ -404,8 +404,8 @@
     },
     {
       "code": "N-28",
-      "title": "Comunicació de baixa com a associat",
-      "body": "Hola [[member_first_name]], et comuniquem que en data [[effective_date]] s'ha fet efectiva la teva baixa com a associat de [[club_name]]. T'agraïm el temps que hem compartit — les portes sempre seran obertes per a tu i per a [[dog_name]]. Fins aviat!",
+      "title": "{decision, select, CANCELLED {Baixa prevista anul·lada} DENIED {Sol·licitud de baixa denegada} APPROVED {Baixa prevista confirmada} other {Comunicació de baixa com a associat}}",
+      "body": "{decision, select, APPROVED {{decision, select, CANCELLED {La teva baixa prevista s’ha anul·lat. Les reserves anul·lades no es recuperen.} DENIED {El club ha denegat la teva sol·licitud de baixa.} other {{source, select, PACK_EXPIRED {El teu pack ha caducat. La baixa està prevista per al [[effective_date]].} other {La baixa està prevista per al [[effective_date]]. Pots continuar en actiu fins aquell dia inclòs.}}}} [[admin_text]] {cancelled_count, plural, =0 {} one {# reserva posterior anul·lada.} other {# reserves posteriors anul·lades.}}} CANCELLED {La teva baixa prevista s’ha anul·lat. Les reserves anul·lades no es recuperen.} DENIED {El club ha denegat la teva sol·licitud de baixa. [[admin_text]]} other {Hola [[member_first_name]], et comuniquem que en data [[effective_date]] s'ha fet efectiva la teva baixa com a associat de [[club_name]]. T'agraïm el temps que hem compartit — les portes sempre seran obertes per a tu i per a [[dog_name]]. Fins aviat!}}",
       "icon": "doc",
       "color": "NEUTRAL",
       "matrix": {

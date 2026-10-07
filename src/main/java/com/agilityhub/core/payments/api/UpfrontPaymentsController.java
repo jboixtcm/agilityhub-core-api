@@ -30,32 +30,34 @@ public class UpfrontPaymentsController {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentRefunds refunds;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingTransactions transactions;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.ManualUpfrontPayments manual;
     private final BillingContractAccess access;
     public UpfrontPaymentsController(BillingContractAccess access) { this.access = access; }
 
     @GetMapping("/api/v1/upfront-payments")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "upfrontPayments", description = ROLES + "D10 «Pagaments a l'acte»: a member's payments on the spot (entry fee, first "
-            + "month, packs, single classes, activities), newest first, optionally of one status. Another club's member → 404." + STUB,
+            + "month, packs, single classes, activities), newest first, optionally of one status. Another club's member → 404." ,
             responses = @ApiResponse(responseCode = "200", description = "UpfrontPayments", useReturnTypeSchema = true))
     public UpfrontPayments upfrontPayments(@RequestParam @Schema(format = "uuid") String memberId, @RequestParam(required = false) UpfrontStatus status) {
         access.member(memberId);
-        throw new UnsupportedOperationException();
+        return new UpfrontPayments(manual.list(memberId, status == null ? null : status.name()).stream().map(p -> mapper.convertValue(p, UpfrontPayment.class)).toList());
     }
 
     @PostMapping("/api/v1/upfront-payments")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, AMOUNT_EXCEEDS_DUE, PLAN_NOT_PACK})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, AMOUNT_EXCEEDS_DUE, PLAN_NOT_PACK, CURRENCY_MISMATCH})
     @Operation(summary = "recordUpfrontPayment", description = ROLES + "R-12-23 [Registra un pagament]: a MANUAL payment (cash, transfer, Bizum) "
             + "with amountPaid ≤ amountDue (PARTIAL when less; more → 422 AMOUNT_EXCEEDS_DUE). A PACK payment opens the dog's pack (PackOpened; "
             + "a plan that is not a pack → 422 PLAN_NOT_PACK; one pack per payment). UpfrontPaymentRecorded, UPFRONT_PAYMENT_RECORDED audit. "
-            + "Another club's member or dog → 404; an erased member → 409 MEMBER_ERASED." + STUB,
+            + "Another club's member or dog → 404; an erased member → 409 MEMBER_ERASED." ,
             responses = @ApiResponse(responseCode = "201", description = "UpfrontPayment", useReturnTypeSchema = true))
     public UpfrontPayment recordUpfrontPayment(@Valid @RequestBody UpfrontPaymentRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(request.memberId());
         if (request.dogId() != null) { access.memberDog(request.memberId(), request.dogId()); }
-        throw new UnsupportedOperationException();
+        return transactions.run(() -> mapper.convertValue(manual.record(request.memberId(), request.dogId(), request.concept().name(), request.amountDue(), request.amountPaid(),
+                request.channel().name(), request.paidAt(), request.reference(), request.note()), UpfrontPayment.class));
     }
 
     @PostMapping("/api/v1/upfront-payments/{id}/refund")

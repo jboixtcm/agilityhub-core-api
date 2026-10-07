@@ -90,9 +90,9 @@ email.html.sha256: caabc4a7c9fcb1d2
 
 ## N-11b MEMBER
 title: Caducitat del bo
-body: El bo de Duna caduca el 31/8/26.
-email.text: Caducitat del bo⏎⏎El bo de Duna caduca el 31/8/26.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 9ba65b3df322d70c
+body: Caducitat del pack de Duna: 31/8/26. Sessions restants: 2.
+email.text: Caducitat del bo⏎⏎Caducitat del pack de Duna: 31/8/26. Sessions restants: 2.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: eede3a2c3185a93c
 
 ## N-13 MEMBER
 title: Recordatori de classe
@@ -136,9 +136,9 @@ body: Laura Serra Puig ha demanat un període d'inactivitat de setembre del 2026
 
 ## N-18b MEMBER
 title: Inactivitat aprovada
-body: El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!
-email.text: Inactivitat aprovada⏎⏎El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 16d8965b7301ea14
+body: El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.
+email.text: Inactivitat aprovada⏎⏎El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 02f7142ab4a45f49
 
 ## N-18c MEMBER
 title: Tornes a estar en actiu
@@ -179,10 +179,10 @@ email.text: Comunicat del club⏎⏎Club Agility Exemple t'ha enviat un comunica
 email.html.sha256: 596d875a457dcc67
 
 ## N-28 MEMBER
-title: Comunicació de baixa com a associat
-body: Hola Laura, et comuniquem que en data 31 d’agost de 2026 s'ha fet efectiva la teva baixa com a associat de Club Agility Exemple. T'agraïm el temps que hem compartit — les portes sempre seran obertes per a tu i per a Duna. Fins aviat!
-email.text: Comunicació de baixa com a associat⏎⏎Hola Laura, et comuniquem que en data 31 d’agost de 2026 s'ha fet efectiva la teva baixa com a associat de Club Agility Exemple. T'agraïm el temps que hem compartit — les portes sempre seran obertes per a tu i per a Duna. Fins aviat!⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: b423e8c413b72dea
+title: Baixa prevista confirmada
+body: La baixa està prevista per al 31 d’agost de 2026. Pots continuar en actiu fins aquell dia inclòs. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves posteriors anul·lades.
+email.text: Baixa prevista confirmada⏎⏎La baixa està prevista per al 31 d’agost de 2026. Pots continuar en actiu fins aquell dia inclòs. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves posteriors anul·lades.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: d805613a8b62d13a
 
 ## N-29 MEMBER
 title: Reserves bloquejades

@@ -20,8 +20,15 @@ public class TrainingMemberAccess {
             String lastDogForTraining, String locale, String email, List<String> phones) {
         public boolean active() { return "ACTIVE".equals(status); }
     }
-    private final CensusAccess access; private final BookingMemberAccess members;
-    public TrainingMemberAccess(CensusAccess access, BookingMemberAccess members) { this.access = access; this.members = members; }
+    private final CensusAccess access; private final BookingMemberAccess members; private final MemberBookingEligibility eligibility;
+    public TrainingMemberAccess(CensusAccess access, BookingMemberAccess members, MemberBookingEligibility eligibility) {
+        this.access = access; this.members = members; this.eligibility = eligibility;
+    }
+    public void checkBooking(String actorMemberId, String dogId, java.time.LocalDate date) { eligibility.check(actorMemberId, dogId, date); }
+    /** Lifecycle restrictions follow the dog owner, including bookings made by another family member. */
+    public List<String> ownedDogIds(String memberId) {
+        return access.dogs.matching(Criteria.where("memberId").is(memberId)).stream().map(d -> d.id).toList();
+    }
 
     public Optional<Member> member(String id) {
         if (id == null) { return Optional.empty(); }

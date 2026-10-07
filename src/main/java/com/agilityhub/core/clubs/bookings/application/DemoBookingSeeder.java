@@ -1,6 +1,5 @@
 package com.agilityhub.core.clubs.bookings.application;
 
-import com.agilityhub.core.clubs.bookings.application.ports.InMemoryPackBalances;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.clubs.scheduling.application.*;
 import com.agilityhub.core.shared.application.*;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * E4-T05 registrants of the seeded classes, created through the real S08 services: each booked registrant holds a seat
- * and confirms it as its own member (`origin = APP`), with an in-memory pack opened for the `withPack` ones; the W+2
+ * and confirms it as its own member (`origin = APP`), with a durable pack opened for the `withPack` ones; the W+2
  * classes open for booking one week before they start, so the seed books them as of that opening (or the run date when
  * later). Since E5-T06 the waiting registrants join through {@link WaitlistService#join} too: R-08-12 needs a class full
  * by bookings, so a row with free seats (the D4c «4/5 + 2») briefly gets its booked count as capacity through the S06
@@ -30,11 +29,9 @@ public class DemoBookingSeeder implements DemoSeedStep {
     }
     private final ClassSessionService sessions; private final PlanningCatalogAccess catalogs; private final ObjectMapper mapper;
     private final BookingContext context; private final ClassSessionBookingAccess classes; private final DemoMembers members;
-    private final ObjectProvider<InMemoryPackBalances> packs;
     public DemoBookingSeeder(ClassSessionService sessions, PlanningCatalogAccess catalogs, ObjectMapper mapper, BookingContext context,
-            ClassSessionBookingAccess classes, DemoMembers members, ObjectProvider<InMemoryPackBalances> packs) {
+            ClassSessionBookingAccess classes, DemoMembers members) {
         this.sessions = sessions; this.catalogs = catalogs; this.mapper = mapper; this.context = context; this.classes = classes; this.members = members;
-        this.packs = packs;
     }
     @Override public int order() { return 20; }
     @Override public boolean reanchors() { return true; }
@@ -85,11 +82,7 @@ public class DemoBookingSeeder implements DemoSeedStep {
         return !now.isBefore(opens) && now.isBefore(classStartsAt) ? now : opens;
     }
     private void book(String classId, DemoMembers.Candidate c, boolean withPack, Instant at) {
-        var pack = packs.getIfAvailable();
-        if (withPack) {
-            if (pack == null) { throw new IllegalStateException("Demo packs need the local/test pack stand-in"); }
-            pack.open(c.memberId(), c.dogId(), 10, 0, null);
-        }
+        members.preparePack(classId, c, withPack, at);
         members.book(classId, c, at);
     }
 }

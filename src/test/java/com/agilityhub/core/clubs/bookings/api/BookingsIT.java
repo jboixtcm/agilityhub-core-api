@@ -272,17 +272,17 @@ class BookingsIT extends BookingFixtures {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-joan")), new Update().set("bookingBlock", new Document("active", true)), "members");
         assertThat(code(hold(as("laura"), "fri", "s08-d-toby", 422))).isEqualTo("BOOKING_BLOCKED");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-joan")), new Update().set("bookingBlock", new Document("active", false)), "members");
-        try (var t = TenantContext.open(CLUB)) { inactivity.approve("s08-m-laura", LocalDate.parse("2026-10-09"), LocalDate.parse("2026-10-31")); }
+        try (var t = TenantContext.open(CLUB)) { approveInactivity("s08-m-laura", LocalDate.parse("2026-10-09"), LocalDate.parse("2026-10-31")); }
         var period = hold(as("laura"), "fri", "s08-d-duna", 422);
-        assertThat(code(period)).isEqualTo("INACTIVITY_PERIOD"); assertThat(period.path("details").toString()).contains("2026-10-09", "2026-10-31");
-        hold(as("laura"), "thu", "s08-d-duna", 201);
+        assertThat(code(period)).isEqualTo("INACTIVITY_PERIOD"); assertThat(period.path("details").toString()).contains("2026-10-01", "2026-10-31");
+        assertThat(code(hold(as("laura"), "thu", "s08-d-duna", 422))).isEqualTo("INACTIVITY_PERIOD");
         modules(java.util.Arrays.stream(Module.values()).filter(m -> m != Module.INACTIVITY).toArray(Module[]::new));
         hold(as("laura"), "fri", "s08-d-duna", 201);
         // A future leave date: classes from the end of that local day on are not bookable.
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-pere")), new Update().set("leaveDate", "2026-10-08"), "members");
         hold(as("pere"), "thu", "s08-d-nit", 201);
         var leaving = hold(as("pere"), "sat", "s08-d-nit", 422);
-        assertThat(code(leaving)).isEqualTo("CLASS_NOT_BOOKABLE"); assertThat(leaving.at("/details/reason").asText()).isEqualTo("LEAVING");
+        assertThat(code(leaving)).isEqualTo("MEMBER_LEAVING"); assertThat(leaving.at("/details/leaveDate").asText()).isEqualTo("2026-10-08");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-pere")), new Update().set("status", "LEFT"), "members");
         assertThat(code(hold(as("pere"), "sat", "s08-d-nit", 422))).isEqualTo("MEMBER_NOT_ACTIVE");
     }

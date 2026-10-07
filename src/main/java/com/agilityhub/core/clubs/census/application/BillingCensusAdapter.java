@@ -28,6 +28,22 @@ public class BillingCensusAdapter implements BillingCensusAccess {
     private final CensusAccess census; private final Clock clock;
     public BillingCensusAdapter(CensusAccess census, Clock clock) { this.census = census; this.clock = clock; }
 
+    @Override public String packPlan(String memberId, String dogId) {
+        var member = census.members.require(memberId); var dog = census.dogs.require(dogId);
+        if (!memberId.equals(dog.memberId)) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
+        // Before validation an upfront pack payment refers to the pending dog's requested plan.
+        for (String id : java.util.stream.Stream.of(member.planId, string(map(dog.signup).get("planIdRequested")), string(map(member.signup).get("planIdRequested"))).filter(Objects::nonNull).toList()) {
+            if ("PACK".equals(census.references.plan(id).get("type"))) { return id; }
+        }
+        return member.planId;
+    }
+    @Override public String lockPlan(String memberId) {
+        census.members.lock(); return census.mutableMember(memberId).planId;
+    }
+    @Override public void changePlan(String memberId, String planId, String priceId) {
+        var member = census.mutableMember(memberId); member.planId = planId; member.priceId = priceId;
+        census.members.save(member);
+    }
     @Override public Optional<Card> card(String memberId) {
         return census.members.findById(memberId).filter(member -> "CARD".equals(map(member.paymentMethod).get("type"))).map(member -> {
             var card = map(member.paymentMethod.get("card"));

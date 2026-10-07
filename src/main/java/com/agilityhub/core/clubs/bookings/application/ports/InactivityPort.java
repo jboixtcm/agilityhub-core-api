@@ -5,8 +5,7 @@ import java.util.Optional;
 
 /**
  * S08 R-08-06 (BR-16): the owner's APPROVED/ACTIVE `InactivityPeriod` covering a club-local date. S13 WP-13-B
- * (E8, decision B11) supplies the real adapter; until then the default has no periods and the local/test profiles
- * use {@link InMemoryInactivity}.
+ * (E8, decision B11) supplies the durable adapter in the booking application package.
  */
 public interface InactivityPort {
     record Period(LocalDate from, LocalDate to) { }

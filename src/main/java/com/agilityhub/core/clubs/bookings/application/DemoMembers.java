@@ -20,10 +20,14 @@ public class DemoMembers {
     }
     private final ActivityMemberAccess members; private final BookingContext context; private final SeatHoldService holds;
     private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final WaitlistService waitlist;
+    private final com.agilityhub.core.payments.application.PackBalanceService packs;
+    private final com.agilityhub.core.clubs.catalogs.application.PlanService plans;
+    private final com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classes;
     public DemoMembers(ActivityMemberAccess members, BookingContext context, SeatHoldService holds, BookingConfirmationService confirmations,
-            BookingCancellationService cancellations, WaitlistService waitlist) {
+            BookingCancellationService cancellations, WaitlistService waitlist, com.agilityhub.core.payments.application.PackBalanceService packs,
+            com.agilityhub.core.clubs.catalogs.application.PlanService plans, com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classes) {
         this.members = members; this.context = context; this.holds = holds; this.confirmations = confirmations; this.cancellations = cancellations;
-        this.waitlist = waitlist;
+        this.waitlist = waitlist; this.packs = packs; this.plans = plans; this.classes = classes;
     }
 
     /** ACTIVE members with an app account (except the seed logins) and their ACTIVE dogs, in member-number order
@@ -52,7 +56,16 @@ public class DemoMembers {
      * club) keeps its prepared checkout (line CHECKOUT_PENDING, session PENDING) and no provider checkout is opened: it
      * stays PAYMENT_PENDING for P7.
      */
+    public void preparePack(String classId, Candidate c, boolean requested, Instant at) {
+        if (!packs.enabled()) { return; }
+        var date = classes.require(classId).startsAt().atZone(context.zone()).toLocalDate();
+        var balance = packs.balance(c.memberId(), c.dogId(), date);
+        if (balance.filter(p -> p.remaining() > 0).isPresent() || !requested && balance.isEmpty()) { return; }
+        String plan = plans.activePackId().orElseThrow(() -> new IllegalStateException("Demo bookings need a seeded pack plan"));
+        packs.open(c.memberId(), c.dogId(), plan, null, at.atZone(context.zone()).toLocalDate(), null, null, "Demo seed");
+    }
     public Booking book(String classId, Candidate c, Instant at) {
+        preparePack(classId, c, false, at);
         var actor = c.actor();
         return DemoSeedActor.as(c.accountId(), "MEMBER", () -> context.asOf(at, () -> {
             var held = holds.hold(actor, classId, c.dogId(), null);
@@ -60,6 +73,7 @@ public class DemoMembers {
         }));
     }
     public WaitlistEntry join(String classId, Candidate c, Instant at) {
+        preparePack(classId, c, false, at);
         return DemoSeedActor.as(c.accountId(), "MEMBER", () -> context.asOf(at, () -> waitlist.join(c.actor(), classId, c.dogId())));
     }
     public Booking cancel(String bookingId, Candidate c, Instant at) {

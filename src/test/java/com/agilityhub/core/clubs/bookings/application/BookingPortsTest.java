@@ -32,33 +32,6 @@ class BookingPortsTest {
         assertThat(List.of(present.noShow("b"), noShow.noShow("b"), none.noShow("b"))).containsExactly(false, true, false);
     }
 
-    @Test void thePackStandInConsumesRefundsAndNeverRevivesAnExpiredPack() {
-        var packs = new InMemoryPackBalances();
-        try (var tenant = TenantContext.open("club-fixture")) {
-            assertThat(packs.balance("m", "d")).isEmpty(); assertThat(packs.consume("m", "d", "b")).isNull();
-            packs.open("m", "d", 2, 1, LocalDate.parse("2026-11-12"));
-            assertThat(packs.consume("m", "d", "b1")).isNotNull(); assertThat(packs.balance("m", "d").orElseThrow().available()).isZero();
-            assertThat(packs.consume("m", "d", "b2")).as("never below zero").isNotNull(); assertThat(packs.balance("m", "d").orElseThrow().consumed()).isEqualTo(2);
-            assertThat(packs.refund("m", "d", "b1", LocalDate.parse("2026-11-12"))).isNotNull(); assertThat(packs.balance("m", "d").orElseThrow().available()).isEqualTo(1);
-            assertThat(packs.refund("m", "d", "b1", LocalDate.parse("2026-11-13"))).isNull();
-            packs.open("m", "open", 5, 0, null); assertThat(packs.refund("m", "open", "x", LocalDate.parse("2030-01-01"))).isNotNull();
-            packs.clear(); assertThat(packs.balance("m", "d")).isEmpty();
-        }
-        try (var tenant = TenantContext.open("other-club")) { assertThat(packs.balance("m", "d")).isEmpty(); }
-    }
-
-    @Test void theInactivityStandInCoversInclusiveAndOpenEndedPeriodsPerClub() {
-        var periods = new InMemoryInactivity();
-        try (var tenant = TenantContext.open("club-fixture")) {
-            periods.approve("m", LocalDate.parse("2026-11-01"), LocalDate.parse("2026-12-31")); periods.approve("n", LocalDate.parse("2026-11-01"), null);
-            assertThat(periods.covering("m", LocalDate.parse("2026-11-01"))).isPresent(); assertThat(periods.covering("m", LocalDate.parse("2026-12-31"))).isPresent();
-            assertThat(periods.covering("m", LocalDate.parse("2026-10-31"))).isEmpty(); assertThat(periods.covering("m", LocalDate.parse("2027-01-01"))).isEmpty();
-            assertThat(periods.covering("n", LocalDate.parse("2030-01-01"))).isPresent();
-        }
-        try (var tenant = TenantContext.open("other-club")) { assertThat(periods.covering("m", LocalDate.parse("2026-11-15"))).isEmpty(); }
-        periods.clear();
-    }
-
     @Test void calendarTokensAreTenantBoundExpireAtClassEndAndNeedAKeyInStagingOrProd() {
         var clock = new MockClock(Instant.parse("2026-10-07T10:00:00Z"));
         var key = Base64.getEncoder().encodeToString(new byte[32]);

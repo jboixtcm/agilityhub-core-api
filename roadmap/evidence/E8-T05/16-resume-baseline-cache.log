@@ -1,0 +1,171 @@
+10:12:18.775 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:12:18.964 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+10:12:19.059 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+10:12:19.060 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+10:12:19.066 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+10:12:19.250 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+10:12:19.412 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+10:12:19.412 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+10:12:19.422 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+10:12:19.658 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+10:12:19.725 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+10:12:19.798 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 276b7a6f...[truncated]
+10:12:19.952 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.294835S
+10:12:19.956 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+10:12:19.956 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+10:12:19.956 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+10:12:19.957 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+10:12:19.991 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 2fcba891...[truncated]
+10:12:20.578 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.621654S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-07T10:12:21.417+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : Starting LifecycleIT using Java [redacted] with PID 72093 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-07T10:12:21.419+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-07T10:12:22.747+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-07T10:12:22.799+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 48 ms. Found 0 MongoDB repository interfaces.
+2026-10-07T10:12:23.291+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2fee4869], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5fcdda47, com.mongodb.Jep395RecordCodecProvider@54435e36, com.mongodb.KotlinCodecProvider@4ecdd8e6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:51094], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@13bd7c56], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-07T10:12:23.298+02:00 INFO  [cluster-ClusterId{value='6ac5fee7c04c66eec58cb292', description='null'}-localhost:51094] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:51094, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12085041, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=2fcba8917fd5:27017, hosts=[2fcba8917fd5:27017], passives=[], arbiters=[], primary='2fcba8917fd5:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac5fee4cb7af2eae44773f1, counter=6}, lastWriteDate=Wed Oct 07 10:12:20 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-07T10:12:26.551+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-07T10:12:26.552+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-07T10:12:26.552+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-07T10:12:26.595+02:00 INFO  [main] c.a.core.clubs.bookings.api.LifecycleIT traceId= clubId= accountId= : Started LifecycleIT in 5.431 seconds (process running for 8.443)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e8-t05-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 14, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 11.86 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.LifecycleIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain -- Time elapsed: 0.159 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[POST /inactivity-periods/a2d7f693-b46b-4fa9-832c-278352b03247/decision {"code":"INACTIVITY_INVALID_STATE","message":"L'estat actual no permet aquesta operació d'inactivitat.","details":{},"traceId":"4333b539-08e3-45be-b1af-670c6685d062"}] 
+expected: 422
+ but was: 409
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain(LifecycleIT.java:69)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_15_onePendingRequestAndDisabledNps -- Time elapsed: 0.113 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[POST /me/leave-requests {"code":"LEAVE_ALREADY_REQUESTED","message":"Ja s'ha sol·licitat la baixa.","details":{},"traceId":"b9dbcde1-56d8-4d86-8a11-ed80429056f5"}] 
+expected: 422
+ but was: 409
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_15_onePendingRequestAndDisabledNps(LifecycleIT.java:98)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+Audit coverage: ACTIVITY_PUBLISHED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_CANCELLED -> ActivityIT.T_07_13_cancellationNotifiesActiveAndWaitingAndZeroesCounters
+Audit coverage: ACTIVITY_UPDATED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_REGISTERED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: WEEK_VALIDATED -> CalendarIT.T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation
+Audit coverage: CLASS_CANCELLED -> CalendarIT.T_06_14_T_06_15_T_06_34_cancellationRollsBackAndDeliversEveryDogInRecipientLocaleOnce
+Audit coverage: CLASS_UPDATED_WITH_BOOKINGS -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: CLASS_RISK_EXEMPTION_CHANGED -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: RING_BLOCK_CREATED -> CalendarIT.R_14_09_anInstructorsAuditedActionIsStoredBackofficeAndItsEventKeepsInstructor, CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: RING_BLOCK_CANCELLED -> CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: TEMPLATE_CLASS_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: TEMPLATE_BAND_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: MEMBER_VALIDATED -> SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: SIGNUP_REJECTED -> SignupIT.T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat
+Audit coverage: SIGNUP_SUBMITTED -> SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers, SignupSecurityFixesIT.T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, NotificationPreferencesIT.T_11_20_theD10SaveIsAuditedWithTheActorAndPublishesTheChange
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, SignupIT.T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: BOOKING_CREATED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_LATE -> BookingsIT.T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert, BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: TRAINING_BOOKED_BY_CLUB -> TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: TRAINING_CANCELLED_BY_CLUB -> TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: ATTENDANCE_OVERRIDDEN -> AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval, FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken, FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings, SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, DemoSeedsIT.T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites, MessageTemplatesIT.T_11_16_aCustomTemplateIsCreatedSavedWithItsVersionAndArchived, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: ANNOUNCEMENT_SENT -> AnnouncementsIT.T_11_18_n24ToTheMembersOfTheListFiltersWithTheirOwnPreferencesAuditedAndReplayedByItsKey
+Audit coverage: MIGRATION_APPLIED -> PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists, SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_03_R_02_04_theD11BlocksFollowTheCatalogAndOnlyTheClubKeysAreEditable, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.R_02_02_R_02_06_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+Audit coverage: JOB_TRIGGERED -> JobFrameworkIT.T_15_08_manualTriggerIsAuditedAndRefusedWhileRunning, JobsApiIT.T_15_08_manualTriggerRunsTheProcessEvenSwitchedOffIsAuditedAndGuarded
+Audit coverage: INVOICE_MARKED_PAID -> InvoiceActionsIT.T_12_14_fourCashInvoicesPaidInBulkAllOrNone
+Audit coverage: INVOICE_MARKED_FAILED -> InvoiceActionsIT.T_12_14_T_12_30_aBankReturnFailsACollectingInvoiceAndAPaidOneWithItsSepaCollectionAndNotifiesTheAdmins
+Audit coverage: INVOICE_CANCELLED -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: INVOICE_CREATED_MANUAL -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: REMITTANCE_GENERATED -> BillingCycleIT.T_12_09_T_12_29_theRunNumbersTheInvoicesAdvancesOnlyTheIncludedMembersAndAuditsOnce, BillingCycleIT.T_12_18_R_12_19_aManualSepaReceiptWithIncludeInNextRunJoinsTheNextRemittanceAndARollbackReturnsIt
+Audit coverage: REMITTANCE_ROLLED_BACK -> BillingCycleIT.T_12_13_R_12_14_aRollbackReissuesItsWholeBlockAlsoAfterTheAdminCancelledOneOfItsReceipts, BillingCycleIT.T_12_13_aRollbackGivesBackNumbersDatesAndChargesAndASecondRunReproducesTheNumbers
+Audit coverage: REMITTANCE_SUBMITTED -> RemittancesIT.T_12_30_aSubmittedRemittanceEndsTheRollbackAndTheSubmissionIsAuditedOnce
+Audit coverage: PAYMENT_REFUNDED -> CardPaymentsIT.T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund
+Audit coverage: CARD_CHARGES_STARTED -> CardPaymentsIT.T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment
+Audit coverage: UPFRONT_PAYMENT_RECORDED -> CardPaymentsIT.T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder
+Audit coverage: INACTIVITY_RESOLVED -> LifecycleIT.T_13_08_requestUsesDeadlineAndReplaysTheSameKey
+Audit coverage: LEAVE_RESOLVED -> LifecycleIT.T_13_15_onePendingRequestAndDisabledNps
+Audit coverage: LEAVE_CANCELLED -> LifecycleIT.T_13_18_T_13_19_directLeaveSupersedesPendingAndCancellationClearsTheDate
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.508 s <<< FAILURE! -- in com.agilityhub.core.platform.application.audit.AuditContractTest
+[ERROR] com.agilityhub.core.platform.application.audit.AuditContractTest.T_14_12_everyActionHasAnAnnotatedExecutableTest -- Time elapsed: 0.507 s <<< FAILURE!
+java.lang.AssertionError: 
+[AuditAction values without @AuditCovers tests: [PACK_ADJUSTED, MEMBER_PLAN_CHANGED]] 
+Expecting empty but was: [PACK_ADJUSTED, MEMBER_PLAN_CHANGED]
+	at com.agilityhub.core.platform.application.audit.AuditContractTest.T_14_12_everyActionHasAnAnnotatedExecutableTest(AuditContractTest.java:37)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain:69->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods/a2d7f693-b46b-4fa9-832c-278352b03247/decision {"code":"INACTIVITY_INVALID_STATE","message":"L'estat actual no permet aquesta operació d'inactivitat.","details":{},"traceId":"4333b539-08e3-45be-b1af-670c6685d062"}] 
+expected: 422
+ but was: 409
+[ERROR]   LifecycleIT.T_13_15_onePendingRequestAndDisabledNps:98->BookingFixtures.call:138 [POST /me/leave-requests {"code":"LEAVE_ALREADY_REQUESTED","message":"Ja s'ha sol·licitat la baixa.","details":{},"traceId":"b9dbcde1-56d8-4d86-8a11-ed80429056f5"}] 
+expected: 422
+ but was: 409
+[ERROR]   AuditContractTest.T_14_12_everyActionHasAnAnnotatedExecutableTest:37 [AuditAction values without @AuditCovers tests: [PACK_ADJUSTED, MEMBER_PLAN_CHANGED]] 
+Expecting empty but was: [PACK_ADJUSTED, MEMBER_PLAN_CHANGED]
+[ERROR] Tests run: 15, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

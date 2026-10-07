@@ -35,7 +35,7 @@ public class BookingChecks {
         var booker = census.member(actor.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
         var weeks = context.weeks(); var week = weeks.week(session.startsAt()); var relative = weeks.relative(session.startsAt(), now);
         var localDate = session.startsAt().atZone(context.zone()).toLocalDate();
-        var pack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id()) : Optional.<PackBalancePort.Balance>empty();
+        var pack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), localDate) : Optional.<PackBalancePort.Balance>empty();
         var period = context.enabled(Module.INACTIVITY) ? inactivity.covering(owner.id(), localDate).map(p -> new BookingEligibility.Period(p.from(), p.to()))
                 : Optional.<BookingEligibility.Period>empty();
         BookingEligibility.check(new BookingEligibility.Input(true, dog.active(), person(owner), person(booker), period,

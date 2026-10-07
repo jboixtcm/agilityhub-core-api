@@ -989,10 +989,7 @@ public class SignupService implements SignupPaymentAccess {
         Money exceeds=planChanged(member,plan,dogs)?payments.replace(id,scope,charges(quote)).paidExceedsQuote():null;
         Money due=payments.due(id,scope,currency());
         if(billing()&&due.amountMinor()>0&&payments.lines(id,scope).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");
-        if(request.get("upfrontAmountPaid")!=null) {
-            if(!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
-            payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
-        }
+        if(request.get("upfrontAmountPaid")!=null&&!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
         String previousMandate=string(map(member.paymentMethod).get("mandateRef"));
         if(!addDog&&readmissionPending(member)) applyReadmission(member);
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
@@ -1016,6 +1013,8 @@ public class SignupService implements SignupPaymentAccess {
         var decision=object("validatedAt",clock.instant(),"validatedByAccountId",CurrentUser.current()==null?null:CurrentUser.current().accountId());
         if(!addDog) member.signup=stamped(map(member.signup),decision);
         access.members.save(member);
+        // E8-T05: pack opening reads the selected plan, in this same transaction, after validation has assigned it.
+        if(request.get("upfrontAmountPaid")!=null) { payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class)); }
         // E38 (E3-T17): a readmission's reused dog gets the values and documents it submitted only now.
         for(var dog:dogs) { if(readmissionPending(dog)) applyReadmission(dog);dog.status="ACTIVE";dog.registeredAt=clock.instant();dog.signup=stamped(block(member,dog),decision);if(!access.levels()) { dog.levelId=null;dog.levelAssignedAt=null; }access.dogs.save(dog); }
         // The first level is an assignment (history and audit, never DogLevelChanged); the events read the dogs as stored.

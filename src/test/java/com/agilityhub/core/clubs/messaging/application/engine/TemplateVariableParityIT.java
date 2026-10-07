@@ -104,9 +104,6 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
      * their stage writes the owner (and adds the code's case to this test).
      */
     static final Map<String, String> LATER = new TreeMap<>(Map.of(
-            "N-11a", "PackLowBalance: packs, S12 (E8-T05)", "N-11b", "PackExpiring / PackExpired: packs, S12 (E8-T05)",
-            "N-18b", "InactivityResolved: inactivity periods, S13 (E8-T05)", "N-18c", "InactivityEnded: inactivity periods, S13 (E8-T05)",
-            "N-28", "LeaveResolved: leave requests, S13 (E8-T05)",
             "N-31", "RingSetupChanged: course setups, S16 (later stage)",
             "N-50", "no event: the S14 export worker triggers it directly (not produced yet)"));
 
@@ -299,6 +296,18 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         cases.add(new Case("N-40", "BookingCancelled", with(bookingOf, "reason", "PAYMENT_TIMEOUT", "by", "SYSTEM", "origin", "SYSTEM")));
         cases.add(new Case("N-46", "WaitlistConsolidated", TAKEN_ENTRY, Map.of("classId", CLASS2, "entryId", TAKEN_ENTRY), Map.of()));
         cases.add(new Case("N-47", "TrainingCancelled", Map.of("trainingBookingId", TRAINING_CANCELLED, "memberId", LAURA, "dogId", DUNA, "origin", "BACKOFFICE", "by", "ADMIN")));
+        cases.add(new Case("N-11a", "PackLowBalance", Map.of("memberId", LAURA, "dogId", DUNA, "remaining", 1, "expiresOn", "2026-11-11")));
+        for (String event : List.of("PackExpiring", "PackExpired")) {
+            cases.add(new Case("N-11b", event, Map.of("memberId", LAURA, "dogId", DUNA, "remaining", 1, "expiresOn", "2026-11-11")));
+        }
+        cases.add(new Case("N-18b", "InactivityResolved", Map.of("memberId", LAURA, "from", "2026-11", "to", "2026-12", "decision", "APPROVED",
+                "fee", Map.of("firstMonth", Map.of("amountMinor", 2000, "currency", "EUR"), "followingMonths", Map.of("amountMinor", 1000, "currency", "EUR")),
+                "admin_text", "Approved period", "cancelledBookings", List.of(Map.of("type", "CLASS", "id", BOOKING, "sessionDate", "2026-11-03")))));
+        cases.add(new Case("N-18c", "InactivityEnded", Map.of("memberId", LAURA, "finishReason", "SCHEDULED")));
+        for (String event : List.of("LeaveResolved", "LeaveCancelled")) {
+            cases.add(new Case("N-28", event, Map.of("memberId", LAURA, "source", "MEMBER", "effectiveDate", "2026-10-31", "decision", "APPROVED",
+                    "admin_text", "Decision note", "cancelledBookings", List.of(Map.of("type", "CLASS", "id", BOOKING, "sessionDate", "2026-11-03")))));
+        }
         return cases;
     }
     static Map<String, Object> with(Map<String, Object> base, Object... pairs) {

@@ -143,7 +143,7 @@ public final class NotificationCatalog {
                 .vars("member_name", "invoice_number", "amount", "reason").modules(Module.BILLING).build());
         rows.add(code("N-11a", PERSONAL, "PackLowBalance").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_remaining")
                 .modules(Module.BILLING, Module.PACKS).build());
-        rows.add(code("N-11b", PERSONAL, "PackExpiring", "PackExpired").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_expiry")
+        rows.add(code("N-11b", PERSONAL, "PackExpiring", "PackExpired").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_expiry", "pack_remaining")
                 .modules(Module.BILLING, Module.PACKS).build());
         // E66 (27-09): N-13, N-15 and N-16 gain `class_description`; N-21 and N-22 `gender`; N-28 its member variables (Annex A «Variables noves»).
         rows.add(code("N-13", OPERATIONAL, "ReminderDue").to(MEMBER, APP, PUSH, EMAIL).action(OPEN_BOOKING)
@@ -178,7 +178,7 @@ public final class NotificationCatalog {
         rows.add(code("N-25", SYSTEM, "MagicLinkRequested").to(MEMBER, EMAIL).vars("link", "expires_minutes").build());
         rows.add(code("N-26", SYSTEM, "PasswordChanged").to(MEMBER, EMAIL).build());
         rows.add(code("N-27", SYSTEM, "AccessResent").to(MEMBER, EMAIL).vars("link").build());
-        rows.add(code("N-28", PERSONAL, "LeaveResolved").to(MEMBER, APP, EMAIL)
+        rows.add(code("N-28", PERSONAL, "LeaveResolved", "LeaveCancelled").to(MEMBER, APP, EMAIL)
                 .vars("effective_date", "admin_text", "cancelled_count", "decision", "source", "member_first_name", "dog_name")
                 .seed(TemplateIcon.doc, TemplateColor.NEUTRAL).build());
         rows.add(code("N-29", PERSONAL, "BookingBlockChanged").to(MEMBER, APP, EMAIL).vars("reason").build());

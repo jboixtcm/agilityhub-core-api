@@ -81,13 +81,13 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
     }
     static Stream<Route> clubRoutes() throws Exception { return routes().filter(Route::club); }
-    /** E8-T02 serves 18 routes and E8-T03 four; the rest of the contract stays a stub. */
+    /** Served routes include E8-T05 lifecycle and pack operations; exports belong to E8-T06. */
     static Stream<Route> stubRoutes() throws Exception { return routes().filter(route -> !route.served()); }
     /** A served route past its guards: its success or a business answer, never the guards' 401/403 nor the stub's 501. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {
         var response = mvc.perform(request).andReturn();
         String label = response.getRequest().getMethod() + " " + response.getRequest().getRequestURI();
-        assertThat(response.getResponse().getStatus()).as(label + " " + response.getResponse().getContentAsString()).isNotIn(401, 403, 501);
+        assertThat(response.getResponse().getStatus()).as(label + " " + response.getResponse().getContentAsString()).isIn(200, 201, 202, 204, 400, 404, 409, 422);
     }
 
     @BeforeEach void prepare() {
@@ -127,7 +127,7 @@ class E8ContractIT extends AbstractIntegrationTest {
                 new BillingSimulation.Kpis(1, fee, new BillingSimulation.ByProvider(new BillingSimulation.Totals(1, fee), null, null), 0,
                         new BillingSimulation.InactivityFees(0, new Money(2000, "EUR"), new Money(1000, "EUR"))), "e8-ADMIN"));
         mongo.insert(new BillingRun("e8-run-a", CLUB, "2026-09", BillingRunStatus.GENERATED, "e8-simulation-a", List.of("e8-invoice-a"),
-                new BillingRun.ByProvider(new BillingRun.Totals(1, fee, "e8-remittance-a", null, null), null, null), "2026-09-01", now, now, List.of(),
+                new BillingRun.ByProvider(new BillingRun.Totals(1, fee, "e8-remittance-a", null, null), new BillingRun.Totals(0, zero, null, 0, 0), null), "2026-09-01", now, now, List.of(),
                 List.of(new BillingRun.PreviousDate("e8-member-a", "2026-09-01")), 912, "e8-ADMIN", null, null, 0L, now));
         mongo.insert(new Remittance("e8-remittance-a", CLUB, "e8-run-a", "2026-09", "e8-club-a-2026-09-1", now, "2026-09-01",
                 new Remittance.Creditor("Club Example", "ES00ZZZB00000000", "ES0000000000000000000000", null), List.of("e8-collection-a"), 1, fee,
@@ -246,8 +246,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(CLUB)) { issued = impersonations.create("e8-imp-admin", "e8-member-a", "Contract authorization test"); }
         for (Route route : clubRoutes().toList()) {
             var request = call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            if (route.impersonation() && route.served()) { served(request); }
-            else if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
+            if (route.impersonation()) { served(request); }
             else { error(request, 403, "IMPERSONATION_DENIED", "FORBIDDEN"); }
         }
         assertThat(clubRoutes().filter(Route::impersonation).map(Route::path).allMatch(path -> path.startsWith("/api/v1/me/") || path.startsWith("/api/v1/checkout-sessions/"))).isTrue();
@@ -279,7 +278,7 @@ class E8ContractIT extends AbstractIntegrationTest {
                 error(call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-a")).authorities(() -> "ROLE_" + staff)), 403, "FORBIDDEN");
                 var both = call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-a"))
                         .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff));
-                if (route.served()) { served(both); } else { error(both, 501, "NOT_IMPLEMENTED"); }
+                served(both);
             }
         }
         // The checkout's return screen: the session's member, an admin of the club or the anonymous signup capability only.
@@ -298,14 +297,14 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (Route route : clubRoutes().filter(r -> billing.contains(r.module())).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
         }
-        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(35);
+        assertThat(clubRoutes().filter(r -> billing.contains(r.module())).count()).isEqualTo(36);
         error(as(get("/api/v1/me/invoices"), "MEMBER"), 404, "MODULE_DISABLED");
         // A delivery signed by the club's secret reaches the module guard; an unsigned one never does (R-12-21).
         String event = "{\"id\":\"evt_e8\",\"type\":\"payment_intent.succeeded\"}";
         error(webhook(CLUB, event, signature(event)), 404, "MODULE_DISABLED");
         error(webhook(CLUB, event, "t=1,v1=x"), 401, "WEBHOOK_SIGNATURE_INVALID");
         for (Route route : clubRoutes().filter(r -> r.module() == null || r.module().equals("INACTIVITY")).toList()) {
-            for (String role : route.roles()) { error(call(route, CLUB, role), 501, "NOT_IMPLEMENTED"); }
+            for (String role : route.roles()) { served(call(route, CLUB, role)); }
         }
     }
 
@@ -318,7 +317,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         mvc.perform(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN")).andExpect(status().isOk());
         club(CLUB, without(Module.SINGLE_CLASS));
         error(as(get("/api/v1/members/e8-member-a/pending-charges"), "ADMIN"), 404, "MODULE_DISABLED");
-        error(as(get("/api/v1/pack-balances").param("memberId", "e8-member-a"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/pack-balances").param("memberId", "e8-member-a"), "ADMIN"));
     }
 
     @Test void T_13_25_inactivityOffHidesEveryInactivityRouteWhileTheLeaveRoutesAnswer() throws Exception {
@@ -329,7 +328,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         assertThat(clubRoutes().filter(r -> "INACTIVITY".equals(r.module())).allMatch(r -> r.path().contains("inactivity"))).isTrue();
         assertThat(clubRoutes().filter(r -> r.path().contains("inactivity")).count()).isEqualTo(12);
         for (Route route : clubRoutes().filter(r -> r.module() == null).toList()) {
-            for (String role : route.roles()) { error(call(route, CLUB, role), 501, "NOT_IMPLEMENTED"); }
+            for (String role : route.roles()) { served(call(route, CLUB, role)); }
         }
         assertThat(clubRoutes().filter(r -> r.module() == null).count()).isEqualTo(9);
     }
@@ -433,12 +432,12 @@ class E8ContractIT extends AbstractIntegrationTest {
                 .content("{\"successUrl\":\"https://e8-a.example.test/ok\",\"cancelUrl\":\"https://e8-a.example.test/ko\"}"), "ADMIN"), 409, "MEMBER_ERASED");
         mvc.perform(as(get("/api/v1/members/e8-member-erased/pending-charges"), "ADMIN")).andExpect(status().isOk());
         // The optional references: a dog's packs, a payment without a dog, an open preview; an unknown dog is 404.
-        error(as(get("/api/v1/pack-balances").param("dogId", "e8-dog-a"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/pack-balances").param("dogId", "e8-dog-a"), "ADMIN"));
         error(as(get("/api/v1/pack-balances").param("dogId", "e8-missing"), "ADMIN"), 404, "NOT_FOUND");
-        error(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+        served(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
                 .content("{\"memberId\":\"e8-member-a\",\"concept\":\"ENTRY_FEE\",\"amountDue\":{\"amountMinor\":10000,\"currency\":\"EUR\"},"
-                        + "\"amountPaid\":{\"amountMinor\":10000,\"currency\":\"EUR\"},\"channel\":\"CASH\",\"paidAt\":\"2026-09-24\"}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
-        error(as(get("/api/v1/me/inactivity-periods/preview").param("fromMonth", "2026-11"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+                        + "\"amountPaid\":{\"amountMinor\":10000,\"currency\":\"EUR\"},\"channel\":\"CASH\",\"paidAt\":\"2026-09-24\"}"), "ADMIN"));
+        served(as(get("/api/v1/me/inactivity-periods/preview").param("fromMonth", "2026-11"), "MEMBER"));
         // A member token that names no member reaches no member's resource.
         var anonymousMember = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER");
         error(get("/api/v1/me/invoices/e8-invoice-a").header("Host", HOST).with(anonymousMember), 404, "NOT_FOUND");
@@ -459,8 +458,7 @@ class E8ContractIT extends AbstractIntegrationTest {
             error(checkout("e8-member-a", extension).header("Host", HOST), 401, "UNAUTHENTICATED");
             error(checkout("e8-member-a", extension).header("Host", HOST).content(withToken("e8-member-a", extension, signupToken)), 409, "INVALID_STATE");
         }
-        var after = database();
-        assertThat(after).isEqualTo(before);
+        // Allowed writes are asserted by LifecycleIT; the guard cases above remain exact.
     }
 
     /**
@@ -505,17 +503,16 @@ class E8ContractIT extends AbstractIntegrationTest {
      * (a member token that names none → 404; an erased member's write → 409 MEMBER_ERASED).
      */
     @Test void T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub() throws Exception {
-        var before = database();
         error(as(post("/api/v1/pack-balances").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
                 .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-b\",\"planId\":\"e8-plan-a\",\"openedOn\":\"2026-06-12\",\"reason\":\"Pack regalat\"}"), "ADMIN"), 404, "NOT_FOUND");
-        error(as(post("/api/v1/pack-balances").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
-                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\",\"planId\":\"e8-plan-a\",\"openedOn\":\"2026-06-12\",\"reason\":\"Pack regalat\"}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(post("/api/v1/pack-balances").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\",\"planId\":\"e8-plan-a\",\"openedOn\":\"2026-06-12\",\"reason\":\"Pack regalat\"}"), "ADMIN"));
         String payment = "\"concept\":\"ENTRY_FEE\",\"amountDue\":{\"amountMinor\":10000,\"currency\":\"EUR\"},"
                 + "\"amountPaid\":{\"amountMinor\":10000,\"currency\":\"EUR\"},\"channel\":\"CASH\",\"paidAt\":\"2026-09-24\"";
         error(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
                 .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-b\"," + payment + "}"), "ADMIN"), 404, "NOT_FOUND");
-        error(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
-                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\"," + payment + "}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(post("/api/v1/upfront-payments").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"dogId\":\"e8-dog-a\"," + payment + "}"), "ADMIN"));
         var noMember = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER");
         var erased = jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-erased")).authorities(() -> "ROLE_MEMBER");
         var foreign = jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e8-member-other")).authorities(() -> "ROLE_MEMBER");
@@ -537,13 +534,11 @@ class E8ContractIT extends AbstractIntegrationTest {
             response = mvc.perform(route.getValue().header("Host", HOST).with(foreign)).andReturn().getResponse();
             assertThat(response.getStatus()).as(route.getKey() + " with another club's member").isEqualTo(404);
             response = mvc.perform(route.getValue().header("Host", HOST).with(erased)).andReturn().getResponse();
-            assertThat(response.getStatus()).as(route.getKey() + " of an erased member").isEqualTo(writes.containsKey(route.getKey()) ? 409 : 501);
+            assertThat(response.getStatus()).as(route.getKey() + " of an erased member").isEqualTo(writes.containsKey(route.getKey()) ? 409 : 200);
             if (route.getKey().equals("POST /me/card-setup")) { continue; } // Success is proved separately; this assertion covers refused writes.
             response = mvc.perform(as(route.getValue(), "MEMBER")).andReturn().getResponse();
-            assertThat(response.getStatus()).as(route.getKey() + " of the member").isEqualTo(501);
+            assertThat(response.getStatus()).as(route.getKey() + " of the member").isIn(200, 201, 409, 422);
         }
-        var after = database();
-        assertThat(after).isEqualTo(before);
     }
 
     /**
@@ -556,31 +551,31 @@ class E8ContractIT extends AbstractIntegrationTest {
         for (String path : List.of("/api/v1/me/inactivity-periods/e8-period-a", "/api/v1/inactivity-periods/e8-period-a")) {
             String role = path.startsWith("/api/v1/me/") ? "MEMBER" : "ADMIN";
             for (String body : List.of("{\"version\":0}", "{\"toMonth\":null,\"version\":0}", "{\"toMonth\":\"2027-02\",\"comments\":null,\"version\":0}")) {
-                error(as(patch(path).contentType("application/json").content(body), role), 501, "NOT_IMPLEMENTED");
+                served(as(patch(path).contentType("application/json").content(body), role));
             }
             for (String body : List.of("{\"fromMonth\":null,\"version\":0}", "{\"tomonth\":null,\"version\":0}", "{\"toMonth\":\"2027-2\",\"version\":0}",
                     "{\"toMonth\":null}")) {
                 error(as(patch(path).contentType("application/json").content(body), role), 400, "VALIDATION_ERROR");
             }
         }
-        error(as(post("/api/v1/me/inactivity-periods").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
-                .content("{\"fromMonth\":\"2026-11\",\"toMonth\":null,\"comments\":null}"), "MEMBER"), 501, "NOT_IMPLEMENTED");
-        error(as(post("/api/v1/inactivity-periods").contentType("application/json")
-                .content("{\"memberId\":\"e8-member-a\",\"fromMonth\":\"2026-11\",\"toMonth\":null}"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(post("/api/v1/me/inactivity-periods").header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"fromMonth\":\"2026-11\",\"toMonth\":null,\"comments\":null}"), "MEMBER"));
+        served(as(post("/api/v1/inactivity-periods").contentType("application/json")
+                .content("{\"memberId\":\"e8-member-a\",\"fromMonth\":\"2026-11\",\"toMonth\":null}"), "ADMIN"));
     }
 
-    /** S13 R-13-17 (E8-T01 publishes, E8-T05 computes): the three member filters answer 501, the rest of `GET /members` is unchanged. */
-    @Test void T_13_22_theDeferredMemberFiltersAnswer501() throws Exception {
+    /** S13 R-13-17: the three lifecycle filters use the current tenant documents. */
+    @Test void T_13_22_theLifecycleMemberFiltersAreServed() throws Exception {
         for (String filter : List.of("leaveSource:eq:PACK_EXPIRED", "inactivityUntil:lte:2026-12-31", "hasPendingRequest:eq:true")) {
-            error(as(get("/api/v1/members").param("filter", filter), "ADMIN"), 501, "NOT_IMPLEMENTED");
+            served(as(get("/api/v1/members").param("filter", filter), "ADMIN"));
         }
-        error(as(get("/api/v1/members/filter-values").param("field", "leaveSource"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/members/filter-values").param("field", "leaveSource"), "ADMIN"));
         error(as(get("/api/v1/members").param("filter", "leaveSource:eq:ADMIN"), "INSTRUCTOR"), 400, "INVALID_FILTER");
         error(as(get("/api/v1/members").param("filter", "leaveSource:between:a,b"), "ADMIN"), 400, "INVALID_FILTER");
         mvc.perform(as(get("/api/v1/members").param("filter", "status:eq:ACTIVE"), "ADMIN")).andExpect(status().isOk());
         club(CLUB, without(Module.INACTIVITY));
         error(as(get("/api/v1/members").param("filter", "inactivityUntil:lte:2026-12-31"), "ADMIN"), 400, "INVALID_FILTER");
-        error(as(get("/api/v1/members").param("filter", "hasPendingRequest:eq:true"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/members").param("filter", "hasPendingRequest:eq:true"), "ADMIN"));
     }
 
     private Map<String, List<Document>> database() {
@@ -602,9 +597,9 @@ class E8ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(57);
+        assertThat(routes().count()).isEqualTo(58);
         long s13 = routes().filter(r -> r.path().contains("inactivity") || r.path().contains("leave") || r.path().endsWith("/reactivation")).count();
-        assertThat(List.of(routes().count() - s13, s13)).containsExactly(36L, 21L);
+        assertThat(List.of(routes().count() - s13, s13)).containsExactly(37L, 21L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();

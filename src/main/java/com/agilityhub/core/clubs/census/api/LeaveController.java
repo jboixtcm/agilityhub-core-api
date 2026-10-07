@@ -22,15 +22,13 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 /**
  * S13 §6 leave requests, planned leave and reactivation (screen 15, D10's «Baixa (amb data)», «Inactivitats i baixes»); no
  * module (R-13-19: the leave is always there). Member routes: MEMBER, also the impersonation token (`origin = BACKOFFICE`),
- * on their own requests only. Admin routes: ADMIN without impersonation; INSTRUCTOR → 403. Every operation runs its guards
- * and then answers 501 NOT_IMPLEMENTED until E8-T05. Error statuses are CATALEG_ERRORS' (§1 and rule 0), whatever S13 §6
+ * on their own requests only. Admin routes: ADMIN without impersonation; INSTRUCTOR → 403. Every operation enforces its tenant, role and lifecycle guards. Error statuses are CATALEG_ERRORS' (§1 and rule 0), whatever S13 §6
  * writes (LEAVE_DATE_INVALID, LEAVE_REASON_UNKNOWN, MEMBER_NOT_LEFT and NO_PLANNED_LEAVE are 422).
  */
 @RestController
 public class LeaveController {
     static final String MEMBER_ROLES = "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. ";
     static final String ADMIN_ROLES = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. ";
-    static final String STUB = InactivityController.STUB;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LeaveRequestService service;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleViews views;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.LifecycleTransactions transactions;
@@ -80,8 +78,8 @@ public class LeaveController {
             + "also of the caller's family group → 404.",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest withdrawMyLeave(@PathVariable String id) {
-        access.ownRequest(id);
-        access.mutableMe(); return transactions.run(() -> mapped(views.request(service.withdraw(id)), LeaveRequest.class));
+        access.mutableMe();
+        access.ownRequest(id); return transactions.run(() -> mapped(views.request(service.withdraw(id)), LeaveRequest.class));
     }
 
     @GetMapping("/api/v1/leave-requests")
@@ -161,7 +159,6 @@ public class LeaveController {
             + "Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409).",
             responses = @ApiResponse(responseCode = "200", description = "Member", useReturnTypeSchema = true))
     public CensusResponses.Member reactivateMember(@PathVariable String id, @Valid @RequestBody ReactivationRequest request) {
-        access.mutableMember(id);
         return transactions.run(() -> { service.reactivate(id, request.planId(), request.priceId(), request.nextInvoiceDate()); return mapped(queries.member(id, true), CensusResponses.Member.class); });
     }
 }

@@ -1200,6 +1200,7 @@
         "type" : "object"
       },
       "AdminInactivityPatchRequest" : {
+        "additionalProperties" : false,
         "description" : "R-13-04 from D-screens: only the fields sent change; an unknown field → 400 VALIDATION_ERROR",
         "properties" : {
           "comments" : {
@@ -1224,6 +1225,7 @@
           },
           "version" : {
             "format" : "int64",
+            "minimum" : 0,
             "type" : "integer"
           }
         },
@@ -7270,6 +7272,7 @@
         "type" : "object"
       },
       "InactivityPatchRequest" : {
+        "additionalProperties" : false,
         "description" : "R-13-04: only the fields sent change; an unknown field → 400 VALIDATION_ERROR",
         "properties" : {
           "comments" : {
@@ -7290,6 +7293,7 @@
           },
           "version" : {
             "format" : "int64",
+            "minimum" : 0,
             "type" : "integer"
           }
         },
@@ -7299,6 +7303,11 @@
       "InactivityPeriod" : {
         "description" : "S13 §3 InactivityPeriod, whole months from the 1st of fromMonth to the end of toMonth (null = open, «encara no ho sé»). feeSnapshot is frozen at approval with BILLING (R-13-08), null before or without BILLING. The member is the period's owner.",
         "properties" : {
+          "bookingsInside" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : [ "integer", "null" ]
+          },
           "cancelReason" : {
             "anyOf" : [ {
               "$ref" : "#/components/schemas/InactivityCancelReason"
@@ -11370,6 +11379,9 @@
             "enum" : [ "MALE", "FEMALE", "OTHER" ],
             "type" : "string"
           },
+          "hasPendingRequest" : {
+            "type" : "boolean"
+          },
           "id" : {
             "format" : "uuid",
             "type" : "string"
@@ -11380,6 +11392,10 @@
           "imageRights" : {
             "$ref" : "#/components/schemas/ImageRights"
           },
+          "inactivityUntil" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
           "joinedAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -11387,6 +11403,13 @@
           "leaveDate" : {
             "format" : "date",
             "type" : "string"
+          },
+          "leaveSource" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LeaveSource"
+            }, {
+              "type" : "null"
+            } ]
           },
           "memberNumber" : {
             "format" : "int32",
@@ -11467,6 +11490,10 @@
           "familyGroup" : {
             "$ref" : "#/components/schemas/FamilyGroup"
           },
+          "inactivity" : {
+            "additionalProperties" : { },
+            "type" : "object"
+          },
           "invoicesCount" : {
             "format" : "int64",
             "type" : "integer"
@@ -11480,6 +11507,13 @@
           "notificationPreferences" : {
             "additionalProperties" : { },
             "type" : "object"
+          },
+          "plannedLeave" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PlannedLeave"
+            }, {
+              "type" : "null"
+            } ]
           },
           "recentAudit" : {
             "items" : {
@@ -11571,6 +11605,24 @@
           }
         },
         "required" : [ "version" ],
+        "type" : "object"
+      },
+      "MemberPlanChangeRequest" : {
+        "properties" : {
+          "effectiveMonth" : {
+            "pattern" : "[0-9]{4}-(0[1-9]|1[0-2])",
+            "type" : "string"
+          },
+          "planId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "priceId" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "planId", "priceId" ],
         "type" : "object"
       },
       "MemberSignupView" : {
@@ -19409,7 +19461,7 @@
             "type" : [ "string", "null" ]
           },
           "cancelReason" : {
-            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY", "MEMBER_LEFT", null ],
+            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY", "MEMBER_LEFT", "INACTIVITY", "LEAVE", null ],
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
@@ -23400,7 +23452,7 @@
                 }
               }
             },
-            "description" : "ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD"
+            "description" : "ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING"
           },
           "429" : {
             "content" : {
@@ -28268,7 +28320,7 @@
                 }
               }
             },
-            "description" : "SWAP_NOT_ALLOWED, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, PACK_EMPTY"
+            "description" : "SWAP_NOT_ALLOWED, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, PACK_EMPTY"
           },
           "429" : {
             "content" : {
@@ -40001,7 +40053,7 @@
     },
     "/api/v1/inactivity-periods" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. «Inactivitats i baixes» › «Inactivitats» (universal list, CONVENCIONS_API §4): by default state:in:REQUESTED,APPROVED,ACTIVE ordered by fromMonth; q searches the member's name. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. «Inactivitats i baixes» › «Inactivitats» (universal list, CONVENCIONS_API §4): by default state:in:REQUESTED,APPROVED,ACTIVE ordered by fromMonth; q searches the member's name. An undeclared filter, sort or fields key → 400 INVALID_FILTER.",
         "operationId" : "inactivityPeriods",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -40224,7 +40276,7 @@
         "x-sortable" : [ "fromMonth", "requestedAt", "memberLastName" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 D10 «Nou període d'inactivitat»: created and approved at once (origin BACKOFFICE, feeSnapshot frozen, bookings inside cancelled, ACTIVE at once from the 1st of fromMonth); overrideDeadline skips the day-25 rule (decision.deadlineOverridden, audited). InactivityResolved{APPROVED} → N-18b, INACTIVITY_RESOLVED audit. The same checks as the member's request; another club's member → 404; an erased one → 409 MEMBER_ERASED. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 D10 «Nou període d'inactivitat»: created and approved at once (origin BACKOFFICE, feeSnapshot frozen, bookings inside cancelled, ACTIVE at once from the 1st of fromMonth); overrideDeadline skips the day-25 rule (decision.deadlineOverridden, audited). InactivityResolved{APPROVED} → N-18b, INACTIVITY_RESOLVED audit. The same checks as the member's request; another club's member → 404; an erased one → 409 MEMBER_ERASED.",
         "operationId" : "createInactivity",
         "requestBody" : {
           "content" : {
@@ -40373,7 +40425,7 @@
     },
     "/api/v1/inactivity-periods/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. D10's drawer: the period with its history and cancelled bookings. Another club's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. D10's drawer: the period with its history and cancelled bookings. Another club's → 404.",
         "operationId" : "inactivityPeriod",
         "parameters" : [ {
           "in" : "path",
@@ -40518,7 +40570,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",
         "operationId" : "changeInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -40675,7 +40727,7 @@
     },
     "/api/v1/inactivity-periods/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. [Anul·la]: an APPROVED period not started yet → CANCELLED{ADMIN}, InactivityCancelled; the cancelled bookings are not restored. Otherwise → 409 INACTIVITY_INVALID_STATE. Idempotent by effect. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. [Anul·la]: an APPROVED period not started yet → CANCELLED{ADMIN}, InactivityCancelled; the cancelled bookings are not restored. Otherwise → 409 INACTIVITY_INVALID_STATE. Idempotent by effect.",
         "operationId" : "cancelInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -40831,7 +40883,7 @@
     },
     "/api/v1/inactivity-periods/{id}/decision" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Aprova] / [Denega]: only a REQUESTED period (409 INACTIVITY_INVALID_STATE). APPROVED freezes feeSnapshot, cancels the bookings inside (R-13-06, cancelledBookings) and is ACTIVE at once from the 1st of fromMonth (InactivityStarted in the same transaction); DENIED changes nothing else. InactivityResolved → N-18b with the note, INACTIVITY_RESOLVED audit. Idempotent by effect. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Aprova] / [Denega]: only a REQUESTED period (409 INACTIVITY_INVALID_STATE). APPROVED freezes feeSnapshot, cancels the bookings inside (R-13-06, cancelledBookings) and is ACTIVE at once from the 1st of fromMonth (InactivityStarted in the same transaction); DENIED changes nothing else. InactivityResolved → N-18b with the note, INACTIVITY_RESOLVED audit. Idempotent by effect.",
         "operationId" : "decideInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -40988,7 +41040,7 @@
     },
     "/api/v1/inactivity-periods/{id}/termination" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Finalitza el període]: an ACTIVE period ends at toMonth ≥ fromMonth (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); otherwise toMonth is set and the scheduler closes it. Not ACTIVE → 409 INACTIVITY_INVALID_STATE. Idempotent by effect. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Finalitza el període]: an ACTIVE period ends at toMonth ≥ fromMonth (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); otherwise toMonth is set and the scheduler closes it. Not ACTIVE → 409 INACTIVITY_INVALID_STATE. Idempotent by effect.",
         "operationId" : "terminateInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -44951,7 +45003,7 @@
     },
     "/api/v1/leave-requests" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. «Inactivitats i baixes» › «Baixes» (universal list, CONVENCIONS_API §4): by default state:eq:PENDING ordered by requestedAt; q searches the member's name. An undeclared filter, sort or fields key → 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. «Inactivitats i baixes» › «Baixes» (universal list, CONVENCIONS_API §4): by default state:eq:PENDING ordered by requestedAt; q searches the member's name. An undeclared filter, sort or fields key → 400 INVALID_FILTER.",
         "operationId" : "leaveRequests",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -45182,7 +45234,7 @@
     },
     "/api/v1/leave-requests/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. D10's drawer: the request with its decision and cancelled bookings. Another club's → 404 (T-13-24). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. D10's drawer: the request with its decision and cancelled bookings. Another club's → 404 (T-13-24).",
         "operationId" : "leaveRequest",
         "parameters" : [ {
           "in" : "path",
@@ -45329,7 +45381,7 @@
     },
     "/api/v1/leave-requests/{id}/decision" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-10 [Aprova] / [Denega] of a PENDING request (409 LEAVE_INVALID_STATE). APPROVED: effectiveDate (default requestedDate, today or later: 422 LEAVE_DATE_INVALID) becomes Member.leaveDate; bookings after it are cancelled (R-13-12), live inactivity periods closed; the member stays active up to leaveDate included. LeaveResolved → N-28, LEAVE_RESOLVED audit; the answer's member carries the leaveDate. Idempotent by effect. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-10 [Aprova] / [Denega] of a PENDING request (409 LEAVE_INVALID_STATE). APPROVED: effectiveDate (default requestedDate, today or later: 422 LEAVE_DATE_INVALID) becomes Member.leaveDate; bookings after it are cancelled (R-13-12), live inactivity periods closed; the member stays active up to leaveDate included. LeaveResolved → N-28, LEAVE_RESOLVED audit; the answer's member carries the leaveDate. Idempotent by effect.",
         "operationId" : "decideLeave",
         "parameters" : [ {
           "in" : "path",
@@ -48973,7 +49025,7 @@
     },
     "/api/v1/me/inactivity-periods" : {
       "get" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. Screen 14's context (S13 §6 JSON): the first month the caller may still change E(today) (R-13-01, inactivity.requestDeadlineDay in the club's time zone), the fee with BILLING, and the caller's own periods with what each still lets them change. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. Screen 14's context (S13 §6 JSON): the first month the caller may still change E(today) (R-13-01, inactivity.requestDeadlineDay in the club's time zone), the fee with BILLING, and the caller's own periods with what each still lets them change.",
         "operationId" : "myInactivityContext",
         "responses" : {
           "200" : {
@@ -49110,7 +49162,7 @@
         "tags" : [ "clubs.census" ]
       },
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-02 [ENVIA LA SOL·LICITUD]: a REQUESTED period of the caller (origin APP, or BACKOFFICE under impersonation, audited with both ids); InactivityRequested → N-18a. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED) on a MONTHLY plan (a PACK or SINGLE_CLASS plan → 422 INACTIVITY_NOT_APPLICABLE); fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}) and ≤ E(today) + inactivity.maxStartMonthsAhead, toMonth null or ≥ fromMonth (422 INACTIVITY_INVALID_RANGE); no overlap nor adjacency with a live period (409 INACTIVITY_OVERLAP {periodId, hint: EXTEND}). The same Idempotency-Key answers the same period. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-02 [ENVIA LA SOL·LICITUD]: a REQUESTED period of the caller (origin APP, or BACKOFFICE under impersonation, audited with both ids); InactivityRequested → N-18a. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED) on a MONTHLY plan (a PACK or SINGLE_CLASS plan → 422 INACTIVITY_NOT_APPLICABLE); fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}) and ≤ E(today) + inactivity.maxStartMonthsAhead, toMonth null or ≥ fromMonth (422 INACTIVITY_INVALID_RANGE); no overlap nor adjacency with a live period (409 INACTIVITY_OVERLAP {periodId, hint: EXTEND}). The same Idempotency-Key answers the same period.",
         "operationId" : "requestInactivity",
         "parameters" : [ {
           "in" : "header",
@@ -49268,7 +49320,7 @@
     },
     "/api/v1/me/inactivity-periods/preview" : {
       "get" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. Screen 14's yellow note and fee card (R-13-06/08), recomputed at each change of months: the caller's live bookings inside the months (a counter of a module that is off is absent) and the fee per month. toMonth before fromMonth → 422 INACTIVITY_INVALID_RANGE; a malformed month → 400 VALIDATION_ERROR. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. Screen 14's yellow note and fee card (R-13-06/08), recomputed at each change of months: the caller's live bookings inside the months (a counter of a module that is off is absent) and the fee per month. toMonth before fromMonth → 422 INACTIVITY_INVALID_RANGE; a malformed month → 400 VALIDATION_ERROR.",
         "operationId" : "previewInactivity",
         "parameters" : [ {
           "in" : "query",
@@ -49424,7 +49476,7 @@
     },
     "/api/v1/me/inactivity-periods/{id}" : {
       "patch" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",
         "operationId" : "changeMyInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -49581,7 +49633,7 @@
     },
     "/api/v1/me/inactivity-periods/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [RETIRA LA SOL·LICITUD]: REQUESTED always, APPROVED only while fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED) → CANCELLED{MEMBER, WITHDRAWN}, InactivityCancelled; an ACTIVE one is shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [RETIRA LA SOL·LICITUD]: REQUESTED always, APPROVED only while fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED) → CANCELLED{MEMBER, WITHDRAWN}, InactivityCancelled; an ACTIVE one is shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404.",
         "operationId" : "withdrawMyInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -50192,7 +50244,7 @@
     },
     "/api/v1/me/leave-requests" : {
       "get" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. Screen 15's context (S13 §6): the inactivity offer (INACTIVITY on and a plan that may request it), the fee with BILLING, today in the club's time zone, leave.fullMonthIfLater, leave.npsEnabled, the MEMBER reasons of leave.reasons in the reader's locale, the caller's planned leave and requests. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. Screen 15's context (S13 §6): the inactivity offer (INACTIVITY on and a plan that may request it), the fee with BILLING, today in the club's time zone, leave.fullMonthIfLater, leave.npsEnabled, the MEMBER reasons of leave.reasons in the reader's locale, the caller's planned leave and requests.",
         "operationId" : "myLeaveContext",
         "responses" : {
           "200" : {
@@ -50329,7 +50381,7 @@
         "tags" : [ "clubs.census" ]
       },
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [ENVIA LA SOL·LICITUD]: a PENDING request of the caller (origin APP, or BACKOFFICE under impersonation, audited); LeaveRequested → N-14 with the localized reason. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE), one PENDING request (409 LEAVE_ALREADY_REQUESTED) and no planned leave (409 LEAVE_ALREADY_SCHEDULED); requestedDate today or later (422 LEAVE_DATE_INVALID); reasonKey of leave.reasons (422 LEAVE_REASON_UNKNOWN, rule 0: S13 writes 400); nps only with leave.npsEnabled (403 READ_ONLY, §1: T-13-15 writes 400). The same Idempotency-Key answers the same request. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [ENVIA LA SOL·LICITUD]: a PENDING request of the caller (origin APP, or BACKOFFICE under impersonation, audited); LeaveRequested → N-14 with the localized reason. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE), one PENDING request (409 LEAVE_ALREADY_REQUESTED) and no planned leave (409 LEAVE_ALREADY_SCHEDULED); requestedDate today or later (422 LEAVE_DATE_INVALID); reasonKey of leave.reasons (422 LEAVE_REASON_UNKNOWN, rule 0: S13 writes 400); nps only with leave.npsEnabled (403 READ_ONLY, §1: T-13-15 writes 400). The same Idempotency-Key answers the same request.",
         "operationId" : "requestLeave",
         "parameters" : [ {
           "in" : "header",
@@ -50487,7 +50539,7 @@
     },
     "/api/v1/me/leave-requests/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, also of the caller's family group → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, also of the caller's family group → 404.",
         "operationId" : "withdrawMyLeave",
         "parameters" : [ {
           "in" : "path",
@@ -51796,7 +51848,7 @@
     },
     "/api/v1/me/pack-balances" : {
       "get" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. Screen 13 «Pack {n} — amb {gos}»: the packs of the caller's dogs with their movements, the live ones first. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. Screen 13 «Pack {n} — amb {gos}»: the packs of the caller's dogs with their movements, the live ones first.",
         "operationId" : "myPackBalances",
         "responses" : {
           "200" : {
@@ -53114,7 +53166,7 @@
     },
     "/api/v1/members" : {
       "get" : {
-        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; until E8-T05 computes them a filter on one of them answers 501 NOT_IMPLEMENTED.",
+        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields. S13 R-13-17 (E8-T01): the ADMIN-only filters leaveSource (MEMBER · ADMIN · PACK_EXPIRED · MIGRATED), inactivityUntil (date; with INACTIVITY) and hasPendingRequest are published; they are evaluated from the tenant-scoped lifecycle documents.",
         "operationId" : "listMembers",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -53375,9 +53427,19 @@
         }, {
           "defaultVisible" : false,
           "key" : "idDocument"
+        }, {
+          "defaultVisible" : false,
+          "key" : "leaveSource"
+        }, {
+          "defaultVisible" : false,
+          "key" : "inactivityUntil",
+          "module" : "INACTIVITY"
+        }, {
+          "defaultVisible" : false,
+          "key" : "hasPendingRequest"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -53689,15 +53751,25 @@
         }, {
           "defaultVisible" : false,
           "key" : "idDocument"
+        }, {
+          "defaultVisible" : false,
+          "key" : "leaveSource"
+        }, {
+          "defaultVisible" : false,
+          "key" : "inactivityUntil",
+          "module" : "INACTIVITY"
+        }, {
+          "defaultVisible" : false,
+          "key" : "hasPendingRequest"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
         },
-        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
-        "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city" ]
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate", "signupPending", "pendingDogs", "warnings", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
+        "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city", "signup.submittedAt" ]
       },
       "post" : {
         "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
@@ -54001,15 +54073,25 @@
         }, {
           "defaultVisible" : false,
           "key" : "idDocument"
+        }, {
+          "defaultVisible" : false,
+          "key" : "leaveSource"
+        }, {
+          "defaultVisible" : false,
+          "key" : "inactivityUntil",
+          "module" : "INACTIVITY"
+        }, {
+          "defaultVisible" : false,
+          "key" : "hasPendingRequest"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
         },
-        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
-        "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city" ]
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate", "signupPending", "pendingDogs", "warnings", "leaveSource", "inactivityUntil", "hasPendingRequest" ],
+        "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city", "signup.submittedAt" ]
       }
     },
     "/api/v1/members/filter-values" : {
@@ -56263,7 +56345,7 @@
     },
     "/api/v1/members/{id}/leave" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-10 direct leave from D10: an APPROVED LeaveRequest{source ADMIN, origin BACKOFFICE} with the same effects as an approval; a PENDING one becomes CANCELLED{ADMIN}. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED). Another club's member → 404; an erased one → 409 MEMBER_ERASED. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-10 direct leave from D10: an APPROVED LeaveRequest{source ADMIN, origin BACKOFFICE} with the same effects as an approval; a PENDING one becomes CANCELLED{ADMIN}. Only an ACTIVE member (422 MEMBER_NOT_ACTIVE) without a planned leave (409 LEAVE_ALREADY_SCHEDULED). Another club's member → 404; an erased one → 409 MEMBER_ERASED.",
         "operationId" : "scheduleLeave",
         "parameters" : [ {
           "in" : "path",
@@ -57174,9 +57256,167 @@
         "tags" : [ "payments" ]
       }
     },
+    "/api/v1/members/{id}/plan-change" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month.",
+        "operationId" : "change",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MemberPlanChangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PLAN_NOT_AVAILABLE"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "changeMemberPlan",
+        "tags" : [ "payments" ]
+      }
+    },
     "/api/v1/members/{id}/planned-leave" : {
       "delete" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-15 [Anul·la la baixa prevista]: an ACTIVE member with a leaveDate loses it, its LeaveRequest becomes CANCELLED{ADMIN}, LeaveCancelled → N-28 (variant), LEAVE_CANCELLED audit; billing returns to normal; the cancelled bookings are not restored. Without a planned leave → 422 NO_PLANNED_LEAVE (rule 0, S13 writes 409). No body. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-15 [Anul·la la baixa prevista]: an ACTIVE member with a leaveDate loses it, its LeaveRequest becomes CANCELLED{ADMIN}, LeaveCancelled → N-28 (variant), LEAVE_CANCELLED audit; billing returns to normal; the cancelled bookings are not restored. Without a planned leave → 422 NO_PLANNED_LEAVE (rule 0, S13 writes 409). No body.",
         "operationId" : "cancelPlannedLeave",
         "parameters" : [ {
           "in" : "path",
@@ -57324,7 +57564,7 @@
     },
     "/api/v1/members/{id}/reactivation" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-16 [Reactiva l'abonat]: a LEFT member becomes ACTIVE with the same number (leaveHistory +1, leaveDate/leftAt/leftReason cleared, Membership ACTIVE, dogs stay INACTIVE, no entry fee); MemberStatusChanged{LEFT→ACTIVE}, audited. With BILLING planId, priceId and nextInvoiceDate are required (400 VALIDATION_ERROR). Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). No module. R-13-16 [Reactiva l'abonat]: a LEFT member becomes ACTIVE with the same number (leaveHistory +1, leaveDate/leftAt/leftReason cleared, Membership ACTIVE, dogs stay INACTIVE, no entry fee); MemberStatusChanged{LEFT→ACTIVE}, audited. With BILLING planId, priceId and nextInvoiceDate are required (400 VALIDATION_ERROR). Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409).",
         "operationId" : "reactivateMember",
         "parameters" : [ {
           "in" : "path",
@@ -60112,7 +60352,7 @@
     },
     "/api/v1/pack-balances" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. D10 «Pack {n} — {consumides} consumides · {disponibles} disponibles · caduca el {data}»: the packs of a member (memberId) or of a dog (dogId), at least one of the two; with their movements. Another club's member or dog → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. D10 «Pack {n} — {consumides} consumides · {disponibles} disponibles · caduca el {data}»: the packs of a member (memberId) or of a dog (dogId), at least one of the two; with their movements. Another club's member or dog → 404.",
         "operationId" : "packBalances",
         "parameters" : [ {
           "in" : "query",
@@ -60269,7 +60509,7 @@
         "tags" : [ "payments" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. A pack opened by hand (migration, a gift): sessionsTotal defaults to the plan's pack.sessions and expiresOn to openedOn + validityMonths − 1 day (R-12-23); PackOpened. A plan that is not a pack → 422 PLAN_NOT_PACK; another club's member or dog → 404; an erased member → 409 MEMBER_ERASED. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. A pack opened by hand (migration, a gift): sessionsTotal defaults to the plan's pack.sessions and expiresOn to openedOn + validityMonths − 1 day (R-12-23); PackOpened. A plan that is not a pack → 422 PLAN_NOT_PACK; another club's member or dog → 404; an erased member → 409 MEMBER_ERASED.",
         "operationId" : "openPackBalance",
         "parameters" : [ {
           "in" : "header",
@@ -60427,7 +60667,7 @@
     },
     "/api/v1/pack-balances/{id}/adjustments" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. R-12-24 [Ajusta]: an ADJUST movement of delta sessions with its reason; it may reopen an EXPIRED pack with a new expiresOn (required then). Below zero → 422 PACK_NEGATIVE. PackAdjusted, PACK_ADJUSTED audit. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. PACKS off → 404 MODULE_DISABLED. R-12-24 [Ajusta]: an ADJUST movement of delta sessions with its reason; it may reopen an EXPIRED pack with a new expiresOn (required then). Below zero → 422 PACK_NEGATIVE. PackAdjusted, PACK_ADJUSTED audit.",
         "operationId" : "adjustPackBalance",
         "parameters" : [ {
           "in" : "path",
@@ -69270,7 +69510,7 @@
                 }
               }
             },
-            "description" : "CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, PACK_EMPTY, WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED"
+            "description" : "CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, PACK_EMPTY, WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED"
           },
           "429" : {
             "content" : {
@@ -71864,7 +72104,7 @@
                 }
               }
             },
-            "description" : "DOG_ALREADY_BOOKED, DOG_NOT_ALLOWED, RING_NOT_RESERVABLE, SLOT_OUT_OF_WINDOW, CLUB_CLOSED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE"
+            "description" : "DOG_ALREADY_BOOKED, DOG_NOT_ALLOWED, RING_NOT_RESERVABLE, SLOT_OUT_OF_WINDOW, CLUB_CLOSED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, DOG_NOT_ACTIVE"
           },
           "429" : {
             "content" : {
@@ -72853,7 +73093,7 @@
     },
     "/api/v1/upfront-payments" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D10 «Pagaments a l'acte»: a member's payments on the spot (entry fee, first month, packs, single classes, activities), newest first, optionally of one status. Another club's member → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. D10 «Pagaments a l'acte»: a member's payments on the spot (entry fee, first month, packs, single classes, activities), newest first, optionally of one status. Another club's member → 404.",
         "operationId" : "upfrontPayments",
         "parameters" : [ {
           "in" : "query",
@@ -73006,7 +73246,7 @@
         "tags" : [ "payments" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-23 [Registra un pagament]: a MANUAL payment (cash, transfer, Bizum) with amountPaid ≤ amountDue (PARTIAL when less; more → 422 AMOUNT_EXCEEDS_DUE). A PACK payment opens the dog's pack (PackOpened; a plan that is not a pack → 422 PLAN_NOT_PACK; one pack per payment). UpfrontPaymentRecorded, UPFRONT_PAYMENT_RECORDED audit. Another club's member or dog → 404; an erased member → 409 MEMBER_ERASED. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role, module and resource guards (E8-T01). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. R-12-23 [Registra un pagament]: a MANUAL payment (cash, transfer, Bizum) with amountPaid ≤ amountDue (PARTIAL when less; more → 422 AMOUNT_EXCEEDS_DUE). A PACK payment opens the dog's pack (PackOpened; a plan that is not a pack → 422 PLAN_NOT_PACK; one pack per payment). UpfrontPaymentRecorded, UPFRONT_PAYMENT_RECORDED audit. Another club's member or dog → 404; an erased member → 409 MEMBER_ERASED.",
         "operationId" : "recordUpfrontPayment",
         "parameters" : [ {
           "in" : "header",
@@ -73096,7 +73336,7 @@
                 }
               }
             },
-            "description" : "AMOUNT_EXCEEDS_DUE, PLAN_NOT_PACK"
+            "description" : "AMOUNT_EXCEEDS_DUE, PLAN_NOT_PACK, CURRENCY_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -73410,7 +73650,7 @@
                 }
               }
             },
-            "description" : "CLASS_NOT_FULL, BOOKING_BLOCKED, INACTIVITY_PERIOD, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE"
+            "description" : "CLASS_NOT_FULL, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE"
           },
           "429" : {
             "content" : {
@@ -73869,7 +74109,7 @@
                 }
               }
             },
-            "description" : "WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED, SWAP_NOT_ALLOWED"
+            "description" : "WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED, INACTIVITY_PERIOD, MEMBER_LEAVING, SWAP_NOT_ALLOWED"
           },
           "429" : {
             "content" : {

@@ -36,6 +36,19 @@ public class BillingCatalogAccess {
         return new PackTerms(plan.id(), plan.pack().sessions(), plan.pack().validityMonths());
     }
 
+    @org.springframework.beans.factory.annotation.Autowired private PlanService planService;
+    public record ChangeQuote(Money amount, String reason) { }
+    public void validateChange(String planId, String priceId, LocalDate day) {
+        var plan = planService.get(planId);
+        var price = prices.findById(priceId).orElseThrow(() -> new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND));
+        if (!planService.offered(plan) || !planId.equals(price.planId())) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.PLAN_NOT_AVAILABLE);
+        }
+    }
+    public ChangeQuote changeQuote(String previous, String next, int sessions, boolean alreadyApplied) {
+        var quote = planService.forPlanChange(planService.get(previous), planService.get(next), sessions, alreadyApplied);
+        return new ChangeQuote(quote.amount(), quote.reason());
+    }
     private final PlanRepository plans; private final PriceRepository prices; private final PriceResolver resolver;
     public BillingCatalogAccess(PlanRepository plans, PriceRepository prices, PriceResolver resolver) {
         this.plans = plans; this.prices = prices; this.resolver = resolver;

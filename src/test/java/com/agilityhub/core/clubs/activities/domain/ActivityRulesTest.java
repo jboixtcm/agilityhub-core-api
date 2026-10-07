@@ -75,7 +75,7 @@ class ActivityRulesTest {
         for(Instant closed:List.of(now.minusSeconds(1),times.registrationClosesAt())) error(ErrorCode.REGISTRATION_CLOSED,() -> check(ActivityState.PUBLISHED,m,List.of(),true,true,false,closed));
         error(ErrorCode.MEMBER_NOT_ACTIVE,() -> check(ActivityState.PUBLISHED,member("LEFT",true,null,Map.of(),Map.of(),List.of()),List.of(),true,true,false,now));
         error(ErrorCode.MEMBER_NOT_ACTIVE,() -> check(ActivityState.PUBLISHED,member("ACTIVE",false,null,Map.of(),Map.of(),List.of()),List.of(),true,true,false,now));
-        error(ErrorCode.MEMBER_NOT_ACTIVE,() -> check(ActivityState.PUBLISHED,member("ACTIVE",true,date,Map.of(),Map.of(),List.of()),List.of(),true,true,false,now));
+        error(ErrorCode.MEMBER_LEAVING,() -> check(ActivityState.PUBLISHED,member("ACTIVE",true,date.minusDays(1),Map.of(),Map.of(),List.of()),List.of(),true,true,false,now));
         for(boolean actor:List.of(false,true)) error(ErrorCode.BOOKING_BLOCKED,() -> check(ActivityState.PUBLISHED,member("ACTIVE",true,null,actor?Map.of():Map.of("active",true,"reason","Unpaid"),actor?Map.of("active",true):Map.of(),List.of()),List.of(),true,true,false,now));
         var inactive=member("ACTIVE",true,null,Map.of(),Map.of(),List.of(new ActivityEligibility.Inactivity(date,date)));
         error(ErrorCode.INACTIVITY_PERIOD,() -> check(ActivityState.PUBLISHED,inactive,List.of(),true,true,false,now)); check(ActivityState.PUBLISHED,inactive,List.of(),true,false,false,now);

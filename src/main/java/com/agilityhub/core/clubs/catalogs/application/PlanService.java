@@ -30,6 +30,7 @@ public class PlanService {
         this.transactions = transactions; this.configs = configs; this.actors = actors; this.clock = clock;
     }
     public ClubConfig config() { return configs.get(TenantContext.require()); }
+    public Optional<String> activePackId() { return list(false).stream().filter(p -> p.type() == PlanType.PACK).map(Plan::id).findFirst(); }
     public Plan get(String id) { return plans.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public List<Plan> list(boolean inactive) {
         return plans.findAll().stream().filter(plan -> inactive || plan.active()).sorted(Comparator.comparingInt(Plan::order).thenComparing(Plan::id)).toList();

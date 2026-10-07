@@ -23,6 +23,7 @@ import static org.springframework.http.HttpMethod.*;
 /** S09 WP-09-B/C over real Mongo: grid, eligibility, booking, cancellation, occupancy, conflicts, cache, notifications, roles and modules. */
 class TrainingIT extends TrainingFixtures {
     @Autowired TrainingOccupancyPort occupancy; @Autowired TrainingConflictPort conflicts; @Autowired TrainingBookingsQuery dashboard;
+    @Autowired com.agilityhub.core.clubs.census.application.ports.TrainingCancellationPort lifecycleCancellations;
     @Autowired TrainingBookingService service; @Autowired TrainingEligibilityService eligibility;
 
     @Test void T_09_02_eligibleDogsFollowTheFamilyGroupAndTheLevels() throws Exception {
@@ -285,7 +286,8 @@ class TrainingIT extends TrainingFixtures {
         assertThat(call(GET, "/me/training-summary", null, as("maria"), 200).at("/bookingBlock/reason").asText()).isEqualTo("Quota pendent");
         cancel(as("maria"), kept.path("id").asText(), null, 200);
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("bookingBlock", new Document("active", false)), "members");
-        try (var tenant = TenantContext.open(CLUB)) { inactivity.approve("s09-m-maria", LocalDate.parse("2026-11-01"), LocalDate.parse("2026-11-30")); }
+        mongo.save(new Document("_id", "s09-inactive").append("clubId", CLUB).append("memberId", "s09-m-maria")
+                .append("fromMonth", "2026-11").append("toMonth", "2026-11").append("state", "APPROVED"), "inactivity_periods");
         clock.setInstant(local("2026-10-30T10:00"));
         var inactive = book(as("maria"), "s09-d-rock", "2026-11-02T09:00", MUN, 422);
         assertThat(code(inactive)).isEqualTo("INACTIVITY_PERIOD"); assertThat(inactive.at("/details/from").asText()).isEqualTo("2026-11-01");
@@ -295,6 +297,38 @@ class TrainingIT extends TrainingFixtures {
         book(as("maria"), "s09-d-rock", "2026-11-02T09:00", MUN, 201);
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("status", "SUSPENDED"), "members");
         assertThat(code(book(as("maria"), "s09-d-rock", "2026-11-01T09:00", MUN, 422))).isEqualTo("MEMBER_NOT_ACTIVE");
+    }
+
+    @Test void T_13_07_trainingUsesTheDogOwnerForLeaveAndInactivity() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("leaveDate", "2026-10-06"), "members");
+        book(as("joan"), "s09-d-rock", "2026-10-06T09:00", MUN, 201);
+        var leaving = book(as("joan"), "s09-d-rock", "2026-10-07T09:00", MUN, 422);
+        assertThat(code(leaving)).isEqualTo("MEMBER_LEAVING");
+        assertThat(leaving.at("/details/leaveDate").asText()).isEqualTo("2026-10-06");
+        mongo.save(new Document("_id", "s09-owner-inactive").append("clubId", CLUB).append("memberId", "s09-m-maria")
+                .append("fromMonth", "2026-10").append("toMonth", "2026-10").append("state", "APPROVED"), "inactivity_periods");
+        assertThat(code(book(as("joan"), "s09-d-rock", "2026-10-08T09:00", MUN, 422))).isEqualTo("INACTIVITY_PERIOD");
+        // The inactive booker may still handle a dog whose other family owner remains eligible.
+        book(as("maria"), "s09-d-kira", "2026-10-08T10:00", MUN, 201);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_13_09_T_13_16_trainingCancellationsFollowDogOwnership(boolean leave) throws Exception {
+        var owned = book(as("joan"), "s09-d-rock", "2026-10-06T09:00", MUN, 201);
+        var borrowed = book(as("maria"), "s09-d-kira", "2026-10-06T10:00", MUN, 201);
+        try (var tenant = TenantContext.open(CLUB)) {
+            var from = LocalDate.parse("2026-10-06"); var to = LocalDate.parse("2026-10-31");
+            assertThat(lifecycleCancellations.inside("s09-m-maria", from, to, false, leave))
+                    .extracting(com.agilityhub.core.clubs.census.application.ports.LifecycleCancellation::id)
+                    .containsExactly(owned.path("id").asText());
+            assertThat(lifecycleCancellations.inside("s09-m-maria", from, to, true, leave)).hasSize(1);
+        }
+        var cancelled = call(GET, "/training-bookings/" + owned.path("id").asText(), null, as("joan"), 200);
+        assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED");
+        assertThat(cancelled.path("cancelReason").asText()).isEqualTo(leave ? "MEMBER_LEFT" : "INACTIVITY");
+        assertThat(call(GET, "/training-bookings/" + borrowed.path("id").asText(), null, as("maria"), 200)
+                .path("state").asText()).isEqualTo("ACTIVE");
     }
 
     @Test void T_09_18_aDogInAClassAtThatTimeCannotTrain() throws Exception {

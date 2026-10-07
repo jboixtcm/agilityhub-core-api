@@ -11,11 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - E8-T04 round 2: late checkout captures keep their own refund references without changing rows paid by another checkout. Refund webhooks wait for their payment and use durable operation metadata for the exact target, reason and actor. Checkout accepts cards only and settles only a paid completion. Recovery processes oldest due work with bounded backoff and terminal failures. Member and `/me` responses expose card invalidation; card-charge documentation matches GENERATED/CHARGING. Tests isolate webhook counts by tenant.
   Random-order verification also isolates the scheduling test's Saturday template ID and restores the current test context's demo profile guard before each integration test.
 
-### Documentation
-
-- E8-T05: recorded a blocking conflict between the task's census dependency direction and the existing architecture gates. Implementation awaits an organizer ruling; no product behavior changed.
-
 ### Added
+
+- E8-T05 (S12/S13): durable pack balances replace the booking doubles; manual pack payments, consumption, refunds after expiry, adjustments and the pack-to-membership entry discount. Inactivity and leave requests now support decisions, calendar deadlines, frozen fees, synchronous cancellation across all four booking owners, delayed leave execution, pack-expiry leave and renewal, and reactivation. Free-training eligibility and lifecycle cancellation follow the dog owner, including family bookings. Member projections, request counts, protected saved views and localized lifecycle notifications use the E8 documents. Census-owned cancellation ports and shared fee/leave ports preserve the existing architecture gates.
 
 - E8-T04 (S12 WP-12-D): per-club Stripe SDK and deterministic fake providers, durable card attempts and retries, asynchronous refunds, signature-first idempotent webhooks, card setup and invalidation, and recovery after lost responses. Provider calls execute after local commits with stable domain keys. Late booking captures refund once; expired payable signup rows settle normally. N-01 issues a 24-hour payment retry capability only in the outgoing email. The existing signup and booking checkout flows are retained. Audit actions, tenant/module/role checks, unified upfront event payloads, and provider-secret forwarding are covered by the payment test suites. Real Stripe-account acceptance requires test credentials.
   Refunds delivered before payment success wait for settlement and replay once, keeping the invoice paid. Card invalidation and signup card setup record payment-method audit entries, including changes to the invalid-card flag.

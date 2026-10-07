@@ -40,11 +40,22 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .append("submittedImage", condition(readmission, expr("$arrayElemAt", new Document("$filter", new Document("input", fallback("$readmissionRequest.submitted.consents", List.of()))
                         .append("as", "entry").append("cond", expr("$eq", "$$entry.type", "IMAGE_USE"))), -1), "$$REMOVE"))));
         if (configs.get(TenantContext.require()).modules().contains(com.agilityhub.core.platform.application.Module.INACTIVITY)) {
-            String today = clock.today(TenantContext.require()).toString();
-            stages.add(join("inactivity_periods", "$_id", "memberId", "inactivity", List.of(dateFields("from", "to"),
-                    new Document("$match", new Document("from", new Document("$lte", today)).append("to", new Document("$gte", today))
-                            .append("status", new Document("$nin", List.of("CANCELLED", "REJECTED", "DENIED")))))));
+            String month = java.time.YearMonth.from(clock.today(TenantContext.require())).toString();
+            stages.add(join("inactivity_periods", "$_id", "memberId", "inactivity", List.of(
+                    new Document("$match", new Document("fromMonth", new Document("$lte", month)).append("state", new Document("$in", List.of("APPROVED", "ACTIVE")))
+                            .append("$or", List.of(new Document("toMonth", null), new Document("toMonth", new Document("$gte", month))))))));
+
         }
+        stages.add(join("leave_requests", "$leaveRequestId", "_id", "plannedLeave", List.of()));
+        stages.add(join("leave_requests", "$_id", "memberId", "pendingLeaves", List.of(new Document("$match", new Document("state", "PENDING")))));
+        if (configs.get(TenantContext.require()).modules().contains(com.agilityhub.core.platform.application.Module.INACTIVITY)) {
+            stages.add(join("inactivity_periods", "$_id", "memberId", "pendingInactivity", List.of(new Document("$match", new Document("state", "REQUESTED")))));
+        } else { stages.add(new Document("$set", new Document("pendingInactivity", List.of()))); }
+        Object endMonth = expr("$arrayElemAt", fallback("$inactivity.toMonth", List.of()), 0);
+        Object end = new Document("$dateToString", new Document("date", new Document("$dateSubtract", new Document("startDate", new Document("$dateAdd", new Document("startDate", new Document("$dateFromString", new Document("dateString", expr("$concat", endMonth, "-01")).append("onNull", null)))
+                .append("unit", "month").append("amount", 1))).append("unit", "day").append("amount", 1))).append("format", "%Y-%m-%d").append("onNull", null));
+        stages.add(new Document("$set", new Document("inactivityUntil", end).append("leaveSource", fallback(expr("$arrayElemAt", "$plannedLeave.source", 0), condition(expr("$ne", fallback("$leaveDate", null), null), "MIGRATED", null)))
+                .append("hasPendingRequest", expr("$or", expr("$gt", expr("$size", "$pendingLeaves"), 0), expr("$gt", expr("$size", "$pendingInactivity"), 0)))));
         var dogs = dogStages(false);
         // E38 (E3-T17): the reused dog of a pending readmission shows its submitted name.
         dogs.add(new Document("$set", new Document("name", condition(expr("$and", expr("$eq", "$status", "PENDING"), expr("$ne", fallback("$readmissionRequest", null), null)),
@@ -110,7 +121,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         return stages;
     }
     private Map<String, Object> memberFields(boolean admin) {
-        var fields = fields("memberNumber", "fullName", "displayStatus", "joinedAt", "leaveDate", "roles", "birthDate", "gender");
+        var fields = fields("memberNumber", "fullName", "displayStatus", "joinedAt", "leaveDate", "roles", "birthDate", "gender", "leaveSource", "inactivityUntil", "hasPendingRequest");
         fields.put("version", fallback("$version", 0));
         fields.put("dogs", map("$dogs", "dog", new Document("id", "$$dog._id").append("name", "$$dog.name").append("level", level("$$dog.level"))));
         fields.put("bookingBlocked", fallback("$bookingBlock.active", false));
@@ -199,15 +210,15 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .filter(row -> Boolean.TRUE.equals(row.get("required"))).map(row -> row.get("key").toString()).toList();
     }
     private Object memberStatus() {
-        Object inactive = expr("$arrayElemAt", fallback("$inactivity.to", List.of()), 0);
+        Object inactive = "$inactivityUntil";
         Object scheduled = status("$status", "$leaveDate");
-        Object activeInactivity = new Document("$cond", List.of(expr("$and", expr("$eq", "$status", "ACTIVE"), expr("$ne", fallback(inactive, ""), "")),
+        Object activeInactivity = new Document("$cond", List.of(expr("$and", expr("$eq", "$status", "ACTIVE"), expr("$gt", expr("$size", fallback("$inactivity", List.of())), 0)),
                 new Document("kind", "INACTIVE_PERIOD").append("label", "INACTIVE_PERIOD").append("date", inactive), scheduled));
         return new Document("$cond", List.of(expr("$ne", fallback("$erasedAt", ""), ""), new Document("kind", "ERASED").append("label", "ERASED"), activeInactivity));
     }
     private Object status(String status, String date) {
         Object kind = new Document("$cond", List.of(expr("$and", expr("$eq", status, "ACTIVE"),
-                expr("$gte", date, clock.today(TenantContext.require()).toString())), "LEAVE_SCHEDULED", status));
+                expr("$ne", fallback(date, null), null)), "LEAVE_SCHEDULED", status));
         return new Document("kind", kind).append("label", kind).append("date", date);
     }
     private static Document dateFields(String... names) {
