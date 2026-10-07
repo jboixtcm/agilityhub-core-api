@@ -53,8 +53,8 @@ class PaymentCurlIT extends BillingItSupport {
         assertThat(curl("GET", "/api/v1/invoices/" + invoice, null, 200, null).path("status").asText()).isEqualTo("PAID");
         curl("POST", "/api/v1/invoices/" + invoice + "/refund", Map.of("reason", "Smoke refund"), 202, null);
         var refund = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("REFUND_INVOICE")), Document.class, "payment_operations");
-        event("evt_curl_refunded", "charge.refunded", Map.of("id", "ch_example", "payment_intent", second.getString("providerRef"), "currency", "eur",
-                "refunds", Map.of("data", List.of(Map.of("id", refund.getString("resultId"), "amount", 6000, "status", "succeeded")))));
+        event("evt_curl_refunded", "refund.created", Map.of("id", refund.getString("resultId"), "object", "refund", "payment_intent", second.getString("providerRef"),
+                "currency", "eur", "amount", 6000, "status", "succeeded", "metadata", Map.of("operationId", refund.getString("_id"))));
         var paid = curl("GET", "/api/v1/invoices/" + invoice, null, 200, null);
         assertThat(paid.path("status").asText()).isEqualTo("PAID"); assertThat(paid.at("/refundedTotal/amountMinor").asLong()).isEqualTo(6000);
         for (var call : fake.calls()) { System.out.println("FakePaymentProvider operation=" + call.operation() + " idempotencyKey=" + shortId(call.key())); }

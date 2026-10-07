@@ -12,5 +12,7 @@ public interface BookingOwnerAccess {
     Optional<String> ownerOf(String bookingId);
     record Checkout(String sessionId, String url) { }
     default boolean cancelled(String bookingId) { return false; }
+    /** A cancelled PAY_TO_BOOK seat that was never confirmed; its capture must be refunded regardless of club policy. */
+    default boolean cancelledBeforeConfirmation(String bookingId) { return false; }
     default Optional<Checkout> checkout(String bookingId) { return Optional.empty(); }
 }

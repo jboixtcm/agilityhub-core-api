@@ -1,0 +1,42 @@
+[
+  {
+    "log": "114-round3-clean-random-one.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/114-round3-clean-random-one.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify -Dsurefire.runOrder=random -Dfailsafe.runOrder=random -Dsurefire.runOrder.random.seed=2026100701 -Dfailsafe.runOrder.random.seed=2026100701"
+  },
+  {
+    "log": "115-round3-test-summary-one.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/115-round3-test-summary-one.log python3 roadmap/evidence/E8-T04/summarize-tests.py roadmap/evidence/E8-T04/114-round3-clean-random-one.log.exit"
+  },
+  {
+    "log": "116-round3-clean-random-two.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/116-round3-clean-random-two.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify -Dsurefire.runOrder=random -Dfailsafe.runOrder=random -Dsurefire.runOrder.random.seed=2026100702 -Dfailsafe.runOrder.random.seed=2026100702"
+  },
+  {
+    "log": "117-round3-test-summary-two.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/117-round3-test-summary-two.log python3 roadmap/evidence/E8-T04/summarize-tests.py roadmap/evidence/E8-T04/116-round3-clean-random-two.log.exit"
+  },
+  {
+    "log": "118-round3-openapi.log",
+    "command": "MAVEN_ARGS=-Dmaven.repo.local=/private/tmp/agilityhub-e8-t04-m2 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/118-round3-openapi.log python3 roadmap/evidence/E8-T04/verify-resume-openapi.py"
+  },
+  {
+    "log": "119-round3-e3-smoke.log",
+    "command": "HEAVY_WAIT_MIN=25 python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/119-round3-e3-smoke.log /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh python3 roadmap/evidence/E8-T04/smoke-verified-package.py"
+  },
+  {
+    "log": "120-round3-provider-proofs.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/120-round3-provider-proofs.log python3 roadmap/evidence/E8-T04/extract-resume-proofs.py roadmap/evidence/E8-T04/116-round3-clean-random-two.log"
+  },
+  {
+    "log": "121-round3-secret-scan.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/121-round3-secret-scan.log python3 roadmap/evidence/E8-T04/check-stripe-secrets.py"
+  },
+  {
+    "log": "122-round3-diff-check.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/122-round3-diff-check.log git diff --check"
+  },
+  {
+    "log": "125-round3-final-diff-check.log",
+    "command": "python3 roadmap/evidence/E8-T04/run-bounded.py roadmap/evidence/E8-T04/125-round3-final-diff-check.log git diff --check"
+  }
+]

@@ -106,10 +106,13 @@ public class CardPayments implements CardChargingPort {
     public void execute(String operationId) {
         var operation = operations.findById(operationId).orElseThrow();
         if (operation.resultId() != null) { return; }
+        var returned = new java.util.concurrent.atomic.AtomicReference<PaymentProvider.OffSessionResult>();
         retries.execute(operation, () -> {
             var result = provider.createOffSessionPayment(operation.charge());
+            returned.set(result);
+            // Preserve a known intent independently of the later business settlement transaction.
+            tx.run(() -> { collections.submitted(operation.providerRef(), result.paymentIntentId()); return null; });
             tx.run(() -> {
-                collections.submitted(operation.providerRef(), result.paymentIntentId());
                 operations.completed(operationId, result.paymentIntentId());
                 if ("failed".equals(result.status()) || "requires_action".equals(result.status())) {
                     resolve(collections.findById(operation.providerRef()).orElseThrow(), false,
@@ -117,6 +120,16 @@ public class CardPayments implements CardChargingPort {
                 }
                 return null;
             });
+        }, () -> {
+            var collection = collections.findById(operation.providerRef()).orElseThrow();
+            if (collection.providerRef() == null && returned.get() == null) {
+                resolve(collection, false, "PROVIDER_UNAVAILABLE", clock.instant());
+            } else {
+                if (collection.providerRef() == null) { collections.submitted(collection.id(), returned.get().paymentIntentId()); }
+                // D6 keeps this amount outstanding: count - charged - failed. A webhook alone resolves the uncertain capture.
+                progress(invoice(collection.invoiceId()).runId());
+                retries.warn("Charge awaiting webhook", operationId);
+            }
         });
     }
     public boolean settle(String paymentIntentId, String collectionId, boolean success, String code, Instant at) {

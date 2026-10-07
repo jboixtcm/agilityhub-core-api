@@ -15,7 +15,11 @@ import org.bson.Document;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-/** R-12-21: durable receipt first, transactional handlers second. Failures remain replayable without retaining the raw Stripe payload. */
+/**
+ * R-12-21: durable receipt first, transactional handlers second. Refund lifecycle is carried by refund.*.
+ * Modern charge.refunded events omit refunds: acknowledge them without a ledger mutation or provider fetch.
+ * Embedded refunds from older API versions follow the same refund-id checkpoint for compatibility.
+ */
 @Service
 public class StripeWebhooks {
     private final StripeInbox inbox; private final BillingTransactions tx; private final CardPayments cards; private final PaymentRefunds refunds;
@@ -34,7 +38,7 @@ public class StripeWebhooks {
         try (var tenant = TenantContext.open(clubId)) {
             try {
                 inbox.receive(new StripeEvent(event.id(), clubId, event.id(), event.type(), clock.instant(), null, null, hash(body)),
-                        new Document("created", event.createdAt().getEpochSecond()).append("object", safe(event.object())));
+                        new Document("created", event.createdAt().getEpochSecond()).append("object", safe(event.object(), event.type().startsWith("refund."))));
             } catch (DuplicateKeyException duplicate) { return; }
             process(event.id());
         }
@@ -105,13 +109,15 @@ public class StripeWebhooks {
             }
             case "payment_method.detached" -> invalidate(null, id);
             case "customer.deleted" -> invalidate(id, null);
+            case "refund.created", "refund.updated", "refund.failed" -> refunds.reconcile(text(object, "payment_intent"), id,
+                    new Money(object.path("amount").asLong(), object.path("currency").asText().toUpperCase(Locale.ROOT)),
+                    object.path("status").asText(), at, object.path("reason").asText("requested_by_customer"), text(metadata, "operationId"));
             case "charge.refunded" -> {
-                boolean changed = false;
+                boolean changed = object.path("refunds").path("data").isEmpty();
                 for (var refund : object.path("refunds").path("data")) {
-                    if (!"succeeded".equals(refund.path("status").asText("succeeded"))) { continue; }
-                    changed |= refunds.settled(text(object, "payment_intent"), refund.path("id").asText(),
+                    changed |= refunds.reconcile(text(object, "payment_intent"), refund.path("id").asText(),
                             new Money(refund.path("amount").asLong(), object.path("currency").asText().toUpperCase(Locale.ROOT)),
-                            at, refund.path("reason").asText("requested_by_customer"), text(refund.path("metadata"), "operationId"));
+                            refund.path("status").asText("succeeded"), at, refund.path("reason").asText("requested_by_customer"), text(refund.path("metadata"), "operationId"));
                 }
                 yield changed;
             }
@@ -126,16 +132,16 @@ public class StripeWebhooks {
     static String text(JsonNode node, String key) {
         var value = node.path(key); return value.isTextual() ? value.asText() : value.isObject() ? value.path("id").asText(null) : null;
     }
-    private static Document safe(JsonNode object) {
+    private static Document safe(JsonNode object, boolean refund) {
         var result = new Document();
-        for (String key : List.of("id", "payment_status", "amount_total", "amount", "currency", "customer", "payment_method", "payment_intent", "setup_intent", "setup_future_usage")) {
+        for (String key : List.of("id", "status", "reason", "payment_status", "amount_total", "amount", "currency", "customer", "payment_method", "payment_intent", "setup_intent", "setup_future_usage")) {
             var value = object.path(key);
             if (value.isTextual()) { result.put(key, value.asText()); }
             else if (value.isNumber()) { result.put(key, value.asLong()); }
             else if (value.isObject()) { result.put(key, text(object, key)); }
         }
         var metadata = new Document();
-        for (String key : List.of("clubId", "memberId", "invoiceId", "collectionId", "operationId")) {
+        for (String key : refund ? List.of("operationId", "reason") : List.of("clubId", "memberId", "invoiceId", "collectionId", "operationId")) {
             if (object.path("metadata").path(key).isTextual()) { metadata.put(key, object.path("metadata").path(key).asText()); }
         }
         result.put("metadata", metadata);
@@ -143,13 +149,13 @@ public class StripeWebhooks {
         for (String key : List.of("code", "decline_code")) { if (object.path("last_payment_error").path(key).isTextual()) { error.put(key, object.path("last_payment_error").path(key).asText()); } }
         result.put("last_payment_error", error);
         var refunds = new ArrayList<Document>();
-        for (var refund : object.path("refunds").path("data")) {
+        for (var refundRow : object.path("refunds").path("data")) {
             var refundMetadata = new Document();
             for (String key : List.of("operationId", "reason")) {
-                if (refund.path("metadata").path(key).isTextual()) { refundMetadata.put(key, refund.path("metadata").path(key).asText()); }
+                if (refundRow.path("metadata").path(key).isTextual()) { refundMetadata.put(key, refundRow.path("metadata").path(key).asText()); }
             }
-            refunds.add(new Document("id", refund.path("id").asText()).append("amount", refund.path("amount").asLong())
-                    .append("status", refund.path("status").asText("succeeded")).append("reason", refund.path("reason").asText("requested_by_customer"))
+            refunds.add(new Document("id", refundRow.path("id").asText()).append("amount", refundRow.path("amount").asLong())
+                    .append("status", refundRow.path("status").asText("succeeded")).append("reason", refundRow.path("reason").asText("requested_by_customer"))
                     .append("metadata", refundMetadata));
         }
         result.put("refunds", new Document("data", refunds)); return result;

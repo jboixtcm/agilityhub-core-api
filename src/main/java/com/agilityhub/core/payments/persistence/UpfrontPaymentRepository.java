@@ -41,6 +41,10 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
         var update = new Update().push("refunds", refund); if (full) { update.set("status", "REFUNDED"); }
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), update, UpfrontPayment.class);
     }
+    public void reverseRefund(String id, String refundId) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refunds.providerRef").is(refundId)),
+                new Update().pull("refunds", new org.bson.Document("providerRef", refundId)).set("status", "PAID"), UpfrontPayment.class);
+    }
     public void update(UpfrontPayment payment) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(payment.id())),new Update().set("status",payment.status())
                 .set("amountDue",payment.amountDue()).set("amountPaid",payment.amountPaid()).set("provider",payment.provider()).set("checkoutSessionId",payment.checkoutSessionId()).set("paidAt",payment.paidAt()),UpfrontPayment.class);

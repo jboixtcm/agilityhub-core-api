@@ -1,25 +1,22 @@
 package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.payments.persistence.UpfrontPaymentRepository;
-import com.agilityhub.core.payments.persistence.BillingDocuments.PendingChargeRepository;
-import com.agilityhub.core.payments.persistence.PendingCharge;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.*;
-import com.agilityhub.core.shared.domain.Money;
-import java.time.Clock;
 import java.util.*;
 import org.springframework.stereotype.Component;
 
 /** R-12-20: the booking event only commits a refund command or a credit; the recovery worker owns network calls. */
 @Component("payments.BookingCancelled")
 public class PaymentBookingCancellations implements DomainEventHandler<PaymentBookingCancellations.Event> {
+    @org.springframework.beans.factory.annotation.Autowired private BookingOwnerAccess bookings;
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public record Event(String clubId, String aggregateId, Map<String, Object> payload) { }
-    private final UpfrontPaymentRepository payments; private final PaymentRefunds refunds; private final PendingChargeRepository charges;
-    private final ClubConfigService configs; private final Clock clock;
-    public PaymentBookingCancellations(UpfrontPaymentRepository payments, PaymentRefunds refunds, PendingChargeRepository charges, ClubConfigService configs, Clock clock) {
-        this.payments = payments; this.refunds = refunds; this.charges = charges; this.configs = configs; this.clock = clock;
+    private final UpfrontPaymentRepository payments; private final PaymentRefunds refunds;
+    private final ClubConfigService configs;
+    public PaymentBookingCancellations(UpfrontPaymentRepository payments, PaymentRefunds refunds, ClubConfigService configs) {
+        this.payments = payments; this.refunds = refunds; this.configs = configs;
     }
     @Override public String eventType() { return "BookingCancelled"; }
     @Override public Class<Event> eventClass() { return Event.class; }
@@ -31,11 +28,7 @@ public class PaymentBookingCancellations implements DomainEventHandler<PaymentBo
             for (var payment : payments.forBooking(booking)) {
                 if (!payment.status().equals("PAID") || !"STRIPE".equals(payment.provider())) { continue; }
                 String policy = config.get("billing.singleClassCancelPolicy", String.class);
-                if (policy.equals("REFUND")) { refunds.upfront(payment.id(), null, "BOOKING_CANCELLED", "booking-cancel:" + payment.id()); }
-                else if (policy.equals("CREDIT") && charges.forBooking(booking).isEmpty()) {
-                    charges.insert(new PendingCharge(UUID.randomUUID().toString(), event.clubId(), payment.memberId(), payment.dogId(), booking, null,
-                            new Money(-payment.amountPaid().amountMinor(), payment.amountPaid().currency()), payment.concept(), clock.instant(), null, null));
-                }
+                refunds.compensate(payment.id(), policy, bookings.cancelledBeforeConfirmation(booking));
             }
         }
     }

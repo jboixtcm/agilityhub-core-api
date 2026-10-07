@@ -14,6 +14,11 @@ public class BookingOwners implements BookingOwnerAccess {
     @Override public boolean cancelled(String id) {
         return bookings.findById(id).map(b -> b.state() == com.agilityhub.core.clubs.bookings.domain.BookingState.CANCELLED).orElse(false);
     }
+    @Override public boolean cancelledBeforeConfirmation(String id) {
+        return bookings.findById(id).filter(b -> b.state() == com.agilityhub.core.clubs.bookings.domain.BookingState.CANCELLED)
+                .filter(b -> b.charge() != null && b.charge().mode() == com.agilityhub.core.clubs.bookings.domain.ChargeMode.PAY_TO_BOOK)
+                .map(b -> b.charge().paidAt() == null).orElse(false);
+    }
     @Override public Optional<Checkout> checkout(String id) {
         return bookings.findById(id).filter(b -> b.state() == com.agilityhub.core.clubs.bookings.domain.BookingState.PAYMENT_PENDING)
                 .filter(b -> b.charge() != null && b.charge().checkoutUrl() != null).map(b -> new Checkout(b.charge().checkoutSessionId(), b.charge().checkoutUrl()));

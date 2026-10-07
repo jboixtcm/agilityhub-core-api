@@ -42,6 +42,20 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund").is(null)),
                 new Update().set("refund", refund), PaymentOperation.class).getModifiedCount() == 1;
     }
+    public void providerStatus(String id, String status) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("providerStatus", status), PaymentOperation.class);
+    }
+    public void refundStatus(String id, String status) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("refundStatus", status), PaymentOperation.class);
+    }
+    public boolean refundFailed(String id) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id)).addCriteria(new Criteria().orOperator(
+                Criteria.where("refundStatus").in("failed", "canceled"), Criteria.where("refundStatus").is(null).and("providerStatus").in("failed", "canceled"))), PaymentOperation.class);
+    }
+    public boolean reverseRefund(String id, String refundId) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund.providerRef").is(refundId)),
+                new Update().unset("refund"), PaymentOperation.class).getModifiedCount() == 1;
+    }
     public boolean ready(String id) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))
                 .addCriteria(PaymentRetryState.due(clock.instant())), PaymentOperation.class);

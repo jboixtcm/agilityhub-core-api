@@ -213,6 +213,10 @@ public final class BillingDocuments {
             if (full) { update.set("status", "REFUNDED"); }
             mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), update, Collection.class);
         }
+        public void reverseRefund(String id, String refundId) {
+            mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refunds.providerRef").is(refundId)),
+                    new Update().pull("refunds", new Document("providerRef", refundId)).set("status", "SUCCEEDED"), Collection.class);
+        }
         /** The invoice's attempts, oldest first (the detail's `collections[]`). */
         public List<Collection> forInvoice(String invoiceId) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("invoiceId").is(invoiceId))

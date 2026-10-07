@@ -252,7 +252,7 @@ public class CheckoutService {
             long due = rows.stream().mapToLong(p -> p.amountDue().amountMinor() - p.amountPaid().amountMinor()).sum();
             if (!rows.isEmpty() && rows.stream().allMatch(p -> Set.of("DUE", "PARTIAL").contains(p.status())
                     || ("CHECKOUT_PENDING".equals(p.status()) && sessionId.equals(p.checkoutSessionId()))) && due == amount) {
-                payments.pending(session.memberId(), session.upfrontPaymentIds(), sessionId);
+                payments.pending(session.memberId(), rows.stream().filter(p -> !"CHECKOUT_PENDING".equals(p.status())).map(UpfrontPayment::id).toList(), sessionId);
                 sessions.reopenForSettlement(sessionId);
                 settleRows(session, intent, at);
                 members.card(session.memberId(), cardMap(card));
@@ -350,7 +350,8 @@ public class CheckoutService {
         var rows = session.upfrontPaymentIds().stream().map(id -> upfront.findById(id).orElseThrow()).toList();
         String currency = configs.get(session.clubId()).club().currency();
         long amount = sessions.chargeAmount(session.id()).orElseGet(() -> rows.stream().mapToLong(p -> p.amountDue().amountMinor()).sum());
-        refunds.getObject().late(session.id(), providerPaymentId, new Money(amount, currency));
+        if (session.bookingId() == null) { refunds.getObject().late(session.id(), providerPaymentId, new Money(amount, currency)); }
+        else { refunds.getObject().lateBooking(rows.getFirst().id(), providerPaymentId, new Money(amount, currency)); }
         if(sessions.markLateCompletion(session.id(),providerPaymentId,clock.instant())) {
             LOG.warn("Late provider completion to refund: {} checkoutSessionId={} bookingId={} providerPaymentId={} clubId={}",
                     cause,session.id(),session.bookingId(),providerPaymentId,session.clubId());

@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T04 round 3: reconcile Stripe refund lifecycle events, including pending success and failed/canceled reversals, with idempotent audit and ledger updates. Booking cancellation and late confirmation share one compensation per capture; an unconfirmed seat always refunds. Exhausted charges without an intent fail the invoice and allow retry, while known intents remain awaiting their webhook. Late signup completion reuses its held payment rows.
+
 - E8-T04 round 2: late checkout captures keep their own refund references without changing rows paid by another checkout. Refund webhooks wait for their payment and use durable operation metadata for the exact target, reason and actor. Checkout accepts cards only and settles only a paid completion. Recovery processes oldest due work with bounded backoff and terminal failures. Member and `/me` responses expose card invalidation; card-charge documentation matches GENERATED/CHARGING. Tests isolate webhook counts by tenant.
   Random-order verification also isolates the scheduling test's Saturday template ID and restores the current test context's demo profile guard before each integration test.
 

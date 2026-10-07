@@ -30,8 +30,10 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     public void requireAction() { outcomes.add("requires_action"); }
     public List<Call> calls() { synchronized (calls) { return List.copyOf(calls); } }
     private java.util.function.BiConsumer<Call, RefundResult> beforeRefundReturn = (call, result) -> {};
+    private String refundStatus = "succeeded";
+    public void refundStatus(String status) { refundStatus = status; }
     public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
-    public void reset() { calls.clear(); results.clear(); outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; }
+    public void reset() { calls.clear(); results.clear(); outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);
@@ -59,7 +61,7 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
             if (operationId != null) { request.put("operationId", operationId); }
             var call = new Call(club, "refund", idempotencyKey, request);
             calls.add(call);
-            var result = new RefundResult("re_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)), "succeeded");
+            var result = new RefundResult("re_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)), refundStatus);
             beforeRefundReturn.accept(call, result);
             return result;
         });

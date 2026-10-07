@@ -1,0 +1,87 @@
+Actual proof from roadmap/evidence/E8-T04/116-round3-clean-random-two.log:
+curl -X POST /api/v1/me/inactivity-periods -> 201
+curl -X POST /api/v1/inactivity-periods/[id truncated]/decision -> 200
+curl -X GET /api/v1/members/s08-m-laura/overview -> 200
+curl -X POST /api/v1/me/leave-requests -> 201
+curl -X POST /api/v1/leave-requests/[id truncated]/decision -> 200
+curl -X GET /api/v1/members?filter=displayStatus:eq:LEAVE_SCHEDULED -> 200
+curl -X POST /api/v1/billing/runs/[id truncated]/card-charges -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/retry -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+curl -X POST /api/v1/invoices/[id truncated]/refund -> 202
+curl -X POST /webhooks/stripe/bill-a -> 200
+curl -X GET /api/v1/invoices/[id truncated] -> 200
+FakePaymentProvider operation=charge idempotencyKey=ec50f695...[truncated]
+FakePaymentProvider operation=charge idempotencyKey=ec50f695...[truncated]:2
+FakePaymentProvider operation=refund idempotencyKey=invoice-...[truncated]
+StripeEvent eventId=evt_curl_failed type=payment_intent.payment_failed outcome=PROCESSED
+StripeEvent eventId=evt_curl_paid type=payment_intent.succeeded outcome=PROCESSED
+StripeEvent eventId=evt_curl_late_failure type=payment_intent.payment_failed outcome=IGNORED
+StripeEvent eventId=evt_curl_refunded type=refund.created outcome=PROCESSED
+PASS curl sequence: charge -> failed webhook -> invoice FAILED -> retry -> success/duplicate/late failure -> refund -> invoice PAID, refundedTotal=6000 EUR
+
+Executable task regression methods:
+CardPaymentsIT.java: T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment
+CardPaymentsIT.java: T_12_15_failureThenSuccessWinsAndRetriesStopAtMaximum
+CardPaymentsIT.java: T_12_30_missingCardIsSkippedAndRetryRequiresCurrentCard
+CardPaymentsIT.java: T_12_31_synchronousExpiredCardInvalidatesOnlyTheChargedMethod
+CardPaymentsIT.java: T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund
+CardPaymentsIT.java: T_12_17_refundDeliveredBeforePaymentSuccessIsDeferredAndReplayedOnce
+CardPaymentsIT.java: T_12_31_setupReplacesAnInvalidCardAndDetachedInvalidatesIt
+CardPaymentsIT.java: T_12_32_tenantRoleModuleAndManualGuards
+CardPaymentsIT.java: T_12_15_badSignatureWritesOnlySecurityEvent
+CardPaymentsIT.java: T_12_15_twentySixChargesCrossBatchBoundaryAndRequireActionFails
+CardPaymentsIT.java: T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder
+CardPaymentsIT.java: T_12_16_expiredBookingRefundsExactlyOnceAndPrivacyDeletionIsRecoverable
+CardPaymentsIT.java: T_12_15_storedUnknownPaymentIsDeferredAndReprocessed
+CardPaymentsIT.java: T_12_17_cancellationPoliciesRefundCreditOrLeaveThePaymentAndRefundTargetIsExact
+CardPaymentsIT.java: T_12_15_lostResponseReusesRunAndRetryCommandsDespiteChangedVersion
+CardPaymentsIT.java: T_12_16_signupCommitFailureReusesOneProviderSetupSession
+CardPaymentsIT.java: T_12_16_rejectedSignupCompletionRefundsOnceWithoutRevivingCancelledRows
+CardPaymentsIT.java: T_12_17_lateCheckoutCannotOverwriteTheCheckoutThatPaidItsRows
+CardPaymentsIT.java: T_12_17_upfrontRefundBeforeCompletionWaitsAndSettlesOnce
+CardPaymentsIT.java: T_12_17_refundMetadataTargetsSecondRowBeforeProviderResultAndKeepsAdminProvenance
+CardPaymentsIT.java: T_12_16_unpaidCheckoutNeverSettlesSignupOrBooking
+CardPaymentsIT.java: T_12_15_recoveryIsFairBackedOffAndDeadLettersAfterConfiguredAttempts
+CardPaymentsIT.java: T_12_31_cardInvalidIsPublishedOnMemberAndMeOnlyForCards
+CardPaymentsIT.java: T_12_15_chargingRunAcceptsAnotherCommandWithoutResubmittingInvoices
+CardPaymentsIT.java: T_12_17_pendingRefundKeepsOnlyAllowListedMetadata
+CardPaymentsIT.java: T_12_15_recoveryUsesTheClubsAttemptLimitAndRetainsItsDeadline
+CardPaymentsIT.java: T_12_17_round3_chargeWithoutEmbeddedRefundsIsAcknowledged
+CardPaymentsIT.java: T_12_17_round3_refundLifecycleReversesInvoiceInEitherDeliveryOrder
+CardPaymentsIT.java: T_12_17_round3_cancelledRefundRestoresOnlyItsUpfrontAllocations
+CardPaymentsIT.java: T_12_17_round3_cancellationBeforeConfirmationCompensatesOnce
+CardPaymentsIT.java: T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown
+CardPaymentsIT.java: T_12_16_round3_lateSignupReusesRowsStillHeldByItsSession
+CardPaymentsIT.java: T_12_17_round3_confirmedCancellationKeepsTheClubPolicy
+CardPaymentsIT.java: T_12_17_round3_terminalRefundBeforeSuccessIsTenantScopedAndSanitized
+CardPaymentsIT.java: T_12_17_round3_failedLateRefundReversesItsCheckpointWithoutRevivingTheRow
+PaymentCurlIT.java: T_12_15_T_12_17_curlChargeFailureRetrySuccessDuplicateAndRefund
+StripePaymentProviderTest.java: T_12_32_modeMismatchAndMissingKeysFailBeforeAnyNetworkCall
+StripePaymentProviderTest.java: T_12_15_offSessionAndRefundUseExplicitDomainKeysAndPerClubClient
+StripePaymentProviderTest.java: T_12_16_checkoutParametersAndSavedProviderReferenceAreStable
+StripePaymentProviderTest.java: T_12_31_setupAndExpandedCardUseTheClubAccount
+StripePaymentProviderTest.java: T_12_16_disabledProviderStillExpiresAnExistingCheckoutButCannotCreateOne
+StripePaymentProviderTest.java: T_12_30_aDeclinedIntentKeepsItsReferenceAndOtherErrorsMapSafely
+StripePaymentProviderTest.java: T_12_32_disabledTenantAndAlreadyDeletedCustomerAreHandledWithoutLeakingProviderErrors
+StripeCallsTest.java: T_12_15_rateLimitRetriesTwiceWithBoundedExponentialBackoff
+StripeCallsTest.java: T_12_32_providerErrorsNeverExposeMessagesAndAreNotRetried
+E8ContractIT.java: T_12_21_T_13_24_everyRouteEnforcesRolesTenantAndResourceIsolationBeforeItsAnswerOrItsStub
+E8ContractIT.java: T_12_21_T_13_24_impersonationReachesTheMemberRoutesOnly
+E8ContractIT.java: T_12_22_billingOffHidesEveryS12RouteAndTheLeaveRoutesStillAnswer
+E8ContractIT.java: T_12_22_packsAndSingleClassOffHideTheirRoutesOnly
+E8ContractIT.java: T_12_15_theStripeWebhookAuthenticatesTheBodyBeforeAnythingElse
+E8ContractIT.java: T_12_12_T_13_02_inputsAreValidatedBeforeTheStubAndAnInvoiceHasNoPatch
+E8ContractIT.java: T_12_16_theCheckoutExtensionsRejectPaidOrMissingRowsWithoutWrites
+E8ContractIT.java: T_12_21_T_13_24_theCheckoutExtensionsAuthorizeAndCheckTheirReferencesBeforeTheStub
+E8ContractIT.java: T_12_21_T_13_24_everyStubResolvesItsCallerAndItsReferencesBeforeTheStub
+E8ContractIT.java: T_12_21_T_13_24_theStubsWriteNothing
+
+External credentials (presence only):
+STRIPE_TEST_SECRET_KEY: absent
+STRIPE_TEST_WEBHOOK_SECRET: absent

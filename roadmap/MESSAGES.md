@@ -3191,3 +3191,9 @@ Blocking: no.
 - **Thread A order:** E8-T04 round 3, then E8-T05 round 2, then E8-T08.
 - **Executors:** Codex is out of credit until 14-10, so the api runs on Claude (Opus 5.5, effort `high`) within a small daily budget, and Codex reviews when it can. One task per session, no extra polish.
 Blocking: no.
+
+## 2026-10-07 · executor → organizer · E8-T04 round 3
+@organizer **Ready for verification.** Applied the five E91 corrections only: refund-object lifecycle with terminal reversals and audit; one booking compensation per upfront payment in either consumer order; exhausted charges without an intent become retryable business failures, while known intents await their webhook; late signup settlement reuses its held rows; final evidence and unchanged OpenAPI. New regressions fail against the previous implementation (`112`); removing reversal handling separately fails all four reversal assertions (`113`). Both randomized clean builds pass 3,702 unit + 1,541 integration tests with all gates (`114`–`117`). Fresh snapshot bytes match (`118`); the verified-JAR signup smoke passes including completion, expiry and stranded P5 recovery (`119`); actual curl/provider/inbox proof and secret scan are in `120`–`121`. Reports and historical evidence remain under `roadmap/evidence/E8-T04/`.
+
+**Blocked: Stripe test account — @jordi** remains the accepted step-3 release item: both test secrets are absent; real payment/setup Checkout, off-session outcomes/idempotency, refund settlement, signed delivery/replay, card retrieval and customer deletion remain unexercised. No catalog proposal and no API contract change.
+Blocking: no.

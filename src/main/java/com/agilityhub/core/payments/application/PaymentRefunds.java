@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentRefunds {
     @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
+    @org.springframework.beans.factory.annotation.Autowired private PendingChargeRepository charges;
+    @org.springframework.beans.factory.annotation.Autowired private StripeRefundRepository refundStates;
     public record Accepted(String id, Money amount, String providerRef) { }
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final UpfrontPaymentRepository upfront;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingTransactions tx;
@@ -62,7 +64,8 @@ public class PaymentRefunds {
         var existing = operations.forTarget(target);
         var retry = existing.stream().filter(op -> op.key().equals(key)).findFirst();
         if (retry.isPresent()) { var op = retry.get(); return new Accepted(op.id(), op.amount(), op.resultId()); }
-        long pending = existing.stream().filter(op -> op.kind().startsWith("REFUND") && !settled.contains(op.resultId())).mapToLong(op -> op.amount().amountMinor()).sum();
+        long pending = existing.stream().filter(op -> op.kind().startsWith("REFUND") && !settled.contains(op.resultId())
+                && !operations.refundFailed(op.id())).mapToLong(op -> op.amount().amountMinor()).sum();
         long remaining = paid.amountMinor() - refunded - pending;
         Money amount = requested == null ? new Money(remaining, paid.currency()) : requested;
         if (!amount.currency().equals(paid.currency())) { throw new ApiException(ErrorCode.CURRENCY_MISMATCH); }
@@ -80,6 +83,42 @@ public class PaymentRefunds {
         operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", sessionId, reference,
                 amount, key, "LATE_COMPLETION", null, null, clock.instant(), null));
     }
+    /** Both cancellation consumers serialize on the payment before deciding refund versus credit. */
+    public void compensate(String paymentId, String policy, boolean beforeConfirmation) {
+        tx.run(() -> {
+            upfront.lock(paymentId);
+            var payment = upfront.findById(paymentId).orElseThrow();
+            if (compensated(payment)) { return null; }
+            if (beforeConfirmation || "REFUND".equals(policy)) {
+                upfront(paymentId, null, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED", "refund:" + paymentId);
+            } else if ("CREDIT".equals(policy)) {
+                Money captured = upfront.captured(paymentId).orElse(payment.amountPaid());
+                charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
+                        new Money(-captured.amountMinor(), captured.currency()), payment.concept(), clock.instant(), null, null));
+            }
+            return null;
+        });
+    }
+    private boolean compensated(UpfrontPayment payment) {
+        return operations.forTarget(payment.id()).stream().anyMatch(op -> op.kind().startsWith("REFUND"))
+                || payment.bookingId() != null && charges.forBooking(payment.bookingId()).isPresent();
+    }
+    /** A booking has one upfront capture: the late path uses the same payment key as BookingCancelled. */
+    public void lateBooking(String paymentId, String reference, Money amount) {
+        if (reference == null || amount.amountMinor() <= 0) { return; }
+        tx.run(() -> {
+            upfront.lock(paymentId);
+            var payment = upfront.findById(paymentId).orElseThrow();
+            if (compensated(payment) || operations.byKey("late:" + reference).isPresent()) { return null; }
+            if ("PAID".equals(payment.status()) && payment.stripe() != null && reference.equals(payment.stripe().paymentIntentId())) {
+                upfront(paymentId, amount, "LATE_COMPLETION", "refund:" + paymentId);
+            } else {
+                operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", paymentId, reference,
+                        amount, "refund:" + paymentId, "LATE_COMPLETION", null, null, clock.instant(), null));
+            }
+            return null;
+        });
+    }
     public void executeLate() {
         for (var op : operations.lateRefunds()) {
             try { execute(op.id()); } catch (RuntimeException deferred) { /* The bounded retry checkpoint has been saved. */ }
@@ -93,19 +132,73 @@ public class PaymentRefunds {
             tx.run(() -> {
                 if (operations.findById(id).orElseThrow().resultId() == null) {
                     operations.completed(id, result.id());
-                    String type = op.kind().equals("REFUND_INVOICE") ? "Invoice" : op.kind().equals("REFUND_LATE") ? "CheckoutSession" : "UpfrontPayment";
-                    audit.refunded(type, op.targetId(), op.amount(), result.id(), op.reason());
+                    operations.providerStatus(id, result.status());
+                    audit.refunded(entityType(op), op.targetId(), op.amount(), result.id(), op.reason());
                 }
                 return null;
             });
         });
     }
-    public boolean settled(String intent, String refundId, Money amount, Instant at, String stripeReason, String operationId) {
-        // Metadata is durable before the external call; resultId may still be absent when Stripe delivers the webhook.
+    /** Refund objects are authoritative. A terminal failure wins over a redelivered older success. */
+    public boolean reconcile(String intent, String refundId, Money amount, String status, Instant at, String reason, String operationId) {
+        var previous = refundStates.lock(refundId);
+        if (previous.status() != null) {
+            if (!Objects.equals(previous.intent(), intent) || !previous.amount().equals(amount)) { throw new ApiException(ErrorCode.INVALID_STATE); }
+            if (Set.of("failed", "canceled").contains(previous.status()) || previous.status().equals(status)
+                    || "succeeded".equals(previous.status()) && !Set.of("failed", "canceled").contains(status)) { return false; }
+        }
+        var operation = operation(intent, refundId, amount, operationId);
+        if ("succeeded".equals(status)) { settled(intent, refundId, amount, at, reason, operationId); }
+        else if (Set.of("failed", "canceled").contains(status)) {
+            reverse(intent, refundId, operation, status);
+            retries.warnRefund(refundId, status);
+        }
+        refundStates.outcome(refundId, intent, amount, status, at);
+        if (operation != null) { operations.refundStatus(operation.id(), status); }
+        return true;
+    }
+    private String entityType(PaymentOperation operation) {
+        if ("REFUND_INVOICE".equals(operation.kind())) { return "Invoice"; }
+        return "REFUND_LATE".equals(operation.kind()) && upfront.findById(operation.targetId()).isEmpty() ? "CheckoutSession" : "UpfrontPayment";
+    }
+    private PaymentOperation operation(String intent, String refundId, Money amount, String operationId) {
         var operation = operationId == null ? operations.forResult(refundId).orElse(null)
                 : operations.findById(operationId).orElseThrow(() -> new ApiException(ErrorCode.INVALID_STATE));
         if (operation != null && (!operation.kind().startsWith("REFUND") || !Objects.equals(operation.providerRef(), intent)
                 || !operation.amount().equals(amount))) { throw new ApiException(ErrorCode.INVALID_STATE); }
+        return operation;
+    }
+    private void reverse(String intent, String refundId, PaymentOperation operation, String status) {
+        String reason = "REFUND_" + status.toUpperCase(Locale.ROOT);
+        if (operation != null && "REFUND_LATE".equals(operation.kind())) {
+            if (operations.reverseRefund(operation.id(), refundId)) {
+                audit.refunded(entityType(operation), operation.targetId(), new Money(-operation.amount().amountMinor(), operation.amount().currency()), refundId, reason);
+            }
+            return;
+        }
+        var collection = collections.byProviderReference(intent).orElse(null);
+        if (collection != null) {
+            var rows = collection.refunds() == null ? List.<Collection.Refund>of() : collection.refunds();
+            var removed = rows.stream().filter(r -> r.providerRef().equals(refundId)).findFirst();
+            if (removed.isPresent()) {
+                collections.reverseRefund(collection.id(), refundId);
+                long total = rows.stream().filter(r -> !r.providerRef().equals(refundId)).mapToLong(r -> r.amount().amountMinor()).sum();
+                invoices.refunded(collection.invoiceId(), new Money(total, collection.amount().currency()), clock.instant());
+                audit.refunded("Invoice", collection.invoiceId(), new Money(-removed.get().amount().amountMinor(), collection.amount().currency()), refundId, reason);
+            }
+            return;
+        }
+        for (var payment : upfront.forIntent(intent)) {
+            var rows = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
+            rows.stream().filter(r -> r.providerRef().equals(refundId)).findFirst().ifPresent(refund -> {
+                upfront.reverseRefund(payment.id(), refundId);
+                audit.refunded("UpfrontPayment", payment.id(), new Money(-refund.amount().amountMinor(), refund.amount().currency()), refundId, reason);
+            });
+        }
+    }
+    public boolean settled(String intent, String refundId, Money amount, Instant at, String stripeReason, String operationId) {
+        // Metadata is durable before the external call; resultId may still be absent when Stripe delivers the webhook.
+        var operation = operation(intent, refundId, amount, operationId);
         String reason = operation == null ? stripeReason : operation.reason();
         String actor = operation == null ? null : operation.actorId();
         if (operation != null && "REFUND_LATE".equals(operation.kind())) {

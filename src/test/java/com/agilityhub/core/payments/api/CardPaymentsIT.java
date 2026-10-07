@@ -34,12 +34,13 @@ class CardPaymentsIT extends BillingItSupport {
     @Autowired PaymentPrivacy privacy;
     @Autowired PaymentBookingCancellations cancellations;
     @Autowired CardPayments cards;
+    @Autowired com.agilityhub.core.clubs.bookings.application.BookingConfirmationService bookingConfirmations;
     @Autowired PaymentRefunds refunds;
     @Autowired StripeInbox inbox;
     @Autowired PaymentOperationRepository operations;
     @Autowired com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     @BeforeEach void stripe() {
-        for (String collection : List.of("payment_operations", "stripe_events", "checkout_sessions", "upfront_payments")) {
+        for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "checkout_sessions", "upfront_payments")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         fake.reset();
@@ -249,7 +250,7 @@ class CardPaymentsIT extends BillingItSupport {
         webhook("evt_booking_late_again", "checkout.session.completed", object);
         recovery.recover(); recovery.recover();
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
-        assertThat(fake.calls().getFirst().key()).isEqualTo("late:pi_booking");
+        assertThat(fake.calls().getFirst().key()).isEqualTo("refund:" + mongo.findById(session, Document.class, "checkout_sessions").getList("upfrontPaymentIds", String.class).getFirst());
         try (var tenant = TenantContext.open(CLUB)) { privacy.forgetCustomer("cus_forget"); privacy.forgetCustomer("cus_forget"); }
         recovery.recover(); recovery.recover();
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("forget"))).hasSize(1);
@@ -406,8 +407,8 @@ class CardPaymentsIT extends BillingItSupport {
         fake.beforeRefundReturn((call, result) -> {
             String operation = ((Map<?, ?>) call.request()).get("operationId").toString();
             assertThat(mongo.findById(operation, Document.class, "payment_operations").getString("resultId")).isNull();
-            fake.deliverWebhook("charge.refunded", Map.of("eventId", "evt_second_refund", "created", clock.instant().getEpochSecond(), "object",
-                    refundObject("pi_two", result.id(), 1000, Map.of("operationId", operation, "reason", "Admin correction", "private", "must-not-be-retained"))));
+            fake.deliverWebhook("refund.created", Map.of("eventId", "evt_second_refund", "created", clock.instant().getEpochSecond(), "object",
+                    refundEvent("pi_two", result.id(), 1000, "succeeded", operation)));
             assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
             assertThat(paymentRow(rows.get(1)).getString("status")).isEqualTo("REFUNDED");
             assertThat(paymentRow(rows.get(1)).getList("refunds", Document.class)).singleElement().satisfies(r -> {
@@ -528,4 +529,212 @@ class CardPaymentsIT extends BillingItSupport {
         clock.setInstant(clock.instant().plusSeconds(3600)); recovery.recover();
         assertThat(mongo.findById("evt_limit", Document.class, "stripe_events")).isEqualTo(last);
     }
+    Map<String, Object> refundEvent(String intent, String id, long amount, String status, String operation) {
+        return Map.of("id", id, "object", "refund", "payment_intent", intent, "currency", "eur", "amount", amount,
+                "status", status, "reason", "requested_by_customer", "metadata", operation == null ? Map.of() : Map.of("operationId", operation));
+    }
+    @Test void T_12_17_round3_chargeWithoutEmbeddedRefundsIsAcknowledged() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_r3_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        webhook("evt_r3_charge", "charge.refunded", Map.of("id", "ch_modern", "payment_intent", intent(invoice), "amount_refunded", 1000, "currency", "eur"));
+        assertThat(mongo.findById("evt_r3_charge", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isZero();
+        webhook("evt_r3_created", "refund.created", refundEvent(intent(invoice), "re_modern", 1000, "succeeded", null));
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(1000);
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_round3_refundLifecycleReversesInvoiceInEitherDeliveryOrder(boolean webhookFirst) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        String pi = intent(invoice);
+        webhook("evt_r3_paid", "payment_intent.succeeded", Map.of("id", pi));
+        fake.refundStatus("pending");
+        if (webhookFirst) { fake.beforeRefundReturn((call, result) -> fake.deliverWebhook("refund.updated", Map.of("eventId", "evt_r3_first", "created", clock.instant().getEpochSecond(),
+                "object", refundEvent(pi, result.id(), 6000, "succeeded", ((Map<?, ?>) call.request()).get("operationId").toString())))); }
+        ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/refund"), Map.of("reason", "Correction"))), 202);
+        var op = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("REFUND_INVOICE")), Document.class, "payment_operations");
+        assertThat(op.getString("providerStatus")).isEqualTo("pending");
+        String id = op.getString("resultId"), operation = op.getString("_id");
+        if (!webhookFirst) {
+            webhook("evt_r3_pending", "refund.created", refundEvent(pi, id, 6000, "pending", operation));
+            assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isZero();
+        }
+        webhook("evt_r3_success", "refund.updated", refundEvent(pi, id, 6000, "succeeded", operation));
+        webhook("evt_r3_duplicate", "refund.updated", refundEvent(pi, id, 6000, "succeeded", operation));
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(6000);
+        long audits = mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), "audit_entries");
+        webhook("evt_r3_failed", "refund.updated", refundEvent(pi, id, 6000, "failed", operation));
+        webhook("evt_r3_failure_duplicate", "refund.failed", refundEvent(pi, id, 6000, "failed", operation));
+        webhook("evt_r3_stale_success", "refund.created", refundEvent(pi, id, 6000, "succeeded", operation));
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isZero();
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        var collection = mongo.findOne(Query.query(Criteria.where("invoiceId").is(invoice)), Document.class, "collections");
+        assertThat(collection.getString("status")).isEqualTo("SUCCEEDED");
+        assertThat(collection.getList("refunds", Document.class)).isEmpty();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), "audit_entries")).isEqualTo(audits + 1);
+        // A failed refund no longer reserves the whole captured amount.
+        ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/refund"), Map.of("reason", "Retry failed refund"))), 202);
+    }
+    @Test void T_12_17_round3_cancelledRefundRestoresOnlyItsUpfrontAllocations() throws Exception {
+        var rows = signupRows(2); String session = signupCheckout(rows);
+        webhook("evt_r3_signup", "checkout.session.completed", completion(session, "pi_r3_signup", 2000, "paid"));
+        webhook("evt_r3_other", "refund.created", refundEvent("pi_r3_signup", "re_other", 200, "succeeded", null));
+        webhook("evt_r3_full", "refund.created", refundEvent("pi_r3_signup", "re_reverse", 1800, "succeeded", null));
+        assertThat(rows).allSatisfy(id -> assertThat(paymentRow(id).getString("status")).isEqualTo("REFUNDED"));
+        webhook("evt_r3_cancel", "refund.updated", refundEvent("pi_r3_signup", "re_reverse", 1800, "canceled", null));
+        assertThat(rows).allSatisfy(id -> assertThat(paymentRow(id).getString("status")).isEqualTo("PAID"));
+        assertThat(paymentRow(rows.getFirst()).getList("refunds", Document.class)).singleElement()
+                .satisfies(refund -> assertThat(refund.getString("providerRef")).isEqualTo("re_other"));
+        assertThat(paymentRow(rows.get(1)).getList("refunds", Document.class)).isEmpty();
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"REFUND,false", "REFUND,true", "CREDIT,false", "CREDIT,true"})
+    void T_12_17_round3_cancellationBeforeConfirmationCompensatesOnce(String policy, boolean successConsumerFirst) throws Exception {
+        parameter(CLUB, "billing.singleClassCancelPolicy", policy);
+        String session, payment;
+        try (var tenant = TenantContext.open(CLUB)) {
+            var prepared = tx.run(() -> checkouts.prepareBooking("card-member", "r3-booking", new UpfrontPayments.Charge("SINGLE_CLASS", null,
+                    new Money(1200, "EUR")), clock.instant().plusSeconds(900)));
+            session = prepared.sessionId(); payment = prepared.paymentId();
+        }
+        webhook("evt_r3_booking_paid", "checkout.session.completed", completion(session, "pi_r3_booking", 1200, "paid"));
+        // P7 has cancelled PAYMENT_PENDING before the success consumer confirms the seat: paidAt is null.
+        mongo.insert(new Document("_id", "r3-booking").append("clubId", CLUB).append("state", "CANCELLED").append("memberId", "card-member")
+                .append("charge", new Document("mode", "PAY_TO_BOOK").append("checkoutSessionId", session).append("paidAt", null)), "bookings");
+        try (var tenant = TenantContext.open(CLUB)) {
+            Runnable success = () -> bookingConfirmations.paymentSucceeded("r3-booking");
+            Runnable cancelled = () -> tx.run(() -> { cancellations.handle("evt_r3_cancel_booking", new PaymentBookingCancellations.Event(CLUB, "r3-booking",
+                    Map.of("bookingId", "r3-booking", "late", false, "reason", "PAYMENT_TIMEOUT"))); return null; });
+            if (successConsumerFirst) { success.run(); cancelled.run(); } else { cancelled.run(); success.run(); }
+            success.run(); cancelled.run();
+        }
+        recovery.recover();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("kind").regex("^REFUND")), Document.class, "payment_operations"))
+                .singleElement().satisfies(op -> { assertThat(op.getString("key")).isEqualTo("refund:" + payment); assertThat(op.getString("reason")).isEqualTo("LATE_COMPLETION"); });
+        assertThat(mongo.count(Query.query(Criteria.where("bookingId").is("r3-booking")), "pending_charges")).isZero();
+        assertThat(fake.calls().stream().filter(call -> call.operation().equals("refund"))).hasSize(1);
+        webhook("evt_r3_booking_refund", "refund.updated", refundEvent("pi_r3_booking", mongo.findOne(Query.query(Criteria.where("key").is("refund:" + payment)), Document.class,
+                "payment_operations").getString("resultId"), 1200, "succeeded", null));
+        assertThat(paymentRow(payment).getString("status")).isEqualTo("REFUNDED");
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown(boolean intentKnown, org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        admin("bill-admin-notices", CLUB);
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        var operation = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
+        String pi = intent(invoice);
+        // A process stopped before settlement. A known provider reference is retained for reconciliation.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(operation.getString("_id"))), new Update().unset("resultId").unset("processedAt").set("attempts", 0), "payment_operations");
+        if (!intentKnown) { mongo.updateFirst(Query.query(Criteria.where("invoiceId").is(invoice)), new Update().unset("providerRef"), "collections"); }
+        club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", false, "mode", "test",
+                "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
+        for (int attempt = 0; attempt < 3; attempt++) { recovery.recover(); clock.setInstant(clock.instant().plusSeconds(60)); }
+        assertThat(mongo.findById(operation.getString("_id"), Document.class, "payment_operations").getDate("processedAt")).isNotNull();
+        if (intentKnown) {
+            assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
+            assertThat(events("InvoiceFailed")).isEmpty();
+            assertThat(output.getOut()).contains("Charge awaiting webhook recovery exhausted");
+            String warning = output.getOut().lines().filter(line -> line.contains("Charge awaiting webhook recovery exhausted")).findFirst().orElseThrow();
+            assertThat(warning).contains("WARN").containsPattern("(?:traceId=|\"traceId\":\")[0-9a-f-]{36}");
+            var totals = ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("byProvider").path("STRIPE");
+            assertThat(totals.path("count").asInt() - totals.path("charged").asInt() - totals.path("failed").asInt()).isEqualTo(1);
+            club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
+                    "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
+            webhook("evt_r3_reconciled", "payment_intent.succeeded", Map.of("id", pi));
+            assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        } else {
+            assertThat(detail(invoice).path("status").asText()).isEqualTo("FAILED");
+            var collection = mongo.findOne(Query.query(Criteria.where("invoiceId").is(invoice)), Document.class, "collections");
+            assertThat(collection.getString("status")).isEqualTo("FAILED"); assertThat(collection.getString("failureCode")).isEqualTo("PROVIDER_UNAVAILABLE");
+            assertThat(events("InvoiceFailed")).hasSize(1);
+            outbox.dispatch();
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-35")), "notifications")).isPositive();
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-10")), "notifications")).isPositive();
+            club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
+                    "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
+            ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/retry"), Map.of("version", detail(invoice).path("version").asLong()))), 202);
+            assertThat(fake.calls().getLast().key()).isEqualTo(invoice + ":2");
+        }
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_16_round3_lateSignupReusesRowsStillHeldByItsSession(boolean expireFirst) throws Exception {
+        var rows = signupRows(1); String session = signupCheckout(rows);
+        clock.setInstant(clock.instant().plusSeconds(86401));
+        if (expireFirst) { try (var tenant = TenantContext.open(CLUB)) { checkouts.expire(session); } }
+        fake.card("pi_r3_late", new BillingCensusAccess.Card("cus_card-member", "pm_r3_late", "4321", "visa", false));
+        webhook("evt_r3_late_signup", "checkout.session.completed", completion(session, "pi_r3_late", 1000, "paid"));
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+        assertThat(mongo.findById(session, Document.class, "checkout_sessions").getString("status")).isEqualTo("COMPLETE");
+        assertThat(mongo.findById("card-member", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class)
+                .getString("stripePaymentMethodId")).isEqualTo("pm_r3_late");
+        assertThat(fake.calls().stream().filter(call -> call.operation().equals("refund"))).isEmpty();
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"REFUND,false", "REFUND,true", "CREDIT,false", "CREDIT,true"})
+    void T_12_17_round3_confirmedCancellationKeepsTheClubPolicy(String policy, boolean successConsumerFirst) throws Exception {
+        parameter(CLUB, "billing.singleClassCancelPolicy", policy);
+        String session, payment;
+        try (var tenant = TenantContext.open(CLUB)) {
+            var prepared = tx.run(() -> checkouts.prepareBooking("card-member", "r3-confirmed", new UpfrontPayments.Charge("SINGLE_CLASS", null,
+                    new Money(1200, "EUR")), clock.instant().plusSeconds(900)));
+            session = prepared.sessionId(); payment = prepared.paymentId();
+        }
+        webhook("evt_r3_confirmed_paid", "checkout.session.completed", completion(session, "pi_r3_confirmed", 1200, "paid"));
+        mongo.insert(new Document("_id", "r3-confirmed").append("clubId", CLUB).append("state", "CANCELLED").append("memberId", "card-member")
+                .append("charge", new Document("mode", "PAY_TO_BOOK").append("checkoutSessionId", session).append("paidAt", Date.from(clock.instant()))), "bookings");
+        try (var tenant = TenantContext.open(CLUB)) {
+            Runnable success = () -> bookingConfirmations.paymentSucceeded("r3-confirmed");
+            Runnable cancelled = () -> tx.run(() -> { cancellations.handle("evt_r3_confirmed_cancel", new PaymentBookingCancellations.Event(CLUB, "r3-confirmed",
+                    Map.of("bookingId", "r3-confirmed", "late", false, "reason", "MEMBER"))); return null; });
+            if (successConsumerFirst) { success.run(); cancelled.run(); } else { cancelled.run(); success.run(); }
+            success.run(); cancelled.run();
+        }
+        recovery.recover();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("kind").regex("^REFUND")), "payment_operations")).isEqualTo("REFUND".equals(policy) ? 1 : 0);
+        var credit = mongo.find(Query.query(Criteria.where("bookingId").is("r3-confirmed")), Document.class, "pending_charges");
+        if ("CREDIT".equals(policy)) { assertThat(credit).singleElement().satisfies(row -> assertThat(row.get("amount", Document.class).getLong("amountMinor")).isEqualTo(-1200)); }
+        else { assertThat(credit).isEmpty(); }
+    }
+    @Test void T_12_17_round3_terminalRefundBeforeSuccessIsTenantScopedAndSanitized() throws Exception {
+        var object = new LinkedHashMap<>(refundEvent("pi_r3_external", "re_r3_external", 1000, "failed", null));
+        object.put("metadata", Map.of("reason", "Correction", "email", "private@example.test", "memberId", "not-retained"));
+        webhook("evt_r3_external_failed", "refund.failed", object);
+        assertThat(mongo.findById("evt_r3_external_failed", Document.class, "stripe_events").getString("outcome")).isEqualTo("PROCESSED");
+        webhook("evt_r3_external_old", "refund.created", refundEvent("pi_r3_external", "re_r3_external", 1000, "succeeded", null));
+        assertThat(mongo.findById("evt_r3_external_old", Document.class, "stripe_events").getString("outcome")).isEqualTo("IGNORED");
+        // The same provider id in another club must neither read nor suppress the first club's state.
+        try (var tenant = TenantContext.open(OTHER)) {
+            fake.deliverWebhook("refund.created", Map.of("eventId", "evt_r3_foreign", "created", clock.instant().getEpochSecond(), "object",
+                    refundEvent("pi_r3_external", "re_r3_external", 1000, "succeeded", null)));
+        }
+        assertThat(mongo.findById("evt_r3_foreign", Document.class, "stripe_events").getString("outcome")).isEqualTo("FAILED");
+        assertThat(mongo.findById("evt_r3_foreign", Document.class, "stripe_events").get("processedAt")).isNull();
+        var pending = new LinkedHashMap<>(refundEvent("pi_r3_external", "re_r3_safe", 1000, "succeeded", "unknown-operation"));
+        pending.put("metadata", Map.of("operationId", "unknown-operation", "reason", "Correction", "email", "private@example.test", "memberId", "not-retained"));
+        webhook("evt_r3_safe", "refund.created", pending);
+        var work = mongo.findById("evt_r3_safe", Document.class, "stripe_events").get("work", Document.class);
+        assertThat(work.get("object", Document.class).get("metadata", Document.class)).containsExactlyInAnyOrderEntriesOf(Map.of("operationId", "unknown-operation", "reason", "Correction"));
+        assertThat(work.toJson()).doesNotContain("private@example.test", "not-retained");
+    }
+
+    @Test void T_12_17_round3_failedLateRefundReversesItsCheckpointWithoutRevivingTheRow() throws Exception {
+        var rows = signupRows(1); String session = signupCheckout(rows);
+        try (var tenant = TenantContext.open(CLUB)) { checkouts.expire(session); }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(rows.getFirst())), new Update().set("status", "CANCELLED"), "upfront_payments");
+        webhook("evt_r3_rejected", "checkout.session.completed", completion(session, "pi_r3_rejected", 1000, "paid"));
+        var op = mongo.findOne(Query.query(Criteria.where("key").is("late:pi_r3_rejected")), Document.class, "payment_operations");
+        String refund = op.getString("resultId"), operation = op.getString("_id");
+        webhook("evt_r3_late_refund", "refund.created", refundEvent("pi_r3_rejected", refund, 1000, "succeeded", operation));
+        assertThat(mongo.findById(operation, Document.class, "payment_operations").get("refund")).isNotNull();
+        webhook("evt_r3_late_refund_failed", "refund.failed", refundEvent("pi_r3_rejected", refund, 1000, "failed", operation));
+        assertThat(mongo.findById(operation, Document.class, "payment_operations").get("refund")).isNull();
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("CANCELLED");
+        var reversal = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED").and("reason").is("REFUND_FAILED")), Document.class, "audit_entries");
+        assertThat(reversal).hasSize(1);
+    }
+
 }

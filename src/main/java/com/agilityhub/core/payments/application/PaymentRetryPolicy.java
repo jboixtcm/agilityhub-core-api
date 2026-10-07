@@ -24,18 +24,30 @@ public class PaymentRetryPolicy {
     }
     public int maxAttempts() { return configs.get(TenantContext.require()).get("billing.stripeMaxAttempts", Integer.class); }
     public void execute(PaymentOperation operation, Runnable action) {
+        execute(operation, action, () -> {});
+    }
+    /** The terminal business transition commits atomically with the exhausted command. */
+    public void execute(PaymentOperation operation, Runnable action, Runnable exhausted) {
         if (!operations.ready(operation.id())) { return; }
         try { action.run(); }
         catch (RuntimeException failure) {
-            if (tx.run(() -> operations.failed(operation.id(), clock.instant(), maxAttempts()))) { warn("Payment operation", operation.id()); }
+            if (tx.run(() -> {
+                boolean terminal = operations.failed(operation.id(), clock.instant(), maxAttempts());
+                if (terminal) { exhausted.run(); }
+                return terminal;
+            })) { warn("Payment operation", operation.id()); }
             throw failure;
         }
     }
+    public void warnRefund(String id, String status) { warning("Refund reconciliation status=" + status, id); }
     public void warn(String kind, String id) {
+        warning(kind + " recovery exhausted", id);
+    }
+    private void warning(String message, String id) {
         String previous = MDC.get("traceId");
         try {
             if (previous == null || previous.isBlank()) { MDC.put("traceId", UUID.randomUUID().toString()); }
-            LOG.warn("{} recovery exhausted: eventId={} traceId={}", kind, id, MDC.get("traceId"));
+            LOG.warn("{}: eventId={} traceId={}", message, id, MDC.get("traceId"));
         } finally {
             if (previous == null) { MDC.remove("traceId"); } else { MDC.put("traceId", previous); }
         }

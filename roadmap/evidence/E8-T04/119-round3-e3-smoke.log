@@ -1,0 +1,166 @@
+PASS verified JAR matches all 2920 compiled classes/resources (excluding refreshed build.time only)
+Verified JAR sha256=e83eeb75...[truncated]
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.26kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 DONE 1.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [ 1/12] FROM docker.io/library/eclipse-temurin:21-jre@sha256:cff19e62...[truncated]
+#4 resolve docker.io/library/eclipse-temurin:21-jre@sha256:cff19e62...[truncated] done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 147.77MB 0.8s done
+#5 DONE 0.8s
+
+#6 [ 2/12] RUN apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#6 CACHED
+
+#7 [ 3/12] WORKDIR /app
+#7 CACHED
+
+#8 [ 4/12] COPY --chown=agilityhub:agilityhub app.jar app.jar
+#8 DONE 0.1s
+
+#9 [ 5/12] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
+#9 DONE 0.0s
+
+#10 [ 6/12] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#10 DONE 0.0s
+
+#11 [ 7/12] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#11 DONE 0.0s
+
+#12 [ 8/12] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#12 DONE 0.0s
+
+#13 [ 9/12] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#13 DONE 0.0s
+
+#14 [10/12] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#14 DONE 0.0s
+
+#15 [11/12] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#15 DONE 0.0s
+
+#16 [12/12] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#16 DONE 0.0s
+
+#17 exporting to image
+#17 exporting layers
+#17 exporting layers 2.0s done
+#17 exporting manifest sha256:997e4854...[truncated] done
+#17 exporting config sha256:67f21abb...[truncated] done
+#17 exporting attestation manifest sha256:89cf0010...[truncated] done
+#17 exporting manifest list sha256:880ead1a...[truncated] done
+#17 naming to docker.io/library/agilityhub-e8-t04-verified:local done
+#17 unpacking to docker.io/library/agilityhub-e8-t04-verified:local
+#17 unpacking to docker.io/library/agilityhub-e8-t04-verified:local 0.5s done
+#17 DONE 2.5s
+PASS runtime Dockerfile stage preserved; image JAR is byte-identical to clean verify
+Starting disposable consumer image Compose stack
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+PASS club:apply seeds/club-fifo.yaml (fictional club with STRIPE)
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+PASS GET /signup: texts resolved, one quote per offered plan
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+PASS D1 dogs by level: 8 progression columns, others=0
+PASS D1 class occupancy follows R-14-03 for the seeded week: 2 classes, booked=6, capacity=10, percent=60
+curl GET /api/v1/members/d38dd347-6621-3d58-a172-6463bc727af7/signup -> 200
+curl GET /api/v1/members/d432f4e5-f9ad-3823-8786-d65026fbad79/signup -> 200
+curl GET /api/v1/members/9cf6e2d2-cd99-3611-a24d-38e262cd01f9/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/signup -> 200
+curl GET /api/v1/club -> 200
+PASS cash payment instructions: the seed's, in ca, under MANUAL
+PASS payment methods: GET /club, GET /signup and D2 offer SEPA_DD and MANUAL
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/validation -> 200
+curl POST /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS mailbox N-02 correlated by notificationId; locale=ca; token=[truncated]
+curl POST /oauth2/token -> 200
+curl GET /api/v1/me -> 200
+PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session
+curl POST /api/v1/me/dogs/signup -> 201
+PASS N-01 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/signup -> 200
+PASS add-dog D2: only the member's current payment method, not assignable
+curl POST /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/validation -> 200
+PASS N-37 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/0fc213cb-4a73-4252-b0e1-badadb897295/signup -> 200
+curl POST /api/v1/members/0fc213cb-4a73-4252-b0e1-badadb897295/rejection -> 200
+PASS mailbox N-03 correlated by notificationId; locale=ca
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS signup without family -> rejection -> N-03; D1 counters restored
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/36fca16c-fe83-3f62-beec-7796a0553fbd/signup -> 200
+PASS readmission of the demo's LEFT member reuses its INACTIVE seed dog and its received card
+curl POST /api/v1/attachments/upload-url -> 201
+curl PUT /api/v1/attachments/uploads/9811b2cd-bc0d-4099-a26f-8d3562461e79 -> 204
+curl PATCH /api/v1/dogs/25364cd6-da79-3950-a0bc-b525d2d2eb29 -> 200
+curl GET /api/v1/members/36fca16c-fe83-3f62-beec-7796a0553fbd/signup -> 200
+curl GET /api/v1/attachments/files/9811b2cd-bc0d-4099-a26f-8d3562461e79 -> 200
+curl GET /api/v1/attachments/files/9811b2cd-bc0d-4099-a26f-8d3562461e79 -> 200
+PASS D2 adds a file with the ADMIN's DOG_DOCUMENT upload; the signed upload and download URLs need no bearer; the download is application/pdf, attachment, with the stored name
+curl POST /api/v1/members/36fca16c-fe83-3f62-beec-7796a0553fbd/rejection -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS rejected readmission restores the LEFT member and its INACTIVE dog; D1 counters restored
+curl POST /api/v1/signup/upload-urls -> 200
+curl GET /api/v1/parameters/signup.enabled -> 200
+curl PUT /api/v1/parameters/signup.enabled -> 200
+curl POST /api/v1/signup -> 422 SIGNUP_CLOSED
+PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED
+curl POST /api/v1/signup/upload-urls -> 200
+curl OPTIONS /api/v1/signup/uploads -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl PUT /api/v1/signup/uploads -> 422
+PASS signup closed: the member's signed upload passes the CORS preflight and the PUT with its headers only, without a bearer or the club's host; an anonymous one answers 422 SIGNUP_CLOSED
+curl POST /api/v1/me/dogs/signup -> 201
+curl GET /api/v1/members/27dfa858-3c5a-4b19-a56b-38b19c1dfbeb/signup -> 200
+curl GET /api/v1/signup/files -> 200
+PASS the member's add-dog claims the file; its download from the web's origin is image/png, inline, with the stored name
+PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld
+curl GET /api/v1/signup -> 200
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+PASS a card signup on the Stripe club opens its checkout (1 rows CHECKOUT_PENDING); the key replays the same checkoutUrl
+Fake provider completion delivered: checkoutSessionId=9e55dcb8…
+PASS the provider's completion pays every row (PAID, STRIPE) and keeps the card on the member
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+Fake provider expiry delivered: checkoutSessionId=9724aba3…
+PASS the provider's expiry gives every row back (DUE, no session)
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+PASS P7 payment-timeouts ran past the stranded checkout's expiresAt and left it to P5 (still PENDING)
+POST /test/clock to P5's daily time 2026-10-09 06:00 Europe/Madrid + 1 min (server now 2026-10-09T04:01Z): the first P5 occurrence past the stranded checkout's expiresAt
+PASS P5 expirations step h (SCHEDULE 2026-10-09T06:00) expires the checkout that never heard from the provider past its expiresAt: EXPIRE_CHECKOUT, counters {'expiredCheckouts': 1}, rows DUE, no refund mark
+PASS T-04-22: the signup checkout on the fake provider (create, complete, expire, stranded release)
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
