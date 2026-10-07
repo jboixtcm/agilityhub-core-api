@@ -87,7 +87,8 @@ public class ActivityRegistrationService {
     }
     public int cancelForInactivity(String memberId,LocalDate from,LocalDate to) {
         if(!context.enabled(Module.ACTIVITIES) || !context.enabled(Module.INACTIVITY) || !Boolean.TRUE.equals(context.config().get("inactivity.cancelBookingsOnApproval",Boolean.class))) return 0;
-        return cancelMatching(memberId,RegistrationCancelReason.INACTIVITY,a -> !a.date().isBefore(from) && (to == null || !a.date().isAfter(to)));
+        var now=context.clock.instant();
+        return cancelMatching(memberId,RegistrationCancelReason.INACTIVITY,a -> context.times(a).startsAt().isAfter(now) && !a.date().isBefore(from) && (to == null || !a.date().isAfter(to)));
     }
     public int cancelForMemberLeft(String memberId) {
         return cancelForMemberLeft(memberId, context.clock.instant());

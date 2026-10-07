@@ -539,6 +539,19 @@ class E8ContractIT extends AbstractIntegrationTest {
             response = mvc.perform(as(route.getValue(), "MEMBER")).andReturn().getResponse();
             assertThat(response.getStatus()).as(route.getKey() + " of the member").isIn(200, 201, 409, 422);
         }
+        // Step 16 (review #4): the member's PATCH and the /me cancellations resolve mutableMe() before the resource.
+        Map<String, MockHttpServletRequestBuilder> ownWrites = new LinkedHashMap<>();
+        ownWrites.put("PATCH /me/inactivity-periods/{id}", patch("/api/v1/me/inactivity-periods/e8-unknown").contentType("application/json")
+                .content("{\"toMonth\":\"2026-12\",\"version\":0}"));
+        ownWrites.put("POST /me/inactivity-periods/{id}/cancellation", post("/api/v1/me/inactivity-periods/e8-unknown/cancellation"));
+        ownWrites.put("POST /me/leave-requests/{id}/cancellation", post("/api/v1/me/leave-requests/e8-unknown/cancellation"));
+        for (var route : ownWrites.entrySet()) {
+            var response = mvc.perform(route.getValue().header("Host", HOST).with(erased)).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " of an erased member").isEqualTo(409);
+            assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).as(route.getKey()).isEqualTo("MEMBER_ERASED");
+            response = mvc.perform(route.getValue().header("Host", HOST).with(noMember)).andReturn().getResponse();
+            assertThat(response.getStatus()).as(route.getKey() + " without a member").isEqualTo(404);
+        }
     }
 
     /**

@@ -10,6 +10,7 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - Booking, waitlist and activity operations publish the catalog `MEMBER_LEAVING` response after the inclusive leave day.
 - Free training enforces the dog owner's inclusive leave day (`MEMBER_LEAVING` afterwards) and inactivity period; its published errors include `MEMBER_LEAVING` and `DOG_NOT_ACTIVE`.
 - Inactivity PATCH schemas reject unknown fields and require a nonnegative version. Erased-member writes remain 409; lifecycle state/duplicate conflicts follow the current error catalog (409).
+- Declared errors completed after review: both inactivity PATCH routes list `403 READ_ONLY` (a different `fromMonth`/`comments` on an `ACTIVE` period) and `409 INACTIVITY_OVERLAP`; the member's inactivity PATCH and the `/me` inactivity and leave cancellations list `409 MEMBER_ERASED`.
 
 ## 2026-10-05 · E8-T04 round 2 · card invalidation and card-charge states
 

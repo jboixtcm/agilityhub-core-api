@@ -13,13 +13,20 @@ public class CensusActivityCancellations implements ActivityCancellationPort {
     public CensusActivityCancellations(ActivityRegistrationService service) { this.service = service; }
     @Override public List<LifecycleCancellation> inside(String memberId, LocalDate from, LocalDate to, boolean cancel, boolean leave) {
         if (!service.context.enabled(Module.ACTIVITIES)) { return List.of(); }
-        var result = service.registrations.forMember(memberId).stream().filter(r -> r.state() != RegistrationState.CANCELLED)
-                .map(r -> new LifecycleCancellation("ACTIVITY", r.id(), service.activities.require(r.activityId()).date()))
-                .filter(r -> !r.sessionDate().isBefore(from) && (to == null || !r.sessionDate().isAfter(to))).toList();
+        var now = service.context.clock.instant();
+        var result = new ArrayList<LifecycleCancellation>();
+        for (var r : service.registrations.forMember(memberId)) {
+            if (r.state() == RegistrationState.CANCELLED) { continue; }
+            var activity = service.activities.require(r.activityId());
+            // Like classes and trainings, only activities still to come: a period that starts at once never touches the past.
+            if (!service.context.times(activity).startsAt().isAfter(now)) { continue; }
+            if (activity.date().isBefore(from) || to != null && activity.date().isAfter(to)) { continue; }
+            result.add(new LifecycleCancellation("ACTIVITY", r.id(), activity.date()));
+        }
         if (cancel) {
             if (leave) { service.cancelForMemberLeft(memberId, from.atStartOfDay(ZoneId.of(service.context.config().club().timeZone())).toInstant().minusNanos(1)); }
             else { service.cancelForInactivity(memberId, from, to); }
         }
-        return result;
+        return List.copyOf(result);
     }
 }

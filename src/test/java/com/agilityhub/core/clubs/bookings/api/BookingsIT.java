@@ -515,7 +515,7 @@ class BookingsIT extends BookingFixtures {
     }
 
     @Test void S15_P5c_S13_systemCancellationsOfAMemberAreNeverLateAndRefundThePack() throws Exception {
-        openPack("s08-m-laura", "s08-d-rock", 10, 0, null);
+        openPack("s08-m-laura", "s08-d-rock", 10, 0, null); openPack("s08-m-laura", "s08-d-duna", 10, 0, null); // a PACK plan: one pack per dog
         var wed = book(as("laura"), "wed", "s08-d-duna"); var rock = book(as("laura"), "mon", "s08-d-rock"); var toby = book(as("joan"), "thu", "s08-d-toby");
         clock.setInstant(local("2026-10-07T18:00")); // inside the threshold of Wednesday: the system is still never late
         int count;

@@ -32,14 +32,20 @@ class PackBalanceServiceTest {
         when(configs.get("club")).thenReturn(new ClubConfig(null, Map.of("billing.packLowBalanceSessions", 1), Set.of(Module.PACKS), null, Map.of()));
         when(local.today("club")).thenReturn(LocalDate.of(2026, 6, 12));
         when(catalog.pack("plan")).thenReturn(new BillingCatalogAccess.PackTerms("plan", 10, 5));
+        planOfMember("PACK");
         when(repository.insert(any())).thenAnswer(call -> { var p = (PackBalance) call.getArgument(0); var saved = version(p, 0L); stored.put(saved.id(), saved); return saved; });
         when(repository.save(any(), any())).thenAnswer(call -> { var p = (PackBalance) call.getArgument(0); stored.put(p.id(), p); return p; });
         when(repository.findById(any())).thenAnswer(call -> Optional.ofNullable(stored.get(call.getArgument(0))));
-        when(repository.of(any(), any())).thenAnswer(call -> stored.values().stream().filter(p -> p.memberId().equals(call.getArgument(0)) && p.dogId().equals(call.getArgument(1))).sorted(Comparator.comparing(PackBalance::expiresOn)).toList());
+        when(repository.of(any(), any())).thenAnswer(call -> stored.values().stream().filter(p -> p.memberId().equals(call.getArgument(0)) && p.dogId().equals(call.getArgument(1))).toList());
         when(repository.forBooking(any())).thenAnswer(call -> stored.values().stream().filter(p -> p.movements().stream().anyMatch(m -> Objects.equals(m.bookingId(), call.getArgument(0)))).findFirst());
         when(repository.forPayment(any())).thenAnswer(call -> stored.values().stream().filter(p -> Objects.equals(p.upfrontPaymentId(), call.getArgument(0))).findFirst());
     }
     @AfterEach void close() throws Exception { scope.close(); }
+    void planOfMember(String type) {
+        when(census.member("member")).thenReturn(Optional.of(new BillingCensusAccess.BillingMember("member", 7, "Laura", "Serra", null, "ACTIVE",
+                "member-plan", null, null, null, null, null, "ca", null)));
+        when(catalog.plan("member-plan")).thenReturn(Optional.of(new BillingCatalogAccess.BillingPlan("member-plan", "P", type, null, 1, null, null)));
+    }
     PackBalance open(String payment, int total, LocalDate expiry) {
         return service.open("member", "dog", "plan", payment, LocalDate.of(2026, 6, 12), total, expiry, "Gift");
     }
@@ -49,6 +55,28 @@ class PackBalanceServiceTest {
         assertThat(first.movements()).singleElement().satisfies(m -> { assertThat(m.type()).isEqualTo(PackMovementType.OPEN); assertThat(m.delta()).isEqualTo(10); });
         assertThat(open("payment", 10, null).id()).isEqualTo(first.id());
         verify(events, times(1)).publish(eq(BillingEvent.Kind.PackOpened), any(), any());
+    }
+    @Test void T_12_07_whenTwoPacksQualifyTheOneThatExpiresFirstIsConsumed() {
+        // Opened in the reverse order of their expiry, so the choice cannot come from the insertion order.
+        var last = open("last", 3, LocalDate.of(2026, 12, 31));
+        var first = open("first", 3, LocalDate.of(2026, 9, 30));
+        var date = LocalDate.of(2026, 8, 1);
+        assertThat(service.balance("member", "dog", date).orElseThrow().id()).isEqualTo(first.id());
+        service.consume("member", "dog", "booking", date);
+        assertThat(service.get(first.id()).remaining()).isEqualTo(2);
+        assertThat(service.get(last.id()).remaining()).isEqualTo(3);
+        // A class after the first one's expiry falls through to the other pack.
+        service.consume("member", "dog", "later-booking", LocalDate.of(2026, 10, 15));
+        assertThat(service.get(last.id()).remaining()).isEqualTo(2);
+    }
+    @Test void T_12_22_aMonthlyMemberWithAnOldPackBooksWithoutPackRules() {
+        var old = open("old", 2, LocalDate.of(2026, 7, 1));
+        service.expire(old.id());
+        planOfMember("PACK");
+        assertThat(service.balance("member", "dog", LocalDate.of(2026, 8, 1)).orElseThrow().remaining()).isZero();
+        // S08 R-08-17: after a pack → membership change the old rows stay, but a monthly plan is never refused with PACK_EMPTY.
+        planOfMember("MONTHLY");
+        assertThat(service.balance("member", "dog", LocalDate.of(2026, 8, 1))).isEmpty();
     }
     @Test void T_12_07_T_12_31_consumesEarliestQualifyingPackAndWarnsOnlyOnce() {
         var early = open("early", 2, LocalDate.of(2026, 7, 1));

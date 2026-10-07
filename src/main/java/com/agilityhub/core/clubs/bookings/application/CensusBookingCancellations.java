@@ -26,7 +26,8 @@ public class CensusBookingCancellations implements BookingCancellationPort {
             result.add(new LifecycleCancellation("CLASS", b.id(), date));
         }
         if (context.enabled(Module.WAITLIST)) {
-            var entries = waitlist.liveForMember(memberId).stream().filter(e -> {
+            var now = context.now();
+            var entries = waitlist.liveForMember(memberId).stream().filter(e -> e.classStartsAt().isAfter(now)).filter(e -> {
                 var date = e.classStartsAt().atZone(context.zone()).toLocalDate();
                 return !date.isBefore(from) && (to == null || !date.isAfter(to));
             }).toList();

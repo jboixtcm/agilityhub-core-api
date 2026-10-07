@@ -1,0 +1,82 @@
+clean verify (log 63) exit code: 0
+surefire: tests=3702, failures=0, errors=0, skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=17, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.activities.domain.ActivityRulesTest: tests=10, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.application.BookingPortsTest: tests=8, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.application.DemoBookingSeederTest: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.domain.BookingRulesTest: tests=16, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.census.application.LifecycleRulesTest: tests=3, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.census.inactivity.domain.InactivityCalendarTest: tests=5, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest: tests=5, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.messaging.application.engine.NotificationSeedSnapshotTest: tests=3, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.application.packs.PackBalanceServiceTest: tests=7, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.application.ports.BillingPortDefaultsTest: tests=3, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.shared.application.MessageParityTest: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.shared.domain.ErrorCatalogContractTest: tests=6, failures=0, errors=0, skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2, failures=0, errors=0, skipped=0
+failsafe: tests=1523, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.AttendanceIT: tests=19, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.BookingsIT: tests=20, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.LifecycleCurlIT: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.LifecycleIT: tests=28, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT: tests=7, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.WaitlistIT: tests=18, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=44, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT: tests=10, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT: tests=2, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.training.api.TrainingIT: tests=26, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E8ContractIT: tests=71, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+Changed test sources that are fixtures/helpers, not executable classes: ArchitectureRules, BookingFixtures, TrainingFixtures
+Spec method inventory (T-12 / T-13):
+  LifecycleCurlIT.T_13_08_T_13_16_T_13_22_curlApprovalOverviewLeaveAndList
+  LifecycleIT.T_13_08_requestUsesDeadlineAndReplaysTheSameKey
+  LifecycleIT.T_13_09_approvalCancelsAllFourKindsAndRefundsOnlyTheOwnersPack
+  LifecycleIT.T_13_09_lastOwnerFailureRollsBackTheDecisionAndEarlierCancellations
+  LifecycleIT.T_13_09_aPeriodThatStartsAtOnceLeavesPastSessionsAlone
+  LifecycleIT.T_13_10_disabledCancellationKeepsBookings
+  LifecycleIT.T_13_11_approvalInsideThePeriodStartsImmediatelyAndCannotBeDecidedAgain
+  LifecycleIT.T_13_12_adminOverrideIsRecordedAndRequired
+  LifecycleIT.T_13_12_anOverriddenEditMarksTheExistingApprovalAndNeverInventsOne
+  LifecycleIT.T_13_13_anActivePeriodAcceptsItsUnchangedStartButNotANewOne
+  LifecycleIT.T_13_13_extensionKeepsTheFeeSnapshotAndAppendsHistory
+  LifecycleIT.T_13_14_withdrawalRespectsTheApprovedDeadline
+  LifecycleIT.T_13_15_onePendingRequestAndDisabledNps
+  LifecycleIT.T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth
+  LifecycleIT.T_13_16_aLeaveShortensAnActivePeriodButNeverLengthensIt
+  LifecycleIT.T_13_17_leaveTakesEffectTheNextDayAndRunsOnce
+  LifecycleIT.T_13_18_T_13_19_directLeaveSupersedesPendingAndCancellationClearsTheDate
+  LifecycleIT.T_13_24_memberCannotReachAFamilyMembersPeriodAndInstructorIsForbidden
+  LifecycleIT.T_13_25_billingOffOmitsFeesAndInactivityOffBlocksTheRoute
+  LifecycleIT.T_13_26_stalePatchCannotOverwriteANewerEdit
+  LifecycleIT.T_12_07_adjustWritesTheBalanceAndItsAuditInOneTransaction
+  LifecycleIT.T_13_20_packToMonthlyWritesDiscountedDueEntryAndAuditsWithoutMovingInvoiceDate
+  LifecycleIT.T_13_20_expirySchedulesOneLeaveAndRenewalCancelsIt
+  LifecycleIT.T_13_21_reactivationKeepsNumberAndInactiveDogsAndDoesNotChargeEntry
+  LifecycleIT.T_13_22_plannedLeaveFiltersOverviewAndProtectedSystemView
+  LifecycleIT.T_13_23_previewHasMonthlyFeesAndOmitsDisabledModuleCounts
+  LifecycleIT.T_12_07_manualPaymentOpensOnlyWhenFullyPaidAndRecordsTheWholeMovementCycle
+  LifecycleIT.T_13_26_twoConcurrentDecisionsCommitOnlyOneApproval
+  LifecycleIT.T_13_15_invalidLeaveInputsAndWithdrawalKeepTheStoredStateConsistent
+  LifecycleRulesTest.T_13_05_onlyApprovedActiveOrFinishedMonthsUseTheFrozenFee
+  LifecycleRulesTest.T_13_06_leaveBillingIncludesTheFinalMonthAccordingToTheParameter
+  LifecycleRulesTest.T_13_07_eligibilityUsesTheDogsOwnerAndIncludesTheLeaveDate
+  InactivityCalendarTest.T_13_01_deadlineIsInclusiveAndClampedToTheMonthsLastDay
+  InactivityCalendarTest.T_13_02_theSameInstantHasDifferentDeadlinesInMadridAndBuenosAires
+  InactivityCalendarTest.T_13_03_shorteningExtendingAndClosingAnOpenPeriodOnlyFlipModifiableMonths
+  InactivityCalendarTest.T_13_03_movingTheStartCannotChangeAnAlreadyFixedMonth
+  InactivityCalendarTest.T_13_04_rangesRejectReversedAndTooDistantMonthsAndDetectAdjacency
+  TrainingIT.T_13_07_trainingUsesTheDogOwnerForLeaveAndInactivity
+  TrainingIT.T_13_09_T_13_16_trainingCancellationsFollowDogOwnership
+  PackBalanceServiceTest.T_12_07_openUsesInclusiveValidityAndIsIdempotentPerPayment
+  PackBalanceServiceTest.T_12_07_whenTwoPacksQualifyTheOneThatExpiresFirstIsConsumed
+  PackBalanceServiceTest.T_12_22_aMonthlyMemberWithAnOldPackBooksWithoutPackRules
+  PackBalanceServiceTest.T_12_07_T_12_31_consumesEarliestQualifyingPackAndWarnsOnlyOnce
+  PackBalanceServiceTest.T_12_31_refundAfterExpiryIsRecordedOnceAndRemainsUnusable
+  PackBalanceServiceTest.T_12_07_adjustRejectsNegativeBalancesAndRequiresANewExpiryToReopen
+  PackBalanceServiceTest.T_12_22_packsOffDoesNotReadOrWriteBalances
+Inactivity calendar coverage BRANCH: 91.67%
+Inactivity calendar coverage LINE: 100.0%

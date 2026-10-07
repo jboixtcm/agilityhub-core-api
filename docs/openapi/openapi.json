@@ -40629,7 +40629,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "READ_ONLY"
           },
           "404" : {
             "content" : {
@@ -40649,7 +40649,7 @@
                 }
               }
             },
-            "description" : "INACTIVITY_INVALID_STATE, STALE_VERSION"
+            "description" : "INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_OVERLAP"
           },
           "422" : {
             "content" : {
@@ -49476,7 +49476,7 @@
     },
     "/api/v1/me/inactivity-periods/{id}" : {
       "patch" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and comments, ACTIVE only toMonth (a different fromMonth or comments → 403 READ_ONLY; lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED {earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled (R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",
         "operationId" : "changeMyInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -49535,7 +49535,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "READ_ONLY"
           },
           "404" : {
             "content" : {
@@ -49555,7 +49555,7 @@
                 }
               }
             },
-            "description" : "INACTIVITY_INVALID_STATE, STALE_VERSION"
+            "description" : "MEMBER_ERASED, INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_OVERLAP"
           },
           "422" : {
             "content" : {
@@ -49633,7 +49633,7 @@
     },
     "/api/v1/me/inactivity-periods/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [RETIRA LA SOL·LICITUD]: REQUESTED always, APPROVED only while fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED) → CANCELLED{MEMBER, WITHDRAWN}, InactivityCancelled; an ACTIVE one is shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). INACTIVITY off → 404 MODULE_DISABLED. R-13-04 [RETIRA LA SOL·LICITUD]: REQUESTED always, APPROVED only while fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED) → CANCELLED{MEMBER, WITHDRAWN}, InactivityCancelled; an ACTIVE one is shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404; an erased caller → 409 MEMBER_ERASED.",
         "operationId" : "withdrawMyInactivity",
         "parameters" : [ {
           "in" : "path",
@@ -49702,7 +49702,7 @@
                 }
               }
             },
-            "description" : "INACTIVITY_INVALID_STATE"
+            "description" : "MEMBER_ERASED, INACTIVITY_INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -50539,7 +50539,7 @@
     },
     "/api/v1/me/leave-requests/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, also of the caller's family group → 404.",
+        "description" : "Roles: MEMBER, also the impersonation token (ADMIN- or INSTRUCTOR-only tokens → 403). No module. R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, also of the caller's family group → 404; an erased caller → 409 MEMBER_ERASED.",
         "operationId" : "withdrawMyLeave",
         "parameters" : [ {
           "in" : "path",
@@ -50608,7 +50608,7 @@
                 }
               }
             },
-            "description" : "LEAVE_INVALID_STATE"
+            "description" : "MEMBER_ERASED, LEAVE_INVALID_STATE"
           },
           "422" : {
             "content" : {

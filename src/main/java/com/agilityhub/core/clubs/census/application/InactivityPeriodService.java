@@ -93,7 +93,8 @@ public class InactivityPeriodService {
         census.require(Module.INACTIVITY); census.members.lock(); var old = get(id);
         if (old.version() != version) { throw new ApiException(ErrorCode.STALE_VERSION); }
         if (!LIVE.contains(old.state())) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_STATE); }
-        if (old.state() == InactivityState.ACTIVE && (patch.containsKey("fromMonth") || patch.containsKey("comments"))) { throw new ApiException(ErrorCode.READ_ONLY); }
+        if (old.state() == InactivityState.ACTIVE && (patch.containsKey("fromMonth") && !Objects.equals(patch.get("fromMonth"), old.fromMonth())
+                || patch.containsKey("comments") && !Objects.equals(patch.get("comments"), old.comments()))) { throw new ApiException(ErrorCode.READ_ONLY); }
         var e = new InactivityEdit(old); e.fromMonth = (String) patch.getOrDefault("fromMonth", old.fromMonth());
         e.toMonth = (String) patch.getOrDefault("toMonth", old.toMonth()); e.comments = (String) patch.getOrDefault("comments", old.comments());
         InactivityCalendar.range(ym(e.fromMonth), ym(e.toMonth));
@@ -101,7 +102,8 @@ public class InactivityPeriodService {
         if (ym(e.fromMonth).isAfter(earliest().plusMonths(census.config().get("inactivity.maxStartMonthsAhead", Integer.class)))) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_RANGE); }
         overlap(e.memberId, id, e.fromMonth, e.toMonth);
         var history = new ArrayList<>(old.history()); history.add(new InactivityPeriod.HistoryEntry(clock.instant(), actor(), e.fromMonth, e.toMonth, admin ? ChangeSource.ADMIN : ChangeSource.MEMBER)); e.history = List.copyOf(history);
-        if (override) { e.decision = new InactivityPeriod.Decision(clock.instant(), actor(), LifecycleDecision.APPROVED, e.decision == null ? null : e.decision.note(), true); }
+        // R-13-05: the override is recorded on the existing approval (the audit entry carries who and when); a REQUESTED period has none.
+        if (override && e.decision != null) { e.decision = new InactivityPeriod.Decision(e.decision.at(), e.decision.byAccountId(), e.decision.decision(), e.decision.note(), true); }
         if (old.state() != InactivityState.REQUESTED) {
             var added = new ArrayList<>(old.cancelledBookings());
             if (ym(e.fromMonth).isBefore(ym(old.fromMonth()))) { added.addAll(cancelInside(e.memberId, e.fromMonth, ym(old.fromMonth()).minusMonths(1).toString())); }
@@ -139,7 +141,12 @@ public class InactivityPeriodService {
     public void closeForLeave(String id, LocalDate effective, boolean execute) {
         var p = get(id); var e = new InactivityEdit(p);
         if (p.state() == InactivityState.ACTIVE) {
-            e.toMonth = YearMonth.from(effective).toString(); e.finishReason = InactivityFinishReason.LEAVE;
+            // R-13-10: the leave only ever shortens a period; one that already ends before the leave month keeps its end.
+            var leaveMonth = YearMonth.from(effective);
+            boolean closes = p.toMonth() == null || !leaveMonth.isAfter(ym(p.toMonth()));
+            if (!closes && !execute) { return; }
+            if (closes) { e.toMonth = leaveMonth.toString(); }
+            e.finishReason = InactivityFinishReason.LEAVE;
             if (execute) { e.state = InactivityState.FINISHED; e.finishedAt = clock.instant(); }
         } else if (p.state() == InactivityState.REQUESTED || p.state() == InactivityState.APPROVED) {
             cancelled(e, LifecycleCanceller.SYSTEM, InactivityCancelReason.LEAVE);

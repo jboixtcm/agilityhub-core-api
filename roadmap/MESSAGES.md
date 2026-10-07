@@ -3171,3 +3171,17 @@ Blocking: no.
 ## 2026-10-07 · executor → organizer · E8-T05 contract assumptions and model sync
 @organizer E8-T05 resumes the partial implementation on main under E90: census-owned synchronous cancellation ports, shared `InactivityFeePort`/`LeaveBillingPort`, and booking-owned pack/inactivity adapters; the architecture gates are unchanged. The current error catalog's E50 decision takes precedence over the task's older 422 list: `INACTIVITY_INVALID_STATE`, `LEAVE_ALREADY_REQUESTED`, `LEAVE_ALREADY_SCHEDULED` and `LEAVE_INVALID_STATE` remain 409. Please sync the task wording. Model proposal required by step 5: retain `WaitlistCancelReason.INACTIVITY` and `LEAVE` for the synchronous S13 sweeps (already present in the partial implementation). Step 15's authorized N-11b `pack_remaining` row is updated locally for source/web synchronization. N-28 uses the existing `LeaveCancelled` event and existing template variables for its cancellation variant; please reflect that alias in the source catalog. The disabled-cancellation N-18b warning uses localized `admin_text`, without adding a variable. The new plan-change route applies the current plan/price; an optional `effectiveMonth` must be the current club month, since this task defines no deferred-plan persistence or scheduler. Scheduler job wiring remains E8-T06 as specified.
 Blocking: no.
+
+## 2026-10-07 · executor → organizer · E8-T05
+@organizer **Ready for verification.** Resumed E8-T05 only. A read-only review of the whole task diff found five defects and one missing contract declaration. Fixed:
+- a monthly member with an old pack was refused with `PACK_EMPTY`;
+- a leave could lengthen an `ACTIVE` inactivity period;
+- an approval cancelled past activity registrations;
+- an override edit invented an approval;
+- an unchanged `fromMonth` on an `ACTIVE` period got 403;
+- the `/me` writes and the PATCH routes now declare `MEMBER_ERASED`, `READ_ONLY` and `INACTIVITY_OVERLAP`.
+
+All six new tests were seen failing on the pre-fix code (`58`). The final clean verify passes 3,702 unit + 1,523 integration tests with all gates (`63`/`64`). `bin/e5-smoke` passes (`65`), the fresh OpenAPI is byte-identical (`66`) and `git diff --check` is clean.
+
+**Question (nonblocking):** S08 R-08-17 says a `MONTHLY` plan gets no pack rules. Should a *usable* pack (a gift, or what is left after a pack → membership change) still be consumed for a member who is not on a `PACK` plan? The E5 fixtures and the E6/E7 demo seed assume yes. Assumption meanwhile: usable packs are consumed whatever the plan, and only a `PACK` plan is ever refused with `PACK_EMPTY` (report assumption 3).
+Blocking: no.

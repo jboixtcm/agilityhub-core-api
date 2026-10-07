@@ -63,22 +63,32 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         return pack;
     }
 
-    /** Empty means packs do not apply; a zero balance means a pack plan has no usable sessions. */
+    /**
+     * Empty means packs do not apply; a zero balance means a pack plan has no usable sessions. A usable pack (a manual or gift
+     * one included) is used whatever the plan, but only a PACK plan is ever refused with PACK_EMPTY (S08 R-08-17): a member
+     * moved from a pack to a membership keeps the old rows and books as MONTHLY.
+     */
     public Optional<Balance> balance(String memberId, String dogId, LocalDate classDate) {
         if (!enabled()) { return Optional.empty(); }
         var all = packs.of(memberId, dogId);
-        var usable = all.stream().filter(p -> usable(p, classDate)).findFirst();
+        var usable = firstToExpire(all, classDate);
         if (usable.isPresent()) { return usable.map(PackBalanceService::summary); }
         boolean packPlan = census.member(memberId).flatMap(m -> catalog.plan(m.planId())).map(p -> "PACK".equals(p.type())).orElse(false);
+        if (!packPlan) { return Optional.empty(); }
         if (!all.isEmpty()) {
-            var p = all.getLast();
+            var p = all.stream().max(EXPIRY).orElseThrow();
             return Optional.of(new Balance(p.id(), p.sessionsTotal(), p.consumed(), 0, LocalDate.parse(p.expiresOn())));
         }
-        return packPlan ? Optional.of(new Balance(null, 0, 0, 0, null)) : Optional.empty();
+        return Optional.of(new Balance(null, 0, 0, 0, null));
     }
     public record Balance(String id, int total, int consumed, int remaining, LocalDate expiresOn) { }
     private static Balance summary(PackBalance p) {
         return new Balance(p.id(), p.sessionsTotal(), p.consumed(), p.remaining(), LocalDate.parse(p.expiresOn()));
+    }
+    private static final Comparator<PackBalance> EXPIRY = Comparator.comparing((PackBalance p) -> LocalDate.parse(p.expiresOn())).thenComparing(PackBalance::id);
+    /** R-12-24: among the packs usable on the class date, the one that expires first. */
+    private static Optional<PackBalance> firstToExpire(List<PackBalance> all, LocalDate date) {
+        return all.stream().filter(p -> usable(p, date)).min(EXPIRY);
     }
     private static boolean usable(PackBalance p, LocalDate date) {
         return p.state() == PackBalanceState.ACTIVE && p.remaining() > 0 && !LocalDate.parse(p.expiresOn()).isBefore(date);
@@ -92,8 +102,7 @@ public class PackBalanceService implements PackBalanceOpeningPort {
             var movement = prior.get().movements().stream().filter(m -> m.type() == PackMovementType.CONSUME && bookingId.equals(m.bookingId())).findFirst();
             if (movement.isPresent()) { return movement.get().id(); }
         }
-        var pack = packs.of(memberId, dogId).stream().filter(p -> usable(p, classDate)).findFirst()
-                .orElseThrow(() -> new ApiException(ErrorCode.PACK_EMPTY));
+        var pack = firstToExpire(packs.of(memberId, dogId), classDate).orElseThrow(() -> new ApiException(ErrorCode.PACK_EMPTY));
         var movement = movement(PackMovementType.CONSUME, -1, bookingId, null);
         int remaining = pack.remaining() - 1;
         boolean low = pack.lowBalanceNotifiedAt() == null && remaining <= configs.get(TenantContext.require()).get("billing.packLowBalanceSessions", Integer.class);

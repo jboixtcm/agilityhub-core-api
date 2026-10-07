@@ -210,5 +210,7 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
                 .append("planId", planId).append("sessionsTotal", total).append("consumed", consumed).append("remaining", total - consumed)
                 .append("openedOn", "2026-06-01").append("expiresOn", expiresOn == null ? "2027-01-31" : expiresOn.toString())
                 .append("state", "ACTIVE").append("version", 0L).append("movements", List.of()).append("sourceIds", Map.of()), "pack_balances");
+        // S08 R-08-17: only a PACK plan is refused with PACK_EMPTY, so the holder of a pack is on the pack plan.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(memberId)), new org.springframework.data.mongodb.core.query.Update().set("planId", planId), "members");
     }
 }

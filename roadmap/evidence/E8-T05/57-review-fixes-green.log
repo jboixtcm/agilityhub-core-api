@@ -1,0 +1,77 @@
+12:27:35.220 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E8ContractIT]: E8ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:27:35.392 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E8ContractIT
+12:27:35.508 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:27:35.510 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:27:35.516 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+12:27:35.730 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:27:35.935 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:27:35.935 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:27:35.949 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:27:36.274 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+12:27:36.343 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:27:36.436 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: eefee054...[truncated]
+12:27:36.674 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.399455S
+12:27:36.679 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:27:36.679 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:27:36.679 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:27:36.680 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:27:36.724 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: b7c41259...[truncated]
+12:27:37.426 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.746367S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-07T12:27:38.593+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Starting E8ContractIT using Java [redacted] with PID 15314 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-07T12:27:38.596+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-07T12:27:40.569+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-07T12:27:40.629+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 56 ms. Found 0 MongoDB repository interfaces.
+2026-10-07T12:27:41.304+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@328429ef], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2e1cee53, com.mongodb.Jep395RecordCodecProvider@6c2c46ca, com.mongodb.KotlinCodecProvider@4e7e4127]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58783], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5d26c256], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-07T12:27:41.313+02:00 INFO  [cluster-ClusterId{value='6ac61e9d87fac30e108c94ca', description='null'}-localhost:58783] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58783, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=16488084, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b7c412598171:27017, hosts=[b7c412598171:27017], passives=[], arbiters=[], primary='b7c412598171:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac61e9934f2e98ecef43ac2, counter=6}, lastWriteDate=Wed Oct 07 12:27:37 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-07T12:27:46.544+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-07T12:27:46.545+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-07T12:27:46.546+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-07T12:27:46.590+02:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Started E8ContractIT in 8.405 seconds (process running for 12.096)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-07T12:28:02.227+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=56c951db-2d8b-490f-838f-220a7594adcc clubId=- accountId=- : Init duration for springdoc-openapi is: 2865 ms
+2026-10-07T12:28:03.390+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=eeab8bde-78a7-44f0-9f93-a9431fc8dd11 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected status=400 code=VALIDATION_ERROR traceId=eeab8bde-78a7-44f0-9f93-a9431fc8dd11
+2026-10-07T12:28:03.410+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=cb2b946b-ac73-44bc-bae4-862521a3930f clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=cb2b946b-[redacted]
+2026-10-07T12:28:03.422+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=bb07598f-2d1b-45ba-9c2c-506fe9dce9ef clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-07T12:28:03.434+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=14868636-79d8-46ce-94b5-a134fdbf4918 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=14868636-79d8-46ce-94b5-a134fdbf4918
+2026-10-07T12:28:03.441+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=dca33ac9-2428-42be-b9ca-c6c9dd1c017e clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=dca33ac9-2428-42be-b9ca-c6c9dd1c017e
+2026-10-07T12:28:03.490+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1423a1e9-0884-4c83-8298-ba687e8e006d clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=1423a1e9-0884-4c83-8298-ba687e8e006d
+2026-10-07T12:28:03.722+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=822741e9-f371-406f-9a89-c5615f7cc2ae clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=822741e9-f371-406f-9a89-c5615f7cc2ae
+2026-10-07T12:28:03.726+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6db86e20-4fff-46de-8935-b5920df3aca1 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=6db86e20-4fff-46de-8935-b5920df3aca1
+2026-10-07T12:28:03.729+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=83d42e9c-9086-4511-9254-bdac3bd28a6a clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=83d42e9c-9086-4511-9254-bdac3bd28a6a
+2026-10-07T12:28:03.733+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=c68be4a8-6dcc-4014-a7cb-361dcd5b5400 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=c68be4a8-6dcc-4014-a7cb-361dcd5b5400
+2026-10-07T12:28:03.762+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=4d8a72f3-2078-4061-b07d-6f14c11f9181 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=4d8a72f3-2078-4061-b07d-6f14c11f9181
+2026-10-07T12:28:03.765+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=cc7ee32a-b4d5-4688-bf19-f7e7efb4dfe0 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=cc7ee32a-b4d5-4688-[redacted]
+2026-10-07T12:28:03.768+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3946c404-a8cf-4efd-b095-4dfc0213cce7 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=3946c404-a8cf-4efd-b095-4dfc0213cce7
+2026-10-07T12:28:03.771+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1e5467aa-9cce-43f9-af30-df65135e589a clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=1e5467aa-9cce-43f9-[redacted]
+2026-10-07T12:28:04.886+02:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=de505083-cd13-426d-a286-50841a6ba645 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-07T12:28:04.925+02:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=671da1ae-2f66-4c8f-97fc-ad17ef2a6443 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-07T12:28:04.939+02:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=8d223dca-18e2-4724-a446-8172a317a323 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-07T12:28:06.447+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T12:28:06.540+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+PackBalance movement=OPEN delta=10 id=[truncated]
+PackBalance movement=CONSUME delta=-1 id=[truncated]
+PackBalance movement=REFUND delta=1 id=[truncated]
+PackBalance movement=EXPIRE delta=0 id=[truncated]
+PackBalance movement=ADJUST delta=1 id=[truncated]

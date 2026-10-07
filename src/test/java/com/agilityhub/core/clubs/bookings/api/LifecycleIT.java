@@ -94,6 +94,15 @@ class LifecycleIT extends BookingFixtures {
         assertThat(mongo.findById("s13-wait", Document.class, "waitlist_entries").getString("state")).isEqualTo("ACTIVE");
         assertThat(count("inactivity_periods", new Criteria())).isZero(); assertThat(events("InactivityResolved")).isZero();
     }
+    @Test void T_13_09_aPeriodThatStartsAtOnceLeavesPastSessionsAlone() throws Exception {
+        otherBookings("2026-10-02");
+        var result = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
+        assertThat(result.path("state").asText()).isEqualTo("ACTIVE");
+        assertThat(result.path("cancelledBookings")).isEmpty();
+        for (var entry : Map.of("s13-training", "training_bookings", "s13-wait", "waitlist_entries", "s13-registration", "activity_registrations").entrySet()) {
+            assertThat(mongo.findById(entry.getKey(), Document.class, entry.getValue()).getString("state")).as(entry.getValue()).isEqualTo("ACTIVE");
+        }
+    }
     @Test void T_13_10_disabledCancellationKeepsBookings() throws Exception {
         parameter("inactivity.cancelBookingsOnApproval", false); var b = book(as("laura"), "thu", "s08-d-duna");
         var result = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
@@ -109,6 +118,26 @@ class LifecycleIT extends BookingFixtures {
         var body = new LinkedHashMap<String, Object>(); body.put("memberId", "s08-m-laura"); body.put("fromMonth", "2026-10");
         call(POST, "/inactivity-periods", body, as("admin"), 422); body.put("overrideDeadline", true);
         assertThat(call(POST, "/inactivity-periods", body, as("admin"), 201).path("decision").path("deadlineOverridden").asBoolean()).isTrue();
+    }
+    @Test void T_13_12_anOverriddenEditMarksTheExistingApprovalAndNeverInventsOne() throws Exception {
+        var id = requestPeriod("2026-11", "2026-11");
+        var edited = call(PATCH, "/inactivity-periods/" + id, Map.of("toMonth", "2026-12", "overrideDeadline", true, "version", 0), as("admin"), 200);
+        assertThat(edited.path("state").asText()).isEqualTo("REQUESTED");
+        assertThat(edited.path("decision").isNull() || edited.path("decision").isMissingNode()).isTrue();
+        var approved = call(POST, "/inactivity-periods/" + id + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        clock.setInstant(local("2026-10-20T12:00"));
+        var overridden = call(PATCH, "/inactivity-periods/" + id, Map.of("toMonth", "2027-01", "overrideDeadline", true, "version", approved.path("version").asLong()), as("admin"), 200);
+        assertThat(overridden.path("decision").path("deadlineOverridden").asBoolean()).isTrue();
+        assertThat(overridden.path("decision").path("at")).isEqualTo(approved.path("decision").path("at"));
+        assertThat(overridden.path("decision").path("decision").asText()).isEqualTo("APPROVED");
+    }
+    @Test void T_13_13_anActivePeriodAcceptsItsUnchangedStartButNotANewOne() throws Exception {
+        var active = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
+        var id = active.path("id").asText();
+        var closed = call(PATCH, "/me/inactivity-periods/" + id, Map.of("fromMonth", "2026-10", "toMonth", "2026-12", "version", active.path("version").asLong()), as("laura"), 200);
+        assertThat(closed.path("toMonth").asText()).isEqualTo("2026-12");
+        var refused = call(PATCH, "/me/inactivity-periods/" + id, Map.of("fromMonth", "2026-09", "version", closed.path("version").asLong()), as("laura"), 403);
+        assertThat(refused.path("code").asText()).isEqualTo("READ_ONLY");
     }
     @Test void T_13_13_extensionKeepsTheFeeSnapshotAndAppendsHistory() throws Exception {
         var id = requestPeriod("2026-11", "2026-12"); call(POST, "/inactivity-periods/" + id + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
@@ -145,6 +174,25 @@ class LifecycleIT extends BookingFixtures {
         assertThat(booking(after.path("id").asText()).getString("state")).isEqualTo("CANCELLED");
         assertThat(call(GET, "/inactivity-periods/" + period, null, as("admin"), 200).path("cancelReason").asText()).isEqualTo("LEAVE");
         try (var t = TenantContext.open(CLUB)) { assertThat(leaveBilling.lastInvoicedMonth("s08-m-laura")).contains(YearMonth.of(2026, 10)); }
+    }
+    @Test void T_13_16_aLeaveShortensAnActivePeriodButNeverLengthensIt() throws Exception {
+        var ending = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-11", "overrideDeadline", true), as("admin"), 201);
+        assertThat(ending.path("state").asText()).isEqualTo("ACTIVE");
+        var leave = requestLeave("2027-03-15");
+        call(POST, "/leave-requests/" + leave + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        var kept = call(GET, "/inactivity-periods/" + ending.path("id").asText(), null, as("admin"), 200);
+        assertThat(kept.path("toMonth").asText()).isEqualTo("2026-11");
+        assertThat(kept.path("finishReason").asText("")).isNotEqualTo("LEAVE");
+        try (var t = TenantContext.open(CLUB)) { assertThat(fees.feeFor("s08-m-laura", YearMonth.of(2027, 1))).isEmpty(); }
+        // An open period, on the other hand, is closed at the leave month without N-18c (finishReason LEAVE).
+        call(DELETE, "/members/s08-m-laura/planned-leave", null, as("admin"), 204, UUID.randomUUID().toString());
+        mongo.remove(Query.query(Criteria.where("_id").is(ending.path("id").asText())), "inactivity_periods");
+        var open = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
+        var second = requestLeave("2026-12-15");
+        call(POST, "/leave-requests/" + second + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        var shortened = call(GET, "/inactivity-periods/" + open.path("id").asText(), null, as("admin"), 200);
+        assertThat(shortened.path("toMonth").asText()).isEqualTo("2026-12");
+        assertThat(shortened.path("finishReason").asText()).isEqualTo("LEAVE");
     }
     @Test void T_13_17_leaveTakesEffectTheNextDayAndRunsOnce() throws Exception {
         var leave = requestLeave("2026-10-06"); call(POST, "/leave-requests/" + leave + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);

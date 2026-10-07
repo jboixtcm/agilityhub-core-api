@@ -94,9 +94,11 @@ public class InactivityController {
     @PatchMapping("/api/v1/me/inactivity-periods/{id}")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, READ_ONLY, MODULE_DISABLED, INACTIVITY_INVALID_STATE, STALE_VERSION,
+            INACTIVITY_OVERLAP, INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE})
     @Operation(summary = "changeMyInactivity", description = MEMBER_ROLES + "R-13-04 [MODIFICA]: REQUESTED everything, APPROVED the months and "
-            + "comments, ACTIVE only toMonth (lengthen, shorten, set or open the end), within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED "
+            + "comments, ACTIVE only toMonth (a different fromMonth or comments → 403 READ_ONLY; lengthen, shorten, set or open the end), "
+            + "within R-13-03's day-25 rule (422 INACTIVITY_DEADLINE_PASSED "
             + "{earliestMonth}); applied without a new approval, history +1, InactivityChanged → N-18d; bookings in added months are cancelled "
             + "(R-13-06). FINISHED/DENIED/CANCELLED → 409 INACTIVITY_INVALID_STATE; an old version → 409 STALE_VERSION (the version comes with each "
             + "period of GET /me/inactivity-periods). Another member's → 404. Field presence: an omitted field stays, toMonth: null opens the "
@@ -110,10 +112,10 @@ public class InactivityController {
     @PostMapping("/api/v1/me/inactivity-periods/{id}/cancellation")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
-    @ContractErrors({NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_STATE, INACTIVITY_DEADLINE_PASSED})
+    @ContractErrors({NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, INACTIVITY_INVALID_STATE, INACTIVITY_DEADLINE_PASSED})
     @Operation(summary = "withdrawMyInactivity", description = MEMBER_ROLES + "R-13-04 [RETIRA LA SOL·LICITUD]: REQUESTED always, APPROVED only "
             + "while fromMonth ≥ E(today) (422 INACTIVITY_DEADLINE_PASSED) → CANCELLED{MEMBER, WITHDRAWN}, InactivityCancelled; an ACTIVE one is "
-            + "shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404.",
+            + "shortened instead (409 INACTIVITY_INVALID_STATE). Idempotent by effect. Another member's → 404; an erased caller → 409 MEMBER_ERASED.",
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod withdrawMyInactivity(@PathVariable String id) {
         access.mutableMe();
@@ -178,7 +180,8 @@ public class InactivityController {
 
     @PatchMapping("/api/v1/inactivity-periods/{id}")
     @PreAuthorize(ADMIN)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, READ_ONLY, MODULE_DISABLED, INACTIVITY_INVALID_STATE, STALE_VERSION, INACTIVITY_OVERLAP,
+            INACTIVITY_DEADLINE_PASSED, INACTIVITY_INVALID_RANGE})
     @Operation(summary = "changeInactivity", description = ADMIN_ROLES + "R-13-05 [Modifica els mesos]: as the member's change (R-13-04), with "
             + "overrideDeadline; months already billed are not recomputed (an ADJUSTMENT invoice in S12). An old version → 409 STALE_VERSION. "
             + "Field presence: an omitted field stays, toMonth: null opens the period, fromMonth: null or an unknown field → 400 VALIDATION_ERROR.",

@@ -72,10 +72,10 @@ public class LeaveController {
     @PostMapping("/api/v1/me/leave-requests/{id}/cancellation")
     @PreAuthorize(InactivityController.MEMBER)
     @AllowsImpersonation
-    @ContractErrors({NOT_FOUND, LEAVE_INVALID_STATE})
+    @ContractErrors({NOT_FOUND, MEMBER_ERASED, LEAVE_INVALID_STATE})
     @Operation(summary = "withdrawMyLeave", description = MEMBER_ROLES + "R-13-09 [RETIRA LA SOL·LICITUD]: a PENDING request → CANCELLED{MEMBER, "
             + "WITHDRAWN}, LeaveCancelled, LEAVE_CANCELLED audit; otherwise 409 LEAVE_INVALID_STATE. Idempotent by effect. Another member's request, "
-            + "also of the caller's family group → 404.",
+            + "also of the caller's family group → 404; an erased caller → 409 MEMBER_ERASED.",
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest withdrawMyLeave(@PathVariable String id) {
         access.mutableMe();
