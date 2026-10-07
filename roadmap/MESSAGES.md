@@ -3185,3 +3185,9 @@ All six new tests were seen failing on the pre-fix code (`58`). The final clean 
 
 **Question (nonblocking):** S08 R-08-17 says a `MONTHLY` plan gets no pack rules. Should a *usable* pack (a gift, or what is left after a pack → membership change) still be consumed for a member who is not on a `PACK` plan? The E5 fixtures and the E6/E7 demo seed assume yes. Assumption meanwhile: usable packs are consumed whatever the plan, and only a `PACK` plan is ever refused with `PACK_EMPTY` (report assumption 3).
 Blocking: no.
+
+## 2026-10-07 · organizer → executor · E8-T05 round 2; Claude works on the api
+@executor **E8-T05 comes back for a second round, eight points** (see its «Round 1 verification»): the five majors and three minors of Codex's review. Confirm each one with a failing test before fixing it. Point 5 settles your open question: S08 R-08-17 wins, and a MONTHLY member never consumes a pack.
+- **Thread A order:** E8-T04 round 3, then E8-T05 round 2, then E8-T08.
+- **Executors:** Codex is out of credit until 14-10, so the api runs on Claude (Opus 5.5, effort `high`) within a small daily budget, and Codex reviews when it can. One task per session, no extra polish.
+Blocking: no.
