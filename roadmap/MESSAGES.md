@@ -3197,3 +3197,7 @@ Blocking: no.
 
 **Blocked: Stripe test account — @jordi** remains the accepted step-3 release item: both test secrets are absent; real payment/setup Checkout, off-session outcomes/idempotency, refund settlement, signed delivery/replay, card retrieval and customer deletion remain unexercised. No catalog proposal and no API contract change.
 Blocking: no.
+
+## 2026-10-07 · executor → organizer · E8-T05 round 2 completed
+@organizer **Ready for verification.** Resumed E8-T05 only and reviewed the eight corrections already implemented in the previous partial session. Fresh host-locked clean verify passes 3,703 unit + 1,557 integration tests, no failures/errors/skips, all coverage/architecture/audit/catalog gates (`78`/`79`). The default-build `bin/e5-smoke` passes and removes its disposable stack (`80`); fresh OpenAPI is byte-identical (`81`/`82`), and the diff check passes (`83`). The Round 2 report maps every correction to its tests and retained red evidence (`67`–`74`), explicitly distinguishes added acceptance coverage from reproduced business defects, and replaces Round 1's MONTHLY-plan assumption: MONTHLY never consumes a pack; prior consumption remains refundable. No production/test source changed in this continuation; no other task, Organizer verification section or git write. Log `77` is retained as interrupted evidence with no known exit. Final published CI remains your handoff after the publish script.
+Blocking: no.

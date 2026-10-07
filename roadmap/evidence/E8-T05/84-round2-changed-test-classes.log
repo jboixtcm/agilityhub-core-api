@@ -1,0 +1,29 @@
+Complete E8-T05 changed test-class inventory; clean run 78 exited 0; totals retained in log 79.
+ActivityRulesTest: tests=10, failures=0, errors=0, skipped=0
+ArchitectureTest: tests=17, failures=0, errors=0, skipped=0
+AttendanceIT: tests=19, failures=0, errors=0, skipped=0
+AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+BookingPortsTest: tests=8, failures=0, errors=0, skipped=0
+BookingRulesTest: tests=16, failures=0, errors=0, skipped=0
+BookingsIT: tests=20, failures=0, errors=0, skipped=0
+CensusIT: tests=44, failures=0, errors=0, skipped=0
+ClubDefinitionsIT: tests=20, failures=0, errors=0, skipped=0
+DemoBookingSeederTest: tests=1, failures=0, errors=0, skipped=0
+E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+E8ContractIT: tests=71, failures=0, errors=0, skipped=0
+EventCatalogContractTest: tests=2, failures=0, errors=0, skipped=0
+InactivityCalendarTest: tests=5, failures=0, errors=0, skipped=0
+LifecycleConcurrencyIT: tests=7, failures=0, errors=0, skipped=0
+LifecycleCurlIT: tests=1, failures=0, errors=0, skipped=0
+LifecycleIT: tests=36, failures=0, errors=0, skipped=0
+LifecycleRulesTest: tests=3, failures=0, errors=0, skipped=0
+ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+MemberAggregatesIT: tests=7, failures=0, errors=0, skipped=0
+MessageParityTest: tests=1, failures=0, errors=0, skipped=0
+MessageTemplateSeedTest: tests=5, failures=0, errors=0, skipped=0
+NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+NotificationSeedSnapshotTest: tests=3, failures=0, errors=0, skipped=0
+PackBalanceServiceTest: tests=8, failures=0, errors=0, skipped=0
+TemplateVariableParityIT: tests=2, failures=0, errors=0, skipped=0
+TrainingIT: tests=26, failures=0, errors=0, skipped=0
+Shared BookingFixtures/TrainingFixtures and ArchitectureRules are exercised by their listed suites.

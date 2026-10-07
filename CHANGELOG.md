@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- E8-T05 round 2: moving an approved inactivity period cancels only newly included months; termination cannot extend it. Inactivity approval and booking admission serialize on the member, and keyed lifecycle/pack/payment writes retry conflicts with atomic response replay. MONTHLY plans never consume pack sessions; earlier consumption remains refundable. Normal club provisioning and startup backfill install the protected planned-leave view. Leave closure emits `InactivityEnded` once while suppressing N-18c.
+- E8-T05 round 2: moving an approved inactivity period cancels only newly included months; termination cannot extend it. Inactivity approval and class, training and activity admission serialize on the owner, and keyed lifecycle/pack/payment writes retry conflicts with atomic response replay. MONTHLY plans never consume pack sessions; earlier consumption remains refundable. Normal club provisioning and startup backfill install the protected planned-leave view. Leave closure emits `InactivityEnded` once while suppressing N-18c.
 
 - E8-T04 round 3: reconcile Stripe refund lifecycle events, including pending success and failed/canceled reversals, with idempotent audit and ledger updates. Booking cancellation and late confirmation share one compensation per capture; an unconfirmed seat always refunds. Exhausted charges without an intent fail the invoice and allow retry, while known intents remain awaiting their webhook. Late signup completion reuses its held payment rows.
 
