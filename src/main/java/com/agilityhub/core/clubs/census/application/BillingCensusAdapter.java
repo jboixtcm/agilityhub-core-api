@@ -58,7 +58,12 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         var stored = new LinkedHashMap<String, Object>();
         stored.put("stripeCustomerId", card.customerId()); stored.put("stripePaymentMethodId", card.paymentMethodId());
         stored.put("last4", card.last4()); stored.put("brand", card.brand()); stored.put("invalid", card.invalid());
-        member.paymentMethod = Map.of("type", "CARD", "card", stored); member.updatedAt = clock.instant(); census.members.save(member);
+        var method = new java.util.LinkedHashMap<String, Object>();
+        method.put("type", "CARD"); method.put("card", stored);
+        int sequence = member.memberNumber == null ? 0 : com.agilityhub.core.clubs.census.domain.CensusRules.lastMandateSequence(
+                census.config().club().slug(), member.memberNumber, member.paymentMethod == null ? Map.of() : member.paymentMethod);
+        if (sequence > 0) { method.put("lastMandateSequence", sequence); }
+        member.paymentMethod = method; member.updatedAt = clock.instant(); census.members.save(member);
         signups.getObject().refreshDashboard();
         if (!card.invalid()) { events.emit("MemberPaymentMethodChanged", "Member", memberId, Map.of("memberId", memberId, "type", "CARD", "masked", "···· " + card.last4())); }
     }

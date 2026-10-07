@@ -66,7 +66,7 @@ public final class SepaDirectDebits {
     public static String creditorIdentifier(String creditorId, String suffix) {
         String id = creditorId == null ? null : creditorId.replaceAll("\\s", "").toUpperCase(java.util.Locale.ROOT);
         if (id == null || suffix == null || suffix.isBlank() || id.length() < 8) { return id; }
-        return id.substring(0, 4) + suffix.strip().toUpperCase(java.util.Locale.ROOT) + id.substring(7);
+        return id.substring(0, 4) + suffix.toUpperCase(java.util.Locale.ROOT) + id.substring(7);
     }
 
     /** An IBAN as the file writes it: no spaces, upper case. */

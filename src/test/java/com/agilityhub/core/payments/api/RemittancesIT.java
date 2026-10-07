@@ -57,8 +57,10 @@ class RemittancesIT extends BillingItSupport {
         // The schema in use accepts it; the debtors' full IBAN is in the file and only there.
         assertThatCode(() -> Pain008Document.validate(xml)).doesNotThrowAnyException();
         String text = new String(xml, StandardCharsets.UTF_8);
-        assertThat(text).contains("<IBAN>" + IBAN + "</IBAN>", "<NbOfTxs>4</NbOfTxs>", "<CtrlSum>204.00</CtrlSum>", "<SeqTp>RCUR</SeqTp>",
+        assertDebtors(text);
+        assertThat(text).contains("<IBAN>" + debtorIban(207) + "</IBAN>", "<NbOfTxs>4</NbOfTxs>", "<CtrlSum>204.00</CtrlSum>", "<SeqTp>RCUR</SeqTp>",
                 "<ReqdColltnDt>2026-09-01</ReqdColltnDt>", "<MsgId>bill-a-2026-09-1</MsgId>").doesNotContain("FRST");
+        // E8-T08: regenerated for distinct fictional debtor accounts/holders and SEPA punctuation.
         assertThat(GOLDEN).as("the golden file (regenerate it only on purpose, from " + ACTUAL + ")").exists();
         assertThat(xml).as("byte for byte the golden file; the actual file is in " + ACTUAL).isEqualTo(Files.readAllBytes(GOLDEN));
         // T-12-11: no API response of any route carries a full IBAN — the debtors' or the creditor's.
@@ -82,6 +84,39 @@ class RemittancesIT extends BillingItSupport {
         assertThat(stored.getString("fileKey")).startsWith("remittances/bill-a/2026-09/bill-a-2026-09-1-");
         assertThat(stored.get("xsdValidatedAt")).isNotNull();
         assertThat(responses).noneMatch(body -> body.contains(stored.getString("fileKey")));
+    }
+
+    /** Match each bank instruction to its own invoice/member; totals alone cannot detect swapped debtor accounts. */
+    private void assertDebtors(String xml) {
+        var parser = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+        try {
+            parser.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            parser.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            parser.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            var document = parser.newDocumentBuilder().parse(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+            var debits = document.getElementsByTagName("DrctDbtTxInf");
+            assertThat(debits.getLength()).isEqualTo(4);
+            for (int i = 0; i < debits.getLength(); i++) {
+                var debit = (org.w3c.dom.Element) debits.item(i);
+                String number = debit.getElementsByTagName("EndToEndId").item(0).getTextContent();
+                var invoice = invoices().stream().filter(row -> number.equals(row.getString("displayNumber"))).findFirst().orElseThrow();
+                var member = mongo.findById(invoice.getString("memberId"), Document.class, "members");
+                int memberNumber = member.getInteger("memberNumber");
+                assertThat(debit.getElementsByTagName("IBAN").item(0).getTextContent().equals(debtorIban(memberNumber)))
+                        .as("debtor account belongs to invoice " + number).isTrue();
+                assertThat(debit.getElementsByTagName("Nm").item(0).getTextContent()).isEqualTo(
+                        com.agilityhub.core.payments.domain.SepaText.of(member.getString("firstName") + " " + member.getString("lastName1") + " Example", 70));
+            }
+        } catch (java.io.IOException | org.xml.sax.SAXException | javax.xml.parsers.ParserConfigurationException failure) {
+            throw new AssertionError("Cannot parse fictional remittance", failure);
+        }
+    }
+    @Test void T_12_11_swappingTwoDebtorAccountsFailsEvenWhenTotalsAreUnchanged() throws Exception {
+        var result = generate();
+        String xml = download(result.at("/remittance/id").asText()).getContentAsString(StandardCharsets.UTF_8);
+        assertDebtors(xml);
+        String swapped = xml.replace(debtorIban(207), "SWAP").replace(debtorIban(208), debtorIban(207)).replace("SWAP", debtorIban(208));
+        assertThatThrownBy(() -> assertDebtors(swapped)).isInstanceOf(AssertionError.class).hasMessageContaining("debtor account belongs to invoice");
     }
 
     @Test void T_12_13_aRolledBackRemittanceKeepsItsFileItsLinkAndItsRow() throws Exception {
@@ -234,7 +269,7 @@ class RemittancesIT extends BillingItSupport {
         clock.setInstant(Instant.parse("2026-08-26T09:00:00Z"));
         ok(admin(keyed(post("/api/v1/remittances/" + september.at("/remittance/id").asText() + "/submission"), Map.of("submittedAt", "2026-08-26"))), 200);
         // Eva Puig gives another account: a new mandate (sequence 2, signed today); correcting the holder's data keeps it (R-03-07).
-        String iban = iban("00000000000000000208");
+        String iban = iban("00000000000000900208");
         ok(admin(patch("/api/v1/members/puig/payment-method").contentType("application/json")
                 .content(mapper.writeValueAsString(Map.of("type", "SEPA_DD", "sepa", Map.of("iban", iban))))), 200);
         var puig = mongo.findById("puig", Document.class, "members").get("paymentMethod", Document.class);

@@ -1,0 +1,36 @@
+{
+  "count": 8,
+  "total": {
+    "amountMinor": 116400,
+    "currency": "EUR"
+  },
+  "byProvider": {
+    "SEPA_XML": {
+      "count": 4,
+      "total": {
+        "amountMinor": 20400,
+        "currency": "EUR"
+      }
+    },
+    "MANUAL": {
+      "count": 4,
+      "total": {
+        "amountMinor": 96000,
+        "currency": "EUR"
+      }
+    }
+  },
+  "cashPending": 4,
+  "inactivityFees": {
+    "count": 0,
+    "firstMonth": {
+      "amountMinor": 2000,
+      "currency": "EUR"
+    },
+    "following": {
+      "amountMinor": 1000,
+      "currency": "EUR"
+    }
+  },
+  "collectionDate": "2026-09-01"
+}

@@ -232,6 +232,11 @@ the count comparison. Index definitions/data are restored by mongorestore;
 count equality is not a byte-for-byte content or index equivalence claim. The
 manifest is the **source at backup time**, not today's changing live database.
 
+Invoice numbering reads hint `invoice_club_series_number_all`. A restore must
+preserve the indexes: `ensureIndexes` recreates them at Core startup. After a
+restore with `--noIndexRestore`, restart Core before the first billing run or
+manual invoice so the numbering queries can use that index.
+
 Disaster recovery at E12: stop Core/writers; retain the damaged volume; download
 the selected archive with the read-only recovery S3 principal into private storage;
 inspect the tar's two expected encrypted members, decrypt each with the escrowed

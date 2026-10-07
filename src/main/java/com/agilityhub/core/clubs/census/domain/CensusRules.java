@@ -43,13 +43,26 @@ public final class CensusRules {
      * (a readmission signs a new mandate, and a creditor never reuses a reference).
      */
     public static String mandateRef(String clubSlug, int memberNumber, String previous) {
+        return mandateRef(clubSlug, memberNumber, previous, 0);
+    }
+    public static String mandateRef(String clubSlug, int memberNumber, String previous, int lastSequence) {
+        return mandatePrefix(clubSlug, memberNumber) + (Math.max(lastSequence, mandateSequence(clubSlug, memberNumber, previous)) + 1);
+    }
+    /** Legacy methods keep only the reference; E90 also retains a sequence when the payment type changes. */
+    public static int lastMandateSequence(String clubSlug, int memberNumber, Map<String, Object> payment) {
+        int saved = payment.get("lastMandateSequence") instanceof Number number ? number.intValue() : 0;
+        return Math.max(saved, mandateSequence(clubSlug, memberNumber, (String) payment.get("mandateRef")));
+    }
+    private static int mandateSequence(String clubSlug, int memberNumber, String previous) {
+        String prefix = mandatePrefix(clubSlug, memberNumber);
+        if (previous == null || !previous.startsWith(prefix)) { return 0; }
+        String sequence = previous.substring(prefix.length());
+        return sequence.matches("[0-9]{1,4}") ? Integer.parseInt(sequence) : 0;
+    }
+    private static String mandatePrefix(String clubSlug, int memberNumber) {
         String suffix = "-" + memberNumber + "-";
         String slug = clubSlug.substring(0, Math.min(clubSlug.length(), MANDATE_REF_MAX - suffix.length() - 4)).replaceAll("-+$", "");
-        int sequence = 1;
-        if (previous != null && previous.startsWith(slug + suffix) && previous.substring((slug + suffix).length()).matches("[0-9]{1,3}")) {
-            sequence = Integer.parseInt(previous.substring((slug + suffix).length())) + 1;
-        }
-        return slug + suffix + sequence;
+        return slug + suffix;
     }
     public static int age(LocalDate birth, LocalDate today) { return birth == null ? 0 : Period.between(birth, today).getYears(); }
     public static void mutable(Instant erasedAt) { if (erasedAt != null) { throw new ApiException(ErrorCode.MEMBER_ERASED); } }

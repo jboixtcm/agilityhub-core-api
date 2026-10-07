@@ -21,7 +21,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("collections")
 public record Collection(@Id String id, String clubId, String invoiceId, CollectionProvider provider, Money amount, CollectionStatus status,
         String providerRef, String remittanceId, int attempt, String failureCode, String failureMessage, List<Refund> refunds,
-        Instant createdAt, Instant resolvedAt, String mandateRef, String endToEndId, ManualChannel channel, String reference) implements TenantEntity {
+        Instant createdAt, Instant resolvedAt, String mandateRef, String endToEndId, ManualChannel channel, String reference, Instant mandateSignedAt) implements TenantEntity {
+    /** Rows written before E90 have no collection signature; the writer uses the current mandate's signature. */
+    public Collection(String id, String clubId, String invoiceId, CollectionProvider provider, Money amount, CollectionStatus status,
+            String providerRef, String remittanceId, int attempt, String failureCode, String failureMessage, List<Refund> refunds,
+            Instant createdAt, Instant resolvedAt, String mandateRef, String endToEndId, ManualChannel channel, String reference) {
+        this(id, clubId, invoiceId, provider, amount, status, providerRef, remittanceId, attempt, failureCode, failureMessage, refunds,
+                createdAt, resolvedAt, mandateRef, endToEndId, channel, reference, null);
+    }
     public record Refund(Money amount, String providerRef, Instant at, String reason, String byAccountId) { }
     /** The attempt as E8-T01 declared it (no SEPA or manual reference). */
     public Collection(String id, String clubId, String invoiceId, CollectionProvider provider, Money amount, CollectionStatus status,

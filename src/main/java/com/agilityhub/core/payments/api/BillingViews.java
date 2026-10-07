@@ -52,7 +52,7 @@ final class BillingViews {
                         preview.invoiceId(), preview.displayNumber())).toList());
     }
     static List<BillingIncident> incidents(List<BillingSimulation.Incident> incidents) {
-        return incidents.stream().map(incident -> new BillingIncident(incident.memberId(), incident.memberName(), incident.code())).toList();
+        return incidents.stream().map(incident -> new BillingIncident(incident.memberId(), incident.memberName(), incident.code(), incident.invoiceId(), incident.displayNumber())).toList();
     }
     static List<CashMember> cash(BillingSimulation simulation) {
         return simulation.cashMembers().stream().map(cash -> new CashMember(cash.memberId(), cash.memberName(),
@@ -61,7 +61,7 @@ final class BillingViews {
     static SimulationKpis kpis(BillingSimulation.Kpis kpis) {
         var by = kpis.byProvider();
         return new SimulationKpis(kpis.count(), kpis.total(), new ByProvider(totals(by.sepaXml()), totals(by.stripe()), totals(by.manual())), kpis.cashPending(),
-                new InactivityFees(kpis.inactivityFees().count(), kpis.inactivityFees().firstMonth(), kpis.inactivityFees().following()));
+                new InactivityFees(kpis.inactivityFees().count(), kpis.inactivityFees().firstMonth(), kpis.inactivityFees().following()), kpis.collectionDate() == null ? null : LocalDate.parse(kpis.collectionDate()));
     }
     private static ProviderTotals totals(BillingSimulation.Totals totals) {
         return totals == null ? null : new ProviderTotals(totals.count(), totals.total(), null, null, null);

@@ -178,18 +178,18 @@ class InvoicingRulesTest {
      */
     @Test void R_12_07_R_12_19_aWaitingReceiptIsAnIncidentWhenItsMemberCanNoLongerBeDebitedForIt() {
         var eva = new Member("puig", "ACTIVE", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat");
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-1", CANIC)).isNull();
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", null, null, CANIC)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "LEFT", null, PaymentMethodType.SEPA_DD, true, false, "abonat"), "m-1", CANIC))
+        assertThat(InvoicingRules.waitingReceiptIncident(eva, CANIC)).isNull();
+        assertThat(InvoicingRules.waitingReceiptIncident(null, CANIC)).isEqualTo(BillingIncidentCode.MEMBER_NOT_ACTIVE);
+        for (String state : List.of("LEFT", "PENDING")) {
+            assertThat(InvoicingRules.waitingReceiptIncident(new Member("puig", state, null, PaymentMethodType.SEPA_DD, true, false, "abonat"), CANIC))
+                    .isEqualTo(BillingIncidentCode.MEMBER_NOT_ACTIVE);
+        }
+        assertThat(InvoicingRules.waitingReceiptIncident(new Member("puig", "ACTIVE", null, PaymentMethodType.MANUAL, false, false, "abonat"), CANIC))
+                .isEqualTo(BillingIncidentCode.PAYMENT_METHOD_CHANGED);
+        assertThat(InvoicingRules.waitingReceiptIncident(new Member("puig", "ACTIVE", null, PaymentMethodType.SEPA_DD, false, false, "abonat"), CANIC))
                 .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "ACTIVE", null, PaymentMethodType.MANUAL, false, false, "abonat"), null, CANIC))
-                .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", new Member("puig", "ACTIVE", null, PaymentMethodType.SEPA_DD, false, false, "abonat"), "m-1", CANIC))
-                .isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-2", CANIC)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
         var cashOnly = new Settings("EUR", 1, CashInvoicing.SEMESTER, 6, true, true, true, true, Set.of(PaymentMethodType.MANUAL));
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-1", cashOnly)).isEqualTo(BillingIncidentCode.PROVIDER_DISABLED);
-        assertThat(InvoicingRules.waitingReceiptIncident("m-1", eva, "m-2", cashOnly)).isEqualTo(BillingIncidentCode.NO_BANK_ACCOUNT);
+        assertThat(InvoicingRules.waitingReceiptIncident(eva, cashOnly)).isEqualTo(BillingIncidentCode.PROVIDER_DISABLED);
     }
 
     @Test void T_12_28_noCurrentPriceSkipsTheMemberMaintenanceBillsItsFeeAndAZeroTotalIssuesNothingButAdvances() {

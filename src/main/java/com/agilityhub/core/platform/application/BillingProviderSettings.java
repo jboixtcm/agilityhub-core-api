@@ -18,9 +18,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BillingProviderSettings {
-    /** `configured` = name, identifier and IBAN present (S17 R-17-05); otherwise a remittance is `SEPA_NOT_CONFIGURED`. */
+    /** `configured` = name, identifier and IBAN present, and any suffix has exactly three SEPA characters (S17 R-17-05); otherwise a remittance is `SEPA_NOT_CONFIGURED`. */
     public record SepaCreditor(String name, String id, @Sensitive String iban, String bic, String suffix) {
-        public boolean configured() { return present(name) && present(id) && present(iban); }
+        public boolean configured() { return present(name) && present(id) && present(iban)
+                && (suffix == null || suffix.length() == 3 && !suffix.isBlank() && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(suffix)); }
         @Override public String toString() { return "SepaCreditor[name=" + name + ", id=" + id + ", configured=" + configured() + "]"; }
     }
     private final ClubRepository clubs;
@@ -35,7 +36,7 @@ public class BillingProviderSettings {
     public Optional<SepaCreditor> sepaCreditor() {
         if (!(providers().get("SEPA_XML") instanceof Map<?, ?> sepa) || !PaymentProviderFlags.enabled(sepa)) { return Optional.empty(); }
         return Optional.of(new SepaCreditor(text(sepa.get("creditorName")), text(sepa.get("creditorId")), text(sepa.get("iban")), text(sepa.get("bic")),
-                text(sepa.get("suffix"))));
+                sepa.get("suffix") == null ? null : sepa.get("suffix").toString()));
     }
     private Map<String, Object> providers() {
         var club = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));

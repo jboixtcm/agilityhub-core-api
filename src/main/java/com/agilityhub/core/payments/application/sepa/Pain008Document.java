@@ -66,6 +66,14 @@ public final class Pain008Document {
 
     /** The document's bytes (not yet validated: see {@link #validate}). */
     public static byte[] write(SepaDirectDebits.File file) {
+        identifier("MsgId", file.messageId());
+        for (var block : file.blocks()) {
+            identifier("PmtInfId", block.paymentInformationId());
+            for (var debit : block.debits()) {
+                identifier("EndToEndId", debit.endToEndId());
+                identifier("MndtId", debit.mandateRef());
+            }
+        }
         var factory = new ObjectFactory();
         var header = factory.createGroupHeaderSDD();
         header.setMsgId(file.messageId());
@@ -95,6 +103,14 @@ public final class Pain008Document {
             String body = out.toString(StandardCharsets.UTF_8).strip();
             return (DECLARATION + body + "\n").getBytes(StandardCharsets.UTF_8);
         } catch (JAXBException failure) { throw new IllegalStateException("The pain.008 document cannot be marshalled", failure); }
+    }
+
+    private static void identifier(String field, String value) {
+        if (value == null || value.isBlank() || value.length() > SepaDirectDebits.IDENTIFIER
+                || !com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(value)) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.SEPA_NOT_CONFIGURED,
+                    java.util.Map.of("reason", "IDENTIFIER", "field", field));
+        }
     }
 
     /** R-12-11: {@code xml} against the schema in use; {@link InvalidDocument} (line and column only) when it fails. */

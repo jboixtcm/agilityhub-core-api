@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -44,17 +47,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * <li>Fail fast: the club's `SEPA_XML` creditor must be configured (name, identifier, IBAN) and `billing.sepa.schema` known —
  * else `422 SEPA_NOT_CONFIGURED`; the club and every amount in euros — else `422 CURRENCY_MISMATCH`; the collection date at
  * least two business days after today (club-local) — else `422 COLLECTION_DATE_TOO_SOON {requested, earliest}`.</li>
- * <li>Each debit takes its amount, `EndToEndId` and `MndtId` from its collection, the description (its lines' frozen descriptions
- * joined by «, »), the holder and the mandate's signature date frozen on its invoice (an invoice issued before E8-T03 takes the
- * member's own signature of the same mandate), and the debtor's full IBAN from the member's account through {@link BankAccountVault}
- * (the only place it leaves the database in clear). A debit without a mandate, a signature date, an account, or whose member
- * holds another mandate now, is `422 SEPA_NOT_CONFIGURED {memberIds}`: never a file the bank would refuse.</li>
+ * <li>Each debit takes its amount, `EndToEndId`, mandate and signature from its collection (E90), and the frozen description
+ * from the invoice. The current holder and full IBAN come from the member through {@link BankAccountVault}. Legacy
+ * collections without a signature use the current mandate's signature. A missing current reference, signature or account
+ * fails with `422 SEPA_NOT_CONFIGURED {memberIds}`. Waiting receipts use the new collection's current mandate.</li>
  * <li>`FRST` only with `billing.sepa.useFrst` and for a mandate never submitted or collected before (a debit of a remittance
  * marked as sent counts); otherwise `RCUR`.</li>
  * <li>The bytes are validated against the schema before anything is stored; a failure is `422 SEPA_NOT_CONFIGURED {reason:
  * SCHEMA}` (logged with its position only). Then the file goes to the export store under
  * `remittances/{clubId}/{period}/{messageId}-{remittanceId}.xml` — outside Mongo, so a storage failure aborts the run, and if
- * the run's transaction rolls back afterwards its file is deleted: no stored file without its remittance.</li>
+ * the run's transaction rolls back afterwards its file is deleted. An unknown result checks the remittance in a fresh
+ * transaction; an absent row deletes the file, and an unavailable check retains it with a WARN key and trace id.</li>
  * </ol>
  */
 @Component
@@ -64,10 +67,13 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
     private final RemittanceRepository remittances; private final InvoiceRepository invoices; private final CollectionRepository collections;
     private final ClubConfigService configs; private final BillingProviderSettings providers; private final BillingCensusAccess census;
     private final BankAccountVault vault; private final ExportFileStore files; private final Clock clock;
+    private final TransactionTemplate committedRead;
     public SepaRemittanceWriter(RemittanceRepository remittances, InvoiceRepository invoices, CollectionRepository collections, ClubConfigService configs,
-            BillingProviderSettings providers, BillingCensusAccess census, BankAccountVault vault, ExportFileStore files, Clock clock) {
+            BillingProviderSettings providers, BillingCensusAccess census, BankAccountVault vault, ExportFileStore files, Clock clock, PlatformTransactionManager manager) {
         this.remittances = remittances; this.invoices = invoices; this.collections = collections; this.configs = configs; this.providers = providers;
         this.census = census; this.vault = vault; this.files = files; this.clock = clock;
+        this.committedRead = new TransactionTemplate(manager);
+        this.committedRead.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Override public Remittance write(BillingRun run, String remittanceId, List<Collection> debits, LocalDate collectionDate) {
@@ -102,7 +108,7 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
         }
         Instant validatedAt = clock.instant();
         String key = "remittances/" + club + "/" + run.period() + "/" + file.messageId() + "-" + remittanceId + ".xml";
-        store(key, xml);
+        store(club, remittanceId, key, xml);
         long total = debits.stream().mapToLong(debit -> debit.amount().amountMinor()).sum();
         return new Remittance(remittanceId, club, run.id(), run.period(), file.messageId(), now, collectionDate.toString(),
                 new Remittance.Creditor(creditor.name(), payee.identifier(), payee.iban(), creditor.bic()), debits.stream().map(Collection::id).toList(),
@@ -123,13 +129,13 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
             if (invoice == null) { throw new IllegalStateException("Collection " + debit.id() + " has no invoice in the open club"); }
             var account = accounts.get(invoice.memberId());
             String mandate = debit.mandateRef();
-            Instant signed = invoice.paymentMethod().mandateSignedAt() != null ? invoice.paymentMethod().mandateSignedAt()
-                    : account != null && Objects.equals(mandate, account.mandateRef()) ? account.mandateSignedAt() : null;
+            Instant signed = debit.mandateSignedAt() != null ? debit.mandateSignedAt() : account == null ? null : account.mandateSignedAt();
             String iban = account == null ? null : vault.resolve(account.account(), club, invoice.memberId());
-            if (mandate == null || mandate.isBlank() || signed == null || iban == null || !Objects.equals(mandate, account.mandateRef())) {
+            if (mandate == null || mandate.isBlank() || signed == null || iban == null || account.mandateRef() == null
+                    || account.mandateRef().isBlank() || account.mandateSignedAt() == null) {
                 incomplete.add(invoice.memberId()); continue;
             }
-            String holder = firstText(invoice.paymentMethod().holderName(), account.holderName(), invoice.memberSnapshot().fullName());
+            String holder = firstText(account.holderName(), invoice.paymentMethod().holderName(), invoice.memberSnapshot().fullName());
             String description = invoice.lines().stream().map(Invoice.Line::description).filter(Objects::nonNull).collect(Collectors.joining(", "));
             lines.add(new SepaDirectDebits.Debit(debit.endToEndId(), debit.amount(), mandate, LocalDate.ofInstant(signed, zone), holder, iban, description,
                     SepaDirectDebits.sequence(useFrst, collected.contains(mandate))));
@@ -149,18 +155,30 @@ public class SepaRemittanceWriter implements RemittanceWriterPort {
     }
 
     /** The file goes to the store from a private temporary file; a rollback of the run afterwards deletes it again. */
-    private void store(String key, byte[] xml) {
+    private void store(String club, String remittanceId, String key, byte[] xml) {
         try {
             var spool = Files.createTempFile("remittance-", ".xml");
             try { Files.write(spool, xml); files.put(key, spool, CONTENT_TYPE); }
             finally { Files.deleteIfExists(spool); }
         } catch (IOException failure) { throw new UncheckedIOException(failure); }
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            String traceId = org.slf4j.MDC.get("traceId");
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override public void afterCompletion(int status) {
-                    if (status != STATUS_ROLLED_BACK) { return; }
+                    if (status == STATUS_UNKNOWN) {
+                        // The completed transaction's session can still be bound here. Read in a fresh transaction so an
+                        // uncommitted row cannot be mistaken for proof of commit. An unavailable database keeps the file.
+                        log.warn("Unknown remittance commit: storageKey={} traceId={}", key, traceId);
+                        try (var tenant = TenantContext.open(club)) {
+                            boolean persisted = Boolean.TRUE.equals(committedRead.execute(ignored -> remittances.findById(remittanceId).isPresent()));
+                            if (persisted) { return; }
+                        } catch (RuntimeException unavailable) {
+                            log.warn("Remittance commit could not be checked: storageKey={} traceId={}", key, traceId);
+                            return;
+                        }
+                    } else if (status != STATUS_ROLLED_BACK) { return; }
                     try { files.delete(key); }
-                    catch (RuntimeException failure) { log.warn("The file of a rolled-back remittance was not deleted: {}", key, failure); }
+                    catch (RuntimeException failure) { log.warn("Remittance file was not deleted: storageKey={} traceId={}", key, traceId); }
                 }
             });
         }

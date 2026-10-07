@@ -469,8 +469,8 @@ class BillingCycleIT extends BillingItSupport {
 
     /**
      * E8-T07 step 3 (R-12-07, R-12-19): a waiting receipt gets the run's incident checks. Its member has left, has no account
-     * left, no longer pays by SEPA_DD or signed another mandate since the receipt (E8-T03's review #1): an incident in the
-     * simulation and in `skipped[]`, and the receipt is not remitted (it keeps its flag for the next run). The others still go.
+     * left or no longer pays by SEPA_DD: a receipt incident. Only unbilled members enter `skipped[]`.
+     * A changed mandate is used by the new collection (E90), and the receipt is remitted.
      */
     @Test void T_12_09_R_12_07_R_12_19_aWaitingReceiptWhoseMemberCannotBeDebitedIsAnIncidentAndStaysOut() throws Exception {
         String remitted = flagged("puig", 2500), left = flagged("roca", 1000), noAccount = flagged("torres", 1100), cash = flagged("serra-joan", 1200),
@@ -482,17 +482,17 @@ class BillingCycleIT extends BillingItSupport {
         census("mas", new Update().set("paymentMethod.mandateRef", CLUB + "-207-2"));
         clock.setInstant(NOW.plusSeconds(120));
         var simulation = simulate("2026-09");
-        assertThat(incidents(simulation.path("incidents"))).containsEntry("roca", "NO_BANK_ACCOUNT").containsEntry("torres", "NO_BANK_ACCOUNT")
-                .containsEntry("serra-joan", "NO_BANK_ACCOUNT").containsEntry("mas", "NO_BANK_ACCOUNT");
-        assertThat(simulation.path("incidents").findValuesAsText("memberId")).doesNotHaveDuplicates();
-        assertThat(receiptIds(simulation)).containsExactly(remitted);
+        assertThat(incidents(simulation.path("incidents"))).containsEntry("roca", "MEMBER_NOT_ACTIVE").containsEntry("torres", "NO_BANK_ACCOUNT")
+                .containsEntry("serra-joan", "PAYMENT_METHOD_CHANGED").doesNotContainKey("mas");
+        assertThat(simulation.path("incidents")).anySatisfy(row -> assertThat(row.path("invoiceId").asText()).isEqualTo(left));
+        assertThat(receiptIds(simulation)).containsExactly(remitted, mandate);
         // The run: the same incidents skipped, only Eva's receipt in the remittance, which is what the simulation announced.
         var result = run("2026-09", simulation.path("id").asText());
-        assertThat(incidents(result.path("skipped"))).isEqualTo(incidents(simulation.path("incidents")));
+        assertThat(incidents(result.path("skipped"))).containsEntry("roca", "MEMBER_NOT_ACTIVE").doesNotContainKeys("serra-joan", "mas");
         assertThat(result.at("/remittance/count").asInt()).isEqualTo(simulation.at("/kpis/byProvider/SEPA_XML/count").asInt());
         assertThat(result.at("/remittance/total")).isEqualTo(simulation.at("/kpis/byProvider/SEPA_XML/total"));
         assertThat(mongo.findById(remitted, Document.class, "invoices").getString("status")).isEqualTo("COLLECTING");
-        for (String waiting : List.of(left, noAccount, cash, mandate)) {
+        for (String waiting : List.of(left, noAccount, cash)) {
             var stored = mongo.findById(waiting, Document.class, "invoices");
             assertThat(stored.getString("status")).as(waiting).isEqualTo("PENDING");
             assertThat(stored.get("remittanceId")).as(waiting).isNull();
@@ -538,7 +538,7 @@ class BillingCycleIT extends BillingItSupport {
      * E8-T07 step 4 (review #4, ruling E89; §5): a receipt is rolled back because its run is `ROLLED_BACK`, never because of
      * the words of its `cancelReason`: the admin's reason is free text again, «ROLLBACK» included.
      */
-    @Test void T_12_19_R_12_14_rolledBackComesFromTheRunAndTheAdminsReasonIsFreeText() throws Exception {
+    @Test void R_12_19_R_12_14_rolledBackComesFromTheRunAndTheAdminsReasonIsFreeText() throws Exception {
         String runId = run("2026-09", simulate("2026-09").path("id").asText()).at("/run/id").asText();
         String vives = invoices().stream().filter(invoice -> invoice.getString("memberId").equals("vives")).findFirst().orElseThrow().getString("_id");
         var cancelled = ok(admin(keyed(post("/api/v1/invoices/" + vives + "/cancellation"), Map.of("reason", "ROLLBACK", "version", 0))), 200);

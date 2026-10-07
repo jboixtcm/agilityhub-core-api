@@ -1930,10 +1930,19 @@
         "type" : "object"
       },
       "BillingIncident" : {
-        "description" : "R-12-07: a member the simulation (or the run, skipped[]) leaves out",
+        "description" : "R-12-07: a member-level or waiting-receipt incident; skipped[] only contains members not billed by the run",
         "properties" : {
           "code" : {
             "$ref" : "#/components/schemas/BillingIncidentCode"
+          },
+          "displayNumber" : {
+            "description" : "Waiting receipts only",
+            "type" : "string"
+          },
+          "invoiceId" : {
+            "description" : "Waiting receipts only",
+            "format" : "uuid",
+            "type" : "string"
           },
           "memberId" : {
             "format" : "uuid",
@@ -1947,7 +1956,7 @@
         "type" : "object"
       },
       "BillingIncidentCode" : {
-        "enum" : [ "NO_BANK_ACCOUNT", "NO_PLAN", "NO_PRICE", "CARD_INVALID", "CURRENCY_MISMATCH", "PROVIDER_DISABLED" ],
+        "enum" : [ "NO_BANK_ACCOUNT", "NO_PLAN", "NO_PRICE", "CARD_INVALID", "CURRENCY_MISMATCH", "PROVIDER_DISABLED", "MEMBER_NOT_ACTIVE", "PAYMENT_METHOD_CHANGED" ],
         "type" : "string"
       },
       "BillingPeriod" : {
@@ -17567,6 +17576,11 @@
             "format" : "int32",
             "minimum" : 0,
             "type" : "integer"
+          },
+          "collectionDate" : {
+            "description" : "Default collection date in the billed month, club-local; null for a simulation stored before E90",
+            "format" : "date",
+            "type" : [ "string", "null" ]
           },
           "count" : {
             "format" : "int32",

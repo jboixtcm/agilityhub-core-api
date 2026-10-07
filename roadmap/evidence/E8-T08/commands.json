@@ -1,0 +1,92 @@
+[
+  {
+    "log": "01-counterfactual-unit.log",
+    "exit": 1,
+    "command": "./mvnw -q -Dtest=SepaRemittanceWriterTest test"
+  },
+  {
+    "log": "02-counterfactual-integration.log",
+    "exit": 1,
+    "command": "./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -DskipTests=false -Dit.test=BillingFollowupsIT"
+  },
+  {
+    "log": "03-counterfactual-nits.log",
+    "exit": 1,
+    "command": "python3 roadmap/evidence/E8-T08/check-nits.py"
+  },
+  {
+    "log": "04-focused-unit.log",
+    "exit": 0,
+    "command": "./mvnw -q -Dtest=SepaRemittanceWriterTest,SepaDirectDebitsTest,InvoicingRulesTest,CensusRulesTest,ParameterValidatorTest,E8ResponseContractTest test"
+  },
+  {
+    "log": "05-focused-integration.log",
+    "exit": 1,
+    "command": "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -DskipTests=false -Dit.test=BillingFollowupsIT,RemittancesIT,BillingCycleIT,InvoiceActionsIT,InvoiceNumberingIT"
+  },
+  {
+    "log": "06-counterfactual-staleness.log",
+    "exit": 0,
+    "command": "python3 roadmap/evidence/E8-T08/counterfactual-staleness.py"
+  },
+  {
+    "log": "07-focused-regressions.log",
+    "exit": 0,
+    "command": "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Dtest=SepaRemittanceWriterTest,SepaDirectDebitsTest,InvoicingRulesTest,CensusRulesTest,ParameterValidatorTest,E8ResponseContractTest -Dit.test=BillingFollowupsIT,RemittancesIT,BillingCycleIT,InvoiceActionsIT,InvoiceNumberingIT test failsafe:integration-test failsafe:verify"
+  },
+  {
+    "log": "08-nits.log",
+    "exit": 0,
+    "command": "python3 roadmap/evidence/E8-T08/check-nits.py"
+  },
+  {
+    "log": "09-openapi-first.log",
+    "exit": 0,
+    "command": "bin/openapi-snapshot"
+  },
+  {
+    "log": "10-openapi-second.log",
+    "exit": 0,
+    "command": "bin/openapi-snapshot"
+  },
+  {
+    "log": "11-openapi-cmp.log",
+    "exit": 0,
+    "command": "cmp /tmp/e8-t08-openapi-first.json docs/openapi/openapi.json"
+  },
+  {
+    "log": "13-xmllint-golden.log",
+    "exit": 0,
+    "command": "xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd src/test/resources/sepa/remesa-2026-09.golden.xml"
+  },
+  {
+    "log": "12-clean-verify.log",
+    "exit": 0,
+    "command": "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify"
+  },
+  {
+    "log": "14-xmllint-actual.log",
+    "exit": 0,
+    "command": "xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd target/sepa/remesa-2026-09.actual.xml"
+  },
+  {
+    "log": "15-golden-cmp.log",
+    "exit": 0,
+    "command": "cmp src/test/resources/sepa/remesa-2026-09.golden.xml target/sepa/remesa-2026-09.actual.xml"
+  },
+  {
+    "log": "16-test-summary.log",
+    "exit": 0,
+    "command": "python3 roadmap/evidence/E8-T08/test-summary.py"
+  },
+  {
+    "log": "17-artifacts.log",
+    "exit": 0,
+    "command": "python3 roadmap/evidence/E8-T08/artifacts.py"
+  },
+  {
+    "log": "18-diff-check.log",
+    "exit": 0,
+    "command": "git diff --check"
+  }
+]

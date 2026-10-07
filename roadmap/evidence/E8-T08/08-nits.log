@@ -1,0 +1,3 @@
+PASS step 7: rollback spec id is R_12_19_R_12_14
+PASS step 9: restore runbook names the required index and restart
+PASS step 9: numbering diagnostics gated by evidence property

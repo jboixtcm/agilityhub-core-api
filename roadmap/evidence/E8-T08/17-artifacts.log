@@ -1,0 +1,3 @@
+Golden and actual XML: identical; SHA-256 621b674b...[truncated] (full digest in golden.sha256).
+Four distinct fictional debtors: correct member/account/holder mappings and mod-97 check digits.
+Simulation KPIs saved: count=8, collectionDate=2026-09-01.

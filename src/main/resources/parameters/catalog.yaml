@@ -1307,7 +1307,7 @@ parameters:
     block: "billing"
     labelKey: "admin-settings:param.billing.invoiceSeriesPattern.label"
     helpKey: "admin-settings:param.billing.invoiceSeriesPattern.help"
-    constraints: {}
+    constraints: {"validator": "invoiceSeries"}
     modules: ["BILLING"]
     scope: "club"
     editableBy: "CLUB"

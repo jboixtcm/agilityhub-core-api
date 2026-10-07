@@ -113,8 +113,7 @@ public class InvoicingService {
         var waiting = new ArrayList<WaitingReceipt>();
         for (var receipt : invoices.forNextRun()) {
             var member = census.member(receipt.memberId()).orElse(null);
-            var incident = InvoicingRules.waitingReceiptIncident(receipt.paymentMethod().mandateRef(), member == null ? null : member(member),
-                    member == null || member.paymentMethod() == null ? null : member.paymentMethod().mandateRef(), context.settings());
+            var incident = InvoicingRules.waitingReceiptIncident(member == null ? null : member(member), context.settings());
             waiting.add(new WaitingReceipt(receipt, member == null ? receipt.memberSnapshot().fullName() : member.fullName(), incident));
         }
         return waiting;

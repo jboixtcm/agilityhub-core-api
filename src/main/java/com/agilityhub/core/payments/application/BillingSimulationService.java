@@ -96,7 +96,7 @@ public class BillingSimulationService {
             var receipt = waiting.invoice();
             var code = waiting.incident() != null ? waiting.incident() : sepaUnusable ? BillingIncidentCode.PROVIDER_DISABLED : null;
             if (code != null) {
-                incident(incidents, new BillingSimulation.Incident(receipt.memberId(), waiting.memberName(), code));
+                incidents.add(new BillingSimulation.Incident(receipt.memberId(), waiting.memberName(), code, receipt.id(), receipt.displayNumber()));
                 continue;
             }
             preview.add(new BillingSimulation.PreviewInvoice(receipt.memberId(), waiting.memberName(), PaymentMethodType.SEPA_DD,
@@ -110,17 +110,24 @@ public class BillingSimulationService {
                 new BillingSimulation.ByProvider(totals(PaymentMethodType.SEPA_DD, byMethod, enabled, currency), totals(PaymentMethodType.CARD, byMethod, enabled, currency),
                         totals(PaymentMethodType.MANUAL, byMethod, enabled, currency)),
                 byMethod.getOrDefault(PaymentMethodType.MANUAL, List.of()).size(),
-                new BillingSimulation.InactivityFees(inactive, fee(context, "billing.inactivityFeeFirstMonth"), fee(context, "billing.inactivityFeeFollowingMonths")));
+                new BillingSimulation.InactivityFees(inactive, fee(context, "billing.inactivityFeeFirstMonth"), fee(context, "billing.inactivityFeeFollowingMonths")),
+                collectionDate(plan).toString());
         return new BillingSimulation(UUID.randomUUID().toString(), context.clubId(), plan.period().toString(), clock.instant(), incidents, cash, preview, kpis,
                 BillingEvents.actor(), chargeIds(plan), waitingInvoiceIds(plan));
     }
-    /** An incident once per member and code (a waiting receipt's may repeat its member's own, R-12-07). */
-    static void incident(List<BillingSimulation.Incident> incidents, BillingSimulation.Incident incident) {
-        if (incidents.stream().noneMatch(known -> known.memberId().equals(incident.memberId()) && known.code() == incident.code())) { incidents.add(incident); }
+    /** R-12-12: the billed month's collection date, shared with run generation (club-local calendar date). */
+    static java.time.LocalDate collectionDate(InvoicingService.MonthPlan plan) {
+        Integer day = plan.context().parameter("billing.sepa.collectionDayOfMonth", Integer.class);
+        return com.agilityhub.core.payments.domain.CollectionDates.defaultDate(plan.period(), day == null ? 1 : day);
     }
-    /** R-12-07 (E8-T07): the unbilled charges the plan bills and the waiting receipts it checked, sorted (the run compares them). */
-    static List<String> chargeIds(InvoicingService.MonthPlan plan) { return plan.charges().keySet().stream().sorted().toList(); }
-    static List<String> waitingInvoiceIds(InvoicingService.MonthPlan plan) { return plan.waiting().stream().map(waiting -> waiting.invoice().id()).sorted().toList(); }
+    /** R-12-07 (E90): exactly the charge ids and waiting receipts the run bills, never the excluded inputs. */
+    static List<String> chargeIds(InvoicingService.MonthPlan plan) {
+        return plan.month().invoices().stream().flatMap(draft -> draft.lines().stream()).map(InvoicingRules.Line::chargeId)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+    static List<String> waitingInvoiceIds(InvoicingService.MonthPlan plan) {
+        return plan.remitted().stream().map(com.agilityhub.core.payments.persistence.Invoice::id).sorted().toList();
+    }
     static Money total(InvoicingRules.Draft draft, String currency) {
         return InvoiceAmounts.sum(draft.lines().stream().map(line -> line.amounts().total()).toList(), currency);
     }

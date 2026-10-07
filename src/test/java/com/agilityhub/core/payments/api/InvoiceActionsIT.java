@@ -124,7 +124,7 @@ class InvoiceActionsIT extends BillingItSupport {
         assertThat(adjustment.at("/lines/0/description").asText()).isEqualTo("Ajust quota setembre");
         assertThat(adjustment.at("/total/amountMinor").asLong()).isEqualTo(-3000);
         assertThat(adjustment.at("/paymentMethod/type").asText()).isEqualTo("SEPA_DD");
-        assertThat(adjustment.at("/paymentMethod/maskedAccount").asText()).endsWith("4321").doesNotContain(IBAN);
+        assertThat(adjustment.at("/paymentMethod/maskedAccount").asText()).endsWith("0211").doesNotContain(IBAN);
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("INVOICE_CREATED_MANUAL")), Document.class, "audit_entries"))
                 .singleElement().satisfies(entry -> assertThat(entry.getString("reason")).isEqualTo("Quota cobrada de més"));
         assertThat(events("InvoiceIssued")).hasSize(9);
@@ -208,7 +208,7 @@ class InvoiceActionsIT extends BillingItSupport {
         String text;
         try (var document = Loader.loadPDF(pdf.getContentAsByteArray())) { text = new PDFTextStripper().getText(document); }
         assertThat(text).contains("Club Agility Facturació", "Rebut", byMember.get("serra-laura").getString("displayNumber"), "Quota Abonat 2 gossos — Setembre 2026",
-                "Laura Serra", "···· 4321").doesNotContain(IBAN);
+                "Laura Serra", "···· 0211").doesNotContain(IBAN);
         var adminPdf = call(admin(get("/api/v1/invoices/" + id("puig") + "/document")));
         assertThat(adminPdf.getStatus()).isEqualTo(200);
         try (var document = Loader.loadPDF(adminPdf.getContentAsByteArray())) { assertThat(new PDFTextStripper().getText(document)).contains("Eva Puig", "Rebut"); }

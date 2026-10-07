@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-07 · E8-T08 · receipt incidents and the simulation collection date
+
+- `BillingIncident` adds optional `invoiceId` and `displayNumber`, absent on member-level incidents. `BillingIncidentCode` adds the approved `MEMBER_NOT_ACTIVE` and `PAYMENT_METHOD_CHANGED`; a changed mandate is no longer an incident. `skipped[]` excludes members billed by this run, including through their family holder.
+- `SimulationKpis.collectionDate` gives the configured default date in the billed month (club-local); legacy stored simulations without it return null. Current simulations always fill it, including those without a SEPA remittance.
+- Invalid invoice-series parameters keep catalog `400 PARAMETER_INVALID`. Invalid stored SEPA identifiers return `422 SEPA_NOT_CONFIGURED` with only `{reason: IDENTIFIER, field}`.
+
 ## 2026-10-07 · E8-T05 round 2 · inactivity termination
 
 - `POST /inactivity-periods/{id}/termination` documents that its end cannot be later than the current end; an extension returns the existing `422 INACTIVITY_INVALID_RANGE`. Use PATCH to extend with overlap validation and booking cancellation.

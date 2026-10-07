@@ -17,6 +17,14 @@ class ParameterValidatorTest {
         assertThatThrownBy(() -> valid(key, value)).isInstanceOfSatisfying(ApiException.class,
                 error -> assertThat(error.code()).isEqualTo(ErrorCode.PARAMETER_INVALID));
     }
+    @Test void R_12_12_invoiceSeriesFitsTheSepaIdentifierAfterYearExpansion() {
+        valid("billing.invoiceSeriesPattern", "{YYYY}");
+        valid("billing.invoiceSeriesPattern", "A".repeat(30));
+        valid("billing.invoiceSeriesPattern", "Bill /-?:().,'+ {YYYY}");
+        for (String value : List.of(" ", "X".repeat(31), "{YYYY}".repeat(8), "{YY}", "Quota·{YYYY}", "É{YYYY}", "_{YYYY}")) {
+            invalid("billing.invoiceSeriesPattern", value);
+        }
+    }
     @Test void T_02_02_typesAndNumericConstraints() {
         invalid("bookings.maxCurrentWeek", "2"); invalid("bookings.maxCurrentWeek", 2.5); invalid("bookings.maxCurrentWeek", -1);
         valid("bookings.maxCurrentWeek", 2L); valid("bookings.maxCurrentWeek", (short) 2); valid("bookings.maxCurrentWeek", (byte) 2);

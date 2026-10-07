@@ -130,13 +130,17 @@ public class MemberService {
             // S12 supplies setup-intent confirmation; never accept an unverified Stripe reference.
             throw new ApiException(ErrorCode.NOT_IMPLEMENTED);
         }
+        var current = map(member.paymentMethod);
+        int lastSequence = member.memberNumber == null ? 0 : com.agilityhub.core.clubs.census.domain.CensusRules.lastMandateSequence(
+                access.config().club().slug(), member.memberNumber, current);
         Map<String,Object> payment = object("type", type);
+        if (lastSequence > 0) { payment.put("lastMandateSequence", lastSequence); }
         if ("SEPA_DD".equals(type)) {
             var sepa = map(request.get("sepa")); allow(sepa, Set.of("iban", "holderName", "holderTaxId"));
             // R-03-07 (E42): a SEPA_DD → SEPA_DD PATCH is partial. The account (`iban`, or the `ibanEncrypted` + `ibanLast4` of a
             // migrated member), the holder and the holder tax id the request does not send are kept; an explicit `"iban": null`
             // clears the account («Compte no informat»). A change of type replaces the method.
-            var current = map(member.paymentMethod); boolean kept = "SEPA_DD".equals(current.get("type"));
+            boolean kept = "SEPA_DD".equals(current.get("type"));
             if (sepa.containsKey("iban") || !kept) {
                 String iban = string(sepa.get("iban")); if (iban != null) { iban = iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT); }
                 if (iban != null && !countries.iban(iban)) { throw new ApiException(ErrorCode.INVALID_IBAN); }
@@ -156,7 +160,8 @@ public class MemberService {
             boolean sameMandate = kept && select(current, "iban", "ibanEncrypted").equals(account);
             if (!sameMandate && !account.isEmpty() && member.memberNumber != null) {
                 payment.put("mandateRef", com.agilityhub.core.clubs.census.domain.CensusRules.mandateRef(access.config().club().slug(), member.memberNumber,
-                        kept ? string(current.get("mandateRef")) : null));
+                        string(current.get("mandateRef")), lastSequence));
+                payment.put("lastMandateSequence", lastSequence + 1);
                 payment.put("mandateSignedAt", clock.instant());
             }
         } else {

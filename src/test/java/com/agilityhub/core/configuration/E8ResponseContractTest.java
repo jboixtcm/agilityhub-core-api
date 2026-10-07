@@ -46,7 +46,7 @@ class E8ResponseContractTest {
             var fields = fixture(group).fields();
             while (fields.hasNext()) { var entry = fields.next(); roundTrip(entry.getKey(), entry.getValue(), type(entry.getKey())); forms++; }
         }
-        assertThat(forms).isEqualTo(42); // E8-T07: + InvoicePreview#waitingReceipt
+        assertThat(forms).isEqualTo(43); // E90: + BillingIncident#waitingReceipt
         // A provider the club does not use, and a counter of a module that is off, are absent; nothing else is.
         var byProvider = mapper.valueToTree(new BillingContracts.ByProvider(null, null, null));
         assertThat(byProvider.size()).isZero();
@@ -61,10 +61,28 @@ class E8ResponseContractTest {
         String s12 = Files.readString(Path.of("docs/specs/S12-facturacio-i-pagaments.md"));
         var fixture = (com.fasterxml.jackson.databind.node.ObjectNode) fixture("e8-simulation");
         var withoutId = fixture.deepCopy(); withoutId.remove("id");
-        JSONAssert.assertEquals(extract(s12, "**JSON de la simulació (resum)**:"), withoutId.toString(), true);
+        // E90 adds collectionDate in §3; the organizer-owned §6 JSON has not been synchronized yet.
+        var example = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(extract(s12, "**JSON de la simulació (resum)**:"));
+        if (!example.path("kpis").has("collectionDate")) {
+            ((com.fasterxml.jackson.databind.node.ObjectNode) example.path("kpis")).put("collectionDate", "2026-09-01");
+        }
+        JSONAssert.assertEquals(example.toString(), withoutId.toString(), true);
         assertThat(fixture.fieldNames()).toIterable().contains("id");
         roundTrip("BillingSimulation", fixture, BillingContracts.BillingSimulation.class);
         assertThat(fixture.at("/kpis/byProvider").has("STRIPE")).as("the Cànic has no Stripe: the key is absent").isFalse();
+    }
+
+    @Test void R_12_07_R_12_12_simulationAdditionsKeepTheirOptionalAndNullableContract() throws Exception {
+        var schemas = mapper.readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");
+        var incident = schemas.path("BillingIncident");
+        assertThat(strings(incident.path("required"))).contains("memberId", "memberName", "code").doesNotContain("invoiceId", "displayNumber");
+        assertThat(incident.at("/properties/invoiceId/type").asText()).isEqualTo("string");
+        assertThat(incident.at("/properties/displayNumber/type").asText()).isEqualTo("string");
+        assertThat(strings(schemas.at("/SimulationKpis/properties/collectionDate/type"))).containsExactlyInAnyOrder("string", "null");
+        assertThat(schemas.at("/SimulationKpis/properties/collectionDate/format").asText()).isEqualTo("date");
+        var old = new BillingContracts.SimulationKpis(0, new com.agilityhub.core.shared.domain.Money(0, "EUR"),
+                new BillingContracts.ByProvider(null, null, null), 0, null, null);
+        assertThat(mapper.valueToTree(old).path("collectionDate").isNull()).isTrue();
     }
 
     /** S13 §6 `GET /me/inactivity-periods` (24-09-2026, Laura) is the fixture byte for byte in JSON terms, and round-trips. */
@@ -282,7 +300,7 @@ class E8ResponseContractTest {
         expected.put(PaymentMethodType.class, "SEPA_DD,CARD,MANUAL"); expected.put(CollectionProvider.class, "SEPA_XML,STRIPE,MANUAL");
         expected.put(CollectionStatus.class, "CREATED,SUBMITTED,SUCCEEDED,FAILED,REFUNDED"); expected.put(RemittanceStatus.class, "GENERATED,SUBMITTED,ROLLED_BACK");
         expected.put(BillingRunStatus.class, "GENERATED,CHARGING,COMPLETED,ROLLED_BACK");
-        expected.put(BillingIncidentCode.class, "NO_BANK_ACCOUNT,NO_PLAN,NO_PRICE,CARD_INVALID,CURRENCY_MISMATCH,PROVIDER_DISABLED");
+        expected.put(BillingIncidentCode.class, "NO_BANK_ACCOUNT,NO_PLAN,NO_PRICE,CARD_INVALID,CURRENCY_MISMATCH,PROVIDER_DISABLED,MEMBER_NOT_ACTIVE,PAYMENT_METHOD_CHANGED");
         expected.put(RollbackBlocker.class, "REMITTANCE_SUBMITTED,COLLECTION_SUBMITTED,INVOICE_PAID,MANUAL_INVOICE_AFTER");
         expected.put(UpfrontConcept.class, "ENTRY_FEE,FIRST_MONTH,PACK,SINGLE_CLASS,ACTIVITY,OTHER"); expected.put(UpfrontStatus.class, "DUE,CHECKOUT_PENDING,PARTIAL,PAID,CANCELLED,REFUNDED");
         expected.put(UpfrontProvider.class, "STRIPE,MANUAL"); expected.put(ManualChannel.class, "CASH,TRANSFER,BIZUM");

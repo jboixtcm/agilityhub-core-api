@@ -54,6 +54,7 @@ class SepaRemittanceWriterTest {
     final Map<String, String> stored = new LinkedHashMap<>();
     final Map<String, Invoice> issued = new LinkedHashMap<>();
     final Map<String, BillingCensusAccess.SepaAccount> accounts = new LinkedHashMap<>();
+    final org.springframework.transaction.PlatformTransactionManager manager = mock(org.springframework.transaction.PlatformTransactionManager.class);
     SepaRemittanceWriter writer;
     AutoCloseable tenant;
 
@@ -72,7 +73,7 @@ class SepaRemittanceWriterTest {
         when(collections.sepaAttempts(any())).thenReturn(List.of());
         doAnswer(call -> { stored.put(call.getArgument(0), Files.readString(call.<Path>getArgument(1), StandardCharsets.UTF_8)); return null; })
                 .when(files).put(anyString(), any(Path.class), anyString());
-        writer = new SepaRemittanceWriter(remittances, invoices, collections, configs, providers, census, vault, files, Clock.fixed(NOW, ZoneOffset.UTC));
+        writer = new SepaRemittanceWriter(remittances, invoices, collections, configs, providers, census, vault, files, Clock.fixed(NOW, ZoneOffset.UTC), manager);
     }
     @AfterEach void close() throws Exception { tenant.close(); }
 
@@ -92,7 +93,7 @@ class SepaRemittanceWriterTest {
         assertThat(xml).contains("<SeqTp>RCUR</SeqTp>").doesNotContain("FRST").contains("<NbOfTxs>2</NbOfTxs>", "<CtrlSum>150.00</CtrlSum>",
                 "<InstdAmt Ccy=\"EUR\">60.00</InstdAmt>", "<ReqdColltnDt>2026-09-01</ReqdColltnDt>", "<CreDtTm>2026-08-25T10:00:00</CreDtTm>",
                 "<MndtId>canic-1-1</MndtId>", "<DtOfSgntr>2026-07-15</DtOfSgntr>", "<IBAN>ES0000000000000000000001</IBAN>",
-                "<Ustrd>Quota Abonat Setembre 2026</Ustrd>", "<Nm>Club d'Agility Canic</Nm>", "<Id>NOTPROVIDED</Id>", "<Cd>CORE</Cd>", "<Cd>SEPA</Cd>");
+                "<Ustrd>Quota Abonat - Setembre 2026</Ustrd>", "<Nm>Club d'Agility Canic</Nm>", "<Id>NOTPROVIDED</Id>", "<Cd>CORE</Cd>", "<Cd>SEPA</Cd>");
         verify(files).put(eq(remittance.fileKey()), any(Path.class), eq("application/xml"));
     }
 
@@ -117,8 +118,8 @@ class SepaRemittanceWriterTest {
         var remittance = writer.write(run(), "remittance-3", List.of(debit("m1", 1, 6000, longer)), LocalDate.of(2026, 9, 1));
         String xml = stored.get(remittance.fileKey());
         String information = between(xml, "<Ustrd>", "</Ustrd>");
-        assertThat(information).hasSize(140).isEqualTo(("Quota Abonat Setembre 2026 - " + "Classe de l'Alex amb la Nuria i en Pol ".repeat(5)).substring(0, 140))
-                .endsWith("Nuria i e").matches("[A-Za-z0-9/\\-?:().,'+ ]+");
+        assertThat(information).hasSize(140).isEqualTo(("Quota Abonat - Setembre 2026 - " + "Classe de l'Alex amb la Nuria i en Pol ".repeat(5)).substring(0, 140))
+                .endsWith("Nuria i").matches("[A-Za-z0-9/\\-?:().,'+ ]+");
         assertThat(SepaText.of("Cànic · Núria", 140)).isEqualTo("Canic - Nuria");
         assertThat(between(xml, "<Dbtr>", "</Dbtr>")).contains("<Nm>Nuria Puig Canic</Nm>");
     }
@@ -162,12 +163,12 @@ class SepaRemittanceWriterTest {
         verifyNoInteractions(files);
     }
 
-    @Test void R_12_12_aCollectionWithoutAMandateOrWithAnotherMandateThanTheMembersFailsLoudly() {
+    @Test void R_12_12_aCollectionWithoutAMandateOrCurrentSignatureFailsLoudly() {
         var missing = debit("m1", 1, 6000, "Quota");
         var withoutMandate = new Collection(missing.id(), CLUB, missing.invoiceId(), CollectionProvider.SEPA_XML, missing.amount(), CollectionStatus.CREATED,
                 null, "remittance-8", 1, null, null, List.of(), NOW, null, null, missing.endToEndId(), null, null);
         var changed = debit("m2", 2, 6000, "Quota");
-        accounts.put("m2", new BillingCensusAccess.SepaAccount("m2", Map.of("iban", "ES0000000000000000000002"), "Titular", "canic-2-2", NOW));
+        accounts.put("m2", new BillingCensusAccess.SepaAccount("m2", Map.of("iban", "ES0000000000000000000002"), "Titular", "canic-2-2", null));
         assertThatThrownBy(() -> writer.write(run(), "remittance-8", List.of(withoutMandate, changed), LocalDate.of(2026, 9, 1)))
                 .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.details()).isEqualTo(Map.of("memberIds", List.of("m1", "m2"))));
     }
@@ -245,6 +246,72 @@ class SepaRemittanceWriterTest {
         doThrow(new java.io.UncheckedIOException(new java.io.IOException("store down"))).when(files).put(anyString(), any(Path.class), anyString());
         assertThatThrownBy(() -> writer.write(run(), "remittance-12", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1)))
                 .isInstanceOf(java.io.UncheckedIOException.class);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"1", "1234", "12·", "   "})
+    void R_12_12_anInvalidCreditorSuffixIsNotConfigured(String suffix) {
+        var creditor = new BillingProviderSettings.SepaCreditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", null, suffix);
+        assertThat(creditor.configured()).isFalse();
+        when(providers.sepaCreditor()).thenReturn(Optional.of(creditor));
+        assertCode(() -> writer.write(run(), "r", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1)), ErrorCode.SEPA_NOT_CONFIGURED);
+        verifyNoInteractions(files);
+    }
+
+    @Test void R_12_12_typographicPunctuationKeepsItsSepaEquivalent() {
+        assertThat(SepaText.of("Quota d’agost – Cànic — Núria", 140)).isEqualTo("Quota d'agost - Canic - Nuria");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace(boolean persisted) {
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(SepaRemittanceWriter.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start(); logger.addAppender(appender);
+        org.slf4j.MDC.put("traceId", "trace-e8-t08");
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            var remittance = writer.write(run(), "unknown-attempt", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1));
+            when(remittances.findById("unknown-attempt")).thenReturn(persisted ? Optional.of(remittance) : Optional.empty());
+            TransactionSynchronizationManager.getSynchronizations().getFirst().afterCompletion(TransactionSynchronization.STATUS_UNKNOWN);
+            verify(remittances).findById("unknown-attempt");
+            verify(manager).getTransaction(argThat(definition -> definition.getPropagationBehavior()
+                    == org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+            verify(files, times(persisted ? 0 : 1)).delete(remittance.fileKey());
+            assertThat(appender.list).anySatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
+                assertThat(event.getFormattedMessage()).contains(remittance.fileKey(), "trace-e8-t08");
+            });
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization(); org.slf4j.MDC.remove("traceId"); logger.detachAppender(appender); appender.stop();
+        }
+    }
+
+    @Test void R_12_11_anUnavailableUnknownCommitCheckKeepsTheFile() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            var remittance = writer.write(run(), "unknown-unavailable", List.of(debit("m1", 1, 6000, "Quota")), LocalDate.of(2026, 9, 1));
+            when(remittances.findById("unknown-unavailable")).thenThrow(new IllegalStateException("database unavailable"));
+            assertThatCode(() -> TransactionSynchronizationManager.getSynchronizations().getFirst().afterCompletion(TransactionSynchronization.STATUS_UNKNOWN))
+                    .doesNotThrowAnyException();
+            verify(files, never()).delete(remittance.fileKey());
+        } finally { TransactionSynchronizationManager.clearSynchronization(); }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"MsgId", "PmtInfId", "EndToEndId", "MndtId"})
+    void R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String field) {
+        String invalid = "private_invalid_identifier_".repeat(2);
+        var debit = new SepaDirectDebits.Debit(field.equals("EndToEndId") ? invalid : "2026-0001", new Money(100, "EUR"),
+                field.equals("MndtId") ? invalid : "mandate-1", LocalDate.of(2026, 8, 1), "Example", "ES0000000000000000000001", "Quota", SepaDirectDebits.SequenceType.RCUR);
+        var block = new SepaDirectDebits.Block(field.equals("PmtInfId") ? invalid : "message-RCUR", SepaDirectDebits.SequenceType.RCUR, List.of(debit), new BigDecimal("1.00"));
+        var file = new SepaDirectDebits.File(field.equals("MsgId") ? invalid : "message", LocalDateTime.of(2026, 8, 25, 10, 0),
+                new SepaDirectDebits.Creditor("Club", "ES00ZZZG00000000", "ES0000000000000000009876", null), LocalDate.of(2026, 9, 1), List.of(block), 1, new BigDecimal("1.00"));
+        assertThatThrownBy(() -> Pain008Document.write(file)).isInstanceOfSatisfying(ApiException.class, failure -> {
+            assertThat(failure.code()).isEqualTo(ErrorCode.SEPA_NOT_CONFIGURED);
+            assertThat(failure.details()).isEqualTo(Map.of("reason", "IDENTIFIER", "field", field));
+            assertThat(failure.getMessage()).doesNotContain(invalid);
+        });
     }
 
     // ---- fixtures

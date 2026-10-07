@@ -145,6 +145,11 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
         if (iban != null) { method.put("iban", iban); method.put("mandateRef", "bill-a-mandate"); }
         return method;
     }
+    static String debtorIban(int memberNumber) {
+        String bban = String.format("%020d", memberNumber);
+        int check = 98 - new java.math.BigInteger(bban + "142800").mod(java.math.BigInteger.valueOf(97)).intValue();
+        return String.format("ES%02d%s", check, bban);
+    }
     static Map<String, Object> card(boolean invalid) {
         return Map.of("type", "CARD", "card", Map.of("stripeCustomerId", "cus_fixture", "last4", "4242", "invalid", invalid));
     }
@@ -153,6 +158,7 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
         if (payment != null && payment.containsKey("mandateRef")) {
             // E8-T03: each SEPA member has its own mandate `{clubSlug}-{memberNumber}-1`, signed on 15-06 (R-12-12 `MndtId`, `DtOfSgntr`).
             payment = new LinkedHashMap<>(payment);
+            payment.put("iban", debtorIban(number)); payment.put("holderName", first + " " + last + " Example");
             payment.put("mandateRef", CLUB + "-" + number + "-1"); payment.put("mandateSignedAt", Date.from(Instant.parse("2026-06-15T10:00:00Z")));
         }
         mongo.save(new Document("_id", id).append("clubId", CLUB).append("status", "ACTIVE").append("memberNumber", number).append("firstName", first)

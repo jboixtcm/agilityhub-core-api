@@ -90,8 +90,7 @@ public class BillingRunService {
         boolean sepa = !included.isEmpty() || drafts.stream().anyMatch(draft -> method(plan, draft) == PaymentMethodType.SEPA_DD);
         LocalDate collectionDate = null;
         if (sepa) {
-            Integer day = context.parameter("billing.sepa.collectionDayOfMonth", Integer.class);
-            collectionDate = requestedCollectionDate != null ? requestedCollectionDate : CollectionDates.defaultDate(period, day == null ? 1 : day);
+            collectionDate = requestedCollectionDate != null ? requestedCollectionDate : BillingSimulationService.collectionDate(plan);
             if (CollectionDates.tooSoon(collectionDate, issueDate)) {
                 throw new ApiException(ErrorCode.COLLECTION_DATE_TOO_SOON, Map.of("requested", collectionDate.toString(),
                         "earliest", CollectionDates.earliest(issueDate).toString()));
@@ -118,7 +117,7 @@ public class BillingRunService {
         // R-12-19: each waiting manual receipt gets a new SEPA_XML attempt in this remittance and goes COLLECTING.
         var remitted = new ArrayList<Invoice>(); var remittedAttempts = new ArrayList<Collection>();
         for (var receipt : included) {
-            var attempt = remittedAttempt(receipt, collections.forInvoice(receipt.id()), remittanceId, now);
+            var attempt = remittedAttempt(receipt, plan.member(receipt.memberId()), collections.forInvoice(receipt.id()), remittanceId, now);
             collections.insert(attempt);
             sepaAttempts.add(attempt); remittedAttempts.add(attempt);
             var state = InvoiceState.of(receipt, now, actor).status(InvoiceStatus.COLLECTING).remittance(remittanceId);
@@ -201,7 +200,7 @@ public class BillingRunService {
             var last = attempts.stream().filter(attempt -> attempt.invoiceId().equals(invoice.id())).reduce((a, b) -> b).orElse(null);
             collections.insert(new Collection(UUID.randomUUID().toString(), invoice.clubId(), invoice.id(), last == null ? provider(invoice.paymentMethod().type()) : last.provider(),
                     invoice.total(), CollectionStatus.FAILED, null, invoice.remittanceId(), last == null ? 1 : last.attempt(), ROLLBACK, reason, List.of(), now, now,
-                    last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null));
+                    last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null, last == null ? null : last.mandateSignedAt()));
             events.publish(BillingEvent.Kind.InvoiceCancelled, invoice.id(), Map.of("invoiceId", invoice.id(), "reason", ROLLBACK));
         }
         var remittance = remittances.forRun(runId).orElse(null);
@@ -212,7 +211,7 @@ public class BillingRunService {
             var last = collections.forInvoice(receipt.id()).stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);
             collections.insert(new Collection(UUID.randomUUID().toString(), receipt.clubId(), receipt.id(), CollectionProvider.SEPA_XML, receipt.total(),
                     CollectionStatus.FAILED, null, remittance.id(), last == null ? 1 : last.attempt(), ROLLBACK, reason, List.of(), now, now,
-                    last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null));
+                    last == null ? null : last.mandateRef(), last == null ? null : last.endToEndId(), null, null, last == null ? null : last.mandateSignedAt()));
             var state = InvoiceState.of(receipt, now, actor).status(InvoiceStatus.PENDING).remittance(null);
             if (!invoices.transition(receipt.id(), receipt.version(), state)) { throw new ApiException(ErrorCode.STALE_VERSION); }
             returned.add(receipt.id());
@@ -272,7 +271,7 @@ public class BillingRunService {
     /**
      * R-12-07: something billing reads changed after the simulation was taken — the members, family groups, plans and
      * prices, the `billing.*` parameters, and the club's own configuration (its payment providers and modules, round 2). E8-T07
-     * step 3: also the unbilled charges the run bills and the waiting `includeInNextRun` receipts it checks, compared as sets with
+     * step 3: also the unbilled charges the run bills and the waiting `includeInNextRun` receipts it remits, compared as sets with
      * the simulation's — a charge or a flagged receipt created after it (or voided, cancelled, returned by a rollback since).
      */
     boolean stale(BillingSimulation simulation, InvoicingService.MonthPlan plan) {
@@ -295,7 +294,10 @@ public class BillingRunService {
         plan.month().skipped().forEach(skip -> skipped.add(new BillingRun.Skipped(skip.memberId(), BillingSimulationService.name(plan.member(skip.memberId())), skip.code())));
         for (var waiting : plan.waiting()) {
             var receipt = waiting.invoice();
-            if (waiting.incident() != null && skipped.stream().noneMatch(skip -> skip.memberId().equals(receipt.memberId()) && skip.code() == waiting.incident())) {
+            if (waiting.incident() != null && plan.month().invoices().stream().noneMatch(draft -> draft.payerId().equals(receipt.memberId())
+                            || draft.advances().stream().anyMatch(advance -> advance.memberId().equals(receipt.memberId()))
+                            || draft.lines().stream().anyMatch(line -> receipt.memberId().equals(line.forMemberId())))
+                    && skipped.stream().noneMatch(skip -> skip.memberId().equals(receipt.memberId()) && skip.code() == waiting.incident())) {
                 skipped.add(new BillingRun.Skipped(receipt.memberId(), waiting.memberName(), waiting.incident()));
             }
         }
@@ -345,13 +347,13 @@ public class BillingRunService {
         boolean sepa = provider == CollectionProvider.SEPA_XML;
         return new Collection(UUID.randomUUID().toString(), invoice.clubId(), invoice.id(), provider, invoice.total(), CollectionStatus.CREATED, null,
                 sepa ? remittanceId : null, 1, null, null, List.of(), now, null, sepa ? invoice.paymentMethod().mandateRef() : null,
-                sepa ? invoice.displayNumber() : null, provider == CollectionProvider.MANUAL ? invoice.paymentMethod().channel() : null, null);
+                sepa ? invoice.displayNumber() : null, provider == CollectionProvider.MANUAL ? invoice.paymentMethod().channel() : null, null, sepa ? payer.paymentMethod().mandateSignedAt() : null);
     }
     /** R-12-19: a waiting manual receipt's attempt in the run's remittance — its next attempt number, `EndToEndId` its number. */
-    private static Collection remittedAttempt(Invoice receipt, List<Collection> earlier, String remittanceId, Instant now) {
+    private static Collection remittedAttempt(Invoice receipt, BillingMember member, List<Collection> earlier, String remittanceId, Instant now) {
         int attempt = earlier.isEmpty() ? 1 : earlier.getLast().attempt() + 1;
         return new Collection(UUID.randomUUID().toString(), receipt.clubId(), receipt.id(), CollectionProvider.SEPA_XML, receipt.total(), CollectionStatus.CREATED, null,
-                remittanceId, attempt, null, null, List.of(), now, null, receipt.paymentMethod().mandateRef(), receipt.displayNumber(), null, null);
+                remittanceId, attempt, null, null, List.of(), now, null, member.paymentMethod().mandateRef(), receipt.displayNumber(), null, null, member.paymentMethod().mandateSignedAt());
     }
     private static PaymentMethodType method(InvoicingService.MonthPlan plan, InvoicingRules.Draft draft) {
         return InvoicingService.member(plan.member(draft.payerId())).method();

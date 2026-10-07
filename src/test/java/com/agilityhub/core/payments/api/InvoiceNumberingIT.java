@@ -112,9 +112,11 @@ class InvoiceNumberingIT extends BillingItSupport {
             var command = new Document(entry.get("command", Document.class));
             for (String key : List.of("lsid", "$db", "$clusterTime", "$readPreference", "txnNumber", "autocommit", "startTransaction", "readConcern")) { command.remove(key); }
             var explain = db.runCommand(new Document("explain", command).append("verbosity", "queryPlanner"));
-            System.out.println("E8-T07 explain " + labels.get(i) + " · planSummary " + entry.getString("planSummary") + " · hasSortStage "
+            if (Boolean.getBoolean("agilityhub.evidence")) {
+                System.out.println("E8-T07 explain " + labels.get(i) + " · planSummary " + entry.getString("planSummary") + " · hasSortStage "
                     + entry.getBoolean("hasSortStage", false) + " · keysExamined " + entry.get("keysExamined") + " · docsExamined " + entry.get("docsExamined")
                     + "\n  command " + command.toJson() + "\n  winningPlan " + Objects.requireNonNullElse(winningPlan(explain), explain).toJson());
+            }
         }
         for (int i = 0; i < 2; i++) {
             var entry = profiled.get(i);

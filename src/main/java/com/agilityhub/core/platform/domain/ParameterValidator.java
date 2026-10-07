@@ -38,6 +38,11 @@ public class ParameterValidator {
             if (pattern != null) { require(value instanceof String text && text.matches(pattern.toString())); }
             String validator = (String) definition.constraints().getOrDefault("validator", "");
             switch (validator) {
+                case "invoiceSeries" -> {
+                    String series = ((String) value).replace("{YYYY}", "2000");
+                    require(!series.isBlank() && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(series)
+                            && series.strip().length() + 5 <= 35);
+                }
                 case "weekOpensAt" -> {
                     Map<?, ?> week = (Map<?, ?>) value;
                     DayOfWeek.valueOf((String) week.get("dayOfWeek")); time(week.get("time"));

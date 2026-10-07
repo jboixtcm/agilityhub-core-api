@@ -13,7 +13,7 @@ class SepaDirectDebitsTest {
 
     @Test void T_12_06_textsAreInTheSepaCharacterSetAndCutOnACharacterBoundary() {
         assertThat(SepaText.of("Cànic · Núria", 140)).isEqualTo("Canic - Nuria");
-        assertThat(SepaText.of("Quota Abonat — Setembre 2026", 140)).isEqualTo("Quota Abonat Setembre 2026");
+        assertThat(SepaText.of("Quota Abonat — Setembre 2026", 140)).isEqualTo("Quota Abonat - Setembre 2026");
         assertThat(SepaText.of("Col·legi «Ñandú» ŀl Çà & ß 50%", 140)).isEqualTo("Col-legi Nandu l-l Ca 50");
         assertThat(SepaText.of("  Joan   O'Brien (Jr.) +34/1:2? ", 140)).isEqualTo("Joan O'Brien (Jr.) +34/1:2?");
         assertThat(SepaText.of(null, 140)).isEmpty();

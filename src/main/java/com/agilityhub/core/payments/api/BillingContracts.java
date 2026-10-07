@@ -132,8 +132,12 @@ public final class BillingContracts {
     public record ByProvider(@JsonProperty("SEPA_XML") @Schema(name = "SEPA_XML", requiredMode = NOT_REQUIRED) ProviderTotals sepaXml,
             @JsonProperty("STRIPE") @Schema(name = "STRIPE", requiredMode = NOT_REQUIRED) ProviderTotals stripe,
             @JsonProperty("MANUAL") @Schema(name = "MANUAL", requiredMode = NOT_REQUIRED) ProviderTotals manual) { }
-    @Schema(description = "R-12-07: a member the simulation (or the run, skipped[]) leaves out")
-    public record BillingIncident(@Schema(format = "uuid") String memberId, String memberName, BillingIncidentCode code) { }
+    @Schema(description = "R-12-07: a member-level or waiting-receipt incident; skipped[] only contains members not billed by the run")
+    public record BillingIncident(@Schema(format = "uuid") String memberId, String memberName, BillingIncidentCode code,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, format = "uuid", description = "Waiting receipts only") String invoiceId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Waiting receipts only") String displayNumber) {
+        public BillingIncident(String memberId, String memberName, BillingIncidentCode code) { this(memberId, memberName, code, null, null); }
+    }
     @Schema(description = "D6 «Actius amb pagament en efectiu»: plannedLeaveDate = the member's leaveDate (S13), null without one")
     public record CashMember(@Schema(format = "uuid") String memberId, String memberName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate plannedLeaveDate) { }
@@ -147,7 +151,8 @@ public final class BillingContracts {
     @Schema(description = "D6 KPI «Quota d'inactivitat · {count} · {firstMonth} el 1r mes · {following}/mes»")
     public record InactivityFees(@Schema(minimum = "0") int count, Money firstMonth, Money following) { }
     public record SimulationKpis(@Schema(minimum = "0") int count, Money total, ByProvider byProvider, @Schema(minimum = "0") int cashPending,
-            InactivityFees inactivityFees) { }
+            InactivityFees inactivityFees,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Default collection date in the billed month, club-local; null for a simulation stored before E90") LocalDate collectionDate) { }
     @Schema(description = "S12 §6 simulation JSON (R-12-07) plus its id, which POST /billing/runs names; only the last one per month is kept")
     public record BillingSimulation(@Schema(format = "uuid") String id, @Schema(pattern = MONTH) String period, Instant at, List<BillingIncident> incidents,
             List<CashMember> cashMembers, SimulationKpis kpis, List<InvoicePreview> invoicesPreview) { }

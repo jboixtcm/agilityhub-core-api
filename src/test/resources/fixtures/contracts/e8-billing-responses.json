@@ -87,7 +87,7 @@
     "simulation": {"id": "3c4d5e6f-0000-4000-8000-000000000003", "at": "2026-08-25T09:12:00Z",
                    "kpis": {"count": 168, "total": {"amountMinor": 648000, "currency": "EUR"},
                             "byProvider": {"SEPA_XML": {"count": 162, "total": {"amountMinor": 624000, "currency": "EUR"}}, "MANUAL": {"count": 4, "total": {"amountMinor": 24000, "currency": "EUR"}}},
-                            "cashPending": 4, "inactivityFees": {"count": 2, "firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "following": {"amountMinor": 1000, "currency": "EUR"}}},
+                            "collectionDate": "2026-09-01", "cashPending": 4, "inactivityFees": {"count": 2, "firstMonth": {"amountMinor": 2000, "currency": "EUR"}, "following": {"amountMinor": 1000, "currency": "EUR"}}},
                    "incidents": [{"memberId": "1a2b3c4d-0000-4000-8000-000000000002", "memberName": "Joan Vila Example", "code": "NO_BANK_ACCOUNT"}],
                    "cashMembers": [{"memberId": "1a2b3c4d-0000-4000-8000-000000000002", "memberName": "Joan Vila Example", "plannedLeaveDate": "2026-12-31"}]},
     "run": {"id": "2b3c4d5e-0000-4000-8000-000000000002", "status": "GENERATED",
@@ -141,5 +141,7 @@
   "BulkPaymentResult": {"paid": 0, "invoices": []},
   "RunNotRollbackableDetails": {"reasons": ["REMITTANCE_SUBMITTED", "MANUAL_INVOICE_AFTER"]},
   "CollectionDateTooSoonDetails": {"requested": "2026-08-26", "earliest": "2026-08-27"},
-  "MaxAttemptsDetails": {"attempts": 3, "max": 3}
+  "MaxAttemptsDetails": {"attempts": 3, "max": 3},
+  "BillingIncident#waitingReceipt": {"memberId": "1a2b3c4d-0000-4000-8000-000000000001", "memberName": "Example",
+    "code": "MEMBER_NOT_ACTIVE", "invoiceId": "6f1c2a40-5b7e-4c1a-9d3e-2a1b0c9d8e71", "displayNumber": "2026-0001"}
 }

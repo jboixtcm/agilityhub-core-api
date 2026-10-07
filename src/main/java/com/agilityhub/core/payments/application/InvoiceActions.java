@@ -89,7 +89,7 @@ public class InvoiceActions {
         Instant failedAt = instant(at, "at"), now = clock.instant();
         collections.insert(new Collection(UUID.randomUUID().toString(), invoice.clubId(), id, CollectionProvider.SEPA_XML, invoice.total(), CollectionStatus.FAILED, null,
                 sepa == null ? invoice.remittanceId() : sepa.remittanceId(), sepa == null ? 1 : sepa.attempt(), BANK_RETURN, reason, List.of(), now, failedAt,
-                sepa == null ? invoice.paymentMethod().mandateRef() : sepa.mandateRef(), sepa == null ? invoice.displayNumber() : sepa.endToEndId(), null, null));
+                sepa == null ? invoice.paymentMethod().mandateRef() : sepa.mandateRef(), sepa == null ? invoice.displayNumber() : sepa.endToEndId(), null, null, sepa == null ? invoice.paymentMethod().mandateSignedAt() : sepa.mandateSignedAt()));
         var after = move(invoice, InvoiceState.of(invoice, now, BillingEvents.actor()).status(InvoiceStatus.FAILED).failed(failedAt, reason));
         events.publish(BillingEvent.Kind.InvoiceFailed, id, Map.of("invoiceId", id, "provider", CollectionProvider.SEPA_XML.name(), "reason", BANK_RETURN));
         audit.write(new AuditCommand(AuditAction.INVOICE_MARKED_FAILED, "Invoice", id, invoice.memberId(), invoice, after, reason));
