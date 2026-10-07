@@ -36,6 +36,13 @@ public class LeaveController {
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.CensusQuery queries;
     private <T> T mapped(Object value, Class<T> type) { return mapper.convertValue(value, type); }
+    private <T> T keyed(int status, java.util.function.Supplier<T> work) {
+        return transactions.keyed(status, work, value -> {
+            if (status == 204) { return new byte[0]; }
+            try { return mapper.writeValueAsBytes(value); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+    }
     private final LifecycleContractAccess access;
     public LeaveController(LifecycleContractAccess access) { this.access = access; }
 
@@ -66,7 +73,7 @@ public class LeaveController {
             responses = @ApiResponse(responseCode = "201", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest requestLeave(@Valid @RequestBody LeaveCreateRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMe();
-        return transactions.run(() -> mapped(views.request(service.request(access.callerMember(), request.requestedDate(), request.reasonKey(), request.nps(), request.comment())), LeaveRequest.class));
+        return keyed(201, () -> mapped(views.request(service.request(access.callerMember(), request.requestedDate(), request.reasonKey(), request.nps(), request.comment())), LeaveRequest.class));
     }
 
     @PostMapping("/api/v1/me/leave-requests/{id}/cancellation")
@@ -79,7 +86,7 @@ public class LeaveController {
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest withdrawMyLeave(@PathVariable String id) {
         access.mutableMe();
-        access.ownRequest(id); return transactions.run(() -> mapped(views.request(service.withdraw(id)), LeaveRequest.class));
+        access.ownRequest(id); return keyed(200, () -> mapped(views.request(service.withdraw(id)), LeaveRequest.class));
     }
 
     @GetMapping("/api/v1/leave-requests")
@@ -121,7 +128,7 @@ public class LeaveController {
             responses = @ApiResponse(responseCode = "200", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest decideLeave(@PathVariable String id, @Valid @RequestBody LeaveDecisionRequest request) {
         access.request(id);
-        return transactions.run(() -> mapped(views.request(service.decide(id, request.decision(), request.effectiveDate(), request.note())), LeaveRequest.class));
+        return keyed(200, () -> mapped(views.request(service.decide(id, request.decision(), request.effectiveDate(), request.note())), LeaveRequest.class));
     }
 
     @PostMapping("/api/v1/members/{id}/leave")
@@ -134,7 +141,7 @@ public class LeaveController {
             responses = @ApiResponse(responseCode = "201", description = "LeaveRequest", useReturnTypeSchema = true))
     public LeaveRequest scheduleLeave(@PathVariable String id, @Valid @RequestBody DirectLeaveRequest request) {
         access.mutableMember(id);
-        return transactions.run(() -> mapped(views.request(service.direct(id, request.effectiveDate(), request.reasonKey(), request.note())), LeaveRequest.class));
+        return keyed(201, () -> mapped(views.request(service.direct(id, request.effectiveDate(), request.reasonKey(), request.note())), LeaveRequest.class));
     }
 
     @DeleteMapping("/api/v1/members/{id}/planned-leave")
@@ -147,7 +154,7 @@ public class LeaveController {
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void cancelPlannedLeave(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(id);
-        transactions.run(() -> { service.cancelPlanned(id); return null; });
+        keyed(204, () -> { service.cancelPlanned(id); return null; });
     }
 
     @PostMapping("/api/v1/members/{id}/reactivation")
@@ -159,6 +166,6 @@ public class LeaveController {
             + "Not LEFT → 422 MEMBER_NOT_LEFT (rule 0, S13 writes 409).",
             responses = @ApiResponse(responseCode = "200", description = "Member", useReturnTypeSchema = true))
     public CensusResponses.Member reactivateMember(@PathVariable String id, @Valid @RequestBody ReactivationRequest request) {
-        return transactions.run(() -> { service.reactivate(id, request.planId(), request.priceId(), request.nextInvoiceDate()); return mapped(queries.member(id, true), CensusResponses.Member.class); });
+        return keyed(200, () -> { service.reactivate(id, request.planId(), request.priceId(), request.nextInvoiceDate()); return mapped(queries.member(id, true), CensusResponses.Member.class); });
     }
 }

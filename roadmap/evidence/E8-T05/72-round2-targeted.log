@@ -1,0 +1,38 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+17:18:07.610 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 3.695 s <<< FAILURE! -- in com.agilityhub.core.arch.ArchitectureTest
+[ERROR] com.agilityhub.core.arch.ArchitectureTest.E0_T01_crossContextAccessUsesApplication -- Time elapsed: 0.082 s <<< FAILURE!
+java.lang.AssertionError: 
+Architecture Violation [Priority: MEDIUM] - Rule 'classes should access other contexts only through their application packages' was violated (2 times):
+Method <com.agilityhub.core.clubs.bookings.application.DemoMembers.preparePack(java.lang.String, com.agilityhub.core.clubs.bookings.application.DemoMembers$Candidate, boolean, java.time.Instant)> calls method <com.agilityhub.core.clubs.catalogs.persistence.Price.id()> in (DemoMembers.java:70)
+Method <com.agilityhub.core.clubs.bookings.application.DemoMembers.preparePack(java.lang.String, com.agilityhub.core.clubs.bookings.application.DemoMembers$Candidate, boolean, java.time.Instant)> gets field <com.agilityhub.core.clubs.catalogs.domain.OfferTerms$PriceConcept.PACK> in (DemoMembers.java:69)
+	at com.tngtech.archunit.lang.ArchRule$Assertions.assertNoViolation(ArchRule.java:94)
+	at com.tngtech.archunit.lang.ArchRule$Assertions.check(ArchRule.java:86)
+	at com.tngtech.archunit.lang.ArchRule$Factory$SimpleArchRule.check(ArchRule.java:165)
+	at com.tngtech.archunit.lang.syntax.ObjectsShouldInternal.check(ObjectsShouldInternal.java:81)
+	at com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor$ArchUnitRuleDescriptor.execute(ArchUnitTestDescriptor.java:168)
+	at com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor$ArchUnitRuleDescriptor.execute(ArchUnitTestDescriptor.java:151)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   ArchitectureTest.E0_T01_crossContextAccessUsesApplication Architecture Violation [Priority: MEDIUM] - Rule 'classes should access other contexts only through their application packages' was violated (2 times):
+Method <com.agilityhub.core.clubs.bookings.application.DemoMembers.preparePack(java.lang.String, com.agilityhub.core.clubs.bookings.application.DemoMembers$Candidate, boolean, java.time.Instant)> calls method <com.agilityhub.core.clubs.catalogs.persistence.Price.id()> in (DemoMembers.java:70)
+Method <com.agilityhub.core.clubs.bookings.application.DemoMembers.preparePack(java.lang.String, com.agilityhub.core.clubs.bookings.application.DemoMembers$Candidate, boolean, java.time.Instant)> gets field <com.agilityhub.core.clubs.catalogs.domain.OfferTerms$PriceConcept.PACK> in (DemoMembers.java:69)
+[ERROR] Tests run: 25, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

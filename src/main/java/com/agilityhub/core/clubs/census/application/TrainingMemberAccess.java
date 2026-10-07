@@ -89,6 +89,7 @@ public class TrainingMemberAccess {
      * (two members of a family group booking it on two rings at the same time).
      */
     public void touchTrainingSeq(boolean dogUnit, String dogId, String memberId) {
+        access.members.lockBookingEligibility(access.dogs.require(dogId).memberId);
         access.dogs.increment(dogId, "trainingSeq");
         if (!dogUnit) { access.members.increment(memberId, "trainingSeq"); }
     }

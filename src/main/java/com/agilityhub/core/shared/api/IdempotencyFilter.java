@@ -77,7 +77,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      */
     static final java.util.regex.Pattern BILLING = java.util.regex.Pattern.compile("POST /api/v1/billing/(simulations|runs|runs/[^/]+/(rollback|card-charges))"
             + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation|retry|refund)"
-            + "|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
+            + "|POST /api/v1/pack-balances(/[^/]+/adjustments)?|POST /api/v1/upfront-payments|POST /api/v1/members/[^/]+/plan-change|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
+
+    /** S13 mutations retry and store the response in LifecycleTransactions, including optional keyed admin actions. */
+    static final java.util.regex.Pattern LIFECYCLE = java.util.regex.Pattern.compile("POST /api/v1/(me/)?inactivity-periods(/[^/]+/(decision|termination|cancellation))?"
+            + "|POST /api/v1/(me/)?leave-requests(/[^/]+/(decision|cancellation))?"
+            + "|POST /api/v1/members/[^/]+/(leave|reactivation)|DELETE /api/v1/members/[^/]+/planned-leave");
 
     /**
      * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header
@@ -182,7 +187,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         boolean followup = FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
         // S12 (E8-T02): the billing writes, like the follow-up ones; an error releases the key.
         boolean billing = BILLING.matcher(request.getMethod() + " " + path).matches();
-        if (bookings || signup || followup || billing || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        if (bookings || signup || followup || billing || LIFECYCLE.matcher(request.getMethod() + " " + path).matches() || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;

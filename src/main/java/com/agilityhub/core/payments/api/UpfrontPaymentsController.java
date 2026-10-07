@@ -31,6 +31,12 @@ public class UpfrontPaymentsController {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingTransactions transactions;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.ManualUpfrontPayments manual;
+    private <T> T keyed(int status, java.util.function.Supplier<T> work) {
+        return transactions.keyed(status, work, value -> {
+            try { return mapper.writeValueAsBytes(value); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+    }
     private final BillingContractAccess access;
     public UpfrontPaymentsController(BillingContractAccess access) { this.access = access; }
 
@@ -56,7 +62,7 @@ public class UpfrontPaymentsController {
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMember(request.memberId());
         if (request.dogId() != null) { access.memberDog(request.memberId(), request.dogId()); }
-        return transactions.run(() -> mapper.convertValue(manual.record(request.memberId(), request.dogId(), request.concept().name(), request.amountDue(), request.amountPaid(),
+        return keyed(201, () -> mapper.convertValue(manual.record(request.memberId(), request.dogId(), request.concept().name(), request.amountDue(), request.amountPaid(),
                 request.channel().name(), request.paidAt(), request.reference(), request.note()), UpfrontPayment.class));
     }
 

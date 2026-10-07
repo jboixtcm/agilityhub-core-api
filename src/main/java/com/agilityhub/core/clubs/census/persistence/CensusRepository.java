@@ -138,6 +138,11 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     public boolean updateFirst(Criteria criteria, Update update) {
         return mongo.updateFirst(tenantQuery().addCriteria(criteria), update, type).getModifiedCount() == 1;
     }
+    /** S13: write the owner's member document before eligibility reads and the inactivity cancellation sweep.
+     * Mongo detects competing snapshots across instances; the caller retries the whole transaction.
+     * This technical counter is not a user-editable version or part of an audit payload.
+     */
+    public void lockBookingEligibility(String memberId) { increment(memberId, "bookingEligibilitySeq"); }
     public void lock() {
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require() + ":census")), new Update().inc("sequence", 1), "census_write_locks");
     }

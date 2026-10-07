@@ -50,7 +50,7 @@ public class InactivityPeriodService {
     @Transactional
     @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#result.id", member = "#memberId")
     public InactivityPeriod request(String memberId, String from, String to, String comments, boolean admin, boolean override) {
-        census.require(Module.INACTIVITY); census.members.lock(); validMember(memberId);
+        census.require(Module.INACTIVITY); census.members.lock(); census.members.lockBookingEligibility(memberId); validMember(memberId);
         InactivityCalendar.request(ym(from), ym(to), earliest(), census.config().get("inactivity.maxStartMonthsAhead", Integer.class), override);
         overlap(memberId, null, from, to);
         var e = new InactivityEdit(); var user = CurrentUser.current();
@@ -67,7 +67,7 @@ public class InactivityPeriodService {
     @Transactional
     @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#id")
     public InactivityPeriod decide(String id, LifecycleDecision decision, String note) {
-        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id);
+        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id); census.members.lockBookingEligibility(old.memberId());
         if (old.state() != InactivityState.REQUESTED) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_STATE); }
         var e = new InactivityEdit(old);
         if (decision == LifecycleDecision.APPROVED) { validMember(old.memberId()); approve(e, note, false); }
@@ -90,7 +90,7 @@ public class InactivityPeriodService {
     @Transactional
     @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#id")
     public InactivityPeriod change(String id, Map<String, Object> patch, long version, boolean admin, boolean override) {
-        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id);
+        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id); census.members.lockBookingEligibility(old.memberId());
         if (old.version() != version) { throw new ApiException(ErrorCode.STALE_VERSION); }
         if (!LIVE.contains(old.state())) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_STATE); }
         if (old.state() == InactivityState.ACTIVE && (patch.containsKey("fromMonth") && !Objects.equals(patch.get("fromMonth"), old.fromMonth())
@@ -106,8 +106,16 @@ public class InactivityPeriodService {
         if (override && e.decision != null) { e.decision = new InactivityPeriod.Decision(e.decision.at(), e.decision.byAccountId(), e.decision.decision(), e.decision.note(), true); }
         if (old.state() != InactivityState.REQUESTED) {
             var added = new ArrayList<>(old.cancelledBookings());
-            if (ym(e.fromMonth).isBefore(ym(old.fromMonth()))) { added.addAll(cancelInside(e.memberId, e.fromMonth, ym(old.fromMonth()).minusMonths(1).toString())); }
-            if (old.toMonth() != null && (e.toMonth == null || ym(e.toMonth).isAfter(ym(old.toMonth())))) { added.addAll(cancelInside(e.memberId, ym(old.toMonth()).plusMonths(1).toString(), e.toMonth)); }
+            if (ym(e.fromMonth).isBefore(ym(old.fromMonth()))) {
+                var end = ym(old.fromMonth()).minusMonths(1);
+                if (e.toMonth != null && ym(e.toMonth).isBefore(end)) { end = ym(e.toMonth); }
+                added.addAll(cancelInside(e.memberId, e.fromMonth, end.toString()));
+            }
+            if (old.toMonth() != null && (e.toMonth == null || ym(e.toMonth).isAfter(ym(old.toMonth())))) {
+                var start = ym(old.toMonth()).plusMonths(1);
+                if (ym(e.fromMonth).isAfter(start)) { start = ym(e.fromMonth); }
+                added.addAll(cancelInside(e.memberId, start.toString(), e.toMonth));
+            }
             e.cancelledBookings = List.copyOf(added);
         }
         var result = save(e, old.version());
@@ -118,7 +126,7 @@ public class InactivityPeriodService {
     @Transactional
     @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#id")
     public InactivityPeriod cancel(String id, boolean admin) {
-        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id);
+        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id); census.members.lockBookingEligibility(old.memberId());
         if (old.state() == InactivityState.CANCELLED) { return old; }
         if (admin ? old.state() != InactivityState.APPROVED || !ym(old.fromMonth()).isAfter(month())
                 : old.state() != InactivityState.REQUESTED && old.state() != InactivityState.APPROVED) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_STATE); }
@@ -129,8 +137,9 @@ public class InactivityPeriodService {
     @Transactional
     @Audited(action = AuditAction.INACTIVITY_RESOLVED, entityType = "'InactivityPeriod'", entity = "#id")
     public InactivityPeriod terminate(String id, String to) {
-        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id);
+        census.require(Module.INACTIVITY); census.members.lock(); var old = get(id); census.members.lockBookingEligibility(old.memberId());
         if (old.state() != InactivityState.ACTIVE) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_STATE); }
+        if (to == null || old.toMonth() != null && ym(to).isAfter(ym(old.toMonth()))) { throw new ApiException(ErrorCode.INACTIVITY_INVALID_RANGE); }
         InactivityCalendar.range(ym(old.fromMonth()), ym(to)); var e = new InactivityEdit(old); e.toMonth = to;
         var h = new ArrayList<>(e.history); h.add(new InactivityPeriod.HistoryEntry(clock.instant(), actor(), e.fromMonth, to, ChangeSource.ADMIN)); e.history = List.copyOf(h);
         if (ym(to).isBefore(month())) { e.state = InactivityState.FINISHED; e.finishReason = InactivityFinishReason.ADMIN; e.finishedAt = clock.instant(); }
@@ -153,6 +162,7 @@ public class InactivityPeriodService {
         } else { return; }
         var saved = save(e, p.version());
         if (e.state == InactivityState.CANCELLED) { emit("InactivityCancelled", saved, Map.of("by", LifecycleCanceller.SYSTEM, "reason", InactivityCancelReason.LEAVE)); }
+        else if (e.state == InactivityState.FINISHED) { emit("InactivityEnded", saved, Map.of()); }
     }
     void cancelled(InactivityEdit e, LifecycleCanceller by, InactivityCancelReason reason) {
         e.state = InactivityState.CANCELLED; e.cancelledAt = clock.instant(); e.cancelledBy = by; e.cancelReason = reason;

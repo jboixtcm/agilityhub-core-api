@@ -24,6 +24,8 @@ public class BookingMemberAccess {
     private final CensusAccess access;
     public BookingMemberAccess(CensusAccess access) { this.access = access; }
 
+    /** Called inside a booking transaction, before eligibility is read (S13 R-13-06/07). */
+    public void lockBooking(String memberId) { access.members.lockBookingEligibility(memberId); }
     public Optional<Member> member(String id) {
         if (id == null) { return Optional.empty(); }
         return access.members.findById(id).filter(m -> m.erasedAt == null).map(this::view);

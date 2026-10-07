@@ -320,7 +320,9 @@ class LifecycleIT extends BookingFixtures {
         var partial = call(POST, "/upfront-payments", body, as("admin"), 201, UUID.randomUUID().toString());
         assertThat(partial.path("status").asText()).isEqualTo("PARTIAL"); assertThat(count("pack_balances", new Criteria())).isZero();
         body.put("amountPaid", body.get("amountDue"));
-        var paid = call(POST, "/upfront-payments", body, as("admin"), 201, UUID.randomUUID().toString());
+        String paymentKey = UUID.randomUUID().toString();
+        var paid = call(POST, "/upfront-payments", body, as("admin"), 201, paymentKey);
+        assertThat(call(POST, "/upfront-payments", body, as("admin"), 201, paymentKey)).isEqualTo(paid);
         assertThat(paid.path("status").asText()).isEqualTo("PAID"); assertThat(count("pack_balances", new Criteria())).isEqualTo(1);
         String pack = paid.path("packBalanceId").asText();
         try (var t = TenantContext.open(CLUB)) {
@@ -356,6 +358,86 @@ class LifecycleIT extends BookingFixtures {
         assertThat(call(POST, "/me/leave-requests", Map.of("requestedDate", "2026-10-31", "reasonKey", "EXTERNAL", "nps", 8), as("laura"), 403, UUID.randomUUID().toString()).path("code").asText()).isEqualTo("READ_ONLY");
         var r = call(POST, "/me/leave-requests", Map.of("requestedDate", "2026-10-31", "reasonKey", "EXTERNAL"), as("laura"), 201, UUID.randomUUID().toString());
         assertThat(call(POST, "/me/leave-requests/"+r.path("id").asText()+"/cancellation", null, as("laura"), 200).path("state").asText()).isEqualTo("CANCELLED");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"2026-12,2027-01,2027-03,2027-04,2027-02,2027-03", "2027-03,2027-04,2026-12,2027-01,2027-02,2027-01"})
+    void T_13_13_movingAnApprovedPeriodCancelsOnlyNewMonths(String oldFrom, String oldTo,
+            String newFrom, String newTo, String gap, String included) throws Exception {
+        var id = requestPeriod(oldFrom, oldTo);
+        var approved = call(POST, "/inactivity-periods/"+id+"/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        var outside = book(as("laura"), "thu", "s08-d-duna");
+        var inside = book(as("laura"), "mon", "s08-d-rock");
+        moveBooking(outside.path("id").asText(), gap+"-12T18:50");
+        moveBooking(inside.path("id").asText(), included+"-12T18:50");
+        var changed = call(PATCH, "/me/inactivity-periods/"+id,
+                Map.of("fromMonth", newFrom, "toMonth", newTo, "version", approved.path("version").asLong()), as("laura"), 200);
+        assertThat(booking(outside.path("id").asText()).getString("state")).isEqualTo("ACTIVE");
+        assertThat(booking(inside.path("id").asText()).getString("state")).isEqualTo("CANCELLED");
+        assertThat(changed.path("cancelledBookings")).hasSize(1);
+        dispatch(); assertThat(count("notifications", Criteria.where("code").is("N-18d"))).isPositive();
+    }
+    void moveBooking(String id, String dateTime) {
+        var start = local(dateTime); var end = start.plusSeconds(3600);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(booking(id).getString("classSessionId"))),
+                new Update().set("date", dateTime.substring(0, 10)).set("startsAt", Date.from(start)).set("endsAt", Date.from(end)), "class_sessions");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("classStartsAt", Date.from(start)).set("classEndsAt", Date.from(end)), "bookings");
+    }
+    @Test void T_13_13_terminationRejectsAnExtensionAndLeavesBookingsAndHistoryAlone() throws Exception {
+        var active = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-11", "overrideDeadline", true), as("admin"), 201);
+        var id = active.path("id").asText();
+        var response = call(POST, "/inactivity-periods/"+id+"/termination", Map.of("toMonth", "2026-12"), as("admin"), 422);
+        assertThat(response.path("code").asText()).isEqualTo("INACTIVITY_INVALID_RANGE");
+        assertThat(call(GET, "/inactivity-periods/"+id, null, as("admin"), 200)).isEqualTo(active);
+        assertThat(events("InactivityChanged")).isZero();
+    }
+    @Test void T_13_13_addedMonthsCancelBookingsAndDeliverN18d() throws Exception {
+        var booking = book(as("laura"), "thu", "s08-d-duna");
+        moveBooking(booking.path("id").asText(), "2027-01-12T18:50");
+        var active = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-12", "overrideDeadline", true), as("admin"), 201);
+        clock.setInstant(local("2026-12-10T12:00"));
+        var extended = call(PATCH, "/me/inactivity-periods/"+active.path("id").asText(),
+                Map.of("toMonth", "2027-02", "version", active.path("version").asLong()), as("laura"), 200);
+        assertThat(extended.path("history")).hasSize(1);
+        assertThat(extended.path("cancelledBookings")).hasSize(1);
+        assertThat(booking(booking.path("id").asText()).getString("cancelReason")).isEqualTo("INACTIVITY");
+        dispatch(); assertThat(count("notifications", Criteria.where("code").is("N-18d"))).isPositive();
+    }
+    @Test void T_13_13_terminationCanSetTheCurrentMonthOrFinishNowWithN18c() throws Exception {
+        var active = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-12", "overrideDeadline", true), as("admin"), 201);
+        clock.setInstant(local("2026-11-15T12:00")); String path = "/inactivity-periods/"+active.path("id").asText()+"/termination";
+        var scheduled = call(POST, path, Map.of("toMonth", "2026-11"), as("admin"), 200);
+        assertThat(scheduled.path("state").asText()).isEqualTo("ACTIVE"); assertThat(scheduled.path("toMonth").asText()).isEqualTo("2026-11");
+        var finished = call(POST, path, Map.of("toMonth", "2026-10"), as("admin"), 200);
+        assertThat(finished.path("state").asText()).isEqualTo("FINISHED"); assertThat(finished.path("finishReason").asText()).isEqualTo("ADMIN");
+        assertThat(events("InactivityEnded")).isEqualTo(1);
+        dispatch(); assertThat(count("notifications", Criteria.where("code").is("N-18c"))).isPositive();
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_13_16_leaveClosureEmitsEndedExactlyOnceButSuppressesN18c(boolean schedulerFirst) throws Exception {
+        var active = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
+        call(POST, "/members/s08-m-laura/leave", Map.of("effectiveDate", "2026-10-31"), as("admin"), 201);
+        clock.setInstant(local("2026-11-01T12:00"));
+        if (schedulerFirst) { inactivityScheduler.finishDue(CLUB, LocalDate.parse("2026-11-01")); }
+        leaveScheduler.executeDue(CLUB, LocalDate.parse("2026-11-01"));
+        inactivityScheduler.finishDue(CLUB, LocalDate.parse("2026-11-01")); dispatch(); dispatch();
+        assertThat(events("InactivityEnded")).isEqualTo(1);
+        var event = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("InactivityEnded")), Document.class, "domain_events");
+        assertThat(event.get("payload", Document.class).getString("finishReason")).isEqualTo("LEAVE");
+        assertThat(call(GET, "/inactivity-periods/"+active.path("id").asText(), null, as("admin"), 200).path("state").asText()).isEqualTo("FINISHED");
+        assertThat(count("notifications", Criteria.where("code").is("N-18c"))).isZero();
+    }
+
+    @Test void T_12_07_manualPackOpeningReplaysItsCommittedAnswer() throws Exception {
+        openPack("s08-m-laura", "s08-d-duna", 10, 0, LocalDate.parse("2026-11-11"));
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "pack_balances");
+        var body = Map.of("memberId", "s08-m-laura", "dogId", "s08-d-duna", "planId", "s08-pack-plan", "openedOn", "2026-10-06", "reason", "Gift");
+        String key = UUID.randomUUID().toString();
+        var first = call(POST, "/pack-balances", body, as("admin"), 201, key);
+        assertThat(call(POST, "/pack-balances", body, as("admin"), 201, key)).isEqualTo(first);
+        assertThat(count("pack_balances", new Criteria())).isEqualTo(1);
+        assertThat(events("PackOpened")).isEqualTo(1);
     }
 
 }

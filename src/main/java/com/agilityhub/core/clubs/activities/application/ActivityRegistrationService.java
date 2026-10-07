@@ -25,7 +25,7 @@ public class ActivityRegistrationService {
     public ActivityRegistration register(String activityId,boolean joinWaitlist) {
         context.require();
         try { return transactions.write(List.of(activityId),() -> {
-            var a=activities.lock(activityId); String memberId=context.members.me(); var member=context.members.member(memberId);
+            var a=activities.lock(activityId); String memberId=context.members.me(); context.members.lockBooking(memberId); var member=context.members.member(memberId);
             var live=registrations.live(a.id());
             ActivityEligibility.check(a.state(),context.times(a),a.date(),context.eligibility(memberId),a.levelIds(),context.levels(),context.enabled(Module.INACTIVITY),
                     live.stream().anyMatch(r -> r.memberId().equals(memberId)),null,context.clock.instant());

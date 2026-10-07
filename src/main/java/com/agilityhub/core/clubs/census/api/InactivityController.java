@@ -41,6 +41,13 @@ public class InactivityController {
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.census.application.CensusQuery queries;
     private <T> T mapped(Object value, Class<T> type) { return mapper.convertValue(value, type); }
+    private <T> T keyed(int status, java.util.function.Supplier<T> work) {
+        return transactions.keyed(status, work, value -> {
+            if (status == 204) { return new byte[0]; }
+            try { return mapper.writeValueAsBytes(value); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+    }
     private final LifecycleContractAccess access;
     public InactivityController(LifecycleContractAccess access) { this.access = access; }
 
@@ -88,7 +95,7 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "201", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod requestInactivity(@Valid @RequestBody InactivityRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.mutableMe();
-        return transactions.run(() -> mapped(views.period(service.request(access.callerMember(), request.fromMonth(), request.toMonth(), request.comments(), false, false)), InactivityPeriod.class));
+        return keyed(201, () -> mapped(views.period(service.request(access.callerMember(), request.fromMonth(), request.toMonth(), request.comments(), false, false)), InactivityPeriod.class));
     }
 
     @PatchMapping("/api/v1/me/inactivity-periods/{id}")
@@ -106,7 +113,7 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod changeMyInactivity(@PathVariable String id, @Valid @RequestBody InactivityPatchRequest request) {
         access.mutableMe();
-        access.ownPeriod(id); return transactions.run(() -> mapped(views.period(service.change(id, request.patch(), request.version, false, false)), InactivityPeriod.class));
+        access.ownPeriod(id); return keyed(200, () -> mapped(views.period(service.change(id, request.patch(), request.version, false, false)), InactivityPeriod.class));
     }
 
     @PostMapping("/api/v1/me/inactivity-periods/{id}/cancellation")
@@ -119,7 +126,7 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod withdrawMyInactivity(@PathVariable String id) {
         access.mutableMe();
-        access.ownPeriod(id); return transactions.run(() -> mapped(views.period(service.cancel(id, false)), InactivityPeriod.class));
+        access.ownPeriod(id); return keyed(200, () -> mapped(views.period(service.cancel(id, false)), InactivityPeriod.class));
     }
 
     @GetMapping("/api/v1/inactivity-periods")
@@ -162,7 +169,7 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "201", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod createInactivity(@Valid @RequestBody AdminInactivityRequest request) {
         access.mutableMember(request.memberId());
-        return transactions.run(() -> mapped(views.period(service.request(request.memberId(), request.fromMonth(), request.toMonth(), request.comments(), true, Boolean.TRUE.equals(request.overrideDeadline()))), InactivityPeriod.class));
+        return keyed(201, () -> mapped(views.period(service.request(request.memberId(), request.fromMonth(), request.toMonth(), request.comments(), true, Boolean.TRUE.equals(request.overrideDeadline()))), InactivityPeriod.class));
     }
 
     @PostMapping("/api/v1/inactivity-periods/{id}/decision")
@@ -175,7 +182,7 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod decideInactivity(@PathVariable String id, @Valid @RequestBody DecisionRequest request) {
         access.period(id);
-        return transactions.run(() -> mapped(views.period(service.decide(id, request.decision(), request.note())), InactivityPeriod.class));
+        return keyed(200, () -> mapped(views.period(service.decide(id, request.decision(), request.note())), InactivityPeriod.class));
     }
 
     @PatchMapping("/api/v1/inactivity-periods/{id}")
@@ -188,19 +195,19 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod changeInactivity(@PathVariable String id, @Valid @RequestBody AdminInactivityPatchRequest request) {
         access.period(id);
-        return transactions.run(() -> mapped(views.period(service.change(id, request.patch(), request.version, true, Boolean.TRUE.equals(request.overrideDeadline))), InactivityPeriod.class));
+        return keyed(200, () -> mapped(views.period(service.change(id, request.patch(), request.version, true, Boolean.TRUE.equals(request.overrideDeadline))), InactivityPeriod.class));
     }
 
     @PostMapping("/api/v1/inactivity-periods/{id}/termination")
     @PreAuthorize(ADMIN)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, INACTIVITY_INVALID_STATE, INACTIVITY_INVALID_RANGE})
     @Operation(summary = "terminateInactivity", description = ADMIN_ROLES + "R-13-05 [Finalitza el període]: an ACTIVE period ends at toMonth ≥ "
-            + "fromMonth (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); "
+            + "fromMonth and no later than its current end (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); "
             + "otherwise toMonth is set and the scheduler closes it. Not ACTIVE → 409 INACTIVITY_INVALID_STATE. Idempotent by effect.",
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod terminateInactivity(@PathVariable String id, @Valid @RequestBody TerminationRequest request) {
         access.period(id);
-        return transactions.run(() -> mapped(views.period(service.terminate(id, request.toMonth())), InactivityPeriod.class));
+        return keyed(200, () -> mapped(views.period(service.terminate(id, request.toMonth())), InactivityPeriod.class));
     }
 
     @PostMapping("/api/v1/inactivity-periods/{id}/cancellation")
@@ -211,6 +218,6 @@ public class InactivityController {
             responses = @ApiResponse(responseCode = "200", description = "InactivityPeriod", useReturnTypeSchema = true))
     public InactivityPeriod cancelInactivity(@PathVariable String id, @Valid @RequestBody(required = false) AdminCancellationRequest request) {
         access.period(id);
-        return transactions.run(() -> mapped(views.period(service.cancel(id, true)), InactivityPeriod.class));
+        return keyed(200, () -> mapped(views.period(service.cancel(id, true)), InactivityPeriod.class));
     }
 }

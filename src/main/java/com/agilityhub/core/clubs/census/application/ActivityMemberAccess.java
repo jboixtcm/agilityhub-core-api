@@ -16,6 +16,8 @@ public class ActivityMemberAccess {
                          List<Map<String,Object>> phones, List<String> emails) { }
     private final CensusAccess access;
     public ActivityMemberAccess(CensusAccess access) { this.access = access; }
+    /** Called inside a booking transaction, before eligibility is read (S13 R-13-06/07). */
+    public void lockBooking(String memberId) { access.members.lockBookingEligibility(memberId); }
     public Map<String,Object> notificationPreferences(String memberId) { return map(access.members.require(memberId).notificationPreferences); }
     public String me() { return access.me().id; }
     public List<String> activeIds() { return access.members.matching(Criteria.where("status").is("ACTIVE").and("erasedAt").is(null)).stream().map(m -> m.id).toList(); }

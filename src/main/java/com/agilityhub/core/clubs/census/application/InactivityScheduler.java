@@ -39,7 +39,7 @@ public class InactivityScheduler {
             e.state = InactivityState.ACTIVE; e.startedAt = clock.instant(); event = "InactivityStarted";
         } else if (p.state() == InactivityState.ACTIVE && p.toMonth() != null && YearMonth.parse(p.toMonth()).isBefore(month)) {
             e.state = InactivityState.FINISHED; e.finishedAt = clock.instant(); e.finishReason = p.finishReason() == InactivityFinishReason.LEAVE ? InactivityFinishReason.LEAVE : InactivityFinishReason.SCHEDULED;
-            event = e.finishReason == InactivityFinishReason.LEAVE ? null : "InactivityEnded";
+            event = "InactivityEnded";
         } else if (p.state() == InactivityState.REQUESTED && YearMonth.parse(p.fromMonth()).isBefore(month)) {
             service.cancelled(e, LifecycleCanceller.SYSTEM, InactivityCancelReason.EXPIRED); event = null;
         } else { return false; }

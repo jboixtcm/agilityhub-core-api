@@ -530,4 +530,23 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         }
     }
 
+    @Autowired org.springframework.context.ApplicationContext context;
+    @Test void T_13_22_normalProvisioningAndStartupBackfillInstallTheProtectedViewIdempotently() throws Exception {
+        var definition = seed("canic");
+        var result = definitions.apply(definition, false);
+        String id = result.id()+":planned-leaves";
+        var view = mongo.findById(id, org.bson.Document.class, "saved_views");
+        assertThat(view).as("normal club:apply provisions the view without demo seeding").isNotNull();
+        assertThat(view.get("data", org.bson.Document.class).getString("ownerAccountId")).isEqualTo("SYSTEM");
+        definitions.apply(definition, false);
+        assertThat(mongo.findById(id, org.bson.Document.class, "saved_views")).isEqualTo(view);
+        mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(id)), "saved_views");
+        var backfill = context.getBean("lifecycleSavedViewsBackfill", org.springframework.boot.ApplicationRunner.class);
+        backfill.run(new org.springframework.boot.DefaultApplicationArguments());
+        var restored = mongo.findById(id, org.bson.Document.class, "saved_views");
+        assertThat(restored).isNotNull();
+        backfill.run(new org.springframework.boot.DefaultApplicationArguments());
+        assertThat(mongo.findById(id, org.bson.Document.class, "saved_views")).isEqualTo(restored);
+    }
+
 }

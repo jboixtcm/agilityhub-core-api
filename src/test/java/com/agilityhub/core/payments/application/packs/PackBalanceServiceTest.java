@@ -78,6 +78,17 @@ class PackBalanceServiceTest {
         planOfMember("MONTHLY");
         assertThat(service.balance("member", "dog", LocalDate.of(2026, 8, 1))).isEmpty();
     }
+    @Test void T_12_22_monthlyPlanNeverConsumesEvenAUsablePackButCanRefundEarlierBookings() {
+        var pack = open("paid", 10, null);
+        var date = LocalDate.of(2026, 7, 1);
+        service.consume("member", "dog", "before-plan-change", date);
+        planOfMember("MONTHLY");
+        assertThat(service.balance("member", "dog", date)).isEmpty();
+        assertThat(service.consume("member", "dog", "monthly-booking", date)).isNull();
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(9);
+        assertThat(service.refund("before-plan-change")).isNotNull();
+        assertThat(service.get(pack.id()).remaining()).isEqualTo(10);
+    }
     @Test void T_12_07_T_12_31_consumesEarliestQualifyingPackAndWarnsOnlyOnce() {
         var early = open("early", 2, LocalDate.of(2026, 7, 1));
         var later = open("later", 2, LocalDate.of(2026, 11, 1));

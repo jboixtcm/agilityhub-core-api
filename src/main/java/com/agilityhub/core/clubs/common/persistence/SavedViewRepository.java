@@ -17,6 +17,13 @@ public class SavedViewRepository extends TenantRepository<SavedView> {
                 .on("data.listKey", org.springframework.data.domain.Sort.Direction.ASC)
                 .on("data.name", org.springframework.data.domain.Sort.Direction.ASC).unique());
     }
+    /** Atomic insert-only upsert preserves any existing system view across reapply and startup backfill. */
+    public void insertIfAbsent(SavedView view) {
+        tenantQuery(view.clubId());
+        mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(view.id())),
+                new Update().setOnInsert("clubId", view.clubId()).setOnInsert("data", view.data())
+                        .setOnInsert("createdAt", view.createdAt()).setOnInsert("updatedAt", view.updatedAt()), SavedView.class);
+    }
     public List<SavedView> visible(String key, String account) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("data.listKey").is(key))
                 .addCriteria(new Criteria().orOperator(Criteria.where("data.ownerAccountId").is(account), Criteria.where("data.shared").is(true)))

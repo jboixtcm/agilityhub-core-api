@@ -31,6 +31,7 @@ public class BookingChecks {
         var session = classes.find(classSessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var dog = census.dog(dogId).filter(d -> actor.memberId() != null && census.canAccess(actor.memberId(), d))
                 .orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
+        census.lockBooking(dog.memberId());
         var owner = census.member(dog.memberId()).orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
         var booker = census.member(actor.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
         var weeks = context.weeks(); var week = weeks.week(session.startsAt()); var relative = weeks.relative(session.startsAt(), now);

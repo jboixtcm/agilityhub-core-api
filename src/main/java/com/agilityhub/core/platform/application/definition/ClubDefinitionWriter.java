@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClubDefinitionWriter {
+    private final com.agilityhub.core.platform.application.ClubSavedViewProvisioner savedViews;
     private final ClubRepository clubs;
     private final ParameterRepository parameters;
     private final ParameterCatalog catalog;
@@ -55,7 +56,9 @@ public class ClubDefinitionWriter {
                                 ClubAdminProvisioner admins, ClubAccountProvisioner accounts, EventPublisher events, ObjectMapper mapper,
                                 ClubDefinitionMapper definitions, Clock clock, Environment environment, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs,
                                 com.agilityhub.core.platform.application.CountryProfileRegistry countries,
-                                com.agilityhub.core.platform.application.ClubTemplateProvisioner templates) {
+                                com.agilityhub.core.platform.application.ClubTemplateProvisioner templates,
+                                com.agilityhub.core.platform.application.ClubSavedViewProvisioner savedViews) {
+        this.savedViews = savedViews;
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.admins = admins;
         this.accounts = accounts; this.pages = pages; this.catalogs = catalogs; this.countries = countries; this.templates = templates;
         this.events = events; this.mapper = mapper; this.definitions = definitions; this.clock = clock;
@@ -80,9 +83,10 @@ public class ClubDefinitionWriter {
             reason = "#result.changes() == 0 ? null : 'source: APPLY'")
     public Result apply(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
         Plan plan = plan(definition, allowSeedPasswords, accountsOnly);
-        if (plan.result().changes() == 0) { return plan.result(); }
+        if (plan.result().changes() == 0) { savedViews.provision(); return plan.result(); }
         // Saving the club also serializes concurrent parameter/admin changes through its version.
         clubs.save(plan.club());
+        savedViews.provision();
         for (var parameter : plan.parameters()) {
             if (parameter.version() == null) { parameters.insert(parameter); } else { parameters.replace(parameter); }
             var payload = new LinkedHashMap<String, Object>();

@@ -18,6 +18,8 @@ public class DemoMembers {
     public record Candidate(String memberId, String accountId, String firstName, String dogId, String levelId) {
         BookingActor actor() { return BookingActor.member(accountId, memberId, firstName); }
     }
+    private final com.agilityhub.core.shared.application.BillingCensusAccess census;
+    private final com.agilityhub.core.clubs.catalogs.application.PriceResolver prices;
     private final ActivityMemberAccess members; private final BookingContext context; private final SeatHoldService holds;
     private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final WaitlistService waitlist;
     private final com.agilityhub.core.payments.application.PackBalanceService packs;
@@ -25,7 +27,9 @@ public class DemoMembers {
     private final com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classes;
     public DemoMembers(ActivityMemberAccess members, BookingContext context, SeatHoldService holds, BookingConfirmationService confirmations,
             BookingCancellationService cancellations, WaitlistService waitlist, com.agilityhub.core.payments.application.PackBalanceService packs,
-            com.agilityhub.core.clubs.catalogs.application.PlanService plans, com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classes) {
+            com.agilityhub.core.clubs.catalogs.application.PlanService plans, com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classes,
+            com.agilityhub.core.shared.application.BillingCensusAccess census, com.agilityhub.core.clubs.catalogs.application.PriceResolver prices) {
+        this.census = census; this.prices = prices;
         this.members = members; this.context = context; this.holds = holds; this.confirmations = confirmations; this.cancellations = cancellations;
         this.waitlist = waitlist; this.packs = packs; this.plans = plans; this.classes = classes;
     }
@@ -59,6 +63,12 @@ public class DemoMembers {
     public void preparePack(String classId, Candidate c, boolean requested, Instant at) {
         if (!packs.enabled()) { return; }
         var date = classes.require(classId).startsAt().atZone(context.zone()).toLocalDate();
+        if (requested && packs.balance(c.memberId(), c.dogId(), date).isEmpty()) {
+            // A demo pack scenario must select a PACK plan too (S08 R-08-17); MONTHLY never consumes a gift balance.
+            String plan = plans.activePackId().orElseThrow(() -> new IllegalStateException("Demo bookings need a seeded pack plan"));
+            var price = prices.packPriceId(plan, date).orElseThrow();
+            census.changePlan(c.memberId(), plan, price);
+        }
         var balance = packs.balance(c.memberId(), c.dogId(), date);
         if (balance.filter(p -> p.remaining() > 0).isPresent() || !requested && balance.isEmpty()) { return; }
         String plan = plans.activePackId().orElseThrow(() -> new IllegalStateException("Demo bookings need a seeded pack plan"));

@@ -41040,7 +41040,7 @@
     },
     "/api/v1/inactivity-periods/{id}/termination" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Finalitza el període]: an ACTIVE period ends at toMonth ≥ fromMonth (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); otherwise toMonth is set and the scheduler closes it. Not ACTIVE → 409 INACTIVITY_INVALID_STATE. Idempotent by effect.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). INACTIVITY off → 404 MODULE_DISABLED. R-13-05 [Finalitza el període]: an ACTIVE period ends at toMonth ≥ fromMonth and no later than its current end (422 INACTIVITY_INVALID_RANGE): before the current month → FINISHED now (finishReason ADMIN, InactivityEnded → N-18c); otherwise toMonth is set and the scheduler closes it. Not ACTIVE → 409 INACTIVITY_INVALID_STATE. Idempotent by effect.",
         "operationId" : "terminateInactivity",
         "parameters" : [ {
           "in" : "path",

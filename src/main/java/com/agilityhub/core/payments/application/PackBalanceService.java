@@ -63,18 +63,15 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         return pack;
     }
 
-    /**
-     * Empty means packs do not apply; a zero balance means a pack plan has no usable sessions. A usable pack (a manual or gift
-     * one included) is used whatever the plan, but only a PACK plan is ever refused with PACK_EMPTY (S08 R-08-17): a member
-     * moved from a pack to a membership keeps the old rows and books as MONTHLY.
-     */
+    /** S08 R-08-17: only a PACK plan selects or consumes a balance; historical refunds remain independent of the plan. */
+    private boolean packPlan(String memberId) {
+        return census.member(memberId).flatMap(m -> catalog.plan(m.planId())).map(p -> "PACK".equals(p.type())).orElse(false);
+    }
     public Optional<Balance> balance(String memberId, String dogId, LocalDate classDate) {
-        if (!enabled()) { return Optional.empty(); }
+        if (!enabled() || !packPlan(memberId)) { return Optional.empty(); }
         var all = packs.of(memberId, dogId);
         var usable = firstToExpire(all, classDate);
         if (usable.isPresent()) { return usable.map(PackBalanceService::summary); }
-        boolean packPlan = census.member(memberId).flatMap(m -> catalog.plan(m.planId())).map(p -> "PACK".equals(p.type())).orElse(false);
-        if (!packPlan) { return Optional.empty(); }
         if (!all.isEmpty()) {
             var p = all.stream().max(EXPIRY).orElseThrow();
             return Optional.of(new Balance(p.id(), p.sessionsTotal(), p.consumed(), 0, LocalDate.parse(p.expiresOn())));
@@ -96,7 +93,7 @@ public class PackBalanceService implements PackBalanceOpeningPort {
 
     @Transactional
     public String consume(String memberId, String dogId, String bookingId, LocalDate classDate) {
-        if (!enabled()) { return null; }
+        if (!enabled() || !packPlan(memberId)) { return null; }
         var prior = packs.forBooking(bookingId);
         if (prior.isPresent()) {
             var movement = prior.get().movements().stream().filter(m -> m.type() == PackMovementType.CONSUME && bookingId.equals(m.bookingId())).findFirst();

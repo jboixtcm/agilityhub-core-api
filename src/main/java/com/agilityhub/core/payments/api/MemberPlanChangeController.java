@@ -27,6 +27,6 @@ public class MemberPlanChangeController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MEMBER_ERASED, MODULE_DISABLED, PLAN_NOT_AVAILABLE, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary="changeMemberPlan", description=BillingController.ROLES + "Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month.")
     public void change(@PathVariable String id, @Valid @RequestBody MemberPlanChangeRequest request, @RequestHeader("Idempotency-Key") UUID key) {
-        transactions.run(() -> { service.change(id, request.planId(), request.priceId(), request.effectiveMonth()); return null; });
+        transactions.keyed(204, () -> { service.change(id, request.planId(), request.priceId(), request.effectiveMonth()); return null; }, ignored -> new byte[0]);
     }
 }

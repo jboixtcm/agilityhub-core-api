@@ -32,6 +32,12 @@ public class PackBalancesController {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingTransactions transactions;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private PackBalanceDetail mapped(com.agilityhub.core.payments.persistence.PackBalance p) { return mapper.convertValue(views.view(p), PackBalanceDetail.class); }
+    private <T> T keyed(int status, java.util.function.Supplier<T> work) {
+        return transactions.keyed(status, work, value -> {
+            try { return mapper.writeValueAsBytes(value); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException error) { throw new IllegalStateException(error); }
+        });
+    }
     private final BillingContractAccess access;
     public PackBalancesController(BillingContractAccess access) { this.access = access; }
 
@@ -62,7 +68,7 @@ public class PackBalancesController {
         catalog.plan(request.planId()).orElseThrow(() -> new com.agilityhub.core.shared.domain.ApiException(NOT_FOUND));
         access.mutableMember(request.memberId());
         access.memberDog(request.memberId(), request.dogId());
-        return transactions.run(() -> mapped(service.open(request.memberId(), request.dogId(), request.planId(), null, request.openedOn(), request.sessionsTotal(), request.expiresOn(), request.reason())));
+        return keyed(201, () -> mapped(service.open(request.memberId(), request.dogId(), request.planId(), null, request.openedOn(), request.sessionsTotal(), request.expiresOn(), request.reason())));
     }
 
     @PostMapping("/api/v1/pack-balances/{id}/adjustments")
@@ -74,6 +80,6 @@ public class PackBalancesController {
     public PackBalanceDetail adjustPackBalance(@PathVariable String id, @Valid @RequestBody PackAdjustmentRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {
         access.pack(id);
-        return transactions.run(() -> mapped(service.adjust(id, request.delta(), request.reason(), request.expiresOn())));
+        return keyed(200, () -> mapped(service.adjust(id, request.delta(), request.reason(), request.expiresOn())));
     }
 }
