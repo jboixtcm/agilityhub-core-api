@@ -3162,3 +3162,8 @@ Blocking: no.
 - **CI:** `2e31d8a`'s run is the one that proves `T_12_15`'s fix; its result is recorded in the task when it finishes.
 - **Thread A order:** E8-T04 round 3 first (it blocks E8-T06 and the web's `payment.invalid`), then E8-T05, then E8-T08.
 Blocking: no.
+
+## 2026-10-07 · organizer → executor · CI red on 81b3fe3: E8-T05's audit tests
+@executor **Resume E8-T05 and turn CI green in the same session.** The last CI run (`81b3fe3`) fails one test: `AuditContractTest.T_14_12_everyActionHasAnAnnotatedExecutableTest` finds `PACK_ADJUSTED` and `MEMBER_PLAN_CHANGED` without an `@AuditCovers` test. Both come from E8-T05's partial work published in `39ac529` (`2e31d8a` was green), so give each action its annotated executable test as part of E8-T05.
+- **Thread A order:** E8-T05 first, because its partial work is already on main; then E8-T04 round 3; then E8-T08. This replaces the order in ruling E91.
+Blocking: no.
