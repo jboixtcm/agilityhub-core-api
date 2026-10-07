@@ -48,7 +48,7 @@ public class DemoSeedService {
     @Audited(action = AuditAction.CATALOG_CHANGED, entityType = "'DemoSeed'", entity = "#result.id",
             reason = "#result.changes == 0 ? null : 'source: DEMO_SEED'")
     public Result apply(DemoDataset.Spec spec, long seed) {
-        if (!environment.acceptsProfiles(Profiles.of("local", "test")) || environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
+        if (!environment.acceptsProfiles(Profiles.of("local", "staging", "test")) || environment.acceptsProfiles(Profiles.of("prod", "production"))) {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
         String club = TenantContext.require(); String signature = mapper.valueToTree(spec).toString();
@@ -77,6 +77,9 @@ public class DemoSeedService {
                     : List.of(Map.of("prefix", contacts.signupProfile().get("phonePrefix"), "number", String.format(spec.phoneNumberFormat(), row.number())));
             member.joinedAt = reference.minusSeconds(86400L * (30 + row.number()));
             member.planId = plan.get("_id").toString();
+            if ("ACTIVE".equals(member.status) && "MONTHLY".equals(plan.get("type"))) {
+                member.nextInvoiceDate = java.time.YearMonth.from(spec.referenceDate()).plusMonths(1).atDay(1);
+            }
             member.priceId = prices.stream().filter(p -> member.planId.equals(p.get("planId")) && p.get("validTo") == null)
                     .map(p -> p.get("_id").toString()).findFirst().orElse(null);
             // E43: a SEPA member carries the api's mandate (`{clubSlug}-{memberNumber}-1`, signed when it joined), so the E8

@@ -33,6 +33,17 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         this.events = events; this.clock = clock; this.clubClock = clubClock;
     }
     public boolean enabled() { return configs.get(TenantContext.require()).modules().contains(Module.PACKS); }
+    /** R-18-10: one imported balance with its original consumed amount; migration emits only the run event. */
+    public void openMigrated(String id, String sourceId, String memberId, String dogId, String planId, LocalDate openedOn, int consumed, LocalDate cutover) {
+        if (!enabled() || packs.findById(id).isPresent()) { return; }
+        var terms = catalog.pack(planId); int remaining = terms.sessions() - consumed;
+        if (consumed < 0 || remaining < 0) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+        var expiresOn = openedOn.plusMonths(terms.validityMonths()).minusDays(1);
+        var state = expiresOn.isBefore(cutover) ? PackBalanceState.EXPIRED : remaining == 0 ? PackBalanceState.CLOSED : PackBalanceState.ACTIVE;
+        packs.insert(new PackBalance(id, TenantContext.require(), memberId, dogId, planId, null, terms.sessions(), consumed, remaining,
+                openedOn.toString(), expiresOn.toString(), state, List.of(movement(PackMovementType.OPEN, remaining, null, "MIGRATED")),
+                null, state == PackBalanceState.EXPIRED ? clock.instant() : null, null, Map.of("playoffPackId", sourceId), null, clock.instant(), null));
+    }
     public List<PackBalance> list(String memberId, String dogId) { return enabled() ? packs.of(memberId, dogId) : List.of(); }
     public PackBalance get(String id) { return packs.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
 
@@ -148,6 +159,19 @@ public class PackBalanceService implements PackBalanceOpeningPort {
         var next = write(pack, movement(PackMovementType.EXPIRE, 0, null, null), pack.consumed(), pack.remaining(),
                 PackBalanceState.EXPIRED, pack.expiresOn(), clock.instant(), pack.lowBalanceNotifiedAt());
         publish(BillingEvent.Kind.PackExpired, next, null, Map.of());
+    }
+    /** P5a's warning mark and outbox event commit with its one item. */
+    @Transactional
+    public boolean warnExpiry(String id, LocalDate today, int warningDays) {
+        if (!enabled()) { return false; }
+        var pack = get(id); var expiry = LocalDate.parse(pack.expiresOn());
+        if (pack.state() != PackBalanceState.ACTIVE || pack.expiryWarnedAt() != null
+                || expiry.isBefore(today) || expiry.isAfter(today.plusDays(warningDays))) { return false; }
+        var next = packs.save(new PackBalance(pack.id(), pack.clubId(), pack.memberId(), pack.dogId(), pack.planId(),
+                pack.upfrontPaymentId(), pack.sessionsTotal(), pack.consumed(), pack.remaining(), pack.openedOn(), pack.expiresOn(),
+                pack.state(), pack.movements(), clock.instant(), pack.expiredAt(), pack.lowBalanceNotifiedAt(), pack.sourceIds(),
+                pack.version() + 1, pack.createdAt(), pack.createdByAccountId()), pack.version());
+        publish(BillingEvent.Kind.PackExpiring, next, null, Map.of()); return true;
     }
     private PackBalance.Movement movement(PackMovementType type, int delta, String bookingId, String reason) {
         return new PackBalance.Movement(UUID.randomUUID().toString(), type, delta, bookingId, reason, BillingEvents.actor(), clock.instant());

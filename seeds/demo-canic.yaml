@@ -294,3 +294,13 @@ messaging:
         ca: "Hola [[member_first_name]]! Dissabte fem la jornada de portes obertes del club: porteu [[dog_name]] i la família (text fictici)."
         es: "¡Hola [[member_first_name]]! El sábado hacemos la jornada de puertas abiertas del club: traed a [[dog_name]] y a la familia (texto ficticio)."
         en: "Hi [[member_first_name]]! On Saturday the club holds its open day: bring [[dog_name]] and the family (fictional text)."
+
+# E8: all names and creditor details are fictional and installed only by seed:demo.
+billing:
+  providers:
+    SEPA_XML: {enabled: true, creditorName: Club Agility Exemple, creditorId: ES97ZZZ999999999, iban: ES0021000418450200051332}
+  pendingInactivity: {member: 162, name: Laura}
+  activeInactivity: {member: 168, name: Eva}
+  leave: {member: 174, name: Montse}
+  leaveDay: '08-31'
+  expiredPack: {member: 178, name: Joan}

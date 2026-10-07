@@ -22,7 +22,7 @@ class PaymentProviderContractTest {
     }
     static PaymentProvider provider(Duration timeout) { return new Provider(timeout); }
 
-    @Test void T_04_22_theFakeProvidersCallTimeoutStaysWellWithinTheIdempotencyClaimLease() {
+    @Test void T_15_23_theFakeProvidersCallTimeoutStaysWellWithinTheIdempotencyClaimLease() {
         var fake = new FakeCheckoutGateway(null);
         assertThat(fake.callTimeout()).isPositive().isLessThanOrEqualTo(PaymentProvider.MAX_CALL_TIMEOUT);
         assertThat(PaymentProvider.requireTimeout(fake)).isSameAs(fake);
@@ -31,7 +31,7 @@ class PaymentProviderContractTest {
         assertThat(PaymentProvider.MAX_CALL_TIMEOUT.multipliedBy(2)).isLessThanOrEqualTo(IdempotencyRepository.CLAIM_LEASE.dividedBy(10));
     }
 
-    @Test void T_04_22_aProviderWhoseCallsCouldOutliveTheClaimNeverStarts() {
+    @Test void T_15_23_aProviderWhoseCallsCouldOutliveTheClaimNeverStarts() {
         for (var wrong : Arrays.asList(null, Duration.ZERO, Duration.ofSeconds(-1), PaymentProvider.MAX_CALL_TIMEOUT.plusMillis(1), IdempotencyRepository.CLAIM_LEASE)) {
             assertThatThrownBy(() -> PaymentProvider.requireTimeout(provider(wrong))).as("timeout %s", wrong)
                     .isInstanceOf(IllegalStateException.class).hasMessageContaining("call timeout " + wrong);

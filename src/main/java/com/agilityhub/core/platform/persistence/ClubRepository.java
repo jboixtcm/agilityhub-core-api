@@ -35,6 +35,10 @@ public class ClubRepository extends GlobalRepository<Club> {
         long reserved=((Number)club.getOrDefault("nextMemberNumber",1L)).longValue();
         return new MemberNumberSequenceRepository(mongo).next(Math.max(reserved,minimum));
     }
+    public void resetMigrationNumbers() {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require())),
+                new org.springframework.data.mongodb.core.query.Update().set("nextMemberNumber", 1L).unset("billing.counters"), Club.class);
+    }
     public void reserveMemberNumbers(int maximum) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require())),
                 new org.springframework.data.mongodb.core.query.Update().max("nextMemberNumber", (long) maximum + 1), Club.class);

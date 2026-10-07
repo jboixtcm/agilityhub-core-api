@@ -21,6 +21,10 @@ public class S3AttachmentStorage implements AttachmentStorage {
                 .url().toExternalForm();
     }
     @Override public void delete(String key) { client.deleteObject(request -> request.bucket(bucket).key(objectKey(key))); }
+    @Override public void put(String key, String mimeType, long size, java.io.InputStream input) {
+        client.putObject(request -> request.bucket(bucket).key(objectKey(key)).contentType(mimeType).contentLength(size).ifNoneMatch("*"),
+                software.amazon.awssdk.core.sync.RequestBody.fromInputStream(input, size));
+    }
     @Override public Metadata metadata(String key) {
         try {
             var result = client.headObject(request -> request.bucket(bucket).key(objectKey(key)));

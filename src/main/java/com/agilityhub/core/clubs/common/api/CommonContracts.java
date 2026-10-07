@@ -17,7 +17,7 @@ public final class CommonContracts {
     private CommonContracts() { }
 
     public enum ExportKind { LIST, MEMBER_DATA, ACCOUNTING }
-    public enum ExportFormat { XLSX, PDF, ZIP }
+    public enum ExportFormat { XLSX, PDF, ZIP, CSV }
     public enum ExportStatus { QUEUED, RUNNING, READY, FAILED, EXPIRED }
     public record ExportError(
             @Schema(requiredMode = REQUIRED) String code,

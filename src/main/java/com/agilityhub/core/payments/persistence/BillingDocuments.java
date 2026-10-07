@@ -84,6 +84,8 @@ public final class BillingDocuments {
             indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("issueDate", DESC).named("invoice_club_member_issue"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("runId", ASC).named("invoice_club_run"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("invoice_club_remittance"));
+            indexes.ensureIndex(new Index().on("clubId", ASC).on("sourceIds.playoffReceiptId", ASC).unique()
+                    .partial(present("sourceIds.playoffReceiptId")).named("invoice_club_playoff_source"));
         }
         /** R-12-10 (T-12-12): an issued invoice is never replaced — only its state fields move, through {@link #transition}. */
         @Override public Invoice replace(Invoice invoice) { throw new UnsupportedOperationException("R-12-10: an issued invoice is immutable"); }
@@ -370,6 +372,8 @@ public final class BillingDocuments {
             indexes.ensureIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("state", ASC).on("expiresOn", ASC).named("pack_club_dog_state_expiry"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("state", ASC).named("pack_club_member_state"));
             indexes.ensureIndex(new Index().on("clubId", ASC).on("upfrontPaymentId", ASC).unique().partial(present("upfrontPaymentId")).named("pack_club_upfront_payment"));
+            indexes.ensureIndex(new Index().on("clubId", ASC).on("sourceIds.playoffPackId", ASC).unique()
+                    .partial(present("sourceIds.playoffPackId")).named("pack_club_playoff_source"));
         }
     }
 

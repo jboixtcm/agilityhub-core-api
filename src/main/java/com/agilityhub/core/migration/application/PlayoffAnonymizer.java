@@ -53,6 +53,13 @@ public final class PlayoffAnonymizer {
             }
             case "chip" -> number(kind,value,15);
             case "license" -> "TEST" + n;
+            case "receiptConcept" -> {
+                var unknown = java.time.LocalDate.of(1900, 1, 1);
+                var period = PlayoffBillingPlanner.period(value, unknown);
+                if (period.getYear() == 1900) { yield "Imported receipt"; }
+                var months = List.of("Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre");
+                yield months.get(period.getMonthValue() - 1) + " " + period.getYear() + " — Imported receipt";
+            }
             default -> "[redacted]";
         };
     }

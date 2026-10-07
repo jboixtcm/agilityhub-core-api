@@ -118,3 +118,40 @@ files:
       - {at: 1, header: "ID associat principal", field: principalId, anonymize: id}
       - {at: 2, header: "ID associat unida", field: joinedId, anonymize: id}
       - {at: 3, header: "NIF", field: document, anonymize: document}
+  # Billing adapter headings below define the anonymised rehearsal schema; other exports supply their own --mapping.
+  receipts:
+    name: rebuts.csv
+    required: false
+    columns:
+      - {at: 1, header: "Receipt ID", field: id, anonymize: id}
+      - {at: 2, header: "Member ID", field: memberId, anonymize: id}
+      - {at: 3, header: "Number", field: number, anonymize: keep}
+      - {at: 4, header: "Date", field: date, anonymize: keep}
+      - {at: 5, header: "Concept", field: concept, anonymize: receiptConcept}
+      - {at: 6, header: "Total", field: total, anonymize: keep}
+      - {at: 7, header: "Status", field: status, anonymize: keep}
+      - {at: 8, header: "Method", field: method, anonymize: keep}
+  packs:
+    name: packs.csv
+    required: false
+    columns:
+      - {at: 1, header: "Pack ID", field: id, anonymize: id}
+      - {at: 2, header: "Member ID", field: memberId, anonymize: id}
+      - {at: 3, header: "Plan", field: plan, anonymize: keep}
+      - {at: 4, header: "Opened on", field: openedOn, anonymize: keep}
+      - {at: 5, header: "Consumed", field: consumed, anonymize: keep}
+  forecast:
+    name: previsio.csv
+    required: false
+    columns:
+      - {at: 1, header: "Member ID", field: memberId, anonymize: id}
+      - {at: 2, header: "Period", field: period, anonymize: keep}
+      - {at: 3, header: "Total", field: total, anonymize: keep}
+  mandates:
+    name: mandats.csv
+    required: false
+    columns:
+      - {at: 1, header: "Member ID", field: memberId, anonymize: id}
+      - {at: 2, header: "Mandate reference", field: mandateRef, anonymize: id}
+      - {at: 3, header: "Signed on", field: mandateSignedAt, anonymize: keep}
+history: {receiptsMonths: 24}

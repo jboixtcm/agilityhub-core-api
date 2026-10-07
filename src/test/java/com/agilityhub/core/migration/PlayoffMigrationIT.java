@@ -22,7 +22,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import static org.assertj.core.api.Assertions.*;
 
 class PlayoffMigrationIT extends AbstractIntegrationTest {
-    static final Path FIXTURE=Path.of("src/test/resources/fixtures/playoff");
+    Path fixture;
     static final MappingConfig MAPPING=MappingConfig.load(null);
     static final String CLUB="playoff-test",OTHER="playoff-other";
     static final String BANK_KEY=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
@@ -34,10 +34,11 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean MigrationBankVault vault;
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.clubs.messaging.application.EmailSender mail;
     @TempDir Path temp;
-    @BeforeEach void seed() {
+    @BeforeEach void seed() throws Exception {
+        fixture = copyOf(Path.of("src/test/resources/fixtures/playoff"));
         TenantContext.clear(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
         for (String collection:List.of("members","dogs","family_groups","accounts","memberships","clubs","parameters","levels","plans","prices","migration_runs",
-                "migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
+                "invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
         clubs.save(PlatformFixtures.club(CLUB,CLUB+".example.test")); clubs.save(PlatformFixtures.club(OTHER,OTHER+".example.test")); configs.invalidate(CLUB); configs.invalidate(OTHER);
         // The plan and level codes of seeds/club-canic.yaml (S05 §12).
         for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6","COMPETICIO_1")) {
@@ -52,9 +53,9 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             mongo.insert(new Document("_id","level-"+code).append("clubId",CLUB).append("code",code).append("nameKeys",List.of(code.toLowerCase(Locale.ROOT))).append("active",true),"levels");
         }
     }
-    PlayoffInput input() { return PlayoffInput.read(FIXTURE,MAPPING); }
+    PlayoffInput input() { return PlayoffInput.read(fixture,MAPPING); }
     PlayoffPlanner.Plan preview(PlayoffInput input) { try(var tenant=TenantContext.open(CLUB)) { return planner.plan(input,MAPPING); } }
-    MigrationReport apply() { return importer.importDirectory(FIXTURE,MAPPING,CLUB,false,false,false); }
+    MigrationReport apply() { return importer.importDirectory(fixture,MAPPING,CLUB,false,false,false); }
     long incidents(MigrationReport report,String code) { return report.rows().stream().filter(r -> r.code().equals(code)).count(); }
     long warnings(MigrationReport report,String code) { return report.rows().stream().filter(r -> r.outcome().equals("WARNING") && r.code().equals(code)).count(); }
     /** The report lines of the source record with this ordinal (row = ordinal + 1, the header is row 1). */
@@ -110,7 +111,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
      * and S12's {@code BankAccountVault} — the SEPA writer's only way to a full IBAN — reads every one of them back; Core no
      * longer reads `MIGRATION_BANK_KEY`.
      */
-    @SuppressWarnings("unchecked") @Test void E85_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban() throws Exception {
+    @SuppressWarnings("unchecked") @Test void T_18_04_withOnlyTheBillingBankKeyTheSepaVaultReadsBackEveryImportedIban() throws Exception {
         var report=apply(); assertThat(report.hasErrors()).isFalse();
         int read=0; var members=input().files().get("members");
         for (int ordinal=1; ordinal<=members.size(); ordinal++) {
@@ -246,7 +247,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(entries(report,31)).contains("members WARNING PLAN_UNMAPPED");
     }
     @Test void T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing() {
-        var before=snapshot(); var dry=importer.importDirectory(FIXTURE,MAPPING,CLUB,true,false,false);
+        var before=snapshot(); var dry=importer.importDirectory(fixture,MAPPING,CLUB,true,false,false);
         assertThat(dry.hasErrors()).isFalse(); assertThat(snapshot()).isEqualTo(before);
         assertThat(apply().hasErrors()).isFalse();
         mongo.insert(new Document("_id","manual").append("clubId",CLUB).append("firstName","Manual Example").append("status","ACTIVE"),"members");
@@ -255,9 +256,9 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(again.count("members","CREATED")).isZero(); assertThat(again.count("dogs","CREATED")).isZero(); assertThat(again.count("familyGroups","CREATED")).isZero();
         assertThat(again.count("members","UPDATED")).isEqualTo(187); assertThat(member(50).get("remarks")).isEqualTo("Keep manual remarks");
         assertThat(mongo.findById("manual",Document.class,"members")).containsEntry("firstName","Manual Example").doesNotContainKey("sourceIds");
-        assertThatThrownBy(() -> importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,false)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION));
-        assertThat(importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true).hasErrors()).isFalse();
-        assertThatThrownBy(() -> importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        assertThatThrownBy(() -> importer.importDirectory(fixture,MAPPING,CLUB,false,true,false)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION));
+        assertThat(importer.importDirectory(fixture,MAPPING,CLUB,false,true,true).hasErrors()).isFalse();
+        assertThatThrownBy(() -> importer.importDirectory(fixture,MAPPING,CLUB,false,true,true)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
     }
     @Test void T_18_08_R_18_14_activeRecordWithAccountThatComesBackLeftBlocksTheApply() throws Exception {
         var directory=copyFixture(); var first=importer.importDirectory(directory,MAPPING,CLUB,false,false,false); assertThat(first.hasErrors()).as(first.render()).isFalse();
@@ -282,7 +283,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         // Now with persones.csv (62 principal, 82 joined): the dry run and the apply report the error, and nothing is written.
         var before=stored();
         for (boolean dryRun:List.of(true,false)) {
-            var report=importer.importDirectory(FIXTURE,MAPPING,CLUB,dryRun,false,false);
+            var report=importer.importDirectory(fixture,MAPPING,CLUB,dryRun,false,false);
             assertThat(entries(report,82)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons");
             assertThat(report.rows()).noneMatch(r -> Set.of("PERSON_MERGED","ID_DOCUMENT_ALREADY_EXISTS").contains(r.code()));
             assertBlocked(report,1); assertThat(stored()).isEqualTo(before);
@@ -473,11 +474,72 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var values=new LinkedHashMap<>(row.values());values.putAll(fields);members.set(index,new PlayoffInput.Row(row.file(),row.row(),values));data.put("members",members);
         return new PlayoffInput(data,List.of());
     }
-    Path copyFixture() throws Exception { return copyOf(FIXTURE); }
+    Path copyFixture() throws Exception { return copyOf(fixture); }
     Path copyOf(Path directory) throws Exception {
         var out=Files.createDirectory(temp.resolve(UUID.randomUUID().toString()));
         for (var file:MAPPING.files().values()) { if (Files.exists(directory.resolve(file.name()))) { Files.copy(directory.resolve(file.name()),out.resolve(file.name())); } }
         return out;
     }
     Map<String,List<Document>> snapshot() { var result=new TreeMap<String,List<Document>>();for(String collection:mongo.getCollectionNames()){result.put(collection,rows(collection));}return result; }
+    @Test void T_18_05_T_18_15_historicalReceiptsAndPackOpeningAreIdempotentAndNeverCollected() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().addToSet("modules","PACKS"), "clubs"); configs.invalidate(CLUB);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("PACK10")), new Update().set("pack", Map.of("sessions",10,"validityMonths",6)), "plans");
+        var receipts = new StringBuilder("Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n");
+        for (int index=1; index<=103; index++) {
+            receipts.append("receipt-").append(index).append(';').append(source(1)).append(';').append(index)
+                .append(";2026-02-15;Febrer 2026 fictional fee;30,50;").append(index==1 ? "Impagado" : index==2 ? "Pendiente" : "Pagado").append(";SEPA_DD\n");
+        }
+        receipts.append("old;").append(source(1)).append(";999;2023-01-01;old;1,00;Pagado;MANUAL\n");
+        Files.writeString(fixture.resolve("rebuts.csv"),receipts);
+        Files.writeString(fixture.resolve("packs.csv"),"Pack ID;Member ID;Plan;Opened on;Consumed\nactive;"+source(1)+";PACK10;2026-08-01;3\nexpired;"+source(1)+";PACK10;2026-01-01;2\n");
+        var dry=importer.importDirectory(fixture,MAPPING,CLUB,true,false,false,LocalDate.of(2026,9,1));
+        assertThat(dry.hasErrors()).as(dry.render()).isFalse(); assertThat(rows("invoices")).isEmpty(); assertThat(rows("members")).isEmpty();
+        var report=importer.importDirectory(fixture,MAPPING,CLUB,false,false,false,LocalDate.of(2026,9,1));
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        assertThat(report.count("invoices","CREATED")).isEqualTo(103); assertThat(report.count("packBalances","CREATED")).isEqualTo(2);
+        assertThat(report.totals()).containsEntry("invoicesPAID",101L).containsEntry("invoicesPENDING",1L).containsEntry("invoicesFAILED",1L)
+                .containsEntry("packsACTIVE",1L).containsEntry("packsEXPIRED",1L);
+        assertThat(rows("invoices")).allSatisfy(invoice -> {
+            assertThat(invoice).containsEntry("kind","MIGRATED").containsEntry("series","PLAYOFF").containsEntry("period","2026-02");
+            assertThat(invoice.getList("lines",Document.class)).singleElement().satisfies(line -> assertThat(line).containsEntry("origin","MIGRATED"));
+            assertThat(invoice.get("remittanceId")).isNull();
+        });
+        assertThat(rows("pack_balances")).allSatisfy(pack -> {
+            assertThat(pack.getList("movements",Document.class)).singleElement().satisfies(movement -> assertThat(movement).containsEntry("type","OPEN").containsEntry("reason","MIGRATED"));
+            assertThat(pack.getInteger("remaining")+pack.getInteger("consumed")).isEqualTo(10);
+        });
+        assertThat(rows("collections")).isEmpty(); assertThat(rows("remittances")).isEmpty();
+        var again=importer.importDirectory(fixture,MAPPING,CLUB,false,false,false,LocalDate.of(2026,9,1));
+        assertThat(again.count("invoices","CREATED")).isZero(); assertThat(again.count("packBalances","CREATED")).isZero();
+        assertThat(rows("invoices")).hasSize(103); assertThat(rows("pack_balances")).hasSize(2);
+        assertThat(report.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+|ES[0-9]{22}|[0-9]{8}[A-Z]");
+    }
+    @Autowired MigrationPhotos photos;
+    @Test void T_18_05_photosUseLocalStorageAndKeepUploadedFilesWithSafePerDogFailures() throws Exception {
+        apply(); var server=com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1",0),0);
+        byte[] png=Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=");
+        server.createContext("/ok",exchange -> { exchange.getResponseHeaders().set("Content-Type","image/png"); exchange.sendResponseHeaders(200,png.length); exchange.getResponseBody().write(png); exchange.close(); });
+        server.createContext("/missing",exchange -> { exchange.sendResponseHeaders(404,-1); exchange.close(); });
+        server.createContext("/wrong",exchange -> { exchange.getResponseHeaders().set("Content-Type","text/plain"); exchange.sendResponseHeaders(200,1); exchange.getResponseBody().write(0); exchange.close(); });
+        byte[] large=new byte[9*1024*1024];
+        server.createContext("/large",exchange -> { try { exchange.getResponseHeaders().set("Content-Type","image/png"); exchange.sendResponseHeaders(200,large.length); exchange.getResponseBody().write(large); } catch(java.io.IOException cancelled) { } finally { exchange.close(); } });
+        server.start();
+        try {
+            var selected=rows("dogs").subList(0,6); String base="http://127.0.0.1:"+server.getAddress().getPort();
+            for (int index=0;index<6;index++) {
+                String source=index==4 ? "[redacted]" : base+List.of("/ok","/missing","/wrong","/large","/ok","/ok").get(index);
+                var update=new Update().set("sourceIds.playoffPhoto",source); if(index==5) { update.set("photoFileKey","existing-upload"); }
+                mongo.updateFirst(Query.query(Criteria.where("_id").is(selected.get(index).get("_id"))),update,"dogs");
+            }
+            assertThat(photos.run(CLUB,true)).filteredOn(row -> row.outcome().equals("IMPORTED")).isEmpty();
+            var result=photos.run(CLUB,false);
+            assertThat(result).filteredOn(row -> row.outcome().equals("IMPORTED")).hasSize(1);
+            assertThat(result).extracting(MigrationPhotos.Row::outcome).contains("NOT_FOUND","FILE_TYPE_NOT_ALLOWED","FILE_TOO_LARGE","SKIPPED");
+            assertThat(mongo.findById(selected.get(0).get("_id"),Document.class,"dogs").get("photoFileKey")).isNotNull();
+            assertThat(mongo.findById(selected.get(5).get("_id"),Document.class,"dogs").get("photoFileKey")).isEqualTo("existing-upload");
+            assertThat(photos.run(CLUB,false)).noneMatch(row -> row.outcome().equals("IMPORTED"));
+            assertThat(result.toString()).doesNotContain(base,"@example.test");
+        } finally { server.stop(0); }
+    }
+
 }

@@ -66,13 +66,12 @@ public class CheckoutService {
         catch(RuntimeException failure) {
             IdempotentOperation.release();
             try { abandon(memberId,request.sessionId()); }
-            catch(RuntimeException fenced) {
-                // E5-T31 (review E5-T30 #6): a retry took the key's claim over, so it owns the session and this request answers its
-                // 409; the provider's failure (a timeout is the likely cause of the takeover) is still recorded, without the customer.
-                LOG.warn("Provider call failed after the checkout's key was taken over: checkoutSessionId={} clubId={} error={}",
-                        request.sessionId(),request.clubId(),failure.getClass().getName());
-                fenced.addSuppressed(failure);
-                throw fenced;
+            catch(RuntimeException cleanupFailure) {
+                // Cleanup can fail on the key fence or on storage; neither case proves a takeover.
+                LOG.warn("Checkout abandonment failed after provider call failure: checkoutSessionId={} clubId={}",
+                        request.sessionId(),request.clubId());
+                cleanupFailure.addSuppressed(failure);
+                throw cleanupFailure;
             }
             expireAtProvider(request.sessionId(),request.clubId());
             throw failure;
@@ -191,7 +190,7 @@ public class CheckoutService {
         try { gateway.expire(sessionId); }
         catch(RuntimeException failure) {
             // The session is EXPIRED on our side whatever the provider answers; a later completion is a late one (E34).
-            LOG.warn("Provider expiry failed: checkoutSessionId={} clubId={} error={}",sessionId,clubId,failure.toString());
+            LOG.warn("Provider expiry failed: checkoutSessionId={} clubId={}",sessionId,clubId);
         }
     }
     /** Runs {@code action} once the caller's transaction committed, outside it (never inside a retried unit of work). */

@@ -48,7 +48,10 @@ public interface PaymentProvider {
     String createCheckoutSession(Request request);
     void complete(String sessionId);
     void expire(String sessionId);
-    /** The timeout this implementation's client applies to each call, retries included: positive and at most {@link #MAX_CALL_TIMEOUT}. */
+    /**
+     * The timeout this implementation's client applies to each call, retries included: positive and at most
+     * {@link #MAX_CALL_TIMEOUT}. The adapter builds its HTTP client's budget from this value.
+     */
     Duration callTimeout();
     /** {@code provider}, when its {@link #callTimeout()} keeps the contract; otherwise it never serves a request (checked at startup). */
     static PaymentProvider requireTimeout(PaymentProvider provider) {

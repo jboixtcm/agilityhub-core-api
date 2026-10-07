@@ -20,7 +20,7 @@ public class ListExportService {
     }
     public record Result(String jobId, String fileName, byte[] file) { }
     public Result export(String key, String format, String selected, MultiValueMap<String, String> params) {
-        policy.requireAllowed(format);
+        policy.requireAllowed(key, format);
         var dataset = lists.dataset(key); var query = ListQuery.parse(dataset.definition(), params);
         var columns = dataset.definition().selectColumns(selected != null || query.fields().isEmpty() ? selected : fieldColumns(dataset.definition(), query.fields()));
         long rows = lists.exportCount(dataset, query, ExportPolicy.MAX_ROWS);
@@ -30,7 +30,7 @@ public class ListExportService {
         String name = ExportNames.fileName(config.club().slug(), key, now, ZoneId.of(config.club().timeZone()), format);
         boolean inline = rows <= ExportPolicy.SYNC_MAX_ROWS;
         var selection = new ListQuery(0, 1000, query.sort(), query.q(), query.filters(), List.of());
-        var job = new ExportJob(id, clubId, ListAccess.account(), "LIST", key, format.toUpperCase(Locale.ROOT), inline ? "RUNNING" : "QUEUED", columns, selection,
+        var job = new ExportJob(id, clubId, ListAccess.account(), "accounting".equals(key) ? "ACCOUNTING" : "LIST", key, format.toUpperCase(Locale.ROOT), inline ? "RUNNING" : "QUEUED", columns, selection,
                 LocaleContext.current().toLanguageTag(), now, config.club().timeZone(), name, config.club().name(), config.primaryColor(), rows, 0,
                 null, null, ExportPolicy.contentType(format), now.plus(Duration.ofDays(7)), inline ? 1 : 0, inline ? UUID.randomUUID().toString() : null,
                 inline ? now.plusSeconds(300) : null, null, List.of(), null);

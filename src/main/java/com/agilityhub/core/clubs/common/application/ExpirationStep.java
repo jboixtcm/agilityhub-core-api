@@ -12,12 +12,17 @@ import java.util.List;
  * port of this context, never that context's services directly.
  */
 public interface ExpirationStep {
-    /** The step's letter in R-15-15 (`a`…`h`): the order in which a run plans the steps. */
+    /** The step's letter in R-15-15 (`a`…`i`): the order in which a run plans the steps. */
     char letter();
     /** The module the step needs; null when it needs none. */
     Module module();
-    /** The `entityType` of this step's items, one per step: {@link ExpirationsJob#apply} gives an item back to its step by it. */
-    String entityType();
+    /**
+     * The actions owned by this step. P5 routes by action, never by entity type: both c and d concern Member,
+     * while d is a club-level item. Every action has exactly one owner, including steps with several actions.
+     */
+    java.util.Set<String> actions();
+    /** Counters still appear with zero when this step is disabled or has no work. */
+    default java.util.Set<String> counters() { return java.util.Set.of(); }
     /** Only reads, as {@link com.agilityhub.core.platform.application.jobs.Job#plan}. */
     List<JobItem> plan(JobContext context);
     /** One item, in its own transaction, as {@link com.agilityhub.core.platform.application.jobs.Job#apply}. */

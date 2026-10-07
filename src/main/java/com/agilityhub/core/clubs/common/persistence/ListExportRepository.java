@@ -27,7 +27,7 @@ public class ListExportRepository extends TenantRepository<ExportJob> {
     }
     public long running() { return mongo.count(tenantQuery().addCriteria(Criteria.where("status").is("RUNNING")), ExportJob.class); }
     public ExportJob claim(Instant now, String token) {
-        var query = tenantQuery().addCriteria(Criteria.where("kind").is("LIST").and("status").is("QUEUED")
+        var query = tenantQuery().addCriteria(Criteria.where("kind").in("LIST", "ACCOUNTING").and("status").is("QUEUED")
                 .orOperator(Criteria.where("expiresAt").gt(now), Criteria.where("expiresAt").is(null)))
                 .with(Sort.by("createdAt"));
         return mongo.findAndModify(query, new Update().set("status", "RUNNING").set("claimToken", token)

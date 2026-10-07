@@ -50,3 +50,10 @@ scenario:
     - {member: 2, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
     - {member: 3, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
     - {member: 4, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
+
+# E8: the second fictional club exercises card and single-class billing.
+billing:
+  providers:
+    STRIPE: {enabled: true, mode: TEST, publishableKey: pk_test_demo_placeholder}
+  cardMember: 6
+  pendingCharges: [7, 8]

@@ -33,6 +33,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 /** Registered after Spring Security: scope comes from a validated JWT or a resolved signup host/capability. */
 public class IdempotencyFilter extends OncePerRequestFilter {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(IdempotencyFilter.class);
     private final IdempotencyRepository records;
     private final TransactionTemplate transactions;
     private final Clock clock;
@@ -248,9 +249,15 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             Throwable original = failure instanceof RequestFailure wrapped ? wrapped.getCause() : failure;
             boolean held = true;
             try { held = failure instanceof ApiException || records.held(record); }
-            catch (RuntimeException unchecked) { original.addSuppressed(unchecked); }
+            catch (RuntimeException unchecked) {
+                LOG.warn("Idempotency held check failed: recordId={} clubId={}", record.id(), record.clubId());
+                original.addSuppressed(unchecked);
+            }
             try { records.abandon(record); }
-            catch (RuntimeException unreleased) { original.addSuppressed(unreleased); }
+            catch (RuntimeException unreleased) {
+                LOG.warn("Idempotency abandon failed: recordId={} clubId={}", record.id(), record.clubId());
+                original.addSuppressed(unreleased);
+            }
             if (!held) { throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")); }
             if (failure instanceof RequestFailure wrapped) {
                 if (wrapped.getCause() instanceof IOException io) { throw io; }

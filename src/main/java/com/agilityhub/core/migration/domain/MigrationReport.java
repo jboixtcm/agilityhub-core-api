@@ -3,10 +3,11 @@ package com.agilityhub.core.migration.domain;
 import java.util.*;
 
 /** Reports contain only adapter keys, row ordinals, outcomes and fixed incident codes. */
-public record MigrationReport(boolean dryRun, List<Entry> rows) {
+public record MigrationReport(boolean dryRun, List<Entry> rows, Map<String, Long> totals) {
+    public MigrationReport(boolean dryRun, List<Entry> rows) { this(dryRun, rows, Map.of()); }
     /** R-18-14: a re-execution transition that is rejected, not reconciled; like any other error, it blocks the whole apply. */
     public static final String REEXECUTION_UNSUPPORTED = "REEXECUTION_UNSUPPORTED";
-    public MigrationReport { rows = List.copyOf(rows); }
+    public MigrationReport { rows = List.copyOf(rows); totals = Map.copyOf(totals); }
     public record Entry(String file, int row, String entity, String outcome, String code, String field) {
         public Entry(String file, int row, String entity, String outcome, String code) { this(file,row,entity,outcome,code,""); }
     }
@@ -21,7 +22,7 @@ public record MigrationReport(boolean dryRun, List<Entry> rows) {
             out.append(REEXECUTION_UNSUPPORTED).append(": ").append(unsupported())
                 .append(" records cannot be reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.\n");
         }
-        for (String entity : List.of("members", "dogs", "familyGroups", "accounts")) {
+        for (String entity : List.of("members", "dogs", "familyGroups", "accounts", "invoices", "packBalances")) {
             out.append(entity).append(": created=").append(count(entity,"CREATED")).append(" updated=").append(count(entity,"UPDATED"))
                 .append(" skipped=").append(count(entity,"SKIPPED")).append(" errors=").append(count(entity,"ERROR"));
             // R-18-12: family groups proposed to the club for records that share an email; never created by the import.
@@ -31,6 +32,7 @@ public record MigrationReport(boolean dryRun, List<Entry> rows) {
         var incidents = new TreeMap<String,Integer>();
         rows.stream().filter(r -> !r.code().isEmpty() && !r.outcome().equals("PROPOSED")).forEach(r -> incidents.merge(r.code(),1,Integer::sum));
         out.append("Incidents: ").append(incidents).append('\n');
+        if (!totals.isEmpty()) { out.append("Billing totals: ").append(new TreeMap<>(totals)).append('\n'); }
         for (var row : rows) { out.append(row.file()).append(':').append(row.row()).append(' ').append(row.entity()).append(' ').append(row.outcome()).append(' ').append(row.code()).append(row.field().isEmpty() ? "" : " field="+row.field()).append('\n'); }
         return out.toString();
     }

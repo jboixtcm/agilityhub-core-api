@@ -132,4 +132,15 @@ public class DocumentService {
         }
         return attachments.url(key, dog.name);
     }
+    /** B29: recheck under the census lock after the download; a concurrent uploaded photo always wins. */
+    @Transactional
+    @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#dogId", member = "owner(#dogId)")
+    public boolean migrationPhoto(String dogId, AttachmentService.File file) {
+        access.members.lock(); var dog = access.mutableDog(dogId);
+        if (dog.photoFileKey != null && !dog.photoFileKey.isBlank()) { return false; }
+        attachments.bindMigrationPhoto(file, dogId); dog.photoFileKey = file.fileKey(); access.dogs.save(dog);
+        events.emit("DogUpdated", "Dog", dogId, object("dogId", dogId, "memberId", dog.memberId,
+                "diff", object("photoFileKey", object("before", null, "after", file.fileKey()))));
+        return true;
+    }
 }

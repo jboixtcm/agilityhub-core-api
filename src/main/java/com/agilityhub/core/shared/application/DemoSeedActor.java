@@ -41,6 +41,6 @@ public final class DemoSeedActor {
     }
 
     static boolean allowed(Environment environment) {
-        return environment != null && environment.acceptsProfiles(Profiles.of("local", "test")) && !environment.acceptsProfiles(Profiles.of("staging", "prod"));
+        return environment != null && environment.acceptsProfiles(Profiles.of("local", "staging", "test")) && !environment.acceptsProfiles(Profiles.of("prod", "production"));
     }
 }

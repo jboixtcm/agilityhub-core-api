@@ -10,7 +10,19 @@ import java.util.*;
 /** Versioned adapter: positions disambiguate Playoff's duplicate birth-date headings. */
 public record MappingConfig(int version, String defaultClub, int ageWarningYears, int suspectBirthYears, String inferredDogPrefix, Map<String,String> statuses, Map<String,String> plans,
         Set<String> unresolvedPlans, Set<String> withoutPlan, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels, Map<String,String> levelWarnings,
-        Map<String,String> levelFlags, Set<String> unresolvedLevels, String photoOwner, Map<String,InputFile> files) {
+        Map<String,String> levelFlags, Set<String> unresolvedLevels, String photoOwner, Map<String,InputFile> files, History history) {
+    public record History(int receiptsMonths) { }
+    public MappingConfig {
+        if (history == null) { history = new History(24); }
+    }
+    /** Compatibility with the version-2 census adapter. */
+    public MappingConfig(int version, String defaultClub, int ageWarningYears, int suspectBirthYears, String inferredDogPrefix,
+            Map<String,String> statuses, Map<String,String> plans, Set<String> unresolvedPlans, Set<String> withoutPlan,
+            Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels, Map<String,String> levelWarnings,
+            Map<String,String> levelFlags, Set<String> unresolvedLevels, String photoOwner, Map<String,InputFile> files) {
+        this(version, defaultClub, ageWarningYears, suspectBirthYears, inferredDogPrefix, statuses, plans, unresolvedPlans, withoutPlan,
+                familyPlans, instructorPlans, levels, levelWarnings, levelFlags, unresolvedLevels, photoOwner, files, null);
+    }
     public static final int VERSION = 2;
     public static final String DEFAULT = "/migration/playoff-v" + VERSION + ".yaml";
     public record Column(int at, String header, String field, String anonymize) { }
@@ -30,7 +42,9 @@ public record MappingConfig(int version, String defaultClub, int ageWarningYears
                 || levelWarnings == null || !levels.keySet().containsAll(levelWarnings.keySet()) || !Set.of("LEVEL_PENDING").containsAll(levelWarnings.values())
                 || !"DOG".equals(photoOwner)
                 || !Set.of("ACTIVE","LEFT","SKIP").containsAll(statuses.values())
-                || !files.keySet().equals(Set.of("members", "plans", "levels", "groups", "team", "persons"))) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+                || history.receiptsMonths() < 1
+                || !files.keySet().containsAll(Set.of("members", "plans", "levels", "groups", "team", "persons"))
+                || !Set.of("members", "plans", "levels", "groups", "team", "persons", "receipts", "packs", "forecast", "mandates").containsAll(files.keySet())) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
         var names = new HashSet<String>();
         for (var file : files.values()) {
             var positions = new HashSet<Integer>(); var fields = new HashSet<String>();
@@ -40,7 +54,7 @@ public record MappingConfig(int version, String defaultClub, int ageWarningYears
                 if (column == null || column.at() < 1 || column.at() > file.columns().size() || !positions.add(column.at())
                         || column.field() == null || column.field().isBlank() || !fields.add(column.field()) || column.header() == null || column.header().isBlank()
                         || column.anonymize() == null
-                        || !Set.of("keep", "id", "number", "redact", "name", "surname", "document", "passport", "phone", "postal", "address", "email", "iban", "dog", "chip", "license").contains(column.anonymize())) {
+                        || !Set.of("keep", "id", "number", "redact", "receiptConcept", "name", "surname", "document", "passport", "phone", "postal", "address", "email", "iban", "dog", "chip", "license").contains(column.anonymize())) {
                     throw new ApiException(ErrorCode.MAPPING_INVALID);
                 }
             }

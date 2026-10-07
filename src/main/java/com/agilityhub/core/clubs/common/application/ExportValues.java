@@ -10,6 +10,16 @@ final class ExportValues {
     private final IcuMessageSource messages; private final Locale locale; private final ZoneId zone;
     ExportValues(IcuMessageSource messages, Locale locale, ZoneId zone) { this.messages = messages; this.locale = locale; this.zone = zone; }
     String label(String key, String column) { return messages.getMessage("export.column." + key + "." + column, null, column, locale); }
+    String accounting(Object value, String column) {
+        if (value == null) { return ""; }
+        java.math.BigDecimal number = null;
+        if (Set.of("base", "tax", "total").contains(column) && value instanceof Map<?, ?> money && money.get("amountMinor") instanceof Number minor) {
+            number = java.math.BigDecimal.valueOf(minor.longValue(), 2);
+        } else if (column.equals("taxPercent")) { number = new java.math.BigDecimal(value.toString()); }
+        if (number == null) { return text(value); }
+        var format = java.text.NumberFormat.getNumberInstance(locale); format.setGroupingUsed(false);
+        format.setMinimumFractionDigits(2); format.setMaximumFractionDigits(2); return format.format(number);
+    }
     String text(Object value) {
         if (value == null || value instanceof com.fasterxml.jackson.databind.node.NullNode) { return ""; }
         if (value instanceof Boolean flag) { return messages.getMessage("export.boolean." + flag, null, locale); }

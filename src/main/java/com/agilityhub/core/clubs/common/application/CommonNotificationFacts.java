@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CommonNotificationFacts implements NotificationFactsPort {
-    private static final Set<String> TYPES = Set.of("JobFailed", "WeekOpened");
+    private static final Set<String> TYPES = Set.of("JobFailed", "WeekOpened", "SignupPendingAging", "RemittanceReminderDue");
     private final ClubConfigService configs; private final IcuMessageSource messages; private final WeekOpenings weeks; private final SchedulingRecipients recipients;
 
     public CommonNotificationFacts(ClubConfigService configs, IcuMessageSource messages, WeekOpenings weeks, SchedulingRecipients recipients) {
@@ -49,6 +49,14 @@ public class CommonNotificationFacts implements NotificationFactsPort {
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
         var config = configs.get(trigger.clubId());
         return switch (trigger.type()) {
+            case "SignupPendingAging" -> Optional.of(NotificationFacts.builder()
+                    .occurrence("N-34:" + trigger.occurredAt().atZone(configs.timeZone(trigger.clubId())).toLocalDate())
+                    .value("count", trigger.number("count", 0)).value("oldest_days", trigger.number("oldestDays", 0))
+                    .value("entityId", trigger.clubId()).build());
+            case "RemittanceReminderDue" -> Optional.of(NotificationFacts.builder()
+                    .occurrence("N-41:" + trigger.text("period"))
+                    .value("period", java.time.YearMonth.parse(trigger.text("period")))
+                    .value("pending_count", trigger.number("pendingMembers", 0)).value("entityId", trigger.clubId()).build());
             case "JobFailed" -> {
                 if (!Boolean.TRUE.equals(config.get("jobs.alertAdminsOnFailure", Boolean.class))) { yield Optional.empty(); }
                 String job = Objects.toString(trigger.text("job"), "");

@@ -29,7 +29,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * S12 §6 monthly cycle of D6 (R-12-07…14, R-12-26), ADMIN only, module `BILLING`; the impersonation token is refused
  * (`IMPERSONATION_DENIED`) and MEMBER/INSTRUCTOR get 403 (MATRIU «Facturació»). E8-T02 serves the month, the simulation,
  * the run and its rollback; the card charges go to `CardChargingPort` and the
- * accounting export stays 501 until E8-T06. Error statuses are CATALEG_ERRORS' (rule 0), whatever S12 §6 writes.
+ * accounting export uses S14. Error statuses are CATALEG_ERRORS' (rule 0), whatever S12 §6 writes.
  */
 @RestController
 @RequiresModule(Module.BILLING)
@@ -42,6 +42,7 @@ public class BillingController {
     private final BillingContractAccess access; private final BillingQueries queries; private final BillingSimulationService simulations;
     private final BillingRunService runs; private final BillingTransactions transactions; private final CardChargingPort cards;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.AccountingExportPort accounting;
     public BillingController(BillingContractAccess access, BillingQueries queries, BillingSimulationService simulations, BillingRunService runs,
             BillingTransactions transactions, CardChargingPort cards, com.fasterxml.jackson.databind.ObjectMapper mapper) {
         this.access = access; this.queries = queries; this.simulations = simulations; this.runs = runs; this.transactions = transactions;
@@ -159,7 +160,7 @@ public class BillingController {
     @Operation(summary = "exportAccounting", description = ROLES + "R-12-26 «Exporta per a comptabilitat» (S14 engine, listKey = accounting): one row "
             + "per invoice line (number, date, month, member number, name, holder's tax id, concept, base, tax %, tax, total, method, status, "
             + "collection date, remittance, mandate or PaymentIntent reference), UTF-8 with BOM, `;`, decimals per the admin's locale. 200 file "
-            + "(facturacio-YYYY-MM.csv) or 202 ExportAccepted for a large one; DATA_EXPORTED audit. format defaults to billing.accountingExportFormat." + STUB,
+            + "or 202 ExportAccepted for a large one; DATA_EXPORTED audit. format defaults to billing.accountingExportFormat." + SERVED,
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "text/csv", schema = @Schema(type = "string", format = "binary")),
@@ -170,6 +171,13 @@ public class BillingController {
         access.tenant();
         access.month("period", period);
         access.oneOf("format", format, "csv", "xlsx");
-        throw new UnsupportedOperationException();
+        var result = accounting.export(period, format);
+        if (result.content() == null) {
+            return org.springframework.http.ResponseEntity.accepted().contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(json(new ExportAccepted(result.jobId(), "/api/v1/exports/" + result.jobId())));
+        }
+        return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.parseMediaType(result.contentType()))
+                .header("Content-Disposition", org.springframework.http.ContentDisposition.attachment().filename(result.fileName()).build().toString())
+                .body(result.content());
     }
 }

@@ -21,6 +21,23 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class StripePaymentProviderTest {
+    @Test void T_15_23_realAdapterDerivesRequestTimeoutsFromItsDeclaredBudget() throws Exception {
+        configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
+        doReturn(java.time.Duration.ofSeconds(15)).when(provider).callTimeout();
+        var intent = new PaymentIntent(); intent.setId("pi_example"); intent.setStatus("succeeded");
+        when(client.v1().paymentIntents().create(any(PaymentIntentCreateParams.class), any(RequestOptions.class))).thenReturn(intent);
+        try (var tenant = TenantContext.open("club-a")) {
+            provider.createOffSessionPayment(new PaymentProvider.OffSessionRequest(new Money(100, "EUR"),
+                    "cus_example", "pm_example", "timeout-contract", Map.of()));
+        }
+        var options = ArgumentCaptor.forClass(RequestOptions.class);
+        verify(client.v1().paymentIntents()).create(any(PaymentIntentCreateParams.class), options.capture());
+        assertThat(options.getValue().getConnectTimeout()).isEqualTo(500);
+        assertThat(options.getValue().getReadTimeout()).isEqualTo(1500);
+        assertThat(options.getValue().getMaxNetworkRetries()).isZero();
+        assertThat(6L * (options.getValue().getConnectTimeout() + options.getValue().getReadTimeout()) + 600)
+                .isLessThan(provider.callTimeout().toMillis());
+    }
     final ClubPaymentProviders clubs = mock(ClubPaymentProviders.class);
     final ProviderSecretVault vault = mock(ProviderSecretVault.class);
     final SignupCheckoutRepository sessions = mock(SignupCheckoutRepository.class);

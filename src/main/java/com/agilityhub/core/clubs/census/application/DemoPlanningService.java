@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DemoPlanningService {
     /** The seed file's sections the steps read; `messaging` (E7-T04) holds the S11 preference profiles and `CUSTOM` templates. */
-    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities", "scenario", "messaging");
+    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities", "scenario", "messaging", "billing");
     public record Result(String id, int changes, Map<String, Integer> counts, LocalDate weekStart) {
         public String render() { return counts + "\n" + changes + " changes (demo planning, week start " + weekStart + ")"; }
     }
@@ -47,7 +47,7 @@ public class DemoPlanningService {
     /** `reanchor` = E5-T09 `seed:demo --reanchor`: needs the first run, then applies the reanchoring steps once per week start. */
     @Transactional
     public Result apply(DemoDataset.Spec spec, Map<String, Object> specification, long seed, LocalDate weekStart, boolean reanchor) {
-        if (!environment.acceptsProfiles(Profiles.of("local", "test")) || environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
+        if (!environment.acceptsProfiles(Profiles.of("local", "staging", "test")) || environment.acceptsProfiles(Profiles.of("prod", "production"))) {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
         if (weekStart.getDayOfWeek() != DayOfWeek.MONDAY) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "weekStart")); }

@@ -28,7 +28,9 @@ public class ListExportRenderer {
             Locale locale, ZoneId zone, OutputStream output) {
         var values = new ExportValues(messages, locale, zone);
         Iterable<Map<String, Object>> formatted = () -> java.util.stream.StreamSupport.stream(rows.spliterator(), false).map(row -> {
-            var cells = new LinkedHashMap<String, Object>(); columns.forEach(column -> cells.put(column, values.text(row.get(column)))); return (Map<String, Object>) cells;
+            var cells = new LinkedHashMap<String, Object>();
+            columns.forEach(column -> cells.put(column, "accounting".equals(listKey) ? values.accounting(row.get(column), column) : values.text(row.get(column))));
+            return (Map<String, Object>) cells;
         }).iterator();
         try { write(format, club, color, listKey, columns, columns.stream().map(column -> values.label(listKey, column)).toList(), formatted, output, locale); }
         catch (IOException ex) { throw new UncheckedIOException(ex); }
@@ -36,7 +38,23 @@ public class ListExportRenderer {
     private void write(String format, String club, String color, String listKey, List<String> columns, List<String> labels,
             Iterable<Map<String, Object>> rows, OutputStream output, Locale locale) throws IOException {
         if (format.equals("xlsx")) { xlsx(listKey, columns, labels, rows, output); }
+        else if (format.equals("csv")) { csv(columns, labels, rows, output); }
         else { pdf(club, color, listKey, columns, labels, rows, output, locale); }
+    }
+    private void csv(List<String> columns, List<String> labels, Iterable<Map<String, Object>> rows, OutputStream output) throws IOException {
+        output.write(new byte[] {(byte) 0xef, (byte) 0xbb, (byte) 0xbf});
+        var writer = new OutputStreamWriter(output, java.nio.charset.StandardCharsets.UTF_8);
+        writer.write(String.join(";", labels.stream().map(ListExportRenderer::csvCell).toList()) + "\r\n");
+        for (var row : rows) {
+            writer.write(String.join(";", columns.stream().map(c -> csvCell(text(row.get(c)))).toList()) + "\r\n");
+        }
+        writer.flush();
+    }
+    private static String csvCell(String value) {
+        // Spreadsheet formulas remain text, including cells with leading whitespace or control characters.
+        String stripped = value.stripLeading();
+        if (!stripped.isEmpty() && "=+@-".indexOf(stripped.charAt(0)) >= 0 && !stripped.matches("-?\\d+([.,]\\d+)?")) { value = "'" + value; }
+        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
     private void xlsx(String key, List<String> columns, List<String> labels, Iterable<Map<String, Object>> rows, OutputStream output) throws IOException {
         try (var workbook = new SXSSFWorkbook(100)) {

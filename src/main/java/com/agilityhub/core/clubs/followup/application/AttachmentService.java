@@ -18,6 +18,18 @@ public class AttachmentService {
     public record File(String id, String name, String fileKey, String mimeType, long sizeBytes, Instant uploadedAt, String uploadedByAccountId) { }
     /** A local signed download (E5-T26): the stored file with its stored name and MIME type, as S3 answers its object. */
     public record Download(String name, String mimeType, long sizeBytes, InputStream content) { }
+    /** B29: only migration calls this server-side path; it obeys DOG_PHOTO's existing limits. */
+    public File storeMigrationPhoto(String mimeType, byte[] bytes) {
+        validate("DOG_PHOTO", mimeType, bytes.length); String key = UUID.randomUUID().toString();
+        try { storage.put(key, mimeType, bytes.length, new java.io.ByteArrayInputStream(bytes)); }
+        catch (IOException failure) { throw new java.io.UncheckedIOException(failure); }
+        return new File(key, "Imported dog photo", key, mimeType, bytes.length, clock.instant(), null);
+    }
+    public void bindMigrationPhoto(File file, String dogId) {
+        grants.insert(new UploadGrant(file.id(), TenantContext.require(), "SYSTEM", "DOG_PHOTO", file.name(), file.mimeType(),
+                file.sizeBytes(), file.uploadedAt(), file.uploadedAt(), dogId));
+    }
+    public void discardMigrationPhoto(File file) { storage.delete(file.fileKey()); }
     private final UploadGrantRepository grants; private final AttachmentRepository attachments; private final AttachmentStorage storage;
     private final EventPublisher events; private final TaskRepository tasks; private final FollowupEvents followupEvents;
     private final ClubConfigService configs; private final DogOwnerAccess dogs; private final Clock clock;

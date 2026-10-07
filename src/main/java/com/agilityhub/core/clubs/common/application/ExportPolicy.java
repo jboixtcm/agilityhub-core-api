@@ -10,12 +10,17 @@ public class ExportPolicy {
     public static final int SYNC_MAX_ROWS = 5000;
     public static final int MAX_ROWS = 100000;
     public static String contentType(String format) {
+        if (format.equalsIgnoreCase("csv")) { return "text/csv;charset=UTF-8"; }
         return format.equalsIgnoreCase("pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
     public void requireAllowed(String format) {
+        requireAllowed(null, format);
+    }
+    public void requireAllowed(String listKey, String format) {
         ListAccess.account();
         if (!ListAccess.admin()) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        if (!Set.of("xlsx", "pdf").contains(format)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        var formats = "accounting".equals(listKey) ? Set.of("xlsx", "csv") : Set.of("xlsx", "pdf");
+        if (!formats.contains(format)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
     /** Defence in depth for future providers; renderers only receive this masked copy. */
     public Object mask(Object value) {

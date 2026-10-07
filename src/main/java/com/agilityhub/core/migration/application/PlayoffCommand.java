@@ -15,13 +15,15 @@ public class PlayoffCommand implements CoreCommand {
     private final PlayoffImportService importer;
     private final MigrationClubAccess clubs;
     private final Environment environment;
+    @org.springframework.beans.factory.annotation.Autowired private MigrationResetService reset;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.ClubClock clock;
     public PlayoffCommand(PlayoffImportService importer, MigrationClubAccess clubs, Environment environment) {
         this.importer=importer; this.clubs=clubs; this.environment=environment;
     }
     public String name() { return "migration:playoff"; }
     public void run(ApplicationArguments args) {
-        if (args.getNonOptionArgs().size()!=1 || !Set.of("core.command","dry-run","club","mapping","env","confirm-production").containsAll(args.getOptionNames())) { throw usage(); }
-        for (String flag:Set.of("dry-run","confirm-production")) {
+        if (args.getNonOptionArgs().size()>1 || !Set.of("core.command","dry-run","apply","in","cut-over","reset","seed","club","mapping","env","confirm-production").containsAll(args.getOptionNames())) { throw usage(); }
+        for (String flag:Set.of("dry-run","apply","reset","confirm-production")) {
             if (args.containsOption(flag) && !args.getOptionValues(flag).isEmpty()) { throw usage(); }
         }
         String mappingPath=option(args,"mapping",null);
@@ -29,8 +31,25 @@ public class PlayoffCommand implements CoreCommand {
         String env=option(args,"env","staging");
         if (!Set.of("staging","production").contains(env)) { throw usage(); }
         boolean production=env.equals("production") || environment.matchesProfiles("prod","production");
-        var report=importer.importDirectory(Path.of(args.getNonOptionArgs().getFirst()),mapping,
-                clubs.resolve(option(args,"club",mapping.defaultClub())),args.containsOption("dry-run"),production,args.containsOption("confirm-production"));
+        String slug=option(args,"club",mapping.defaultClub()); String clubId=clubs.resolve(slug);
+        if (args.containsOption("reset")) {
+            if (args.containsOption("dry-run") || args.containsOption("apply") || args.containsOption("in") || !args.getNonOptionArgs().isEmpty()) { throw usage(); }
+            if (environment.matchesProfiles("prod","production")) { throw new ApiException(ErrorCode.FORBIDDEN); }
+            try {
+                var reader=new java.io.BufferedReader(new java.io.InputStreamReader(System.in,java.nio.charset.StandardCharsets.UTF_8));
+                System.out.println("Reset club data. Enter the club slug:"); String first=reader.readLine();
+                System.out.println("Enter the club slug again:"); String second=reader.readLine();
+                reset.reset(slug,Path.of(option(args,"seed","seeds/club-"+slug+".yaml")),first,second);
+                System.out.println("Club reset completed: "+slug); return;
+            } catch (java.io.IOException failure) { throw new ApiException(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION); }
+        }
+        if (args.containsOption("apply") && args.containsOption("dry-run")) { throw usage(); }
+        String directory=option(args,"in",args.getNonOptionArgs().isEmpty() ? null : args.getNonOptionArgs().getFirst());
+        if (directory==null || args.containsOption("in") && !args.getNonOptionArgs().isEmpty()) { throw usage(); }
+        java.time.LocalDate cutover;
+        try { cutover=java.time.LocalDate.parse(option(args,"cut-over",clock.today(clubId).toString())); }
+        catch(java.time.DateTimeException invalid) { throw usage(); }
+        var report=importer.importDirectory(Path.of(directory),mapping,clubId,args.containsOption("dry-run"),production,args.containsOption("confirm-production"),cutover);
         System.out.print(report.render());
         // Any error row, REEXECUTION_UNSUPPORTED included, means nothing was applied: the command exits non-zero.
         if (report.hasErrors()) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
@@ -42,6 +61,6 @@ public class PlayoffCommand implements CoreCommand {
         return values.getFirst();
     }
     private IllegalArgumentException usage() {
-        return new IllegalArgumentException("Usage: migration:playoff <dir> [--dry-run] [--club=slug] [--mapping=file] [--env=staging|production] [--confirm-production]");
+        return new IllegalArgumentException("Usage: migration:playoff [<dir>|--in=dir] [--apply|--dry-run] [--cut-over=YYYY-MM-DD] [--club=slug] [--mapping=file] [--env=staging|production] [--confirm-production] | --reset --club=slug [--seed=file]");
     }
 }

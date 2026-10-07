@@ -29,7 +29,8 @@ public class SignupCheckoutExpiryStep implements ExpirationStep {
     public SignupCheckoutExpiryStep(LapsedCheckoutsPort checkouts) { this.checkouts = checkouts; }
     @Override public char letter() { return 'h'; }
     @Override public Module module() { return Module.BILLING; }
-    @Override public String entityType() { return CHECKOUT; }
+    @Override public java.util.Set<String> actions() { return java.util.Set.of(EXPIRE); }
+    @Override public java.util.Set<String> counters() { return java.util.Set.of("expiredCheckouts"); }
 
     @Override public List<JobItem> plan(JobContext context) {
         var now = context.scheduledFor();

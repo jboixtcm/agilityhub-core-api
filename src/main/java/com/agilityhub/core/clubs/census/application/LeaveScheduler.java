@@ -19,19 +19,21 @@ public class LeaveScheduler {
             int count = 0;
             for (var candidate : census.members.matching(Criteria.where("status").is("ACTIVE"))) {
                 if (candidate.leaveDate == null || !candidate.leaveDate.isBefore(today)) { continue; }
-                boolean changed = transactions.run(() -> {
-                    census.members.lock(); var member = census.members.require(candidate.id);
-                    if (!"ACTIVE".equals(member.status) || member.leaveDate == null || !member.leaveDate.isBefore(today)) { return false; }
-                    var request = member.leaveRequestId == null ? null : leaves.get(member.leaveRequestId);
-                    leaves.sweep(member.id, member.leaveDate); leaves.closePeriods(member.id, member.leaveDate, true);
-                    member.leftAt = clock.instant(); member.leftReason = request == null ? "MIGRATED" : request.source() == LeaveSource.MEMBER ? "LEAVE_REQUEST" : request.source().name();
-                    census.members.save(member); statuses.transition(member.id, "LEFT", member.leaveDate, member.leftReason);
-                    if (request != null) { leaves.markExecuted(request.id()); }
-                    return true;
-                });
+                boolean changed = transactions.run(() -> execute(candidate.id, today));
                 if (changed) { count++; }
             }
             return count;
         }
+    }
+    /** One P5 item, inside the runner's transaction together with its cancellation sweep and outbox. */
+    public boolean execute(String memberId, LocalDate today) {
+        census.members.lock(); var member = census.members.require(memberId);
+        if (!"ACTIVE".equals(member.status) || member.leaveDate == null || !member.leaveDate.isBefore(today)) { return false; }
+        var request = member.leaveRequestId == null ? null : leaves.get(member.leaveRequestId);
+        leaves.sweep(member.id, member.leaveDate); leaves.closePeriods(member.id, member.leaveDate, true);
+        member.leftAt = clock.instant(); member.leftReason = request == null ? "MIGRATED" : request.source() == LeaveSource.MEMBER ? "LEAVE_REQUEST" : request.source().name();
+        census.members.save(member); statuses.transition(member.id, "LEFT", member.leaveDate, member.leftReason);
+        if (request != null) { leaves.markExecuted(request.id()); }
+        return true;
     }
 }

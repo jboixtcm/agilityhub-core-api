@@ -23,8 +23,20 @@ class ExpirationsJobTest {
         return new JobContext("club-a", ZoneId.of("Europe/Madrid"), AT, LocalDate.of(2026, 10, 6), dryRun, config, recorder, "run-1");
     }
     record Step(char letter, Module module, String entityType) implements ExpirationStep {
+        public Set<String> actions() { return Set.of("EXPIRE_" + letter); }
         public List<JobItem> plan(JobContext context) { return List.of(new JobItem(entityType, entityType + "-1", "EXPIRE_" + letter)); }
         public JobEffect apply(JobContext context, JobItem item) { return JobEffect.of("EXPIRE_" + letter, "expired" + letter); }
+    }
+
+    @Test void T_15_23_memberStepsRouteByActionIncludingTheClubLevelSignupItem() {
+        var job = new ExpirationsJob(List.of(new Step('c', null, "Member"), new Step('d', null, "Member")));
+        var context = context(Set.of(), false);
+        assertThat(job.apply(context, new JobItem("Member", "member-1", "EXPIRE_c")).counters())
+                .containsExactly(Map.entry("expiredc", 1L));
+        assertThat(job.apply(context, new JobItem("Member", "club-a", "EXPIRE_d")).counters())
+                .containsExactly(Map.entry("expiredd", 1L));
+        assertThat(job.apply(context, new JobItem("Member", "member-1", "UNKNOWN")))
+                .isSameAs(ExpirationsJob.NOT_IN_SCOPE);
     }
 
     @Test void T_15_23_stepsRunInLetterOrderEachOnlyWithItsModule() {
@@ -41,8 +53,8 @@ class ExpirationsJobTest {
         // An item of a step whose module went off, or of no step at all, is out of scope.
         assertThat(job.apply(billingOff, new JobItem("CheckoutSession", "c-1", "EXPIRE_h"))).isSameAs(ExpirationsJob.NOT_IN_SCOPE);
         assertThat(job.apply(all, new JobItem("Unknown", "u-1", "EXPIRE"))).isSameAs(ExpirationsJob.NOT_IN_SCOPE);
-        assertThatThrownBy(() -> new ExpirationsJob(List.of(new Step('a', null, "Pack"), new Step('b', null, "Pack"))))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining("Pack");
+        assertThatThrownBy(() -> new ExpirationsJob(List.of(new Step('a', null, "Pack"), new Step('a', null, "Other"))))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("EXPIRE_a");
     }
 
     @Test void T_15_23_stepHExpiresTheLapsedSignupCheckoutsThroughItsPort() {

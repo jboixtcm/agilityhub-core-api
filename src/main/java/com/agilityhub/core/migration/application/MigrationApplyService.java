@@ -30,8 +30,7 @@ public class MigrationApplyService {
         if (plan.changes().stream().anyMatch(c -> map(c.fields().get("paymentMethod")).get("iban")!=null)) { vault.requireKey(); }
     }
     public record Applied(String id, @com.agilityhub.core.shared.domain.audit.AuditField Map<String,Object> details) { }
-    @Audited(action=AuditAction.MIGRATION_APPLIED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
-    public Applied apply(MigrationRun run, PlayoffPlanner.Plan plan) {
+    public void apply(MigrationRun run, PlayoffPlanner.Plan plan) {
         validate(plan);
         for (var change:plan.changes()) {
             var fields=new LinkedHashMap<>(change.fields());
@@ -52,12 +51,15 @@ public class MigrationApplyService {
             census.member(identity.memberId(),Map.of("accountId",account));
         }
         clubs.reserveNumbers(plan.maximumNumber());
-        var report=new MigrationReport(false,plan.rows()); var counters=new TreeMap<String,Long>();
-        for (String entity:List.of("members","dogs","familyGroups","accounts")) {
+    }
+    @Audited(action=AuditAction.MIGRATION_APPLIED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
+    public Applied complete(MigrationRun run, MigrationReport report, boolean reconciled) {
+        var counters=new TreeMap<String,Long>(report.totals());
+        for (String entity:List.of("members","dogs","familyGroups","accounts","invoices","packBalances")) {
             for (String outcome:List.of("CREATED","UPDATED","SKIPPED","ERROR")) { counters.put(entity+outcome,report.count(entity,outcome)); }
         }
         var completed=new MigrationRun(run.id(),run.clubId(),run.source(),run.mode(),run.env(),run.mappingVersion(),
-                "COMPLETED",run.startedAt(),clock.instant(),counters);
+                reconciled ? "RECONCILED" : "COMPLETED",run.startedAt(),clock.instant(),counters);
         runs.replace(completed);
         events.publish(new MigrationEvent("MigrationRunCompleted",run.id(),run.clubId(),clock.instant(),Map.of("counters",counters)));
         return new Applied(completed.id(), Map.of("counters", counters));

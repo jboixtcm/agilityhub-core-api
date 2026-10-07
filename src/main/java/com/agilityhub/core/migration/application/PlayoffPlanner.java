@@ -32,11 +32,14 @@ public class PlayoffPlanner {
     /** An ACTIVE record left without account because another record owns its email (R-18-12). */
     private record Shared(PlayoffInput.Row row,String memberId,PlayoffInput.Row ownerRow,String ownerMemberId) { }
     public Plan plan(PlayoffInput input,MappingConfig mapping) {
-        var state=new State(input,mapping); state.prepare(); return state.result();
+        return plan(input, mapping, clubClock.today(TenantContext.require()));
+    }
+    public Plan plan(PlayoffInput input, MappingConfig mapping, LocalDate cutover) {
+        var state=new State(input,mapping,cutover); state.prepare(); return state.result();
     }
     private final class State {
         final PlayoffInput input; final MappingConfig mapping; final String club=TenantContext.require();
-        final ClubConfig config=configs.get(club); final LocalDate today=clubClock.today(club);
+        final ClubConfig config=configs.get(club); final LocalDate today;
         final ZoneId zone=ZoneId.of(config.club().timeZone());
         final List<MigrationReport.Entry> rows=new ArrayList<>(); final List<Change> changes=new ArrayList<>();
         final List<Identity> identityChanges=new ArrayList<>(); final Map<String,Change> people=new LinkedHashMap<>();
@@ -52,7 +55,7 @@ public class PlayoffPlanner {
         // planning. Every row of a protected member gets one REEXECUTION_UNSUPPORTED line, and any such line blocks the apply.
         final Map<String,String> unsupported=new HashMap<>(), protectedMembers=new HashMap<>(), destinations=new HashMap<>();
         int maximum;
-        State(PlayoffInput input,MappingConfig mapping) { this.input=input; this.mapping=mapping; rows.addAll(input.incidents()); }
+        State(PlayoffInput input,MappingConfig mapping,LocalDate cutover) { this.input=input; this.mapping=mapping; this.today=cutover; rows.addAll(input.incidents()); }
         void incident(PlayoffInput.Row row,String entity,String outcome,String code) { rows.add(new MigrationReport.Entry(row.file(),row.row(),entity,outcome,code)); }
         void warn(PlayoffInput.Row row,String code) { incident(row,"members","WARNING",code); }
         String id(String entity,String source) { return UUID.nameUUIDFromBytes((club+":"+entity+":"+source).getBytes(StandardCharsets.UTF_8)).toString(); }
@@ -257,6 +260,12 @@ public class PlayoffPlanner {
                     // Playoff exports no mandates. Preserve the first cutover mandate on reapply.
                     payment.put("mandateRef",previousPayment.getOrDefault("mandateRef",config.club().slug()+"-"+(number==null ? memberId : number)+"-1"));
                     payment.put("mandateSignedAt",previousPayment.getOrDefault("mandateSignedAt",instant(today)));
+                    // Other clubs can supply their original mandate; the Cànic's export carries none (R-18-08).
+                    var mandate = input.files().getOrDefault("mandates", List.of()).stream().filter(m -> m.get("memberId").equals(row.get("id"))).findFirst();
+                    if (mandate.isPresent() && !mandate.get().get("mandateRef").isEmpty()) {
+                        payment.put("mandateRef", mandate.get().get("mandateRef"));
+                        payment.put("mandateSignedAt", instant(PlayoffBillingPlanner.date(mandate.get().get("mandateSignedAt"))));
+                    }
                     payment.put("holderTaxId",document.isEmpty() ? null : document);
                 }
                 fields.put("paymentMethod",payment);

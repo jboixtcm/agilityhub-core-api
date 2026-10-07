@@ -39,11 +39,15 @@ public class StripePaymentProvider implements PaymentProvider {
         return newClient(key);
     }
     StripeClient newClient(String key) {
-        return StripeClient.builder().setApiKey(key).setConnectTimeout(1000).setReadTimeout(3000).setMaxNetworkRetries(0).build();
+        return StripeClient.builder().setApiKey(key).setConnectTimeout(connectTimeout()).setReadTimeout(readTimeout()).setMaxNetworkRetries(0).build();
     }
     private RequestOptions options(String key) {
-        return RequestOptions.builder().setIdempotencyKey(key).setConnectTimeout(1000).setReadTimeout(3000).setMaxNetworkRetries(0).build();
+        return RequestOptions.builder().setIdempotencyKey(key).setConnectTimeout(connectTimeout()).setReadTimeout(readTimeout()).setMaxNetworkRetries(0).build();
     }
+    // A setup call can make two HTTP requests, each with three attempts and 300ms of backoff.
+    // Reserve more than that whole budget from callTimeout(), with no SDK retries on top.
+    private int connectTimeout() { return Math.toIntExact(callTimeout().toMillis() / 30); }
+    private int readTimeout() { return Math.toIntExact(callTimeout().toMillis() / 10); }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public Duration callTimeout() { return MAX_CALL_TIMEOUT; }
     @Override public String createCheckoutSession(Request request) {

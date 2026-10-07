@@ -12,7 +12,7 @@ public class MigrationRunRepository extends TenantRepository<MigrationRun> {
     public MigrationRunRepository(MongoTemplate mongo) { super(mongo,MigrationRun.class); }
     public void lock(boolean production) {
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require())),new Update().inc("sequence",1),"migration_write_locks");
-        if (production && mongo.exists(tenantQuery().addCriteria(Criteria.where("env").is("PRODUCTION").and("status").is("COMPLETED")),MigrationRun.class)) {
+        if (production && mongo.exists(tenantQuery().addCriteria(Criteria.where("env").is("PRODUCTION").and("status").in("RUNNING", "COMPLETED", "RECONCILED")),MigrationRun.class)) {
             throw new ApiException(ErrorCode.MIGRATION_ALREADY_APPLIED);
         }
     }
