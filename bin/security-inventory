@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# INC-45 plus the complete S12/S13 role, tenant, module and impersonation matrix.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+./mvnw -q -Dtest=SecurityInventoryIT,E8ContractIT test
+python3 - <<'PY'
+import json
+from pathlib import Path
+root = Path.cwd()
+api = json.loads((root / 'docs/openapi/openapi.json').read_text())
+rows = json.loads((root / 'src/test/resources/fixtures/contracts/e8-routes.json').read_text())
+methods = {'get', 'post', 'put', 'patch', 'delete', 'head', 'options'}
+operations = {(method.upper(), path): operation for path, item in api['paths'].items()
+              for method, operation in item.items() if method in methods}
+for row in rows:
+    assert (row['method'], row['path']) in operations
+print(f'PASS {len(operations)} published operations; {len(rows)} S12/S13 matrix rows')
+print('| Method | Path | Roles | Module | Idempotency |')
+print('|---|---|---|---|---|')
+for row in rows:
+    print(f"| {row['method']} | `{row['path']}` | {', '.join(row['roles'])} | {row['module'] or 'none'} | {row['idempotency']} |")
+PY

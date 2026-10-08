@@ -46,7 +46,8 @@ class BackupSafetyTest(unittest.TestCase):
         admin.list_collections.return_value = [
             {'name': 'system.keys', 'type': 'collection'}, {'name': 'system.users', 'type': 'collection'}]
         app.list_collections.return_value = [
-            {'name': 'empty', 'type': 'collection'}, {'name': 'view', 'type': 'view'}, {'name': 'system.profile', 'type': 'collection'}]
+            {'name': 'empty', 'type': 'collection'}, {'name': 'view', 'type': 'view'},
+            {'name': 'system.views', 'type': 'collection'}, {'name': 'system.profile', 'type': 'collection'}]
         self.assertEqual([('admin', 'system.users'), ('fictional', 'empty')], [r[:2] for r in backup.inventory(client)])
 
     def test_E11_T04_archive_stream_tracks_only_the_actual_oplog(self):

@@ -1,0 +1,11 @@
+Focused runs only; these are not clean-verify totals.
+08 exit 0; 10 exit 0.
+SentryCaptureTest: tests=1, failures=0, errors=0, skipped=0
+LogPrivacyTest: tests=6, failures=0, errors=0, skipped=0
+RateLimitIT: tests=1, failures=0, errors=0, skipped=0
+AnonymousRateLimitsTest: tests=21, failures=0, errors=0, skipped=0
+SecurityInventoryIT: tests=1, failures=0, errors=0, skipped=0
+RateLimitIT above contains only the selected Unicode test.
+SentryCaptureTest above passed the ordinary 500 case; the framework-500 parameter case was added afterwards and remains unrun.
+HealthControllerTest: constructor adapted and test compilation passed; its tests were not run in this session.
+Clean verify: tool interruption exit 130 while awaiting host lock; surefire/failsafe totals unavailable.

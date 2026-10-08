@@ -36,6 +36,7 @@ public class SecurityBaselineConfiguration {
                                          RateLimits.Limit publicRoutes, RateLimits.Limit me,
                                          RateLimits.Limit anonymous, RateLimits.Limit webhook, RateLimits.Limit signedFile,
                                          RateLimits.Limit handoff, RateLimits.Limit tokenAccount,
+                                         RateLimits.Limit checkoutStatus, RateLimits.Limit stripeWebhook,
                                          RateLimits.Limit magicLinkEmail, RateLimits.Limit magicLinkIp) { }
 
     @Bean RateLimits rateLimits(RateLimitConfiguration settings, Clock clock) {
@@ -49,6 +50,8 @@ public class SecurityBaselineConfiguration {
         limits.put(RateLimits.Route.SIGNED_FILE, settings.signedFile());
         limits.put(RateLimits.Route.HANDOFF, settings.handoff());
         limits.put(RateLimits.Route.TOKEN_ACCOUNT, settings.tokenAccount());
+        limits.put(RateLimits.Route.CHECKOUT_STATUS, settings.checkoutStatus());
+        limits.put(RateLimits.Route.STRIPE_WEBHOOK, settings.stripeWebhook());
         limits.put(RateLimits.Route.MAGIC_LINK_EMAIL, settings.magicLinkEmail());
         limits.put(RateLimits.Route.MAGIC_LINK_IP, settings.magicLinkIp());
         return new RateLimits(settings.enabled(), limits, clock);
@@ -57,7 +60,7 @@ public class SecurityBaselineConfiguration {
     @Bean FilterRegistrationBean<RateLimitFilter> rateLimitFilter(RateLimits limits, SecurityEvents events,
                                                                  ApiExceptionHandler errors, ObjectMapper mapper, HostTenantResolver hosts, Environment env,
                                                                  com.agilityhub.core.platform.application.ClubConfigService configs) {
-        var filter=new RateLimitFilter(limits,events,errors,mapper);
+        var filter=new RateLimitFilter(limits,events,errors,mapper, com.agilityhub.core.identity.domain.Email::normalize);
         filter.signupHosts(hosts,env.acceptsProfiles(Profiles.of("local")));
         // R-04-20 (E3-T09): the per-club `signup.rateLimit` (cached club configuration, evicted after each parameter write).
         // A club that cannot be loaded keeps the defaults: the tenant filter that follows answers for it.

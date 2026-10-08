@@ -1,0 +1,24 @@
+Trivy 0.74.0: image vulnerability audit and image secret scan
+2026-10-08T21:45:28+02:00	INFO	[vulndb] Need to update DB
+2026-10-08T21:45:28+02:00	INFO	[vulndb] Downloading vulnerability DB...
+2026-10-08T21:45:28+02:00	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
+2026-10-08T21:45:29+02:00	ERROR	[vulndb] Failed to download artifact	repo="mirror.gcr.io/aquasec/trivy-db:2" err="oci download error: failed to fetch the layer: GET https://mirror.gcr.io/v2/aquasec/trivy-db/blobs/sha256:3719db18[truncated]: BLOB_UNKNOWN: Unknown blob: sha256:3719db18[truncated]"
+2026-10-08T21:45:29+02:00	INFO	[vulndb] Trying to download artifact from other repository...
+2026-10-08T21:45:29+02:00	INFO	[vulndb] Downloading artifact...	repo="ghcr.io/aquasecurity/trivy-db:2"
+2026-10-08T21:45:53+02:00	INFO	[vulndb] Artifact successfully downloaded	repo="ghcr.io/aquasecurity/trivy-db:2"
+2026-10-08T21:45:53+02:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-08T21:45:53+02:00	INFO	[secret] Secret scanning is enabled
+2026-10-08T21:45:53+02:00	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2026-10-08T21:45:53+02:00	INFO	[secret] Please see https://trivy.dev/docs/v0.74/guide/scanner/secret#recommendation for faster secret detection
+2026-10-08T21:45:53+02:00	FATAL	Fatal error	run error: image scan error: scan error: scan failed: failed analysis: unable to get the image's config file: unable to populate: unable to open: failed to initialize the struct from the temporary file: file blobs/sha256/fbcc6a19[truncated] not found in tar
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/security-scan", line 128, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/security-scan", line 112, in main
+    subprocess.run(command, check=True, env=environment)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/security-tools/trivy-0.74.0', 'image', '--scanners', 'vuln,secret', '--no-progress', '--format', 'json', '--output', '/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/tmpjc0hual2/report.json', '--exit-code', '0', '--timeout', '15m', 'ghcr.io/jboixtcm/agilityhub-core-api:main']' returned non-zero exit status 1.

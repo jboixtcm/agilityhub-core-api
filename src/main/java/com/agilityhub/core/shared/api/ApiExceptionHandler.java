@@ -23,6 +23,8 @@ public class ApiExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
     private final IcuMessageSource messages;
     private final RequestLocaleResolver locales;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private io.sentry.IScopes sentry;
 
     public ApiExceptionHandler(IcuMessageSource messages, RequestLocaleResolver locales) {
         this.messages = messages; this.locales = locales;
@@ -54,14 +56,25 @@ public class ApiExceptionHandler {
                 LOG.warn("Framework request rejected status={} code={} traceId={}", status, code,
                         RequestTraceFilter.traceId(request));
             } else {
+                captureInternalError(exception, request);
                 LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
             }
             return ResponseEntity.status(framework.getStatusCode()).headers(framework.getHeaders())
                     .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                     .body(body(new ApiException(code), request));
         }
+        captureInternalError(exception, request);
         LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
         return handle(new ApiException(ErrorCode.INTERNAL_ERROR), request);
+    }
+
+    /** Capture handled 5xx once, before MVC resolves them; the default Sentry resolver runs afterwards. */
+    private void captureInternalError(Exception exception, HttpServletRequest request) {
+        if (sentry != null) {
+            var event = new io.sentry.SentryEvent(exception);
+            event.setTag("traceId", RequestTraceFilter.traceId(request));
+            sentry.captureEvent(event);
+        }
     }
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)

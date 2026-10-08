@@ -57,6 +57,8 @@ def main():
         print('PASS backup principal has only backup role and cannot write', flush=True)
         app.agilityhub.backup_probe.insert_many([
             {'_id': 'payload', 'bytes': os.urandom(4 * 1024 * 1024)}, {'_id': 'deleted'}, {'_id': 'updated', 'value': 0}])
+        app.agilityhub.command('create', 'backup_probe_view', viewOn='backup_probe', pipeline=[{'$match': {'_id': 'updated'}}])
+        assert app.agilityhub.backup_probe_view.count_documents({}) == 1
         original_copy = backup.copy_archive
         original_counts = backup.counts
         during = []
@@ -87,6 +89,13 @@ def main():
             if timestamp is not None:
                 app.agilityhub.backup_probe.insert_one({'_id': 'after-dump'})
             result = original_counts(client, catalog, timestamp)
+            assert 'agilityhub.system.views' not in result
+            if timestamp is None:
+                views = list(client.agilityhub.list_collections(filter={'name': 'backup_probe_view'}))
+                assert len(views) == 1 and views[0]['type'] == 'view'
+                assert views[0]['options'] == {'viewOn': 'backup_probe', 'pipeline': [{'$match': {'_id': 'updated'}}]}
+                assert client.agilityhub.backup_probe_view.find_one()['value'] == 1
+                print('PASS real view is recreated with its definition and queries restored data', flush=True)
             if timestamp is not None:
                 assert result['agilityhub.backup_probe'] == 3
                 assert app.agilityhub.backup_probe.count_documents({}) == 4
@@ -99,7 +108,7 @@ def main():
             concurrent_key = backup.backup(s3, bucket, prefix, recipient, b'', Path(directory))
         assert during
         print(f'PASS transaction insert/update/delete completed DURING mongodump in {during[0]:.3f}s', flush=True)
-        with tempfile.TemporaryDirectory(dir='/work') as directory:
+        with tempfile.TemporaryDirectory(dir='/work') as directory, patch.object(backup, 'counts', side_effect=later_write):
             backup.restore(s3, bucket, prefix, recipient, identity, Path(directory), concurrent_key)
         print('PASS concurrent-write backup restores exact snapshot counts', flush=True)
         with tempfile.TemporaryDirectory(dir='/work') as directory, \

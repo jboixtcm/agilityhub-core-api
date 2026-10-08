@@ -1,0 +1,38 @@
+Trivy 0.74.0: rootfs vulnerability audit
+2026-10-08T21:47:13+02:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-08T21:47:13+02:00	INFO	[javadb] Downloading Java DB...
+2026-10-08T21:47:13+02:00	INFO	[javadb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+2026-10-08T21:48:25+02:00	INFO	[javadb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+2026-10-08T21:48:25+02:00	INFO	[javadb] Java DB is cached for 3 days. If you want to update the database more frequently, "trivy clean --java-db" command clears the DB cache.
+2026-10-08T21:48:25+02:00	INFO	Number of language-specific files	num=1
+2026-10-08T21:48:25+02:00	INFO	[jar] Detecting vulnerabilities...
+
+📣 [34mNotices:[0m
+  - Version 0.75.0 of Trivy is now available, current version is 0.74.0
+
+To suppress version checks, run Trivy scans with the --skip-version-check flag
+
+{
+  "vulnerabilities": 2,
+  "fixableCritical": [
+    [
+      "CVE-2026-47890",
+      "org.springframework:spring-webmvc",
+      "7.0.9"
+    ]
+  ],
+  "suppressedCritical": [
+    [
+      "CVE-2026-47884",
+      "org.springframework:spring-webmvc",
+      "6.2.19",
+      "7.0.9",
+      "2026-12-07",
+      "org.springframework/spring-webmvc: Spring Framework: Remote Code Execution via improper path limitation in XsltView"
+    ]
+  ],
+  "secretRules": [],
+  "otherFindings": [],
+  "expiredSuppressions": [],
+  "javaPackages": 4
+}

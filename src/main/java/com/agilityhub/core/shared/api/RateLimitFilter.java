@@ -20,6 +20,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
     private final SecurityEvents events;
     private final ApiExceptionHandler errors;
     private final ObjectMapper mapper;
+    private final java.util.function.UnaryOperator<String> normalizeAccountEmail;
     private com.agilityhub.core.shared.application.TenantHostResolver hosts;
     private boolean local;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.SignupCapabilities signupCapabilities;
@@ -33,8 +34,10 @@ public final class RateLimitFilter extends OncePerRequestFilter {
     /** R-04-20: the club's `signup.rateLimit` (null: the catalog defaults). */
     public void signupParameter(java.util.function.Function<String, java.util.Map<?, ?>> parameter) { this.signupParameter=parameter; }
 
-    public RateLimitFilter(RateLimits limits, SecurityEvents events, ApiExceptionHandler errors, ObjectMapper mapper) {
+    public RateLimitFilter(RateLimits limits, SecurityEvents events, ApiExceptionHandler errors, ObjectMapper mapper,
+                           java.util.function.UnaryOperator<String> normalizeAccountEmail) {
         this.limits = limits; this.events = events; this.errors = errors; this.mapper = mapper;
+        this.normalizeAccountEmail = normalizeAccountEmail;
     }
 
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -60,7 +63,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
             if (route == Route.TOKEN && path.equals("/oauth2/token")) {
                 String username = request.getParameter("username");
                 if (username != null && !username.isBlank()) {
-                    retryAfter = Math.max(retryAfter, limits.retryAfter(Route.TOKEN_ACCOUNT, fingerprint(username.strip().toLowerCase(java.util.Locale.ROOT))));
+                    retryAfter = Math.max(retryAfter, limits.retryAfter(Route.TOKEN_ACCOUNT, fingerprint(normalizeAccountEmail.apply(username))));
                 }
             }
             if (route == Route.HANDOFF && jwt != null) {
@@ -84,6 +87,8 @@ public final class RateLimitFilter extends OncePerRequestFilter {
 
     private Route route(String method, String path, boolean authenticated) {
         if (method.equals("OPTIONS") || path.equals("/api/v1/health")) { return null; }
+        if (path.startsWith("/webhooks/stripe/")) { return Route.STRIPE_WEBHOOK; }
+        if (method.equals("GET") && path.matches("/api/v1/checkout-sessions/[^/]+")) { return Route.CHECKOUT_STATUS; }
         if (path.startsWith("/webhooks/")) { return Route.WEBHOOK; }
         if (path.equals("/api/v1/auth/handoff")) { return Route.HANDOFF; }
         if (path.matches("/api/v1/attachments/(uploads|files)/[^/]+")

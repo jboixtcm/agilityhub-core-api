@@ -151,6 +151,9 @@ core:
       # E11-T03: independent per-IP buckets; handoff also per account, token-account across IPs.
       anonymous: {capacity: 120, period: 1m}
       webhook: {capacity: 600, period: 1m}
+      # E11-T06: payment callbacks and checkout polling do not share other public-route quotas.
+      stripe-webhook: {capacity: 600, period: 1m}
+      checkout-status: {capacity: 120, period: 1m}
       signed-file: {capacity: 120, period: 1m}
       handoff: {capacity: 30, period: 1m}
       token-account: {capacity: 10, period: 1m}

@@ -44,6 +44,23 @@ class DeploymentReviewTest(unittest.TestCase):
         self.assertIn('ingress', local['services']['caddy']['networks'])
         self.assertFalse(local['networks']['ingress'].get('internal', False))
 
+    def test_E11_T06_production_mongo_wiring_without_uri_override(self):
+        env = dict(__import__('os').environ, LOCAL_MONGODB_URI='mongodb://fictional:fictional@mongo/agilityhub', SEED_PASSWORD='fictional')
+        local = json.loads(subprocess.check_output([
+            'docker', 'compose', '--env-file', 'deploy/.env.prod.example',
+            '-f', 'deploy/compose.prod.yaml', '-f', 'deploy/compose.prod.local.yaml',
+            'config', '--format', 'json'], cwd=ROOT, env=env))
+        core = local['services']['core']['environment']
+        self.assertNotIn('SPRING_DATA_MONGODB_URI', core)
+        for key in ('MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_DATABASE',
+                    'MONGODB_AUTH_DATABASE', 'MONGODB_REPLICA_SET'):
+            self.assertEqual(self.prod['services']['core']['environment'][key], core[key])
+        self.assertEqual(env['LOCAL_MONGODB_URI'], local['services']['seed']['environment']['SPRING_DATA_MONGODB_URI'])
+
+    def test_E11_T06_predeploy_verification_selects_recovery_identity(self):
+        predeploy = self.doc[self.doc.index('4. From the installed checkout'):self.doc.index('5. Smoke the deployed hosts')]
+        self.assertIn('DEPLOY_ENV_FILE=/etc/agilityhub/recovery.env bin/restore-mongo --verify', predeploy)
+
     def test_E11_T04_03_bounded_disk_work(self):
         ops = self.prod['services']['backup']
         self.assertGreater(int(ops.get('mem_limit', 0)), 0)

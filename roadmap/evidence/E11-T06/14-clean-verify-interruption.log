@@ -1,0 +1,4 @@
+The exec session was interrupted with write_stdin Ctrl-C; tool-reported exit 130.
+heavy.sh was still waiting; Maven never started and no clean-build test totals exist.
+A direct SIGTERM attempt was denied by the sandbox; the tool-mediated interrupt succeeded.
+Afterwards lsof found no process holding this task log; the other lane retained its original host lock.

@@ -1,0 +1,23 @@
+..F......BACKUP_OK key=mongo/20261008T193545Z-4515e438[truncated].tar collections=1 snapshot=100:1 retention=S3-lifecycle
+.
+======================================================================
+FAIL: test_E11_T04_inventory_excludes_internal_cluster_keys (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/review/test_backup.py", line 51, in test_E11_T04_inventory_excludes_internal_cluster_keys
+    self.assertEqual([('admin', 'system.users'), ('fictional', 'empty')], [r[:2] for r in backup.inventory(client)])
+AssertionError: Lists differ: [('ad[14 chars]users'), ('fictional', 'empty')] != [('ad[14 chars]users'), ('fictional', 'empty'), ('fictional', 'system.views')]
+
+Second list contains 1 additional elements.
+First extra element 2:
+('fictional', 'system.views')
+
+- [('admin', 'system.users'), ('fictional', 'empty')]
++ [('admin', 'system.users'),
++  ('fictional', 'empty'),
++  ('fictional', 'system.views')]
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.159s
+
+FAILED (failures=1)

@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""E11: assertion kills / all generated mutations, independently for each critical package."""
+import argparse
+from collections import Counter
+import json
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+PACKAGES = {'bookings': 'com.agilityhub.core.clubs.bookings.',
+            'identity': 'com.agilityhub.core.identity.', 'payments': 'com.agilityhub.core.payments.'}
+INVALID = {'TIMED_OUT', 'RUN_ERROR', 'MEMORY_ERROR', 'NON_VIABLE'}
+
+
+def summarize(mutations, thresholds):
+    counts = {name: Counter() for name in PACKAGES}
+    survivors = []
+    for mutation in mutations:
+        clazz = mutation.findtext('mutatedClass', '')
+        package = next((name for name, prefix in PACKAGES.items() if clazz.startswith(prefix)), None)
+        if package is None:
+            raise ValueError('Mutation outside the three configured packages')
+        status = mutation.get('status')
+        if status not in {'KILLED', 'SURVIVED', 'NO_COVERAGE'} | INVALID:
+            raise ValueError('Unknown mutation outcome: ' + str(status))
+        counts[package][status] += 1
+        if status != 'KILLED':
+            survivors.append({'package': package, 'status': status, **{
+                key: mutation.findtext(key) for key in ('mutatedClass', 'mutatedMethod', 'lineNumber', 'mutator', 'description')}})
+    result = {}
+    for name, outcomes in counts.items():
+        total = sum(outcomes.values())
+        ratio = 100 * outcomes['KILLED'] / total if total else 0
+        result[name] = {'generated': total, 'outcomes': dict(outcomes), 'assertionKillPercent': round(ratio, 4),
+                        'minimumPercent': thresholds[name],
+                        'passed': total > 0 and not (outcomes.keys() & INVALID) and ratio >= thresholds[name]}
+    return result, survivors
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--xml', type=Path, default=Path('target/pit-reports/mutations.xml'))
+    parser.add_argument('--output', type=Path, required=True)
+    for name in PACKAGES:
+        parser.add_argument('--minimum-' + name, type=float, required=True)
+    args = parser.parse_args()
+    thresholds = {name: getattr(args, 'minimum_' + name) for name in PACKAGES}
+    if any(not 0 <= value <= 100 for value in thresholds.values()):
+        parser.error('Thresholds must be between 0 and 100')
+    summary, survivors = summarize(ET.parse(args.xml).getroot(), thresholds)
+    args.output.mkdir(parents=True, exist_ok=True)
+    for filename, document in [('summary.json', summary), ('survivors.json', survivors)]:
+        with (args.output / filename).open('x') as output:
+            json.dump(document, output, indent=2)
+            output.write('\n')
+    print(json.dumps(summary, indent=2))
+    return 0 if all(row['passed'] for row in summary.values()) else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

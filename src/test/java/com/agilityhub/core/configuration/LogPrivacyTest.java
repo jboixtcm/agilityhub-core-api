@@ -18,6 +18,20 @@ class LogPrivacyTest {
     static final String EMAIL = "privacy@example.test", PHONE = "+34 600 123 456", IBAN = "ES00 0000 0000 0000 0000 0000";
     static final String IP = "203.0.113.123", IPV6 = "2001:db8::1234", BODY = "unlogged-request-body";
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"+1 (202) 555-0100", "(202) 555-0100", "+34 600 00 00 00"})
+    void T_14_30_phoneFormatsAreExcludedFromConsoleAndSentry(String phone) throws Exception {
+        var log = new LoggingEvent(); log.setTimeStamp(1790000000000L);
+        log.setLevel(Level.INFO); log.setLoggerName("fixture"); log.setMessage("phone=" + phone);
+        log.setMDCPropertyMap(Map.of());
+        String output = new ObjectMapper().readTree(new PrivacyLogFormatter().format(log)).path("message").asText();
+        assertThat(output).doesNotContain(phone, "202", "0100", "600").contains("[redacted]");
+        var event = new SentryEvent();
+        var message = new Message(); message.setFormatted("phone=" + phone); event.setMessage(message);
+        var safe = new SentryPrivacyConfiguration().scrubSentryEvent().execute(event, new io.sentry.Hint());
+        assertThat(safe.getMessage().getFormatted()).doesNotContain(phone, "202", "0100", "600").contains("[redacted]");
+    }
+
     @Test void T_14_30_jsonHasOnlySafeFieldsAndThreeIds() throws Exception {
         var event = new LoggingEvent();
         event.setTimeStamp(1790000000000L); event.setLevel(Level.ERROR); event.setLoggerName("fixture");

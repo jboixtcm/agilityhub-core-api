@@ -1,0 +1,1 @@
+Error response from daemon: unknown: failed to resolve reference "quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z": unexpected status from HEAD request to https://quay.io/v2/minio/mc/manifests/RELEASE.2025-08-13T08-35-41Z: 401 UNAUTHORIZED

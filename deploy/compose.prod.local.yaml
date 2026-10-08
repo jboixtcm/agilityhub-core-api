@@ -3,7 +3,6 @@ services:
   core:
     environment: &local-environment
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATA_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
       AUTH_ISSUER: https://id.localhost
       OIDC_LOGIN_URL: https://id.localhost/login
       OIDC_ID_WEB_REDIRECT_URI: https://id.localhost/oidc/callback
@@ -33,6 +32,7 @@ services:
     environment:
       <<: *local-environment
       SPRING_PROFILES_ACTIVE: local
+      SPRING_DATA_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
       EXPORT_LOCAL_DIRECTORY: /app/exports
       ATTACHMENT_LOCAL_DIRECTORY: /app/attachments
       SEED_PASSWORD: ${SEED_PASSWORD:?Set a fictional local SEED_PASSWORD}

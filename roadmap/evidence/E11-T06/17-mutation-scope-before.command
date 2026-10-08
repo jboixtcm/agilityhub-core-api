@@ -1,0 +1,1 @@
+python3 /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e11-mutation-config-j540on3x/bin/mutation-gate-test.py MutationGateTest.test_E11_T06_pit_selects_every_critical_package_without_class_exclusions

@@ -57,8 +57,8 @@ The private identity is supplied only to an explicit verification/recovery run.
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml config --quiet
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml build backup
    bin/backup-mongo
-   # Supply BACKUP_AGE_IDENTITY from encrypted escrow for this command only.
-   bin/restore-mongo --verify
+   # Supply BACKUP_AGE_IDENTITY from escrow; recovery.env holds Get/List credentials.
+   DEPLOY_ENV_FILE=/etc/agilityhub/recovery.env bin/restore-mongo --verify
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml pull core caddy
    docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420
    ```
@@ -1234,7 +1234,9 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 | `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
 | `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |
 | `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, checkout polling |
-| `core.security.rate-limits.webhook` | 600 / 1m | IP; provider signature validation is still required |
+| `core.security.rate-limits.webhook` | 600 / 1m | IP; email provider signature validation is still required |
+| `core.security.rate-limits.stripe-webhook` | 600 / 1m | IP; independent Stripe delivery quota; signature validation still required |
+| `core.security.rate-limits.checkout-status` | 120 / 1m | IP; independent checkout polling quota; X-Signup-Token or authenticated ownership still required |
 | `core.security.rate-limits.signed-file` | 120 / 1m | IP; signed upload/download and calendar links |
 | `core.security.rate-limits.handoff` | 30 / 1m | Both IP and authenticated account; the route still requires a bearer |
 
@@ -1285,6 +1287,10 @@ Sentry uses `send-default-pii: false`, no request-body capture, no tracing or lo
 streaming. Its `beforeSend` builds a closed copy: request/user/contexts,
 breadcrumbs, arbitrary extras and exception messages are omitted; messages are
 scrubbed with the same exclusion list, stack locations and the three IDs remain.
+Handled unexpected 5xx errors are captured explicitly in `ApiExceptionHandler` with the response trace id.
+The default Sentry exception resolver keeps its later order, so one error produces one event.
+Handled 4xx errors are not captured.
+
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled
 only when its DSN is configured.
 

@@ -43,7 +43,8 @@ public class SentryPrivacyConfiguration {
                 safe.setExceptions(exceptions);
             }
             for (String id : java.util.List.of("traceId", "clubId", "accountId")) {
-                String value = org.slf4j.MDC.get(id);
+                String value = "traceId".equals(id) && event.getTag(id) != null
+                        ? event.getTag(id) : org.slf4j.MDC.get(id);
                 if (value != null) { safe.setTag(id, LogPrivacy.identifier(value)); }
             }
             return safe;

@@ -31,7 +31,7 @@ class HealthControllerTest {
         org.springframework.boot.web.servlet.FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
             var registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(new RateLimitFilter(
                     org.mockito.Mockito.mock(com.agilityhub.core.shared.application.RateLimits.class),
-                    org.mockito.Mockito.mock(com.agilityhub.core.shared.application.SecurityEvents.class), null, null));
+                    org.mockito.Mockito.mock(com.agilityhub.core.shared.application.SecurityEvents.class), null, null, com.agilityhub.core.identity.domain.Email::normalize));
             registration.setEnabled(false);
             return registration;
         }

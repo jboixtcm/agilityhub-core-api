@@ -1,0 +1,7 @@
+Read the pinned Spring Boot 3.5.16 BOM (22-bom-versions.log). The proof directory contains exactly these four cached artifacts, at the BOM versions:
+/Users/jordib/.m2/repository/org/springframework/spring-webmvc/6.2.19/spring-webmvc-6.2.19.jar
+/Users/jordib/.m2/repository/org/springframework/spring-web/6.2.19/spring-web-6.2.19.jar
+/Users/jordib/.m2/repository/org/springframework/security/spring-security-core/6.5.11/spring-security-core-6.5.11.jar
+/Users/jordib/.m2/repository/org/mongodb/mongodb-driver-sync/5.5.2/mongodb-driver-sync-5.5.2.jar
+Destination: /tmp/e11-t06-dependency-proof/
+This confirms a blocking finding on an actual selected dependency. It is not a scan of the full classpath, a freshly built artifact, or the final image.

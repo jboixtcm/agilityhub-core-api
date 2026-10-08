@@ -71,7 +71,7 @@ def inventory(client):
             continue
         for collection in client[database].list_collections():
             name = collection['name']
-            if collection['type'] != 'collection' or name == 'system.profile':
+            if collection['type'] != 'collection' or name in ('system.profile', 'system.views'):
                 continue
             if database == 'admin' and name == 'system.keys':
                 continue

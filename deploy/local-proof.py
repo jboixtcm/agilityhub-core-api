@@ -66,6 +66,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix='e11-t04-') as directory:
         work = Path(directory)
         envfile = work / 'local.env'
+        writer_envfile, recovery_envfile = work / 'writer.env', work / 'recovery.env'
+        writer_user, reader_user = 'backup-writer', 'backup-reader'
+        writer_password, reader_password = secrets.token_hex(24), secrets.token_hex(24)
         values = {}
         for line in (ROOT / 'deploy/.env.prod.example').read_text().splitlines():
             if line and not line.startswith('#'):
@@ -105,6 +108,11 @@ def main():
 
         def write_env():
             envfile.write_text(''.join(f'{key}={value}\n' for key, value in values.items()))
+            for file, user, password in ((writer_envfile, writer_user, writer_password),
+                                         (recovery_envfile, reader_user, reader_password)):
+                scoped = dict(values, BACKUP_S3_ACCESS_KEY=user, BACKUP_S3_SECRET_KEY=password)
+                file.write_text(''.join(f'{key}={value}\n' for key, value in scoped.items()))
+                file.chmod(0o600)
 
         write_env()
         compose = ['docker', 'compose', '--env-file', str(envfile), '-p', project,
@@ -118,9 +126,11 @@ def main():
         def docker(*arguments, **kwargs):
             return run(compose + list(arguments), env=environment, **kwargs)
 
-        def script(name, *arguments, expected=0):
-            result = run([str(ROOT / 'bin' / name), *arguments], env=environment, check=False, text=True)
-            print(f'COMMAND bin/{name} {" ".join(arguments)} -> exit {result.returncode}', flush=True)
+        def script(name, *arguments, expected=0, wrong_writer=False):
+            selected = writer_envfile if name == 'backup-mongo' or wrong_writer else recovery_envfile
+            invocation_env = dict(environment, DEPLOY_ENV_FILE=str(selected))
+            result = run([str(ROOT / 'bin' / name), *arguments], env=invocation_env, check=False, text=True)
+            print(f'COMMAND DEPLOY_ENV_FILE={selected} bin/{name} {" ".join(arguments)} -> exit {result.returncode}', flush=True)
             record([str(ROOT / 'bin' / name), *arguments], result)
             print(result.stdout.strip(), flush=True)
             print(result.stderr.strip(), flush=True)
@@ -138,6 +148,11 @@ def main():
                 'BILLING_BANK_KEY must reach Core from the deployment environment'
             assert resolved['services']['core']['environment'].get('BILLING_SECRETS_KEY') == values['BILLING_SECRETS_KEY'], \
                 'BILLING_SECRETS_KEY must reach Core from the deployment environment'
+            assert 'SPRING_DATA_MONGODB_URI' not in resolved['services']['core']['environment']
+            for key in ('MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_DATABASE',
+                        'MONGODB_AUTH_DATABASE', 'MONGODB_REPLICA_SET'):
+                expected = {'MONGODB_HOST': 'mongo', 'MONGODB_AUTH_DATABASE': 'admin', 'MONGODB_REPLICA_SET': 'rs0'}.get(key, values.get(key))
+                assert resolved['services']['core']['environment'][key] == expected
             assert resolved['services']['core']['environment']['SPRING_PROFILES_ACTIVE'].split(',')[0] == 'prod'
             assert resolved['services']['seed']['environment']['SPRING_PROFILES_ACTIVE'] == 'local'
             assert not resolved['services']['core']['environment'].get('SMS_ALLOWED_NUMBERS')
@@ -328,6 +343,28 @@ def main():
                    "s.put_bucket_lifecycle_configuration(Bucket=os.environ['BACKUP_S3_BUCKET'], LifecycleConfiguration="
                    + repr(json.loads((ROOT / 'deploy/backup/lifecycle.json').read_text())) + ");"
                    "assert s.get_bucket_lifecycle_configuration(Bucket=os.environ['BACKUP_S3_BUCKET'])['Rules'][0]['Expiration']['Days']==30")
+            # Enforce the runbook's split against real MinIO IAM; neither fixture identity is root.
+            mc_image = 'agilityhub-mc:2025-08-13-local'
+            if not args.skip_helper_builds:
+                run(['docker', 'build', '-t', mc_image, '-f', str(ROOT / 'deploy/local/Dockerfile.mc'),
+                     str(ROOT / 'deploy/local')], env=environment)
+            writer_policy = json.loads((ROOT / 'deploy/backup/writer-policy.json').read_text().replace('example-backups', values['BACKUP_S3_BUCKET']))
+            reader_policy = json.loads(json.dumps(writer_policy).replace('s3:PutObject', 's3:GetObject'))
+            (work / 'writer-policy.json').write_text(json.dumps(writer_policy))
+            (work / 'reader-policy.json').write_text(json.dumps(reader_policy))
+            admin_env = dict(environment, MC_HOST_fixture='http://' + values['BACKUP_S3_ACCESS_KEY'] + ':'
+                             + values['BACKUP_S3_SECRET_KEY'] + '@minio:9000', WRITER_USER=writer_user,
+                             WRITER_PASSWORD=writer_password, READER_USER=reader_user, READER_PASSWORD=reader_password)
+            run(['docker', 'run', '--rm', '--network', project + '_default',
+                 '-e', 'MC_HOST_fixture', '-e', 'WRITER_USER', '-e', 'WRITER_PASSWORD', '-e', 'READER_USER', '-e', 'READER_PASSWORD',
+                 '-v', str(work) + ':/fixture:ro', '--entrypoint', '/bin/sh', mc_image, '-ec',
+                 'mc admin user add fixture "$WRITER_USER" "$WRITER_PASSWORD" >/dev/null; '
+                 'mc admin user add fixture "$READER_USER" "$READER_PASSWORD" >/dev/null; '
+                 'mc admin policy create fixture backup-writer /fixture/writer-policy.json >/dev/null; '
+                 'mc admin policy create fixture backup-reader /fixture/reader-policy.json >/dev/null; '
+                 'mc admin policy attach fixture backup-writer --user "$WRITER_USER" >/dev/null; '
+                 'mc admin policy attach fixture backup-reader --user "$READER_USER" >/dev/null'], env=admin_env)
+            print('PASS distinct MinIO writer Put/List and recovery Get/List principals provisioned', flush=True)
             helper("import os; assert 'BACKUP_AGE_IDENTITY' not in os.environ; assert os.environ['BACKUP_AGE_RECIPIENT'].startswith('age1')")
             print('PASS MinIO lifecycle is 30 days; normal backup container has only the public recipient', flush=True)
             probe = docker('run', '--rm', '--no-deps', '-d', '--entrypoint', 'sleep', 'backup', '120', text=True).stdout.strip()
@@ -345,6 +382,8 @@ def main():
             print('PASS ops memory is 1 GiB and its anonymous work volume disappears with the container', flush=True)
             output = script('backup-mongo')
             key = re.search(r'BACKUP_OK key=(\S+)', output).group(1)
+            script('restore-mongo', '--verify', wrong_writer=True, expected=1)
+            print('PASS writer environment cannot verify a backup (GetObject denied)', flush=True)
             script('restore-mongo', '--verify')
             script('restore-mongo', '--verify', key)
             saved_identity = environment.pop('BACKUP_AGE_IDENTITY')

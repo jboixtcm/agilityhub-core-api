@@ -11,6 +11,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = "core.security.rate-limits.enabled=true")
 class RateLimitIT extends IdentityIntegrationSupport {
+    @Test void T_01_15_unicodeEquivalentAccountsShareQuotaAcrossIps() throws Exception {
+        for (int index = 0; index < 10; index++) {
+            mvc.perform(post("/oauth2/token").header("Host", HOST).param("username", "josé@example.test")
+                    .with(request -> { request.setRemoteAddr("203.0.113.81"); return request; }))
+                    .andExpect(status().isBadRequest());
+        }
+        mvc.perform(post("/oauth2/token").header("Host", HOST).param("username", "jose\u0301@example.test")
+                .with(request -> { request.setRemoteAddr("203.0.113.82"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"))
+                .andExpect(header().string("Retry-After", "60"));
+    }
+
     @Test void T_01_15_eleventhMagicLinkForNormalizedEmailIsLimitedAcrossIpsAndHosts() throws Exception {
         String body = "{\"email\":\"rate-email@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}";
         for (int n = 0; n < 10; n++) {

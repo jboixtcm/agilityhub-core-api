@@ -8,7 +8,7 @@ public final class LogPrivacy {
     private static final List<Pattern> EXCLUSIONS = List.of(
             Pattern.compile("(?i)[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9.-]+\\.[a-z]{2,}"),
             Pattern.compile("(?i)\\b[A-Z]{2}\\d{2}(?:[ -]?[A-Z0-9]){11,30}\\b"),
-            Pattern.compile("(?<![\\w-])\\+?\\d(?:[ .()-]?\\d){8,14}(?![\\w-])"),
+            Pattern.compile("(?<![\\w-])\\+?\\d(?:[ .()-]{0,2}\\d){8,14}(?![\\w-])"),
             Pattern.compile("(?<![\\w])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w])"),
             Pattern.compile("(?i)(?<![\\w])(?:(?:[a-f0-9]{1,4}:){7}[a-f0-9]{1,4}|(?:[a-f0-9]{1,4}:){0,6}[a-f0-9]{0,4}::(?:[a-f0-9]{1,4}:){0,6}[a-f0-9]{0,4})(?![\\w])"),
             Pattern.compile("(?i)(?:bearer\\s+|(?:token|password|secret|signature|authorization|cookie)[=:]\\s*)[^\\s,;]+"));

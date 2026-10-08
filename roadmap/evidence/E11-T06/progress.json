@@ -1,0 +1,39 @@
+{
+  "task": "E11-T06",
+  "status": "blocked",
+  "implemented": [
+    "Sentry explicit capture and memory transport context test",
+    "Email.normalize injected into shared quota filter via configuration",
+    "phone separators privacy regression",
+    "production local Core URI removed; seed retains URI",
+    "system.views inventory exclusion",
+    "recovery env docs and separate real MinIO IAM helper",
+    "359-route inventory including E8 and separate payment quotas",
+    "PIT full scope config and scoring helper (run pending)"
+  ],
+  "passes": {
+    "08": "SentryCaptureTest,LogPrivacyTest,Unicode quota regression",
+    "10": "AnonymousRateLimitsTest and 359/359 SecurityInventoryIT",
+    "13": "two deployment config/document regressions",
+    "15": "10 backup unit tests",
+    "16": "mutation gate policy unit tests"
+  },
+  "before_failures": {
+    "07": "missing Sentry event, parenthesized phones, NFC/NFD separate account quota (one Spanish phone assertion also matched timestamp; corrected to parsed message)",
+    "04": "Mongo URI and recovery env regressions",
+    "06": "system.views retained",
+    "09": "both payment routes shared generic quotas",
+    "17": "payments absent from original POM targets"
+  },
+  "pending": [
+    "Full clean verify interrupted before Maven started (tool exit 130); run anew on resume",
+    "real compose and view restore with split IAM",
+    "PIT plus survivor triage and thresholds",
+    "image scan current artifact (cached main scan failed to export its config)",
+    "shellcheck and whole diff/evidence QA",
+    "final roadmap report/status"
+  ],
+  "processes": {},
+  "final_sources": "Do not change Java during clean verify; new two-case Sentry test was edited while lock was still waiting. No git writes. No relevant memory hit used.",
+  "blocker": "CVE-2026-47890 on current BOM spring-webmvc 6.2.19; E96 assigns remediation to E8-T10"
+}

@@ -323,14 +323,14 @@
                         <artifactId>pitest-maven</artifactId>
                         <version>${pitest.version}</version>
                         <configuration>
-                            <!-- E11-T03; payments joins this explicit scope at E11-T06. -->
+                            <!-- E11-T06: all classes in the three critical packages; no production-class exclusions. -->
                             <targetClasses>
                                 <param>com.agilityhub.core.clubs.bookings.*</param>
                                 <param>com.agilityhub.core.identity.*</param>
+                                <param>com.agilityhub.core.payments.*</param>
                             </targetClasses>
                             <targetTests>
-                                <param>com.agilityhub.core.clubs.bookings.*</param>
-                                <param>com.agilityhub.core.identity.*</param>
+                                <param>com.agilityhub.core.*</param>
                             </targetTests>
                             <threads>4</threads>
                             <!-- Bound each worker's heap and GC/compiler parallelism on the shared host. -->
