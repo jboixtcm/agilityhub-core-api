@@ -107,12 +107,13 @@ public class CardPayments implements CardChargingPort {
         var operation = operations.findById(operationId).orElseThrow();
         if (operation.resultId() != null) { return; }
         var returned = new java.util.concurrent.atomic.AtomicReference<PaymentProvider.OffSessionResult>();
-        retries.execute(operation, () -> {
+        retries.execute(operation, execution -> {
             var result = provider.createOffSessionPayment(operation.charge());
             returned.set(result);
             // Preserve a known intent independently of the later business settlement transaction.
-            tx.run(() -> { collections.submitted(operation.providerRef(), result.paymentIntentId()); return null; });
+            tx.run(() -> { execution.fence(); collections.submitted(operation.providerRef(), result.paymentIntentId()); return null; });
             tx.run(() -> {
+                execution.fence();
                 operations.completed(operationId, result.paymentIntentId());
                 if ("failed".equals(result.status()) || "requires_action".equals(result.status())) {
                     resolve(collections.findById(operation.providerRef()).orElseThrow(), false,
@@ -168,10 +169,13 @@ public class CardPayments implements CardChargingPort {
     }
     private void progress(String runId) {
         if (runId == null) { return; }
-        var rows = invoices.forRun(runId).stream().filter(i -> i.paymentMethod().type() == PaymentMethodType.CARD).toList();
+        var allRows = invoices.forRun(runId);
+        var rows = allRows.stream().filter(i -> i.paymentMethod().type() == PaymentMethodType.CARD).toList();
         int paid = (int) rows.stream().filter(i -> i.status() == InvoiceStatus.PAID).count();
         int failed = (int) rows.stream().filter(i -> i.status() == InvoiceStatus.FAILED).count();
-        boolean done = rows.stream().flatMap(i -> collections.forInvoice(i.id()).stream())
+        boolean done = allRows.stream().flatMap(i -> collections.forInvoice(i.id()).stream()
+                // A cancelled invoice abandons its unused attempt; every submitted attempt still needs reconciliation.
+                .filter(c -> !(i.status() == InvoiceStatus.CANCELLED && c.status() == CollectionStatus.CREATED && c.providerRef() == null)))
                 .filter(c -> c.provider() == CollectionProvider.STRIPE)
                 .noneMatch(c -> c.status() == CollectionStatus.CREATED || c.status() == CollectionStatus.SUBMITTED);
         if (runs.progress(runId, paid, failed, done, clock.instant()) && done) {

@@ -26,19 +26,33 @@ public class PaymentRetryPolicy {
     public void execute(PaymentOperation operation, Runnable action) {
         execute(operation, action, () -> {});
     }
+    public final class Execution {
+        private final String id; private final String token;
+        private Execution(String id, String token) { this.id = id; this.token = token; }
+        /** Call inside every local transaction after a network response, before changing business state. */
+        public void fence() {
+            if (!operations.fence(id, token)) {
+                throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
+            }
+        }
+    }
+    public void execute(PaymentOperation operation, java.util.function.Consumer<Execution> action) {
+        execute(operation, action, () -> {});
+    }
     /** The terminal business transition commits atomically with the exhausted command. */
     public void execute(PaymentOperation operation, Runnable action, Runnable exhausted) {
-        if (!operations.ready(operation.id())) { return; }
+        execute(operation, ignored -> action.run(), exhausted);
+    }
+    public void execute(PaymentOperation operation, java.util.function.Consumer<Execution> action, Runnable exhausted) {
         boolean money = operation.kind().equals("CHARGE") || operation.kind().startsWith("REFUND");
-        // Commit the uncertainty before sending: a process crash or lost response must never enable another capture.
-        boolean previouslyUncertain = money && tx.run(() -> {
-            boolean previous = operations.submissionUncertain(operation.id());
-            operations.submissionUncertain(operation.id(), true); return previous;
-        });
-        try { action.run(); }
+        // Claim and uncertainty commit together before the network call; competing workers cannot clear either.
+        var claim = tx.run(() -> operations.claim(operation.id(), money));
+        if (claim == null) { return; }
+        try { action.accept(new Execution(operation.id(), claim.token())); }
         catch (RuntimeException failure) {
             if (tx.run(() -> {
-                if (money && !previouslyUncertain && failure instanceof PaymentNotSubmitted) {
+                if (!operations.fence(operation.id(), claim.token())) { return false; }
+                if (money && !claim.previouslyUncertain() && failure instanceof PaymentNotSubmitted) {
                     operations.submissionUncertain(operation.id(), false);
                 }
                 boolean terminal = operations.failed(operation.id(), clock.instant(), maxAttempts());
@@ -46,6 +60,8 @@ public class PaymentRetryPolicy {
                 return terminal;
             })) { warn("Payment operation", operation.id()); }
             throw failure;
+        } finally {
+            tx.run(() -> { operations.release(operation.id(), claim.token()); return null; });
         }
     }
     public void warnRefund(String id, String status) { warning("Refund reconciliation status=" + status, id); }

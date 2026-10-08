@@ -23,8 +23,12 @@ public class StripeCalls {
                     catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new ApiException(ErrorCode.INTERNAL_ERROR); }
                     continue;
                 }
+                // Authentication/permission rejection happens before execution, unlike ambiguous 400/5xx outcomes.
+                if (status == 401 || status == 403) {
+                    throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
+                }
                 throw new ApiException(status == 429 ? ErrorCode.RATE_LIMITED
-                        : status == 401 || status == 403 || status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
+                        : status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
             }
         }
     }

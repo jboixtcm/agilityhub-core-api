@@ -53,17 +53,19 @@ public class StripeWebhooks {
             // Card metadata may require a provider read (the webhook carries an id, not an expanded PaymentMethod).
             var card = ("setup_intent.succeeded".equals(row.type()) || ("checkout.session.completed".equals(row.type()) && "paid".equals(text(object, "payment_status"))))
                     ? provider.cardDetails(object) : null;
-            tx.run(() -> {
-                inbox.lock(id);
-                if (inbox.findById(id).orElseThrow().processedAt() != null) { return null; }
-                boolean unpaid = "checkout.session.completed".equals(row.type()) && !"paid".equals(text(object, "payment_status"));
-                boolean changed = !unpaid && handle(row.type(), object, at, card);
-                if (unpaid) { inbox.reason(id, "PAYMENT_NOT_PAID"); }
-                String outcome = changed ? "PROCESSED" : "IGNORED";
-                inbox.outcome(id, outcome, clock.instant());
-                events.publish(BillingEvent.Kind.StripeWebhookReceived, id, Map.of("eventId", id, "type", row.type(), "outcome", outcome));
-                return null;
-            });
+            try (var audit = com.agilityhub.core.platform.application.audit.WebhookAuditContext.open(id)) {
+                tx.run(() -> {
+                    inbox.lock(id);
+                    if (inbox.findById(id).orElseThrow().processedAt() != null) { return null; }
+                    boolean unpaid = "checkout.session.completed".equals(row.type()) && !"paid".equals(text(object, "payment_status"));
+                    boolean changed = !unpaid && handle(row.type(), object, at, card);
+                    if (unpaid) { inbox.reason(id, "PAYMENT_NOT_PAID"); }
+                    String outcome = changed ? "PROCESSED" : "IGNORED";
+                    inbox.outcome(id, outcome, clock.instant());
+                    events.publish(BillingEvent.Kind.StripeWebhookReceived, id, Map.of("eventId", id, "type", row.type(), "outcome", outcome));
+                    return null;
+                });
+            }
             try { refunds.executeLate(); }
             catch (RuntimeException unavailable) { /* The refund command is durable and its own worker will retry it. */ }
         } catch (RuntimeException deferred) {

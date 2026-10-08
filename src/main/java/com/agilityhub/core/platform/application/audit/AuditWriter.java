@@ -82,6 +82,16 @@ public class AuditWriter {
         if (changes.isEmpty() && (reason == null || reason.isBlank()) && !EVENT_ACTIONS.contains(action)) { return; }
         String clubId = TenantContext.current();
         AuditActor actor = system != null ? system : Objects.requireNonNull(actors.current(), "Audit actor is required");
+        String webhook = WebhookAuditContext.eventId();
+        if (webhook != null) {
+            origin = "WEBHOOK";
+            actor = new AuditActor(null, null, "WEBHOOK", null, null, null, null,
+                    actor.traceId() == null ? UUID.randomUUID().toString() : actor.traceId());
+            var provenance = new java.util.LinkedHashMap<String, Object>();
+            if (details != null) { provenance.putAll(details); }
+            provenance.put("eventId", webhook);
+            details = provenance;
+        }
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),

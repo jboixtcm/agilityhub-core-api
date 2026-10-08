@@ -22,12 +22,13 @@ subprocess.run(['git', 'diff', '--check'], cwd=root, check=True)
 print('Scope: only E8-T09 task; ROADMAP and Organizer verification unchanged; MESSAGES append-only.')
 print('git diff --check: exit 0')
 
-files = {root / p for p in changed} | {p for p in evidence.iterdir() if p.is_file()}
+untracked = set(git('ls-files', '--others', '--exclude-standard').splitlines())
+files = {root / p for p in changed + sorted(untracked)} | {p for p in evidence.iterdir() if p.is_file()}
 files.add(root / 'src/main/java/com/agilityhub/core/payments/application/PaymentNotSubmitted.java')
 for path in files:
     text = path.read_text()
     # git diff --check above covers added tracked lines; historical MESSAGES whitespace is outside this task.
-    if path.parent == evidence or path.name == 'PaymentNotSubmitted.java':
+    if path.parent == evidence or str(path.relative_to(root)) in untracked:
         assert not re.search(r'[ \t]+$', text, re.MULTILINE), f'Trailing whitespace: {path}'
     if path.suffix == '.log':
         assert not re.search(r'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', text), f'JWT in {path}'

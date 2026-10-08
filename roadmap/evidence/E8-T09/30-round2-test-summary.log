@@ -1,0 +1,39 @@
+surefire: tests=3731, failures=0, errors=0, skipped=0
+failsafe: tests=1632, failures=0, errors=0, skipped=0
+
+E8-T09 changed test classes:
+com.agilityhub.core.payments.api.CardPaymentsIT: tests=66, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.stripe.StripeCallsTest: tests=3, failures=0, errors=0, skipped=0
+src/test/java/com/agilityhub/core/payments/application/stripe/StripeHttpFixture.java: supporting fixture/rule, no standalone test suite
+com.agilityhub.core.platform.application.audit.AuditWriterTest: tests=5, failures=0, errors=0, skipped=0
+
+Point 11: E8-T05 inventory, derived from ALL implementation commits: 39ac529...[truncated], 188ac1e...[truncated], 875942e...[truncated], 057ee05...[truncated], 7b5521d...[truncated]
+src/test/java/com/agilityhub/core/arch/ArchitectureRules.java: supporting fixture/rule, no standalone test suite
+com.agilityhub.core.clubs.activities.domain.ActivityRulesTest: tests=10, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.AttendanceIT: tests=19, failures=0, errors=0, skipped=0
+src/test/java/com/agilityhub/core/clubs/bookings/api/BookingFixtures.java: supporting fixture/rule, no standalone test suite
+com.agilityhub.core.clubs.bookings.api.BookingsIT: tests=20, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleConcurrencyIT: tests=7, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleCurlIT: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleIT: tests=44, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT: tests=7, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.application.BookingPortsTest: tests=8, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.application.DemoBookingSeederTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.domain.BookingRulesTest: tests=16, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.api.CensusIT: tests=44, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.application.LifecycleRulesTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.census.inactivity.domain.InactivityCalendarTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.NotificationSeedSnapshotTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT: tests=2, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+src/test/java/com/agilityhub/core/clubs/training/api/TrainingFixtures.java: supporting fixture/rule, no standalone test suite
+com.agilityhub.core.clubs.training.api.TrainingIT: tests=26, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E8ContractIT: tests=72, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.packs.PackBalanceServiceTest: tests=8, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.ports.BillingPortDefaultsTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=20, failures=0, errors=0, skipped=0
+
+BillingPortDefaultsTest is included; E8-T05 files remain untouched. Counts come from this final clean run.

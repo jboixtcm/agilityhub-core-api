@@ -25,6 +25,6 @@ public class PaymentPrivacy implements PaymentPrivacyPort {
     }
     public void execute(String id) {
         var op = operations.findById(id).orElseThrow(); if (op.resultId() != null) { return; }
-        retries.execute(op, () -> { provider.forgetCustomer(op.providerRef()); tx.run(() -> { operations.completed(id, op.providerRef()); return null; }); });
+        retries.execute(op, execution -> { provider.forgetCustomer(op.providerRef()); tx.run(() -> { execution.fence(); operations.completed(id, op.providerRef()); return null; }); });
     }
 }

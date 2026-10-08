@@ -907,6 +907,42 @@ class CardPaymentsIT extends BillingItSupport {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_21_round2_point1_expiredWorkerCannotClearUncertaintyOrSettle(boolean lateSuccess) throws Exception {
+        var operation = new PaymentOperation("r2-expired", CLUB, "REFUND_INVOICE", "invoice", "capture", new Money(100, "EUR"),
+                "r2-expired", "Correction", null, null, clock.instant(), null);
+        try (var tenant = TenantContext.open(CLUB)) { operations.insert(operation); }
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        try (var workers = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+            var first = workers.submit(() -> {
+                try (var tenant = TenantContext.open(CLUB)) {
+                    assertThatThrownBy(() -> retryPolicy.execute(operation, execution -> {
+                        entered.countDown(); awaitWorker(release);
+                        if (!lateSuccess) { throw new PaymentNotSubmitted(com.agilityhub.core.shared.domain.ErrorCode.PROVIDER_CONFIG_INVALID); }
+                        tx.run(() -> { execution.fence(); operations.completed(operation.id(), "stale-result"); return null; });
+                    })).hasMessage(lateSuccess ? "STALE_VERSION" : "PROVIDER_CONFIG_INVALID");
+                }
+            });
+            try (var tenant = TenantContext.open(CLUB)) {
+                assertThat(entered.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                clock.setInstant(clock.instant().plus(PaymentOperationRepository.CLAIM_LEASE).plusSeconds(1));
+                assertThatThrownBy(() -> retryPolicy.execute(operation, () -> { throw new IllegalStateException("Lost response"); }))
+                        .hasMessage("Lost response");
+            } finally { release.countDown(); }
+            first.get(10, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(operations.submissionUncertain(operation.id())).isTrue();
+            assertThat(operations.findById(operation.id()).orElseThrow().resultId()).isNull();
+            var checkpoint = mongo.findById(operation.id(), Document.class, "payment_operations");
+            assertThat(checkpoint.getInteger("attempts")).isEqualTo(1);
+            assertThat(checkpoint.get("processedAt")).isNull();
+            assertThat(checkpoint.get("claimToken")).isNull();
+        }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     void T_12_17_round2_point2_http401ReleasesOnlyDefinitivelyRejectedRefund(boolean earlierUncertain) throws Exception {
         String run = runId(generated()), invoice = invoiceId(); charge(run);
         webhook("evt_r2_auth_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
@@ -1011,6 +1047,6 @@ class CardPaymentsIT extends BillingItSupport {
             assertThat(row.get("details", Document.class).getString("eventId")).isIn("evt_r2_audit_refund", "evt_r2_audit_reverse");
         });
         assertThat(audits.stream().map(row -> row.get("details", Document.class).get("amount", Document.class).get("amountMinor")))
-                .containsExactlyInAnyOrder(1000, -1000);
+                .containsExactlyInAnyOrder(1000L, -1000L);
     }
 }

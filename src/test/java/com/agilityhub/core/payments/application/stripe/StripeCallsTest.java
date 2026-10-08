@@ -30,4 +30,14 @@ class StripeCallsTest {
         finally { assertThat(Thread.interrupted()).isTrue(); }
     }
     private static ApiException failure(int status) { return new ApiException("private-provider-message", null, null, status, null); }
+
+    @Test void T_12_17_round2_point2_onlyAuthenticationRejectionProvesNonExecution() {
+        var calls = new StripeCalls(millis -> {});
+        for (int status : List.of(400, 401, 403, 429, 500)) {
+            var error = catchThrowable(() -> calls.call(() -> { throw failure(status); }));
+            assertThat(error instanceof com.agilityhub.core.payments.application.PaymentNotSubmitted)
+                    .as("HTTP %s definitively refused execution", status).isEqualTo(status == 401 || status == 403);
+            assertThat(error.getMessage()).doesNotContain("private-provider-message");
+        }
+    }
 }

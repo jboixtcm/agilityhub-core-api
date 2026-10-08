@@ -12,6 +12,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class AuditWriterTest {
+    @Test void T_14_09_round2_point5_webhookProvenanceOverridesCallerAndRestoresScope() {
+        var repository = mock(AuditRepository.class);
+        var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", "member-a", true, "127.0.0.1", "fixture", null),
+                Clock.fixed(Instant.parse("2026-10-08T10:00:00Z"), ZoneOffset.UTC));
+        assertThatThrownBy(() -> WebhookAuditContext.open(null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> WebhookAuditContext.open(" ")).isInstanceOf(IllegalArgumentException.class);
+        try (var outer = WebhookAuditContext.open("evt_outer")) {
+            assertThatThrownBy(() -> {
+                try (var inner = WebhookAuditContext.open("evt_inner")) {
+                    writer.write(AuditAction.PAYMENT_REFUNDED, "Invoice", "invoice-a", null, "Correction", List.of());
+                    throw new IllegalStateException("Rollback");
+                }
+            }).hasMessage("Rollback");
+            assertThat(WebhookAuditContext.eventId()).isEqualTo("evt_outer");
+        }
+        assertThat(WebhookAuditContext.eventId()).isNull();
+        writer.write(AuditAction.PAYMENT_REFUNDED, "Invoice", "invoice-b", null, "Correction", List.of());
+        var entries = ArgumentCaptor.forClass(AuditEntry.class);
+        verify(repository, times(2)).append(entries.capture());
+        var webhook = entries.getAllValues().getFirst();
+        assertThat(webhook.actorRole()).isEqualTo("WEBHOOK"); assertThat(webhook.origin()).isEqualTo("WEBHOOK");
+        assertThat(webhook.actorAccountId()).isNull(); assertThat(webhook.actorName()).isNull();
+        assertThat(webhook.impersonatedMemberId()).isNull(); assertThat(webhook.support()).isNull();
+        assertThat(webhook.ip()).isNull(); assertThat(webhook.userAgent()).isNull();
+        assertThat(webhook.traceId()).isNotBlank(); assertThat(webhook.details()).containsEntry("eventId", "evt_inner");
+        assertThat(entries.getAllValues().get(1).actorRole()).isEqualTo("ADMIN");
+    }
     /**
      * S14 R-14-10 (E5-T28 round 2, review #4): an entry without changes or reason is discarded, except for the «event» actions
      * (`WEEK_VALIDATED`, `DATA_EXPORTED`), which record that the action happened even when no audited field changed.

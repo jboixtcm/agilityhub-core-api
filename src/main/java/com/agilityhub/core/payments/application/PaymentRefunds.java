@@ -136,9 +136,10 @@ public class PaymentRefunds {
     public void execute(String id) {
         var op = operations.findById(id).orElseThrow();
         if (op.resultId() != null) { return; }
-        retries.execute(op, () -> {
+        retries.execute(op, execution -> {
             var result = provider.refund(op.providerRef(), op.amount(), op.key(), op.reason(), op.id());
             tx.run(() -> {
+                execution.fence();
                 if (operations.findById(id).orElseThrow().resultId() == null) {
                     operations.completed(id, result.id());
                     operations.providerStatus(id, result.status());
@@ -146,7 +147,7 @@ public class PaymentRefunds {
                 return null;
             });
         }, () -> {
-            // A validation failure before submission releases the reservation. Uncertain outcomes still await Stripe.
+            // Proven non-execution releases the reservation. Earlier uncertain outcomes still await Stripe.
             if (!operations.submissionUncertain(id)) { operations.providerStatus(id, "failed"); }
         });
     }

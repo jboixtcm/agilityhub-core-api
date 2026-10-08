@@ -32,7 +32,7 @@ def report(paths):
 
 changed = subprocess.check_output(['git', 'diff', '--name-only', '--', 'src/test/java'], cwd=root, text=True).splitlines()
 print('\nE8-T09 changed test classes:')
-report(changed)
+report(set(changed) | {'src/test/java/com/agilityhub/core/payments/application/stripe/StripeHttpFixture.java'})
 commits = ['39ac529', '188ac1e', '875942e', '057ee05', '7b5521d']
 print('\nPoint 11: E8-T05 inventory, derived from ALL implementation commits: ' + ', '.join(c + '...[truncated]' for c in commits))
 paths = set()

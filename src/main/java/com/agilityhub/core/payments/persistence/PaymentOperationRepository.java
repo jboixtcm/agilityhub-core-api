@@ -67,9 +67,28 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
     public void submissionUncertain(String id, boolean uncertain) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("submissionUncertain", uncertain), PaymentOperation.class);
     }
-    public boolean ready(String id) {
-        return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))
-                .addCriteria(PaymentRetryState.due(clock.instant())), PaymentOperation.class);
+    /** Far longer than the provider's 30-second call budget; a crashed worker leaves uncertainty behind. */
+    public static final java.time.Duration CLAIM_LEASE = java.time.Duration.ofMinutes(10);
+    public record Claim(String token, boolean previouslyUncertain) { }
+    public Claim claim(String id, boolean money) {
+        var now = clock.instant();
+        String token = java.util.UUID.randomUUID().toString();
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))
+                .addCriteria(new Criteria().andOperator(PaymentRetryState.due(now), new Criteria().orOperator(
+                        Criteria.where("claimUntil").is(null), Criteria.where("claimUntil").lte(now))));
+        var update = new Update().set("claimToken", token).set("claimUntil", now.plus(CLAIM_LEASE));
+        if (money) { update.set("submissionUncertain", true); }
+        var previous = mongo.findAndModify(query, update, org.bson.Document.class, "payment_operations");
+        return previous == null ? null : new Claim(token, money && !Boolean.FALSE.equals(previous.getBoolean("submissionUncertain")));
+    }
+    /** A write fences the entire surrounding settlement/failure transaction against a newer claimant. */
+    public boolean fence(String id, String token) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("claimToken").is(token)
+                        .and("claimUntil").gt(clock.instant())), new Update().inc("claimWrites", 1L), PaymentOperation.class).getMatchedCount() == 1;
+    }
+    public void release(String id, String token) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("claimToken").is(token)),
+                new Update().unset("claimToken").unset("claimUntil"), PaymentOperation.class);
     }
     public boolean failed(String id, java.time.Instant now, int max) {
         return PaymentRetryState.failed(mongo, tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null)), "payment_operations", now, max);
