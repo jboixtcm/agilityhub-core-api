@@ -1,0 +1,7 @@
+git diff --check: exit 0
+Working-tree scope: E8-T06 report/evidence, changelog, messages and generated status only
+Organizer verification unchanged; task size below 120000 bytes
+New evidence/helper files: no trailing whitespace
+New evidence logs: no complete JWT, Stripe secret, Spanish IBAN or private-key patterns
+
+exit 0

@@ -1,0 +1,31 @@
+surefire: tests=3729 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=18 failures=0 errors=0 skipped=0
+  AuditContractTest: tests=1 failures=0 errors=0 skipped=0
+  EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+  ExpirationsJobTest: tests=3 failures=0 errors=0 skipped=0
+  FakeWebhookCommandTest: tests=3 failures=0 errors=0 skipped=0
+  JobCatalogContractTest: tests=4 failures=0 errors=0 skipped=0
+  MigrationPhotoFetcherTest: tests=1 failures=0 errors=0 skipped=0
+  MigrationResetServiceTest: tests=2 failures=0 errors=0 skipped=0
+  PaymentProviderContractTest: tests=2 failures=0 errors=0 skipped=0
+  PaymentProviderSelectionTest: tests=1 failures=0 errors=0 skipped=0
+  PlayoffAdapterTest: tests=7 failures=0 errors=0 skipped=0
+  StripePaymentProviderTest: tests=8 failures=0 errors=0 skipped=0
+failsafe: tests=1602 failures=0 errors=0 skipped=0
+  AccountingExportIT: tests=4 failures=0 errors=0 skipped=0
+  BillingCycleIT: tests=21 failures=0 errors=0 skipped=0
+  DemoBillingSeedIT: tests=1 failures=0 errors=0 skipped=0
+  DemoPlanningSeedIT: tests=10 failures=0 errors=0 skipped=0
+  DemoScenarioSeedIT: tests=6 failures=0 errors=0 skipped=0
+  E5ContractIT: tests=40 failures=0 errors=0 skipped=0
+  E8ContractIT: tests=72 failures=0 errors=0 skipped=0
+  E8LeaveProcessesIT: tests=2 failures=0 errors=0 skipped=0
+  E8ScheduledProcessesIT: tests=11 failures=0 errors=0 skipped=0
+  IdempotencyIT: tests=12 failures=0 errors=0 skipped=0
+  JobFrameworkIT: tests=16 failures=0 errors=0 skipped=0
+  JobsApiIT: tests=6 failures=0 errors=0 skipped=0
+  PlayoffMigrationIT: tests=29 failures=0 errors=0 skipped=0
+  SignupCensusCorrectionsIT: tests=22 failures=0 errors=0 skipped=0
+  TemplateVariableParityIT: tests=2 failures=0 errors=0 skipped=0
+
+exit 0
