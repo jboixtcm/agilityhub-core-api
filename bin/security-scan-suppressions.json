@@ -9,6 +9,15 @@
       "expires": "2026-12-07",
       "task": "E8-T08",
       "reason": "Remote code execution through Spring MVC's XsltView. The only fixed release is Spring Framework 7.0.9 (Spring Boot 4); no patched 6.2.x exists on Maven Central (6.2.20 absent on 2026-10-08), and Spring Boot 3.5.16 manages 6.2.19. The api renders no server-side views: every controller is a @RestController, nothing configures XsltView or a ViewResolver, and ArchitectureTest.E8_T08_noXsltServerSideViews keeps it so. Remove this entry when a fixed release is adopted; before the expiry the organizer schedules the upgrade or renews it with a fresh review."
+    },
+    {
+      "id": "CVE-2026-47890",
+      "package": "org.springframework:spring-webmvc",
+      "installedVersion": "6.2.19",
+      "recorded": "2026-10-08",
+      "expires": "2026-12-07",
+      "task": "E8-T10",
+      "reason": "SSE stream corruption when rendering view fragments (https://spring.io/security/cve-2026-47890/). Spring lists 7.0.9 as the OSS fix and 6.2.20 as Enterprise Support Only; Maven Central still ends the public 6.2 line at 6.2.19 on 2026-10-08. Trivy reports CRITICAL, whereas the vendor rates LOW; scanner severity is preserved. This API does not render Spring MVC/WebFlux view fragments or ModelAndView responses; ArchitectureTest.E8_T10_round3_point1_noSseViewFragments enforces that boundary. Upgrade to a publicly available patched release before expiry, then remove this exact-version exception; the organizer owns the Framework 7 / Boot 4 follow-up."
     }
   ]
 }

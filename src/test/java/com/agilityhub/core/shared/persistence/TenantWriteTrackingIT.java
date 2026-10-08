@@ -1,6 +1,8 @@
 package com.agilityhub.core.shared.persistence;
 
 import com.agilityhub.core.migration.persistence.MigrationResetRepository;
+import com.agilityhub.core.clubs.messaging.persistence.Notification;
+import com.agilityhub.core.clubs.messaging.persistence.NotificationRepository;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.*;
 import com.agilityhub.core.support.AbstractIntegrationTest;
@@ -24,6 +26,7 @@ class TenantWriteTrackingIT extends AbstractIntegrationTest {
     @Autowired MigrationResetRepository reset;
     @Autowired TransactionTemplate transactions;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
+    @Autowired NotificationRepository notifications;
 
     @BeforeEach void prepare() {
         TenantContext.clear();
@@ -151,6 +154,51 @@ class TenantWriteTrackingIT extends AbstractIntegrationTest {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().inc("activeWriters", 1L), "tenant_write_counters");
         assertThatThrownBy(this::check).isInstanceOf(ApiException.class);
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().inc("activeWriters", -1L), "tenant_write_counters");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void T_18_16_round3_point2_realNotificationClaimIgnoresOtherTenantMaintenance(boolean accepted) throws Exception {
+        mongo.remove(new Query(), Notification.class);
+        // Equal timestamps exercise the id tie-breaker. Insert CLUB first to avoid relying on natural order.
+        notification("z-held", CLUB, accepted);
+        notification("a-selected", OTHER, accepted);
+        checkpoint();
+        var heldBefore = mongo.findById(CLUB, TenantWriteCounterRepository.Counter.class);
+        var selectedBefore = mongo.findById(OTHER, TenantWriteCounterRepository.Counter.class);
+        var untouched = mongo.findById("z-held", Notification.class);
+        try (var held = new com.agilityhub.core.support.ConcurrencySupport.HeldTransaction(
+                transactions, CLUB, reset::requireNoLaterWrites)) {
+            // The real global poll has no TenantContext and calls these exact repository methods.
+            assertThat(TenantContext.current()).isNull();
+            var claimed = accepted
+                    ? notifications.claimAccepted(null, clock.instant(), java.time.Duration.ofMinutes(1), "claimed-fixture")
+                    : notifications.claimDue(null, clock.instant(), java.time.Duration.ofMinutes(1), "claimed-fixture");
+            assertThat(claimed).hasValueSatisfying(row -> {
+                assertThat(row.id()).isEqualTo("a-selected");
+                assertThat(row.clubId()).isEqualTo(OTHER);
+                assertThat(row.delivery().claimToken()).isEqualTo("claimed-fixture");
+                assertThat(row.delivery().claimedUntil()).isEqualTo(clock.instant().plusSeconds(60));
+                assertThat(row.delivery().acceptedAt()).isEqualTo(accepted ? clock.instant().minusSeconds(120) : null);
+            });
+            assertThat(mongo.findById("z-held", Notification.class)).isEqualTo(untouched);
+            held.commit();
+        }
+        assertThat(mongo.findById(CLUB, TenantWriteCounterRepository.Counter.class).sequence()).isEqualTo(heldBefore.sequence());
+        assertThat(mongo.findById(OTHER, TenantWriteCounterRepository.Counter.class).sequence()).isEqualTo(selectedBefore.sequence() + 1);
+        assertThat(mongo.findById(OTHER, TenantWriteCounterRepository.Counter.class).activeWriters()).isZero();
+        check();
+    }
+
+    private void notification(String id, String club, boolean accepted) {
+        mongo.insert(new Notification(id, club, "fixture-account", "N-01", "EMAIL", Notification.Status.QUEUED,
+                null, null, null, "recipient@example.test", "en", clock.instant(), null));
+        var update = new Update().set("deliveries.0.nextAttemptAt", clock.instant().minusSeconds(60));
+        if (accepted) {
+            update.set("deliveries.0.acceptedAt", clock.instant().minusSeconds(120))
+                    .set("deliveries.0.claimToken", "previous-fixture").set("deliveries.0.claimedUntil", clock.instant().minusSeconds(60));
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), update, Notification.class);
     }
 
     @Test void T_18_16_round2_point1_standaloneConflictRetriesWithoutLeakingRegistrations() throws Exception {

@@ -1,0 +1,23 @@
+.F.........
+======================================================================
+FAIL: test_E8_T10_round3_point1_sse_finding_has_bounded_exact_version_exception (__main__.ScanPolicyTest.test_E8_T10_round3_point1_sse_finding_has_bounded_exact_version_exception)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/security-scan-test.py", line 76, in test_E8_T10_round3_point1_sse_finding_has_bounded_exact_version_exception
+    self.assertEqual(findings(report, active)['fixableCritical'], [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [('CVE-2026-47890', 'org.springframework:spring-webmvc', '7.0.9')] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+('CVE-2026-47890', 'org.springframework:spring-webmvc', '7.0.9')
+
+- [('CVE-2026-47890', 'org.springframework:spring-webmvc', '7.0.9')]
++ []
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+FAILED (failures=1)
+
+exit 1

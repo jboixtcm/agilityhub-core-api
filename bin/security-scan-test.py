@@ -66,6 +66,24 @@ class ScanPolicyTest(unittest.TestCase):
             self.assertEqual(len(active), 1)
             self.assertGreater(len(committed['reason']), 40)
 
+    def test_E8_T10_round3_point1_sse_finding_has_bounded_exact_version_exception(self):
+        # The published Trivy finding, distinct from the earlier XsltView advisory.
+        critical = {'VulnerabilityID': 'CVE-2026-47890', 'Severity': 'CRITICAL', 'FixedVersion': '7.0.9',
+                    'PkgName': 'org.springframework:spring-webmvc', 'InstalledVersion': '6.2.19'}
+        document = json.loads(scanner['SUPPRESSIONS'].read_text())
+        active, _ = suppressions(document, TODAY)
+        report = {'Results': [{'Vulnerabilities': [critical]}]}
+        self.assertEqual(findings(report, active)['fixableCritical'], [])
+        exception = next(row for row in active if row['id'] == critical['VulnerabilityID'])
+        self.assertEqual(exception['task'], 'E8-T10')
+        self.assertIn('https://spring.io/security/cve-2026-47890/', exception['reason'])
+        self.assertIn('6.2.20', exception['reason'])
+        expires = datetime.date.fromisoformat(exception['expires'])
+        expired, _ = suppressions(document, expires + datetime.timedelta(days=1))
+        self.assertEqual(len(findings(report, expired)['fixableCritical']), 1)
+        for change in ({'InstalledVersion': '6.2.20'}, {'VulnerabilityID': 'CVE-unrelated'}, {'PkgName': 'other'}):
+            self.assertEqual(len(findings({'Results': [{'Vulnerabilities': [dict(critical, **change)]}]}, active)['fixableCritical']), 1)
+
     def test_every_secret_blocks_without_reporting_the_match(self):
         result = findings({'Results': [{'Secrets': [{'RuleID': 'fixture-secret', 'Match': 'sensitive-fixture'}]}]})
         self.assertEqual(result['secretRules'], ['fixture-secret'])

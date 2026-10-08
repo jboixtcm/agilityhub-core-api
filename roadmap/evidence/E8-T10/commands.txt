@@ -58,3 +58,23 @@ E8-T10 verification commands (read-only git only; captured exits are in each log
 64-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
 65-status.log: python3 roadmap/tools/check.py --set E8-T10 awaiting_verification
 69-final-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+70-dependency-audit-red.log: bin/security-scan rootfs target
+71-notification-claims-red.log: ./mvnw -q '-Dit.test=TenantWriteTrackingIT#T_18_16_round3*' test-compile failsafe:integration-test failsafe:verify
+72-policy-red.log: python3 bin/security-scan-test.py
+73-notification-claims-red.log: ./mvnw -q '-Dit.test=TenantWriteTrackingIT#T_18_16_round3*' test-compile failsafe:integration-test failsafe:verify
+74-policy-green.log: python3 bin/security-scan-test.py
+75-baseline-ci.log: gh run list --branch main --limit 1 --json databaseId,headSha,status,conclusion,url
+76-advisory-releases.log: python3 roadmap/evidence/E8-T10/check-round3-advisory.py
+77-advisory-releases.log: python3 roadmap/evidence/E8-T10/check-round3-advisory.py
+78-notification-claims-green.log: ./mvnw -q -Dtest=ArchitectureTest -Dit.test=TenantWriteTrackingIT test-compile surefire:test failsafe:integration-test failsafe:verify
+79-dependency-audit-green.log: bin/security-scan rootfs target
+80-baseline-ci-jobs.log: gh run view 37832423792 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+81-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+84-baseline-ci-final.log: gh run view 37832423792 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+82-test-summary.log: python3 roadmap/evidence/E8-T10/summarize-tests.py
+83-final-dependency-audit.log: bin/security-scan rootfs target
+85-evidence-secret-scan.log: /private/tmp/e8-t10-gitleaks/gitleaks dir --no-banner --redact --config .gitleaks.toml roadmap/evidence/E8-T10
+86-baseline-ci-handoff.log: gh run view 37832423792 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+87-handoff.log: python3 roadmap/evidence/E8-T10/check-round3-handoff.py
+88-status.log: python3 roadmap/tools/check.py --set E8-T10 awaiting_verification
+89-final-handoff.log: python3 roadmap/evidence/E8-T10/check-round3-handoff.py

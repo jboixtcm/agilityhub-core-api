@@ -24,6 +24,14 @@ class ArchitectureTest {
                     .should().dependOnClassesThat().resideInAnyPackage("org.springframework.web.servlet.view.xslt..")
                     .orShould().dependOnClassesThat().haveFullyQualifiedName("org.springframework.web.servlet.ViewResolver");
 
+    /** E8-T10 round 3: the bounded CVE-2026-47890 exception requires no SSE view-fragment rendering. */
+    @ArchTest
+    static final ArchRule E8_T10_round3_point1_noSseViewFragments =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()
+                    .should().dependOnClassesThat().resideInAnyPackage(
+                            "org.springframework.web.servlet.view..", "org.springframework.web.reactive.result.view..")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("org.springframework.web.servlet.ModelAndView");
+
     /** R-18-17: mutations must reach the template methods covered by the transactional reset fence. */
     @ArchTest
     static final ArchRule T_18_16_round2_point1_noUntrackedMongoMutationPaths =

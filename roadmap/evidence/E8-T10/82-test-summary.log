@@ -1,0 +1,59 @@
+surefire: tests=3740 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=20 failures=0 errors=0 skipped=0
+    PASS E8_T10_round3_point1_noSseViewFragments
+    PASS T_18_16_round2_point1_noUntrackedMongoMutationPaths
+  TenantWriteTrackingTest: tests=6 failures=0 errors=0 skipped=0
+    PASS T_18_16_round2_point1_unknownCommitIsNeverReplayedEvenWithATransientLabel
+    PASS T_18_16_round2_point1_persistentConflictIsBoundedAndCounted
+    PASS T_18_16_round2_point1_interruptionStopsRetriesAndPreservesTheFlag
+    PASS T_18_16_round2_point1_nonTransientFailureIsNotRetried
+    PASS T_18_16_round2_point1_standaloneConflictRetriesTheWholeTransaction
+    PASS T_18_16_round2_point1_anOuterTransactionOwnsItsConflictRetry
+failsafe: tests=1722 failures=0 errors=0 skipped=0
+  TrainingLanesOffIT: tests=15 failures=0 errors=0 skipped=0
+  E7PersistenceIT: tests=8 failures=0 errors=0 skipped=0
+  E8ContractIT: tests=72 failures=0 errors=0 skipped=0
+  PlayoffMigrationIT: tests=39 failures=0 errors=0 skipped=0
+    PASS T_18_13_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed
+    PASS T_18_16_point2_sameMillisecondWriteRefusesReset
+    PASS T_18_16_round2_point1_savedViewWithoutAuditOrEventRefusesReset
+    PASS T_18_15_point3_changedFutureLeaveKeepsMemberAndDecisionTogether
+    PASS T_18_13_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant
+    PASS T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost
+    PASS T_18_15_point3_removedFutureLeaveIsRejectedBeforeAnyWrite
+    PASS T_18_13_point1_crashAfterCommittedBillingBatchCanRestartWithoutDuplicates
+    PASS T_18_13_round2_point2_expiredReconciliationRollsBackSimulationAndEvent
+    PASS T_18_13_round2_point2_staleReconciliationCannotReplaceRecoveryWinner
+  E8ScheduledProcessesIT: tests=16 failures=0 errors=0 skipped=0
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[1]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[2]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[3]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[4]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[5]
+  JobFrameworkTwoInstancesIT: tests=1 failures=0 errors=0 skipped=0
+  OutboxIT: tests=11 failures=0 errors=0 skipped=0
+  TenantWriteTrackingIT: tests=22 failures=0 errors=0 skipped=0
+    PASS T_18_16_round2_point1_nestedIndependentWritesCommitAndBlockResetThroughout
+    PASS T_18_16_round2_point1_rollbackNoOpAndOtherTenantPermitReset
+    PASS T_18_16_round2_point1_writerWithoutOuterTransactionRollsBackIfResetOwnsCounter
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[1]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[2]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[3]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[4]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[5]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[6]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[7]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[8]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[9]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[10]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[11]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[12]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[13]
+    PASS T_18_16_round2_point1_everyMutationWithoutAuditOrOutboxRefusesReset(String)[14]
+    PASS T_18_16_round2_point1_legacyCheckpointsAndUnfinishedWritersFailClosed
+    PASS T_18_16_round2_point1_standaloneConflictRetriesWithoutLeakingRegistrations
+    PASS T_18_16_round3_point2_realNotificationClaimIgnoresOtherTenantMaintenance(boolean)[1]
+    PASS T_18_16_round3_point2_realNotificationClaimIgnoresOtherTenantMaintenance(boolean)[2]
+    PASS T_18_16_round2_point1_unscopedClaimCountsOnlyTheAffectedTenant
+
+exit 0

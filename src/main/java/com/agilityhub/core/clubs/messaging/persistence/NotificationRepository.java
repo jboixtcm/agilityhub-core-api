@@ -148,6 +148,9 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     private Optional<Notification> claim(Query query, String notificationId, Instant now, java.time.Duration lease, String token) {
         if (notificationId != null) { query.addCriteria(Criteria.where("_id").is(notificationId).and("clubId").is(TenantContext.require())); }
+        // The reset fence reads this same first row in the transaction snapshot. A total order keeps
+        // a one-row claim from registering every matching tenant in the global delivery backlog.
+        query.with(org.springframework.data.domain.Sort.by(ASC, "createdAt", "_id"));
         var update = new Update().set("deliveries.$.claimToken", token).set("deliveries.$.claimedUntil", now.plus(lease));
         return Optional.ofNullable(mongo.findAndModify(query, update,
                 org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true), Notification.class));
