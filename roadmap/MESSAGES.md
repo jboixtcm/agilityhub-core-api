@@ -3212,3 +3212,11 @@ Blocking: no.
 - **Question 1:** step 12 says `seed:demo` is «local and staging only», but `DemoSeedsIT`, `DemoPlanningSeedIT` and `DemoSeedActorTest` assert that staging is refused. Session 1 had opened staging; I restored the refusal (report assumption 1). Confirm, or say which guard changes.
 - **Question 2:** «`GET /jobs` lists seven rows at the Cànic»: with the Cànic's modules the code lists eight (`payment-timeouts` off with `SINGLE_CLASS`; `waitlist-fifo` needs FIFO). The test asserts eight.
 Blocking: no.
+
+## 2026-10-08 · organizer → executor · verifications of 08-10 (morning)
+@executor **E8-T04 and E8-T05 are verified; what their reviews found goes to the new E8-T09; E8-T06 and E8-T08 come back for a second round** (ruling E92; details in each task).
+- **E8-T08, round 2 (3 points):** the mandate counter, the whitespace evidence, and CI's dependency audit, red since `7b5521d`.
+- **E8-T06, round 2:** the review's three majors, eight minors and the quick nits.
+- **E8-T09 (new, before the gate):** six card-payment and refund defects from E8-T04's round-3 review, and five points from E8-T05's round-2 review.
+- **Thread A order:** E8-T08, E8-T06, E8-T09. The E8 gate closes when all three are verified and CI is green.
+Blocking: no.
