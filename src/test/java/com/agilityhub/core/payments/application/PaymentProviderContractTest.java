@@ -11,7 +11,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * E5-T31 step 3 (CONVENCIONS_API §7, ruling E80; review E5-T30 #4): every call to the payment provider times out well within the
- * Idempotency-Key's claim lease, so a keyed checkout never outlives its claim unless its process stopped.
+ * Idempotency-Key's claim lease, so a keyed checkout never outlives its claim unless its process stopped. CONVENCIONS_API §7
+ * has no test id, so the tests carry the task's name (E5-T31's review nit, done in E8-T06), as `IdempotencyIT`'s do.
  */
 class PaymentProviderContractTest {
     /** A provider whose client times out after {@code timeout}; it is never called. */
@@ -22,7 +23,7 @@ class PaymentProviderContractTest {
     }
     static PaymentProvider provider(Duration timeout) { return new Provider(timeout); }
 
-    @Test void T_15_23_theFakeProvidersCallTimeoutStaysWellWithinTheIdempotencyClaimLease() {
+    @Test void E5_T31_theFakeProvidersCallTimeoutStaysWellWithinTheIdempotencyClaimLease() {
         var fake = new FakeCheckoutGateway(null);
         assertThat(fake.callTimeout()).isPositive().isLessThanOrEqualTo(PaymentProvider.MAX_CALL_TIMEOUT);
         assertThat(PaymentProvider.requireTimeout(fake)).isSameAs(fake);
@@ -31,7 +32,7 @@ class PaymentProviderContractTest {
         assertThat(PaymentProvider.MAX_CALL_TIMEOUT.multipliedBy(2)).isLessThanOrEqualTo(IdempotencyRepository.CLAIM_LEASE.dividedBy(10));
     }
 
-    @Test void T_15_23_aProviderWhoseCallsCouldOutliveTheClaimNeverStarts() {
+    @Test void E5_T31_aProviderWhoseCallsCouldOutliveTheClaimNeverStarts() {
         for (var wrong : Arrays.asList(null, Duration.ZERO, Duration.ofSeconds(-1), PaymentProvider.MAX_CALL_TIMEOUT.plusMillis(1), IdempotencyRepository.CLAIM_LEASE)) {
             assertThatThrownBy(() -> PaymentProvider.requireTimeout(provider(wrong))).as("timeout %s", wrong)
                     .isInstanceOf(IllegalStateException.class).hasMessageContaining("call timeout " + wrong);

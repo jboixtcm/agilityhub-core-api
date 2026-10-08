@@ -1,6 +1,6 @@
 package com.agilityhub.core.migration.application;
 
-import com.agilityhub.core.migration.domain.MappingConfig;
+import com.agilityhub.core.migration.domain.*;
 import com.agilityhub.core.platform.application.MigrationClubAccess;
 import com.agilityhub.core.shared.application.CoreCommand;
 import com.agilityhub.core.shared.domain.*;
@@ -15,10 +15,9 @@ public class PlayoffCommand implements CoreCommand {
     private final PlayoffImportService importer;
     private final MigrationClubAccess clubs;
     private final Environment environment;
-    @org.springframework.beans.factory.annotation.Autowired private MigrationResetService reset;
-    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.ClubClock clock;
-    public PlayoffCommand(PlayoffImportService importer, MigrationClubAccess clubs, Environment environment) {
-        this.importer=importer; this.clubs=clubs; this.environment=environment;
+    private final MigrationResetService reset;
+    public PlayoffCommand(PlayoffImportService importer, MigrationClubAccess clubs, Environment environment, MigrationResetService reset) {
+        this.importer=importer; this.clubs=clubs; this.environment=environment; this.reset=reset;
     }
     public String name() { return "migration:playoff"; }
     public void run(ApplicationArguments args) {
@@ -46,10 +45,13 @@ public class PlayoffCommand implements CoreCommand {
         if (args.containsOption("apply") && args.containsOption("dry-run")) { throw usage(); }
         String directory=option(args,"in",args.getNonOptionArgs().isEmpty() ? null : args.getNonOptionArgs().getFirst());
         if (directory==null || args.containsOption("in") && !args.getNonOptionArgs().isEmpty()) { throw usage(); }
-        java.time.LocalDate cutover;
-        try { cutover=java.time.LocalDate.parse(option(args,"cut-over",clock.today(clubId).toString())); }
-        catch(java.time.DateTimeException invalid) { throw usage(); }
-        var report=importer.importDirectory(Path.of(directory),mapping,clubId,args.containsOption("dry-run"),production,args.containsOption("confirm-production"),cutover);
+        // R-18-08/13: the cut-over date (mandates' signature date, first nextInvoiceDate); the club's today when omitted.
+        String cutover=option(args,"cut-over",null); boolean dryRun=args.containsOption("dry-run"), confirmed=args.containsOption("confirm-production");
+        MigrationReport report;
+        try {
+            report=cutover==null ? importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed)
+                    : importer.importDirectory(Path.of(directory),mapping,clubId,dryRun,production,confirmed,java.time.LocalDate.parse(cutover));
+        } catch(java.time.format.DateTimeParseException invalid) { throw usage(); }
         System.out.print(report.render());
         // Any error row, REEXECUTION_UNSUPPORTED included, means nothing was applied: the command exits non-zero.
         if (report.hasErrors()) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }

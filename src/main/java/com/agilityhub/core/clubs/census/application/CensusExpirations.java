@@ -61,7 +61,7 @@ public class CensusExpirations {
         var members = census.members.matching(Criteria.where("status").is("PENDING")).stream()
                 .filter(m -> submitted(m) != null && age(m, context) > days).toList();
         if (members.isEmpty()) { return List.of(); }
-        return List.of(new JobItem("Member", context.clubId(), "REMIND_SIGNUPS", Map.of("count", members.size(),
+        return List.of(new JobItem("Club", context.clubId(), "REMIND_SIGNUPS", Map.of("count", members.size(),
                 "oldestDays", members.stream().mapToLong(m -> age(m, context)).max().orElseThrow(),
                 "memberIds", members.stream().map(m -> m.id).sorted().toList())));
     }

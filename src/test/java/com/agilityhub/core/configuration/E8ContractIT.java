@@ -81,7 +81,7 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
     }
     static Stream<Route> clubRoutes() throws Exception { return routes().filter(Route::club); }
-    /** Served routes include E8-T05 lifecycle and pack operations; exports belong to E8-T06. */
+    /** Since E8-T06 serves the accounting export, every route is served and this stream is empty. */
     static Stream<Route> stubRoutes() throws Exception { return routes().filter(route -> !route.served()); }
     /** A served route past its guards: its success or a business answer, never the guards' 401/403 nor the stub's 501. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {
@@ -331,6 +331,25 @@ class E8ContractIT extends AbstractIntegrationTest {
             for (String role : route.roles()) { served(call(route, CLUB, role)); }
         }
         assertThat(clubRoutes().filter(r -> r.module() == null).count()).isEqualTo(9);
+    }
+
+    /**
+     * E8-T06 step 3 (R-15-01): P5 and P10 now have their beans. With the Cànic's modules (CATALEG_MODULS §5: all but
+     * SINGLE_CLASS, STATS and SOCIAL_LEAGUE) `GET /jobs` lists both in catalog order; P10 disappears with BILLING.
+     */
+    @Test void T_15_01_T_15_28_theCanicListsExpirationsAndBillingReminderInCatalogOrder() throws Exception {
+        club(CLUB, without(Module.SINGLE_CLASS, Module.STATS, Module.SOCIAL_LEAGUE));
+        var jobs = mapper.readTree(mvc.perform(as(get("/api/v1/jobs"), "ADMIN")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(jobs.path("items").findValuesAsText("jobName")).containsExactly("WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS",
+                "EXPIRATIONS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER");
+        for (String route : List.of("expirations", "billing-reminder")) {
+            mvc.perform(as(post("/api/v1/jobs/" + route + "/trigger").contentType("application/json").content("{\"dryRun\":true}"), "ADMIN"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.dryRun").value(true)).andExpect(jsonPath("$.status").value("SUCCEEDED"));
+        }
+        club(CLUB, without(Module.SINGLE_CLASS, Module.STATS, Module.SOCIAL_LEAGUE, Module.BILLING));
+        var off = mapper.readTree(mvc.perform(as(get("/api/v1/jobs"), "ADMIN")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(off.path("items").findValuesAsText("jobName")).contains("EXPIRATIONS").doesNotContain("BILLING_REMINDER");
+        error(as(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}"), "ADMIN"), 404, "MODULE_DISABLED");
     }
 
     /**

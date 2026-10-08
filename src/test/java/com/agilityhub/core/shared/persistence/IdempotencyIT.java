@@ -274,9 +274,19 @@ class IdempotencyIT extends AbstractIntegrationTest {
                 .when(repository).held(org.mockito.ArgumentMatchers.any());
         org.mockito.Mockito.doThrow(new com.mongodb.MongoException("claim release unreachable (injected)")).doCallRealMethod()
                 .when(repository).abandon(org.mockito.ArgumentMatchers.any());
-        assertThat(surfaced(unreachable)).hasMessage("answer store unreachable (injected)").satisfies(failure ->
-                assertThat(failure.getSuppressed()).extracting(Throwable::getMessage)
-                        .containsExactly("claim check unreachable (injected)", "claim release unreachable (injected)"));
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(com.agilityhub.core.shared.api.IdempotencyFilter.class);
+        var logged = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>(); logged.start(); logger.addAppender(logged);
+        try {
+            assertThat(surfaced(unreachable)).hasMessage("answer store unreachable (injected)").satisfies(failure ->
+                    assertThat(failure.getSuppressed()).extracting(Throwable::getMessage)
+                            .containsExactly("claim check unreachable (injected)", "claim release unreachable (injected)"));
+        } finally { logger.detachAppender(logged); }
+        // E5-T31's review nit (done in E8-T06): each failed clean-up step leaves one WARN with the record id and the club only.
+        assertThat(logged.list).filteredOn(line -> line.getLevel() == ch.qos.logback.classic.Level.WARN)
+                .extracting(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+                .satisfiesExactly(held -> assertThat(held).startsWith("Idempotency held check failed: recordId=").endsWith("clubId=club-a"),
+                        released -> assertThat(released).startsWith("Idempotency abandon failed: recordId=").endsWith("clubId=club-a"))
+                .noneMatch(line -> line.contains("unreachable") || line.contains(unreachable));
         mvc.perform(request(unreachable, "original", "club-a", "account-a"))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.details.reason").value("IN_PROGRESS"));
         clock.advance(IdempotencyRepository.CLAIM_LEASE.plusSeconds(1));

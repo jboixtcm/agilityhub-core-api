@@ -295,12 +295,17 @@ messaging:
         es: "¡Hola [[member_first_name]]! El sábado hacemos la jornada de puertas abiertas del club: traed a [[dog_name]] y a la familia (texto ficticio)."
         en: "Hi [[member_first_name]]! On Saturday the club holds its open day: bring [[dog_name]] and the family (fictional text)."
 
-# E8: all names and creditor details are fictional and installed only by seed:demo.
+# E8-T06 (S12, S13): the creditor is fictional and installed only by seed:demo (local and test stacks), never by
+# club:apply: the real club enters its own in D11. A fictional creditor identifier with valid check digits and an ES00 IBAN.
+# The members are ordinals with no E4–E7 bookings or registrations, keeping their generated fictional names:
+# 163 ABONAT/SEPA asks for next month (the pending request), 156 ABONAT/SEPA is inactive this month and the next (fee
+# snapshot frozen), 152 ABONAT/cash leaves on the next 31-08, 172 PACK10/SEPA has a 10-session pack expired yesterday and
+# its planned leave. Cash members (every third ordinal) give the half-year branch.
 billing:
   providers:
-    SEPA_XML: {enabled: true, creditorName: Club Agility Exemple, creditorId: ES97ZZZ999999999, iban: ES0021000418450200051332}
-  pendingInactivity: {member: 162, name: Laura}
-  activeInactivity: {member: 168, name: Eva}
-  leave: {member: 174, name: Montse}
+    SEPA_XML: {enabled: true, creditorName: Club Agility Exemple, creditorId: ES64ZZZ999999999, iban: ES0021000418450200051332}
+  pendingInactivity: 163
+  activeInactivity: 156
+  leave: 152
   leaveDay: '08-31'
-  expiredPack: {member: 178, name: Joan}
+  expiredPack: 172

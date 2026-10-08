@@ -19,14 +19,16 @@ class AccountingExportIT extends BillingItSupport {
     }
     @Test @AuditCovers(AuditAction.DATA_EXPORTED)
     void T_12_19_csvContainsEveryInvoiceLineAndLocalizedAmountsWithBom() throws Exception {
-        run("2026-09", simulate("2026-09").path("id").asText());
+        var remittance = run("2026-09", simulate("2026-09").path("id").asText()).path("remittance");
         var response = call(admin(get("/api/v1/billing/exports").param("period", "2026-09").header("Accept-Language", "ca")));
         assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
         byte[] bytes = response.getContentAsByteArray(); assertThat(Arrays.copyOf(bytes, 3)).containsExactly((byte) 0xef, (byte) 0xbb, (byte) 0xbf);
         String csv = new String(bytes, StandardCharsets.UTF_8); var lines = csv.lines().toList();
         int expected = invoices().stream().mapToInt(i -> i.getList("lines", Document.class).size()).sum();
         assertThat(lines).hasSize(expected + 1); assertThat(lines.getFirst()).contains("Concepte", "Número d’abonat");
-        assertThat(csv).contains("60,00", "90,00", "2026-0912").doesNotContain("€", IBAN);
+        assertThat(csv).contains("60,00", "90,00", "2026-0912", ";\"Remesat\";", ";\"Pendent\";").doesNotContain("€", IBAN, "COLLECTING");
+        // The remittance column is the pain.008 MsgId the bank knows, never the internal id.
+        assertThat(csv).contains(";\"" + remittance.path("messageId").asText() + "\";").doesNotContain(remittance.path("id").asText());
         var entries = com.agilityhub.core.migration.application.PlayoffTable.csv(csv);
         long total = entries.subList(1, entries.size()).stream().mapToLong(r -> new java.math.BigDecimal(r.get(10).replace(',', '.')).movePointRight(2).longValueExact()).sum();
         assertThat(total).isEqualTo(invoices().stream().mapToLong(i -> ((Number) i.get("total", Document.class).get("amountMinor")).longValue()).sum());

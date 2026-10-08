@@ -1,0 +1,74 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 6, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.347 s <<< FAILURE! -- in com.agilityhub.core.migration.PlayoffAdapterTest
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.T_18_08_commandsValidateOptionsAndProductionProfiles -- Time elapsed: 0.042 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.agilityhub.core.shared.application.ClubClock.today(String)" because "this.clock" is null
+	at com.agilityhub.core.migration.application.PlayoffCommand.run(PlayoffCommand.java:50)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.T_18_08_commandsValidateOptionsAndProductionProfiles(PlayoffAdapterTest.java:163)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.T_18_01_missingUnknownAndMalformedColumnsReportPositions -- Time elapsed: 0.004 s <<< ERROR!
+java.nio.file.NoSuchFileException: src/test/resources/fixtures/playoff/rebuts.csv
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixFileSystem.copy(UnixFileSystem.java:1019)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.copy(UnixFileSystemProvider.java:300)
+	at java.base/java.nio.file.Files.copy(Files.java:1305)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.copy(PlayoffAdapterTest.java:23)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.T_18_01_missingUnknownAndMalformedColumnsReportPositions(PlayoffAdapterTest.java:141)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.T_18_03_anonymizerRemovesSyntheticPersonalValuesAndPreservesFiftyRowRelations -- Time elapsed: 0.002 s <<< ERROR!
+java.nio.file.NoSuchFileException: src/test/resources/fixtures/playoff/rebuts.csv
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixFileSystem.copy(UnixFileSystem.java:1019)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.copy(UnixFileSystemProvider.java:300)
+	at java.base/java.nio.file.Files.copy(Files.java:1305)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.copy(PlayoffAdapterTest.java:23)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.T_18_03_anonymizerRemovesSyntheticPersonalValuesAndPreservesFiftyRowRelations(PlayoffAdapterTest.java:27)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffAdapterTest.T_18_03_anonymizerRejectsUnsafeOrInvalidInputsWithoutOverwriting -- Time elapsed: 0.003 s <<< ERROR!
+java.nio.file.NoSuchFileException: src/test/resources/fixtures/playoff/rebuts.csv
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixFileSystem.copy(UnixFileSystem.java:1019)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.copy(UnixFileSystemProvider.java:300)
+	at java.base/java.nio.file.Files.copy(Files.java:1305)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.copy(PlayoffAdapterTest.java:23)
+	at com.agilityhub.core.migration.PlayoffAdapterTest.T_18_03_anonymizerRejectsUnsafeOrInvalidInputsWithoutOverwriting(PlayoffAdapterTest.java:113)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Errors: 
+[ERROR]   PlayoffAdapterTest.T_18_01_missingUnknownAndMalformedColumnsReportPositions:141->copy:23 » NoSuchFile src/test/resources/fixtures/playoff/rebuts.csv
+[ERROR]   PlayoffAdapterTest.T_18_03_anonymizerRejectsUnsafeOrInvalidInputsWithoutOverwriting:113->copy:23 » NoSuchFile src/test/resources/fixtures/playoff/rebuts.csv
+[ERROR]   PlayoffAdapterTest.T_18_03_anonymizerRemovesSyntheticPersonalValuesAndPreservesFiftyRowRelations:27->copy:23 » NoSuchFile src/test/resources/fixtures/playoff/rebuts.csv
+[ERROR]   PlayoffAdapterTest.T_18_08_commandsValidateOptionsAndProductionProfiles:163 » NullPointer Cannot invoke "com.agilityhub.core.shared.application.ClubClock.today(String)" because "this.clock" is null
+[ERROR] Tests run: 21, Failures: 0, Errors: 4, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -483,7 +483,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     Map<String,List<Document>> snapshot() { var result=new TreeMap<String,List<Document>>();for(String collection:mongo.getCollectionNames()){result.put(collection,rows(collection));}return result; }
     @Test void T_18_05_T_18_15_historicalReceiptsAndPackOpeningAreIdempotentAndNeverCollected() throws Exception {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().addToSet("modules","PACKS"), "clubs"); configs.invalidate(CLUB);
-        mongo.updateFirst(Query.query(Criteria.where("_id").is("PACK10")), new Update().set("pack", Map.of("sessions",10,"validityMonths",6)), "plans");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("PACK10")), new Update().set("pack", Map.of("sessions",10,"validityMonths",6))
+                .set("dogsIncluded",1).set("showOnSignup",false).set("showOnWeb",false).set("order",0).set("version",0L), "plans");
         var receipts = new StringBuilder("Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n");
         for (int index=1; index<=103; index++) {
             receipts.append("receipt-").append(index).append(';').append(source(1)).append(';').append(index)
@@ -512,7 +513,126 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var again=importer.importDirectory(fixture,MAPPING,CLUB,false,false,false,LocalDate.of(2026,9,1));
         assertThat(again.count("invoices","CREATED")).isZero(); assertThat(again.count("packBalances","CREATED")).isZero();
         assertThat(rows("invoices")).hasSize(103); assertThat(rows("pack_balances")).hasSize(2);
-        assertThat(report.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+|ES[0-9]{22}|[0-9]{8}[A-Z]");
+        // R-18-15: ids and codes only (`holder@88` is E2-T10's row reference, not an address).
+        assertThat(report.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}|ES[0-9]{22}|[0-9]{8}[A-Z]");
+    }
+    @Autowired com.agilityhub.core.payments.application.BillingMigrationAccess billing;
+    @Autowired MigrationResetService reset;
+    @Autowired com.agilityhub.core.platform.application.definition.ClubDefinitions definitions;
+    @Autowired com.agilityhub.core.clubs.census.application.MemberService memberService;
+    /** The Cànic's plan kinds with fictional prices and a SEPA creditor, so that S12's simulation bills the migrated census. */
+    void billingCatalog() {
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "plans"); mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "prices");
+        var at = Instant.parse("2026-01-01T00:00:00Z");
+        for (String code : List.of("ABONAT", "ABONAT_FAMILIAR", "TERAPIA", "PACK10", "PACK6", "COMPETICIO_1")) {
+            boolean pack = code.startsWith("PACK"), therapy = code.equals("TERAPIA");
+            var type = pack ? com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PlanType.PACK : com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PlanType.MONTHLY;
+            mongo.insert(new com.agilityhub.core.clubs.catalogs.persistence.Plan(code, CLUB, code, new LocalizedText(Map.of("ca", code), "ca"), type,
+                    therapy ? com.agilityhub.core.clubs.catalogs.domain.OfferTerms.BillingMode.MAINTENANCE : com.agilityhub.core.clubs.catalogs.domain.OfferTerms.BillingMode.MONTHLY_FEE,
+                    code.equals("ABONAT_FAMILIAR") ? 2 : 1, null, pack ? new com.agilityhub.core.clubs.catalogs.domain.OfferTerms.Pack(10, 6) : null, null, null, null,
+                    true, true, 1, true, 0L, at, at, null, null));
+            var concept = pack ? com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.PACK : therapy
+                    ? com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.MAINTENANCE_FEE : com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.MONTHLY_FEE;
+            mongo.insert(new com.agilityhub.core.clubs.catalogs.persistence.Price("price-" + code, CLUB, code, concept, new Money(therapy ? 3000 : pack ? 12000 : 6000, "EUR"),
+                    java.math.BigDecimal.ZERO, LocalDate.of(2020, 1, 1), null, 0L, at, at, null, null));
+        }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("updatedAt", at)
+                .set("paymentProviders.SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Exemple", "creditorId", "ES00ZZZB00000000", "iban", "ES0000000000000000009876"))
+                .set("paymentProviders.MANUAL", Map.of("enabled", true)), "clubs");
+        configs.invalidate(CLUB);
+    }
+    static String euros(long minor) { return (minor / 100) + "," + String.format("%02d", minor % 100); }
+    Document lastRun() { return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB)).with(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "startedAt", "finishedAt")).limit(1), Document.class, "migration_runs"); }
+
+    /**
+     * T-18-07 (R-18-13, R-18-15): after the load, S12's simulation of M+1 is compared with Playoff's «Informe de previsión» (a
+     * fictional file). A forecast that matches the members the new system bills → `RECONCILED`; one that also bills the direct
+     * debits with no usable bank account → beyond 1 %: `COMPLETED`, and one `NO_BANK_ACCOUNT` justification line per member that
+     * explains the difference. The report carries ids and codes only (negative grep of email, tax id and IBAN patterns).
+     */
+    @Test void T_18_07_theNextMonthsSimulationReconcilesWithTheForecastWithinOnePercent() throws Exception {
+        billingCatalog(); var cutover = LocalDate.of(2026, 9, 1);
+        assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover).hasErrors()).isFalse();
+        com.agilityhub.core.payments.application.BillingMigrationAccess.Reconciliation simulated;
+        try (var tenant = TenantContext.open(CLUB)) { simulated = billing.reconcile(YearMonth.of(2026, 10)); }
+        assertThat(simulated.totalMinor()).isPositive();
+        var sources = new HashMap<String, String>();
+        rows("members").forEach(m -> sources.put(m.getString("_id"), ((Document) m.get("sourceIds")).getString("playoffMemberId")));
+        var matching = new StringBuilder("Member ID;Period;Total\n");
+        simulated.byMember().forEach((id, minor) -> matching.append(sources.get(id)).append(";2026-10;").append(euros(minor)).append('\n'));
+        Files.writeString(fixture.resolve("previsio.csv"), matching);
+        clock.setInstant(clock.instant().plusSeconds(60));
+        var reconciled = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(reconciled.hasErrors()).as(reconciled.render()).isFalse();
+        assertThat(reconciled.totals()).containsEntry("reconciliationExpectedMinor", simulated.totalMinor()).containsEntry("reconciliationDifferenceMinor", 0L);
+        assertThat(lastRun().getString("status")).isEqualTo("RECONCILED");
+        var unbanked = simulated.incidents().entrySet().stream().filter(e -> e.getValue().equals("NO_BANK_ACCOUNT")).map(Map.Entry::getKey).toList();
+        assertThat(unbanked).hasSizeGreaterThanOrEqualTo(26); // the 26 without an IBAN, plus the ones whose IBAN failed mod-97
+        var playoff = new StringBuilder(matching);
+        unbanked.forEach(id -> playoff.append(sources.get(id)).append(";2026-10;60,00\n"));
+        Files.writeString(fixture.resolve("previsio.csv"), playoff);
+        clock.setInstant(clock.instant().plusSeconds(60));
+        var explained = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+        assertThat(explained.totals()).containsEntry("reconciliationDifferenceMinor", -6000L * unbanked.size());
+        assertThat(lastRun().getString("status")).isEqualTo("COMPLETED");
+        assertThat(explained.rows()).filteredOn(r -> r.entity().equals("reconciliation"))
+                .extracting(MigrationReport.Entry::field, MigrationReport.Entry::code)
+                .containsExactlyInAnyOrderElementsOf(unbanked.stream().map(id -> tuple(id, "NO_BANK_ACCOUNT")).toList());
+        assertThat(explained.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}|ES[0-9]{22}|\\b[0-9]{8}[A-Z]\\b");
+    }
+
+    /**
+     * T-18-16 (R-18-14): on the Cànic's seed, `--reset` (the slug typed twice) erases the load and applies the seed again, and a
+     * fresh load gives the same report. After an `--apply --env production` it is allowed while nothing was written after the
+     * load; one later write (a member edit) → refused. A wrong second slug → refused before anything is touched.
+     */
+    @Test void T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport() throws Exception {
+        // The Cànic's seed without its staff accounts (their passwords need SEED_PASSWORD, which the ITs do not set).
+        var lines = Files.readString(Path.of("seeds/club-canic.yaml"));
+        var seeds = Files.createDirectories(temp.resolve("seeds/pages"));
+        try (var pages = Files.list(Path.of("seeds/pages"))) { for (Path page : pages.toList()) { Files.copy(page, seeds.resolve(page.getFileName())); } }
+        Path seed = Files.writeString(seeds.getParent().resolve("club-canic.yaml"), lines.substring(0, lines.indexOf("\naccounts:") + 1) + lines.substring(lines.indexOf("\ncatalogs:") + 1));
+        var cutover = LocalDate.of(2026, 9, 1);
+        String canic = definitions.apply(seed, false).id();
+        try {
+            var first = importer.importDirectory(fixture, MAPPING, canic, false, false, false, cutover);
+            assertThat(first.hasErrors()).as(first.render()).isFalse();
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isEqualTo(187);
+            long plans = mongo.count(Query.query(Criteria.where("clubId").is(canic)), "plans");
+            assertThatThrownBy(() -> reset.reset("canic", seed, "canic", "canix")).isInstanceOfSatisfying(ApiException.class,
+                    e -> assertThat(e.code()).isEqualTo(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION));
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isEqualTo(187);
+            assertThat(reset.reset("canic", seed, "canic", "canic")).isEqualTo(canic);
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isZero();
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "migration_runs")).isZero();
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "plans")).isEqualTo(plans);
+            var again = importer.importDirectory(fixture, MAPPING, canic, false, false, false, cutover);
+            // Same report, except that AgilityHub ID accounts are global (not club data): they survive the reset and are UPDATED.
+            assertThat(again.count("accounts", "UPDATED")).isEqualTo(first.count("accounts", "CREATED"));
+            assertThat(again.rows().stream().map(r -> r.entity().equals("accounts") && r.outcome().equals("UPDATED")
+                    ? new MigrationReport.Entry(r.file(), r.row(), r.entity(), "CREATED", r.code(), r.field()) : r).toList()).isEqualTo(first.rows());
+            assertThat(again.totals()).isEqualTo(first.totals());
+            // Production: a load with nothing written after it can still be reset.
+            reset.reset("canic", seed, "canic", "canic");
+            assertThat(importer.importDirectory(fixture, MAPPING, canic, false, true, true, cutover).hasErrors()).isFalse();
+            clock.setInstant(clock.instant().plusSeconds(60));
+            reset.reset("canic", seed, "canic", "canic");
+            assertThat(importer.importDirectory(fixture, MAPPING, canic, false, true, true, cutover).hasErrors()).isFalse();
+            clock.setInstant(clock.instant().plusSeconds(60));
+            String edited = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("status").is("ACTIVE")), Document.class, "members").getString("_id");
+            try (var tenant = TenantContext.open(canic)) {
+                var version = mongo.findById(edited, Document.class, "members").get("version");
+                memberService.patch(edited, Map.of("version", version, "remarks", "Edited after the load"), false);
+            }
+            assertThatThrownBy(() -> reset.reset("canic", seed, "canic", "canic")).isInstanceOfSatisfying(ApiException.class,
+                    e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isEqualTo(187);
+        } finally {
+            for (String collection : mongo.getCollectionNames()) {
+                if (!collection.startsWith("system.")) { mongo.remove(Query.query(Criteria.where("clubId").is(canic)), collection); }
+            }
+            mongo.remove(Query.query(Criteria.where("_id").is(canic)), "clubs");
+        }
     }
     @Autowired MigrationPhotos photos;
     @Test void T_18_05_photosUseLocalStorageAndKeepUploadedFilesWithSafePerDogFailures() throws Exception {

@@ -1,0 +1,685 @@
+01:04:07.712 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.JobsApiIT]: JobsApiIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:04:07.825 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.JobsApiIT
+01:04:07.869 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:04:07.870 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:04:07.872 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+01:04:07.932 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:04:08.026 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:04:08.026 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:04:08.037 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+01:04:08.276 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+01:04:08.311 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+01:04:08.365 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 36631bb1b2251e9f55f4f97a0d67cd9993f1c48502a0315e261f88c8f043eb1f
+01:04:08.486 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.210595S
+01:04:08.490 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:04:08.490 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:04:08.490 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:04:08.490 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+01:04:08.532 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: f3e037ea02d70272ee497db8a18278d2f42b57848904ccd43610dd7532755a73
+01:04:09.025 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.535416S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T01:04:09.594+02:00 INFO  [main] c.a.core.clubs.bookings.api.JobsApiIT traceId= clubId= accountId= : Starting JobsApiIT using Java [redacted] with PID 2782 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T01:04:09.595+02:00 INFO  [main] c.a.core.clubs.bookings.api.JobsApiIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T01:04:10.269+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T01:04:10.308+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 36 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T01:04:10.637+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4f63909f], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3ae91bcc, com.mongodb.Jep395RecordCodecProvider@679886ad, com.mongodb.KotlinCodecProvider@5625e7e1]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:62031], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@59172d2], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T01:04:10.642+02:00 INFO  [cluster-ClusterId{value='6ac6cfea696611491418b109', description='null'}-localhost:62031] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:62031, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7461792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=f3e037ea02d7:27017, hosts=[f3e037ea02d7:27017], passives=[], arbiters=[], primary='f3e037ea02d7:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac6cfe8d2772b8698878e96, counter=6}, lastWriteDate=Thu Oct 08 01:04:09 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-08T01:04:13.352+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-08T01:04:13.352+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-08T01:04:13.353+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-08T01:04:13.381+02:00 INFO  [main] c.a.core.clubs.bookings.api.JobsApiIT traceId= clubId= accountId= : Started JobsApiIT in 3.919 seconds (process running for 5.915)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+E6-T04 GET /jobs [{"name":"week-opening","jobName":"WEEK_OPENING","module":null,"enabled":true,"schedule":{"kind":"WEEKLY","localTime":"20:00","dayOfWeek":"SUNDAY","dayOfMonth":null},"nextScheduledForLocal":"2026-10-11T20:00","lastRun":null},{"name":"risk-review","jobName":"RISK_REVIEW","module":null,"enabled":false,"schedule":{"kind":"DAILY","localTime":"07:30","dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":"2026-10-07T07:30","lastRun":{"runId":"694cadc5-4e90-4ea8-8678-2543bf381760","status":"SUCCEEDED","finishedAt":"2026-10-06T08:00:00Z","trigger":"MANUAL","dryRun":false,"counters":{"reviewed":4,"notifiedMembers":0,"atRisk":4}}},{"name":"no-show-notices","jobName":"NO_SHOW_NOTICES","module":null,"enabled":true,"schedule":{"kind":"DAILY","localTime":"08:00","dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":"2026-10-07T08:00","lastRun":null},{"name":"reminders","jobName":"REMINDERS","module":null,"enabled":false,"schedule":{"kind":"CONTINUOUS","localTime":null,"dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":null,"lastRun":null},{"name":"expirations","jobName":"EXPIRATIONS","module":null,"enabled":true,"schedule":{"kind":"DAILY","localTime":"06:00","dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":"2026-10-07T06:00","lastRun":null},{"name":"payment-timeouts","jobName":"PAYMENT_TIMEOUTS","module":"SINGLE_CLASS","enabled":true,"schedule":{"kind":"CONTINUOUS","localTime":null,"dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":null,"lastRun":null},{"name":"class-finishing","jobName":"CLASS_FINISHING","module":null,"enabled":true,"schedule":{"kind":"CONTINUOUS","localTime":null,"dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":null,"lastRun":null},{"name":"cleanup","jobName":"CLEANUP","module":null,"enabled":true,"schedule":{"kind":"DAILY","localTime":"06:00","dayOfWeek":null,"dayOfMonth":null},"nextScheduledForLocal":"2026-10-07T06:00","lastRun":null},{"name":"billing-reminder","jobName":"BILLING_REMINDER","module":"BILLING","enabled":true,"schedule":{"kind":"MONTHLY","localTime":"06:00","dayOfWeek":null,"dayOfMonth":22},"nextScheduledForLocal":"2026-10-22T06:00","lastRun":null}]
+2026-10-08T01:04:15.784+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=dcb03dfe-5ad4-42f4-9257-d45998ec7ec7 clubId=s08-a accountId=s08-admin : Framework request rejected code=VALIDATION_ERROR traceId=dcb03dfe-5ad4-42f4-9257-d45998ec7ec7
+2026-10-08T01:04:15.826+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.application.jobs.JobFrameworkIT]: JobFrameworkIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-08T01:04:15.850+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.jobs.JobFrameworkIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T01:04:15.860+02:00 INFO  [main] c.a.c.p.application.jobs.JobFrameworkIT traceId= clubId= accountId= : Starting JobFrameworkIT using Java [redacted] with PID 2782 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T01:04:15.860+02:00 INFO  [main] c.a.c.p.application.jobs.JobFrameworkIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T01:04:16.105+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T01:04:16.128+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 22 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T01:04:16.176+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@499f33a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3ae91bcc, com.mongodb.Jep395RecordCodecProvider@679886ad, com.mongodb.KotlinCodecProvider@5625e7e1]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:62031], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@70dd83f8], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T01:04:16.178+02:00 INFO  [cluster-ClusterId{value='6ac6cff0696611491418b10a', description='null'}-localhost:62031] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:62031, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1477625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=f3e037ea02d7:27017, hosts=[f3e037ea02d7:27017], passives=[], arbiters=[], primary='f3e037ea02d7:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac6cfe8d2772b8698878e96, counter=6}, lastWriteDate=Thu Oct 08 01:04:15 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-08T01:04:16.788+02:00 INFO  [main] c.a.c.p.application.jobs.JobFrameworkIT traceId= clubId= accountId= : Started JobFrameworkIT in 0.936 seconds (process running for 9.322)
+2026-10-08T01:04:16.826+02:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 24 dogs
+2026-10-08T01:04:16.900+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=1c949ff9-aba1-448f-902c-229236cde08a job=TEST_NOOP clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:16.905+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=12d486c7-[redacted]=TEST_NOOP clubId=e5-jobs-a reason=MISSED_WINDOW baseline=false
+2026-10-08T01:04:16.908+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=d90e5c11-9978-45e4-98f2-1613c199912b job=TEST_NOOP clubId=e5-jobs-b reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:16.930+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=dead-run job=TEST_NOOP clubId=e5-jobs-a
+2026-10-08T01:04:16.989+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=85519e92-1ff9-4602-9eb0-6bccbf60a6e3 job=TEST_NOOP clubId=e5-jobs-a reason=LOCKED baseline=false
+2026-10-08T01:04:17.000+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=9dde4524-a577-4004-811d-9ffd3266e1b0 job=TEST_NOOP clubId=e5-jobs-a
+2026-10-08T01:04:17.029+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=15cbc646-c13a-465d-8d91-[redacted]=TEST_NOOP clubId=e5-jobs-a reason=MISSED_WINDOW baseline=false
+2026-10-08T01:04:17.234+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=dead-dry-run job=TEST_NOOP clubId=e5-jobs-a
+2026-10-08T01:04:17.311+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=0c159b5f-2790-47ad-9801-5bff3d223d9c job=RISK_REVIEW clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.330+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=47831804-099f-4b63-9336-6cd3a4ae6798 job=WAITLIST_FIFO clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.332+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=1dae9be9-5c93-4710-a287-e5e9e42a82dc job=PAYMENT_TIMEOUTS clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.359+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=9e6c9060-e1a0-4fb0-957a-136786222a57 job=BILLING_REMINDER clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.378+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=262e9d1d-6378-48d8-a58d-f70dd3a335a6 job=RISK_REVIEW clubId=e5-jobs-b reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.392+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=47bf10a9-fc3c-4f9c-8d29-b4884742cf09 job=WAITLIST_FIFO clubId=e5-jobs-b reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.394+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=03f1a437-[redacted]=PAYMENT_TIMEOUTS clubId=e5-jobs-b reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.412+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=7411bfa8-d479-48b0-88b2-f9bda3e3951b job=BILLING_REMINDER clubId=e5-jobs-b reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.435+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=3552ee18-6e7a-47a3-a290-4a6fe9cb7147 job=RISK_REVIEW clubId=s08-a reason=DISABLED baseline=false
+2026-10-08T01:04:17.454+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=WAITLIST_FIFO clubId=s08-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.455+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f5ae5aff-393f-44d9-b9cd-c0b52cc540e7 job=PAYMENT_TIMEOUTS clubId=s08-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.483+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=7d914e3e-3745-43b7-[redacted]=BILLING_REMINDER clubId=s08-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.501+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=fde1fbbb-1bc7-4399-8bb2-bce0dd25fb94 job=RISK_REVIEW clubId=s08-b reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.518+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=fbfbaff5-01d0-4452-91a8-6a7b3eef86fc job=WAITLIST_FIFO clubId=s08-b reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.542+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=a6ae8110-e9e8-4655-9260-a8335f4572cb job=BILLING_REMINDER clubId=s08-b reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.595+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=9e1ec320-e06d-4bc5-92f9-1450844709aa job=RISK_REVIEW clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.609+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=3698d60b-976b-49d9-b840-c7efa00b1c94 job=WAITLIST_FIFO clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.611+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=PAYMENT_TIMEOUTS clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.634+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=29f96328-[redacted]=BILLING_REMINDER clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:17.640+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=25c04dd2-68b7-4bac-9b43-[redacted]=WEEK_OPENING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.641+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=4493543d-32ac-4b29-b452-25d60d726d7e job=RISK_REVIEW clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.642+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=6b7339b8-c923-4234-8a9e-116a3e9b11fc job=NO_SHOW_NOTICES clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.643+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=c6ebbed7-9f2d-4345-910d-365b81cf9cac job=REMINDERS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.645+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=6f92996d-83c3-4c56-84b1-40b5137610c0 job=EXPIRATIONS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.646+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=71e49e18-[redacted]=WAITLIST_FIFO clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.647+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=dad1c366-10cc-4af7-9f2f-703c2851567b job=PAYMENT_TIMEOUTS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.648+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=eae41364-5e4b-4c59-afef-0f0e5f5df52d job=CLASS_FINISHING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.650+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=915514df-c32c-4cf9-bcb7-9f5a546e4056 job=CLEANUP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.651+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=fa4f8bf3-0ab4-4ebd-a378-640bdbc4d7a5 job=BILLING_REMINDER clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.652+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=04c1c8d7-8222-4c10-bbba-e71134415334 job=TEST_NOOP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.685+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f1e46678-9c1e-408f-9c75-7bc3c41304f1 job=RISK_REVIEW clubId=e5-jobs-a reason=MISSED_WINDOW baseline=false
+2026-10-08T01:04:17.699+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=32a3bace-1537-4f36-a3ac-624538c4f6ca job=WAITLIST_FIFO clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.700+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=1c6bcb39-56fd-46bc-99ef-0d89888ee60b job=PAYMENT_TIMEOUTS clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.726+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=529e0575-b713-43db-879a-5a0a18955f31 job=RISK_REVIEW clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.727+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=dfd30fbf-7eea-41b8-81ec-69367b5df3c7 job=NO_SHOW_NOTICES clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.728+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=REMINDERS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.730+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=d2e9634d-0410-48f9-bcc0-8bc5fc608831 job=EXPIRATIONS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.731+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=ceb7b68b-6eff-45c1-ad2c-42540232e70e job=WAITLIST_FIFO clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.732+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=90822d00-4c55-4e27-8ac3-0f2a8d0893e7 job=PAYMENT_TIMEOUTS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.733+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=0b8b8dd4-e33d-4d16-ab3f-26fbf5602746 job=CLASS_FINISHING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.735+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=CLEANUP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.737+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=d734fa1d-9a31-4c70-9e5c-2931b8c3ec40 job=TEST_NOOP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.738+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=RISK_REVIEW clubId=s08-a reason=DISABLED baseline=false
+2026-10-08T01:04:17.753+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=0e135740-3b3a-47bc-8e32-495d2dfabdb8 job=WAITLIST_FIFO clubId=s08-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.754+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=377ad382-[redacted]=PAYMENT_TIMEOUTS clubId=s08-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.776+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=b934c566-45a5-45ab-abb2-c354f71f7f81 job=RISK_REVIEW clubId=s08-b reason=MISSED_WINDOW baseline=false
+2026-10-08T01:04:17.790+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=3f9c5956-67c0-4a99-a6c0-44eba9f5a2c7 job=WAITLIST_FIFO clubId=s08-b reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.815+02:00 WARN  [main] c.a.c.p.application.jobs.SchedulerTick traceId= clubId= accountId= : Scheduler tick overran tick=2026-10-06T04:00:00Z endedAt=2026-10-06T04:02:10Z skippedTicks=2
+2026-10-08T01:04:17.897+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=012276c9-92db-4406-97e8-[redacted]=TEST_NOOP clubId=e5-jobs-a reason=DISABLED baseline=false
+2026-10-08T01:04:17.902+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=b9872916-8fc1-4f13-8bf2-25bea73f03ab job=TEST_NOOP clubId=e5-jobs-a reason=DISABLED baseline=false
+2026-10-08T01:04:17.904+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=3fb3ed71-3146-49d2-9fe6-[redacted]=TEST_NOOP clubId=e5-jobs-a reason=DISABLED baseline=false
+2026-10-08T01:04:17.910+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=1c02b3b9-0ea2-43d1-bae9-[redacted]=TEST_NOOP clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:17.912+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f4448321-b2ee-4ed3-a372-55d290f0a6f7 job=TEST_NOOP clubId=e5-jobs-a reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:17.939+02:00 ERROR [pool-3-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=09200a66-3a2f-4595-b160-[redacted]=TEST_NOOP clubId=e5-jobs-a
+2026-10-08T01:04:17.945+02:00 WARN  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job finished after its lease was reaped jobRunId=09200a66-3a2f-4595-b160-[redacted]=TEST_NOOP clubId=e5-jobs-a status=SUCCEEDED leaseLost=false counters={applied=1} items=1
+2026-10-08T01:04:17.967+02:00 ERROR [pool-4-thread-1] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=81da39e1-b217-4791-988e-7fe582daab14 job=TEST_NOOP clubId=e5-jobs-a
+2026-10-08T01:04:17.972+02:00 WARN  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job finished after its lease was reaped jobRunId=81da39e1-b217-4791-988e-7fe582daab14 job=TEST_NOOP clubId=e5-jobs-a status=FAILED leaseLost=true counters={applied=1} items=1
+2026-10-08T01:04:17.991+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job item failed jobRunId=113e043a-becf-4637-8c48-d276b274f1e1 job=TEST_NOOP clubId=e5-jobs-a entityId=item-2 traceId=15765027-4256-4850-aec5-646c4f8cd9cb
+com.agilityhub.core.shared.domain.ApiException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.apply(TestNoopJob.java:48)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$run$7(JobRunner.java:218)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$write$11(JobRunner.java:326)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.write(JobRunner.java:326)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:218)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.tick(JobRunner.java:112)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$scheduled$1(JobRunner.java:91)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.scheduled(JobRunner.java:91)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay(JobFrameworkIT.java:370)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.001+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=3191cdb7-f141-4318-b8e1-1682ce9e502c job=TEST_NOOP clubId=e5-jobs-a traceId=4fbd7838-a6e7-423e-b04f-4d2343166337
+java.lang.IllegalStateException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.plan(TestNoopJob.java:39)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.triggered(JobRunner.java:134)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$manual$3(JobRunner.java:123)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:123)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:117)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay(JobFrameworkIT.java:380)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.009+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=0f226f5f-3917-4e77-9820-fb3ea6c683cf job=TEST_NOOP clubId=e5-jobs-a traceId=a30cf901-a7fd-4f6f-8187-db7ffec9adc8
+java.lang.IllegalStateException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.plan(TestNoopJob.java:39)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.triggered(JobRunner.java:134)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$manual$3(JobRunner.java:123)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:123)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:117)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay(JobFrameworkIT.java:387)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.085+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=781c3e0d-1e76-4314-add1-8f5951deaef9 job=TEST_NOOP clubId=e5-jobs-a traceId=fa4dc319-f486-4dd6-96e6-a612786b1bcc
+java.lang.IllegalStateException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.plan(TestNoopJob.java:39)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.triggered(JobRunner.java:134)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$manual$3(JobRunner.java:123)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:123)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:117)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay(JobFrameworkIT.java:396)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.111+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=2f6f75dd-5d40-45f7-8a6b-8fb3d61ee015 job=TEST_NOOP clubId=e5-jobs-a traceId=dcc821f0-b58e-4178-9b7c-7693f7552cc8
+java.lang.IllegalStateException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.plan(TestNoopJob.java:39)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.triggered(JobRunner.java:134)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$manual$3(JobRunner.java:123)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:123)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.manual(JobRunner.java:117)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay(JobFrameworkIT.java:401)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.151+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=8f019cac-0d0a-4c45-827d-91e09d3a3030 job=RISK_REVIEW clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:18.167+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f3b247e9-de5f-4cd6-8eea-59ab311f6d98 job=WAITLIST_FIFO clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:18.168+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=6ec936e6-3150-4513-8836-99dbfad3a8fd job=PAYMENT_TIMEOUTS clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:18.193+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=b6025b4c-a344-4da9-8176-c81627f5f65b job=BILLING_REMINDER clubId=e5-jobs-a reason=MISSED_WINDOW baseline=true
+2026-10-08T01:04:18.198+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=feac7bd2-23bc-41fe-8ef9-887dfa9dcbde job=WEEK_OPENING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.200+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=7bacf45b-4411-4d3c-bf7b-9b44e1bb99c5 job=RISK_REVIEW clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.201+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=cbff2d31-923c-4184-9fb2-cbc749cb1a34 job=NO_SHOW_NOTICES clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.202+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=REMINDERS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.204+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=2f115c87-0767-4571-af6e-7237972a114d job=EXPIRATIONS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.205+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=d031b1da-ddbe-4bf4-b038-620c272d0eac job=WAITLIST_FIFO clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.206+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=9c39ffba-663c-4c5d-8442-3d4fa581a787 job=PAYMENT_TIMEOUTS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.208+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=47e8db3b-c2f1-4860-9dd4-018982b8decb job=CLASS_FINISHING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.209+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=[redacted] job=CLEANUP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.211+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=09c13a50-8f3a-4680-b67a-[redacted]=BILLING_REMINDER clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.212+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=37fa9290-[redacted]=TEST_NOOP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.244+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=15e5dc16-[redacted]=RISK_REVIEW clubId=e5-jobs-a reason=MISSED_WINDOW baseline=false
+2026-10-08T01:04:18.261+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=06e86020-2839-4cea-[redacted]=WAITLIST_FIFO clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:18.262+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=b5c99863-73d7-4b65-89f6-b8e3bacb10ec job=PAYMENT_TIMEOUTS clubId=e5-jobs-a reason=MODULE_OFF baseline=false
+2026-10-08T01:04:18.291+02:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=860d90c4-f379-4e3a-b45c-4b4bbbc9a458 job=TEST_NOOP clubId=e5-jobs-a traceId=e2c9ed40-e7e7-4cbb-[redacted]
+java.lang.IllegalStateException
+	at com.agilityhub.core.platform.application.jobs.TestNoopJob.plan(TestNoopJob.java:39)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.tick(JobRunner.java:112)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$scheduled$1(JobRunner.java:91)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.scheduled(JobRunner.java:91)
+	at com.agilityhub.core.platform.application.jobs.SchedulerTick.run(SchedulerTick.java:58)
+	at com.agilityhub.core.platform.application.jobs.JobFrameworkIT.T_15_01_tickRunsEveryClubInCatalogOrderOncePerMinute(JobFrameworkIT.java:546)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-08T01:04:18.298+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=45f6606e-00c7-4e64-[redacted]=RISK_REVIEW clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.300+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=58b1a84b-[redacted]=NO_SHOW_NOTICES clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.301+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f26e948a-4d35-461b-a2fa-7a5dc8cd8553 job=REMINDERS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.302+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=559d616a-224d-46ca-a72b-31fbe1ea9331 job=EXPIRATIONS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.304+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=12d98c0c-35e4-4864-afc6-2b2029566709 job=WAITLIST_FIFO clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.305+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=b1c6439c-d15e-4eb8-b9e6-1b44d9329371 job=PAYMENT_TIMEOUTS clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.306+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=6d109170-249d-41b7-98c3-a111035634d3 job=CLASS_FINISHING clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.307+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=ae5a5349-dff2-42e5-9f4b-f98221dfceed job=CLEANUP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false
+2026-10-08T01:04:18.309+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=44bcf57f-efbb-4293-b06e-42d010896fba job=TEST_NOOP clubId=e5-jobs-b reason=CLUB_INACTIVE baseline=false

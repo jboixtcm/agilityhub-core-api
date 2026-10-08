@@ -42,11 +42,12 @@ public class BillingController {
     private final BillingContractAccess access; private final BillingQueries queries; private final BillingSimulationService simulations;
     private final BillingRunService runs; private final BillingTransactions transactions; private final CardChargingPort cards;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
-    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.AccountingExportPort accounting;
+    private final com.agilityhub.core.shared.application.AccountingExportPort accounting;
     public BillingController(BillingContractAccess access, BillingQueries queries, BillingSimulationService simulations, BillingRunService runs,
-            BillingTransactions transactions, CardChargingPort cards, com.fasterxml.jackson.databind.ObjectMapper mapper) {
+            BillingTransactions transactions, CardChargingPort cards, com.fasterxml.jackson.databind.ObjectMapper mapper,
+            com.agilityhub.core.shared.application.AccountingExportPort accounting) {
         this.access = access; this.queries = queries; this.simulations = simulations; this.runs = runs; this.transactions = transactions;
-        this.cards = cards; this.mapper = mapper;
+        this.cards = cards; this.mapper = mapper; this.accounting = accounting;
     }
 
     @GetMapping("/api/v1/billing/periods/{period}")

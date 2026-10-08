@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+"""Rehearse the E8 backend gate (S12 billing, S13 inactivity and leave, S15 P5 and P10) on a disposable local Compose stack.
+
+Seeds the Cànic and the fictional FIFO club with the demo (E8-T06: the fictional SEPA creditor, a pending and an active
+inactivity, a planned leave on the next 31-08, an expired pack, a CARD payer and single-class charges on the FIFO club),
+then with curl and exact statuses: a pack consumed and returned by an in-time cancellation; the month simulated (incidents,
+KPIs, the inactivity fee on the receipt); the run generated and its pain.008 downloaded and checked; a receipt returned by
+the bank; the run rolled back (numbers and next-invoice dates restored) and generated again with the same numbers; a cash
+receipt paid; the card leg (Stripe test mode when STRIPE_TEST_SECRET_KEY is set, otherwise the fake provider, said so);
+the test clock moved to 06:00 after the leave date for `expirations` in dry run and for real (a pack expiring, an inactivity
+starting, the leave executed, `plan ≡ effects`); `billing-reminder` on day 22 with no remittance → N-41 once; and the
+accounting export (BOM, `;`, one row per invoice line, totals that match the run). Re-runnable: every run builds its own
+stack and removes it. Never prints a token, a key, an IBAN nor a message body. Reuses bin/e5-smoke's stack helpers.
+"""
+import argparse
+import base64
+import csv
+import datetime
+import importlib.machinery
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import xml.etree.ElementTree as ElementTree
+
+ROOT = Path(__file__).resolve().parents[1]
+SEPA_CREDITOR = "ES64ZZZ999999999"
+# seeds/demo-canic.yaml `billing` (ordinal n = member number n + 1) and demo-fifo.yaml.
+PENDING_INACTIVITY, ACTIVE_INACTIVITY, LEAVING, EXPIRED_PACK, FIFO_CARD = 164, 157, 153, 173, 8
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def euros(money):
+    return f"{money['amountMinor'] / 100:.2f} {money['currency']}"
+
+
+class E8:
+    def __init__(self, smoke_module, private, image):
+        self.m = smoke_module
+        self.s = smoke_module.Smoke(private, image)
+        self.private = private
+        self.s.project = "e8-smoke-" + secrets.token_hex(6)
+        args = self.s.compose_args
+        args[args.index("--project-name") + 1] = self.s.project
+        self.s.sign_in = self.sign_in
+        self.stripe = bool(os.environ.get("STRIPE_TEST_SECRET_KEY"))
+        # Fresh keys for the run's bank and provider vaults; they never leave the private override.
+        override_path = private / "compose.override.json"
+        override = json.loads(override_path.read_text())
+        for service in override["services"].values():
+            env = service.get("environment")
+            if env is not None:
+                env["BILLING_BANK_KEY"] = base64.b64encode(secrets.token_bytes(32)).decode()
+                env["BILLING_SECRETS_KEY"] = base64.b64encode(secrets.token_bytes(32)).decode()
+        override_path.write_text(json.dumps(override))
+
+    # ---- helpers
+    def require(self, condition, message):
+        self.m.require(condition, message)
+
+    def call(self, *args, **kwargs):
+        return self.s.call(*args, **kwargs)
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def record(self, step, status, values=""):
+        self.s.record(step, status, values)
+
+    def wait(self, action, message, timeout=120):
+        return self.m.wait(action, message, timeout)
+
+    def sign_in(self):
+        """Access tokens live 15 min on the API's (moved) clock: every clock move needs fresh ones."""
+        self.admin = self.s.login("admin@example.test", "clubs-admin")
+        self.fifo_admin = self.s.login("fifo.admin@example.test", "clubs-admin", self.s.fifo_host)
+
+    def set_clock(self, moment, label):
+        self.s.set_clock(moment, label)
+
+    def local(self, day, time="10:00"):
+        return datetime.datetime.combine(day, datetime.time.fromisoformat(time), self.s.tz)
+
+    def member(self, number, club=None):
+        return self.mongo('db.members.findOne({clubId:' + json.dumps(club or self.s.canic) + ',memberNumber:' + str(number) + '},'
+                          '{_id:1,status:1,leaveDate:1,nextInvoiceDate:1,planId:1,"paymentMethod.type":1})')
+
+    def run_job(self, route, dry):
+        run = self.call("POST", f"/api/v1/jobs/{route}/trigger", access=self.admin, body=dict(dryRun=dry))
+        self.require(run["status"] == "SUCCEEDED", f"{route} {'dry run' if dry else 'run'}: {run['status']} "
+                     f"(errors {[e['code'] for e in run['errors']]}; items {sorted({i['action'] for i in run['effects']['items']})})")
+        return run
+
+    def show(self, run, label):
+        """A JobRun as the api returns it, ids truncated: the evidence of plan ≡ effects."""
+        items = [f"{i['entityType']}:{i['entityId'][:8]}…:{i['action']}" for i in run["effects"]["items"]]
+        print(f"JobRun {label}: run {run['runId'][:8]}… {run['job']} trigger={run['trigger']} dryRun={run['dryRun']} status={run['status']} "
+              f"scheduledForLocal={run['scheduledForLocal']} counters={ {k: v for k, v in self.counters(run).items() if v} } items={items}", flush=True)
+
+    @staticmethod
+    def counters(run):
+        return {c["key"]: c["value"] for c in run["effects"]["counters"]} if isinstance(run["effects"]["counters"], list) else run["effects"]["counters"]
+
+    @staticmethod
+    def items(run):
+        return [(i["entityId"], i["action"]) for i in run["effects"]["items"]]
+
+    def notices(self, code):
+        return self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.s.canic) + ',code:' + json.dumps(code) + '})')
+
+    def download_unauthenticated(self, url):
+        """The signed link authorises itself (no bearer); a local link may name the container's own host."""
+        target = self.private / "remittance.xml"
+        path = url.split("://", 1)[1].split("/", 1)[1] if "://" in url else url.lstrip("/")
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--output", str(target),
+                "--write-out", "%{http_code}", "--config", "-"]
+        config = 'header = "Host: ' + self.s.host + '"\nurl = ' + json.dumps(self.s.base + "/" + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0 and result.stdout == "200", f"GET signed remittance link: expected 200, got {result.stdout}")
+        print("curl GET <signed remittance link> -> 200", flush=True)
+        return target.read_bytes()
+
+    def run_invoices(self, run_id):
+        return self.mongo('db.invoices.find({clubId:' + json.dumps(self.s.canic) + ',runId:' + json.dumps(run_id) + '}).sort({number:1}).toArray()'
+                          '.map(i=>({id:i._id,member:i.memberId,number:i.displayNumber,status:i.status,method:i.paymentMethod.type,'
+                          'total:Number(i.total.amountMinor),lines:i.lines.length}))')
+
+    def version(self, invoice):
+        """The optimistic-locking version as the api publishes it (mongosh prints a Long as an object)."""
+        return self.call("GET", f"/api/v1/invoices/{invoice}", access=self.admin, quiet=True)["version"]
+
+    def next_dates(self, members):
+        rows = self.mongo('db.members.find({_id:{$in:' + json.dumps(members) + '}},{nextInvoiceDate:1}).toArray()')
+        return {r["_id"]: str(r.get("nextInvoiceDate")) for r in rows}
+
+    # ---- the gate
+    def scenario(self):
+        s = self.s
+        self.sign_in()
+        today = datetime.datetime.now(s.tz).date()
+        period = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+        self.period = period.strftime("%Y-%m")
+        for route in ("expirations", "billing-reminder"):
+            self.call("PUT", f"/api/v1/jobs/{route}/switch", access=self.admin, body=dict(enabled=False))
+        self.record("PUT /jobs/{expirations,billing-reminder}/switch {enabled:false}", "200", "the scheduler leaves P5 and P10 to this script")
+        self.demo_states()
+        self.pack_consumed_and_returned()
+        self.monthly_cycle()
+        self.card_leg()
+        self.processes()
+        self.accounting_export()
+
+    def demo_states(self):
+        s = self.s
+        sepa = self.mongo('db.clubs.findOne({_id:' + json.dumps(s.canic) + '}).paymentProviders.SEPA_XML')
+        self.require(sepa["enabled"] and sepa["creditorId"] == SEPA_CREDITOR, "The demo club lacks its fictional SEPA creditor")
+        pending, active = (self.mongo('db.inactivity_periods.findOne({memberId:' + json.dumps(self.member(n)["_id"]) + '},{state:1,fromMonth:1,toMonth:1})')
+                           for n in (PENDING_INACTIVITY, ACTIVE_INACTIVITY))
+        self.require(pending["state"] == "REQUESTED" and active["state"] == "ACTIVE", f"Demo inactivity states {pending['state']}, {active['state']}")
+        leaving = self.member(LEAVING)
+        pack = self.mongo('db.pack_balances.findOne({memberId:' + json.dumps(self.member(EXPIRED_PACK)["_id"]) + '},{state:1,expiresOn:1})')
+        card = self.member(FIFO_CARD, s.fifo)
+        charges = self.mongo('db.pending_charges.countDocuments({clubId:' + json.dumps(s.fifo) + '})')
+        self.require(pack["state"] == "EXPIRED" and card["paymentMethod"]["type"] == "CARD" and charges == 2, "Demo pack, card or charges missing")
+        # Approved now, before the clock moves past R-13-03's deadline (day 25 of the month before); P5 starts it later.
+        self.approved = self.mongo('db.inactivity_periods.findOne({memberId:' + json.dumps(self.member(PENDING_INACTIVITY)["_id"]) + '},{_id:1})')["_id"]
+        decided = self.call("POST", f"/api/v1/inactivity-periods/{self.approved}/decision", access=self.admin, body=dict(decision="APPROVED", note="Smoke E8"))
+        self.require(decided["state"] == "APPROVED", f"The pending request is {decided['state']} after its approval")
+        self.record("seed:demo E8 section (Cànic + FIFO)", "seeded", f"creditor {SEPA_CREDITOR}; inactivity REQUESTED {pending['fromMonth']} and ACTIVE "
+                    f"{active['fromMonth']}…{active['toMonth']}; leave on {str(leaving['leaveDate'])[:10]}; pack EXPIRED {pack['expiresOn']}; "
+                    f"FIFO: 1 CARD payer, {charges} pending charges; the request then APPROVED by the admin")
+
+    def pack_consumed_and_returned(self):
+        s = self.s
+        # A booking whose attendance is already marked (the E6 history seed) is not cancellable (S10 §13-6).
+        booking = self.mongo('db.bookings.find({clubId:' + json.dumps(s.canic) + ',state:"ACTIVE",packMovementId:{$ne:null},'
+                             '_id:{$nin:db.attendances.distinct("bookingId",{clubId:' + json.dumps(s.canic) + '})},'
+                             'classStartsAt:{$gt:new Date(Date.now()+3*86400000)}}).sort({classStartsAt:1}).limit(1).toArray()'
+                             '.map(b=>({id:b._id,member:b.memberId,dog:b.dogId,movement:b.packMovementId}))')
+        self.require(booking, "No future booking paid with a pack in the demo")
+        booking = booking[0]
+        # Spring Data stores an embedded record's `id` as `_id`.
+        balance = lambda: self.mongo('db.pack_balances.findOne({"movements._id":' + json.dumps(booking["movement"]) + '},{remaining:1,consumed:1,'
+                                     'movements:1})')
+        before = balance()
+        self.require(before, "The booking's pack movement belongs to no balance")
+        consumed = next(m for m in before["movements"] if m["_id"] == booking["movement"])
+        self.require(consumed["type"] == "CONSUME", "The booking's pack movement is not a consumption")
+        token = self.call("POST", f"/api/v1/members/{booking['member']}/impersonation-token", 201, access=self.admin,
+                          body=dict(reason="E8 smoke: in-time cancellation"), quiet=True)["token"]
+        self.call("POST", f"/api/v1/bookings/{booking['id']}/cancellation", access=token, body={})
+        after = balance()
+        refund = [m for m in after["movements"] if m["type"] == "REFUND" and m.get("bookingId") == booking["id"]]
+        self.require(len(refund) == 1 and after["remaining"] == before["remaining"] + 1, "The in-time cancellation did not return the session")
+        self.record("Pack consumed (seeded booking) and returned (POST /bookings/{id}/cancellation in time)", "200",
+                    f"movement CONSUME → REFUND; remaining {before['remaining']} → {after['remaining']}")
+
+    def monthly_cycle(self):
+        s = self.s
+        simulation = self.call("POST", "/api/v1/billing/simulations", 201, access=self.admin, body=dict(period=self.period))
+        kpis = simulation["kpis"]
+        incidents = {}
+        for incident in simulation["incidents"]:
+            incidents[incident["code"]] = incidents.get(incident["code"], 0) + 1
+        self.require(kpis["count"] > 0 and kpis["total"]["amountMinor"] > 0, "The simulation bills nobody")
+        inactive = self.member(ACTIVE_INACTIVITY)["_id"]
+        fee = [p for p in simulation["invoicesPreview"] if p["memberId"] == inactive]
+        regular = next(p for p in simulation["invoicesPreview"] if p["paymentMethodType"] == "SEPA_DD" and p["memberId"] != inactive)
+        self.require(fee and fee[0]["total"]["amountMinor"] < regular["total"]["amountMinor"], "The inactive member's receipt is not the inactivity fee")
+        self.record(f"POST /billing/simulations {{period {self.period}}}", "201",
+                    f"{kpis['count']} receipts, {euros(kpis['total'])}, collection {kpis['collectionDate']}; incidents {incidents or 'none'}; "
+                    f"the inactive member pays {euros(fee[0]['total'])} instead of {euros(regular['total'])}")
+
+        billed = [p["memberId"] for p in simulation["invoicesPreview"]]
+        dates_before = self.next_dates(billed)
+        result = self.call("POST", "/api/v1/billing/runs", 201, access=self.admin, idempotent=True,
+                           body=dict(period=self.period, simulationId=simulation["id"]))
+        run, remittance = result["run"], result["remittance"]
+        invoices = self.run_invoices(run["id"])
+        numbers = [i["number"] for i in invoices]
+        self.require(dates_before != self.next_dates(billed), "The run did not move the next invoice dates")
+        self.record("POST /billing/runs", "201", f"run {run['status']}, {len(invoices)} receipts {numbers[0]}…{numbers[-1]}, remittance "
+                    f"{remittance['count']} debits {euros(remittance['total'])}")
+
+        link = self.call("GET", f"/api/v1/remittances/{remittance['id']}/file", access=self.admin)
+        xml = self.download_unauthenticated(link["downloadUrl"])
+        root = ElementTree.fromstring(xml)
+        namespace = root.tag.split("}")[0].strip("{")
+        q = lambda path: "/".join("{" + namespace + "}" + part for part in path.split("/"))
+        header = root.find(q("CstmrDrctDbtInitn/GrpHdr"))
+        transactions = root.findall(".//" + q("DrctDbtTxInf"))
+        creditor = root.find(".//" + q("CdtrSchmeId/Id/PrvtId/Othr/Id")).text
+        total = sum(round(float(t.find(q("InstdAmt")).text) * 100) for t in transactions)
+        self.require("pain.008" in namespace and int(header.find(q("NbOfTxs")).text) == len(transactions) == remittance["count"], "pain.008 count mismatch")
+        self.require(total == remittance["total"]["amountMinor"] and creditor == SEPA_CREDITOR, "pain.008 total or creditor mismatch")
+        self.require(all(t.find(".//" + q("MndtId")) is not None for t in transactions), "A debit without its mandate")
+        sequences = sorted({s.text for s in root.iter("{" + namespace + "}SeqTp")})
+        stored = s.call("GET", f"/api/v1/remittances/{remittance['id']}", access=self.admin, quiet=True)
+        self.require(stored.get("xsdValidatedAt"), "The remittance was not validated against the XSD")
+        self.record("GET /remittances/{id}/file → signed link → pain.008", "200", f"{namespace.rsplit(':', 1)[-1]}, {len(transactions)} DrctDbtTxInf, "
+                    f"CtrlSum {total / 100:.2f}, creditor {creditor}, SeqTp {sequences}, XSD validated by the API")
+
+        # At the real date: moving the clock past the collection date would make the regeneration below COLLECTION_DATE_TOO_SOON.
+        today = datetime.datetime.now(s.tz).date()
+        returned = next(i for i in invoices if i["method"] == "SEPA_DD")
+        failed = self.call("POST", f"/api/v1/invoices/{returned['id']}/failure", access=self.admin, idempotent=True,
+                           body=dict(reason="Devolució bancària (fictícia)", at=str(today), version=self.version(returned["id"])))
+        self.require(failed["status"] == "FAILED", "The returned receipt is not FAILED")
+        self.record("POST /invoices/{id}/failure (bank return)", "200", f"{returned['number']} FAILED")
+
+        rollback = self.call("POST", f"/api/v1/billing/runs/{run['id']}/rollback", access=self.admin, idempotent=True,
+                             body=dict(reason="Assaig del smoke E8", confirmation="RETROCEDIR"))
+        self.require(self.next_dates(billed) == dates_before, "The rollback did not restore the next invoice dates")
+        self.require(self.mongo('db.billing_runs.findOne({_id:' + json.dumps(run["id"]) + '}).status') == "ROLLED_BACK", "Run not ROLLED_BACK")
+        self.record("POST /billing/runs/{id}/rollback", "200", f"{rollback['cancelledInvoices']} receipts cancelled, {rollback['restoredMembers']} "
+                    "next-invoice dates restored, remittance rolled back")
+
+        again = self.call("POST", "/api/v1/billing/simulations", 201, access=self.admin, body=dict(period=self.period))
+        second = self.call("POST", "/api/v1/billing/runs", 201, access=self.admin, idempotent=True, body=dict(period=self.period, simulationId=again["id"]))
+        self.run = second["run"]
+        self.invoices = self.run_invoices(self.run["id"])
+        renumbered = [i["number"] for i in self.invoices]
+        self.require(renumbered == numbers, "The regenerated run does not reuse the same numbers")
+        self.record("POST /billing/simulations + /billing/runs again", "201", f"same numbers {renumbered[0]}…{renumbered[-1]} ({len(renumbered)})")
+
+        cash = next((i for i in self.invoices if i["method"] == "MANUAL"), None)
+        self.require(cash, "The run has no cash receipt")
+        paid = self.call("POST", f"/api/v1/invoices/{cash['id']}/payment", access=self.admin, idempotent=True,
+                         body=dict(channel="CASH", paidAt=str(today), version=self.version(cash["id"])))
+        self.require(paid["status"] == "PAID", "The cash receipt is not PAID")
+        self.record("POST /invoices/{id}/payment {CASH}", "200", f"{cash['number']} PAID")
+
+    def card_leg(self):
+        s = self.s
+        fifo = dict(access=self.fifo_admin, host=s.fifo_host)
+        simulation = self.call("POST", "/api/v1/billing/simulations", 201, body=dict(period=self.period), **fifo)
+        result = self.call("POST", "/api/v1/billing/runs", 201, idempotent=True, body=dict(period=self.period, simulationId=simulation["id"]), **fifo)
+        run = result["run"]
+        card = self.member(FIFO_CARD, s.fifo)["_id"]
+        invoice = self.mongo('db.invoices.findOne({clubId:' + json.dumps(s.fifo) + ',runId:' + json.dumps(run["id"]) + ',memberId:' + json.dumps(card) + '},{_id:1})')
+        self.require(invoice, "The FIFO run has no receipt for the card payer")
+        charged = self.call("POST", f"/api/v1/billing/runs/{run['id']}/card-charges", 202, idempotent=True, **fifo)
+        self.require(charged["submitted"] >= 1, "No card charge submitted")
+        intent = self.wait(lambda: self.mongo('db.collections.findOne({invoiceId:' + json.dumps(invoice["_id"]) + ',providerRef:{$ne:null}},{providerRef:1})'),
+                           "The card charge has no PaymentIntent")["providerRef"]
+        if self.stripe:
+            self.record("Card leg", "skipped", "STRIPE_TEST_SECRET_KEY is set but the local profile charges through the fake provider (S12 E8-T04)")
+        print("Card leg on FakePaymentProvider: no Stripe test keys in this shell (STRIPE_TEST_SECRET_KEY unset); "
+              "the webhook goes through bin/core billing:fake-webhook, the route's signature check is not exercised", flush=True)
+        s.cli("billing:fake-webhook", "payment_intent.succeeded", intent, "--club=fifo")
+        status = self.wait(lambda: (lambda v: v if v == "PAID" else None)(self.mongo('db.invoices.findOne({_id:' + json.dumps(invoice["_id"]) + '}).status')),
+                           "The card receipt is not PAID after the webhook")
+        self.record("POST /billing/runs/{id}/card-charges + payment_intent.succeeded (fake provider)", "202 → " + status,
+                    f"{charged['submitted']} submitted; PaymentIntent {intent[:12]}…[truncated]")
+
+    def processes(self):
+        s = self.s
+        pending = self.approved
+        leaving = self.member(LEAVING)
+        leave_date = datetime.date.fromisoformat(str(leaving["leaveDate"])[:10])
+        self.set_clock(self.local(leave_date + datetime.timedelta(days=1), "06:00"), "06:00 the day after the leave date")
+        dry = self.run_job("expirations", True)
+        before = self.mongo('db.members.findOne({_id:' + json.dumps(leaving["_id"]) + '}).status')
+        real = self.run_job("expirations", False)
+        self.show(dry, "expirations dry run"); self.show(real, "expirations real run")
+        planned = [(e, a.replace("WOULD_", "", 1)) for e, a in self.items(dry)]
+        self.require(self.items(real) == planned, "expirations: plan and effects differ")
+        actions = {a for _, a in self.items(dry)}
+        self.require({"WOULD_EXPIRE_PACK", "WOULD_START_INACTIVITY", "WOULD_LEAVE"} <= actions, f"expirations dry run lacks an expected action: {sorted(actions)}")
+        after = self.mongo('db.members.findOne({_id:' + json.dumps(leaving["_id"]) + '}).status')
+        self.require(before == "ACTIVE" and after == "LEFT", f"Leaving member {before} → {after}")
+        started = self.mongo('db.inactivity_periods.findOne({_id:' + json.dumps(pending) + '}).state')
+        self.require(started == "ACTIVE", "The approved inactivity did not start")
+        counters = {k: v for k, v in self.counters(real).items() if v}
+        self.record("POST /jobs/expirations/trigger {dryRun:true} then {dryRun:false}", "SUCCEEDED ×2",
+                    f"{len(planned)} items, plan ≡ effects; counters {counters}; the leaving member ACTIVE → LEFT; the approved inactivity ACTIVE")
+        # S13's consumer plans those leaves from the outbox: wait until the club's events are all published.
+        self.wait(lambda: self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(s.canic) + ',status:"PENDING"})') == 0,
+                  "The outbox did not drain after the P5 run", timeout=180)
+        again = self.run_job("expirations", False)
+        # The first run's PackExpired events reach S13's consumer, which plans each leave at expiry + leave.packExpiryGraceDays;
+        # after the clock's jump that date is already past, so the next run executes them (R-15-15a/c). Those are the only effects.
+        follow = [e for e, a in self.items(again) if a == "LEAVE"]
+        sources = self.mongo('db.leave_requests.find({memberId:{$in:' + json.dumps(follow) + '}}).toArray().map(l=>l.source)')
+        self.require(all(a in ("LEAVE", "ALREADY_DONE") for _, a in self.items(again)) and set(sources) <= {"PACK_EXPIRED"},
+                     f"A second P5 run changed something else: {sorted({a for _, a in self.items(again)})} {sources}")
+        third = self.run_job("expirations", False)
+        self.require(all(a == "ALREADY_DONE" for _, a in self.items(third)), f"A third P5 run changed something: {self.items(third)}")
+        self.record("POST /jobs/expirations/trigger twice more", "SUCCEEDED ×2", f"second: {len(follow)} leaves S13 planned from the expired packs "
+                    "(their grace already over), signups alreadyDone; third: nothing")
+
+        left = self.call("POST", "/api/v1/billing/simulations", 201, access=self.admin,
+                         body=dict(period=(leave_date + datetime.timedelta(days=32)).strftime("%Y-%m")))
+        self.require(leaving["_id"] not in [p["memberId"] for p in left["invoicesPreview"]], "The member who left is still billed")
+        self.record("POST /billing/simulations after the leave", "201", "the member who left has no receipt")
+
+        reminder_day = leave_date.replace(day=22) if leave_date.day < 22 else (leave_date + datetime.timedelta(days=10)).replace(day=22)
+        self.set_clock(self.local(reminder_day, "06:00"), "06:00 on day 22")
+        before = self.notices("N-41")
+        business = lambda: [self.mongo('db.' + c + '.countDocuments({clubId:' + json.dumps(s.canic) + '})') for c in ("invoices", "remittances", "billing_runs")]
+        rows = business()
+        dry = self.run_job("billing-reminder", True)
+        first = self.run_job("billing-reminder", False)
+        self.show(dry, "billing-reminder day 22 dry run"); self.show(first, "billing-reminder day 22 real run")
+        self.require(self.items(first) == [(e, a.replace("WOULD_", "", 1)) for e, a in self.items(dry)], "billing-reminder: plan and effects differ")
+        self.require(self.counters(first).get("remittanceReminders") == 1, "billing-reminder did not remind")
+        self.wait(lambda: self.notices("N-41") > before, "N-41 not queued")
+        queued = self.notices("N-41") - before
+        second = self.run_job("billing-reminder", False)
+        self.require(not self.items(second), "billing-reminder reminded twice")
+        self.set_clock(self.local(reminder_day + datetime.timedelta(days=1), "06:00"), "06:00 on day 23")
+        day23 = self.run_job("billing-reminder", False)
+        self.show(day23, "billing-reminder day 23")
+        self.require(not self.items(day23), "billing-reminder fired on day 23")
+        detail = dict(first["effects"]["items"][0]["detail"]) if isinstance(first["effects"]["items"][0]["detail"], dict) else \
+            {e["key"]: e["value"] for e in first["effects"]["items"][0]["detail"]}
+        self.require(self.notices("N-41") - before == queued, "N-41 queued again")
+        # S15 §1: no receipt and no remittance is ever generated automatically at R1; P10 only reminds.
+        self.require(business() == rows, "billing-reminder wrote invoices, remittances or runs")
+        self.record("POST /jobs/billing-reminder/trigger on day 22 (dry run, real, again) and on day 23", "SUCCEEDED ×4",
+                    f"plan ≡ effects; RemittanceReminderDue {detail} → {queued} N-41 notice(s) once; nothing on the second run nor on day 23; "
+                    f"invoices/remittances/runs unchanged {rows}")
+
+    def accounting_export(self):
+        s = self.s
+        data = self.s.download(f"/api/v1/billing/exports?period={self.period}&format=csv", self.admin)
+        self.require(data[:3] == b"\xef\xbb\xbf", "The accounting CSV has no UTF-8 BOM")
+        rows = list(csv.reader(io.StringIO(data[3:].decode("utf-8")), delimiter=";"))
+        expected = self.mongo('db.invoices.aggregate([{$match:{clubId:' + json.dumps(s.canic) + ',period:' + json.dumps(self.period) + ','
+                              'runId:{$nin:db.billing_runs.find({clubId:' + json.dumps(s.canic) + ',status:"ROLLED_BACK"}).toArray().map(r=>r._id)}}},'
+                              '{$group:{_id:null,lines:{$sum:{$size:"$lines"}},total:{$sum:{$toDouble:"$total.amountMinor"}}}}]).toArray()[0]')
+        total = sum(round(float(r[10].replace(",", ".")) * 100) for r in rows[1:])
+        run_total = sum(i["total"] for i in self.invoices)
+        self.require(len(rows) - 1 == expected["lines"] and total == round(expected["total"]) == run_total, "Accounting rows or totals do not match the run")
+        print("Accounting CSV (BOM EF BB BF, first ten rows, fictional data):", flush=True)
+        for row in rows[:11]:
+            print("  " + ";".join(row), flush=True)
+        self.record(f"GET /billing/exports?period={self.period}&format=csv", "200", f"BOM, ';', header «{rows[0][0]}…»; {len(rows) - 1} rows = "
+                    f"{expected['lines']} invoice lines; total {total / 100:.2f} = the run's")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.s.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.s.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E8 backend gate: the month simulated, generated, its pain.008 checked, a bank return, the rollback and the same "
+              "numbers again, a cash payment, a card charge with its webhook (fake provider), a pack consumed and returned, an "
+              "inactivity and a leave with their effect on the receipt, P5 and P10 at 06:00, and the accounting export", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    module = load_smoke()
+    parser.add_argument("--image", nargs="?", const=module.PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building the working tree; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e8-") as directory:
+        smoke = E8(module, Path(directory), options.image)
+        try:
+            smoke.s.start()
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.s.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError, TypeError, IndexError, ValueError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

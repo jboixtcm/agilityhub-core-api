@@ -3,7 +3,6 @@ package com.agilityhub.core.platform.application.jobs;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -57,7 +56,9 @@ class JobCatalogContractTest {
         }
         var missing = new TreeSet<JobName>();
         for (var row : JobCatalog.all()) { if (!beans.contains(row.name())) { missing.add(row.name()); } }
-        assertThat(beans).contains(JobName.TEST_NOOP, JobName.NO_SHOW_NOTICES, JobName.CLASS_FINISHING, JobName.EXPIRATIONS, JobName.REMINDERS);
-        assertThat(missing).isEqualTo(new TreeSet<>(Set.of(JobName.BILLING_REMINDER)));
+        assertThat(beans).contains(JobName.TEST_NOOP, JobName.NO_SHOW_NOTICES, JobName.CLASS_FINISHING, JobName.EXPIRATIONS, JobName.REMINDERS,
+                JobName.BILLING_REMINDER);
+        // E8-T06: P10 was the last catalog row without a bean.
+        assertThat(missing).isEmpty();
     }
 }

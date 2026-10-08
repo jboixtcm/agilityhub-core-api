@@ -51,9 +51,9 @@ scenario:
     - {member: 3, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
     - {member: 4, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
 
-# E8: the second fictional club exercises card and single-class billing.
+# E8-T06: the second fictional club (Stripe and SINGLE_CLASS already on in club-fifo.yaml; its keys come from the
+# environment, or the fake provider runs) exercises card and single-class billing: ordinal 7 (MENSUAL, no login) pays by
+# card with fake Stripe ids, and ordinal 5 (UNICA) has two attended single classes waiting to be billed.
 billing:
-  providers:
-    STRIPE: {enabled: true, mode: TEST, publishableKey: pk_test_demo_placeholder}
-  cardMember: 6
-  pendingCharges: [7, 8]
+  cardMember: 7
+  pendingCharges: [5, 5]

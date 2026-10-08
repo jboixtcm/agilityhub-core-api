@@ -19,7 +19,8 @@ public class DemoBillingSettings {
     }
     @Audited(action=AuditAction.CLUB_UPDATED, entityType="'Club'", entity="#result", reason="'DEMO_SEED'")
     public String providers(Map<String,Object> providers) {
-        if (!environment.matchesProfiles("local","staging","test") || environment.matchesProfiles("prod","production")) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        // The same guard as seed:demo (DemoSeedActor): local and test stacks only, so a real club never gets these placeholders.
+        if (!environment.matchesProfiles("local","test") || environment.matchesProfiles("staging","prod")) { throw new ApiException(ErrorCode.FORBIDDEN); }
         String id=TenantContext.require(); var club=clubs.findById(id).orElseThrow();
         ObjectNode tree=mapper.valueToTree(club); ObjectNode next=(ObjectNode)tree.path("paymentProviders");
         providers.forEach((key,value) -> next.set(key,mapper.valueToTree(value)));

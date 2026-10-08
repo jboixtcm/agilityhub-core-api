@@ -1,0 +1,140 @@
+00:14:39.860 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.migration.PlayoffMigrationIT]: PlayoffMigrationIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+00:14:39.925 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.migration.PlayoffMigrationIT
+00:14:39.969 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+00:14:39.970 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+00:14:39.972 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+00:14:40.031 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+00:14:40.120 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+00:14:40.120 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+00:14:40.128 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+00:14:40.358 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+00:14:40.394 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+00:14:40.448 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 5f8348ab7a5be8e8762eb6536b11844f6d7ed60c5b635f065e9c3a58e2d60ab7
+00:14:40.578 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.220303S
+00:14:40.581 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+00:14:40.581 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+00:14:40.581 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+00:14:40.582 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+00:14:40.612 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 14a9c6956c75d00517bbbd6a018e0dbc50a59e0bdf9ef7b731e055e8e0207172
+00:14:41.065 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.483896S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T00:14:41.697+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Starting PlayoffMigrationIT using Java [redacted] with PID 95611 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T00:14:41.698+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T00:14:42.368+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T00:14:42.411+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 40 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T00:14:42.724+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@525c0f74], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3da12ba4, com.mongodb.Jep395RecordCodecProvider@64b0ec4a, com.mongodb.KotlinCodecProvider@1b949de4]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61141], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2981064d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T00:14:42.728+02:00 INFO  [cluster-ClusterId{value='6ac6c452df33c8aba739ded9', description='null'}-localhost:61141] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61141, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8203542, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=14a9c6956c75:27017, hosts=[14a9c6956c75:27017], passives=[], arbiters=[], primary='14a9c6956c75:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac6c450a7137d166fa2d37c, counter=6}, lastWriteDate=Thu Oct 08 00:14:41 CEST 2026, lastUpdateTimeNanos=[redacted]}
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-08T00:14:46.246+02:00 INFO  [main] c.a.core.migration.PlayoffMigrationIT traceId= clubId= accountId= : Started PlayoffMigrationIT in 4.668 seconds (process running for 6.624)
+E5-T07 outbox backlog discarded before PlayoffMigrationIT: 162 PENDING records (more than one dispatch() batch)
+[ERROR] Tests run: 2, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 10.18 s <<< FAILURE! -- in com.agilityhub.core.migration.PlayoffMigrationIT
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_07_theNextMonthsSimulationReconcilesWithTheForecastWithinOnePercent -- Time elapsed: 3.445 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 26 but was: 27 in:
+["322a69a1-6b40-3737-a5b5-aad89941ea3a",
+    "327a500e-0788-3d46-99a3-c0f9a4826d7b",
+    "366260f0-d66d-3609-b235-85ea9961b997",
+    "3cf62d79-e4a8-39e6-b3f3-0b81bc870a01",
+    "3f8128e1-6e93-378b-9fae-5f3b79ad4866",
+    "41d4c842-417d-36b2-9c4a-302fb1b62cff",
+    "4aef484a-6c17-350d-8cb2-94d28a977448",
+    "4b0dbaca-0bf9-3915-a1e8-f1903938102c",
+    "53d8a55e-9408-3a2a-820f-487f11bcf7cf",
+    "6c76d6fb-bd7c-35d6-bd90-26d860fb4f55",
+    "6d6962c7-6e67-3d13-ada8-1f9e1f3e6191",
+    "80c44e76-b1a1-3d51-9b23-d67ac2ab0550",
+    "81b97f98-5e4a-351e-a3c5-c97a64d4759d",
+    "840449c4-0e90-3b7d-b5d3-ef1a8770e9d8",
+    "914788fa-18f0-3c8c-a47c-ef5c11b144b6",
+    "9f9ad8c6-5b56-335f-aa66-03519ca162e9",
+    "a47638ef-1f51-3afe-a2df-4fac6df98f15",
+    "aeadd654-3e2d-3c2e-b755-5d5696431821",
+    "aefc1718-a2e5-3460-bece-aef2bcff35d7",
+    "af336c00-f8fc-324a-bb71-1b576ccedb44",
+    "c3776699-e1c9-308e-91ce-ff9b2e3e4569",
+    "cb6e37ae-f130-3508-bb64-8ae01954ede6",
+    "d5230f3c-d0ae-3797-9d7d-de24079fe8f5",
+    "d953df99-5fcc-3281-956a-2a0455270317",
+    "e850d97d-4946-3cd4-8157-26d9aae43858",
+    "f621fc89-4bee-3b71-a861-918028b63ed0",
+    "fb8f7741-3bf2-3957-9c7f-d3a1902942e5"]
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_07_theNextMonthsSimulationReconcilesWithTheForecastWithinOnePercent(PlayoffMigrationIT.java:570)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.migration.PlayoffMigrationIT.T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport -- Time elapsed: 0.067 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.platform.application.definition.ClubDefinitionCodec.read(ClubDefinitionCodec.java:59)
+	at com.agilityhub.core.platform.application.definition.ClubDefinitions.apply(ClubDefinitions.java:39)
+	at com.agilityhub.core.migration.PlayoffMigrationIT.T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport(PlayoffMigrationIT.java:594)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   PlayoffMigrationIT.T_18_07_theNextMonthsSimulationReconcilesWithTheForecastWithinOnePercent:570 
+Expected size: 26 but was: 27 in:
+["322a69a1-6b40-3737-a5b5-aad89941ea3a",
+    "327a500e-0788-3d46-99a3-c0f9a4826d7b",
+    "366260f0-d66d-3609-b235-85ea9961b997",
+    "3cf62d79-e4a8-39e6-b3f3-0b81bc870a01",
+    "3f8128e1-6e93-378b-9fae-5f3b79ad4866",
+    "41d4c842-417d-36b2-9c4a-302fb1b62cff",
+    "4aef484a-6c17-350d-8cb2-94d28a977448",
+    "4b0dbaca-0bf9-3915-a1e8-f1903938102c",
+    "53d8a55e-9408-3a2a-820f-487f11bcf7cf",
+    "6c76d6fb-bd7c-35d6-bd90-26d860fb4f55",
+    "6d6962c7-6e67-3d13-ada8-1f9e1f3e6191",
+    "80c44e76-b1a1-3d51-9b23-d67ac2ab0550",
+    "81b97f98-5e4a-351e-a3c5-c97a64d4759d",
+    "840449c4-0e90-3b7d-b5d3-ef1a8770e9d8",
+    "914788fa-18f0-3c8c-a47c-ef5c11b144b6",
+    "9f9ad8c6-5b56-335f-aa66-03519ca162e9",
+    "a47638ef-1f51-3afe-a2df-4fac6df98f15",
+    "aeadd654-3e2d-3c2e-b755-5d5696431821",
+    "aefc1718-a2e5-3460-bece-aef2bcff35d7",
+    "af336c00-f8fc-324a-bb71-1b576ccedb44",
+    "c3776699-e1c9-308e-91ce-ff9b2e3e4569",
+    "cb6e37ae-f130-3508-bb64-8ae01954ede6",
+    "d5230f3c-d0ae-3797-9d7d-de24079fe8f5",
+    "d953df99-5fcc-3281-956a-2a0455270317",
+    "e850d97d-4946-3cd4-8157-26d9aae43858",
+    "f621fc89-4bee-3b71-a861-918028b63ed0",
+    "fb8f7741-3bf2-3957-9c7f-d3a1902942e5"]
+[ERROR] Errors: 
+[ERROR]   PlayoffMigrationIT.T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport:594 » Api VALIDATION_ERROR
+[ERROR] Tests run: 2, Failures: 1, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

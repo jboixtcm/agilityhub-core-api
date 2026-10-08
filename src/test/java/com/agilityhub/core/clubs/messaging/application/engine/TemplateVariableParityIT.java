@@ -304,6 +304,9 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
                 "fee", Map.of("firstMonth", Map.of("amountMinor", 2000, "currency", "EUR"), "followingMonths", Map.of("amountMinor", 1000, "currency", "EUR")),
                 "admin_text", "Approved period", "cancelledBookings", List.of(Map.of("type", "CLASS", "id", BOOKING, "sessionDate", "2026-11-03")))));
         cases.add(new Case("N-18c", "InactivityEnded", Map.of("memberId", LAURA, "finishReason", "SCHEDULED")));
+        // E8-T06: P5 step d and P10 explain their admin-only events (staff copy only, no template audience).
+        cases.add(new Case("N-34", "SignupPendingAging", CLUB, Map.of("count", 1, "oldestDays", 40, "memberIds", List.of(NURIA)), Map.of()));
+        cases.add(new Case("N-41", "RemittanceReminderDue", CLUB, Map.of("period", "2026-11", "pendingMembers", 61), Map.of()));
         for (String event : List.of("LeaveResolved", "LeaveCancelled")) {
             cases.add(new Case("N-28", event, Map.of("memberId", LAURA, "source", "MEMBER", "effectiveDate", "2026-10-31", "decision", "APPROVED",
                     "admin_text", "Decision note", "cancelledBookings", List.of(Map.of("type", "CLASS", "id", BOOKING, "sessionDate", "2026-11-03")))));

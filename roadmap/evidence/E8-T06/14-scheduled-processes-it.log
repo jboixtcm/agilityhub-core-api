@@ -1,0 +1,135 @@
+00:10:11.648 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.E8ScheduledProcessesIT]: E8ScheduledProcessesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+00:10:11.744 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.E8ScheduledProcessesIT
+00:10:11.793 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+00:10:11.794 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+00:10:11.796 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+00:10:11.858 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+00:10:11.958 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+00:10:11.959 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+00:10:11.968 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+00:10:12.181 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+00:10:12.238 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+00:10:12.286 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: cad0e41e67e43e9b2778556343bcf192aeac21601cb109c3ffdf96b6b6f4d40f
+00:10:12.414 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.233051S
+00:10:12.417 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+00:10:12.417 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+00:10:12.417 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+00:10:12.417 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+00:10:12.459 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 8b36df0329d57b403fb9c12f55478b3130e82fae14c75cbe18abcf075f6b83de
+00:10:12.932 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.514251S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T00:10:13.521+02:00 INFO  [main] c.a.c.p.api.E8ScheduledProcessesIT traceId= clubId= accountId= : Starting E8ScheduledProcessesIT using Java [redacted] with PID 94676 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T00:10:13.522+02:00 INFO  [main] c.a.c.p.api.E8ScheduledProcessesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T00:10:14.212+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T00:10:14.250+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 36 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T00:10:14.570+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@41041c31], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@34a482d0, com.mongodb.Jep395RecordCodecProvider@2a738d47, com.mongodb.KotlinCodecProvider@6939f18a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61082], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@8bd9d08], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T00:10:14.576+02:00 INFO  [cluster-ClusterId{value='6ac6c346b0799578a2294a5c', description='null'}-localhost:61082] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61082, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8815000, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=8b36df0329d5:27017, hosts=[8b36df0329d5:27017], passives=[], arbiters=[], primary='8b36df0329d5:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac6c3445d14b0ab9727007a, counter=6}, lastWriteDate=Thu Oct 08 00:10:13 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-08T00:10:17.059+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-08T00:10:17.060+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-08T00:10:17.060+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-08T00:10:17.086+02:00 INFO  [main] c.a.c.p.api.E8ScheduledProcessesIT traceId= clubId= accountId= : Started E8ScheduledProcessesIT in 3.694 seconds (process running for 5.682)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-08T00:10:18.693+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=50825d30-ccbe-47bf-[redacted]=BILLING_REMINDER clubId=bill-a reason=MODULE_OFF baseline=false
+2026-10-08T00:10:19.281+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=f41a45ff-937d-46ab-b7ce-e4cbe5098242 job=EXPIRATIONS clubId=bill-a reason=CLUB_INACTIVE baseline=false
+2026-10-08T00:10:19.284+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=3c065f33-a94f-4384-a55a-1237f1ade6ae job=EXPIRATIONS clubId=bill-a reason=DISABLED baseline=false
+2026-10-08T00:10:19.294+02:00 INFO  [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job skipped jobRunId=5dfc00e2-b686-4c0c-b30b-07c8813e8198 job=BILLING_REMINDER clubId=bill-a reason=DISABLED baseline=false
+[ERROR] Tests run: 11, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 8.137 s <<< FAILURE! -- in com.agilityhub.core.payments.api.E8ScheduledProcessesIT
+[ERROR] com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_21_T_13_28_aLeaveRunsTheDayAfterInTheClubZoneOnceEvenAfterALostDay -- Time elapsed: 0.247 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"after"="LEFT", "before"="ACTIVE", "effectiveDate"="2026-08-31", "memberId"="vila"}
+to contain entries:
+  ["to"="LEFT"]
+but could not find the following map entries:
+  ["to"="LEFT"]
+at E8ScheduledProcessesIT.lambda$T_15_21_T_13_28_aLeaveRunsTheDayAfterInTheClubZoneOnceEvenAfterALostDay$18(E8ScheduledProcessesIT.java:239)
+	at com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_21_T_13_28_aLeaveRunsTheDayAfterInTheClubZoneOnceEvenAfterALostDay(E8ScheduledProcessesIT.java:238)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_19_aPackIsWarnedOnceFourteenDaysOutAndExpiresTheDayAfterItsLastDay -- Time elapsed: 0.074 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting an empty Optional but was containing value: Balance[id=dd375ac5-fe12-41c7-9142-9a9502707116, total=10, consumed=0, remaining=0, expiresOn=2026-08-31]
+	at com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_19_aPackIsWarnedOnceFourteenDaysOutAndExpiresTheDayAfterItsLastDay(E8ScheduledProcessesIT.java:160)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_28_aGeneratedRemittanceSilencesTheReminderAndARolledBackOneDoesNot -- Time elapsed: 0.067 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"pendingMembers"=10L, "period"="2026-09"}
+to contain entries:
+  ["pendingMembers"=9L]
+but the following map entries had different values:
+  ["pendingMembers"=10L (expected: 9L)]
+at E8ScheduledProcessesIT.lambda$T_15_28_aGeneratedRemittanceSilencesTheReminderAndARolledBackOneDoesNot$25(E8ScheduledProcessesIT.java:313)
+	at com.agilityhub.core.payments.api.E8ScheduledProcessesIT.T_15_28_aGeneratedRemittanceSilencesTheReminderAndARolledBackOneDoesNot(E8ScheduledProcessesIT.java:312)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E8ScheduledProcessesIT.T_15_19_aPackIsWarnedOnceFourteenDaysOutAndExpiresTheDayAfterItsLastDay:160 
+Expecting an empty Optional but was containing value: Balance[id=dd375ac5-fe12-41c7-9142-9a9502707116, total=10, consumed=0, remaining=0, expiresOn=2026-08-31]
+[ERROR]   E8ScheduledProcessesIT.T_15_21_T_13_28_aLeaveRunsTheDayAfterInTheClubZoneOnceEvenAfterALostDay:238 
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"after"="LEFT", "before"="ACTIVE", "effectiveDate"="2026-08-31", "memberId"="vila"}
+to contain entries:
+  ["to"="LEFT"]
+but could not find the following map entries:
+  ["to"="LEFT"]
+at E8ScheduledProcessesIT.lambda$T_15_21_T_13_28_aLeaveRunsTheDayAfterInTheClubZoneOnceEvenAfterALostDay$18(E8ScheduledProcessesIT.java:239)
+[ERROR]   E8ScheduledProcessesIT.T_15_28_aGeneratedRemittanceSilencesTheReminderAndARolledBackOneDoesNot:312 
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"pendingMembers"=10L, "period"="2026-09"}
+to contain entries:
+  ["pendingMembers"=9L]
+but the following map entries had different values:
+  ["pendingMembers"=10L (expected: 9L)]
+at E8ScheduledProcessesIT.lambda$T_15_28_aGeneratedRemittanceSilencesTheReminderAndARolledBackOneDoesNot$25(E8ScheduledProcessesIT.java:313)
+[ERROR] Tests run: 11, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

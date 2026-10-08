@@ -421,7 +421,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
             assertThat(mapper.readTree(failed.getContentAsString()).at("/details/reason").asText()).isEqualTo("IN_PROGRESS");
             String sid=again.path("checkoutSessionId").asText();
             // E5-T31 (review E5-T30 #6): the provider's failure, dropped for the 409, is still recorded: the session and the club only.
-            assertThat(logged.list).filteredOn(line -> line.getFormattedMessage().startsWith("Provider call failed after the checkout's key was taken over"))
+            // E8-T06 (E5-T31's review nit): the wording is neutral, since the clean-up may also fail for another reason than the fence.
+            assertThat(logged.list).filteredOn(line -> line.getFormattedMessage().startsWith("Checkout abandonment failed after a provider call failure"))
                     .singleElement().satisfies(line -> {
                         assertThat(line.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
                         assertThat(line.getFormattedMessage()).contains("checkoutSessionId="+sid,"clubId="+club,"error=java.lang.IllegalStateException")
@@ -524,11 +525,12 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
                     assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("EXPIRE_CHECKOUT");
                     assertThat(detail(item)).containsExactlyInAnyOrderEntriesOf(Map.of("checkoutSessionId",sid,"minutesExpired",minutes));
                 });
-                assertThat(run.counters()).containsExactly(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("expiredCheckouts",1L));
+                // E8-T06: every P5 step reports its counters, at zero when it had nothing to do.
+                assertThat(nonZero(run)).containsExactly(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("expiredCheckouts",1L));
                 assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
                 assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
                 var again=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
-                assertThat(again.items()).as("two runs, one effect").isEmpty();assertThat(again.counters()).isEmpty();
+                assertThat(again.items()).as("two runs, one effect").isEmpty();assertThat(nonZero(again)).isEmpty();
             } finally { held.countDown(); }
             var woke=stopped.get(60,TimeUnit.SECONDS);
             assertThat(woke.getStatus()).as(woke.getContentAsString()).isEqualTo(409);
@@ -556,7 +558,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(runner.manual(club,JobName.EXPIRATIONS,true,"corrections-admin").items()).isEmpty();
         var skipped=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
         assertThat(skipped.status()).isEqualTo(com.agilityhub.core.platform.application.jobs.JobStatus.SUCCEEDED);
-        assertThat(skipped.items()).isEmpty();assertThat(skipped.counters()).isEmpty();
+        assertThat(skipped.items()).isEmpty();assertThat(nonZero(skipped)).isEmpty();
+        assertThat(skipped.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("expiredCheckouts",0L));
         assertThat(session(sid).getString("status")).isEqualTo("PENDING");
         assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&sid.equals(p.getString("checkoutSessionId")));
         modulesWithout();
@@ -689,5 +692,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         String other=submit(request()).path("memberId").asText();
         var plain=result(admin(get("/api/v1/members").param("filter","id:eq:"+other)),200).path("items").get(0);
         assertThat(plain.path("fullName").asText()).startsWith("Example Applicant");assertThat(plain.path("warnings").toString()).contains("NO_IMAGE_CONSENT");
+    }
+    static java.util.List<com.agilityhub.core.platform.persistence.jobs.JobRun.Entry> nonZero(com.agilityhub.core.platform.persistence.jobs.JobRun run) {
+        return run.counters().stream().filter(e -> ((Number) e.value()).longValue() != 0).toList();
     }
 }

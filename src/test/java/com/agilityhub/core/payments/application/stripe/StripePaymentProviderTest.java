@@ -21,7 +21,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class StripePaymentProviderTest {
-    @Test void T_15_23_realAdapterDerivesRequestTimeoutsFromItsDeclaredBudget() throws Exception {
+    /** E5-T31's review nit (done in E8-T06): the real adapter's per-request timeouts come from {@code callTimeout()}, with SDK retries off. */
+    @Test void E5_T31_theRealAdapterBuildsItsClientBudgetFromCallTimeout() throws Exception {
         configure("test", "sk_test_example"); doReturn(client).when(provider).newClient("sk_test_example");
         doReturn(java.time.Duration.ofSeconds(15)).when(provider).callTimeout();
         var intent = new PaymentIntent(); intent.setId("pi_example"); intent.setStatus("succeeded");

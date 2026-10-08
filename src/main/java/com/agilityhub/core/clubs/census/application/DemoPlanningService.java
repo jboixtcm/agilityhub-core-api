@@ -47,7 +47,7 @@ public class DemoPlanningService {
     /** `reanchor` = E5-T09 `seed:demo --reanchor`: needs the first run, then applies the reanchoring steps once per week start. */
     @Transactional
     public Result apply(DemoDataset.Spec spec, Map<String, Object> specification, long seed, LocalDate weekStart, boolean reanchor) {
-        if (!environment.acceptsProfiles(Profiles.of("local", "staging", "test")) || environment.acceptsProfiles(Profiles.of("prod", "production"))) {
+        if (!environment.acceptsProfiles(Profiles.of("local", "test")) || environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
         if (weekStart.getDayOfWeek() != DayOfWeek.MONDAY) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "weekStart")); }

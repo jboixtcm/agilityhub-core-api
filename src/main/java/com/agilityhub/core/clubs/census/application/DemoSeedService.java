@@ -48,7 +48,7 @@ public class DemoSeedService {
     @Audited(action = AuditAction.CATALOG_CHANGED, entityType = "'DemoSeed'", entity = "#result.id",
             reason = "#result.changes == 0 ? null : 'source: DEMO_SEED'")
     public Result apply(DemoDataset.Spec spec, long seed) {
-        if (!environment.acceptsProfiles(Profiles.of("local", "staging", "test")) || environment.acceptsProfiles(Profiles.of("prod", "production"))) {
+        if (!environment.acceptsProfiles(Profiles.of("local", "test")) || environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
         String club = TenantContext.require(); String signature = mapper.valueToTree(spec).toString();

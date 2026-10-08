@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-08 · E8-T06 · accounting export and E8 processes
+
+- `GET /billing/exports` is served (no longer 501): `200` with the file (CSV: UTF-8 with BOM, `;`, decimal comma by the admin's locale; or XLSX) or `202 ExportAccepted` for a large period, through the S14 engine with `listKey = accounting`. The file name follows the S14 export naming, not `facturacio-YYYY-MM.csv`.
+- `ExportJob.format` (`GET /exports/{jobId}`) adds `CSV` (additive), so a queued CSV accounting export is representable.
+- No route change for the jobs: `GET /jobs` now lists `BILLING_REMINDER` (its catalog row had no bean until now), and `POST /jobs/billing-reminder/trigger` answers instead of `404 JOB_UNKNOWN`. `EXPIRATIONS` gains steps a–f and i (new counters and dry-run actions in `JobRun`).
+
 ## 2026-10-07 · E8-T08 · receipt incidents and the simulation collection date
 
 - `BillingIncident` adds optional `invoiceId` and `displayNumber`, absent on member-level incidents. `BillingIncidentCode` adds the approved `MEMBER_NOT_ACTIVE` and `PAYMENT_METHOD_CHANGED`; a changed mandate is no longer an incident. `skipped[]` excludes members billed by this run, including through their family holder.

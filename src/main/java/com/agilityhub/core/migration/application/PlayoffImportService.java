@@ -22,16 +22,19 @@ public class PlayoffImportService {
     private final TransactionTemplate transactions;
     private final Clock clock;
     private final EventPublisher events;
-    @org.springframework.beans.factory.annotation.Autowired private MigrationResetRepository resetGuard;
-    @org.springframework.beans.factory.annotation.Autowired private PlayoffBillingPlanner billingPlanner;
-    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.BillingMigrationAccess billing;
-    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ClubConfigService configs;
-    @org.springframework.beans.factory.annotation.Autowired private ClubClock clubClock;
+    private final MigrationResetRepository resetGuard;
+    private final PlayoffBillingPlanner billingPlanner;
+    private final com.agilityhub.core.payments.application.BillingMigrationAccess billing;
+    private final com.agilityhub.core.platform.application.ClubConfigService configs;
+    private final ClubClock clubClock;
     public PlayoffImportService(PlayoffPlanner planner, MigrationApplyService apply, MigrationRunRepository runs,
             CensusMigrationService census, MigrationCatalogAccess catalogs, TransactionTemplate transactions,
-            Clock clock, EventPublisher events) {
+            Clock clock, EventPublisher events, MigrationResetRepository resetGuard, PlayoffBillingPlanner billingPlanner,
+            com.agilityhub.core.payments.application.BillingMigrationAccess billing,
+            com.agilityhub.core.platform.application.ClubConfigService configs, ClubClock clubClock) {
         this.planner=planner; this.apply=apply; this.runs=runs; this.census=census; this.catalogs=catalogs;
-        this.transactions=transactions; this.clock=clock; this.events=events;
+        this.transactions=transactions; this.clock=clock; this.events=events; this.resetGuard=resetGuard;
+        this.billingPlanner=billingPlanner; this.billing=billing; this.configs=configs; this.clubClock=clubClock;
     }
     public MigrationReport importDirectory(Path directory, MappingConfig mapping, String clubId,
             boolean dryRun, boolean production, boolean confirmed) {
@@ -91,7 +94,7 @@ public class PlayoffImportService {
                 }
                 var completed = new MigrationReport(false, rows, totals); boolean withinTolerance = reconciled;
                 transactions.executeWithoutResult(status -> apply.complete(prepared.run(), completed, withinTolerance));
-                resetGuard.checkpoint(production);
+                resetGuard.checkpoint(production, clock.instant());
                 return completed;
             } catch (RuntimeException failure) {
                 var run = started.get();

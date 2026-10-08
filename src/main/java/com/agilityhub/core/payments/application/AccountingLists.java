@@ -31,13 +31,18 @@ public class AccountingLists implements ListProvider {
                 .append("pipeline", List.of(new Document("$match", new Document("clubId", TenantContext.require())),
                         new Document("$sort", new Document("attempt", -1).append("createdAt", -1)), new Document("$limit", 1)))
                 .append("as", "accountingCollection")));
+        // The remittance as the bank and the books know it: its pain.008 `MsgId`, not the internal id.
+        stages.add(new Document("$lookup", new Document("from", "remittances").append("localField", "remittanceId").append("foreignField", "_id")
+                .append("pipeline", List.of(new Document("$match", new Document("clubId", TenantContext.require())),
+                        new Document("$project", new Document("messageId", 1))))
+                .append("as", "accountingRemittance")));
         var projection = new LinkedHashMap<String, Object>();
         for (String column : List.of("displayNumber", "issueDate", "period", "status")) { projection.put(column, "$" + column); }
         projection.put("memberNumber", "$memberSnapshot.number"); projection.put("fullName", "$memberSnapshot.fullName");
         projection.put("holderTaxId", "$memberSnapshot.taxId"); projection.put("concept", "$lines.description");
         for (String column : List.of("base", "taxPercent", "tax", "total")) { projection.put(column, "$lines." + column); }
         projection.put("method", "$paymentMethod.type"); projection.put("collectionDate", "$paidAt");
-        projection.put("remittance", "$remittanceId");
+        projection.put("remittance", new Document("$first", "$accountingRemittance.messageId"));
         projection.put("paymentReference", new Document("$ifNull", Arrays.asList(new Document("$first", "$accountingCollection.providerRef"),
                 new Document("$ifNull", Arrays.asList(new Document("$first", "$accountingCollection.mandateRef"), "$paymentMethod.mandateRef")))));
         var rolledBack = invoices.rolledBackRunIds();

@@ -1,0 +1,55 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+Incidents: {}
+Playoff DRY_RUN
+Validation failed; no changes applied. Counts below describe the proposed changes.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+Incidents: {MAPPING_INVALID=1}
+members:2 members ERROR MAPPING_INVALID
+Playoff APPLY
+Validation failed; no changes applied. Counts below describe the proposed changes.
+REEXECUTION_UNSUPPORTED: 1 records cannot be reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.
+members: created=0 updated=0 skipped=0 errors=1
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+Incidents: {REEXECUTION_UNSUPPORTED=1}
+members:3 members ERROR REEXECUTION_UNSUPPORTED field=status
+Anonymized Playoff files written; no input values or key logged.
+Reset club data. Enter the club slug:
+Enter the club slug again:
+Club reset completed: canic
+Playoff DRY_RUN
+members: created=0 updated=0 skipped=0 errors=0
+dogs: created=0 updated=0 skipped=0 errors=0
+familyGroups: created=0 updated=0 skipped=0 errors=0 proposed=0
+accounts: created=0 updated=0 skipped=0 errors=0
+invoices: created=0 updated=0 skipped=0 errors=0
+packBalances: created=0 updated=0 skipped=0 errors=0
+Incidents: {}

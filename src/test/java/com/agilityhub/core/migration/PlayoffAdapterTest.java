@@ -20,16 +20,23 @@ class PlayoffAdapterTest {
     Path fixture() { return Path.of("src/test/resources/fixtures/playoff"); }
     Path copy() throws Exception {
         var dir=Files.createDirectory(temp.resolve(UUID.randomUUID().toString()));
-        for (var schema:mapping.files().values()) { Files.copy(fixture().resolve(schema.name()),dir.resolve(schema.name())); }
+        // The billing files (receipts, packs, forecast, mandates) are optional and absent from the census fixture.
+        for (var schema:mapping.files().values()) { if (Files.exists(fixture().resolve(schema.name()))) { Files.copy(fixture().resolve(schema.name()),dir.resolve(schema.name())); } }
         return dir;
     }
     @Test void T_18_03_anonymizerRemovesSyntheticPersonalValuesAndPreservesFiftyRowRelations() throws Exception {
         var source=copy(); var table=new ArrayList<>(PlayoffTable.read(source.resolve("socis.csv")).subList(0,51));
         PlayoffTable.write(source.resolve("socis.csv"),table);
+        // E8-T06: a fictional receipts file; the concept keeps only its month and year (R-18-09), never the payer's name.
+        String payer="Maria Exemple";
+        Files.writeString(source.resolve("rebuts.csv"),"Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                +"r-1;"+table.get(1).getFirst()+";2026-0001;2026-02-15;Febrer 2026 Quota "+payer+";30,50;Pagado;Domiciliación\n"
+                +"r-2;"+table.get(2).getFirst()+";2026-0002;2026-02-15;Quota "+payer+";30,50;Pendiente;Efectivo\n");
         var first=temp.resolve("one"); var second=temp.resolve("two");
         var anonymizer=new PlayoffAnonymizer(key);
         anonymizer.anonymize(source,first,mapping); anonymizer.anonymize(source,second,mapping);
         for (var schema:mapping.files().values()) {
+            if (!Files.exists(source.resolve(schema.name()))) { assertThat(first.resolve(schema.name())).doesNotExist(); continue; }
             var before=PlayoffTable.read(source.resolve(schema.name())); var after=PlayoffTable.read(first.resolve(schema.name()));
             assertThat(after).hasSameSizeAs(before); assertThat(after.getFirst()).isEqualTo(before.getFirst());
             assertThat(Files.readAllBytes(first.resolve(schema.name()))).isEqualTo(Files.readAllBytes(second.resolve(schema.name())));
@@ -47,6 +54,9 @@ class PlayoffAdapterTest {
                 }
             }
         }
+        var receipts=PlayoffInput.read(first,mapping).files().get("receipts");
+        assertThat(receipts).extracting(row -> row.get("concept")).containsExactly("Febrer 2026 — Imported receipt","Imported receipt");
+        assertThat(Files.readString(first.resolve("rebuts.csv"))).doesNotContain(payer);
         var before=PlayoffInput.read(source,mapping); var after=PlayoffInput.read(first,mapping);
         assertThat(after.files().get("members").getFirst().get("id")).isEqualTo(after.files().get("plans").getFirst().get("id"));
         for (String file:List.of("groups","team")) {
@@ -157,7 +167,8 @@ class PlayoffAdapterTest {
     }
     @Test void T_18_08_commandsValidateOptionsAndProductionProfiles() throws Exception {
         var importer=mock(PlayoffImportService.class);var clubs=mock(MigrationClubAccess.class);var env=new MockEnvironment();
-        var command=new PlayoffCommand(importer,clubs,env);assertThat(command.name()).isEqualTo("migration:playoff");
+        var reset=mock(MigrationResetService.class);
+        var command=new PlayoffCommand(importer,clubs,env,reset);assertThat(command.name()).isEqualTo("migration:playoff");
         when(clubs.resolve(anyString())).thenReturn("club");
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(new MigrationReport(true,List.of()));
         command.run(new DefaultApplicationArguments("input","--dry-run"));
@@ -191,5 +202,29 @@ class PlayoffAdapterTest {
         }
         assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("")).requireKey()).isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("not-base64")).requireKey()).isInstanceOf(ApiException.class);
+    }
+    /** T-18-16 (R-18-14) and R-18-08/13: `--reset` reads the slug twice from the console and is refused on prod; `--cut-over` reaches the load. */
+    @Test void T_18_16_resetAsksForTheSlugTwiceAndCutOverIsPassedThrough() throws Exception {
+        var importer=mock(PlayoffImportService.class);var clubs=mock(MigrationClubAccess.class);var env=new MockEnvironment();var reset=mock(MigrationResetService.class);
+        var command=new PlayoffCommand(importer,clubs,env,reset); when(clubs.resolve("canic")).thenReturn("club");
+        var console=System.in;
+        try {
+            System.setIn(new java.io.ByteArrayInputStream("canic\ncanic\n".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            command.run(new DefaultApplicationArguments("--reset","--club=canic"));
+            verify(reset).reset("canic",Path.of("seeds/club-canic.yaml"),"canic","canic");
+            for(String[] args:List.of(new String[]{"--reset","--club=canic","--apply"},new String[]{"--reset","--club=canic","input"},new String[]{"--reset=yes","--club=canic"})) {
+                assertThatThrownBy(() -> command.run(new DefaultApplicationArguments(args))).isInstanceOf(IllegalArgumentException.class);
+            }
+            env.setActiveProfiles("prod");
+            assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--reset","--club=canic")))
+                    .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
+            verifyNoMoreInteractions(reset);
+        } finally { System.setIn(console); }
+        env.setActiveProfiles("test");
+        when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean(),any())).thenReturn(new MigrationReport(true,List.of()));
+        command.run(new DefaultApplicationArguments("--in=input","--club=canic","--dry-run","--cut-over=2026-09-01"));
+        verify(importer).importDirectory(Path.of("input"),mapping,"club",true,false,false,java.time.LocalDate.of(2026,9,1));
+        assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--in=input","--club=canic","--cut-over=01/09/2026"))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--in=input","--club=canic","--apply","--dry-run"))).isInstanceOf(IllegalArgumentException.class);
     }
 }

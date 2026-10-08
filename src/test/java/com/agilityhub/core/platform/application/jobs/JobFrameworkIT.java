@@ -521,8 +521,7 @@ class JobFrameworkIT extends AbstractIntegrationTest {
             assertThat(locks.acquire(CLUB + ":TEST_NOOP", "other-instance", clock.instant(), Duration.ofSeconds(300))).isTrue();
             assertThatThrownBy(() -> triggers.trigger(JobName.TEST_NOOP, false))
                     .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.JOB_ALREADY_RUNNING));
-            assertThatThrownBy(() -> triggers.trigger(JobName.BILLING_REMINDER, false))
-                    .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.JOB_UNKNOWN));
+            // E8-T06: P10 has its bean, so no catalog row is left without one; an unknown route id stays JOB_UNKNOWN (E5ContractIT).
         }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("JOB_TRIGGERED")), "audit_entries")).isEqualTo(1);
     }
@@ -537,10 +536,10 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(runs()).singleElement().satisfies(run -> assertThat(run.getString("status")).isEqualTo("SUCCEEDED"));
         var suspended = mongo.find(Query.query(Criteria.where("clubId").is(SUSPENDED)), Document.class, "job_runs");
         assertThat(suspended).isNotEmpty().allSatisfy(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
-        // E5-T05 + E6-T04 + E5-T31 (P5, step h) + E7-T04 (P4): the nine processes with a bean in R-15-01 order, then the test job; P10 has no bean yet.
+        // E5-T05 + E6-T04 + E5-T31 (P5, step h) + E7-T04 (P4) + E8-T06 (P10): the ten processes in R-15-01 order, then the test job.
         assertThat(runner.registered()).extracting(Job::name).containsExactly(JobName.WEEK_OPENING, JobName.RISK_REVIEW, JobName.NO_SHOW_NOTICES,
-                JobName.REMINDERS, JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS, JobName.CLASS_FINISHING, JobName.CLEANUP, JobName.TEST_NOOP);
-        assertThat(runner.registered(JobName.BILLING_REMINDER)).isEmpty();
+                JobName.REMINDERS, JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS, JobName.CLASS_FINISHING, JobName.CLEANUP,
+                JobName.BILLING_REMINDER, JobName.TEST_NOOP);
         // A failing club does not stop the tick.
         job.configure(DAILY, 1, 0, true);
         clock.setInstant(at("2026-10-06T04:00:00Z"));

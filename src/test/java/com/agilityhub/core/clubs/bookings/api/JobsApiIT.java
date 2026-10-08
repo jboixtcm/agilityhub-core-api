@@ -87,12 +87,12 @@ class JobsApiIT extends BookingFixtures {
         assertThat(eventsOf("ParameterChanged")).isNotEmpty();
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PARAMETER_CHANGED")), "audit_entries")).isEqualTo(1);
         call(PUT, "/jobs/risk-review/switch", Map.of("enabled", false), as("admin"), 200);
-        // GET /jobs: implemented processes whose module is on (waitlist-fifo needs FIFO; P10 has no implementation yet; P3 and P8
-        // since E6-T04; P5 since E5-T31, with its step h; P4 since E7-T04).
+        // GET /jobs: implemented processes whose module is on (waitlist-fifo needs FIFO; P3 and P8 since E6-T04; P5 since E5-T31,
+        // with its step h; P4 since E7-T04; P10 since E8-T06).
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), as("admin"), 200);
         var jobs = call(GET, "/jobs", null, as("admin"), 200).path("items");
         assertThat(jobs).extracting(j -> j.path("name").asText()).containsExactly("week-opening", "risk-review", "no-show-notices", "reminders",
-                "expirations", "payment-timeouts", "class-finishing", "cleanup");
+                "expirations", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder");
         // E6-T04: P3 «cada dia a les 8:00» with its switch, P8 «continu».
         assertThat(jobs.get(2).at("/schedule/kind").asText()).isEqualTo("DAILY"); assertThat(jobs.get(2).at("/schedule/localTime").asText()).isEqualTo("08:00");
         assertThat(jobs.get(2).path("jobName").asText()).isEqualTo("NO_SHOW_NOTICES"); assertThat(jobs.get(2).path("enabled").asBoolean()).isTrue();

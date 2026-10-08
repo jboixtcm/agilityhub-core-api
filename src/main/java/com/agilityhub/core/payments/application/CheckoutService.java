@@ -67,9 +67,10 @@ public class CheckoutService {
             IdempotentOperation.release();
             try { abandon(memberId,request.sessionId()); }
             catch(RuntimeException cleanupFailure) {
-                // Cleanup can fail on the key fence or on storage; neither case proves a takeover.
-                LOG.warn("Checkout abandonment failed after provider call failure: checkoutSessionId={} clubId={}",
-                        request.sessionId(),request.clubId());
+                // E5-T31 review: the clean-up fails on the key fence (a retry took the claim over) or on storage, so the wording
+                // claims neither; the provider's failure is recorded by class only (no customer, no provider message).
+                LOG.warn("Checkout abandonment failed after a provider call failure: checkoutSessionId={} clubId={} error={}",
+                        request.sessionId(),request.clubId(),failure.getClass().getName());
                 cleanupFailure.addSuppressed(failure);
                 throw cleanupFailure;
             }
@@ -190,7 +191,7 @@ public class CheckoutService {
         try { gateway.expire(sessionId); }
         catch(RuntimeException failure) {
             // The session is EXPIRED on our side whatever the provider answers; a later completion is a late one (E34).
-            LOG.warn("Provider expiry failed: checkoutSessionId={} clubId={}",sessionId,clubId);
+            LOG.warn("Provider expiry failed: checkoutSessionId={} clubId={} error={}",sessionId,clubId,failure.getClass().getName());
         }
     }
     /** Runs {@code action} once the caller's transaction committed, outside it (never inside a retried unit of work). */

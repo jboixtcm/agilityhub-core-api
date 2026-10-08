@@ -233,9 +233,10 @@ class E5ContractIT extends AbstractIntegrationTest {
         var admin = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN");
         error(get("/api/v1/jobs/payment-timeouts/runs").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
         error(post("/api/v1/jobs/waitlist-fifo/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
-        // A catalog process without an implementation yet (P10 is E8) still has its (empty) history once its module is on.
+        // E8-T06: P10 has its bean, so with its module on it has an (empty) history and runs on demand.
         mvc.perform(get("/api/v1/jobs/billing-reminder/runs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
-        error(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "JOB_UNKNOWN");
+        mvc.perform(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.dryRun").value(true));
         error(get("/api/v1/jobs/foo/runs").header("Host", HOST).with(admin), 404, "JOB_UNKNOWN");
         error(get("/api/v1/jobs/risk-review/runs/missing").header("Host", HOST).with(admin), 404, "NOT_FOUND");
         error(get("/api/v1/jobs/cleanup/runs/e5-run-a").header("Host", HOST).with(admin), 404, "NOT_FOUND");

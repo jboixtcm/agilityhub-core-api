@@ -16,6 +16,8 @@ final class ExportValues {
         if (Set.of("base", "tax", "total").contains(column) && value instanceof Map<?, ?> money && money.get("amountMinor") instanceof Number minor) {
             number = java.math.BigDecimal.valueOf(minor.longValue(), 2);
         } else if (column.equals("taxPercent")) { number = new java.math.BigDecimal(value.toString()); }
+        // The receipt's status reads as on the receipt itself (ReceiptPdf): «Remesat», «Cobrat»…
+        else if (column.equals("status")) { return messages.getMessage("billing.receipt.status." + value, null, value.toString(), locale); }
         if (number == null) { return text(value); }
         var format = java.text.NumberFormat.getNumberInstance(locale); format.setGroupingUsed(false);
         format.setMinimumFractionDigits(2); format.setMaximumFractionDigits(2); return format.format(number);
