@@ -92,7 +92,7 @@ public class PaymentRefunds {
             if (beforeConfirmation || "REFUND".equals(policy)) {
                 upfront(paymentId, null, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED", "refund:" + paymentId);
             } else if ("CREDIT".equals(policy)) {
-                Money captured = upfront.captured(paymentId).orElse(payment.amountPaid());
+                Money captured = new Money(remaining(payment), payment.amountPaid().currency());
                 charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
                         new Money(-captured.amountMinor(), captured.currency()), payment.concept(), clock.instant(), null, null));
             }
@@ -100,8 +100,17 @@ public class PaymentRefunds {
         });
     }
     private boolean compensated(UpfrontPayment payment) {
-        return operations.forTarget(payment.id()).stream().anyMatch(op -> op.kind().startsWith("REFUND"))
+        return operations.byKey("refund:" + payment.id()).isPresent()
+                || Set.of("PAID", "REFUNDED").contains(payment.status()) && remaining(payment) <= 0
                 || payment.bookingId() != null && charges.forBooking(payment.bookingId()).isPresent();
+    }
+    private long remaining(UpfrontPayment payment) {
+        var settled = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
+        var ids = settled.stream().map(UpfrontPayment.Refund::providerRef).toList();
+        long pending = operations.forTarget(payment.id()).stream().filter(op -> op.kind().startsWith("REFUND")
+                && !ids.contains(op.resultId()) && !operations.refundFailed(op.id())).mapToLong(op -> op.amount().amountMinor()).sum();
+        return upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor()
+                - settled.stream().mapToLong(r -> r.amount().amountMinor()).sum() - pending;
     }
     /** A booking has one upfront capture: the late path uses the same payment key as BookingCancelled. */
     public void lateBooking(String paymentId, String reference, Money amount) {
@@ -111,7 +120,7 @@ public class PaymentRefunds {
             var payment = upfront.findById(paymentId).orElseThrow();
             if (compensated(payment) || operations.byKey("late:" + reference).isPresent()) { return null; }
             if ("PAID".equals(payment.status()) && payment.stripe() != null && reference.equals(payment.stripe().paymentIntentId())) {
-                upfront(paymentId, amount, "LATE_COMPLETION", "refund:" + paymentId);
+                upfront(paymentId, null, "LATE_COMPLETION", "refund:" + paymentId);
             } else {
                 operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", paymentId, reference,
                         amount, "refund:" + paymentId, "LATE_COMPLETION", null, null, clock.instant(), null));
@@ -133,10 +142,12 @@ public class PaymentRefunds {
                 if (operations.findById(id).orElseThrow().resultId() == null) {
                     operations.completed(id, result.id());
                     operations.providerStatus(id, result.status());
-                    audit.refunded(entityType(op), op.targetId(), op.amount(), result.id(), op.reason());
                 }
                 return null;
             });
+        }, () -> {
+            // A validation failure before submission releases the reservation. Uncertain outcomes still await Stripe.
+            if (!operations.submissionUncertain(id)) { operations.providerStatus(id, "failed"); }
         });
     }
     /** Refund objects are authoritative. A terminal failure wins over a redelivered older success. */
@@ -202,7 +213,9 @@ public class PaymentRefunds {
         String reason = operation == null ? stripeReason : operation.reason();
         String actor = operation == null ? null : operation.actorId();
         if (operation != null && "REFUND_LATE".equals(operation.kind())) {
-            return operations.refundSettled(operation.id(), new UpfrontPayment.Refund(amount, refundId, at, reason, actor));
+            boolean changed = operations.refundSettled(operation.id(), new UpfrontPayment.Refund(amount, refundId, at, reason, actor));
+            if (changed) { audit.refunded(entityType(operation), operation.targetId(), amount, refundId, reason); }
+            return changed;
         }
         var collection = collections.byProviderReference(intent).orElse(null);
         if (collection != null) {
@@ -216,7 +229,8 @@ public class PaymentRefunds {
             long total = refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum() + amount.amountMinor();
             if (!amount.currency().equals(collection.amount().currency()) || total > collection.amount().amountMinor()) { throw new ApiException(ErrorCode.REFUND_EXCEEDS_PAID); }
             collections.refund(collection.id(), new Collection.Refund(amount, refundId, at, reason, actor), total == collection.amount().amountMinor());
-            invoices.refunded(collection.invoiceId(), new Money(total, amount.currency()), clock.instant()); return true;
+            invoices.refunded(collection.invoiceId(), new Money(total, amount.currency()), clock.instant());
+            audit.refunded("Invoice", collection.invoiceId(), amount, refundId, reason); return true;
         }
         var payments = upfront.forIntent(intent);
         if (operation != null) {
@@ -235,9 +249,10 @@ public class PaymentRefunds {
         for (var payment : payments) {
             long paid = payment.amountPaid().amountMinor();
             long refunded = payment.refunds() == null ? 0 : payment.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
-            long part = Math.min(remaining, paid - refunded);
+            long part = Math.min(remaining, upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor() - refunded);
             if (part > 0) {
                 upfront.refund(payment.id(), new UpfrontPayment.Refund(new Money(part, amount.currency()), refundId, at, reason, actor), part + refunded == paid);
+                audit.refunded("UpfrontPayment", payment.id(), new Money(part, amount.currency()), refundId, reason);
                 remaining -= part; changed = true;
             }
         }

@@ -32,7 +32,7 @@ public interface PaymentProvider {
     default com.agilityhub.core.shared.application.BillingCensusAccess.Card cardDetails(com.fasterxml.jackson.databind.JsonNode object) { return null; }
     default void forgetCustomer(String customerId) { throw disabled(); }
     private static com.agilityhub.core.shared.domain.ApiException disabled() {
-        return new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
+        return new PaymentNotSubmitted(com.agilityhub.core.shared.domain.ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
     }
     /** The longest a single provider call may take, retries included (ruling E80): a small fraction of the 10-minute claim lease. */
     Duration MAX_CALL_TIMEOUT = Duration.ofSeconds(30);

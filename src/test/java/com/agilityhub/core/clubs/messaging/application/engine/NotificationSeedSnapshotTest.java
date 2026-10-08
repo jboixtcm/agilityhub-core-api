@@ -94,7 +94,8 @@ class NotificationSeedSnapshotTest {
         values.put("upfront_total", new Money(4500, "EUR")); values.put("payment_instructions", "Pagament en efectiu a la recepció del club");
         values.put("pay_link", "https://app.example.test/pagament/exemple"); values.put("link", "https://app.example.test/entra/exemple");
         values.put("retry_link", "https://app.example.test/factures/exemple"); values.put("reason", "Documentació pendent");
-        values.put("invoice_number", "F-2026-0042"); values.put("amount", new Money(4500, "EUR")); values.put("fee", new Money(1500, "EUR"));
+        values.put("invoice_number", "F-2026-0042"); values.put("amount", new Money(4500, "EUR")); values.put("fee", new NotificationValues.Changes(List.of(new NotificationValues.Change("notif.N-18b.fee",
+                Map.of("first", new Money(1500, "EUR"), "following", new Money(1000, "EUR")))))); values.put("open_ended", false);
         values.put("concept", "Quota d'agost"); values.put("pack_remaining", 2); values.put("pack_expiry", LocalDate.parse("2026-08-31"));
         values.put("requested_date", LocalDate.parse("2026-08-31")); values.put("effective_date", LocalDate.parse("2026-08-31"));
         values.put("from_month", YearMonth.parse("2026-09")); values.put("to_month", YearMonth.parse("2026-10")); values.put("decision", "APPROVED");

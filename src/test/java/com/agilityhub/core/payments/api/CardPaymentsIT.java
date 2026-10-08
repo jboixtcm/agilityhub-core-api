@@ -127,8 +127,8 @@ class CardPaymentsIT extends BillingItSupport {
         ok(admin(post("/api/v1/invoices/" + invoice + "/refund").header("Idempotency-Key", key).contentType("application/json").content(mapper.writeValueAsString(request))), 202);
         error(admin(keyed(post("/api/v1/invoices/" + invoice + "/refund"), Map.of("amount", Map.of("amountMinor", 5000, "currency", "EUR"), "reason", "Too much"))), 422, "REFUND_EXCEEDS_PAID");
         String refundOne = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("REFUND_INVOICE")), Document.class, "payment_operations").getString("resultId");
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), "audit_entries")).isEqualTo(1);
         webhook("evt_refund1", "charge.refunded", Map.of("id", "ch_fixture", "payment_intent", intent(invoice), "currency", "eur", "refunds", Map.of("data", List.of(Map.of("id", refundOne, "amount", 2000, "status", "succeeded")))));
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), "audit_entries")).isEqualTo(1);
         assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo(2000);
         ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/refund"), Map.of("reason", "Remainder"))), 202);
         String refundTwo = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("amount.amountMinor").is(4000)), Document.class, "payment_operations").getString("resultId");
@@ -620,43 +620,32 @@ class CardPaymentsIT extends BillingItSupport {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
-    void T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown(boolean intentKnown, org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+    void T_12_15_point1_previouslySubmittedChargeStaysUncertainWhenProviderIsDisabled(boolean intentKnown, org.springframework.boot.test.system.CapturedOutput output) throws Exception {
         admin("bill-admin-notices", CLUB);
         String run = runId(generated()), invoice = invoiceId(); charge(run);
         var operation = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
         String pi = intent(invoice);
         // A process stopped before settlement. A known provider reference is retained for reconciliation.
         mongo.updateFirst(Query.query(Criteria.where("_id").is(operation.getString("_id"))), new Update().unset("resultId").unset("processedAt").set("attempts", 0), "payment_operations");
-        if (!intentKnown) { mongo.updateFirst(Query.query(Criteria.where("invoiceId").is(invoice)), new Update().unset("providerRef"), "collections"); }
+        if (!intentKnown) {
+            mongo.updateFirst(Query.query(Criteria.where("invoiceId").is(invoice)), new Update().unset("providerRef"), "collections");
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(operation.getString("_id"))), new Update().unset("submissionUncertain"), "payment_operations");
+        }
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", false, "mode", "test",
                 "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
         for (int attempt = 0; attempt < 3; attempt++) { recovery.recover(); clock.setInstant(clock.instant().plusSeconds(60)); }
         assertThat(mongo.findById(operation.getString("_id"), Document.class, "payment_operations").getDate("processedAt")).isNotNull();
-        if (intentKnown) {
-            assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
-            assertThat(events("InvoiceFailed")).isEmpty();
-            assertThat(output.getOut()).contains("Charge awaiting webhook recovery exhausted");
-            String warning = output.getOut().lines().filter(line -> line.contains("Charge awaiting webhook recovery exhausted")).findFirst().orElseThrow();
-            assertThat(warning).contains("WARN").containsPattern("(?:traceId=|\"traceId\":\")[0-9a-f-]{36}");
-            var totals = ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("byProvider").path("STRIPE");
-            assertThat(totals.path("count").asInt() - totals.path("charged").asInt() - totals.path("failed").asInt()).isEqualTo(1);
-            club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
-                    "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
-            webhook("evt_r3_reconciled", "payment_intent.succeeded", Map.of("id", pi));
-            assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
-        } else {
-            assertThat(detail(invoice).path("status").asText()).isEqualTo("FAILED");
-            var collection = mongo.findOne(Query.query(Criteria.where("invoiceId").is(invoice)), Document.class, "collections");
-            assertThat(collection.getString("status")).isEqualTo("FAILED"); assertThat(collection.getString("failureCode")).isEqualTo("PROVIDER_UNAVAILABLE");
-            assertThat(events("InvoiceFailed")).hasSize(1);
-            outbox.dispatch();
-            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-35")), "notifications")).isPositive();
-            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-10")), "notifications")).isPositive();
-            club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
-                    "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
-            ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/retry"), Map.of("version", detail(invoice).path("version").asLong()))), 202);
-            assertThat(fake.calls().getLast().key()).isEqualTo(invoice + ":2");
-        }
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
+        assertThat(events("InvoiceFailed")).isEmpty();
+        assertThat(output.getOut()).contains("Charge awaiting webhook recovery exhausted");
+        String warning = output.getOut().lines().filter(line -> line.contains("Charge awaiting webhook recovery exhausted")).findFirst().orElseThrow();
+        assertThat(warning).contains("WARN").containsPattern("(?:traceId=|\"traceId\":\")[0-9a-f-]{36}");
+        var totals = ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("byProvider").path("STRIPE");
+        assertThat(totals.path("count").asInt() - totals.path("charged").asInt() - totals.path("failed").asInt()).isEqualTo(1);
+        club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
+                "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
+        webhook("evt_r3_reconciled", "payment_intent.succeeded", Map.of("id", pi, "metadata", Map.of("collectionId", operation.getString("providerRef"))));
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
     }
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
@@ -737,4 +726,134 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(reversal).hasSize(1);
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_15_point1_lostCaptureResponseNeverEnablesAnotherCharge(boolean configurationBreaks) throws Exception {
+        String run = runId(generated()), invoice = invoiceId();
+        var captured = new java.util.concurrent.atomic.AtomicReference<String>();
+        fake.afterCharge(result -> { captured.set(result.paymentIntentId()); throw new IllegalStateException("Lost provider response"); });
+        try (var tenant = TenantContext.open(CLUB)) { assertThatThrownBy(() -> cards.chargeRun(run)).isInstanceOf(IllegalStateException.class); }
+        org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", configurationBreaks);
+        try { for (int i = 0; i < 2; i++) { clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover(); } }
+        finally { org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false); }
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
+        error(admin(keyed(post("/api/v1/invoices/" + invoice + "/retry"), Map.of("version", detail(invoice).path("version").asLong()))), 409, "INVALID_STATE");
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+        var operation = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
+        assertThat(operation.getString("key")).isEqualTo(invoice);
+        assertThat(events("InvoiceFailed")).isEmpty();
+        webhook("evt_point1_delayed", "payment_intent.succeeded", Map.of("id", captured.get(), "metadata", Map.of("collectionId", operation.getString("providerRef"))));
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("COMPLETED");
+    }
+    @Test void T_12_15_point1_definiteNonSubmissionAllowsRetryAfterConfigurationRepair() throws Exception {
+        String run = runId(generated()), invoice = invoiceId();
+        org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+        try {
+            try (var tenant = TenantContext.open(CLUB)) {
+                assertThatThrownBy(() -> cards.chargeRun(run)).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class).hasMessage("PROVIDER_CONFIG_INVALID");
+            }
+            for (int i = 0; i < 2; i++) { clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover(); }
+        } finally { org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false); }
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("FAILED");
+        assertThat(fake.calls()).isEmpty(); assertThat(events("InvoiceFailed")).hasSize(1);
+        ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/retry"), Map.of("version", detail(invoice).path("version").asLong()))), 202);
+        assertThat(firstCharge().key()).isEqualTo(invoice + ":2");
+    }
+    @Autowired PaymentProviderRegistry registry;
+    @Test void T_12_17_point2_invalidConfigurationReleasesOnlyUnsubmittedRefundReservation() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_point2_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        try (var tenant = TenantContext.open(CLUB)) {
+            var accepted = refunds.invoice(invoice, null, "Correction", "point2-initial");
+            // Exercise the real provider's validation: this club has no encrypted API key.
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+            try {
+                for (int i = 0; i < 3; i++) {
+                    assertThatThrownBy(() -> refunds.execute(accepted.id())).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class)
+                            .hasMessageContaining("PROVIDER_CONFIG_INVALID");
+                    clock.setInstant(clock.instant().plusSeconds(60));
+                }
+            } finally { org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false); }
+            var retried = refunds.invoice(invoice, null, "Configuration repaired", "point2-retry");
+            assertThat(retried.amount().amountMinor()).isEqualTo(6000);
+            refunds.execute(retried.id());
+            assertThat(operations.findById(retried.id()).orElseThrow().resultId()).isNotNull();
+            assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
+        }
+    }
+    @Test void T_12_17_point3_dashboardAllocationUsesStripeCaptureAndReversesExactly() throws Exception {
+        var rows = signupRows(2);
+        // Put the manual deposit on the first row in the provider ledger's deterministic allocation order.
+        for (int i = 0; i < rows.size(); i++) {
+            String concept = i == 0 ? "ENTRY_FEE" : "FIRST_MONTH";
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(rows.get(i))), new Update().set("concept", concept).set("signupConcept", concept), "upfront_payments");
+        }
+        try (var tenant = TenantContext.open(CLUB)) { tx.run(() -> { upfront.allocate("card-member", List.of(new UpfrontPayments.Submission(null, "round-two")), new Money(900, "EUR")); return null; }); }
+        rows = rows.stream().sorted(java.util.Comparator.comparing(id -> paymentRow(id).getString("concept"))).toList();
+        String session = signupCheckout(rows);
+        webhook("evt_point3_paid", "checkout.session.completed", completion(session, "pi_point3", 1100, "paid"));
+        webhook("evt_point3_refund", "refund.created", refundEvent("pi_point3", "re_point3", 1100, "succeeded", null));
+        for (int i = 0; i < 2; i++) {
+            assertThat(paymentRow(rows.get(i)).getList("refunds", Document.class)).singleElement()
+                    .satisfies(r -> assertThat(((Number) r.get("amount", Document.class).get("amountMinor")).longValue()).isIn(100L, 1000L));
+        }
+        assertThat(((Number) paymentRow(rows.getFirst()).getList("refunds", Document.class).getFirst().get("amount", Document.class).get("amountMinor")).longValue()).isEqualTo(100);
+        assertThat(paymentRow(rows.getFirst()).getString("status")).isEqualTo("PAID");
+        assertThat(paymentRow(rows.get(1)).getString("status")).isEqualTo("REFUNDED");
+        webhook("evt_point3_reverse", "refund.failed", refundEvent("pi_point3", "re_point3", 1100, "failed", null));
+        for (String id : rows) { assertThat(paymentRow(id).getList("refunds", Document.class)).isEmpty(); assertThat(paymentRow(id).getString("status")).isEqualTo("PAID"); }
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_point4_partialRefundDoesNotSuppressRemainingCancellation(boolean settled) throws Exception {
+        String payment = "point4-payment";
+        mongo.insert(new UpfrontPayment(payment, CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "point4-booking", null, null, null, null,
+                new UpfrontPayment.StripeRefs("pi_point4", null), null, null, List.of(), null));
+        try (var tenant = TenantContext.open(CLUB)) {
+            var partial = refunds.upfront(payment, new Money(200, "EUR"), "Partial", "point4-partial"); refunds.execute(partial.id());
+            if (settled) { webhook("evt_point4_partial", "refund.created", refundEvent("pi_point4", operations.findById(partial.id()).orElseThrow().resultId(), 200, "succeeded", partial.id())); }
+            try (var restoredTenant = TenantContext.open(CLUB)) {
+                refunds.compensate(payment, "REFUND", false); refunds.compensate(payment, "REFUND", false);
+                var compensation = operations.byKey("refund:" + payment);
+                assertThat(compensation).isPresent(); assertThat(compensation.orElseThrow().amount().amountMinor()).isEqualTo(1000);
+                refunds.execute(compensation.orElseThrow().id());
+            }
+        }
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(2);
+    }
+    @Test void T_12_15_point5_runWaitsForEveryAttemptAndRefreshesLateTotals() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); fake.fail("card_declined"); charge(run);
+        String first = intent(invoice);
+        ok(admin(keyed(post("/api/v1/invoices/" + invoice + "/retry"), Map.of("version", detail(invoice).path("version").asLong()))), 202);
+        String second = mongo.findOne(Query.query(Criteria.where("invoiceId").is(invoice).and("attempt").is(2)), Document.class, "collections").getString("providerRef");
+        webhook("evt_point5_early_success", "payment_intent.succeeded", Map.of("id", first));
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("CHARGING");
+        webhook("evt_point5_second_failure", "payment_intent.payment_failed", Map.of("id", second));
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("COMPLETED");
+    }
+    @Test void T_12_15_point5_completedRunRefreshesAfterLateSuccess() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); fake.fail("card_declined"); charge(run);
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("byProvider").path("STRIPE").path("failed").asInt()).isEqualTo(1);
+        long completedEvents = events("BillingRunCompleted").size();
+        webhook("evt_point5_late_success", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        var totals = ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("byProvider").path("STRIPE");
+        assertThat(totals.path("charged").asInt()).isEqualTo(1); assertThat(totals.path("failed").asInt()).isZero();
+        assertThat(events("BillingRunCompleted")).hasSize((int) completedEvents);
+    }
+    @Test void T_12_17_point6_dashboardRefundAuditsSuccessAndReversalExactlyOnce() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_point6_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        var query = Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED"));
+        webhook("evt_point6_pending", "refund.created", refundEvent(intent(invoice), "re_point6", 2000, "pending", null));
+        assertThat(mongo.count(query, "audit_entries")).isZero();
+        webhook("evt_point6_success", "refund.updated", refundEvent(intent(invoice), "re_point6", 2000, "succeeded", null));
+        webhook("evt_point6_replay", "refund.updated", refundEvent(intent(invoice), "re_point6", 2000, "succeeded", null));
+        assertThat(mongo.count(query, "audit_entries")).isEqualTo(1);
+        webhook("evt_point6_reverse", "refund.failed", refundEvent(intent(invoice), "re_point6", 2000, "failed", null));
+        webhook("evt_point6_reverse_replay", "refund.failed", refundEvent(intent(invoice), "re_point6", 2000, "failed", null));
+        assertThat(mongo.count(query, "audit_entries")).isEqualTo(2);
+    }
 }

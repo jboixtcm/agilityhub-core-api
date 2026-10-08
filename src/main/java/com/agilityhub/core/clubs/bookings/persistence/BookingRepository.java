@@ -70,6 +70,11 @@ public class BookingRepository extends TenantRepository<Booking> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId).and("state").in(LIVE).and("classStartsAt").lt(to).and("classEndsAt").gt(from)),
                 Booking.class);
     }
+    /** Lifecycle selection must use the class's own time, so do not prefilter by this asynchronous projection. */
+    public List<Booking> liveForMember(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE))
+                .with(Sort.by("classSessionId", "_id")), Booking.class);
+    }
     public List<Booking> liveForMember(String memberId, Instant after) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE).and("classStartsAt").gt(after))
                 .with(Sort.by("classStartsAt", "_id")), Booking.class);

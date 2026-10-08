@@ -1,0 +1,5 @@
+Scope: only E8-T09 task; ROADMAP and Organizer verification unchanged; MESSAGES append-only.
+git diff --check: exit 0
+Added tracked lines and new task files: no trailing whitespace; evidence contains no JWT or provider tokens.
+Completed evidence records: 18; each has command, exit, log and is not ignored.
+Task report: 40311 bytes, below 120 KiB.

@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class LeaveScheduler {
     private final CensusAccess census; private final LeaveRequestService leaves; private final MemberStatusService statuses;
-    private final LifecycleTransactions transactions; private final Clock clock;
-    public LeaveScheduler(CensusAccess census, LeaveRequestService leaves, MemberStatusService statuses, LifecycleTransactions transactions, Clock clock) {
-        this.census = census; this.leaves = leaves; this.statuses = statuses; this.transactions = transactions; this.clock = clock;
+    private final LifecycleTransactions transactions;
+    public LeaveScheduler(CensusAccess census, LeaveRequestService leaves, MemberStatusService statuses, LifecycleTransactions transactions) {
+        this.census = census; this.leaves = leaves; this.statuses = statuses; this.transactions = transactions;
     }
     public int executeDue(String clubId, LocalDate today) {
         try (var tenant = TenantContext.open(clubId)) {
@@ -31,8 +31,8 @@ public class LeaveScheduler {
         if (!"ACTIVE".equals(member.status) || member.leaveDate == null || !member.leaveDate.isBefore(today)) { return false; }
         var request = member.leaveRequestId == null ? null : leaves.get(member.leaveRequestId);
         leaves.sweep(member.id, member.leaveDate); leaves.closePeriods(member.id, member.leaveDate, true);
-        member.leftAt = clock.instant(); member.leftReason = request == null ? "MIGRATED" : request.source() == LeaveSource.MEMBER ? "LEAVE_REQUEST" : request.source().name();
-        census.members.save(member); statuses.transition(member.id, "LEFT", member.leaveDate, member.leftReason);
+        String reason = request == null ? "MIGRATED" : request.source() == LeaveSource.MEMBER ? "LEAVE_REQUEST" : request.source().name();
+        statuses.transition(member.id, "LEFT", member.leaveDate, reason);
         if (request != null) { leaves.markExecuted(request.id()); }
         return true;
     }

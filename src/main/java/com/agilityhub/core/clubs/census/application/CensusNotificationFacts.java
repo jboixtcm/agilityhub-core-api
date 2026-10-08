@@ -86,6 +86,7 @@ public class CensusNotificationFacts implements NotificationFactsPort {
         if (Set.of("N-14", "N-18a", "N-18d").contains(code)) { builder.audiences("ADMINS"); } else { builder.member(id, t.text("dogId")); }
         builder.value("member_name", Stream.of(member.firstName, member.lastName1, member.lastName2).filter(Objects::nonNull).collect(Collectors.joining(" ")))
                 .value("from_month", Objects.toString(t.text("from"), "")).value("to_month", Objects.toString(t.text("to"), ""))
+                .value("open_ended", t.text("to") == null || t.text("to").isBlank())
                 .value("decision", t.type().equals("LeaveCancelled") ? "CANCELLED" : Objects.toString(t.text("decision"), ""))
                 .value("source", Objects.toString(t.text("source"), "")).value("admin_text", new NotificationValues.Localized(locale -> Objects.toString(t.text("admin_text"), "")
                         + (t.payload().get("bookingsInside") instanceof Number n && n.intValue() > 0
@@ -96,8 +97,12 @@ public class CensusNotificationFacts implements NotificationFactsPort {
             builder.value("dog_name", access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("memberId").is(id)).stream()
                     .map(d -> d.name).filter(Objects::nonNull).collect(Collectors.joining(", ")));
         }
-        var fee = map(map(t.payload().get("fee")).get("firstMonth"));
-        builder.value("fee", fee.get("amountMinor") instanceof Number n ? new Money(n.longValue(), string(fee.get("currency"))) : "");
+        var fee = map(t.payload().get("fee"));
+        var first = map(fee.get("firstMonth")); var following = map(fee.get("followingMonths"));
+        builder.value("fee", first.get("amountMinor") instanceof Number a && following.get("amountMinor") instanceof Number b
+                ? new NotificationValues.Changes(List.of(new NotificationValues.Change("notif.N-18b.fee", Map.of(
+                        "first", new Money(a.longValue(), string(first.get("currency"))),
+                        "following", new Money(b.longValue(), string(following.get("currency"))))))) : "");
         builder.value("reason", new NotificationValues.Localized(locale -> rows(access.config().get("leave.reasons", List.class)).stream()
                 .filter(r -> Objects.equals(r.get("key"), t.text("reasonKey"))).findFirst().map(r -> {
                     var labels = map(r.get("label")); if (labels.containsKey("values")) { labels = map(labels.get("values")); }

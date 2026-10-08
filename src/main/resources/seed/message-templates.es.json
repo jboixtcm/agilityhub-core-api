@@ -293,7 +293,7 @@
     {
       "code": "N-18b",
       "title": "{decision, select, APPROVED {Inactividad aprobada} other {Inactividad denegada}}",
-      "body": "{decision, select, APPROVED {El club ha aprobado el periodo de inactividad de [[from_month]] a [[to_month]].} other {El club no ha aprobado el periodo de inactividad de [[from_month]] a [[to_month]].}} [[admin_text]] {cancelled_count, plural, =0 {} one { # reserva anulada.} other { # reservas anuladas.}}",
+      "body": "{decision, select, APPROVED {El club ha aprobado tu período de inactividad} other {El club no ha aprobado tu período de inactividad}} desde [[from_month]]{open_ended, select, true {, sin fecha de finalización} other { hasta [[to_month]]}}. [[fee]] [[admin_text]] {cancelled_count, plural, =0 {} one { # reserva anulada.} other { # reservas anuladas.}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

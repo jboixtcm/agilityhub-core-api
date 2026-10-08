@@ -29,9 +29,18 @@ public class PaymentRetryPolicy {
     /** The terminal business transition commits atomically with the exhausted command. */
     public void execute(PaymentOperation operation, Runnable action, Runnable exhausted) {
         if (!operations.ready(operation.id())) { return; }
+        boolean money = operation.kind().equals("CHARGE") || operation.kind().startsWith("REFUND");
+        // Commit the uncertainty before sending: a process crash or lost response must never enable another capture.
+        boolean previouslyUncertain = money && tx.run(() -> {
+            boolean previous = operations.submissionUncertain(operation.id());
+            operations.submissionUncertain(operation.id(), true); return previous;
+        });
         try { action.run(); }
         catch (RuntimeException failure) {
             if (tx.run(() -> {
+                if (money && !previouslyUncertain && failure instanceof PaymentNotSubmitted) {
+                    operations.submissionUncertain(operation.id(), false);
+                }
                 boolean terminal = operations.failed(operation.id(), clock.instant(), maxAttempts());
                 if (terminal) { exhausted.run(); }
                 return terminal;

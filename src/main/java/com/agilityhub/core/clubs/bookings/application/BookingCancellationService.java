@@ -121,17 +121,18 @@ public class BookingCancellationService {
             boolean attendanceNotice) {
         boolean swap = swapToClassId != null, sameClassSwap = b.classSessionId().equals(swapToClassId);
         var now = context.now();
+        var session = classes.require(b.classSessionId());
         boolean pending = b.state() == BookingState.PAYMENT_PENDING;
-        if (!(b.state() == BookingState.ACTIVE || pending && actor.isSystem()) || !now.isBefore(b.classEndsAt())
+        if (!(b.state() == BookingState.ACTIVE || pending && actor.isSystem()) || !now.isBefore(session.endsAt())
                 || !attendanceNotice && attendance.marked(b.id())) {
             throw new ApiException(swap ? ErrorCode.SWAP_NOT_ALLOWED : ErrorCode.BOOKING_NOT_CANCELLABLE);
         }
-        var outcome = CancellationPolicy.evaluate(b.classStartsAt(), now, context.integer("bookings.lateCancelThresholdMinutes"));
+        var outcome = CancellationPolicy.evaluate(session.startsAt(), now, context.integer("bookings.lateCancelThresholdMinutes"));
         boolean late = !actor.isSystem() && !swap && outcome.late();
         String refund = !late && b.packMovementId() != null ? packs.refund(b.memberId(), b.dogId(), b.id(), context.today()) : null;
         var after = bookings.update(new Booking(b.id(), b.clubId(), b.classSessionId(), b.dogId(), b.memberId(),
                 late ? BookingState.CANCELLED_LATE : BookingState.CANCELLED, b.origin(), b.bookedAt(), b.bookedBy(),
-                b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), now,
+                session.startsAt(), session.endsAt(), context.weeks().week(session.startsAt()).key(), now,
                 new Booking.Canceller(actor.accountId(), actor.role(), actor.displayName(), actor.impersonatedMemberId()),
                 swap ? BookingCancelReason.SWAP : reason, message, late, outcome.minutesBefore(), b.swapFromBookingId(), b.swapToBookingId(),
                 b.waitlistEntryId(), b.packMovementId(), refund, Booking.Charge.settled(b.charge()), b.reminderSentAt(),
@@ -140,7 +141,7 @@ public class BookingCancellationService {
         payload.put("minutesBefore", outcome.minutesBefore()); payload.put("origin", actor.origin()); payload.put("reason", after.cancelReason());
         if (checkoutFailed) { payload.put("checkoutFailed", true); } // E30: payload only, no new reason value
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
-        boolean waitlistNotified = now.isBefore(b.classStartsAt()) && seatReleased(b, now, outcome.minutesBefore(), actor);
+        boolean waitlistNotified = now.isBefore(session.startsAt()) && seatReleased(after, now, outcome.minutesBefore(), actor);
         counters.recount(b.classSessionId(), !late && !sameClassSwap, actor);
         if (actor.impersonated()) { audit.cancelledByClub(b, after); }
         if (late) { audit.cancelledLate(b, after); } // S14 R-14-09: every late cancellation, impersonated ones too

@@ -35,6 +35,8 @@ public class ClassSessionBookingAccess {
         this.classes = classes; this.context = context; this.projection = projection; this.catalogs = catalogs; this.events = events; this.clock = clock;
     }
     public Optional<Session> find(String id) { return id == null ? Optional.empty() : classes.findById(id).map(ClassSessionBookingAccess::view); }
+    /** Call after the seat lock; the class write fences concurrent planning moves. */
+    public Session lock(String id) { return view(classes.lock(id)); }
     public Session require(String id) { return find(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     /**
      * The own `startsAt` of several classes with one query (S15 R-15-18a: P8 decides by the class's start, never by the

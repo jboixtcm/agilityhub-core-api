@@ -28,13 +28,13 @@ public class StripePaymentProvider implements PaymentProvider {
     private StripeClient client() { return client(true); }
     private StripeClient client(boolean requireEnabled) {
         String club = TenantContext.require();
-        var config = settings.stripe(club).orElseThrow(() -> new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
-        if (requireEnabled && !config.enabled()) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
+        var config = settings.stripe(club).orElseThrow(() -> new PaymentNotSubmitted(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED));
+        if (requireEnabled && !config.enabled()) { throw new PaymentNotSubmitted(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
         String key;
         try { key = vault.decrypt(config.secretKeyEnc(), club, "STRIPE", "secretKeyEnc"); }
-        catch (RuntimeException invalid) { throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID); }
+        catch (RuntimeException invalid) { throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID); }
         if (!Set.of("test", "live").contains(Objects.toString(config.mode(), "")) || !key.startsWith("sk_" + config.mode() + "_")) {
-            throw new ApiException(ErrorCode.PROVIDER_CONFIG_INVALID);
+            throw new PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
         }
         return newClient(key);
     }

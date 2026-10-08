@@ -293,7 +293,7 @@
     {
       "code": "N-18b",
       "title": "{decision, select, APPROVED {Inactivity approved} other {Inactivity refused}}",
-      "body": "{decision, select, APPROVED {The club has approved the inactivity period from [[from_month]] to [[to_month]].} other {The club has not approved the inactivity period from [[from_month]] to [[to_month]].}} [[admin_text]] {cancelled_count, plural, =0 {} one { # booking cancelled.} other { # bookings cancelled.}}",
+      "body": "{decision, select, APPROVED {The club has approved your inactivity period} other {The club has not approved your inactivity period}} from [[from_month]]{open_ended, select, true {, with no end date} other { to [[to_month]]}}. [[fee]] [[admin_text]] {cancelled_count, plural, =0 {} one { # booking cancelled.} other { # bookings cancelled.}}",
       "icon": "bell",
       "color": "NEUTRAL",
       "matrix": {

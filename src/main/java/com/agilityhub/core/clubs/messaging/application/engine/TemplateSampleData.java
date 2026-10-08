@@ -59,7 +59,8 @@ public final class TemplateSampleData {
         values.put("level_name", text("levelName", locale)); values.put("level", text("levelName", locale)); values.put("plan_name", text("planName", locale));
         values.put("upfront_total", new Money(4500, "EUR")); values.put("payment_instructions", text("paymentInstructions", locale));
         values.put("reason", text("reason", locale)); values.put("invoice_number", "F-2026-0042"); values.put("amount", new Money(4500, "EUR"));
-        values.put("fee", new Money(1500, "EUR")); values.put("concept", text("concept", locale)); values.put("pack_remaining", 2);
+        values.put("fee", new NotificationValues.Changes(List.of(new NotificationValues.Change("notif.N-18b.fee",
+                Map.of("first", new Money(1500, "EUR"), "following", new Money(1000, "EUR")))))); values.put("open_ended", false); values.put("concept", text("concept", locale)); values.put("pack_remaining", 2);
         values.put("pack_expiry", LocalDate.of(2026, 8, 31)); values.put("requested_date", LocalDate.of(2026, 8, 31));
         values.put("effective_date", LocalDate.of(2026, 8, 31)); values.put("from_month", YearMonth.of(2026, 9)); values.put("to_month", YearMonth.of(2026, 10));
         values.put("decision", "APPROVED"); values.put("cancelled_count", 3); values.put("confirm_by", at(zone, LocalDateTime.of(2026, 8, 12, 17, 0)));

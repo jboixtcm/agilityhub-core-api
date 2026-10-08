@@ -30,7 +30,7 @@ public class MemberStatusService {
             if (member.memberNumber == null || member.accountId == null) { throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE); }
             identities.reactivate(id, member.accountId); member.leaveDate = null; member.leaveRequestId = null;
             if (member.joinedAt == null) { member.joinedAt = clock.instant(); }
-        } else { member.leaveDate = effectiveDate; }
+        } else { member.leaveDate = effectiveDate; member.leftAt = clock.instant(); member.leftReason = reason; }
         member.status = after; access.members.save(member);
         var actor = actors.current(); var user = CurrentUser.current();
         events.publish(new MemberStatusChanged(TenantContext.require(), id, clock.instant(),

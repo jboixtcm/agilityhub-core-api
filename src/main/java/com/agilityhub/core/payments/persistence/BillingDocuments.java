@@ -311,7 +311,9 @@ public final class BillingDocuments {
         public boolean progress(String id, int charged, int failed, boolean complete, java.time.Instant at) {
             var update = new Update().set("byProvider.stripe.charged", charged).set("byProvider.stripe.failed", failed).inc("version", 1L);
             if (complete) { update.set("status", "COMPLETED").set("finishedAt", at); }
-            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("CHARGING")), update, "billing_runs").getMatchedCount() == 1;
+            var previous = mongo.findAndModify(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").in("CHARGING", "COMPLETED")),
+                    update, org.bson.Document.class, "billing_runs");
+            return previous != null && "CHARGING".equals(previous.getString("status"));
         }
         /** D6: the month's live run, else its latest rolled-back one. */
         public java.util.Optional<BillingRun> latest(String period) {

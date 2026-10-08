@@ -11,6 +11,11 @@ import org.springframework.stereotype.Repository;
 public class PaymentOperationRepository extends TenantRepository<PaymentOperation> {
     private final java.time.Clock clock;
     public PaymentOperationRepository(MongoTemplate mongo, java.time.Clock clock) { super(mongo, PaymentOperation.class); this.clock = clock; }
+    @Override public PaymentOperation insert(PaymentOperation operation) {
+        var inserted = super.insert(operation);
+        submissionUncertain(operation.id(), false);
+        return inserted;
+    }
     @jakarta.annotation.PostConstruct public void indexes() {
         mongo.indexOps(PaymentOperation.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("key", org.springframework.data.domain.Sort.Direction.ASC).unique());
@@ -55,6 +60,12 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
     public boolean reverseRefund(String id, String refundId) {
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund.providerRef").is(refundId)),
                 new Update().unset("refund"), PaymentOperation.class).getModifiedCount() == 1;
+    }
+    public boolean submissionUncertain(String id) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("submissionUncertain").ne(false)), PaymentOperation.class);
+    }
+    public void submissionUncertain(String id, boolean uncertain) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("submissionUncertain", uncertain), PaymentOperation.class);
     }
     public boolean ready(String id) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))

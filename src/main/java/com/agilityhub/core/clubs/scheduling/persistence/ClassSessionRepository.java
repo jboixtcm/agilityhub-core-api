@@ -18,6 +18,13 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
         mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("startsAt", ASC).named("class_club_ring_start"));
         mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("endsAt", ASC).named("class_club_state_end"));
     }
+    /** Serialize lifecycle cancellation decisions with planning edits, inside the caller's transaction. */
+    public ClassSession lock(String id) {
+        var current = mongo.findAndModify(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().inc("version", 1L),
+                org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true), ClassSession.class);
+        if (current == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
+        return current;
+    }
     public boolean hasClasses() { return mongo.exists(tenantQuery(), ClassSession.class); }
     public java.util.List<ClassSession> forWeek(String weekId) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("weekId").is(weekId)), ClassSession.class);

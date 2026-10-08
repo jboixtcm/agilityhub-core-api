@@ -18,6 +18,7 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 /** S13 R-13-09/10/12/15: a decision fixes a date; only the scheduler changes ACTIVE to LEFT. */
 @Service
 public class LeaveRequestService {
+    @org.springframework.beans.factory.annotation.Autowired private DogService dogs;
     private final LeaveRequestRepository requests; private final InactivityPeriodRepository periods; private final CensusAccess census;
     private final LifecycleBookings bookings; private final InactivityPeriodService inactivity; private final CensusEvents events;
     private final MemberStatusService statuses; private final Clock clock; private final ClubClock local;
@@ -128,6 +129,10 @@ public class LeaveRequestService {
         if (!"LEFT".equals(member.status)) { throw new ApiException(ErrorCode.MEMBER_NOT_LEFT); }
         if (census.enabled(Module.BILLING) && (planId == null || priceId == null || nextInvoiceDate == null)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         if (planId != null && priceId != null && !planId.equals(census.references.price(priceId).get("planId"))) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        // Complete the previous leave before reactivation can make its delayed consumer obsolete.
+        for (var dog : census.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("memberId").is(id).and("status").ne("INACTIVE"))) {
+            dogs.automaticDeactivation(dog.id, "MEMBER_LEFT");
+        }
         var history = new ArrayList<>(member.leaveHistory == null ? List.<Map<String, Object>>of() : member.leaveHistory);
         history.add(object("leaveDate", member.leaveDate == null ? null : member.leaveDate.toString(), "leftAt", member.leftAt, "leftReason", member.leftReason, "reactivatedAt", clock.instant())); member.leaveHistory = List.copyOf(history);
         member.leftAt = null; member.leftReason = null;

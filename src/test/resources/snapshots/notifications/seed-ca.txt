@@ -136,9 +136,9 @@ body: Laura Serra Puig ha demanat un període d'inactivitat de setembre del 2026
 
 ## N-18b MEMBER
 title: Inactivitat aprovada
-body: El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.
-email.text: Inactivitat aprovada⏎⏎El club ha aprovat el període d'inactivitat de setembre del 2026 a octubre del 2026. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 02f7142ab4a45f49
+body: El club ha aprovat el teu període d’inactivitat des de setembre del 2026 fins a octubre del 2026. Quota d’inactivitat: 15,00 € el primer mes i 10,00 € cada mes següent. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.
+email.text: Inactivitat aprovada⏎⏎El club ha aprovat el teu període d’inactivitat des de setembre del 2026 fins a octubre del 2026. Quota d’inactivitat: 15,00 € el primer mes i 10,00 € cada mes següent. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties! 3 reserves anul·lades.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: d31d37fadc118edb
 
 ## N-18c MEMBER
 title: Tornes a estar en actiu

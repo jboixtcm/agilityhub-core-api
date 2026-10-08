@@ -53,7 +53,7 @@ class E8ContractIT extends AbstractIntegrationTest {
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("invoices", "collections", "remittances", "billing_runs", "billing_simulations", "upfront_payments", "pack_balances",
             "pending_charges", "stripe_events", "billing_locks", "inactivity_periods", "leave_requests", "checkout_sessions", "members", "memberships", "dogs",
-            "family_groups", "domain_events", "audit_entries", "idempotency_records", "bookings");
+            "family_groups", "domain_events", "audit_entries", "idempotency_records", "bookings", "class_sessions", "seat_locks", "waitlist_entries");
     /** The fixture webhook signing secret of club A (never a real key), stored encrypted with the ITs' BILLING_SECRETS_KEY. */
     static final String WEBHOOK_SECRET = "whsec_fake_fake_fake";
     @Autowired MockMvc mvc;
@@ -112,7 +112,15 @@ class E8ContractIT extends AbstractIntegrationTest {
         // E8-T01 round 2: the bookings a checkout may name (S08 R-08-18): member A's and member B's in club A, and one in club B.
         for (var booking : List.of(List.of("e8-booking-a", CLUB, "e8-member-a"), List.of("e8-booking-b", CLUB, "e8-member-b"), List.of("e8-booking-other", OTHER, "e8-member-a"))) {
             mongo.save(new Document("_id", booking.get(0)).append("clubId", booking.get(1)).append("memberId", booking.get(2)).append("dogId", "e8-dog-a")
+                    .append("classSessionId", booking.get(0) + "-class").append("classStartsAt", java.util.Date.from(now.plusSeconds(3600)))
+                    .append("classEndsAt", java.util.Date.from(now.plusSeconds(7200))).append("bookingWeekKey", "2026-W39")
+                    .append("origin", "APP").append("bookedAt", java.util.Date.from(now)).append("createdAt", java.util.Date.from(now))
                     .append("state", "PAYMENT_PENDING").append("version", 0), "bookings");
+            mongo.save(new Document("_id", booking.get(0) + "-class").append("clubId", booking.get(1)).append("state", "ACTIVE")
+                    .append("date", "2026-09-24").append("startTime", "11:00").append("endTime", "12:00")
+                    .append("startsAt", java.util.Date.from(now.plusSeconds(3600))).append("endsAt", java.util.Date.from(now.plusSeconds(7200)))
+                    .append("capacity", 3).append("capacityMode", "MANUAL").append("ringId", "e8-ring").append("levelIds", List.of())
+                    .append("instructorIds", List.of()).append("counters", new Document("booked", 1).append("waiting", 0)).append("version", 0L), "class_sessions");
         }
         Money fee = new Money(9000, "EUR"), zero = new Money(0, "EUR");
         for (var owner : List.of(Map.entry("e8-invoice-a", "e8-member-a"), Map.entry("e8-invoice-b", "e8-member-b"))) {

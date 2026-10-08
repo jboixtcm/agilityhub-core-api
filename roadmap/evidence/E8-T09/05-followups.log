@@ -1,0 +1,484 @@
+13:51:09.995 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CardPaymentsIT]: CardPaymentsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:51:10.135 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CardPaymentsIT
+13:51:10.230 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+13:51:10.232 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+13:51:10.236 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+13:51:10.405 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+13:51:10.569 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+13:51:10.570 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+13:51:10.582 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+13:51:10.830 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+13:51:10.886 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+13:51:10.957 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: e6c3c9ec...[truncated]
+13:51:11.113 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.283164S
+13:51:11.117 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+13:51:11.117 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+13:51:11.118 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+13:51:11.118 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+13:51:11.147 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 04a36c9e...[truncated]
+13:51:11.635 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.51717S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T13:51:12.330+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Starting CardPaymentsIT using Java [redacted] with PID 99204 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T13:51:12.332+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T13:51:13.417+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T13:51:13.465+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 43 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T13:51:13.892+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5dbc262c], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@20f76b7a, com.mongodb.Jep395RecordCodecProvider@10b34165, com.mongodb.KotlinCodecProvider@c8080e6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:51383], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@30315a1c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T13:51:13.899+02:00 INFO  [cluster-ClusterId{value='6ac783b1...[truncated]', description='null'}-localhost:51383] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:51383, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11112167, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=04a36c9ebd4d:27017, hosts=[04a36c9ebd4d:27017], passives=[], arbiters=[], primary='04a36c9ebd4d:27017', tagSet=TagSet{[]}, electionId=7fffffff...[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6ac783af...[truncated], counter=6}, lastWriteDate=Thu Oct 08 13:51:11 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-08T13:51:17.193+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-08T13:51:17.193+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-08T13:51:17.194+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-08T13:51:17.239+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Started CardPaymentsIT in 5.119 seconds (process running for 7.778)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-08T13:51:19.132+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=ad4a4366-0e16-43df-9bf0-451f41d55e05 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b86a70ce-e90f-4299-880e-36212c88b872 bookingId=null providerPaymentId=pi_rejected clubId=bill-a
+2026-10-08T13:51:19.293+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=df7bee66-5a1f-4ad1-8641-79081b0c82e1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_limit traceId=df7bee66-5a1f-4ad1-8641-79081b0c82e1
+2026-10-08T13:51:19.377+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d90cdb74-8164-4e9a-9581-e4be5c9b0430 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r3_external traceId=d90cdb74-8164-4e9a-9581-e4be5c9b0430
+2026-10-08T13:51:19.798+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9f736f30-fcb6-4ebd-be0e-543d3945f56e clubId= accountId= : Payment operation recovery exhausted: eventId=dd3ec95c-fb4f-4164-9f67-64ca201c3101 traceId=9f736f30-fcb6-4ebd-be0e-543d3945f56e
+2026-10-08T13:51:20.041+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=7e9dd656-5362-4359-a3b6-8de06260718a clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=453d3ef6-c23c-49a3-[redacted]=null providerPaymentId=pi_a clubId=bill-a
+2026-10-08T13:51:21.098+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=748a4199-7ea7-47ca-94c4-cc49b65fbe02 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_807b2f22-835e-3203-aaec-2cd7bb972f05 traceId=748a4199-7ea7-47ca-94c4-cc49b65fbe02
+2026-10-08T13:51:21.338+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=be2fc79b-d7ef-44c1-9b7a-177fa9695164 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_e164b01c-[redacted]=be2fc79b-d7ef-44c1-9b7a-177fa9695164
+2026-10-08T13:51:21.956+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=c2a1846a-4d61-4d22-9d63-ec1f5bc17e4c clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=5936ff1c-9b7b-4102-827c-d24608547635 bookingId=null providerPaymentId=pi_r3_rejected clubId=bill-a
+2026-10-08T13:51:21.983+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=081aa911-d896-4b37-94cd-7a0a7191b1df clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_fac2ddb7-cebe-347c-a9f5-9369844f1601 traceId=081aa911-d896-4b37-94cd-7a0a7191b1df
+2026-10-08T13:51:22.065+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=6e17e827-2e8f-4bb4-b794-26c8226e17da clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=booking-late providerPaymentId=pi_booking clubId=bill-a
+2026-10-08T13:51:22.222+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4557b43e-56e0-4a25-9fc6-72fac5da2b50 clubId= accountId= : Charge awaiting webhook recovery exhausted: eventId=3357ec2e-1173-48fc-b66b-c2788d14b162 traceId=4557b43e-56e0-4a25-9fc6-72fac5da2b50
+2026-10-08T13:51:22.223+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=43376fcc-4122-4699-a0ef-ca3913212816 clubId= accountId= : Payment operation recovery exhausted: eventId=3357ec2e-1173-48fc-b66b-c2788d14b162 traceId=43376fcc-4122-4699-a0ef-ca3913212816
+2026-10-08T13:51:24.204+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=90090e79-0ab5-4205-971e-e9e2738a8ac8 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_0 traceId=90090e79-0ab5-4205-971e-e9e2738a8ac8
+2026-10-08T13:51:24.207+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8c9dfbae-129d-4ac5-ac0f-b570632c1153 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_1 traceId=8c9dfbae-129d-4ac5-ac0f-b570632c1153
+2026-10-08T13:51:24.210+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7aceb9a3-a2c7-49f4-8252-c19c44b41dc1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_2 traceId=7aceb9a3-a2c7-49f4-8252-c19c44b41dc1
+2026-10-08T13:51:24.212+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1192e52b-7034-4c6b-bb62-6253b30a7596 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_3 traceId=1192e52b-7034-4c6b-[redacted]
+2026-10-08T13:51:24.215+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=464bfe83-2f5e-43b2-85f7-36375b0e0a48 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_4 traceId=464bfe83-2f5e-43b2-85f7-36375b0e0a48
+2026-10-08T13:51:24.218+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fa10bc1b-4957-45e0-ab79-365b308c01d5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_5 traceId=[redacted]
+2026-10-08T13:51:24.221+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fd1b40a8-c1a8-41f7-9728-397c88ac3442 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_6 traceId=fd1b40a8-c1a8-41f7-9728-397c88ac3442
+2026-10-08T13:51:24.225+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7f6418d2-81de-40c1-ba1e-1f744bfc98ad clubId= accountId= : Payment operation recovery exhausted: eventId=poison_7 traceId=7f6418d2-81de-40c1-ba1e-1f744bfc98ad
+2026-10-08T13:51:24.228+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5b64e1dc-6135-4733-a782-fa04a06a3dfd clubId= accountId= : Payment operation recovery exhausted: eventId=poison_8 traceId=5b64e1dc-6135-4733-a782-fa04a06a3dfd
+2026-10-08T13:51:24.231+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9b7435c8-6a6c-4e7d-972a-665f0b7933ef clubId= accountId= : Payment operation recovery exhausted: eventId=poison_9 traceId=9b7435c8-6a6c-4e7d-972a-665f0b7933ef
+2026-10-08T13:51:24.234+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=39a5a6ae-f4b5-4d42-a269-6122c6275d25 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_10 traceId=39a5a6ae-f4b5-4d42-a269-6122c6275d25
+2026-10-08T13:51:24.237+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=27a5ab9c-3dab-4a22-9ded-37e5dc25eefd clubId= accountId= : Payment operation recovery exhausted: eventId=poison_11 traceId=27a5ab9c-3dab-4a22-9ded-37e5dc25eefd
+2026-10-08T13:51:24.240+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0939b11f-7678-41b1-904f-76a8e5936085 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_12 traceId=0939b11f-7678-41b1-904f-76a8e5936085
+2026-10-08T13:51:24.243+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b132d4a7-a331-4404-8c2a-c75cda96d535 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_13 traceId=b132d4a7-a331-4404-8c2a-c75cda96d535
+2026-10-08T13:51:24.246+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=746dacf6-bd63-4dbe-929c-6fe9fa72a8da clubId= accountId= : Payment operation recovery exhausted: eventId=poison_14 traceId=746dacf6-[redacted]
+2026-10-08T13:51:24.250+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=248f318b-c46c-4108-a26f-bc13ce0ade74 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_15 traceId=248f318b-c46c-4108-a26f-bc13ce0ade74
+2026-10-08T13:51:24.252+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1223f89a-5214-403d-b479-315308de4b14 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_16 traceId=1223f89a-5214-403d-b479-315308de4b14
+2026-10-08T13:51:24.255+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7609de39-2c02-499d-873f-d28a291b2c4b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_17 traceId=7609de39-2c02-499d-873f-d28a291b2c4b
+2026-10-08T13:51:24.257+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=94d0e868-33bc-4a63-b894-be3fbda321f2 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_18 traceId=94d0e868-33bc-4a63-b894-be3fbda321f2
+2026-10-08T13:51:24.260+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b850203e-3962-4986-ba03-63e1137dfb3c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_19 traceId=b850203e-3962-4986-[redacted]
+2026-10-08T13:51:24.262+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8a568e0b-58f6-4e6e-9d78-f8e538a9c52d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_20 traceId=8a568e0b-58f6-4e6e-9d78-f8e538a9c52d
+2026-10-08T13:51:24.265+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4ff3a1ef-d74e-4f9e-849c-d6f5ca66f947 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_21 traceId=4ff3a1ef-d74e-4f9e-849c-d6f5ca66f947
+2026-10-08T13:51:24.267+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=97a8f61e-aabe-4f24-91f2-c881c6612610 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_22 traceId=97a8f61e-aabe-4f24-91f2-c881c6612610
+2026-10-08T13:51:24.269+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8d350940-f08c-4b03-bdec-a4d45cecb495 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_23 traceId=8d350940-f08c-4b03-bdec-a4d45cecb495
+2026-10-08T13:51:24.272+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96418c65-a323-461c-b17a-017f14fa2b61 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_24 traceId=96418c65-a323-461c-b17a-017f14fa2b61
+2026-10-08T13:51:24.275+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5a560d8d-e02a-47c0-b4fc-e62d6d75e7b1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_25 traceId=5a560d8d-e02a-47c0-b4fc-e62d6d75e7b1
+2026-10-08T13:51:24.277+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7da510b9-2dc0-4a8a-9647-fb3a2ddc396b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_26 traceId=7da510b9-2dc0-4a8a-9647-fb3a2ddc396b
+2026-10-08T13:51:24.280+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6b74c55c-5cc6-4a83-8c46-f27cbdde64e8 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_27 traceId=6b74c55c-5cc6-4a83-8c46-f27cbdde64e8
+2026-10-08T13:51:24.282+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=97d9b34c-0627-4aca-a6d1-f40db573ede7 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_28 traceId=97d9b34c-0627-4aca-a6d1-f40db573ede7
+2026-10-08T13:51:24.285+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ef11f06f-9a46-44f7-ac7c-3c30f8bdbc11 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_29 traceId=[redacted]
+2026-10-08T13:51:24.287+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=76e997ac-a260-441d-bff9-64f9a5dd431e clubId= accountId= : Payment operation recovery exhausted: eventId=poison_30 traceId=76e997ac-a260-441d-bff9-64f9a5dd431e
+2026-10-08T13:51:24.290+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=de040252-e079-498d-9726-40d19042016f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_31 traceId=[redacted]
+2026-10-08T13:51:24.293+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b15cb201-8020-472e-a78c-1534677abaff clubId= accountId= : Payment operation recovery exhausted: eventId=poison_32 traceId=b15cb201-8020-472e-a78c-1534677abaff
+2026-10-08T13:51:24.295+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=24e88202-8bbb-43cd-93b1-09c8b8fa23f8 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_33 traceId=24e88202-8bbb-43cd-93b1-09c8b8fa23f8
+2026-10-08T13:51:24.298+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=316f992b-b793-4869-b85b-2265f0fc9e67 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_34 traceId=316f992b-b793-4869-b85b-2265f0fc9e67
+2026-10-08T13:51:24.300+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=443a3edc-4446-4f0b-a2b4-e20597086101 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_35 traceId=443a3edc-4446-4f0b-a2b4-e20597086101
+2026-10-08T13:51:24.303+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a9227618-cbc6-4161-af4a-6d063fb1467b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_36 traceId=a9227618-cbc6-4161-af4a-6d063fb1467b
+2026-10-08T13:51:24.305+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a15ea6ff-78fd-40c4-a66d-027b29744153 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_37 traceId=a15ea6ff-78fd-40c4-a66d-027b29744153
+2026-10-08T13:51:24.307+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a3bf90f4-d728-4556-9df3-44abdc010316 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_38 traceId=a3bf90f4-d728-4556-9df3-44abdc010316
+2026-10-08T13:51:24.310+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=346a2233-36d0-44c4-9b93-12cf1dce7c42 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_39 traceId=346a2233-36d0-44c4-9b93-12cf1dce7c42
+2026-10-08T13:51:24.312+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5755734e-7ed3-458c-b974-96ec5ea4d732 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_40 traceId=5755734e-7ed3-458c-b974-96ec5ea4d732
+2026-10-08T13:51:24.317+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b94cc788-c66f-435e-a1fc-36861213223d clubId= accountId= : Payment operation recovery exhausted: eventId=poison_41 traceId=b94cc788-c66f-435e-a1fc-36861213223d
+2026-10-08T13:51:24.319+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=39401ac5-90c8-47c3-bc24-0d07b0bcf46a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_42 traceId=39401ac5-90c8-47c3-[redacted]
+2026-10-08T13:51:24.321+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=62b4afcf-ff47-41f1-87e2-979a26ffb4d4 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_43 traceId=62b4afcf-[redacted]
+2026-10-08T13:51:24.324+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4c8b63e4-e418-471c-baa7-b9d3e29d85b5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_44 traceId=4c8b63e4-e418-471c-baa7-b9d3e29d85b5
+2026-10-08T13:51:24.327+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=43d00cf1-2371-450e-b7d9-0dd5d5d2da33 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_45 traceId=43d00cf1-2371-450e-b7d9-0dd5d5d2da33
+2026-10-08T13:51:24.329+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=98c35da9-07cd-43fb-bbae-8a599dae1258 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_46 traceId=98c35da9-07cd-43fb-bbae-8a599dae1258
+2026-10-08T13:51:24.332+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d04f46d3-7905-4c62-9b28-f0eea17ec753 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_47 traceId=d04f46d3-7905-4c62-9b28-f0eea17ec753
+2026-10-08T13:51:24.334+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0fb906d6-e56e-4f5e-bcff-bc4e57e5ebc0 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_48 traceId=0fb906d6-e56e-4f5e-bcff-bc4e57e5ebc0
+2026-10-08T13:51:24.337+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5d28a55f-7ec9-49b0-b7a7-b20228a22294 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_49 traceId=5d28a55f-7ec9-49b0-b7a7-b20228a22294
+2026-10-08T13:51:24.339+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=46fe8566-8035-41ac-9708-f7748095e42a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_50 traceId=46fe8566-8035-41ac-9708-f7748095e42a
+2026-10-08T13:51:24.342+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3b2b7ad9-b778-495e-995a-edb3162d0569 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_51 traceId=3b2b7ad9-b778-495e-995a-edb3162d0569
+2026-10-08T13:51:24.344+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=615afb34-1565-4908-9ba8-0dbe4ff23987 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_52 traceId=615afb34-1565-4908-9ba8-0dbe4ff23987
+2026-10-08T13:51:24.347+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96b4a0d6-b26e-468b-91bb-c5b4b883e2da clubId= accountId= : Payment operation recovery exhausted: eventId=poison_53 traceId=96b4a0d6-b26e-468b-91bb-c5b4b883e2da
+2026-10-08T13:51:24.349+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=18324690-d05e-4595-8173-82257dcd12c9 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_54 traceId=18324690-d05e-4595-8173-82257dcd12c9
+2026-10-08T13:51:24.351+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fbc8b4f8-7a2d-431d-8270-46a11e9b4e04 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_55 traceId=fbc8b4f8-7a2d-431d-8270-46a11e9b4e04
+2026-10-08T13:51:24.354+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f5dbb3db-4205-47ee-9163-feeaa3a55be1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_56 traceId=f5dbb3db-4205-47ee-9163-feeaa3a55be1
+2026-10-08T13:51:24.357+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b3d29063-3202-4bea-8dfb-d708e05ec010 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_57 traceId=b3d29063-3202-4bea-8dfb-d708e05ec010
+2026-10-08T13:51:24.359+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3bfadcc4-da69-4788-b167-d606c5c03a7a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_58 traceId=3bfadcc4-[redacted]
+2026-10-08T13:51:24.362+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3ec30c00-6331-4d55-99a4-5cfffcf0735e clubId= accountId= : Payment operation recovery exhausted: eventId=poison_59 traceId=3ec30c00-6331-4d55-99a4-5cfffcf0735e
+2026-10-08T13:51:24.364+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c666d8a3-405f-41e7-ae72-9a027add2980 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_60 traceId=c666d8a3-405f-41e7-[redacted]
+2026-10-08T13:51:24.367+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ec28b4ac-e397-40ec-bdc7-5cf2d2e7741e clubId= accountId= : Payment operation recovery exhausted: eventId=poison_61 traceId=[redacted]
+2026-10-08T13:51:24.369+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0af60c90-afd3-4f7f-9f2e-281e8ad72b9b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_62 traceId=0af60c90-afd3-4f7f-9f2e-281e8ad72b9b
+2026-10-08T13:51:24.371+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a58adf03-4047-4184-bc88-d7e56b8487fb clubId= accountId= : Payment operation recovery exhausted: eventId=poison_63 traceId=a58adf03-4047-4184-[redacted]
+2026-10-08T13:51:24.374+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d4118aa6-324c-4c62-b7a4-2a2d39711632 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_64 traceId=d4118aa6-324c-4c62-b7a4-2a2d39711632
+2026-10-08T13:51:24.376+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=93f2bae5-bd83-4226-9fd3-45645d3cf79b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_65 traceId=93f2bae5-[redacted]
+2026-10-08T13:51:24.379+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c918e145-adc5-4d40-adb8-25b8cf8ac4f1 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_66 traceId=c918e145-adc5-4d40-adb8-25b8cf8ac4f1
+2026-10-08T13:51:24.381+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5a841e00-c26e-4a99-99b8-39655c48acfa clubId= accountId= : Payment operation recovery exhausted: eventId=poison_67 traceId=5a841e00-c26e-4a99-99b8-39655c48acfa
+2026-10-08T13:51:24.384+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e72a6080-69c3-4d9f-8c73-4d50aff29c1f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_68 traceId=e72a6080-69c3-4d9f-8c73-4d50aff29c1f
+2026-10-08T13:51:24.386+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=66b2d6cd-b7cc-45d9-8857-1ff6d510f009 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_69 traceId=66b2d6cd-b7cc-45d9-8857-1ff6d510f009
+2026-10-08T13:51:24.388+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b36096c4-7e3a-4ed4-b908-c8df1de261c5 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_70 traceId=b36096c4-7e3a-4ed4-b908-c8df1de261c5
+2026-10-08T13:51:24.391+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4cf7690b-be91-4812-9e39-dd4d339be838 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_71 traceId=4cf7690b-[redacted]
+2026-10-08T13:51:24.394+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fb62bda2-5300-4044-8c34-9fa353e2ef5a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_72 traceId=[redacted]
+2026-10-08T13:51:24.396+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e9c96c2e-658b-40e0-ac68-b9f3c3cf577a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_73 traceId=e9c96c2e-658b-40e0-[redacted]
+2026-10-08T13:51:24.399+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c9559cf6-c9ce-4123-be72-ef8195ff191c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_74 traceId=c9559cf6-c9ce-4123-[redacted]
+2026-10-08T13:51:24.401+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4e8b5586-2b5e-43ed-a2ad-56a6ce19e72b clubId= accountId= : Payment operation recovery exhausted: eventId=poison_75 traceId=4e8b5586-2b5e-43ed-a2ad-56a6ce19e72b
+2026-10-08T13:51:24.403+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9dbd7697-72c9-4485-9615-e97996d39bcc clubId= accountId= : Payment operation recovery exhausted: eventId=poison_76 traceId=9dbd7697-72c9-4485-9615-e97996d39bcc
+2026-10-08T13:51:24.406+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c4cce869-f444-498d-b02f-697241bec0cf clubId= accountId= : Payment operation recovery exhausted: eventId=poison_77 traceId=c4cce869-f444-498d-b02f-697241bec0cf
+2026-10-08T13:51:24.408+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7e3535dd-59c7-4943-a1c1-9f73892cbc03 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_78 traceId=7e3535dd-59c7-4943-a1c1-9f73892cbc03
+2026-10-08T13:51:24.411+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b6b227d9-ad75-473e-8d9f-b297a8e353a0 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_79 traceId=b6b227d9-[redacted]
+2026-10-08T13:51:24.413+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3e5ec0c8-b98e-4b14-a7c7-ff54a9bb16b9 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_80 traceId=3e5ec0c8-b98e-4b14-a7c7-ff54a9bb16b9
+2026-10-08T13:51:24.416+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a24856a0-11c5-4aed-b816-9ae328664d02 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_81 traceId=a24856a0-11c5-4aed-b816-9ae328664d02
+2026-10-08T13:51:24.418+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d7ad67f9-1560-46c9-bff5-e9af459bb4e9 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_82 traceId=d7ad67f9-1560-46c9-bff5-e9af459bb4e9
+2026-10-08T13:51:24.421+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=93246554-076a-4eab-9512-308435cfc5e4 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_83 traceId=93246554-076a-4eab-9512-308435cfc5e4
+2026-10-08T13:51:24.423+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9183be01-4132-4650-a8c8-a87f6b45082f clubId= accountId= : Payment operation recovery exhausted: eventId=poison_84 traceId=9183be01-4132-4650-a8c8-a87f6b45082f
+2026-10-08T13:51:24.426+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b697ee7-7919-4648-b82f-63d3aa64a9bb clubId= accountId= : Payment operation recovery exhausted: eventId=poison_85 traceId=8b697ee7-7919-4648-b82f-63d3aa64a9bb
+2026-10-08T13:51:24.428+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f197f194-0979-4b81-85fc-3ce66e2ab850 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_86 traceId=f197f194-0979-4b81-85fc-3ce66e2ab850
+2026-10-08T13:51:24.431+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b80d7d91-398d-4390-bcb9-5d3a388d8543 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_87 traceId=b80d7d91-398d-4390-bcb9-5d3a388d8543
+2026-10-08T13:51:24.433+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=30bab690-9c02-4a91-a04e-59647ea90b84 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_88 traceId=30bab690-9c02-4a91-a04e-59647ea90b84
+2026-10-08T13:51:24.436+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=98b91142-128c-4a73-bf0b-2b32afd082f6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_89 traceId=98b91142-128c-4a73-bf0b-2b32afd082f6
+2026-10-08T13:51:24.438+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f8eb1bc5-b5df-4ae4-bc11-0de78506ba88 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_90 traceId=f8eb1bc5-b5df-4ae4-[redacted]
+2026-10-08T13:51:24.440+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b2748be0-05d3-40b7-8b66-87e8ea939ae6 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_91 traceId=b2748be0-05d3-40b7-8b66-87e8ea939ae6
+2026-10-08T13:51:24.443+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b1ce96e8-5e7c-463d-b1a5-5660ac248082 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_92 traceId=b1ce96e8-5e7c-463d-b1a5-5660ac248082
+2026-10-08T13:51:24.445+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d619fb60-6e57-461c-9228-23b6316c3b0c clubId= accountId= : Payment operation recovery exhausted: eventId=poison_93 traceId=d619fb60-6e57-461c-9228-23b6316c3b0c
+2026-10-08T13:51:24.447+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d1e84995-b46d-44e9-b67d-23c467776b29 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_94 traceId=d1e84995-b46d-44e9-b67d-23c467776b29
+2026-10-08T13:51:24.450+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4c0cdabb-2882-4971-95e3-bbbb1d12e618 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_95 traceId=4c0cdabb-2882-4971-95e3-bbbb1d12e618
+2026-10-08T13:51:24.452+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=82cfbb99-ad73-4e81-bd5f-00fedf784fae clubId= accountId= : Payment operation recovery exhausted: eventId=poison_96 traceId=82cfbb99-[redacted]
+2026-10-08T13:51:24.454+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=91bd9202-9621-4b56-991f-c1bc327f490a clubId= accountId= : Payment operation recovery exhausted: eventId=poison_97 traceId=91bd9202-9621-4b56-991f-c1bc327f490a
+2026-10-08T13:51:24.457+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e9ac3b50-de15-4390-a856-750b77c042eb clubId= accountId= : Payment operation recovery exhausted: eventId=poison_98 traceId=e9ac3b50-[redacted]
+2026-10-08T13:51:24.460+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=46e283e8-bf88-4e62-908d-6039e833b792 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_99 traceId=46e283e8-[redacted]
+2026-10-08T13:51:24.465+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ebe78fed-51c6-4b9b-9dcc-16ba329b3487 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_0 traceId=ebe78fed-51c6-4b9b-9dcc-16ba329b3487
+2026-10-08T13:51:24.470+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b7586c75-b201-4a4c-abbd-d493d9737ad2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_1 traceId=b7586c75-b201-4a4c-abbd-d493d9737ad2
+2026-10-08T13:51:24.474+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a0f64e36-9ffb-406c-b345-35a4dfd207dc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_2 traceId=a0f64e36-9ffb-406c-b345-35a4dfd207dc
+2026-10-08T13:51:24.478+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b8f00571-ad37-432f-9983-d4cf466f50dd clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_3 traceId=b8f00571-[redacted]
+2026-10-08T13:51:24.483+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cd4c46b4-9ce3-4dc2-af03-8f936001a6b0 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_4 traceId=cd4c46b4-9ce3-4dc2-[redacted]
+2026-10-08T13:51:24.487+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6a7c3c49-4237-46a8-982a-8e4d2fd5b815 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_5 traceId=6a7c3c49-4237-46a8-982a-8e4d2fd5b815
+2026-10-08T13:51:24.492+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=59bc13f4-b068-4703-b7ba-6ad0bb3ba5a4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_6 traceId=59bc13f4-b068-4703-b7ba-6ad0bb3ba5a4
+2026-10-08T13:51:24.496+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=184c94b3-4ebd-41b1-9321-66f6f11e3275 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_7 traceId=184c94b3-4ebd-41b1-9321-66f6f11e3275
+2026-10-08T13:51:24.500+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=46156c69-6229-4b20-b24f-a006e5693e8d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_8 traceId=46156c69-6229-4b20-b24f-a006e5693e8d
+2026-10-08T13:51:24.505+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=07b2cd37-cdfc-46f0-ac6f-ad6e9c35284b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_9 traceId=07b2cd37-cdfc-46f0-ac6f-ad6e9c35284b
+2026-10-08T13:51:24.509+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=28b1a562-1d7d-4595-9cc4-e5723da8807d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_10 traceId=28b1a562-1d7d-4595-9cc4-e5723da8807d
+2026-10-08T13:51:24.514+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=14735eaf-dcd1-4a85-9f6f-9eed4ace7bda clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_11 traceId=14735eaf-dcd1-4a85-9f6f-9eed4ace7bda
+2026-10-08T13:51:24.518+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3009cd97-218b-48b6-aaed-1c8c75111e9d clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_12 traceId=3009cd97-218b-48b6-aaed-1c8c75111e9d
+2026-10-08T13:51:24.522+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d0ecf71e-ad7f-459b-b39f-303651bd8882 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_13 traceId=d0ecf71e-ad7f-459b-b39f-303651bd8882
+2026-10-08T13:51:24.526+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1ae57a4d-43e5-45de-89cf-73ae4c0a6982 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_14 traceId=1ae57a4d-43e5-45de-89cf-73ae4c0a6982
+2026-10-08T13:51:24.530+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b7399ca-cf04-45a4-a9f3-a6f082998092 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_15 traceId=8b7399ca-[redacted]
+2026-10-08T13:51:24.534+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4044fd2f-eead-4c16-a26e-2345e6fd0dbd clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_16 traceId=4044fd2f-eead-4c16-a26e-2345e6fd0dbd
+2026-10-08T13:51:24.538+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ad7b79d0-88d5-4df3-b166-4017cf293d4f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_17 traceId=ad7b79d0-88d5-4df3-b166-4017cf293d4f
+2026-10-08T13:51:24.542+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b964af32-8dd5-489c-9900-7a9484c332dc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_18 traceId=b964af32-8dd5-489c-9900-7a9484c332dc
+2026-10-08T13:51:24.547+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=83b0aa0d-50e3-4fa8-9fc5-aa0564b8336c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_19 traceId=83b0aa0d-50e3-4fa8-9fc5-aa0564b8336c
+2026-10-08T13:51:24.551+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96209af6-b9d5-406e-8259-16e3f391f984 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_20 traceId=96209af6-b9d5-406e-8259-16e3f391f984
+2026-10-08T13:51:24.555+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=33f81381-ab86-4714-97c3-474d8eb0356f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_21 traceId=33f81381-[redacted]
+2026-10-08T13:51:24.559+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=422b7a90-bf44-4520-b83a-c54c7d6a7221 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_22 traceId=422b7a90-[redacted]
+2026-10-08T13:51:24.563+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2caa7b19-eb48-4c57-a53a-973a27e7bce6 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_23 traceId=2caa7b19-[redacted]
+2026-10-08T13:51:24.567+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7690949d-1ed1-4345-803b-1d07f4a4f422 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_24 traceId=7690949d-1ed1-4345-803b-1d07f4a4f422
+2026-10-08T13:51:24.571+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0169d16b-2256-4b38-9c10-894aaefa651c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_25 traceId=0169d16b-2256-4b38-9c10-894aaefa651c
+2026-10-08T13:51:24.576+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1158feae-23bc-457c-a3b9-134a150fb43a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_26 traceId=1158feae-23bc-457c-a3b9-134a150fb43a
+2026-10-08T13:51:24.580+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=02c6edd5-31f2-4701-bb67-bcb296917ba9 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_27 traceId=02c6edd5-31f2-4701-[redacted]
+2026-10-08T13:51:24.584+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c060fcaa-8b6a-413f-b8a9-e0892cfe956e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_28 traceId=c060fcaa-8b6a-413f-b8a9-e0892cfe956e
+2026-10-08T13:51:24.589+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7948c09d-54a6-45bf-a75e-c4ba9ca8a197 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_29 traceId=7948c09d-54a6-45bf-a75e-c4ba9ca8a197
+2026-10-08T13:51:24.593+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2e0862f0-4017-4795-b508-d44fa05bf193 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_30 traceId=2e0862f0-4017-4795-b508-d44fa05bf193
+2026-10-08T13:51:24.599+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9fd61a85-016d-4681-ae9c-bd612708353a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_31 traceId=9fd61a85-016d-4681-ae9c-bd612708353a
+2026-10-08T13:51:24.604+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9aefc9d7-c2d9-444a-b8d8-af9e76f5c6af clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_32 traceId=9aefc9d7-c2d9-444a-b8d8-af9e76f5c6af
+2026-10-08T13:51:24.608+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2fb157c4-ccfa-4d14-96c9-f97c965f4c50 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_33 traceId=2fb157c4-ccfa-4d14-96c9-f97c965f4c50
+2026-10-08T13:51:24.612+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=41e7dc17-6c89-4ae3-a80a-c74d7470cbba clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_34 traceId=41e7dc17-6c89-4ae3-a80a-c74d7470cbba
+2026-10-08T13:51:24.617+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=197e4f75-0fac-40b6-aae7-d6858c768581 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_35 traceId=197e4f75-0fac-40b6-aae7-d6858c768581
+2026-10-08T13:51:24.621+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=434f3368-9118-4ac8-9156-17afbbc7bf8e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_36 traceId=434f3368-9118-4ac8-9156-17afbbc7bf8e
+2026-10-08T13:51:24.626+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5d01df68-17c8-4223-9855-185b76492259 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_37 traceId=5d01df68-17c8-4223-9855-185b76492259
+2026-10-08T13:51:24.631+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cf27ccc6-8ba9-440b-ba8b-abf416e453b4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_38 traceId=[redacted]
+2026-10-08T13:51:24.635+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1ad5d0aa-fefe-4d8c-9189-529b1df65e85 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_39 traceId=1ad5d0aa-fefe-4d8c-9189-529b1df65e85
+2026-10-08T13:51:24.640+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6fa133ae-9152-4ee8-ab95-bd80ac52bbc2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_40 traceId=6fa133ae-9152-4ee8-[redacted]
+2026-10-08T13:51:24.644+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e39a0bea-9e46-4eef-a770-9c9ec20bd431 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_41 traceId=e39a0bea-9e46-4eef-a770-9c9ec20bd431
+2026-10-08T13:51:24.649+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b9b95c83-c6a4-4db7-9cfe-b94d8fe2a5e2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_42 traceId=b9b95c83-c6a4-4db7-9cfe-b94d8fe2a5e2
+2026-10-08T13:51:24.654+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c302f195-4ad7-41a9-8b1a-47cea9d98172 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_43 traceId=c302f195-4ad7-41a9-8b1a-47cea9d98172
+2026-10-08T13:51:24.660+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a6189b1a-6085-4588-b228-e1835d59d7f2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_44 traceId=a6189b1a-6085-4588-b228-e1835d59d7f2
+2026-10-08T13:51:24.668+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b3ffa8c-c985-4466-b4c1-0158f46610e1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_45 traceId=8b3ffa8c-c985-4466-b4c1-0158f46610e1
+2026-10-08T13:51:24.678+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=137e784f-d557-441b-b23a-620a47c10aae clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_46 traceId=137e784f-d557-441b-b23a-620a47c10aae
+2026-10-08T13:51:24.687+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=44b0b3fb-346a-4665-bc83-d0839382d8df clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_47 traceId=44b0b3fb-346a-4665-[redacted]
+2026-10-08T13:51:24.695+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=10c1c00e-cd3c-464b-9588-79976cef8ab4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_48 traceId=10c1c00e-cd3c-464b-9588-79976cef8ab4
+2026-10-08T13:51:24.707+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=55f3757b-1203-45be-9071-a5496aeb1a82 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_49 traceId=55f3757b-1203-45be-9071-a5496aeb1a82
+2026-10-08T13:51:24.712+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=18e66aa2-f96b-48ed-a7a6-79c03f48a3bc clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_50 traceId=18e66aa2-f96b-48ed-a7a6-79c03f48a3bc
+2026-10-08T13:51:24.717+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9dea040d-ec0b-4f68-9d6e-923980fbfb73 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_51 traceId=9dea040d-ec0b-4f68-9d6e-923980fbfb73
+2026-10-08T13:51:24.722+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=99f883c3-d74b-4633-8d16-45a91fda0fab clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_52 traceId=99f883c3-d74b-4633-8d16-45a91fda0fab
+2026-10-08T13:51:24.728+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=142caf89-ccaf-4de5-8c5f-712bc3c904f1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_53 traceId=142caf89-ccaf-4de5-8c5f-712bc3c904f1
+2026-10-08T13:51:24.733+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b5f11f8f-9fc0-4423-9985-7785b5c91504 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_54 traceId=b5f11f8f-9fc0-4423-9985-7785b5c91504
+2026-10-08T13:51:24.739+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b6d384fe-519a-4290-92b8-cba870f326a2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_55 traceId=b6d384fe-519a-4290-92b8-cba870f326a2
+2026-10-08T13:51:24.747+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f8f87100-4854-47f3-adc0-4e8f4208b1c7 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_56 traceId=f8f87100-4854-47f3-adc0-4e8f4208b1c7
+2026-10-08T13:51:24.752+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=71b05d6f-ce19-4f24-acc0-cc598dc53bf2 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_57 traceId=71b05d6f-[redacted]
+2026-10-08T13:51:24.757+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4d173452-b7bf-47c2-9625-8a1320c8b33c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_58 traceId=4d173452-b7bf-47c2-9625-8a1320c8b33c
+2026-10-08T13:51:24.762+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1051ca44-7a8a-4fbd-996f-e1d7f96fbb32 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_59 traceId=1051ca44-7a8a-4fbd-996f-e1d7f96fbb32
+2026-10-08T13:51:24.767+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fe0484f7-6996-4a4e-9fd1-b357354c9931 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_60 traceId=[redacted]
+2026-10-08T13:51:24.772+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=35b61024-11f5-4bd3-9227-e05895815f68 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_61 traceId=35b61024-11f5-4bd3-9227-e05895815f68
+2026-10-08T13:51:24.776+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d3480f37-9211-4b57-afe7-343e0d2cc239 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_62 traceId=d3480f37-9211-4b57-afe7-343e0d2cc239
+2026-10-08T13:51:24.781+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0b31a17b-a787-469c-91cc-8425907e00c4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_63 traceId=0b31a17b-a787-469c-91cc-8425907e00c4
+2026-10-08T13:51:24.786+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c853d839-a0b9-4007-aa83-34ea096a3446 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_64 traceId=c853d839-a0b9-4007-[redacted]
+2026-10-08T13:51:24.790+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96e6469d-4386-4e03-9c3b-f61fe496555c clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_65 traceId=96e6469d-4386-4e03-9c3b-f61fe496555c
+2026-10-08T13:51:24.795+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c8c31b14-aed2-46f9-9f72-0db2a00ed6ca clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_66 traceId=c8c31b14-aed2-46f9-9f72-0db2a00ed6ca
+2026-10-08T13:51:24.800+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=52232c04-599b-4576-99ec-0ecc1cd8394b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_67 traceId=52232c04-599b-4576-99ec-0ecc1cd8394b
+2026-10-08T13:51:24.804+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cdcb1d5e-110b-470c-96eb-7598cb6e025f clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_68 traceId=cdcb1d5e-110b-470c-96eb-7598cb6e025f
+2026-10-08T13:51:24.809+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=71cb976c-a6e8-42b1-b31a-54a981a72e26 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_69 traceId=71cb976c-a6e8-42b1-b31a-54a981a72e26
+2026-10-08T13:51:24.813+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7c10b861-9ee7-4ef8-930e-512d3a538482 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_70 traceId=7c10b861-9ee7-4ef8-930e-512d3a538482
+2026-10-08T13:51:24.818+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ec443fb0-fa0f-40fd-a6c3-5fb23de9be2a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_71 traceId=[redacted]
+2026-10-08T13:51:24.822+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d6a435f0-2193-4415-8336-f4f9a62fe18a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_72 traceId=d6a435f0-2193-4415-8336-f4f9a62fe18a
+2026-10-08T13:51:24.827+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=498f10d2-b29d-4710-add1-c795f97bca86 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_73 traceId=498f10d2-b29d-4710-add1-c795f97bca86
+2026-10-08T13:51:24.833+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=58e9bb04-5c02-4c5b-9255-d050b505520a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_74 traceId=58e9bb04-5c02-4c5b-9255-d050b505520a
+2026-10-08T13:51:24.837+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f316cac0-a8fc-45b2-b843-2deeedded728 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_75 traceId=f316cac0-a8fc-45b2-b843-2deeedded728
+2026-10-08T13:51:24.842+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=51a6b0b3-5e3a-41d2-b46d-f5184b357216 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_76 traceId=51a6b0b3-5e3a-41d2-b46d-f5184b357216
+2026-10-08T13:51:24.846+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1ef7fe97-0a1e-4e3c-a436-eca9e156e4b8 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_77 traceId=1ef7fe97-0a1e-4e3c-a436-eca9e156e4b8
+2026-10-08T13:51:24.851+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ef69c4cc-4a95-4dd5-a32f-271a26267dab clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_78 traceId=[redacted]
+2026-10-08T13:51:24.856+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=377ae7b5-d4ec-483b-8626-2cd231536f68 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_79 traceId=377ae7b5-d4ec-483b-8626-2cd231536f68
+2026-10-08T13:51:24.860+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=76751526-d4bc-43af-8a9a-f923ed6e242b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_80 traceId=76751526-d4bc-43af-8a9a-f923ed6e242b
+2026-10-08T13:51:24.865+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e4c047bf-4328-48d4-9125-baf66f890169 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_81 traceId=e4c047bf-4328-48d4-9125-baf66f890169
+2026-10-08T13:51:24.869+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5a4c6c76-6cfb-4f20-aacc-1144068f0a74 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_82 traceId=5a4c6c76-6cfb-4f20-aacc-1144068f0a74
+2026-10-08T13:51:24.873+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c94711ee-8f0d-4489-88ec-8151ec4ba224 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_83 traceId=c94711ee-8f0d-4489-88ec-8151ec4ba224
+2026-10-08T13:51:24.877+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e66ab4ab-ea5c-4c68-a89c-5c4bfc13cfb8 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_84 traceId=e66ab4ab-ea5c-4c68-a89c-5c4bfc13cfb8
+2026-10-08T13:51:24.882+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f38f81f5-ac54-4f72-9831-366b02e81548 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_85 traceId=f38f81f5-[redacted]
+2026-10-08T13:51:24.886+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=816b77fe-83e7-4836-9d2f-abd67d2a915a clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_86 traceId=816b77fe-83e7-4836-9d2f-abd67d2a915a
+2026-10-08T13:51:24.892+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e14f0b41-eec9-4054-81c2-6b2d3b7c51e4 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_87 traceId=e14f0b41-eec9-4054-81c2-6b2d3b7c51e4
+2026-10-08T13:51:24.896+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=be99a3e9-2204-41e7-b071-a3ce9e06a2a1 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_88 traceId=[redacted]
+2026-10-08T13:51:24.901+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c794c519-63d4-4f4c-9a37-b36d702bf7aa clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_89 traceId=c794c519-63d4-4f4c-9a37-b36d702bf7aa
+2026-10-08T13:51:24.907+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9846a229-7b57-4686-bbbf-f3fa97ec232b clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_90 traceId=9846a229-7b57-4686-bbbf-f3fa97ec232b
+2026-10-08T13:51:24.911+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=05a3c621-6cb5-4676-a4dd-ad41c5620279 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_91 traceId=05a3c621-6cb5-4676-a4dd-ad41c5620279
+2026-10-08T13:51:24.915+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=066ede6d-d743-4380-904d-6abaff320393 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_92 traceId=066ede6d-d743-4380-904d-6abaff320393
+2026-10-08T13:51:24.919+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d13f53d2-67fc-4dda-8be4-81be258160b7 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_93 traceId=d13f53d2-67fc-4dda-8be4-81be258160b7
+2026-10-08T13:51:24.923+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ef0b0c03-0574-4f94-9c52-7fc5f2c045fe clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_94 traceId=ef0b0c03-0574-4f94-9c52-7fc5f2c045fe
+2026-10-08T13:51:24.928+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fc4b1ebf-5b21-40f7-a834-3ee1b0f248d6 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_95 traceId=fc4b1ebf-5b21-40f7-a834-3ee1b0f248d6
+2026-10-08T13:51:24.932+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=51e47fdd-720e-4fe4-92eb-4a590a3f3f60 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_96 traceId=51e47fdd-720e-4fe4-92eb-4a590a3f3f60
+2026-10-08T13:51:24.936+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9664bf08-6a71-4245-a6fc-398565bfb803 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_97 traceId=9664bf08-6a71-4245-a6fc-398565bfb803
+2026-10-08T13:51:24.940+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=500e4652-e7be-42ff-82ff-2a74d6a25c06 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_98 traceId=500e4652-e7be-42ff-82ff-2a74d6a25c06
+2026-10-08T13:51:24.944+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bf5ca851-eb17-48b9-a7b1-fa787b106f87 clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_99 traceId=bf5ca851-[redacted]
+2026-10-08T13:51:24.947+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5290f091-5521-4497-8cfe-bc4ba1d73057 clubId= accountId= : Payment operation recovery exhausted: eventId=poison_100 traceId=5290f091-5521-4497-8cfe-bc4ba1d73057
+2026-10-08T13:51:24.952+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c15f95a6-963e-438b-a884-4a83ccc529ed clubId= accountId= : Stripe event recovery exhausted: eventId=evt_poison_100 traceId=c15f95a6-963e-438b-a884-4a83ccc529ed
+E5-T07 outbox backlog discarded before CardPaymentsIT: 103 PENDING records (more than one dispatch() batch)
+2026-10-08T13:51:25.738+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a0fc19e2-08d0-4c67-976a-5f6f6e7a9f68 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_point6 traceId=a0fc19e2-08d0-4c67-976a-5f6f6e7a9f68
+2026-10-08T13:51:25.994+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId= clubId= accountId= : Late provider completion to refund: the booking was cancelled checkoutSessionId=fbd57753-8a1b-4e27-955e-4fd0a97ff324 bookingId=r3-booking providerPaymentId=pi_r3_booking clubId=bill-a
+2026-10-08T13:51:26.089+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId= clubId= accountId= : Late provider completion to refund: the booking was cancelled checkoutSessionId=385e5783-53f6-496d-8f1b-57b340abb0ec bookingId=r3-booking providerPaymentId=pi_r3_booking clubId=bill-a
+2026-10-08T13:51:26.189+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId= clubId= accountId= : Late provider completion to refund: the booking was cancelled checkoutSessionId=45b9fad3-3e17-422c-bde6-b35ee2226c0c bookingId=r3-booking providerPaymentId=pi_r3_booking clubId=bill-a
+2026-10-08T13:51:26.280+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId= clubId= accountId= : Late provider completion to refund: the booking was cancelled checkoutSessionId=dc6f7638-9a9b-4244-[redacted]=r3-booking providerPaymentId=pi_r3_booking clubId=bill-a
+2026-10-08T13:51:27.808+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2aab07a8-a7f8-47fe-9b07-2275c4630211 clubId= accountId= : Charge awaiting webhook recovery exhausted: eventId=e84a7e59-87fb-4321-88a6-eba38f62c278 traceId=2aab07a8-a7f8-47fe-9b07-2275c4630211
+2026-10-08T13:51:27.809+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96d936a8-908d-4b2f-aa90-c5dd7a79997e clubId= accountId= : Payment operation recovery exhausted: eventId=e84a7e59-87fb-4321-88a6-eba38f62c278 traceId=96d936a8-908d-4b2f-[redacted]
+2026-10-08T13:51:27.948+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ab43c700-2525-415c-b7ab-d6e3ddb685f1 clubId= accountId= : Charge awaiting webhook recovery exhausted: eventId=6a38a743-926d-43b0-b0b1-f6c39420820f traceId=[redacted]
+2026-10-08T13:51:27.949+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7cb6b5e7-d071-4661-8b43-bd0ecea11d3c clubId= accountId= : Payment operation recovery exhausted: eventId=6a38a743-926d-43b0-b0b1-f6c39420820f traceId=7cb6b5e7-d071-4661-8b43-bd0ecea11d3c
+2026-10-08T13:51:28.441+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=649c74e6-54c1-4d5a-8446-9080b3184614 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_reverse traceId=649c74e6-54c1-4d5a-8446-9080b3184614
+2026-10-08T13:51:28.879+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f616c4aa-41d7-4d0b-94fa-cd0e7240dd07 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_point3 traceId=f616c4aa-41d7-4d0b-94fa-cd0e7240dd07
+[ERROR] Tests run: 52, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 18.94 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CardPaymentsIT
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown(boolean, CapturedOutput)[1] -- Time elapsed: 0.140 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: "FAILED"
+ but was: "COLLECTING"
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown(CardPaymentsIT.java:648)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-08T13:51:28.889+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.LifecycleIT]: LifecycleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-08T13:51:28.943+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.LifecycleIT
+PackBalance movement=OPEN delta=10 id=[truncated]
+PackBalance movement=CONSUME delta=-1 id=[truncated]
+PackBalance movement=REFUND delta=1 id=[truncated]
+PackBalance movement=EXPIRE delta=0 id=[truncated]
+PackBalance movement=ADJUST delta=1 id=[truncated]
+[ERROR] Tests run: 44, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 7.933 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.LifecycleIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_approvalCancelsAllFourKindsAndRefundsOnlyTheOwnersPack -- Time elapsed: 0.362 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"bca0bb66-520e-4e54-9688-bb3de2716e5d"}]
+expected: 201
+ but was: 404
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_approvalCancelsAllFourKindsAndRefundsOnlyTheOwnersPack(LifecycleIT.java:73)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch(boolean)[1] -- Time elapsed: 0.171 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"7885ce47-03ba-442f-a1b8-f809ef1f6709"}]
+expected: 201
+ but was: 404
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch(LifecycleIT.java:475)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch(boolean)[2] -- Time elapsed: 0.162 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"d5112a5c-6555-498c-8577-847e24f6fcbf"}]
+expected: 201
+ but was: 404
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch(LifecycleIT.java:475)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_aPeriodThatStartsAtOnceLeavesPastSessionsAlone -- Time elapsed: 0.101 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"25a51107-4e72-4e92-b773-ba9f05fbc299"}]
+expected: 201
+ but was: 404
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_09_aPeriodThatStartsAtOnceLeavesPastSessionsAlone(LifecycleIT.java:99)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth -- Time elapsed: 0.238 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[POST /leave-requests/85daf135-75ab-4a53-ac64-d5effce0ab80/decision {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"afe5469a-4a65-43bb-be47-4a4ed03b5a27"}]
+expected: 200
+ but was: 404
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.LifecycleIT.T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth(LifecycleIT.java:172)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   LifecycleIT.T_13_09_aPeriodThatStartsAtOnceLeavesPastSessionsAlone:99->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"25a51107-4e72-4e92-b773-ba9f05fbc299"}]
+expected: 201
+ but was: 404
+[ERROR]   LifecycleIT.T_13_09_approvalCancelsAllFourKindsAndRefundsOnlyTheOwnersPack:73->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"bca0bb66-520e-4e54-9688-bb3de2716e5d"}]
+expected: 201
+ but was: 404
+[ERROR]   LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch:475->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"7885ce47-03ba-442f-a1b8-f809ef1f6709"}]
+expected: 201
+ but was: 404
+[ERROR]   LifecycleIT.T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch:475->BookingFixtures.call:131->BookingFixtures.call:138 [POST /inactivity-periods {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"d5112a5c-6555-498c-8577-847e24f6fcbf"}]
+expected: 201
+ but was: 404
+[ERROR]   LifecycleIT.T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth:172->BookingFixtures.call:131->BookingFixtures.call:138 [POST /leave-requests/85daf135-75ab-4a53-ac64-d5effce0ab80/decision {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"afe5469a-4a65-43bb-be47-4a4ed03b5a27"}]
+expected: 200
+ but was: 404
+[ERROR]   CardPaymentsIT.T_12_15_round3_exhaustedChargeResolvesOnlyWhenNoIntentIsKnown:648
+expected: "FAILED"
+ but was: "COLLECTING"
+[ERROR] Tests run: 96, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

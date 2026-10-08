@@ -136,9 +136,9 @@ body: Laura Serra Puig has asked for an inactivity period from September 2026 to
 
 ## N-18b MEMBER
 title: Inactivity approved
-body: The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.
-email.text: Inactivity approved⏎⏎The club has approved the inactivity period from September 2026 to October 2026. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 8925eb44dbe6f9ed
+body: The club has approved your inactivity period from September 2026 to October 2026. Inactivity fee: €15.00 for the first month and €10.00 for each following month. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.
+email.text: Inactivity approved⏎⏎The club has approved your inactivity period from September 2026 to October 2026. Inactivity fee: €15.00 for the first month and €10.00 for each following month. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience! 3 bookings cancelled.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 1c19c6bde754fc5c
 
 ## N-18c MEMBER
 title: You are active again

@@ -122,10 +122,10 @@ public class CardPayments implements CardChargingPort {
             });
         }, () -> {
             var collection = collections.findById(operation.providerRef()).orElseThrow();
-            if (collection.providerRef() == null && returned.get() == null) {
+            if (collection.providerRef() == null && returned.get() == null && !operations.submissionUncertain(operationId)) {
                 resolve(collection, false, "PROVIDER_UNAVAILABLE", clock.instant());
             } else {
-                if (collection.providerRef() == null) { collections.submitted(collection.id(), returned.get().paymentIntentId()); }
+                if (collection.providerRef() == null && returned.get() != null) { collections.submitted(collection.id(), returned.get().paymentIntentId()); }
                 // D6 keeps this amount outstanding: count - charged - failed. A webhook alone resolves the uncertain capture.
                 progress(invoice(collection.invoiceId()).runId());
                 retries.warn("Charge awaiting webhook", operationId);
@@ -171,7 +171,9 @@ public class CardPayments implements CardChargingPort {
         var rows = invoices.forRun(runId).stream().filter(i -> i.paymentMethod().type() == PaymentMethodType.CARD).toList();
         int paid = (int) rows.stream().filter(i -> i.status() == InvoiceStatus.PAID).count();
         int failed = (int) rows.stream().filter(i -> i.status() == InvoiceStatus.FAILED).count();
-        boolean done = rows.stream().noneMatch(i -> i.status() == InvoiceStatus.PENDING || i.status() == InvoiceStatus.COLLECTING);
+        boolean done = rows.stream().flatMap(i -> collections.forInvoice(i.id()).stream())
+                .filter(c -> c.provider() == CollectionProvider.STRIPE)
+                .noneMatch(c -> c.status() == CollectionStatus.CREATED || c.status() == CollectionStatus.SUBMITTED);
         if (runs.progress(runId, paid, failed, done, clock.instant()) && done) {
             events.publish(BillingEvent.Kind.BillingRunCompleted, runId, Map.of("runId", runId, "period", runs.findById(runId).orElseThrow().period()));
         }

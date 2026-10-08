@@ -30,10 +30,12 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     public void requireAction() { outcomes.add("requires_action"); }
     public List<Call> calls() { synchronized (calls) { return List.copyOf(calls); } }
     private java.util.function.BiConsumer<Call, RefundResult> beforeRefundReturn = (call, result) -> {};
+    private java.util.function.Consumer<OffSessionResult> afterCharge = result -> {};
+    public void afterCharge(java.util.function.Consumer<OffSessionResult> callback) { afterCharge = callback; }
     private String refundStatus = "succeeded";
     public void refundStatus(String status) { refundStatus = status; }
     public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
-    public void reset() { calls.clear(); results.clear(); outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
+    public void reset() { calls.clear(); results.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);
@@ -44,12 +46,14 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     }
     @Override public OffSessionResult createOffSessionPayment(OffSessionRequest request) {
         String club = TenantContext.require(), key = club + ":charge:" + request.idempotencyKey();
-        return (OffSessionResult) results.computeIfAbsent(key, ignored -> {
+        var result = (OffSessionResult) results.computeIfAbsent(key, ignored -> {
             calls.add(new Call(club, "charge", request.idempotencyKey(), request));
             String outcome = outcomes.poll(); if (outcome == null) { outcome = "succeeded"; }
             return new OffSessionResult("pi_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
                     outcome.startsWith("failed:") ? "failed" : outcome, outcome.startsWith("failed:") ? outcome.substring(7) : null);
         });
+        afterCharge.accept(result);
+        return result;
     }
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason) {
         return refund(chargeId, amount, idempotencyKey, reason, null);

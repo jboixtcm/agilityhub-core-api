@@ -51,8 +51,9 @@ class LifecycleIT extends BookingFixtures {
         mongo.save(new Document("_id", "s13-training").append("clubId", CLUB).append("memberId", "s08-m-laura").append("dogId", "s08-d-duna")
                 .append("ringId", "s08-ring").append("startsAt", at).append("endsAt", end).append("slotId", "s13-slot").append("seatIndex", 0)
                 .append("weekStart", at).append("state", "ACTIVE").append("origin", "APP").append("version", 0L).append("createdAt", Date.from(NOW)), "training_bookings");
+        session("s13-wait", date + "T17:00", 3, List.of());
         mongo.save(new Document("_id", "s13-wait").append("clubId", CLUB).append("memberId", "s08-m-laura").append("dogId", "s08-d-rock")
-                .append("classSessionId", "s08-s-fri").append("classStartsAt", at).append("state", "ACTIVE").append("position", 1)
+                .append("classSessionId", "s08-s13-wait").append("classStartsAt", at).append("state", "ACTIVE").append("position", 1)
                 .append("joinedAt", Date.from(NOW)).append("version", 0L), "waitlist_entries");
         mongo.save(new Document("_id", "s13-activity").append("clubId", CLUB).append("date", date).append("startTime", "17:00").append("endTime", "18:00")
                 .append("startsAt", at).append("endsAt", end).append("state", "PUBLISHED").append("type", "OTHER")
@@ -68,7 +69,8 @@ class LifecycleIT extends BookingFixtures {
         var inside = book(as("laura"), "thu", "s08-d-duna");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("planId", "s13-monthly"), "members");
         var outside = book(as("laura"), "mon", "s08-d-rock"); var family = book(as("joan"), "thu", "s08-d-toby");
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(outside.path("id").asText())), new Update().set("classStartsAt", Date.from(local("2026-11-02T18:50"))), "bookings");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-mon")), new Update().set("startsAt", Date.from(local("2026-11-02T18:50")))
+                .set("endsAt", Date.from(local("2026-11-02T19:50"))).set("date", "2026-11-02"), "class_sessions");
         otherBookings("2026-10-10");
         var result = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
         assertThat(result.path("cancelledBookings")).hasSize(4);
@@ -166,7 +168,8 @@ class LifecycleIT extends BookingFixtures {
     }
     @Test void T_13_16_approvedLeaveClosesFutureInactivityAndFixesTheLastInvoiceMonth() throws Exception {
         var before = book(as("laura"), "thu", "s08-d-duna"); var after = book(as("laura"), "mon", "s08-d-rock");
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(after.path("id").asText())), new Update().set("classStartsAt", Date.from(local("2026-11-02T18:50"))), "bookings");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-mon")), new Update().set("startsAt", Date.from(local("2026-11-02T18:50")))
+                .set("endsAt", Date.from(local("2026-11-02T19:50"))).set("date", "2026-11-02"), "class_sessions");
         otherBookings("2026-11-03");
         var period = requestPeriod("2026-12", null); var leave = requestLeave("2026-10-31");
         call(POST, "/leave-requests/" + leave + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
@@ -440,4 +443,67 @@ class LifecycleIT extends BookingFixtures {
         assertThat(events("PackOpened")).isEqualTo(1);
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_13_21_point7_reactivationKeepsDogsInactiveInEitherDispatchOrder(boolean dispatchFirst) throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("lastDogForClass", "s08-d-duna").set("lastDogForTraining", "s08-d-duna"), "members");
+        var leave = requestLeave("2026-10-06"); call(POST, "/leave-requests/" + leave + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        clock.setInstant(local("2026-10-07T12:00")); leaveScheduler.executeDue(CLUB, LocalDate.parse("2026-10-07"));
+        if (dispatchFirst) { dispatch(); }
+        mongo.save(new Document("_id", "s13-price").append("clubId", CLUB).append("planId", "s13-monthly").append("version", 0L), "prices");
+        call(POST, "/members/s08-m-laura/reactivation", Map.of("planId", "s13-monthly", "priceId", "s13-price", "nextInvoiceDate", "2026-11-01"), as("admin"), 200);
+        dispatch(); dispatch();
+        var member = mongo.findById("s08-m-laura", Document.class, "members");
+        assertThat(member.getString("status")).isEqualTo("ACTIVE");
+        assertThat(member.get("lastDogForClass")).isNull(); assertThat(member.get("lastDogForTraining")).isNull();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("memberId").is("s08-m-laura")), Document.class, "dogs"))
+                .allSatisfy(dog -> assertThat(dog.getString("status")).isEqualTo("INACTIVE"));
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_13_09_point8_cancellationsUseRealClassTimeBeforeProjectionDispatch(boolean movedIntoFuture) throws Exception {
+        var b = book(as("laura"), "thu", "s08-d-duna");
+        otherBookings("2026-10-09");
+        String oldTime = movedIntoFuture ? "2026-10-08T17:00" : "2026-10-08T20:00";
+        String newTime = movedIntoFuture ? "2026-10-08T20:00" : "2026-10-08T17:00";
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(b.path("id").asText())), new Update().set("classStartsAt", Date.from(local(oldTime)))
+                .set("classEndsAt", Date.from(local(oldTime).plusSeconds(3600))), "bookings");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s13-wait")), new Update().set("classStartsAt", Date.from(local(oldTime))), "waitlist_entries");
+        for (String id : List.of("s08-thu", "s08-s13-wait")) {
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("startsAt", Date.from(local(newTime)))
+                    .set("endsAt", Date.from(local(newTime).plusSeconds(3600))).set("date", "2026-10-08").set("startTime", newTime.substring(11)).set("endTime", movedIntoFuture ? "21:00" : "18:00"), "class_sessions");
+        }
+        clock.setInstant(local("2026-10-08T19:00"));
+        var result = call(POST, "/inactivity-periods", Map.of("memberId", "s08-m-laura", "fromMonth", "2026-10", "toMonth", "2026-10", "overrideDeadline", true), as("admin"), 201);
+        String expected = movedIntoFuture ? "CANCELLED" : "ACTIVE";
+        assertThat(booking(b.path("id").asText()).getString("state")).isEqualTo(expected);
+        assertThat(mongo.findById("s13-wait", Document.class, "waitlist_entries").getString("state")).isEqualTo(expected);
+        if (movedIntoFuture) { assertThat(result.path("cancelledBookings").toString()).contains(b.path("id").asText(), "s13-wait"); }
+    }
+    @Test void T_13_18_point9_leaveAuditContainsRealBeforeAndAfterMetadata() throws Exception {
+        var leave = requestLeave("2026-10-06"); call(POST, "/leave-requests/" + leave + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        clock.setInstant(local("2026-10-07T12:00")); leaveScheduler.executeDue(CLUB, LocalDate.parse("2026-10-07"));
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("MEMBER_STATUS_CHANGED")), Document.class, "audit_entries");
+        assertThat(audit).isNotNull();
+        var changes = audit.getList("changes", Document.class);
+        for (String field : List.of("leftAt", "leftReason")) {
+            assertThat(changes.stream().filter(change -> field.equals(change.getString("path")))).singleElement().satisfies(change -> {
+                assertThat(change.get("before")).isNull(); assertThat(change.get("after")).isNotNull();
+            });
+        }
+        assertThat(changes.stream().filter(change -> "leftReason".equals(change.getString("path"))).findFirst().orElseThrow().get("after")).isEqualTo("LEAVE_REQUEST");
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"ca,sense data de finalització", "es,sin fecha de finalización", "en,with no end date"})
+    void T_13_09_point10_deliveredOpenEndedNoticeIncludesBothFrozenFees(String locale, String openEnded) throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-laura")), new Update().set("locale", locale), "accounts");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")), new Update().set("signup.locale", locale), "members");
+        String period = requestPeriod("2026-11", null);
+        call(POST, "/inactivity-periods/" + period + "/decision", Map.of("decision", "APPROVED"), as("admin"), 200);
+        parameter("billing.inactivityFeeFirstMonth", Map.of("amountMinor", 9999, "currency", "EUR"));
+        dispatch();
+        var notice = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-18b").and("recipient.memberId").is("s08-m-laura")), Document.class, "notifications");
+        assertThat(notice).isNotNull(); assertThat(notice.getString("locale")).isEqualTo(locale);
+        assertThat(notice.getString("body")).contains(openEnded).containsPattern("20[,.]00").containsPattern("10[,.]00").doesNotContain("99", " to .", " a .");
+    }
 }
