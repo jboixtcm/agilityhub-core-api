@@ -856,4 +856,161 @@ class CardPaymentsIT extends BillingItSupport {
         webhook("evt_point6_reverse_replay", "refund.failed", refundEvent(intent(invoice), "re_point6", 2000, "failed", null));
         assertThat(mongo.count(query, "audit_entries")).isEqualTo(2);
     }
+
+    @Autowired PaymentRetryPolicy retryPolicy;
+    @Autowired com.agilityhub.core.platform.application.ClubPaymentProviders providerSettings;
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"CHARGE", "REFUND_INVOICE"})
+    void T_12_21_round2_point1_concurrentWorkersCannotEraseUncertainty(String kind) throws Exception {
+        var operation = new PaymentOperation("r2-exclusive", CLUB, kind, "invoice", "capture", new Money(100, "EUR"),
+                "r2-exclusive", "Correction", null, null, clock.instant(), null);
+        try (var tenant = TenantContext.open(CLUB)) { operations.insert(operation); }
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var secondCalls = new java.util.concurrent.atomic.AtomicInteger();
+        try (var workers = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var first = workers.submit(() -> {
+                try (var tenant = TenantContext.open(CLUB)) {
+                    assertThatThrownBy(() -> retryPolicy.execute(operation, () -> {
+                        entered.countDown(); awaitWorker(release);
+                        throw new PaymentNotSubmitted(com.agilityhub.core.shared.domain.ErrorCode.PROVIDER_CONFIG_INVALID);
+                    })).isInstanceOf(PaymentNotSubmitted.class);
+                }
+            });
+            try {
+                assertThat(entered.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                workers.submit(() -> {
+                    try (var tenant = TenantContext.open(CLUB)) {
+                        try { retryPolicy.execute(operation, () -> { secondCalls.incrementAndGet(); throw new IllegalStateException("Lost response"); }); }
+                        catch (IllegalStateException lost) { /* The first worker must exclude this call. */ }
+                    }
+                }).get(10, java.util.concurrent.TimeUnit.SECONDS);
+            } finally { release.countDown(); }
+            first.get(10, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        assertThat(secondCalls).hasValue(0);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(operations.submissionUncertain(operation.id())).isFalse();
+            for (int i = 0; i < 2; i++) {
+                clock.setInstant(clock.instant().plusSeconds(60));
+                assertThatThrownBy(() -> retryPolicy.execute(operation, () -> { throw new IllegalStateException("Lost response"); }))
+                        .isInstanceOf(IllegalStateException.class);
+            }
+            assertThat(operations.submissionUncertain(operation.id())).isTrue();
+        }
+    }
+    static void awaitWorker(java.util.concurrent.CountDownLatch latch) {
+        try { assertThat(latch.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue(); }
+        catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_round2_point2_http401ReleasesOnlyDefinitivelyRejectedRefund(boolean earlierUncertain) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_r2_auth_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        try (var tenant = TenantContext.open(CLUB);
+                var http = new com.agilityhub.core.payments.application.stripe.StripeHttpFixture()) {
+            var accepted = refunds.invoice(invoice, null, "Correction", "round2-auth");
+            if (earlierUncertain) { operations.submissionUncertain(accepted.id(), true); }
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders.STRIPE.secretKeyEnc",
+                    vault.encrypt("sk_test_example", CLUB, "STRIPE", "secretKeyEnc")), "clubs");
+            configs.invalidate(CLUB);
+            Object original = org.springframework.test.util.ReflectionTestUtils.getField(registry, "stripe");
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+            try {
+                for (int i = 0; i < 3; i++) {
+                    assertThatThrownBy(() -> refunds.execute(accepted.id())).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class)
+                            .hasMessage("PROVIDER_CONFIG_INVALID");
+                    clock.setInstant(clock.instant().plusSeconds(60));
+                }
+            } finally {
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
+            }
+            assertThat(http.requests).hasValue(3);
+            assertThat(operations.submissionUncertain(accepted.id())).isEqualTo(earlierUncertain);
+            if (earlierUncertain) {
+                assertThatThrownBy(() -> refunds.invoice(invoice, null, "Repaired", "round2-auth-repaired"))
+                        .hasMessage("REFUND_EXCEEDS_PAID");
+            } else {
+                var replacement = refunds.invoice(invoice, null, "Repaired", "round2-auth-repaired");
+                refunds.execute(replacement.id());
+                assertThat(operations.findById(replacement.id()).orElseThrow().resultId()).isNotNull();
+                assertThat(fake.calls().stream().filter(call -> call.operation().equals("refund"))).hasSize(1);
+            }
+        }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_15_round2_point3_cancelledUnsubmittedInvoiceDoesNotStrandRun(boolean anotherCard) throws Exception {
+        if (anotherCard) { member("second-card", 302, "Second", "Example", validCard("second-card"), "abonat"); }
+        String run = runId(generated());
+        String cancelled = invoices().stream().filter(row -> row.getString("memberId").equals("card-member")).findFirst().orElseThrow().getString("_id");
+        ok(admin(keyed(post("/api/v1/invoices/" + cancelled + "/cancellation"), Map.of("reason", "Correction", "version", 0))), 200);
+        charge(run);
+        if (anotherCard) {
+            String other = invoices().stream().filter(row -> !row.getString("_id").equals(cancelled)).findFirst().orElseThrow().getString("_id");
+            assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("CHARGING");
+            webhook("evt_r2_cancel_other", "payment_intent.succeeded", Map.of("id", intent(other)));
+        }
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("COMPLETED");
+        assertThat(events("BillingRunCompleted")).hasSize(1);
+        assertThat(fake.calls().stream().filter(call -> call.operation().equals("charge"))).hasSize(anotherCard ? 1 : 0);
+        assertThat(detail(cancelled).path("status").asText()).isEqualTo("CANCELLED");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"MANUAL", "SEPA_DD"})
+    void T_12_15_round2_point4_runWaitsForStripeRetryOfAnotherFrozenMethod(String method) throws Exception {
+        var allProviders = new LinkedHashMap<>(providers(true, true, false));
+        allProviders.put("STRIPE", Map.of("enabled", true, "mode", "test", "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc")));
+        club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), allProviders);
+        member("converted", 302, "Converted", "Example", method.equals("MANUAL") ? cash() : sepa(debtorIban(302)), "abonat");
+        String run = runId(generated());
+        String converted = invoices().stream().filter(row -> row.getString("memberId").equals("converted")).findFirst().orElseThrow().getString("_id");
+        String original = invoices().stream().filter(row -> row.getString("memberId").equals("card-member")).findFirst().orElseThrow().getString("_id");
+        // A historical failed receipt retains its original payment method, as R-12-18 requires.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(converted)), new Update().set("status", "FAILED"), "invoices");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("converted")), new Update().set("paymentMethod", validCard("converted")), "members");
+        charge(run);
+        ok(admin(keyed(post("/api/v1/invoices/" + converted + "/retry"), Map.of("version", detail(converted).path("version").asLong()))), 202);
+        String retriedIntent = mongo.findOne(Query.query(Criteria.where("invoiceId").is(converted).and("provider").is("STRIPE")), Document.class, "collections").getString("providerRef");
+        webhook("evt_r2_original", "payment_intent.succeeded", Map.of("id", intent(original)));
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("CHARGING");
+        assertThat(events("BillingRunCompleted")).isEmpty();
+        webhook("evt_r2_converted", "payment_intent.succeeded", Map.of("id", retriedIntent));
+        assertThat(ok(admin(get("/api/v1/billing/runs/" + run)), 200).path("status").asText()).isEqualTo("COMPLETED");
+        assertThat(events("BillingRunCompleted")).hasSize(1);
+        assertThat(detail(converted).path("paymentMethod").path("type").asText()).isEqualTo(method);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_round2_point5_refundAuditsHaveTrustedWebhookProvenance(boolean deferred) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        String pi = intent(invoice);
+        if (!deferred) { webhook("evt_r2_audit_paid", "payment_intent.succeeded", Map.of("id", pi)); }
+        webhook("evt_r2_audit_refund", "refund.created", refundEvent(pi, "re_r2_audit", 1000, "succeeded", null));
+        if (deferred) {
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), "audit_entries")).isZero();
+            webhook("evt_r2_audit_paid", "payment_intent.succeeded", Map.of("id", pi));
+            clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover();
+        }
+        webhook("evt_r2_audit_reverse", "refund.failed", refundEvent(pi, "re_r2_audit", 1000, "failed", null));
+        var audits = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED")), Document.class, "audit_entries");
+        assertThat(audits).hasSize(2).allSatisfy(row -> {
+            assertThat(row.getString("actorRole")).isEqualTo("WEBHOOK");
+            assertThat(row.getString("origin")).isEqualTo("WEBHOOK");
+            assertThat(row.get("actorAccountId")).isNull();
+            assertThat(row.get("actorName")).isNull();
+            assertThat(row.get("traceId")).isNotNull();
+            assertThat(row.get("details", Document.class).getString("eventId")).isIn("evt_r2_audit_refund", "evt_r2_audit_reverse");
+        });
+        assertThat(audits.stream().map(row -> row.get("details", Document.class).get("amount", Document.class).get("amountMinor")))
+                .containsExactlyInAnyOrder(1000, -1000);
+    }
 }
