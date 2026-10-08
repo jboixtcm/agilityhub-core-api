@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.bson.Document;
 import org.springframework.beans.factory.ObjectProvider;
 import com.agilityhub.core.shared.application.TenantWriteFence;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.FindAndReplaceOptions;
@@ -16,6 +17,7 @@ import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * R-18-17: every template mutation of club data shares reset's counter document lock, including custom
@@ -31,9 +33,10 @@ public class TenantWriteTracking {
     private static final Set<String> COORDINATION = Set.of(COUNTERS, "migration_write_locks", "migration_reset_guards");
     private final TransactionTemplate transactions;
     private final ObjectProvider<TenantWriteFence> writes;
+    private final TransactionRetries retries;
 
-    public TenantWriteTracking(PlatformTransactionManager manager, ObjectProvider<TenantWriteFence> writes) {
-        transactions = new TransactionTemplate(manager); this.writes = writes;
+    public TenantWriteTracking(PlatformTransactionManager manager, ObjectProvider<TenantWriteFence> writes, TransactionRetries retries) {
+        transactions = new TransactionTemplate(manager); this.writes = writes; this.retries = retries;
     }
 
     @Around("execution(* org.springframework.data.mongodb.core.MongoOperations+.insert(..)) || "
@@ -52,6 +55,29 @@ public class TenantWriteTracking {
         Object[] args = call.getArgs();
         String collection = collection(mongo, args);
         if (COORDINATION.contains(collection)) { return proceed(call); }
+        // A previously standalone Mongo operation now owns a transaction. Retry its aborted conflicts as a whole;
+        // an existing caller transaction still owns its retries, and an uncertain commit must never be replayed.
+        boolean outer = TransactionSynchronizationManager.isActualTransactionActive();
+        for (int attempt = 1; ; attempt++) {
+            try { return mutate(call, mongo, args, collection); }
+            catch (RuntimeException failure) {
+                if (outer || uncertain(failure) || !TransactionRetries.transientFailure(failure)) { throw failure; }
+                if (attempt >= 20) { retries.exhausted("tenant-write-tracking"); throw failure; }
+                retries.retried("tenant-write-tracking", failure);
+                try { Thread.sleep(TransactionRetries.jitter()); }
+                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw failure; }
+            }
+        }
+    }
+
+    private static boolean uncertain(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof com.mongodb.MongoException mongo && mongo.hasErrorLabel("UnknownTransactionCommitResult")) { return true; }
+        }
+        return false;
+    }
+
+    private Object mutate(ProceedingJoinPoint call, MongoTemplate mongo, Object[] args, String collection) {
         return transactions.execute(status -> {
             Set<String> tenants = tenants(mongo, collection, call.getSignature().getName(), args);
             writes.getObject().begin(tenants);

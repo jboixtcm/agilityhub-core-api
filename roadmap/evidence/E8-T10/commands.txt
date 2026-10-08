@@ -40,3 +40,21 @@ E8-T10 verification commands (read-only git only; captured exits are in each log
 46-training-concurrency.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TrainingLanesOffIT test-compile failsafe:integration-test failsafe:verify
 47-tracking-and-snapshots.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TenantWriteTrackingIT,E8ScheduledProcessesIT test-compile failsafe:integration-test failsafe:verify
 48-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+49-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+50-baseline-ci.log: gh run view 37813109378 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+55-baseline-ci-failures.log: gh run view 37813109378 --log-failed
+52-baseline-ci-final.log: gh run view 37813109378 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+56-baseline-ci-failures.log: env XDG_CACHE_HOME=/private/tmp/e8-t10-gh-cache gh run view 37813109378 --log-failed
+57-standalone-conflicts-red.log: python3 roadmap/evidence/E8-T10/tracking-unit-check.py
+58-standalone-conflicts-green.log: python3 roadmap/evidence/E8-T10/tracking-unit-check.py
+59-evidence-secret-scan.log: /private/tmp/e8-t10-gitleaks/gitleaks dir --no-banner --redact --config .gitleaks.toml roadmap/evidence/E8-T10
+60-tracking-and-dispatchers.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Dtest=TenantWriteTrackingTest -Dit.test=TenantWriteTrackingIT,OutboxIT,JobFrameworkTwoInstancesIT test-compile surefire:test failsafe:integration-test failsafe:verify
+66-tracking-and-dispatchers.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Dtest=TenantWriteTrackingTest -Dit.test=TenantWriteTrackingIT,OutboxIT,JobFrameworkTwoInstancesIT test-compile surefire:test failsafe:integration-test failsafe:verify
+67-tracking-and-dispatchers.log: ./mvnw -q -Dtest=TenantWriteTrackingTest -Dit.test=TenantWriteTrackingIT,OutboxIT,JobFrameworkTwoInstancesIT test-compile surefire:test failsafe:integration-test failsafe:verify
+61-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+68-pre-final-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+62-test-summary.log: python3 roadmap/evidence/E8-T10/summarize-tests.py
+63-evidence-secret-scan.log: /private/tmp/e8-t10-gitleaks/gitleaks dir --no-banner --redact --config .gitleaks.toml roadmap/evidence/E8-T10
+64-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+65-status.log: python3 roadmap/tools/check.py --set E8-T10 awaiting_verification
+69-final-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py

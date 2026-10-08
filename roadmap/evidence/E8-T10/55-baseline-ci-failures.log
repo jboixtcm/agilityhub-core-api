@@ -1,0 +1,3 @@
+failed to get run log: creating cache entry: open /Users/jordib/.cache/gh/run-log-37813109378-1791478784.zip: operation not permitted
+
+exit 1

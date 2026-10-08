@@ -1,0 +1,3 @@
+{"conclusion":"failure","jobs":[{"conclusion":"failure","name":"Build and tests","status":"completed"},{"conclusion":"failure","name":"Dependency vulnerability audit","status":"completed"},{"conclusion":"failure","name":"Secret scan","status":"completed"},{"conclusion":"skipped","name":"Scan image (${{ matrix.arch }})","status":"completed"},{"conclusion":"skipped","name":"Publish API image","status":"completed"}],"status":"completed","url":"https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37813109378"}
+
+exit 0

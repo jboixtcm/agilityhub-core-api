@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Summarize the fresh Maven XML reports, with every Java test class changed by E8-T10."""
+"""Summarize fresh XML reports, including changed classes and the two CI concurrency regressions."""
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-changed = {'PlayoffMigrationIT', 'E8ScheduledProcessesIT', 'TenantWriteTrackingIT', 'ArchitectureTest', 'E7PersistenceIT', 'E8ContractIT', 'TrainingLanesOffIT'}
+changed = {'PlayoffMigrationIT', 'E8ScheduledProcessesIT', 'TenantWriteTrackingIT', 'TenantWriteTrackingTest', 'ArchitectureTest', 'E7PersistenceIT', 'E8ContractIT', 'TrainingLanesOffIT', 'OutboxIT', 'JobFrameworkTwoInstancesIT'}
 found = set()
 for suite in ('surefire', 'failsafe'):
     paths = list(Path('target', suite + '-reports').glob('TEST-*.xml'))

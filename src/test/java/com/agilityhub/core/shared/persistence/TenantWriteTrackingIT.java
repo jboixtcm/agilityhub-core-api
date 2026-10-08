@@ -23,6 +23,7 @@ class TenantWriteTrackingIT extends AbstractIntegrationTest {
     @Autowired MongoTemplate mongo;
     @Autowired MigrationResetRepository reset;
     @Autowired TransactionTemplate transactions;
+    @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
 
     @BeforeEach void prepare() {
         TenantContext.clear();
@@ -150,5 +151,26 @@ class TenantWriteTrackingIT extends AbstractIntegrationTest {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().inc("activeWriters", 1L), "tenant_write_counters");
         assertThatThrownBy(this::check).isInstanceOf(ApiException.class);
         mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().inc("activeWriters", -1L), "tenant_write_counters");
+    }
+
+    @Test void T_18_16_round2_point1_standaloneConflictRetriesWithoutLeakingRegistrations() throws Exception {
+        String context = "tenant-write-tracking";
+        double before = retries.retries(context);
+        Query row = Query.query(Criteria.where("_id").is("existing"));
+        try (var held = new com.agilityhub.core.support.ConcurrencySupport.HeldTransaction(
+                transactions, CLUB, () -> mongo.updateFirst(row, new Update().inc("value", 1), Row.class));
+             var pool = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+            var writer = pool.submit(() -> mongo.updateFirst(row, new Update().inc("value", 1), Row.class));
+            try {
+                long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5);
+                while (retries.retries(context) <= before && !writer.isDone() && System.nanoTime() < deadline) { Thread.sleep(2); }
+                assertThat(retries.retries(context)).isGreaterThan(before);
+            } finally { held.commit(); }
+            assertThat(writer.get(10, java.util.concurrent.TimeUnit.SECONDS).getModifiedCount()).isEqualTo(1);
+        }
+        assertThat(mongo.findById("existing", Row.class).value()).isEqualTo(2);
+        assertThat(mongo.findById(CLUB, TenantWriteCounterRepository.Counter.class).activeWriters()).isZero();
+        assertThatThrownBy(this::check).isInstanceOfSatisfying(ApiException.class,
+                failure -> assertThat(failure.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
     }
 }

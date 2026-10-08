@@ -1,0 +1,83 @@
+Isolated source copy; command: ./mvnw -q -Dtest=TenantWriteTrackingTest test
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 6, Failures: 2, Errors: 1, Skipped: 0, Time elapsed: 1.143 s <<< FAILURE! -- in com.agilityhub.core.shared.persistence.TenantWriteTrackingTest
+[ERROR] com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_persistentConflictIsBoundedAndCounted -- Time elapsed: 0.014 s <<< FAILURE!
+org.mockito.exceptions.verification.TooFewActualInvocations:
+
+call.proceed();
+Wanted 20 times:
+-> at com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_persistentConflictIsBoundedAndCounted(TenantWriteTrackingTest.java:90)
+But was 1 time:
+-> at com.agilityhub.core.shared.persistence.TenantWriteTracking.proceed(TenantWriteTracking.java:71)
+
+	at com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_persistentConflictIsBoundedAndCounted(TenantWriteTrackingTest.java:90)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_interruptionStopsRetriesAndPreservesTheFlag -- Time elapsed: 0.006 s <<< FAILURE!
+Wanted but not invoked:
+retries.retried(
+    "tenant-write-tracking",
+    com.mongodb.MongoException: WriteConflict
+);
+-> at com.agilityhub.core.shared.application.TransactionRetries.retried(TransactionRetries.java:26)
+Actually, there were zero interactions with this mock.
+
+	at com.agilityhub.core.shared.application.TransactionRetries.retried(TransactionRetries.java:26)
+	at com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_interruptionStopsRetriesAndPreservesTheFlag(TenantWriteTrackingTest.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_standaloneConflictRetriesTheWholeTransaction -- Time elapsed: 0.002 s <<< ERROR!
+com.mongodb.MongoException: WriteConflict
+	at com.agilityhub.core.shared.persistence.TenantWriteTracking.proceed(TenantWriteTracking.java:71)
+	at com.agilityhub.core.shared.persistence.TenantWriteTracking.lambda$write$0(TenantWriteTracking.java:58)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.shared.persistence.TenantWriteTracking.write(TenantWriteTracking.java:55)
+	at com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_standaloneConflictRetriesTheWholeTransaction(TenantWriteTrackingTest.java:49)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   TenantWriteTrackingTest.T_18_16_round2_point1_interruptionStopsRetriesAndPreservesTheFlag:104
+Wanted but not invoked:
+retries.retried(
+    "tenant-write-tracking",
+    com.mongodb.MongoException: WriteConflict
+);
+-> at com.agilityhub.core.shared.application.TransactionRetries.retried(TransactionRetries.java:26)
+Actually, there were zero interactions with this mock.
+
+[ERROR]   TenantWriteTrackingTest.T_18_16_round2_point1_persistentConflictIsBoundedAndCounted:90
+call.proceed();
+Wanted 20 times:
+-> at com.agilityhub.core.shared.persistence.TenantWriteTrackingTest.T_18_16_round2_point1_persistentConflictIsBoundedAndCounted(TenantWriteTrackingTest.java:90)
+But was 1 time:
+-> at com.agilityhub.core.shared.persistence.TenantWriteTracking.proceed(TenantWriteTracking.java:71)
+
+[ERROR] Errors:
+[ERROR]   TenantWriteTrackingTest.T_18_16_round2_point1_standaloneConflictRetriesTheWholeTransaction:49 » Mongo WriteConflict
+[ERROR] Tests run: 6, Failures: 2, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /private/var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e8-t10-unit-shp2odfl/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+TenantWriteTrackingTest: tests=6 failures=2 errors=1 skipped=0
+Isolated Maven exit: 1
+
+exit 1

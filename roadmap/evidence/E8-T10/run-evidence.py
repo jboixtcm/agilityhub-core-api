@@ -13,6 +13,15 @@ def clean(text):
     text = re.sub(r'\b[a-f0-9]{32,}\b', lambda m: m[0][:8] + '...[truncated]', text)
     text = re.sub(r'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', 'eyJ...[truncated]', text)
     text = re.sub(r'(?:sk_(?:test|live)_|whsec_)[A-Za-z0-9]{16,}', '[secret truncated]', text)
+    # Failed database-snapshot assertions can print fixture credentials and random idempotency keys.
+    def field(match):
+        name, value = match[2], match[3]
+        if 'truncated' in value or value.lower() in {'redacted', '[redacted]'}:
+            return match[0]
+        if name.lower() == 'key' and not re.fullmatch(r'[a-f0-9-]{32,}', value, re.I):
+            return match[0]
+        return match[1] + value[:4] + '...[truncated]' + match[4]
+    text = re.sub(r'''(["']([^"']*(?:secret|token|password|hash)[^"']*|key)["']\s*[:=]\s*["'])([^"'\r\n]*)(["'])''', field, text, flags=re.I)
     return '\n'.join(line.rstrip() for line in text.splitlines()).rstrip() + '\n'
 
 

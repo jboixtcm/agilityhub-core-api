@@ -1,0 +1,3 @@
+heavy.sh: 19:49 waiting for the host lock, held by: 19:48 agilityhub-core-web: pnpm turbo run lint typecheck test build
+
+Executor session interrupted while waiting; wrapper exit 130. Maven was not started.
