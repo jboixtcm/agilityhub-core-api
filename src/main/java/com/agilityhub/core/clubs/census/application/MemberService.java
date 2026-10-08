@@ -80,7 +80,7 @@ public class MemberService {
             if(sepa) { for(String key:List.of("iban","holderName","holderTaxId")) { if(!payment.containsKey(key)&&current.get(key)!=null) { payment.put(key,current.get(key)); } } }
             var next=signups.getObject().payment(payment,member,target.firstName+" "+target.lastName1);
             if(sepa&&next!=null&&current.get("mandateSignedAt")!=null) { next=new LinkedHashMap<>(next);next.put("mandateSignedAt",current.get("mandateSignedAt")); }
-            target.paymentMethod=next;
+            target.paymentMethod=com.agilityhub.core.clubs.census.domain.CensusRules.keepMandateSequence(access.config().club().slug(),target.memberNumber,current,next);
         }
         if (readmission) { signups.getObject().storeSubmitted(member, target); }
         if (pending && request.containsKey("signup")) {

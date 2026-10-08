@@ -50,6 +50,23 @@ class CensusRulesTest {
         assertThat(CensusRules.mandateRef("canic", 87, "canic-87-x")).isEqualTo("canic-87-1");
         assertThat(CensusRules.mandateRef(longest, Integer.MAX_VALUE, CensusRules.mandateRef(longest, Integer.MAX_VALUE, null))).hasSizeLessThanOrEqualTo(35).endsWith("-2");
     }
+    /** E92 (E8-T08 round 2): a replaced payment method carries the highest sequence of the old and the new one. */
+    @Test void R_03_07_aReplacedPaymentMethodKeepsTheLastMandateSequence() {
+        var card = java.util.Map.<String, Object>of("type", "CARD", "card", java.util.Map.of("last4", "4242"));
+        assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("type", "SEPA_DD", "mandateRef", "canic-87-3"), card))
+                .containsEntry("lastMandateSequence", 3).containsEntry("type", "CARD").containsKey("card");
+        assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("type", "CARD", "lastMandateSequence", 2), card))
+                .containsEntry("lastMandateSequence", 2);
+        // The replacement's own reference wins when it is higher; another member's reference is never counted.
+        assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("lastMandateSequence", 1),
+                java.util.Map.of("type", "SEPA_DD", "mandateRef", "canic-87-4"))).containsEntry("lastMandateSequence", 4);
+        assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("mandateRef", "canic-88-5"), card)).doesNotContainKey("lastMandateSequence");
+        // A record without a member number (a pending signup) only carries a sequence already saved.
+        assertThat(CensusRules.keepMandateSequence("canic", null, java.util.Map.of("lastMandateSequence", 2, "mandateRef", "canic-87-5"), card))
+                .containsEntry("lastMandateSequence", 2);
+        assertThat(CensusRules.keepMandateSequence("canic", 87, null, card)).isEqualTo(card);
+        assertThat(CensusRules.keepMandateSequence("canic", 87, java.util.Map.of("mandateRef", "canic-87-1"), null)).isNull();
+    }
     @Test void T_03_04_completeYearsAtEachClubLocalDate() {
         var time = Instant.parse("2026-09-03T00:30:00Z"); var birth = LocalDate.parse("2022-03-12");
         assertThat(CensusRules.age(birth, time.atZone(ZoneId.of("Europe/Madrid")).toLocalDate())).isEqualTo(4);

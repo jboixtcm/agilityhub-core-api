@@ -191,7 +191,7 @@ remittanceRepository.forPeriod("2026-09");
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent -- Time elapsed: 0.008 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "Quota d'agost - Canic - Nuria"
  but was: "Quota d agost Canic Nuria"
@@ -201,7 +201,7 @@ expected: "Quota d'agost - Canic - Nuria"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[1] -- Time elapsed: 0.007 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -242,7 +242,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[2] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -283,7 +283,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[3] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -324,7 +324,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[4] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -365,7 +365,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[1] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -406,7 +406,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[2] -- Time elapsed: 0.001 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -447,7 +447,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[3] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -488,7 +488,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[4] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -528,8 +528,8 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276 
+[ERROR] Failures:
+[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
 Wanted but not invoked:
 remittanceRepository.findById(
     "unknown-attempt"
@@ -541,7 +541,7 @@ remittanceRepository.forPeriod("2026-09");
 -> at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter.write(SepaRemittanceWriter.java:93)
 
 
-[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276 
+[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
 Wanted but not invoked:
 remittanceRepository.findById(
     "unknown-attempt"
@@ -553,34 +553,34 @@ remittanceRepository.forPeriod("2026-09");
 -> at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter.write(SepaRemittanceWriter.java:93)
 
 
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261
 expected: "Quota d'agost - Canic - Nuria"
  but was: "Quota d agost Canic Nuria"
 [ERROR] Tests run: 23, Failures: 11, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

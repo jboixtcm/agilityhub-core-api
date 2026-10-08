@@ -1,0 +1,141 @@
+Trivy 0.74.0: rootfs vulnerability audit
+2026-10-08T08:20:40+02:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-08T08:20:41+02:00	INFO	Number of language-specific files	num=1
+2026-10-08T08:20:41+02:00	INFO	[jar] Detecting vulnerabilities...
+
+📣 [34mNotices:[0m
+  - Version 0.75.0 of Trivy is now available, current version is 0.74.0
+
+To suppress version checks, run Trivy scans with the --skip-version-check flag
+
+{
+  "vulnerabilities": 17,
+  "fixableCritical": [],
+  "suppressedCritical": [
+    [
+      "CVE-2026-47884",
+      "org.springframework:spring-webmvc",
+      "6.2.19",
+      "7.0.9",
+      "2026-12-07",
+      "org.springframework/spring-webmvc: Spring Framework: Remote Code Execution via improper path limitation in XsltView"
+    ]
+  ],
+  "secretRules": [],
+  "otherFindings": [
+    [
+      "CVE-2026-89407",
+      "com.fasterxml.jackson.core:jackson-core",
+      "HIGH",
+      "2.21.4",
+      "2.18.11, 2.21.7, 2.22.3"
+    ],
+    [
+      "CVE-2026-89425",
+      "com.fasterxml.jackson.core:jackson-core",
+      "HIGH",
+      "2.21.4",
+      "2.21.7, 2.22.3, 2.18.11"
+    ],
+    [
+      "CVE-2026-68497",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.4",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "CVE-2026-91776",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.4",
+      "2.18.11, 2.21.7, 2.22.3"
+    ],
+    [
+      "CVE-2026-91777",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.4",
+      "2.21.7, 2.18.11, 2.22.3"
+    ],
+    [
+      "CVE-2026-19032",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "CVE-2026-54515",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "3.1.4, 2.18.9, 2.21.5, 2.22.1"
+    ],
+    [
+      "CVE-2026-59889",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "2.21.5, 2.18.9, 2.22.1"
+    ],
+    [
+      "CVE-2026-77310",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "2.18.9, 2.21.5, 2.22.1"
+    ],
+    [
+      "CVE-2026-83557",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "GHSA-mhm7-754m-9p8w",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.4",
+      "2.18.9, 2.21.5"
+    ],
+    [
+      "CVE-2025-48924",
+      "org.apache.commons:commons-lang3",
+      "MEDIUM",
+      "3.17.0",
+      "3.18.0"
+    ],
+    [
+      "CVE-2026-64607",
+      "org.apache.httpcomponents.client5:httpclient5",
+      "MEDIUM",
+      "5.5.2",
+      "5.6.3"
+    ],
+    [
+      "CVE-2026-54399",
+      "org.apache.httpcomponents.core5:httpcore5",
+      "HIGH",
+      "5.3.6",
+      "5.4.3, 5.5-beta2"
+    ],
+    [
+      "CVE-2026-54428",
+      "org.apache.httpcomponents.core5:httpcore5-h2",
+      "HIGH",
+      "5.3.6",
+      "5.4.3, 5.5-beta2"
+    ],
+    [
+      "CVE-2026-49844",
+      "org.apache.logging.log4j:log4j-api",
+      "MEDIUM",
+      "2.24.3",
+      "2.25.5, 2.26.1"
+    ]
+  ],
+  "expiredSuppressions": [],
+  "javaPackages": 180
+}

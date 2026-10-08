@@ -1,0 +1,14 @@
+{
+  "policy": "bin/security-scan: a fixable CRITICAL may be suppressed only when no fixed release exists on the line in use. Each entry names the exact package version, the reason, the task that recorded it and an expiry at most 90 days after it was recorded; an expired entry stops applying and the finding blocks again.",
+  "suppressions": [
+    {
+      "id": "CVE-2026-47884",
+      "package": "org.springframework:spring-webmvc",
+      "installedVersion": "6.2.19",
+      "recorded": "2026-10-08",
+      "expires": "2026-12-07",
+      "task": "E8-T08",
+      "reason": "Remote code execution through Spring MVC's XsltView. The only fixed release is Spring Framework 7.0.9 (Spring Boot 4); no patched 6.2.x exists on Maven Central (6.2.20 absent on 2026-10-08), and Spring Boot 3.5.16 manages 6.2.19. The api renders no server-side views: every controller is a @RestController, nothing configures XsltView or a ViewResolver, and ArchitectureTest.E8_T08_noXsltServerSideViews keeps it so. Remove this entry when a fixed release is adopted; before the expiry the organizer schedules the upgrade or renews it with a fresh review."
+    }
+  ]
+}

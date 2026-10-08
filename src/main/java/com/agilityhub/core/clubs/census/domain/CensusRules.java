@@ -53,6 +53,23 @@ public final class CensusRules {
         int saved = payment.get("lastMandateSequence") instanceof Number number ? number.intValue() : 0;
         return Math.max(saved, mandateSequence(clubSlug, memberNumber, (String) payment.get("mandateRef")));
     }
+    /**
+     * E92: every writer that replaces a member's payment method (card setup or completion, readmission) carries the last
+     * mandate sequence over, so a later return to SEPA_DD never reuses a reference. The sequence is never in a response.
+     */
+    public static Map<String, Object> keepMandateSequence(String clubSlug, Integer memberNumber, Map<String, Object> previous,
+                                                          Map<String, Object> replacement) {
+        if (replacement == null) { return null; }
+        int sequence = Math.max(sequence(clubSlug, memberNumber, previous), sequence(clubSlug, memberNumber, replacement));
+        var kept = new LinkedHashMap<>(replacement);
+        if (sequence > 0) { kept.put("lastMandateSequence", sequence); }
+        return kept;
+    }
+    private static int sequence(String clubSlug, Integer memberNumber, Map<String, Object> payment) {
+        if (payment == null) { return 0; }
+        if (memberNumber == null) { return payment.get("lastMandateSequence") instanceof Number number ? number.intValue() : 0; }
+        return lastMandateSequence(clubSlug, memberNumber, payment);
+    }
     private static int mandateSequence(String clubSlug, int memberNumber, String previous) {
         String prefix = mandatePrefix(clubSlug, memberNumber);
         if (previous == null || !previous.startsWith(prefix)) { return 0; }

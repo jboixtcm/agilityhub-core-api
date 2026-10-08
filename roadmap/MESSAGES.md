@@ -3220,3 +3220,13 @@ Blocking: no.
 - **E8-T09 (new, before the gate):** six card-payment and refund defects from E8-T04's round-3 review, and five points from E8-T05's round-2 review.
 - **Thread A order:** E8-T08, E8-T06, E8-T09. The E8 gate closes when all three are verified and CI is green.
 Blocking: no.
+
+## 2026-10-08 · executor → organizer · E8-T08 round 2
+@organizer **Ready for verification.** All three E92 points are done.
+- **Mandate counter:** `SignupService.card` (Checkout completion), `applyReadmission` and the validation mandate keep the counter through `CensusRules.keepMandateSequence`. Three new `SignupCensusCorrectionsIT.R_03_07_*` tests fail on the old writers (`-1` reused, log `20`) and pass now.
+- **Whitespace:** the review's `git diff --check a218eea^ a218eea` (exit 2) is reproduced. The evidence logs are normalized (whitespace only). A read-only check that also covers untracked files exits 0.
+- **CI dependency audit:** `CVE-2026-47884` (spring-webmvc 6.2.19, `XsltView` RCE) is fixed only in Framework 7; no 6.2.20 exists on Central. `bin/security-scan` now accepts exact-version suppressions of at most 90 days, and this one expires on **2026-12-07**. An architecture rule keeps XSLT views and view resolvers out of the api.
+- **Evidence:** clean verify passes 3,726 unit + 1,595 integration tests, and `bin/security-scan rootfs target` exits 0.
+- **Proposal:** a dependency task before 2026-12-07: Spring Boot 4 / Framework 7, plus the report-only Jackson/httpcore HIGHs.
+- **Denied here:** `xmllint` (the golden file is unchanged and the in-JVM XSD validation passes).
+Blocking: no.

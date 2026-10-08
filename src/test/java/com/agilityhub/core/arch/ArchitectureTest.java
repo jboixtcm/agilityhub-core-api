@@ -14,6 +14,16 @@ class ArchitectureTest {
                     .that().resideInAnyPackage("..clubs.signup.domain..", "..clubs.scheduling.domain..")
                     .should().dependOnClassesThat().resideInAnyPackage("org.springframework..", "com.mongodb..", "org.bson..");
 
+    /**
+     * E8-T08 round 2 (E92): CVE-2026-47884 (Spring MVC `XsltView`, fixed only in Framework 7) is suppressed in
+     * `bin/security-scan-suppressions.json` because the api renders no server-side views; this keeps that true.
+     */
+    @ArchTest
+    static final ArchRule E8_T08_noXsltServerSideViews =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()
+                    .should().dependOnClassesThat().resideInAnyPackage("org.springframework.web.servlet.view.xslt..")
+                    .orShould().dependOnClassesThat().haveFullyQualifiedName("org.springframework.web.servlet.ViewResolver");
+
     @ArchTest
     static final ArchRule E0_T01_domainHasNoWebDataSecurityOrServletDependencies =
             ArchitectureRules.DOMAIN_INDEPENDENCE;

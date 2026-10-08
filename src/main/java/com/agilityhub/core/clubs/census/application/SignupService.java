@@ -158,7 +158,9 @@ public class SignupService implements SignupPaymentAccess {
             return;
         }
         if("CARD".equals(map(member.paymentMethod).get("type")) && !card.isEmpty()) {
-            member.paymentMethod=object("type","CARD","card",card); member.updatedAt=clock.instant(); access.members.save(member);
+            // E92: the replaced card keeps the last mandate sequence, so a later SEPA_DD signs the next reference.
+            member.paymentMethod=CensusRules.keepMandateSequence(access.config().club().slug(),member.memberNumber,member.paymentMethod,object("type","CARD","card",card));
+            member.updatedAt=clock.instant(); access.members.save(member);
             events.emit("MemberPaymentMethodChanged", "Member", id, object("memberId", id, "type", "CARD", "masked", "···· " + card.get("last4")));
             refreshDashboard();
         }
@@ -297,7 +299,8 @@ public class SignupService implements SignupPaymentAccess {
         member.firstName=view.firstName;member.lastName1=view.lastName1;member.lastName2=view.lastName2;member.gender=view.gender;
         if(view.birthDate!=null) member.birthDate=view.birthDate;
         member.contactEmails=view.contactEmails;member.phones=view.phones;member.address=view.address;
-        if(view.paymentMethod!=null) member.paymentMethod=view.paymentMethod;
+        // E92: the LEFT record's mandate sequence survives the submitted method, whatever its type.
+        if(view.paymentMethod!=null) member.paymentMethod=CensusRules.keepMandateSequence(access.config().club().slug(),member.memberNumber,member.paymentMethod,view.paymentMethod);
         appendConsents(member,rows(submitted(member).get("consents")));
         member.readmissionRequest=null;
     }
@@ -1004,10 +1007,12 @@ public class SignupService implements SignupPaymentAccess {
             member.status="ACTIVE";member.joinedAt=clock.instant();member.leftAt=null;member.leftReason=null;member.leaveDate=null;
         }
         // E43 (S12 §7): the migrated format `{clubSlug}-{memberNumber}-1` (≤ 35, pain.008 `MndtId`); `mandateSignedAt` stays the
-        // submission's (S04 R-04-10 wins over S12). A readmission's new mandate takes the next sequence of the LEFT record's one.
+        // submission's (S04 R-04-10 wins over S12). A readmission's new mandate takes the next sequence of the LEFT record's one,
+        // or of the sequence it kept on another method (E92).
         if("SEPA_DD".equals(map(member.paymentMethod).get("type"))&&member.paymentMethod.get("mandateRef")==null&&member.memberNumber!=null) {
             member.paymentMethod=new LinkedHashMap<>(member.paymentMethod);
-            member.paymentMethod.put("mandateRef",CensusRules.mandateRef(access.config().club().slug(),member.memberNumber,previousMandate));
+            String slug=access.config().club().slug();
+            member.paymentMethod.put("mandateRef",CensusRules.mandateRef(slug,member.memberNumber,previousMandate,CensusRules.lastMandateSequence(slug,member.memberNumber,member.paymentMethod)));
         }
         // S04 §3 (E3-T10): the decision is stamped on the public signup and on each validated dog's own submission block.
         var decision=object("validatedAt",clock.instant(),"validatedByAccountId",CurrentUser.current()==null?null:CurrentUser.current().accountId());

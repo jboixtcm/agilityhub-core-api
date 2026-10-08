@@ -154,6 +154,60 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(renewed.getString("mandateRef")).isEqualTo(CensusRules.mandateRef(club,number,payment.getString("mandateRef"))).endsWith("-"+number+"-2").hasSizeLessThanOrEqualTo(35);
     }
 
+    // ---- E8-T08 round 2 (E92): every payment-method writer keeps the mandate sequence (R-03-07, E90) ----
+    @Autowired com.agilityhub.core.shared.application.BillingCensusAccess census;
+    void inTenant(Runnable work) {
+        try (var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
+            new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(status -> work.run());
+        }
+    }
+    void paymentMethod(String id,Object body) throws Exception {
+        result(admin(patch("/api/v1/members/"+id+"/payment-method").header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body))),200);
+    }
+    void sepaAgain(String id) throws Exception { paymentMethod(id,Map.of("type","SEPA_DD","sepa",Map.of("iban","ES5500000000000000000001","holderName","Example Holder"))); }
+    String mandate(String id) { return member(id).get("paymentMethod",Document.class).getString("mandateRef"); }
+    int validatedSepaMember(ObjectNode body) throws Exception {
+        String id=submit(sepa(body,IBAN)).path("memberId").asText();int number=validate(id).path("number").asInt();
+        assertThat(mandate(id)).endsWith("-"+number+"-1");return number;
+    }
+    String idOf(int number) { return mongo.getCollection("members").find(new Document("clubId",club).append("memberNumber",number)).first().getString("_id"); }
+
+    @Test void R_03_07_aCheckoutCardCompletionAfterCardSetupKeepsTheMandateSequence() throws Exception {
+        int number=validatedSepaMember(request());String id=idOf(number);
+        // SEPA → CARD (card setup), then a signup / add-dog Checkout completion replaces the stored card (review #1, SignupService.card).
+        inTenant(() -> census.saveCard(id,new com.agilityhub.core.shared.application.BillingCensusAccess.Card("cus_example","pm_example","4242","visa",false)));
+        inTenant(() -> signupService.card(id,Map.of("stripeCustomerId","cus_example","stripePaymentMethodId","pm_example_2","last4","4444","brand","visa","invalid",false)));
+        assertThat(member(id).get("paymentMethod",Document.class).get("card",Document.class).getString("last4")).isEqualTo("4444");
+        assertThat(result(admin(get("/api/v1/members/"+id).header("Host",host)),200).toString()).doesNotContain("lastMandateSequence");
+        sepaAgain(id);
+        assertThat(mandate(id)).endsWith("-"+number+"-2");
+    }
+    @Test void R_03_07_aSepaReadmissionAfterAnotherMethodSignsTheNextMandate() throws Exception {
+        var original=request();int number=validatedSepaMember(original);String id=idOf(number);
+        paymentMethod(id,Map.of("type","MANUAL","manual",Map.of("channel","cash")));
+        assertThat(mandate(id)).isNull();
+        leave(id);
+        var readmission=sepa(original.deepCopy(),"ES5500000000000000000001");
+        ((ObjectNode)readmission.get("person")).set("emails",mapper.valueToTree(List.of("readmitted"+sequence+"@example.test")));
+        assertThat(submit(readmission).path("memberId").asText()).isEqualTo(id);
+        validate(id);
+        // Review #1: validation used to read only the MANUAL record's (absent) reference and signed `-1` again.
+        assertThat(mandate(id)).endsWith("-"+number+"-2");
+    }
+    @Test void R_03_07_aReadmissionOnAnotherMethodKeepsTheSequenceForALaterReturnToSepa() throws Exception {
+        var original=request();int number=validatedSepaMember(original);String id=idOf(number);
+        leave(id);
+        var readmission=original.deepCopy();readmission.set("payment",mapper.valueToTree(Map.of("type","MANUAL","firstMonthOption","TODAY")));
+        ((ObjectNode)readmission.get("person")).set("emails",mapper.valueToTree(List.of("readmitted"+sequence+"@example.test")));
+        assertThat(submit(readmission).path("memberId").asText()).isEqualTo(id);
+        validate(id);
+        assertThat(member(id).get("paymentMethod",Document.class).getString("type")).isEqualTo("MANUAL");
+        assertThat(result(admin(get("/api/v1/members/"+id).header("Host",host)),200).toString()).doesNotContain("lastMandateSequence");
+        sepaAgain(id);
+        // Review #1: applyReadmission replaced the record's method with the submitted MANUAL one and lost the counter.
+        assertThat(mandate(id)).endsWith("-"+number+"-2");
+    }
+
     // ---- Step 4 (A3-01, INC-32): a rejection while a checkout is open ----
     @Test void T_04_19_T_04_22_aRejectionExpiresTheOpenCheckoutAndALateProviderCompletionOnlyLeavesTheRefundMark() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));

@@ -7,12 +7,12 @@ $ ./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -
 22:12:33.486 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 22:12:33.649 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 22:12:33.650 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 22:12:33.910 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 22:12:33.957 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -53,8 +53,8 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.378 s <<< FAILURE! -- in com.agilityhub.core.payments.api.BillingFollowupsIT
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale -- Time elapsed: 1.325 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}] 
+org.opentest4j.AssertionFailedError:
+[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
 expected: 201
  but was: 409
 	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:203)
@@ -64,20 +64,20 @@ expected: 201
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}] 
+[ERROR] Failures:
+[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
 expected: 201
  but was: 409
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 counterfactual Maven exit 1

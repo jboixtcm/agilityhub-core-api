@@ -194,7 +194,7 @@ remittanceRepository.forPeriod("2026-09");
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent -- Time elapsed: 0.008 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "Quota d'agost - Canic - Nuria"
  but was: "Quota d agost Canic Nuria"
@@ -204,7 +204,7 @@ expected: "Quota d'agost - Canic - Nuria"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[1] -- Time elapsed: 0.007 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -245,7 +245,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[2] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -286,7 +286,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[3] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -327,7 +327,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(String)[4] -- Time elapsed: 0.002 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting value to be false but was true
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured(SepaRemittanceWriterTest.java:254)
@@ -368,7 +368,7 @@ Expecting value to be false but was true
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[1] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -409,7 +409,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[2] -- Time elapsed: 0.001 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -450,7 +450,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[3] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -491,7 +491,7 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(String)[4] -- Time elapsed: 0.002 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting code to raise a throwable.
 	at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue(SepaRemittanceWriterTest.java:296)
@@ -531,8 +531,8 @@ Expecting code to raise a throwable.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276 
+[ERROR] Failures:
+[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
 Wanted but not invoked:
 remittanceRepository.findById(
     "unknown-attempt"
@@ -544,7 +544,7 @@ remittanceRepository.forPeriod("2026-09");
 -> at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter.write(SepaRemittanceWriter.java:93)
 
 
-[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276 
+[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
 Wanted but not invoked:
 remittanceRepository.findById(
     "unknown-attempt"
@@ -556,35 +556,35 @@ remittanceRepository.forPeriod("2026-09");
 -> at com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter.write(SepaRemittanceWriter.java:93)
 
 
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
 Expecting value to be false but was true
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
 Expecting code to raise a throwable.
-[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261 
+[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261
 expected: "Quota d'agost - Canic - Nuria"
  but was: "Quota d agost Canic Nuria"
 [ERROR] Tests run: 23, Failures: 11, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 
@@ -600,12 +600,12 @@ Full original evidence: roadmap/evidence/E8-T08/02-counterfactual-integration.lo
 22:00:18.331 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 22:00:18.522 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 22:00:18.523 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-22:00:18.537 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+22:00:18.537 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 22:00:18.810 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 22:00:18.876 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -647,7 +647,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 2026-10-07T22:00:31.500+02:00 WARN  [main] c.a.c.p.a.sepa.SepaRemittanceWriter traceId=933a5c29-f67c-49ef-b4eb-92f0d238b4a5 clubId=bill-a accountId=bill-admin : Remittance bill-a-2026-09-1 of run c1993f7d-8916-4386-8858-552f5bcaac9e: pain.008 invalid at line 185, column 82
 [ERROR] Tests run: 14, Failures: 14, Errors: 0, Skipped: 0, Time elapsed: 14.51 s <<< FAILURE! -- in com.agilityhub.core.payments.api.BillingFollowupsIT
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_03_07_theMandateSequenceSurvivesLeavingSepaRepeatedly -- Time elapsed: 0.990 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "bill-a-208-2"
  but was: "bill-a-208-1"
@@ -657,7 +657,7 @@ expected: "bill-a-208-2"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries(String)[1] -- Time elapsed: 0.254 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: 400
  but was: 200
@@ -699,7 +699,7 @@ expected: 400
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries(String)[2] -- Time elapsed: 0.167 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: 400
  but was: 200
@@ -741,7 +741,7 @@ expected: 400
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries(String)[3] -- Time elapsed: 0.164 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: 400
  but was: 200
@@ -783,7 +783,7 @@ expected: 400
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries(String)[4] -- Time elapsed: 0.151 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: 400
  but was: 200
@@ -825,7 +825,7 @@ expected: 400
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.T_12_11_fictionalSepaDebtorsHaveDistinctAccountsAndHolders -- Time elapsed: 0.094 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: 11L
  but was: 1L
@@ -835,7 +835,7 @@ expected: 11L
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_R_12_10_waitingReceiptUsesTheCurrentMandateAndSignature -- Time elapsed: 0.686 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting
   ["bosch", "camps", "font", "riera", "sala", "soler", "puig"]
@@ -850,8 +850,8 @@ but found
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember -- Time elapsed: 0.494 s <<< FAILURE!
-java.lang.AssertionError: 
-[receipt incident for "2026-0912"] 
+java.lang.AssertionError:
+[receipt incident for "2026-0912"]
 Expecting Optional to contain a value but it was empty.
 	at com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember(BillingFollowupsIT.java:56)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
@@ -859,8 +859,8 @@ Expecting Optional to contain a value but it was empty.
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_anIneligibleWaitingReceiptDoesNotMakeASimulationStale -- Time elapsed: 0.482 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}] 
+org.opentest4j.AssertionFailedError:
+[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
 expected: 201
  but was: 409
 	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:197)
@@ -871,8 +871,8 @@ expected: 201
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale -- Time elapsed: 0.412 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}] 
+org.opentest4j.AssertionFailedError:
+[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
 expected: 201
  but was: 409
 	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:197)
@@ -883,7 +883,7 @@ expected: 201
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites -- Time elapsed: 0.582 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: {"field":"EndToEndId","reason":"IDENTIFIER"}
  but was: {"reason":"SCHEMA"}
@@ -893,7 +893,7 @@ expected: {"field":"EndToEndId","reason":"IDENTIFIER"}
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault(int)[1] -- Time elapsed: 0.248 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "2026-09-30"
  but was: ""
@@ -935,7 +935,7 @@ expected: "2026-09-30"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault(int)[2] -- Time elapsed: 0.250 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "2026-09-01"
  but was: ""
@@ -977,7 +977,7 @@ expected: "2026-09-01"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault(int)[3] -- Time elapsed: 0.229 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "2026-09-28"
  but was: ""
@@ -1018,11 +1018,11 @@ expected: "2026-09-28"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   BillingFollowupsIT.R_03_07_theMandateSequenceSurvivesLeavingSepaRepeatedly:113 
+[ERROR] Failures:
+[ERROR]   BillingFollowupsIT.R_03_07_theMandateSequenceSurvivesLeavingSepaRepeatedly:113
 expected: "bill-a-208-2"
  but was: "bill-a-208-1"
-[ERROR]   BillingFollowupsIT.R_12_07_R_12_10_waitingReceiptUsesTheCurrentMandateAndSignature:33 
+[ERROR]   BillingFollowupsIT.R_12_07_R_12_10_waitingReceiptUsesTheCurrentMandateAndSignature:33
 Expecting
   ["bosch", "camps", "font", "riera", "sala", "soler", "puig"]
 not to contain
@@ -1030,51 +1030,51 @@ not to contain
 but found
   ["puig"]
 
-[ERROR]   BillingFollowupsIT.R_12_07_anIneligibleWaitingReceiptDoesNotMakeASimulationStale:134->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}] 
+[ERROR]   BillingFollowupsIT.R_12_07_anIneligibleWaitingReceiptDoesNotMakeASimulationStale:134->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
 expected: 201
  but was: 409
-[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:122->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}] 
+[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:122->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
 expected: 201
  but was: 409
-[ERROR]   BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember:56 [receipt incident for "2026-0912"] 
+[ERROR]   BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember:56 [receipt incident for "2026-0912"]
 Expecting Optional to contain a value but it was empty.
-[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80 
+[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
 expected: 400
  but was: 200
-[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80 
+[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
 expected: 400
  but was: 200
-[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80 
+[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
 expected: 400
  but was: 200
-[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80 
+[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
 expected: 400
  but was: 200
-[ERROR]   BillingFollowupsIT.R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites:93 
+[ERROR]   BillingFollowupsIT.R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites:93
 expected: {"field":"EndToEndId","reason":"IDENTIFIER"}
  but was: {"reason":"SCHEMA"}
-[ERROR]   BillingFollowupsIT.T_12_11_fictionalSepaDebtorsHaveDistinctAccountsAndHolders:72 
+[ERROR]   BillingFollowupsIT.T_12_11_fictionalSepaDebtorsHaveDistinctAccountsAndHolders:72
 expected: 11L
  but was: 1L
-[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140 
+[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
 expected: "2026-09-30"
  but was: ""
-[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140 
+[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
 expected: "2026-09-01"
  but was: ""
-[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140 
+[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
 expected: "2026-09-28"
  but was: ""
 [ERROR] Tests run: 14, Failures: 14, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 
@@ -1099,12 +1099,12 @@ $ ./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -
 22:12:33.486 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 22:12:33.649 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 22:12:33.650 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 22:12:33.910 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 22:12:33.957 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -1145,8 +1145,8 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.378 s <<< FAILURE! -- in com.agilityhub.core.payments.api.BillingFollowupsIT
 [ERROR] com.agilityhub.core.payments.api.BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale -- Time elapsed: 1.325 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}] 
+org.opentest4j.AssertionFailedError:
+[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
 expected: 201
  but was: 409
 	at com.agilityhub.core.payments.api.BillingItSupport.ok(BillingItSupport.java:203)
@@ -1156,22 +1156,21 @@ expected: 201
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}] 
+[ERROR] Failures:
+[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
 expected: 201
  but was: 409
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
 counterfactual Maven exit 1
 Original implementation restored.
-

@@ -1,0 +1,4 @@
+git diff --check HEAD -> exit 0
+untracked files checked: 27
+tracked files changed: 25
+no whitespace errors

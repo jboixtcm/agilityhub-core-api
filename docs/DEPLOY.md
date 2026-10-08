@@ -1302,7 +1302,12 @@ scan fails if its Java inventory lacks Spring Web, Spring Security or the Mongo
 driver. This covers packaged dependencies without a separate NVD API key. Both architecture images are built,
 scanned for every secret and fixable CRITICAL vulnerability, then those exact
 images are pushed. Lower severities and unfixed findings appear in the job
-summary; secret matches never do. Only after both succeed is `:main` / `:sha-*`
+summary; secret matches never do. A fixable CRITICAL whose only fix lies outside
+the release line in use may be suppressed in `bin/security-scan-suppressions.json`
+(E8-T08, E92): the entry names the exact package version, the reason, the task
+and an expiry at most 90 days after it was recorded. It appears in the summary
+as `suppressedCritical`; once expired it stops applying and the job fails again,
+so the upgrade or a reviewed renewal must land before that date. Only after both succeed is `:main` / `:sha-*`
 published as a multi-architecture manifest. The amd64 job runs the authenticated
 Compose topology through `bin/deploy-smoke --security-only` and proves that the
 same smoke rejects an image whose entry point immediately fails. This mode uses

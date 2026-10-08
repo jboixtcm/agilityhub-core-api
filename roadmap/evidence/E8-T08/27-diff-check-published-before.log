@@ -1,0 +1,337 @@
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:194: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:204: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:245: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:286: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:327: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:368: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:409: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:450: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:491: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:531: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:532: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:544: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:556: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:558: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:560: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:562: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:564: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:566: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:568: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:570: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:572: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:577: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:581: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/01-counterfactual-unit.log:584: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:9: trailing whitespace.
++22:00:18.537 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:56: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:66: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:108: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:150: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:192: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:234: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:244: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:259: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:260: trailing whitespace.
++[receipt incident for "2026-0912"]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:268: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:269: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:280: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:281: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:292: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:302: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:344: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:386: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:427: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:428: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_03_07_theMandateSequenceSurvivesLeavingSepaRepeatedly:113
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:431: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_R_12_10_waitingReceiptUsesTheCurrentMandateAndSignature:33
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:439: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_anIneligibleWaitingReceiptDoesNotMakeASimulationStale:134->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:442: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:122->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:445: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember:56 [receipt incident for "2026-0912"]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:447: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:450: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:453: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:456: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:459: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites:93
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:462: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_11_fictionalSepaDebtorsHaveDistinctAccountsAndHolders:72
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:465: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:468: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:471: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:476: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:480: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/02-counterfactual-integration.log:483: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/05-focused-integration.log:9: trailing whitespace.
++22:09:20.138 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/05-focused-integration.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/05-focused-integration.log:56: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/05-focused-integration.log:73: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/05-focused-integration.log:74: trailing whitespace.
++[byte for byte the golden file; the actual file is in target/sepa/remesa-2026-09.actual.xml]
+roadmap/evidence/E8-T08/05-focused-integration.log:83: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/05-focused-integration.log:96: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/05-focused-integration.log:119: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/05-focused-integration.log:120: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ad123c2a-b22f-436b-9b6d-3ddf464d048e"}]
+roadmap/evidence/E8-T08/05-focused-integration.log:136: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/05-focused-integration.log:147: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/05-focused-integration.log:148: trailing whitespace.
++[ERROR]   BillingCycleIT.T_12_09_R_12_07_R_12_19_aWaitingReceiptWhoseMemberCannotBeDebitedIsAnIncidentAndStaysOut:491
+roadmap/evidence/E8-T08/05-focused-integration.log:153: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:122->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ad123c2a-b22f-436b-9b6d-3ddf464d048e"}]
+roadmap/evidence/E8-T08/05-focused-integration.log:156: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember:63
+roadmap/evidence/E8-T08/05-focused-integration.log:172: trailing whitespace.
++[ERROR]   InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled:127
+roadmap/evidence/E8-T08/05-focused-integration.log:178: trailing whitespace.
++[ERROR]   RemittancesIT.S12_7_aChangedAccountIsANewMandateWhoseFirstDebitIsFrstWithUseFrst:276
+roadmap/evidence/E8-T08/05-focused-integration.log:181: trailing whitespace.
++[ERROR]   RemittancesIT.T_12_11_theFictionalCensusRemittanceIsTheGoldenFileValidatesCarriesTheFullIbanAndNoResponseDoes:65 [byte for byte the golden file; the actual file is in target/sepa/remesa-2026-09.actual.xml]
+roadmap/evidence/E8-T08/05-focused-integration.log:186: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/05-focused-integration.log:190: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/05-focused-integration.log:193: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:10: trailing whitespace.
++22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:15: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:56: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:57: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:67: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:68: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:73: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:77: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/06-counterfactual-staleness.log:80: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/07-focused-regressions.log:23: trailing whitespace.
++22:15:18.748 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/07-focused-regressions.log:28: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/09-openapi-first.log:9: trailing whitespace.
++22:15:55.960 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/09-openapi-first.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/10-openapi-second.log:9: trailing whitespace.
++22:17:01.348 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/10-openapi-second.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/12-clean-verify.log:4315: trailing whitespace.
++22:19:15.194 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/12-clean-verify.log:4320: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/counterfactual.log:197: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:207: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:248: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:289: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:330: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:371: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:412: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:453: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:494: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:534: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/counterfactual.log:535: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
+roadmap/evidence/E8-T08/counterfactual.log:547: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_11_anUnknownCommitChecksPersistenceAndAlwaysLogsTheKeyWithTheTrace:276
+roadmap/evidence/E8-T08/counterfactual.log:559: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/counterfactual.log:561: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/counterfactual.log:563: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/counterfactual.log:565: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_anInvalidCreditorSuffixIsNotConfigured:254
+roadmap/evidence/E8-T08/counterfactual.log:567: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/counterfactual.log:569: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/counterfactual.log:571: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/counterfactual.log:573: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_identifiersAreCheckedBeforeMarshallingWithoutReturningTheirValue:296
+roadmap/evidence/E8-T08/counterfactual.log:575: trailing whitespace.
++[ERROR]   SepaRemittanceWriterTest.R_12_12_typographicPunctuationKeepsItsSepaEquivalent:261
+roadmap/evidence/E8-T08/counterfactual.log:580: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:584: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:587: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:603: trailing whitespace.
++22:00:18.537 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/counterfactual.log:608: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/counterfactual.log:650: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:660: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:702: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:744: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:786: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:828: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:838: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:853: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T08/counterfactual.log:854: trailing whitespace.
++[receipt incident for "2026-0912"]
+roadmap/evidence/E8-T08/counterfactual.log:862: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:863: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
+roadmap/evidence/E8-T08/counterfactual.log:874: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:875: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
+roadmap/evidence/E8-T08/counterfactual.log:886: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:896: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:938: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:980: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:1021: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/counterfactual.log:1022: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_03_07_theMandateSequenceSurvivesLeavingSepaRepeatedly:113
+roadmap/evidence/E8-T08/counterfactual.log:1025: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_R_12_10_waitingReceiptUsesTheCurrentMandateAndSignature:33
+roadmap/evidence/E8-T08/counterfactual.log:1033: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_anIneligibleWaitingReceiptDoesNotMakeASimulationStale:134->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"a0d41f6b-aff8-4ca3-8670-6aa2e276bc69"}]
+roadmap/evidence/E8-T08/counterfactual.log:1036: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:122->BillingItSupport.run:209->BillingItSupport.ok:197 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"ab06cdbc-3f43-4032-8eba-7dda6d117d18"}]
+roadmap/evidence/E8-T08/counterfactual.log:1039: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_receiptIncidentsNameEveryReceiptAndNeverSkipABilledMember:56 [receipt incident for "2026-0912"]
+roadmap/evidence/E8-T08/counterfactual.log:1041: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/counterfactual.log:1044: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/counterfactual.log:1047: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/counterfactual.log:1050: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_D11RejectsAnInvalidInvoiceSeries:80
+roadmap/evidence/E8-T08/counterfactual.log:1053: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites:93
+roadmap/evidence/E8-T08/counterfactual.log:1056: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_11_fictionalSepaDebtorsHaveDistinctAccountsAndHolders:72
+roadmap/evidence/E8-T08/counterfactual.log:1059: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/counterfactual.log:1062: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/counterfactual.log:1065: trailing whitespace.
++[ERROR]   BillingFollowupsIT.T_12_29b_simulationCollectionDateIsTheRunsDefault:140
+roadmap/evidence/E8-T08/counterfactual.log:1070: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1074: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1077: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1102: trailing whitespace.
++22:12:33.663 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T08/counterfactual.log:1107: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T08/counterfactual.log:1148: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T08/counterfactual.log:1149: trailing whitespace.
++[{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
+roadmap/evidence/E8-T08/counterfactual.log:1159: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T08/counterfactual.log:1160: trailing whitespace.
++[ERROR]   BillingFollowupsIT.R_12_07_newChargesOutsideTheBilledDraftsDoNotMakeASimulationStale:124->BillingItSupport.run:215->BillingItSupport.ok:203 [{"code":"SIMULATION_STALE","message":"La simulació ha quedat desactualitzada. Torna a generar-la.","details":{},"traceId":"962529bf-5050-4be2-8450-53d831c1e068"}]
+roadmap/evidence/E8-T08/counterfactual.log:1165: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1169: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1172: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T08/counterfactual.log:1177: new blank line at EOF.

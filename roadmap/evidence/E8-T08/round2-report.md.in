@@ -1,0 +1,124 @@
+### Round 2 report
+Resumed E8-T08 for the three points of the round-1 verification (E92) only. Points 1 and 3 change code; point 2 changes evidence only. Each change has a test seen failing first (`20`, `19`, `28`). No API contract, catalog, parameter, event, notification, error code or audit action changed.
+
+**Point 1: mandate counter (review #1).** Every writer that replaces `member.paymentMethod` now goes through `CensusRules.keepMandateSequence(slug, memberNumber, previous, replacement)`. It keeps the highest of the old and new sequences. It only counts this member's own `{{slug}}-{{number}}-{{n}}` references, and it only copies a saved counter when there is no member number.
+- `SignupService.card` (signup / add-dog Checkout completion, the review's line 161) keeps the counter.
+- `applyReadmission` carries the LEFT record's counter onto the submitted method, whatever its type.
+- Validation's mandate (old line 1010) now uses the four-argument `mandateRef` with `lastMandateSequence` of the record. A SEPA readmission after MANUAL/CARD therefore signs `-2`, not `-1`.
+- `BillingCensusAdapter.saveCard` and the pending-signup edit in `MemberService` use the same helper. The second could only carry a saved counter.
+- The counter is still never serialized: two tests assert `GET /members/{id}` has no `lastMandateSequence`.
+
+**Point 2: whitespace evidence (review #2).** `27-diff-check-published-before.log` reproduces the reviewer's `git diff --check a218eea^ a218eea` → **exit 2**, 169 findings, all in this task's evidence logs. `normalize-whitespace.py` strips only line-end and end-of-file whitespace from every `roadmap/evidence/E8-T08/*.log`, including round 1's logs (`36`). The content is otherwise unchanged. `diff-check.py` runs `git diff --check HEAD` over tracked changes and `git diff --no-index --check /dev/null <file>` over every untracked file. It is read-only: no index or ref is written. As a negative control before normalizing (`28`), it exits **2** with 182 findings in the new logs, while plain `git diff --check HEAD` exits 0 — the reviewer's point.
+
+**Point 3: CI's dependency audit (red since `7b5521d`).** I reproduced it locally on the packaged jar with the pinned Trivy 0.74.0: `19-audit-before.log`, exit 1, `fixableCritical: CVE-2026-47884 org.springframework:spring-webmvc` (installed 6.2.19, fixed 7.0.9). Upgrading on this line is not possible:
+- `./mvnw -U dependency:get -Dartifact=org.springframework:spring-webmvc:6.2.20` → `Could not find artifact … in central`;
+- `spring-boot-dependencies:3.5.17` is absent too;
+- the only fix is Spring Framework 7 (Spring Boot 4), a migration well beyond this task.
+
+So the change is a justified, time-limited suppression, and the policy now has a written mechanism for it:
+- `bin/security-scan` reads `bin/security-scan-suppressions.json`. An entry applies only to its exact `id` + `package` + `installedVersion`. It must carry `reason`, `task`, `recorded` and `expires`, with the expiry at most 90 days after `recorded`; otherwise the audit fails with `ValueError`.
+- An expired entry stops applying, so the finding blocks again.
+- Suppressed findings are printed under `suppressedCritical` with their fixed version, expiry and advisory title; expired ids go under `expiredSuppressions`.
+- The advisory title Trivy reports is «Remote Code Execution via improper path limitation in XsltView». The api renders no server-side views: no `XsltView`, `ViewResolver`, `ModelAndView` or plain `@Controller` exists in `src/main`. The new `ArchitectureTest.E8_T08_noXsltServerSideViews` keeps it that way.
+- The entry expires on **2026-12-07** (60 days).
+- `bin/security-scan-test.py` gains four policy tests: exact match only, expiry, malformed or over-long entries, and the committed file is valid.
+- `docs/DEPLOY.md`'s scan paragraph documents the mechanism.
+- The other 16 findings are HIGH/MEDIUM: report-only under the existing policy and unchanged (see proposals).
+
+### Round 2 evidence
+Every log is under `roadmap/evidence/E8-T08/`. Earlier attempts and controls, one line each:
+- `19-audit-before.log`: `bin/security-scan rootfs target` → exit 1 (CI's failure reproduced).
+- `20-counterfactual-writers.log`: `./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -DskipTests=false '-Dit.test=SignupCensusCorrectionsIT#R_03_07*'` → exit 1. All 3 new tests fail on the pre-fix writers with `…-1-1` where `…-1-2` was expected.
+- `21-focused-unit.log` (`./mvnw -q -Dtest=CensusRulesTest test` → exit 0) and `22-focused-integration.log` (`./mvnw -q -DskipTests test-compile failsafe:integration-test failsafe:verify -DskipTests=false '-Dit.test=SignupCensusCorrectionsIT,BillingFollowupsIT,SignupPaymentMethodsIT,CensusIT'` → exit 0), with the per-class summary in `23`. All of these ran after the fix.
+- `24-audit-title-probe.log`: `bin/security-scan rootfs target` → exit 0. This was the first run with the suppression, done to read the advisory title. `25-scan-policy-test.log`: `python3 bin/security-scan-test.py -v` → exit 0.
+- `27-diff-check-published-before.log`: `git diff --check a218eea^ a218eea` → exit 2. `28-diff-check-counterfactual.log`: `python3 roadmap/evidence/E8-T08/diff-check.py` → exit 2 before normalizing.
+
+**`/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify` → exit 0** (`29-clean-verify.log`, exit in `29-clean-verify.exit`). It includes the JaCoCo gate, `ArchitectureTest`, `E8ContractIT` and `E8ResponseContractTest`.
+
+```text
+{{tail:29-clean-verify.log}}
+```
+
+**`python3 roadmap/evidence/E8-T08/test-summary-round2.py` → exit 0** (`30-test-summary.log`):
+
+```text
+{{tail:30-test-summary.log}}
+```
+
+**`python3 bin/security-scan-test.py` → exit 0** (`31-scan-policy-test.log`):
+
+```text
+{{tail:31-scan-policy-test.log}}
+```
+
+**`bin/security-scan rootfs target` → exit 0** (`32-dependency-audit.log`; this is CI's «Dependency vulnerability audit» step, run on the jar from the clean verify above). Head of the summary:
+
+```text
+{{audit-head}}
+```
+
+Last 40 lines:
+
+```text
+{{tail:32-dependency-audit.log}}
+```
+
+**The two `xmllint --schema` validations: not run.** The command `xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd src/test/resources/sepa/remesa-2026-09.golden.xml` was denied by this session's permission rules (see Questions). Equivalent evidence:
+- round 2 does not touch the golden file: `git diff --quiet HEAD -- src/test/resources/sepa/remesa-2026-09.golden.xml` → exit 0, sha256 `621b674b…[truncated]`, the same as `golden.sha256`;
+- round 1's `13`/`14` xmllint runs are on these same bytes;
+- in the clean verify above, `RemittancesIT` regenerated the remittance and validated it against the XSD in the JVM (`Pain008Document.validate`);
+- `cmp src/test/resources/sepa/remesa-2026-09.golden.xml target/sepa/remesa-2026-09.actual.xml` → **exit 0**, no output (`33-golden-cmp.log`).
+
+**`bin/openapi-snapshot` → exit 0** (`34-openapi-first.log`), then `git diff --quiet HEAD -- docs/openapi/openapi.json` → exit 0:
+
+```text
+{{tail:34-openapi-first.log}}
+```
+
+**`bin/openapi-snapshot` → exit 0** (`35-openapi-second.log`), then `git diff --quiet HEAD -- docs/openapi/openapi.json` → exit 0. Both generations are byte-identical to the published snapshot, as expected since round 2 makes no API change:
+
+```text
+{{tail:35-openapi-second.log}}
+```
+
+**`python3 roadmap/evidence/E8-T08/normalize-whitespace.py` → exit 0** (`36-normalize.log`):
+
+```text
+{{tail:36-normalize.log}}
+```
+
+**`python3 roadmap/evidence/E8-T08/diff-check.py` → exit 0** (`37-diff-check.log`). This is `git diff --check` over every tracked change and every untracked file this session publishes. It ran before this report was written; the final re-run after it is quoted under «Round 2 final check» below.
+
+```text
+{{tail:37-diff-check.log}}
+```
+
+### Round 2 files changed
+- `src/main/java/com/agilityhub/core/clubs/census/domain/CensusRules.java` (`keepMandateSequence`)
+- `src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java` (`card`, `applyReadmission`, the validation mandate)
+- `src/main/java/com/agilityhub/core/clubs/census/application/MemberService.java` (pending-signup edit)
+- `src/main/java/com/agilityhub/core/clubs/census/application/BillingCensusAdapter.java` (`saveCard` uses the helper)
+- `src/test/java/com/agilityhub/core/clubs/census/api/SignupCensusCorrectionsIT.java` (3 `R_03_07_*` tests)
+- `src/test/java/com/agilityhub/core/clubs/census/domain/CensusRulesTest.java` (`R_03_07_aReplacedPaymentMethodKeepsTheLastMandateSequence`)
+- `src/test/java/com/agilityhub/core/arch/ArchitectureTest.java` (`E8_T08_noXsltServerSideViews`)
+- `bin/security-scan`, `bin/security-scan-test.py`, `bin/security-scan-suppressions.json` (new)
+- `docs/DEPLOY.md` (scan policy paragraph), `CHANGELOG.md`, `roadmap/MESSAGES.md`, `roadmap/STATUS.md`, `roadmap/tasks/E8-T08.md`
+- `roadmap/evidence/E8-T08/`: logs `19`–`38`, `normalize-whitespace.py`, `diff-check.py`, `test-summary-round2.py`, `compose-round2-report.py` + `round2-report.md.in` (this section's generator); round 1's logs normalized (whitespace only)
+
+### Round 2 rules and tests
+| Point | Rule | Tests (red before → green) |
+|---|---|---|
+| 1 | R-03-07 / E90 (never reuse a mandate reference) | `SignupCensusCorrectionsIT.R_03_07_aCheckoutCardCompletionAfterCardSetupKeepsTheMandateSequence` (SEPA → saveCard → `SignupService.card` → SEPA = `-2`), `R_03_07_aSepaReadmissionAfterAnotherMethodSignsTheNextMandate` (SEPA → MANUAL → LEFT → SEPA readmission = `-2`), `R_03_07_aReadmissionOnAnotherMethodKeepsTheSequenceForALaterReturnToSepa` (SEPA → LEFT → MANUAL readmission → SEPA = `-2`): red in `20`, green in `22`/`29`. `CensusRulesTest.R_03_07_aReplacedPaymentMethodKeepsTheLastMandateSequence` covers the helper's branches; it was written together with the helper, so it has no separate red run. Round 1's `BillingFollowupsIT.R_03_07_*` (MemberService, saveCard) stay green. |
+| 2 | AGENTS evidence rule | `diff-check.py`: exit 2 in `28`, exit 0 in `37`/`38`; `27` reproduces the review |
+| 3 | CI scan policy (E11-T03) | CI command red in `19`, green in `32`; `bin/security-scan-test.py` (9 tests) green in `31`; `ArchitectureTest.E8_T08_noXsltServerSideViews` green in `29`/`30` |
+
+### Round 2 assumptions
+1. A card completion during a pending readmission still writes into the submitted method (E38). That is safe because `applyReadmission` now carries the counter. Migration re-apply (`PlayoffPlanner`/`MigrationApplyService`) is a pre-cutover import that already keeps an existing `mandateRef`, so I left it unchanged.
+2. «The scan policy allows» had no written mechanism. I added one in `bin/security-scan` with a 90-day maximum and a 60-day first expiry (2026-12-07). The image scan (`security-image` job) applies the same file. I could not run that job's image scan locally (it needs a Docker image build); it was skipped in the failing run because it depends on `dependency-audit`. The whole CI run on the published commit is the organizer's handoff.
+3. Normalizing round 1's logs changes whitespace only. Their exits and content are what the round-1 report quotes.
+
+### Round 2 questions / catalog proposals
+- **Denied command:** `xmllint --noout --schema src/main/resources/sepa/pain.008.001.02.xsd src/test/resources/sepa/remesa-2026-09.golden.xml` (and the same for `target/sepa/remesa-2026-09.actual.xml`) was denied in this session. The equivalent evidence is above. Direct Trivy invocations (`.local/security-tools/trivy-0.74.0 rootfs …`) were denied too; `bin/security-scan` was allowed and is CI's actual command.
+- **Proposal (nonblocking, before 2026-12-07):** a task to move to Spring Boot 4 / Spring Framework 7, or to adopt a fixed 6.2.x if Spring publishes one. It would remove the suppression.
+- **Proposal:** I chose not to touch the report-only HIGH findings, to keep this task's scope (`jackson-core`/`jackson-databind` 2.21.4 → same-line 2.21.7, `httpcore5` 5.3.6). They could join that dependency task.
+- No catalog change.

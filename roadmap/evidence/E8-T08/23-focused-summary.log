@@ -1,0 +1,5 @@
+surefire-reports com.agilityhub.core.clubs.census.domain.CensusRulesTest tests 7 failures 0 errors 0 skipped 0
+failsafe-reports com.agilityhub.core.clubs.census.api.CensusIT tests 44 failures 0 errors 0 skipped 0
+failsafe-reports com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT tests 22 failures 0 errors 0 skipped 0
+failsafe-reports com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT tests 8 failures 0 errors 0 skipped 0
+failsafe-reports com.agilityhub.core.payments.api.BillingFollowupsIT tests 15 failures 0 errors 0 skipped 0

@@ -1,0 +1,14 @@
+test_a_suppression_applies_only_to_its_exact_finding_and_package_version (__main__.ScanPolicyTest.test_a_suppression_applies_only_to_its_exact_finding_and_package_version) ... ok
+test_a_suppression_without_a_reason_or_longer_than_ninety_days_fails_the_audit (__main__.ScanPolicyTest.test_a_suppression_without_a_reason_or_longer_than_ninety_days_fails_the_audit) ... ok
+test_an_expired_suppression_stops_applying_and_the_finding_blocks_again (__main__.ScanPolicyTest.test_an_expired_suppression_stops_applying_and_the_finding_blocks_again) ... ok
+test_every_secret_blocks_without_reporting_the_match (__main__.ScanPolicyTest.test_every_secret_blocks_without_reporting_the_match) ... ok
+test_fixed_critical_blocks_but_unfixed_and_lower_severity_only_report (__main__.ScanPolicyTest.test_fixed_critical_blocks_but_unfixed_and_lower_severity_only_report) ... ok
+test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found (__main__.ScanPolicyTest.test_missing_java_dependencies_fail_even_when_no_vulnerabilities_were_found) ... ok
+test_no_vulnerability_findings_is_distinct_from_a_valid_inventory (__main__.ScanPolicyTest.test_no_vulnerability_findings_is_distinct_from_a_valid_inventory) ... ok
+test_packaged_java_inventory_includes_core_runtime_dependencies (__main__.ScanPolicyTest.test_packaged_java_inventory_includes_core_runtime_dependencies) ... ok
+test_the_committed_suppressions_are_valid_and_name_their_task (__main__.ScanPolicyTest.test_the_committed_suppressions_are_valid_and_name_their_task) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
