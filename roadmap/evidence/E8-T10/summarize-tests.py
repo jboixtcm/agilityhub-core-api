@@ -3,7 +3,7 @@
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-changed = {'PlayoffMigrationIT', 'E8ScheduledProcessesIT'}
+changed = {'PlayoffMigrationIT', 'E8ScheduledProcessesIT', 'TenantWriteTrackingIT', 'ArchitectureTest', 'E7PersistenceIT', 'E8ContractIT', 'TrainingLanesOffIT'}
 found = set()
 for suite in ('surefire', 'failsafe'):
     paths = list(Path('target', suite + '-reports').glob('TEST-*.xml'))

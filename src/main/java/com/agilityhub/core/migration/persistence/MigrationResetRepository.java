@@ -24,16 +24,17 @@ public class MigrationResetRepository extends TenantRepository<MigrationRun> {
         long sequence = writes.lock();
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require())),
                 new Update().set("clubId", TenantContext.require()).set("loadedAt", loadedAt)
-                        .set("production", production).set("writeSequence", sequence), GUARDS);
+                        .set("production", production).set("writeSequence", sequence).set("writeTrackingVersion", 2), GUARDS);
     }
 
-    /** T-18-16: the counter check and erase hold one transaction lock shared with audited/outbox writers. */
+    /** T-18-16: the counter check and erase hold one transaction lock shared with all application writers. */
     public void requireNoLaterWrites() {
         long sequence = writes.lock();
         var guard = mongo.findOne(tenantQuery(), Document.class, GUARDS);
         if (guard == null || !Boolean.TRUE.equals(guard.get("production"))) { return; }
         // A legacy checkpoint cannot prove the absence of later writes; refuse destructively resetting it.
-        if (!(guard.get("writeSequence") instanceof Number expected) || expected.longValue() != sequence) {
+        if (!Integer.valueOf(2).equals(guard.get("writeTrackingVersion"))
+                || !(guard.get("writeSequence") instanceof Number expected) || expected.longValue() != sequence) {
             throw new ApiException(ErrorCode.MIGRATION_ALREADY_APPLIED);
         }
     }

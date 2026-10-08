@@ -621,7 +621,8 @@ class E8ContractIT extends AbstractIntegrationTest {
     private Map<String, List<Document>> database() {
         var result = new TreeMap<String, List<Document>>();
         for (String name : mongo.getCollectionNames()) {
-            if (name.equals("security_events")) { continue; }
+            // Security rejections are persisted; their maintenance counter is infrastructure too.
+            if (Set.of("security_events", "tenant_write_counters").contains(name)) { continue; }
             var documents = mongo.getCollection(name).find().sort(new Document("_id", 1)).into(new ArrayList<>());
             if (!documents.isEmpty()) { result.put(name, documents); }
         }

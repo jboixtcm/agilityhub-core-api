@@ -1,0 +1,32 @@
+18:08:36.710 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
+[ERROR] Tests run: 19, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.953 s <<< FAILURE! -- in com.agilityhub.core.arch.ArchitectureTest
+[ERROR] com.agilityhub.core.arch.ArchitectureTest.T_18_16_round2_point1_noUntrackedMongoMutationPaths -- Time elapsed: 0.038 s <<< FAILURE!
+java.lang.AssertionError:
+Architecture Violation [Priority: MEDIUM] - Rule 'no classes should call method where bypass tenant write tracking' was violated (1 times):
+Method <com.agilityhub.core.shared.persistence.DatabaseProbe.up()> calls method <com.mongodb.client.MongoDatabase.runCommand(org.bson.conversions.Bson)> in (DatabaseProbe.java:36)
+	at com.tngtech.archunit.lang.ArchRule$Assertions.assertNoViolation(ArchRule.java:94)
+	at com.tngtech.archunit.lang.ArchRule$Assertions.check(ArchRule.java:86)
+	at com.tngtech.archunit.lang.ArchRule$Factory$SimpleArchRule.check(ArchRule.java:165)
+	at com.tngtech.archunit.lang.syntax.ObjectsShouldInternal.check(ObjectsShouldInternal.java:81)
+	at com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor$ArchUnitRuleDescriptor.execute(ArchUnitTestDescriptor.java:168)
+	at com.tngtech.archunit.junit.internal.ArchUnitTestDescriptor$ArchUnitRuleDescriptor.execute(ArchUnitTestDescriptor.java:151)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   ArchitectureTest.T_18_16_round2_point1_noUntrackedMongoMutationPaths Architecture Violation [Priority: MEDIUM] - Rule 'no classes should call method where bypass tenant write tracking' was violated (1 times):
+Method <com.agilityhub.core.shared.persistence.DatabaseProbe.up()> calls method <com.mongodb.client.MongoDatabase.runCommand(org.bson.conversions.Bson)> in (DatabaseProbe.java:36)
+[ERROR] Tests run: 19, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit 1

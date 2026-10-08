@@ -9,6 +9,7 @@ import sys
 
 def clean(text):
     text = re.sub(r'\x1b\[[0-9;]*m', '', text)
+    text = re.sub(r'\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]){11,30}\b', '[IBAN truncated]', text)
     text = re.sub(r'\b[a-f0-9]{32,}\b', lambda m: m[0][:8] + '...[truncated]', text)
     text = re.sub(r'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', 'eyJ...[truncated]', text)
     text = re.sub(r'(?:sk_(?:test|live)_|whsec_)[A-Za-z0-9]{16,}', '[secret truncated]', text)
@@ -20,6 +21,8 @@ def main():
     command = sys.argv[2:]
     if log.exists():
         raise SystemExit('Refusing to overwrite existing evidence')
+    with log.with_name('commands.txt').open('a') as commands:
+        commands.write(log.name + ': ' + shlex.join(command) + '\n')
     with log.open('w') as output:
         try:
             result = subprocess.run(command, stdout=output, stderr=subprocess.STDOUT, timeout=3600)

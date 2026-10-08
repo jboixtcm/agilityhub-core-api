@@ -58,8 +58,9 @@ public class PlayoffImportService {
                 // Census retains its existing atomic boundary. Billing stages follow in 100-row transactions.
                 var prepared = transactions.execute(status -> {
                     runs.fence(holder, clock.instant());
+                    resetGuard.trackWrites();
                     for (var abandoned : runs.interrupted(production)) { failed(abandoned, "RECOVERY"); }
-                    resetGuard.trackWrites(); census.lock(); catalogs.lock();
+                    census.lock(); catalogs.lock();
                     var plan = planner.plan(input, mapping, cutover);
                     var billingPlan = billingPlanner.plan(input, mapping, plan, cutover);
                     var checked = report(false, plan, billingPlan);
@@ -78,7 +79,13 @@ public class PlayoffImportService {
                 var rows = new ArrayList<>(prepared.report().rows()); var totals = new TreeMap<>(prepared.report().totals());
                 boolean reconciled = false;
                 if (!prepared.billing().forecast().isEmpty()) {
-                    var result = billing.reconcile(YearMonth.from(cutover).plusMonths(1));
+                    var result = transactions.execute(status -> {
+                        runs.fence(holder, clock.instant());
+                        resetGuard.trackWrites();
+                        var reconciliation = billing.reconcile(YearMonth.from(cutover).plusMonths(1));
+                        runs.fence(holder, clock.instant());
+                        return reconciliation;
+                    });
                     long expected = prepared.billing().forecast().values().stream().reduce(0L, Math::addExact);
                     long difference = Math.subtractExact(result.totalMinor(), expected);
                     var tolerance = new java.math.BigDecimal(configs.get(clubId).get("migration.reconciliationTolerancePct", Number.class).toString());
@@ -100,6 +107,7 @@ public class PlayoffImportService {
                 var completed = new MigrationReport(false, rows, totals); boolean withinTolerance = reconciled;
                 transactions.executeWithoutResult(status -> {
                     runs.fence(holder, clock.instant());
+                    resetGuard.trackWrites();
                     apply.complete(prepared.run(), completed, withinTolerance);
                     resetGuard.checkpoint(production, clock.instant());
                     runs.fence(holder, clock.instant());
@@ -111,6 +119,7 @@ public class PlayoffImportService {
                     try {
                         transactions.executeWithoutResult(status -> {
                             if (runs.tryFence(holder, clock.instant())) {
+                                resetGuard.trackWrites();
                                 failed(run, "LOAD");
                                 runs.fence(holder, clock.instant());
                             }
@@ -136,6 +145,7 @@ public class PlayoffImportService {
             var page = values.subList(start, Math.min(start + 100, values.size()));
             transactions.executeWithoutResult(status -> {
                 runs.fence(holder, clock.instant());
+                resetGuard.trackWrites();
                 page.forEach(writer);
                 runs.fence(holder, clock.instant());
             });

@@ -5,6 +5,7 @@ import re
 import subprocess
 
 BASE = 'e2ecd1e'
+SCOPE_BASE = 'e025b4f'
 TASK = 'roadmap/tasks/E8-T10.md'
 
 
@@ -14,14 +15,21 @@ def git(*args):
 
 subprocess.run(['python3', 'bin/check-whitespace.py', '--base', BASE], check=True)
 print('Full task range plus working tree and untracked files: whitespace clean')
-changed = set(git('diff', '--name-only', BASE).splitlines()) | set(git('ls-files', '--others', '--exclude-standard').splitlines())
-for path in changed:
+changed = set(git('diff', '--name-only', SCOPE_BASE).splitlines()) | set(git('ls-files', '--others', '--exclude-standard').splitlines())
+# The organizer added E95 while this long-running session was testing; preserve those external edits.
+external = {'roadmap/tasks/E8-T09.md', 'docs/DECISIONS_PENDENTS.md'}
+other = 'roadmap/tasks/E8-T09.md'
+before = git('show', SCOPE_BASE + ':' + other).split('## Organizer verification', 1)[0]
+after = Path(other).read_text().split('## Organizer verification', 1)[0]
+assert after.replace('status: changes_requested', 'status: awaiting_verification', 1) == before
+print('Concurrent organizer E95 edits preserved in E8-T09 and DECISIONS_PENDENTS; excluded from executor scope')
+for path in changed - external:
     if path.startswith('roadmap/'):
         assert path in {TASK, 'roadmap/STATUS.md', 'roadmap/MESSAGES.md'} or path.startswith('roadmap/evidence/E8-T10/'), path
 assert 'roadmap/ROADMAP.md' not in changed
-assert Path(TASK).read_text().split('## Organizer verification', 1)[1] == git('show', BASE + ':' + TASK).split('## Organizer verification', 1)[1]
+assert Path(TASK).read_text().split('## Organizer verification', 1)[1] == git('show', SCOPE_BASE + ':' + TASK).split('## Organizer verification', 1)[1]
 assert Path(TASK).stat().st_size < 120_000
-print('Exactly E8-T10 roadmap scope; Organizer verification unchanged; report below 120000 bytes')
+print('Executor roadmap scope is E8-T10; Organizer verification unchanged; report below 120000 bytes')
 for path in Path('roadmap/evidence/E8-T10').glob('*.log'):
     text = path.read_text()
     for name, pattern in {

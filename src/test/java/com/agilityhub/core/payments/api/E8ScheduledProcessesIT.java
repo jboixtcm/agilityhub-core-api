@@ -36,7 +36,8 @@ class E8ScheduledProcessesIT extends BillingItSupport {
     Map<String, List<Document>> snapshot() {
         var result = new TreeMap<String, List<Document>>();
         for (String collection : mongo.getCollectionNames()) {
-            if (!Set.of("job_runs", "job_locks").contains(collection)) {
+            // Job bookkeeping also advances the infrastructure write fence, including a dry run.
+            if (!Set.of("job_runs", "job_locks", "tenant_write_counters").contains(collection)) {
                 var documents = mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, collection);
                 if (!documents.isEmpty()) { result.put(collection, documents); }
             }

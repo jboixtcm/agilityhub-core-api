@@ -120,7 +120,11 @@ class TrainingLanesOffIT extends TrainingFixtures {
             String ring = capacity == 1 ? MUN : CEN, start = capacity == 1 ? "2026-10-05T10:00" : "2026-10-05T11:00";
             if (capacity == 2) { mongo.updateFirst(Query.query(Criteria.where("_id").is(CEN)), new Update().set("trainingCapacity", 2), "rings"); }
             double retried = retries.retries(CONTEXT), exhausted = retries.exhaustions(CONTEXT);
-            var replies = ConcurrencySupport.parallel(20, i -> () -> booking("c" + i, "s09-d-c" + i, start, ring));
+            List<Reply> replies;
+            // Hold the actual slot until a training retry occurs; infrastructure registration can otherwise stagger arrivals.
+            try (var held = new HeldTransaction(tx, CLUB, () -> slotLocks.overlapping(ring, local(start), local(start).plus(Duration.ofMinutes(30))))) {
+                replies = whileHeld(held, () -> ConcurrencySupport.parallel(20, i -> () -> booking("c" + i, "s09-d-c" + i, start, ring)));
+            }
             var counts = tally(replies);
             double retriedNow = retries.retries(CONTEXT) - retried, exhaustedNow = retries.exhaustions(CONTEXT) - exhausted;
             System.out.println("E5-T07 T-09-32 lanes off, capacity " + capacity + ", 20 dogs on one slot: " + counts + " · retries " + retriedNow + " · exhausted " + exhaustedNow);

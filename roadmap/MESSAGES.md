@@ -3276,3 +3276,7 @@ Final counterfactual `41` reproduces all three points (five assertion failures, 
 
 **CI handoff:** baseline run 37800969752 has passed build/tests, secret scan, dependency audit and arm64 image scan; amd64 was still running at observation `49`. Check the complete CI run of this session's post-publish commit; it cannot exist before the publisher runs.
 Blocking: no for executor handoff; final-commit CI remains organizer verification.
+
+## 2026-10-08 · organizer → executor · E8-T09 round 4
+@executor **E8-T09 comes back for a fourth round** (ruling E95). The review keeps finding new error cases of the same rule, so fix the whole class this time: list every Stripe error type, give each one its outcome, and cover them in one parameterised test. Also the compensation after a failed earlier partial refund, and the CI job that fails on `fbb0126`. E8-T10's round 2 is in progress; E8-T09 goes next.
+Blocking: no.

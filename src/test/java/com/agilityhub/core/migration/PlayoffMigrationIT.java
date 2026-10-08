@@ -38,7 +38,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         fixture = copyOf(Path.of("src/test/resources/fixtures/playoff"));
         TenantContext.clear(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
         for (String collection:List.of("members","dogs","family_groups","accounts","memberships","clubs","parameters","levels","plans","prices","migration_runs",
-                "leave_requests","invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","tenant_write_counters","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
+                "saved_views","billing_simulations","leave_requests","invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","tenant_write_counters","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
         clubs.save(PlatformFixtures.club(CLUB,CLUB+".example.test")); clubs.save(PlatformFixtures.club(OTHER,OTHER+".example.test")); configs.invalidate(CLUB); configs.invalidate(OTHER);
         // The plan and level codes of seeds/club-canic.yaml (S05 §12).
         for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6","COMPETICIO_1")) {
@@ -573,7 +573,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "leave_requests")).containsExactly(request);
         assertThat(rows("notifications")).isEmpty();
     }
-    @Test void T_18_03_point1_crashAfterCommittedBillingBatchCanRestartWithoutDuplicates() throws Exception {
+    @Test void T_18_13_point1_crashAfterCommittedBillingBatchCanRestartWithoutDuplicates() throws Exception {
         var receipts = new StringBuilder("Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n");
         String sourceId = source(1);
         for (int i = 1; i <= 103; i++) {
@@ -604,7 +604,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
 
     @Autowired com.agilityhub.core.migration.persistence.MigrationRunRepository migrationRuns;
 
-    @Test void T_18_03_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant() {
+    @Test void T_18_13_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant() {
         try (var tenant = TenantContext.open(CLUB)) {
             migrationRuns.acquire("first-worker", clock.instant());
             assertThatThrownBy(() -> migrationRuns.acquire("second-worker", clock.instant()))
@@ -628,7 +628,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         }
     }
 
-    @Test void T_18_03_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed() throws Exception {
+    @Test void T_18_13_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed() throws Exception {
         String sourceId = source(1);
         Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
                 + "expired-worker;" + sourceId + ";1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
@@ -672,6 +672,88 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     }
 
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.migration.persistence.MigrationResetRepository resetData;
+
+    @Autowired com.agilityhub.core.clubs.common.application.SavedViewService savedViews;
+
+    @Test void T_18_16_round2_point1_savedViewWithoutAuditOrEventRefusesReset() {
+        assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true).hasErrors()).isFalse();
+        var security = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var previous = security.getAuthentication();
+        var jwt = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("fixture")
+                .header("alg", "none").subject("fictional-admin").build();
+        security.setAuthentication(new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken(jwt,
+                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))));
+        try (var tenant = TenantContext.open(CLUB)) {
+            var audits = rows("audit_entries"); var events = rows("domain_events");
+            var view = savedViews.create("members", "Fictional saved view", List.of("fullName"), List.of(), List.of(), false);
+            assertThat(rows("audit_entries")).containsExactlyElementsOf(audits);
+            assertThat(rows("domain_events")).containsExactlyElementsOf(events);
+            assertThatThrownBy(() -> transactions.executeWithoutResult(status -> resetData.requireNoLaterWrites()))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+            assertThat(savedViews.get(view.id())).isEqualTo(view);
+        } finally { security.setAuthentication(previous); }
+    }
+
+    @Test void T_18_13_round2_point2_expiredReconciliationRollsBackSimulationAndEvent() throws Exception {
+        billingCatalog();
+        Files.writeString(fixture.resolve("previsio.csv"), "Member ID;Period;Total\n" + source(1) + ";2026-10;60,00\n");
+        var before = rows("billing_simulations");
+        org.mockito.Mockito.doAnswer(call -> {
+            Object result = call.callRealMethod();
+            clock.setInstant(clock.instant().plusSeconds(601));
+            return result;
+        }).when(billing).reconcile(org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(() -> importer.importDirectory(fixture, MAPPING, CLUB, false, true, true, LocalDate.of(2026, 9, 1)))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        assertThat(rows("billing_simulations")).containsExactlyElementsOf(before);
+        assertThat(rows("domain_events")).noneMatch(e -> "RemittanceSimulated".equals(e.getString("type")));
+        assertThat(rows("migration_runs")).singleElement().satisfies(r -> assertThat(r.getString("status")).isEqualTo("RUNNING"));
+        org.mockito.Mockito.reset(billing);
+        assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true, LocalDate.of(2026, 9, 1)).hasErrors()).isFalse();
+        assertThat(rows("billing_simulations")).hasSize(1);
+        assertThat(rows("domain_events")).filteredOn(e -> "RemittanceSimulated".equals(e.getString("type"))).hasSize(1);
+    }
+
+    @Test void T_18_13_round2_point2_staleReconciliationCannotReplaceRecoveryWinner() throws Exception {
+        billingCatalog();
+        Files.writeString(fixture.resolve("previsio.csv"), "Member ID;Period;Total\n" + source(1) + ";2026-10;60,00\n");
+        var interrupted = new java.util.concurrent.atomic.AtomicBoolean();
+        var winnerIds = new ArrayList<String>();
+        var winnerEvents = new ArrayList<String>();
+        var outside = new org.springframework.transaction.support.TransactionTemplate(transactions.getTransactionManager());
+        outside.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
+        var contender = new org.springframework.transaction.support.TransactionTemplate(transactions.getTransactionManager());
+        org.mockito.Mockito.doAnswer(call -> {
+            if (interrupted.compareAndSet(false, true)) {
+                clock.setInstant(clock.instant().plusSeconds(601));
+                outside.executeWithoutResult(status -> {
+                    try {
+                        contender.executeWithoutResult(attempt -> assertThat(importer.importDirectory(
+                                fixture, MAPPING, CLUB, false, true, true, LocalDate.of(2026, 9, 1)).hasErrors()).isFalse());
+                    } catch (org.springframework.dao.DataAccessException locked) {
+                        // The old worker has fenced its transaction: takeover cannot commit until it rolls back.
+                        assertThat(locked).hasMessageContaining("WriteConflict");
+                    }
+                    rows("billing_simulations").forEach(row -> winnerIds.add(row.getString("_id")));
+                    rows("domain_events").stream().filter(e -> "RemittanceSimulated".equals(e.getString("type")))
+                            .forEach(e -> winnerEvents.add(e.getString("_id")));
+                });
+            }
+            return call.callRealMethod();
+        }).when(billing).reconcile(org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(() -> importer.importDirectory(fixture, MAPPING, CLUB, false, true, true, LocalDate.of(2026, 9, 1)))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        assertThat(interrupted).isTrue();
+        assertThat(rows("billing_simulations")).extracting(r -> r.getString("_id")).containsExactlyInAnyOrderElementsOf(winnerIds);
+        assertThat(rows("domain_events")).filteredOn(e -> "RemittanceSimulated".equals(e.getString("type")))
+                .extracting(e -> e.getString("_id")).containsExactlyInAnyOrderElementsOf(winnerEvents);
+        org.mockito.Mockito.reset(billing);
+        if (winnerIds.isEmpty()) {
+            assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true, LocalDate.of(2026, 9, 1)).hasErrors()).isFalse();
+        }
+        assertThat(rows("billing_simulations")).hasSize(1);
+        assertThat(rows("domain_events")).filteredOn(e -> "RemittanceSimulated".equals(e.getString("type"))).hasSize(1);
+    }
 
     @Test void T_18_16_point2_sameMillisecondWriteRefusesReset() {
         assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true).hasErrors()).isFalse();

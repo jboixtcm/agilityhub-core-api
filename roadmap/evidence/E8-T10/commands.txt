@@ -19,3 +19,24 @@ E8-T10 verification commands (read-only git only; captured exits are in each log
 24-handoff.log, 26-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
 27-status.log: python3 roadmap/tools/check.py --set E8-T10 awaiting_verification
 28-final-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+33-round2-regressions.log: ./mvnw -q -Dtest=ArchitectureTest '-Dit.test=PlayoffMigrationIT#*round2*,TenantWriteTrackingIT' test-compile surefire:test failsafe:integration-test failsafe:verify
+34-round2-counterfactual.log: python3 roadmap/evidence/E8-T10/counterfactual-round2.py
+35-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+36-baseline-ci.log: gh run view 37804668878 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+37-independent-fence-check.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TenantWriteTrackingIT test-compile failsafe:integration-test failsafe:verify
+38-independent-migration-check.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=PlayoffMigrationIT test-compile failsafe:integration-test failsafe:verify
+39-notifications-and-contract.log: ./mvnw -q -Dtest=ArchitectureTest -Dit.test=InvoiceActionsIT,E7PersistenceIT,E8ContractIT,TenantWriteTrackingIT test-compile surefire:test failsafe:integration-test failsafe:verify
+28-round2-red.log: ./mvnw -q -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=PlayoffMigrationIT#*round2*' test-compile failsafe:integration-test failsafe:verify
+29-round2-targeted.log: ./mvnw -q -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=PlayoffMigrationIT#*round2*+*point1*+*point2*+T_18_16_resetErases*' test-compile failsafe:integration-test failsafe:verify
+30-write-tracking.log: ./mvnw -q -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TenantWriteTrackingIT test-compile failsafe:integration-test failsafe:verify
+31-round2-regressions.log: ./mvnw -q -Dtest=ArchitectureTest '-Dit.test=PlayoffMigrationIT#*round2*,TenantWriteTrackingIT' test-compile surefire:test failsafe:integration-test failsafe:verify
+32-round2-regressions.log: ./mvnw -q -Dtest=ArchitectureTest '-Dit.test=PlayoffMigrationIT#*round2*,TenantWriteTrackingIT' test-compile surefire:test failsafe:integration-test failsafe:verify
+40-final-counterfactual.log: python3 roadmap/evidence/E8-T10/counterfactual-round2.py
+41-baseline-ci-final.log: gh run view 37804668878 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+42-counterfactual.log: python3 roadmap/evidence/E8-T10/counterfactual-round2.py
+43-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+44-snapshot-differences.log: python3 roadmap/evidence/E8-T10/check-snapshot-differences.py
+45-claim-isolation-red.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=TenantWriteTrackingIT#*unscopedClaim*' test-compile failsafe:integration-test failsafe:verify
+46-training-concurrency.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TrainingLanesOffIT test-compile failsafe:integration-test failsafe:verify
+47-tracking-and-snapshots.log: /private/tmp/e8-t10-round2-check/mvnw -q -f /private/tmp/e8-t10-round2-check/pom.xml -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=TenantWriteTrackingIT,E8ScheduledProcessesIT test-compile failsafe:integration-test failsafe:verify
+48-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify

@@ -24,6 +24,29 @@ class ArchitectureTest {
                     .should().dependOnClassesThat().resideInAnyPackage("org.springframework.web.servlet.view.xslt..")
                     .orShould().dependOnClassesThat().haveFullyQualifiedName("org.springframework.web.servlet.ViewResolver");
 
+    /** R-18-17: mutations must reach the template methods covered by the transactional reset fence. */
+    @ArchTest
+    static final ArchRule T_18_16_round2_point1_noUntrackedMongoMutationPaths =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses().should().callMethodWhere(
+                    new com.tngtech.archunit.base.DescribedPredicate<com.tngtech.archunit.core.domain.JavaMethodCall>("bypass tenant write tracking") {
+                        @Override public boolean test(com.tngtech.archunit.core.domain.JavaMethodCall call) {
+                            String owner = call.getTargetOwner().getName(), method = call.getName();
+                            if (owner.equals("com.mongodb.client.MongoCollection")) {
+                                return java.util.Set.of("insertOne", "insertMany", "updateOne", "updateMany", "replaceOne", "deleteOne", "deleteMany",
+                                        "findOneAndUpdate", "findOneAndReplace", "findOneAndDelete", "bulkWrite", "drop", "renameCollection").contains(method);
+                            }
+                            if (owner.startsWith("org.springframework.data.mongodb.core.")) {
+                                return java.util.Set.of("bulkOps", "update", "remove", "insert", "replace").contains(method)
+                                        && (call.getTarget().getRawParameterTypes().size() == 1
+                                        && call.getTarget().getRawParameterTypes().getFirst().getName().equals("java.lang.Class"))
+                                        || method.equals("bulkOps") || method.equals("dropCollection") || method.equals("executeCommand");
+                            }
+                            // The database health probe uses runCommand for ping, which does not mutate data.
+                            return owner.equals("com.mongodb.client.MongoDatabase") && method.equals("runCommand")
+                                    && !call.getOriginOwner().getName().equals("com.agilityhub.core.shared.persistence.DatabaseProbe");
+                        }
+                    });
+
     @ArchTest
     static final ArchRule E0_T01_domainHasNoWebDataSecurityOrServletDependencies =
             ArchitectureRules.DOMAIN_INDEPENDENCE;

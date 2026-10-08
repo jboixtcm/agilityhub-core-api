@@ -316,7 +316,7 @@ class E7PersistenceIT extends AbstractIntegrationTest {
     @Test void WP_11_A_theMigrationConvertsARowTheWebhookMovedBetweenTheConversionsReadAndWrite() {
         Instant now = clock.instant();
         var listed = listedOldEmail("e7p-race-read", "SENT", "ref-e7p-race-read", now);
-        var interleaved = org.mockito.Mockito.spy(mongo); var fired = new java.util.concurrent.atomic.AtomicBoolean();
+        var interleaved = org.mockito.Mockito.spy((MongoTemplate) org.springframework.test.util.AopTestUtils.getUltimateTargetObject(mongo)); var fired = new java.util.concurrent.atomic.AtomicBoolean();
         org.mockito.Mockito.doAnswer(call -> {
             if (fired.compareAndSet(false, true)) {
                 try (var scope = TenantContext.open(CLUB)) { assertThat(notifications.delivery("e7p-race-read", Notification.Status.DELIVERED, null)).isTrue(); }
@@ -340,7 +340,7 @@ class E7PersistenceIT extends AbstractIntegrationTest {
      */
     @Test void WP_11_A_aRowThatKeepsChangingUnderTheMigrationIsLeftForItsNextRun() {
         var listed = listedOldEmail("e7p-race-busy", "QUEUED", null, null);
-        var busy = org.mockito.Mockito.spy(mongo); var writes = new java.util.concurrent.atomic.AtomicInteger();
+        var busy = org.mockito.Mockito.spy((MongoTemplate) org.springframework.test.util.AopTestUtils.getUltimateTargetObject(mongo)); var writes = new java.util.concurrent.atomic.AtomicInteger();
         org.mockito.Mockito.doAnswer(call -> {
             mongo.getCollection("notifications").updateOne(new Document("_id", "e7p-race-busy"),
                     new Document("$set", new Document("error", "SendGrid deferred " + writes.incrementAndGet())));
