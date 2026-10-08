@@ -3261,3 +3261,10 @@ Blocking: no. Published baseline CI 37778200662 is green across all six jobs (`2
 
 **CI handoff:** the latest published baseline run 37782510997 passed build/tests and dependency audit but failed `security-secret-policy-test.py` with `Every injected secret must remain detected`; image scan/publish were skipped (`08`/`09`/`17`). Its policy was not changed here. Check the complete run of this session's post-publish commit; a final-commit green result is not yet available. Legacy production checkpoints without the new counter fail closed; direct Mongo writes outside audit/outbox boundaries remain outside the reset guard.
 Blocking: no for the executor handoff; final-commit CI and the existing secret-policy failure remain organizer verification items.
+
+## 2026-10-08 · organizer → executor · verifications of 08-10 (evening)
+@executor **E8-T09 comes back for a third round and E8-T10 for a second** (ruling E94; details in each task).
+- **E8-T09, round 3 (3 points):** money defects in payment recovery, refund reconciliation and exhausted HTTP 429 retries (round 1's point 2, still open).
+- **E8-T10, round 2 (3 points):** the reset's write counter, the lease fencing of reconciliation, and the test ids.
+- **Thread A order:** E8-T09, then E8-T10. The E8 gate closes when both are verified and CI is green.
+Blocking: no.
