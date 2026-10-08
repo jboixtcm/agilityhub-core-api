@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T10: interrupted Playoff loads restart under a fenced lease without duplicating committed receipts. Reset checks the tenant write counter and deletes under one transaction lock, refusing later writes even in the same millisecond. Reimported future leave dates update their requests; removed dates are rejected before writing. Monthly billing reminders clamp days 29–31 to month end. Security suppressions reject future recording dates, and the whitespace checker accepts the task base commit to cover committed changes.
+
 - E8-T09 round 2: provider commands claim an exclusive lease and fence stale workers; Stripe authentication rejections release refund reservations only when no earlier submission is uncertain. Cancelled invoices no longer strand runs, and Stripe retries of originally SEPA/manual invoices delay completion until settled. Immediate and deferred refund audits carry trusted webhook provenance.
 
 - E8-T09: uncertain Stripe charges keep their original operation pending reconciliation; refunds rejected before submission release their reservations. Refunds use each row’s Stripe capture, retain cancellation compensation after a partial refund, and audit successful settlement and reversals once. Billing runs wait for every Stripe collection and refresh late totals. Reactivation completes dog deactivation, lifecycle cancellations use locked class times, leave metadata belongs to the audited transition, and inactivity notices include both frozen fees and an open-ended variant in ca/es/en.

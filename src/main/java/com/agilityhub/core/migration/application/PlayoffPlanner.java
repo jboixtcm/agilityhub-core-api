@@ -249,12 +249,19 @@ public class PlayoffPlanner {
                 if (birth!=null && birth.isAfter(today.minusYears(mapping.suspectBirthYears())) && row.get("dogBirth").isEmpty()) { birth=null; warn(row,"BIRTHDATE_SUSPECT"); }
                 fields.put("birthDate",birth==null ? null : birth.toString());
                 fields.put("leaveDate",c.left()==null ? null : c.left().toString());
-                if (c.status().equals("ACTIVE") && c.left() != null && c.left().isAfter(today)
-                        && (old == null || old.get("leaveRequestId") == null)) {
-                    String requestId = id("leave", source);
+                String previousRequest = old == null ? null : string(old.get("leaveRequestId"));
+                boolean futureLeave = c.status().equals("ACTIVE") && c.left() != null && c.left().isAfter(today);
+                boolean changedLeave = old != null && !Objects.equals(old.get("leaveDate"), fields.get("leaveDate"));
+                if (previousRequest != null && changedLeave && (!futureLeave || !census.importedPlannedLeave(previousRequest, memberId))) {
+                    // R-18-14: removing/executing an existing request requires lifecycle decisions, not a silent import.
+                    rows.add(new MigrationReport.Entry(row.file(), row.row(), "members", "ERROR", MigrationReport.REEXECUTION_UNSUPPORTED, "leaveDate"));
+                    return;
+                }
+                if (futureLeave && (previousRequest == null || changedLeave)) {
+                    String requestId = previousRequest == null ? id("leave", source) : previousRequest;
                     fields.put("leaveRequestId", requestId);
                     changes.add(new Change("leaves", requestId, Map.of("memberId", memberId, "effectiveDate", c.left().toString()), row));
-                    incident(row, "leaves", "CREATED", "");
+                    incident(row, "leaves", previousRequest == null ? "CREATED" : "UPDATED", "");
                 }
                 fields.put("leftAt",c.status().equals("LEFT") ? instant(c.left()) : null);
                 fields.put("leftReason",c.status().equals("LEFT") ? "MIGRATED" : null);

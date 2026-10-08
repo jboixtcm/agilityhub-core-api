@@ -23,7 +23,7 @@ public class BillingReminderJob implements Job {
     @Override public List<JobItem> plan(JobContext context) {
         context.recorder().count("remittanceReminders", 0);
         int day = context.parameter("billing.remittanceReminderDay", Integer.class);
-        if (day == 0 || context.localDate().getDayOfMonth() != day) { return List.of(); }
+        if (day == 0 || context.localDate().getDayOfMonth() != Math.min(day, context.localDate().lengthOfMonth())) { return List.of(); }
         if (!settings.providerEnabled("SEPA_XML")) { return List.of(); }
         var period = YearMonth.from(context.localDate()).plusMonths(1);
         if (marks.contains("REMIND_BILLING", period.toString()) || remittances.forPeriod(period.toString()).stream().anyMatch(r -> r.status() != RemittanceStatus.ROLLED_BACK)) { return List.of(); }

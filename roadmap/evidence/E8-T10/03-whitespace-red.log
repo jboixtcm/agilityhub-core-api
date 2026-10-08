@@ -1,0 +1,25 @@
+.FF
+======================================================================
+FAIL: test_E8_T10_point5_committed_whitespace_fails_even_with_a_clean_worktree (__main__.WhitespaceTest.test_E8_T10_point5_committed_whitespace_fails_even_with_a_clean_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/check-whitespace-test.py", line 17, in test_E8_T10_point5_committed_whitespace_fails_even_with_a_clean_worktree
+    self.assertEqual(check('task-base'), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_E8_T10_point5_untracked_paths_are_checked_without_shell_interpolation (__main__.WhitespaceTest.test_E8_T10_point5_untracked_paths_are_checked_without_shell_interpolation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/check-whitespace-test.py", line 23, in test_E8_T10_point5_untracked_paths_are_checked_without_shell_interpolation
+    self.assertEqual(check('task-base'), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+FAILED (failures=2)
+
+exit 1

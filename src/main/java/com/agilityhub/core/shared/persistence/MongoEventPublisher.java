@@ -24,14 +24,15 @@ public class MongoEventPublisher extends GlobalRepository<DomainEventRecord> imp
     private final ObjectMapper mapper;
     private final MongoDatabaseFactory factory;
     private final Clock clock;
+    private final com.agilityhub.core.shared.application.TenantWriteFence writes;
     private final ObjectProvider<DomainEventHandler<?>> handlers;
 
     public MongoEventPublisher(MongoTemplate mongo, ObjectMapper mapper, MongoDatabaseFactory factory, Clock clock,
-            ObjectProvider<DomainEventHandler<?>> handlers) {
+            ObjectProvider<DomainEventHandler<?>> handlers, com.agilityhub.core.shared.application.TenantWriteFence writes) {
         super(mongo, DomainEventRecord.class);
         this.mapper = mapper;
         this.factory = factory;
-        this.clock = clock;
+        this.clock = clock; this.writes = writes;
         this.handlers = handlers;
     }
 
@@ -41,6 +42,7 @@ public class MongoEventPublisher extends GlobalRepository<DomainEventRecord> imp
                 || !TransactionSynchronizationManager.hasResource(factory)) {
             throw new IllegalStateException("EventPublisher requires the aggregate's Mongo transaction");
         }
+        writes.written(event.clubId());
         String id = UUID.randomUUID().toString();
         String json;
         try {

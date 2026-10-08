@@ -1,0 +1,25 @@
+F.F.
+======================================================================
+FAIL: test_E8_T10_point5_clean_range_and_untracked_file_pass (__main__.WhitespaceTest.test_E8_T10_point5_clean_range_and_untracked_file_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/check-whitespace-test.py", line 30, in test_E8_T10_point5_clean_range_and_untracked_file_pass
+    self.assertEqual(check('task-base'), 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors (__main__.WhitespaceTest.test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/check-whitespace-test.py", line 42, in test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors
+    self.assertEqual(check('task-base'), 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.009s
+
+FAILED (failures=2)
+
+exit 1

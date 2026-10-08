@@ -1,0 +1,21 @@
+[ERROR] COMPILATION ERROR :
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/migration/PlayoffMigrationIT.java:[620,13] reference to assertThat is ambiguous
+  both method assertThat(java.util.function.IntPredicate) in org.assertj.core.api.Assertions and method <T>assertThat(java.util.function.Predicate<T>) in org.assertj.core.api.Assertions match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/migration/PlayoffMigrationIT.java:[620,44] incompatible types: inference variable T has incompatible bounds
+    upper bounds: java.util.function.IntPredicate,java.lang.Object
+    lower bounds: java.lang.Boolean
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure:
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/migration/PlayoffMigrationIT.java:[620,13] reference to assertThat is ambiguous
+[ERROR]   both method assertThat(java.util.function.IntPredicate) in org.assertj.core.api.Assertions and method <T>assertThat(java.util.function.Predicate<T>) in org.assertj.core.api.Assertions match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/migration/PlayoffMigrationIT.java:[620,44] incompatible types: inference variable T has incompatible bounds
+[ERROR]     upper bounds: java.util.function.IntPredicate,java.lang.Object
+[ERROR]     lower bounds: java.lang.Boolean
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit 1

@@ -54,6 +54,12 @@ class ScanPolicyTest(unittest.TestCase):
                 suppressions({'suppressions': [bad]}, TODAY)
         self.assertEqual(len(suppressions({'suppressions': [entry(expires='2027-01-06')]}, TODAY)[0]), 1)
 
+    def test_E8_T10_point6_future_recorded_date_is_rejected(self):
+        for recorded, expires in [('2099-01-01', '2099-04-01'), ('2026-10-09', '2026-10-10')]:
+            with self.subTest(recorded=recorded), self.assertRaisesRegex(ValueError, 'future'):
+                suppressions({'suppressions': [entry(recorded=recorded, expires=expires)]}, TODAY)
+        self.assertEqual(len(suppressions({'suppressions': [entry()]}, TODAY)[0]), 1)
+
     def test_the_committed_suppressions_are_valid_and_name_their_task(self):
         for committed in json.loads(scanner['SUPPRESSIONS'].read_text())['suppressions']:
             active, _ = suppressions({'suppressions': [committed]}, datetime.date.fromisoformat(committed['recorded']))

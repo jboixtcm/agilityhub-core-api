@@ -38,7 +38,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         fixture = copyOf(Path.of("src/test/resources/fixtures/playoff"));
         TenantContext.clear(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
         for (String collection:List.of("members","dogs","family_groups","accounts","memberships","clubs","parameters","levels","plans","prices","migration_runs",
-                "leave_requests","invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
+                "leave_requests","invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","tenant_write_counters","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
         clubs.save(PlatformFixtures.club(CLUB,CLUB+".example.test")); clubs.save(PlatformFixtures.club(OTHER,OTHER+".example.test")); configs.invalidate(CLUB); configs.invalidate(OTHER);
         // The plan and level codes of seeds/club-canic.yaml (S05 §12).
         for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6","COMPETICIO_1")) {
@@ -573,6 +573,165 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "leave_requests")).containsExactly(request);
         assertThat(rows("notifications")).isEmpty();
     }
+    @Test void T_18_03_point1_crashAfterCommittedBillingBatchCanRestartWithoutDuplicates() throws Exception {
+        var receipts = new StringBuilder("Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n");
+        String sourceId = source(1);
+        for (int i = 1; i <= 103; i++) {
+            receipts.append("resume-").append(i).append(';').append(sourceId).append(';').append(i)
+                    .append(";2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        }
+        Files.writeString(fixture.resolve("rebuts.csv"), receipts);
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        org.mockito.Mockito.doAnswer(call -> {
+            if (calls.incrementAndGet() == 101) { throw new AssertionError("Simulated process interruption"); }
+            return call.callRealMethod();
+        }).when(billing).receipt(org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(() -> importer.importDirectory(fixture, MAPPING, CLUB, false, true, true))
+                .isInstanceOf(AssertionError.class).hasMessage("Simulated process interruption");
+        var committed = rows("invoices"); assertThat(committed).hasSize(100);
+        assertThat(rows("migration_runs")).singleElement().satisfies(r -> assertThat(r.getString("status")).isEqualTo("RUNNING"));
+        long members = rows("members").size(), accountsBefore = rows("accounts").size();
+        org.mockito.Mockito.reset(billing);
+        clock.setInstant(clock.instant().plusSeconds(1800));
+        var resumed = importer.importDirectory(fixture, MAPPING, CLUB, false, true, true);
+        assertThat(resumed.hasErrors()).as(resumed.render()).isFalse();
+        assertThat(rows("invoices")).hasSize(103).containsAll(committed);
+        assertThat(rows("members")).hasSize((int) members); assertThat(rows("accounts")).hasSize((int) accountsBefore);
+        assertThat(rows("migration_runs")).extracting(r -> r.getString("status")).containsExactlyInAnyOrder("FAILED", "COMPLETED");
+        assertThatThrownBy(() -> importer.importDirectory(fixture, MAPPING, CLUB, false, true, true))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+    }
+
+    @Autowired com.agilityhub.core.migration.persistence.MigrationRunRepository migrationRuns;
+
+    @Test void T_18_03_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant() {
+        try (var tenant = TenantContext.open(CLUB)) {
+            migrationRuns.acquire("first-worker", clock.instant());
+            assertThatThrownBy(() -> migrationRuns.acquire("second-worker", clock.instant()))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        }
+        try (var other = TenantContext.open(OTHER)) {
+            migrationRuns.acquire("other-worker", clock.instant());
+            transactions.executeWithoutResult(status -> migrationRuns.fence("other-worker", clock.instant()));
+        }
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThatThrownBy(() -> transactions.executeWithoutResult(status -> migrationRuns.lockReset(clock.instant())))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+            clock.setInstant(clock.instant().plusSeconds(601));
+            migrationRuns.acquire("second-worker", clock.instant());
+            boolean stillOwned = transactions.execute(status -> migrationRuns.tryFence("first-worker", clock.instant()));
+            assertThat(stillOwned).isFalse();
+            migrationRuns.release("first-worker");
+            transactions.executeWithoutResult(status -> migrationRuns.fence("second-worker", clock.instant()));
+            migrationRuns.release("second-worker");
+            transactions.executeWithoutResult(status -> migrationRuns.lockReset(clock.instant()));
+        }
+    }
+
+    @Test void T_18_03_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed() throws Exception {
+        String sourceId = source(1);
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "expired-worker;" + sourceId + ";1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        org.mockito.Mockito.doAnswer(call -> {
+            Object result = call.callRealMethod(); clock.setInstant(clock.instant().plusSeconds(601)); return result;
+        }).when(billing).receipt(org.mockito.ArgumentMatchers.any());
+        assertThatThrownBy(() -> importer.importDirectory(fixture, MAPPING, CLUB, false, true, true))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        assertThat(rows("invoices")).isEmpty();
+        assertThat(rows("migration_runs")).singleElement().satisfies(r -> assertThat(r.getString("status")).isEqualTo("RUNNING"));
+        assertThat(rows("domain_events")).noneMatch(e -> "MigrationRunFailed".equals(e.getString("type")));
+        org.mockito.Mockito.reset(billing);
+        assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true).hasErrors()).isFalse();
+        assertThat(rows("invoices")).hasSize(1);
+    }
+
+    void futureLeave(String date) throws Exception {
+        var table = PlayoffTable.read(fixture.resolve("socis.csv"));
+        table.set(1, new ArrayList<>(table.get(1))); table.get(1).set(table.getFirst().indexOf("Data baixa"), date);
+        PlayoffTable.write(fixture.resolve("socis.csv"), table);
+    }
+
+    @Test void T_18_15_point3_changedFutureLeaveKeepsMemberAndDecisionTogether() throws Exception {
+        futureLeave("2026-12-31"); assertThat(apply().hasErrors()).isFalse();
+        String requestId = member(1).getString("leaveRequestId");
+        futureLeave("2027-01-31"); assertThat(apply().hasErrors()).isFalse();
+        assertThat(member(1)).containsEntry("leaveDate", "2027-01-31").containsEntry("leaveRequestId", requestId);
+        var request = mongo.findById(requestId, Document.class, "leave_requests");
+        assertThat(request.get("decision", Document.class)).containsEntry("effectiveDate", "2027-01-31");
+        assertThat(request).containsEntry("requestedDate", "2027-01-31").containsEntry("state", "APPROVED");
+        apply(); assertThat(rows("leave_requests")).containsExactly(request);
+        assertThat(rows("notifications")).isEmpty();
+    }
+
+    @Test void T_18_15_point3_removedFutureLeaveIsRejectedBeforeAnyWrite() throws Exception {
+        futureLeave("2026-12-31"); assertThat(apply().hasErrors()).isFalse();
+        futureLeave(""); var before = snapshot(); var report = apply();
+        assertThat(report.hasErrors()).isTrue();
+        assertThat(report.rows()).anyMatch(r -> r.code().equals(MigrationReport.REEXECUTION_UNSUPPORTED) && r.field().equals("leaveDate"));
+        assertThat(snapshot()).isEqualTo(before);
+    }
+
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.migration.persistence.MigrationResetRepository resetData;
+
+    @Test void T_18_16_point2_sameMillisecondWriteRefusesReset() {
+        assertThat(importer.importDirectory(fixture, MAPPING, CLUB, false, true, true).hasErrors()).isFalse();
+        try (var tenant = TenantContext.open(CLUB)) {
+            var member = member(1);
+            memberService.patch(member.getString("_id"), Map.of("version", member.get("version"), "remarks", "Fictional later edit"), false);
+            assertThatThrownBy(() -> transactions.executeWithoutResult(status -> resetData.requireNoLaterWrites()))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
+        }
+        assertThat(member(1)).containsEntry("remarks", "Fictional later edit");
+    }
+
+    Path resetSeed() throws Exception {
+        var lines = Files.readString(Path.of("seeds/club-canic.yaml"));
+        var pagesDir = Files.createDirectories(temp.resolve("reset-seeds/pages"));
+        try (var pages = Files.list(Path.of("seeds/pages"))) {
+            for (Path page : pages.toList()) { Files.copy(page, pagesDir.resolve(page.getFileName())); }
+        }
+        return Files.writeString(pagesDir.getParent().resolve("club-canic.yaml"),
+                lines.substring(0, lines.indexOf("\naccounts:") + 1) + lines.substring(lines.indexOf("\ncatalogs:") + 1));
+    }
+
+    @Test void T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost() throws Exception {
+        Path seed = resetSeed(); String club = definitions.apply(seed, false).id();
+        var committed = new java.util.concurrent.atomic.AtomicBoolean();
+        var writerFailure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+        try {
+            assertThat(importer.importDirectory(fixture, MAPPING, club, false, true, true).hasErrors()).isFalse();
+            String edited = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")), Document.class, "members").getString("_id");
+            org.mockito.Mockito.doAnswer(call -> {
+                call.callRealMethod();
+                var independent = new org.springframework.transaction.support.TransactionTemplate(transactions.getTransactionManager());
+                independent.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                try {
+                    independent.executeWithoutResult(status -> {
+                        var member = mongo.findById(edited, Document.class, "members");
+                        memberService.patch(edited, Map.of("version", member.get("version"), "remarks", "Concurrent fictional edit"), false);
+                    });
+                    committed.set(true);
+                } catch (org.springframework.dao.DataAccessException conflict) { writerFailure.set(conflict); }
+                return null;
+            }).when(resetData).requireNoLaterWrites();
+            Throwable resetFailure = catchThrowable(() -> reset.reset("canic", seed, "canic", "canic"));
+            if (committed.get()) {
+                assertThat(resetFailure).as("A committed write must refuse reset").isNotNull();
+                assertThat(mongo.findById(edited, Document.class, "members")).containsEntry("remarks", "Concurrent fictional edit");
+            } else {
+                assertThat(writerFailure.get()).as("The writer must explicitly fail if reset wins the shared lock").isNotNull();
+                assertThat(resetFailure).isNull();
+                assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club)), "members")).isZero();
+            }
+        } finally {
+            org.mockito.Mockito.reset(resetData);
+            for (String collection : mongo.getCollectionNames()) {
+                if (!collection.startsWith("system.")) { mongo.remove(Query.query(Criteria.where("clubId").is(club)), collection); }
+            }
+            mongo.remove(Query.query(Criteria.where("_id").is(club)), "clubs");
+        }
+    }
+
     @Test void T_18_04_malformedExportedMandateDatesProduceSafeReportRows() throws Exception {
         for (String date : List.of("", "not-a-date")) {
             Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n" + source(50) + ";legacy-reference;" + date + "\n");
@@ -584,7 +743,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             assertThat(rows("members")).isEmpty();
         }
     }
-    @Autowired com.agilityhub.core.payments.application.BillingMigrationAccess billing;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.payments.application.BillingMigrationAccess billing;
     @Autowired MigrationResetService reset;
     @Autowired org.springframework.transaction.support.TransactionTemplate transactions;
     @Autowired com.agilityhub.core.payments.application.InvoiceActions invoiceActions;

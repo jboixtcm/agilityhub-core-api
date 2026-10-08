@@ -52,10 +52,14 @@ public class PlayoffImportService {
             if (dryRun || report.hasErrors()) { return report; }
             apply.validate(preview);
             var started = new java.util.concurrent.atomic.AtomicReference<MigrationRun>();
+            String holder = UUID.randomUUID().toString();
+            runs.acquire(holder, clock.instant());
             try {
                 // Census retains its existing atomic boundary. Billing stages follow in 100-row transactions.
                 var prepared = transactions.execute(status -> {
-                    runs.lock(production); census.lock(); catalogs.lock();
+                    runs.fence(holder, clock.instant());
+                    for (var abandoned : runs.interrupted(production)) { failed(abandoned, "RECOVERY"); }
+                    resetGuard.trackWrites(); census.lock(); catalogs.lock();
                     var plan = planner.plan(input, mapping, cutover);
                     var billingPlan = billingPlanner.plan(input, mapping, plan, cutover);
                     var checked = report(false, plan, billingPlan);
@@ -65,11 +69,12 @@ public class PlayoffImportService {
                     runs.insert(run); started.set(run);
                     events.publish(new MigrationEvent("MigrationRunStarted", run.id(), clubId, clock.instant(), Map.of("mode", run.mode(), "env", run.env())));
                     apply.apply(run, plan);
+                    runs.fence(holder, clock.instant());
                     return new Prepared(run, checked, billingPlan);
                 });
                 if (prepared.run() == null) { return prepared.report(); }
-                batch(prepared.billing().receipts(), billing::receipt);
-                batch(prepared.billing().packs(), billing::pack);
+                batch(holder, prepared.billing().receipts(), billing::receipt);
+                batch(holder, prepared.billing().packs(), billing::pack);
                 var rows = new ArrayList<>(prepared.report().rows()); var totals = new TreeMap<>(prepared.report().totals());
                 boolean reconciled = false;
                 if (!prepared.billing().forecast().isEmpty()) {
@@ -93,31 +98,47 @@ public class PlayoffImportService {
                     }
                 }
                 var completed = new MigrationReport(false, rows, totals); boolean withinTolerance = reconciled;
-                transactions.executeWithoutResult(status -> apply.complete(prepared.run(), completed, withinTolerance));
-                resetGuard.checkpoint(production, clock.instant());
+                transactions.executeWithoutResult(status -> {
+                    runs.fence(holder, clock.instant());
+                    apply.complete(prepared.run(), completed, withinTolerance);
+                    resetGuard.checkpoint(production, clock.instant());
+                    runs.fence(holder, clock.instant());
+                });
                 return completed;
             } catch (RuntimeException failure) {
                 var run = started.get();
                 if (run != null) {
-                    transactions.executeWithoutResult(status -> {
-                        runs.replace(new MigrationRun(run.id(), clubId, run.source(), run.mode(), run.env(), run.mappingVersion(),
-                                "FAILED", run.startedAt(), clock.instant(), Map.of()));
-                        events.publish(new MigrationEvent("MigrationRunFailed", run.id(), clubId, clock.instant(), Map.of("step", "LOAD")));
-                    });
+                    try {
+                        transactions.executeWithoutResult(status -> {
+                            if (runs.tryFence(holder, clock.instant())) {
+                                failed(run, "LOAD");
+                                runs.fence(holder, clock.instant());
+                            }
+                        });
+                    } catch (RuntimeException recordingFailure) { failure.addSuppressed(recordingFailure); }
                 }
                 throw failure;
-            }
+            } finally { runs.release(holder); }
         }
+    }
+    private void failed(MigrationRun run, String step) {
+        runs.replace(new MigrationRun(run.id(), run.clubId(), run.source(), run.mode(), run.env(), run.mappingVersion(),
+                "FAILED", run.startedAt(), clock.instant(), Map.of()));
+        events.publish(new MigrationEvent("MigrationRunFailed", run.id(), run.clubId(), clock.instant(), Map.of("step", step)));
     }
     private record Prepared(MigrationRun run, MigrationReport report, PlayoffBillingPlanner.Plan billing) { }
     private MigrationReport report(boolean dry, PlayoffPlanner.Plan censusPlan, PlayoffBillingPlanner.Plan billingPlan) {
         var rows = new ArrayList<>(censusPlan.rows()); rows.addAll(billingPlan.rows());
         return new MigrationReport(dry, rows, billingPlan.counters());
     }
-    private <T> void batch(List<T> values, java.util.function.Consumer<T> writer) {
+    private <T> void batch(String holder, List<T> values, java.util.function.Consumer<T> writer) {
         for (int start = 0; start < values.size(); start += 100) {
             var page = values.subList(start, Math.min(start + 100, values.size()));
-            transactions.executeWithoutResult(status -> page.forEach(writer));
+            transactions.executeWithoutResult(status -> {
+                runs.fence(holder, clock.instant());
+                page.forEach(writer);
+                runs.fence(holder, clock.instant());
+            });
         }
     }
 }

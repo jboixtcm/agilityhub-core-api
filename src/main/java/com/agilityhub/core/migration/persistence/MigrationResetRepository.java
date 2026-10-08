@@ -1,6 +1,7 @@
 package com.agilityhub.core.migration.persistence;
 
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.application.TenantWriteFence;
 import com.agilityhub.core.shared.domain.*;
 import com.agilityhub.core.shared.persistence.TenantRepository;
 import java.time.Instant;
@@ -14,24 +15,27 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MigrationResetRepository extends TenantRepository<MigrationRun> {
     private static final String GUARDS = "migration_reset_guards";
-    public MigrationResetRepository(MongoTemplate mongo) { super(mongo, MigrationRun.class); }
-    /** Taken after the load's completion transaction: its own audit entry and outbox events are not later than {@code loadedAt}. */
+    private final TenantWriteFence writes;
+    public MigrationResetRepository(MongoTemplate mongo, TenantWriteFence writes) { super(mongo, MigrationRun.class); this.writes = writes; }
+    public void trackWrites() { writes.lock(); }
+
+    /** Completion, its audit/outbox and this counter checkpoint commit atomically. */
     public void checkpoint(boolean production, Instant loadedAt) {
+        long sequence = writes.lock();
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require())),
-                new Update().set("clubId", TenantContext.require()).set("loadedAt", loadedAt).set("production", production), GUARDS);
+                new Update().set("clubId", TenantContext.require()).set("loadedAt", loadedAt)
+                        .set("production", production).set("writeSequence", sequence), GUARDS);
     }
-    /**
-     * T-18-16 (R-18-14): after a production load, the club's later writes — its audit entries and outbox events after the load,
-     * other than the migration's own — are counted, and any of them refuses the reset. Writes that bypass the api (and so
-     * leave neither) are not counted.
-     */
+
+    /** T-18-16: the counter check and erase hold one transaction lock shared with audited/outbox writers. */
     public void requireNoLaterWrites() {
+        long sequence = writes.lock();
         var guard = mongo.findOne(tenantQuery(), Document.class, GUARDS);
         if (guard == null || !Boolean.TRUE.equals(guard.get("production"))) { return; }
-        var loadedAt = guard.getDate("loadedAt").toInstant();
-        long audits = mongo.count(tenantQuery().addCriteria(Criteria.where("at").gt(loadedAt).and("action").ne("MIGRATION_APPLIED")), "audit_entries");
-        long events = mongo.count(tenantQuery().addCriteria(Criteria.where("occurredAt").gt(loadedAt).and("type").not().regex("^MigrationRun")), "domain_events");
-        if (audits + events > 0) { throw new ApiException(ErrorCode.MIGRATION_ALREADY_APPLIED); }
+        // A legacy checkpoint cannot prove the absence of later writes; refuse destructively resetting it.
+        if (!(guard.get("writeSequence") instanceof Number expected) || expected.longValue() != sequence) {
+            throw new ApiException(ErrorCode.MIGRATION_ALREADY_APPLIED);
+        }
     }
     /** Audit history survives reset; global identity data is outside this tenant boundary; Mongo's own `system.*` are not data. */
     public Set<String> collections() {
@@ -39,7 +43,7 @@ public class MigrationResetRepository extends TenantRepository<MigrationRun> {
     }
     public void erase(Set<String> collections) {
         for (String collection : collections) {
-            if (!Set.of("clubs", "audit_entries").contains(collection)) { mongo.remove(tenantQuery(), collection); }
+            if (!Set.of("clubs", "audit_entries", "tenant_write_counters").contains(collection)) { mongo.remove(tenantQuery(), collection); }
         }
     }
 }

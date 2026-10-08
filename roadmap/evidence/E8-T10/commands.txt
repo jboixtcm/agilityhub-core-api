@@ -1,0 +1,21 @@
+E8-T10 verification commands (read-only git only; captured exits are in each log)
+01-java-red.log: ./mvnw -q -Dtest=MigrationResetServiceTest -Dit.test='PlayoffMigrationIT#*point*+T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried,E8ScheduledProcessesIT#*point*' test-compile failsafe:integration-test failsafe:verify
+02-scan-red.log and 05-scan-green.log: python3 bin/security-scan-test.py
+03-whitespace-red.log and 04-whitespace-green.log: python3 bin/check-whitespace-test.py
+06-race-red.log: ./mvnw -q -Dit.test='PlayoffMigrationIT#T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost' test-compile failsafe:integration-test failsafe:verify
+07-targeted.log: ./mvnw -q -Dit.test='PlayoffMigrationIT#*point*+T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried+T_18_16_resetErasesTheLoadAndAFreshLoadGivesTheSameReport,E8ScheduledProcessesIT#*point*' test-compile failsafe:integration-test failsafe:verify
+08-baseline-ci.log: gh run view 37782510997 --json status,conclusion,url,jobs
+09-baseline-ci-failure.log: gh api repos/jboixtcm/agilityhub-core-api/actions/jobs/113328888457/logs (output sanitized before storing)
+10-clean-verify.log, 12-clean-verify.log, 16-clean-verify.log, 21-clean-verify.log: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify
+11-reviewed-range-red.log: git diff --check 235cab6 b8ce8ec
+13-policy-tests.log: python3 bin/security-scan-test.py
+14-whitespace-tests.log: python3 bin/check-whitespace-test.py
+15-architecture.log: ./mvnw -q -Dtest=ArchitectureTest test
+17-ci-status.log: gh run view 37782510997 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion}]}'
+18-test-summary.log: python3 roadmap/evidence/E8-T10/summarize-tests.py
+19-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+20-lease-tests.log: ./mvnw -q '-Dit.test=PlayoffMigrationIT#T_18_03_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant+T_18_03_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed' test-compile failsafe:integration-test failsafe:verify
+22-whitespace-real-red.log, 23-whitespace-tests.log, 25-whitespace-tests.log: python3 bin/check-whitespace-test.py
+24-handoff.log, 26-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py
+27-status.log: python3 roadmap/tools/check.py --set E8-T10 awaiting_verification
+28-final-handoff.log: python3 roadmap/evidence/E8-T10/check-handoff.py

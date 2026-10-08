@@ -15,9 +15,10 @@ import org.springframework.stereotype.Repository;
 public class AuditRepository {
     private final MongoTemplate mongo;
     private final TenantEntries tenants;
+    private final com.agilityhub.core.shared.application.TenantWriteFence writes;
 
-    public AuditRepository(MongoTemplate mongo) {
-        this.mongo = mongo;
+    public AuditRepository(MongoTemplate mongo, com.agilityhub.core.shared.application.TenantWriteFence writes) {
+        this.mongo = mongo; this.writes = writes;
         this.tenants = new TenantEntries(mongo);
     }
 
@@ -26,6 +27,7 @@ public class AuditRepository {
             requirePlatformScope();
             mongo.insert(entry);
         } else {
+            writes.written(entry.clubId());
             tenants.insert(entry);
         }
     }

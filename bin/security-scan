@@ -41,6 +41,8 @@ def suppressions(document, today):
             raise ValueError('Suppression %s lacks %s' % (entry.get('id', '?'), ', '.join(missing)))
         recorded = datetime.date.fromisoformat(entry['recorded'])
         expires = datetime.date.fromisoformat(entry['expires'])
+        if recorded > today:
+            raise ValueError('Suppression %s has a future recorded date' % entry['id'])
         if not recorded <= expires <= recorded + datetime.timedelta(days=MAX_SUPPRESSION_DAYS):
             raise ValueError('Suppression %s must expire within %d days of %s' % (entry['id'], MAX_SUPPRESSION_DAYS, entry['recorded']))
         (active if today <= expires else expired).append(entry)

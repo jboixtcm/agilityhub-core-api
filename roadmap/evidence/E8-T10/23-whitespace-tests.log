@@ -1,0 +1,18 @@
+../var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/tmpe6x0r5t8/new evidence.log:1: trailing whitespace.
++trailing whitespace
+F.
+======================================================================
+FAIL: test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors (__main__.WhitespaceTest.test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/check-whitespace-test.py", line 44, in test_E8_T10_point5_real_git_distinguishes_added_files_from_whitespace_errors
+    self.assertEqual(check('task-base'), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 2
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.014s
+
+FAILED (failures=1)
+
+exit 1

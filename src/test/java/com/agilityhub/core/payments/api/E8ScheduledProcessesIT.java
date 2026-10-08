@@ -98,6 +98,23 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         var job = jobs.registered(JobName.BILLING_REMINDER).orElseThrow();
         assertThat(jobs.scheduled(CLUB, true, job, clock.instant()).orElseThrow().skipReason()).isEqualTo(SkipReason.MODULE_OFF);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"2027-02-28,29", "2027-02-28,30", "2027-02-28,31", "2028-02-29,31", "2026-04-30,31"})
+    void T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String date, int day) throws Exception {
+        admin("bill-admin", CLUB); parameter(CLUB, "billing.remittanceReminderDay", day);
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB)), new Update().set("nextInvoiceDate", "2026-01-01"), "members");
+        clock.setInstant(LocalDate.parse(date).atTime(6, 0).atZone(ZoneId.of("Europe/Madrid")).toInstant());
+        var definition = jobs.registered(JobName.BILLING_REMINDER).orElseThrow();
+        var run = jobs.scheduled(CLUB, true, definition, clock.instant()).orElseThrow();
+        assertThat(run.status()).as("%s", run.errors()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(counter(run, "remittanceReminders")).isEqualTo(1);
+        assertThat(events("RemittanceReminderDue")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("period", YearMonth.from(LocalDate.parse(date)).plusMonths(1).toString()));
+        assertThat(notices("N-41")).isEqualTo(1);
+        assertThat(counter(runJob(JobName.BILLING_REMINDER, false), "remittanceReminders")).isZero();
+        assertThat(invoices()).isEmpty();
+    }
+
     @Test void T_15_23_submittedSepaIsSettledOnCollectionDayOnce() throws Exception {
         var result = run("2026-09", simulate("2026-09").path("id").asText());
         String remittance = result.at("/remittance/id").asText();

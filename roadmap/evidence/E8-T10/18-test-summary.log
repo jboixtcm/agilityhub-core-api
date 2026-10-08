@@ -1,0 +1,19 @@
+surefire: tests=3731 failures=0 errors=0 skipped=0
+
+failsafe: tests=1644 failures=0 errors=0 skipped=0
+  PlayoffMigrationIT: tests=36 failures=0 errors=0 skipped=0
+    PASS T_18_16_point2_sameMillisecondWriteRefusesReset
+    PASS T_18_15_point3_changedFutureLeaveKeepsMemberAndDecisionTogether
+    PASS T_18_03_point1_liveOwnerAndExpiredOwnerAreFencedPerTenant
+    PASS T_18_03_point1_expiryDuringBatchRollsBackAndCannotMarkTheRunFailed
+    PASS T_18_16_point2_writeBetweenGuardAndDeletionCannotBeSilentlyLost
+    PASS T_18_15_point3_removedFutureLeaveIsRejectedBeforeAnyWrite
+    PASS T_18_03_point1_crashAfterCommittedBillingBatchCanRestartWithoutDuplicates
+  E8ScheduledProcessesIT: tests=16 failures=0 errors=0 skipped=0
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[1]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[2]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[3]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[4]
+    PASS T_15_28_point4_monthEndReminderClampsConfiguredDayThroughP10(String, int)[5]
+
+exit 0

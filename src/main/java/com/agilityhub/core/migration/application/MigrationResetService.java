@@ -24,7 +24,6 @@ public class MigrationResetService {
         try (var tenant = TenantContext.open(clubId)) {
             if (!clubId.equals(definitions.apply(seed, true).id())) { throw new ApiException(ErrorCode.TENANT_MISMATCH); }
             var collections = data.collections();
-            data.requireNoLaterWrites();
             changes.apply(clubId, seed, collections);
             configs.invalidate(clubId);
             return clubId;

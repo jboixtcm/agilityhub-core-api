@@ -1,0 +1,25 @@
+FF.........
+======================================================================
+FAIL: test_E8_T10_point6_future_recorded_date_is_rejected (__main__.ScanPolicyTest.test_E8_T10_point6_future_recorded_date_is_rejected) (recorded='2099-01-01')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/security-scan-test.py", line 59, in test_E8_T10_point6_future_recorded_date_is_rejected
+    with self.subTest(recorded=recorded), self.assertRaisesRegex(ValueError, 'future'):
+                                          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_E8_T10_point6_future_recorded_date_is_rejected (__main__.ScanPolicyTest.test_E8_T10_point6_future_recorded_date_is_rejected) (recorded='2026-10-09')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/security-scan-test.py", line 59, in test_E8_T10_point6_future_recorded_date_is_rejected
+    with self.subTest(recorded=recorded), self.assertRaisesRegex(ValueError, 'future'):
+                                          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.002s
+
+FAILED (failures=2)
+
+exit 1

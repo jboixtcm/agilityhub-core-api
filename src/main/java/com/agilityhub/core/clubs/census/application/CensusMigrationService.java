@@ -22,10 +22,25 @@ public class CensusMigrationService {
     public void member(String id, Map<String,Object> fields) { repository.write("members",id,fields); }
     public void dog(String id, Map<String,Object> fields) { repository.write("dogs",id,fields); }
     public void group(String id, Map<String,Object> fields) { repository.write("family_groups",id,fields); }
+    public boolean importedPlannedLeave(String id, String memberId) {
+        return leaves.findOwn(id, memberId).filter(r -> r.source() == LeaveSource.MIGRATED && r.state() == LeaveRequestState.APPROVED).isPresent();
+    }
     /** R-18-11: one silent import record, covered by the enclosing MIGRATION_APPLIED audit and census transaction. */
     public void plannedLeave(String id, String memberId, String effectiveDate) {
-        if (leaves.findById(id).isPresent()) { return; }
+        var old = leaves.findById(id).orElse(null);
         var now = clock.instant();
+        if (old != null) {
+            if (!importedPlannedLeave(id, memberId)) {
+                throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.MAPPING_INVALID);
+            }
+            if (Objects.equals(old.requestedDate(), effectiveDate) && Objects.equals(old.decision().effectiveDate(), effectiveDate)) { return; }
+            leaves.save(new LeaveRequest(old.id(), old.clubId(), old.memberId(), old.source(), old.origin(), old.requestedAt(),
+                    old.requestedBy(), effectiveDate, old.reasonKey(), old.nps(), old.comment(), old.state(),
+                    new LeaveRequest.Decision(now, old.decision().byAccountId(), old.decision().decision(), effectiveDate, old.decision().note()),
+                    old.executedAt(), old.cancelledAt(), old.cancelledBy(), old.cancelReason(), old.cancelledBookings(), old.packBalanceId(),
+                    old.version() + 1, old.createdAt(), now), old.version());
+            return;
+        }
         leaves.insert(new LeaveRequest(id, TenantContext.require(), memberId, LeaveSource.MIGRATED, LifecycleOrigin.SYSTEM, now,
                 null, effectiveDate, null, null, null, LeaveRequestState.APPROVED,
                 new LeaveRequest.Decision(now, null, LifecycleDecision.APPROVED, effectiveDate, null),
