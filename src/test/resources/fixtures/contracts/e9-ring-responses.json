@@ -1,0 +1,354 @@
+{
+  "RingGeometry": {
+    "lengthM": 40.0,
+    "widthM": 20.0,
+    "borderClearanceM": 1.5,
+    "orientationDeg": null,
+    "surface": null,
+    "notes": null,
+    "doors": [
+      {
+        "id": "e9-item-a",
+        "label": "A",
+        "side": "NORTH",
+        "startM": 1.5,
+        "endM": 1.5,
+        "flow": "IN",
+        "clearanceM": 1.5,
+        "polygonPointsM": [],
+        "isActive": true,
+        "notes": null
+      }
+    ],
+    "noGoZones": [],
+    "markers": [
+      {
+        "id": "marker-0",
+        "label": "A",
+        "markerUid": "marker-a",
+        "role": "ANCHOR",
+        "xM": 0,
+        "yM": 0,
+        "zM": 1.5,
+        "rotationYDeg": 1.5,
+        "physicalWidthM": 1.5,
+        "physicalHeightM": 1.5,
+        "isFixed": true,
+        "isActive": true,
+        "aprilTagId": null,
+        "notes": null
+      },
+      {
+        "id": "marker-1",
+        "label": "B",
+        "markerUid": "marker-a",
+        "role": "ANCHOR",
+        "xM": 20,
+        "yM": 0,
+        "zM": 1.5,
+        "rotationYDeg": 1.5,
+        "physicalWidthM": 1.5,
+        "physicalHeightM": 1.5,
+        "isFixed": true,
+        "isActive": true,
+        "aprilTagId": null,
+        "notes": null
+      },
+      {
+        "id": "marker-2",
+        "label": "C",
+        "markerUid": "marker-a",
+        "role": "ANCHOR",
+        "xM": 20,
+        "yM": 40,
+        "zM": 1.5,
+        "rotationYDeg": 1.5,
+        "physicalWidthM": 1.5,
+        "physicalHeightM": 1.5,
+        "isFixed": true,
+        "isActive": true,
+        "aprilTagId": null,
+        "notes": null
+      }
+    ],
+    "version": 1,
+    "updatedAt": "2026-10-08T08:00:00Z"
+  },
+  "RingDoor": {
+    "id": "e9-item-a",
+    "label": "A",
+    "side": "NORTH",
+    "startM": 1.5,
+    "endM": 1.5,
+    "flow": "IN",
+    "clearanceM": 1.5,
+    "polygonPointsM": [],
+    "isActive": true,
+    "notes": null
+  },
+  "RingNoGoZone": {
+    "id": "e9-item-a",
+    "label": "A",
+    "polygonPointsM": [],
+    "warningMarginM": 1.5
+  },
+  "RingMarker": {
+    "id": "e9-item-a",
+    "label": "A",
+    "markerUid": "marker-a",
+    "role": "ANCHOR",
+    "xM": 1.5,
+    "yM": 1.5,
+    "zM": 1.5,
+    "rotationYDeg": 1.5,
+    "physicalWidthM": 1.5,
+    "physicalHeightM": 1.5,
+    "isFixed": true,
+    "isActive": true,
+    "aprilTagId": null,
+    "notes": null
+  },
+  "PointM": {
+    "x": 1.5,
+    "y": 1.5
+  },
+  "CalibrationLog": {
+    "id": "e9-calibration-a",
+    "ringId": "e9-ring-a",
+    "outcome": "GREEN",
+    "averageErrorCm": 1.5,
+    "maxErrorCm": 1.5,
+    "markerCount": 1,
+    "deviceModel": null,
+    "osVersion": null,
+    "appVersion": null,
+    "arProvider": null,
+    "notes": null,
+    "rawMetadata": {},
+    "createdByAccountId": "e9-INSTRUCTOR",
+    "createdAt": "2026-10-08T08:00:00Z"
+  },
+  "Placement": {
+    "id": "e9-placement-a",
+    "courseId": "e9-course-a",
+    "courseVersion": 1,
+    "ringId": "e9-ring-a",
+    "transform": {
+      "offsetXM": 1.5,
+      "offsetYM": 1.5,
+      "rotationDeg": 1.5,
+      "flipX": true,
+      "flipY": true
+    },
+    "placementMode": "PRESERVE_METERS",
+    "warningThresholdM": 1.5,
+    "resolvedObstacles": [
+      {
+        "obstacleId": "obstacle-a",
+        "type": "Jump",
+        "x": 1.5,
+        "y": 1.5,
+        "rotationDeg": 1.5,
+        "numbers": []
+      }
+    ],
+    "warnings": [
+      {
+        "id": "e9-item-a",
+        "ruleId": "border-clearance",
+        "severity": "warning",
+        "message": "Example",
+        "obstacleSourceId": null,
+        "courseNoGoZoneId": null,
+        "ringNoGoZoneId": null,
+        "doorId": null,
+        "distanceMeters": null,
+        "thresholdMeters": null
+      }
+    ],
+    "stale": true,
+    "status": "DRAFT",
+    "mode": "EVENT",
+    "scheduledAt": null,
+    "grades": [],
+    "sizes": [],
+    "displayName": null,
+    "name": "Practice course",
+    "activityId": null,
+    "classSessionIds": [],
+    "buildSheetFileKey": null,
+    "createdByAccountId": "e9-INSTRUCTOR",
+    "createdAt": "2026-10-08T08:00:00Z",
+    "updatedAt": "2026-10-08T08:00:00Z",
+    "version": 1
+  },
+  "PlacementTransform": {
+    "offsetXM": 1.5,
+    "offsetYM": 1.5,
+    "rotationDeg": 1.5,
+    "flipX": true,
+    "flipY": true
+  },
+  "ResolvedObstacle": {
+    "obstacleId": "obstacle-a",
+    "type": "Jump",
+    "x": 1.5,
+    "y": 1.5,
+    "rotationDeg": 1.5,
+    "numbers": []
+  },
+  "PlacementWarning": {
+    "id": "e9-item-a",
+    "ruleId": "border-clearance",
+    "severity": "warning",
+    "message": "Example",
+    "obstacleSourceId": null,
+    "courseNoGoZoneId": null,
+    "ringNoGoZoneId": null,
+    "doorId": null,
+    "distanceMeters": null,
+    "thresholdMeters": null
+  },
+  "PlacementBlockedDetails": {
+    "warnings": [
+      {
+        "id": "e9-item-a",
+        "ruleId": "border-clearance",
+        "severity": "warning",
+        "message": "Example",
+        "obstacleSourceId": null,
+        "courseNoGoZoneId": null,
+        "ringNoGoZoneId": null,
+        "doorId": null,
+        "distanceMeters": null,
+        "thresholdMeters": null
+      }
+    ]
+  },
+  "RingSetup": {
+    "id": "e9-setup-a",
+    "ringId": "e9-ring-a",
+    "kind": "AGILITY",
+    "placementId": "e9-placement-a",
+    "courseId": "e9-course-a",
+    "imageFileKey": null,
+    "imageUrl": null,
+    "agilityhubLevel": "EASY",
+    "levelIds": [],
+    "builtAt": "2026-10-08T08:00:00Z",
+    "builtByAccountId": "e9-INSTRUCTOR",
+    "expectedUntil": null,
+    "expiresAt": "2026-10-08T08:00:00Z",
+    "status": "ACTIVE",
+    "dismantledAt": null,
+    "dismantledByAccountId": null,
+    "notes": null,
+    "createdAt": "2026-10-08T08:00:00Z"
+  },
+  "MemberRingSetup": {
+    "id": "e9-item-a",
+    "ringId": "e9-ring-a",
+    "kind": "AGILITY",
+    "placementId": "e9-placement-a",
+    "courseId": "e9-course-a",
+    "imageFileKey": null,
+    "imageUrl": null,
+    "agilityhubLevel": "EASY",
+    "levelIds": [],
+    "builtAt": "2026-10-08T08:00:00Z",
+    "expectedUntil": null,
+    "expiresAt": "2026-10-08T08:00:00Z",
+    "status": "ACTIVE",
+    "dismantledAt": null,
+    "createdAt": "2026-10-08T08:00:00Z"
+  },
+  "RingSetupCreated": {
+    "setup": {
+      "id": "e9-setup-a",
+      "ringId": "e9-ring-a",
+      "kind": "AGILITY",
+      "placementId": "e9-placement-a",
+      "courseId": "e9-course-a",
+      "imageFileKey": null,
+      "imageUrl": null,
+      "agilityhubLevel": "EASY",
+      "levelIds": [],
+      "builtAt": "2026-10-08T08:00:00Z",
+      "builtByAccountId": "e9-INSTRUCTOR",
+      "expectedUntil": null,
+      "expiresAt": "2026-10-08T08:00:00Z",
+      "status": "ACTIVE",
+      "dismantledAt": null,
+      "dismantledByAccountId": null,
+      "notes": null,
+      "createdAt": "2026-10-08T08:00:00Z"
+    },
+    "replacedSetupId": null
+  },
+  "RingSetupPage": {
+    "items": [
+      {
+        "id": "e9-setup-a",
+        "ringId": "e9-ring-a",
+        "kind": "AGILITY",
+        "placementId": "e9-placement-a",
+        "courseId": "e9-course-a",
+        "imageFileKey": null,
+        "imageUrl": null,
+        "agilityhubLevel": "EASY",
+        "levelIds": [],
+        "builtAt": "2026-10-08T08:00:00Z",
+        "builtByAccountId": "e9-INSTRUCTOR",
+        "expectedUntil": null,
+        "expiresAt": "2026-10-08T08:00:00Z",
+        "status": "ACTIVE",
+        "dismantledAt": null,
+        "dismantledByAccountId": null,
+        "notes": null,
+        "createdAt": "2026-10-08T08:00:00Z"
+      }
+    ],
+    "page": 1,
+    "size": 1,
+    "totalItems": 1,
+    "totalPages": 1
+  },
+  "MeRingSetup": {
+    "ringId": "e9-ring-a",
+    "setup": {
+      "id": "e9-item-a",
+      "kind": "AGILITY",
+      "levelLabel": null,
+      "builtAt": "2026-10-08T08:00:00Z",
+      "expectedUntil": null,
+      "thumbnailUrl": null,
+      "hasViewer": true
+    }
+  },
+  "MeRingSetupSummary": {
+    "id": "e9-item-a",
+    "kind": "AGILITY",
+    "levelLabel": null,
+    "builtAt": "2026-10-08T08:00:00Z",
+    "expectedUntil": null,
+    "thumbnailUrl": null,
+    "hasViewer": true
+  },
+  "ObstacleInventory": {
+    "scope": "CLUB",
+    "ringId": "e9-ring-a",
+    "items": [
+      {
+        "type": "Jump",
+        "count": 1,
+        "notes": null
+      }
+    ],
+    "updatedAt": "2026-10-08T08:00:00Z"
+  },
+  "InventoryItem": {
+    "type": "Jump",
+    "count": 1,
+    "notes": null
+  }
+}

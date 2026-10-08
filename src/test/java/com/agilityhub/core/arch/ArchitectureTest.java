@@ -107,4 +107,6 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E8_T02_T_12_12_noPaymentsRepositoryUpdatesAnInvoiceOrItsLines = ArchitectureRules.INVOICE_LINES_IMMUTABLE;
+    @ArchTest static final ArchRule T_16_16_coursesKeepsItsContextBoundary = ArchitectureRules.COURSES_DEPENDENCIES;
+    @ArchTest static final ArchRule T_16_16_clubsReachesCoursesOnlyThroughPorts = ArchitectureRules.CLUBS_WITHOUT_COURSES;
 }

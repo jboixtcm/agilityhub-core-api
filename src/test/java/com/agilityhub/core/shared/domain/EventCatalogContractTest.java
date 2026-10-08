@@ -77,6 +77,10 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.activities.domain.ActivityEvent.class,
                 () -> new com.agilityhub.core.clubs.activities.domain.ActivityEvent(com.agilityhub.core.clubs.activities.domain.ActivityEvent.Kind.ActivityFinished,
                         "club-a", "activity-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("activityId", "activity-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.courses.domain.CourseEvent.class,
+                () -> new com.agilityhub.core.courses.domain.CourseEvent(com.agilityhub.core.courses.domain.CourseEvent.Kind.CourseCreated,
+                        "club-a", "course-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("courseId", "course-a", "ownerType", "CLUB", "source", "IMAGE"),
+                        "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         // E5-T09: the consumer envelopes (`*ForeignEvent` of S08, S09 and clubs.common) are no longer DomainEvents: they cannot be published.

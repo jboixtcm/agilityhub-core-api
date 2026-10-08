@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-10-08T08:00:00Z",
+  "producer": "agilityhub-contract-fixture",
+  "buildSession": {
+    "id": "e9-session-a",
+    "placement_id": "e9-placement-a",
+    "judge_id": null,
+    "status": "in_progress",
+    "selected_strategy": "equipment_type",
+    "last_known_marker_id": null,
+    "started_at": "2026-10-08T08:00:00Z",
+    "completed_at": null,
+    "local_cache_version": 1,
+    "obstacle_statuses": [
+      {
+        "course_obstacle_id": "obstacle-a",
+        "status": "placed",
+        "updated_at": "2026-10-08T08:01:00Z"
+      }
+    ]
+  },
+  "placement": {
+    "id": "e9-placement-a",
+    "course_id": "e9-course-a",
+    "venue_id": "e9-venue-a",
+    "ring_id": "e9-ring-a",
+    "name": "Practice placement",
+    "placement_mode": "preserveMeters",
+    "offset_x_m": 0,
+    "offset_y_m": 0,
+    "rotation_deg": 0,
+    "warning_threshold_m": 1.5,
+    "warnings_json": [],
+    "status": "ready_to_build"
+  },
+  "course": {
+    "id": "e9-course-a",
+    "title": "Practice course",
+    "title_raw": "Practice course",
+    "source": "smarter-agility",
+    "source_version": null,
+    "units": "m",
+    "design_length_m": 40,
+    "design_width_m": 20,
+    "canvas_width": 800,
+    "canvas_height": 400,
+    "origin": "LB",
+    "normalized_json": {
+      "id": "fictional-course",
+      "source": "smarter-agility",
+      "sourceFileName": "fictional.txt",
+      "title": "Practice course",
+      "titleRaw": "Practice course",
+      "units": "M",
+      "designLengthMeters": 40,
+      "designWidthMeters": 20,
+      "canvasWidth": 800,
+      "canvasHeight": 400,
+      "origin": "LB",
+      "metadata": {
+        "type": "",
+        "courseType": "Agility",
+        "grade": "1",
+        "category": "",
+        "location": "",
+        "designer": "Example Designer",
+        "organization": "",
+        "date": "2026-10-08",
+        "exportVersion": null,
+        "obstacleSummary": null
+      },
+      "obstacles": [
+        {
+          "id": "obstacle-a",
+          "sourceId": "1",
+          "sourceCode": "jb",
+          "obstacleType": "Jump",
+          "xMeters": 10,
+          "yMeters": 8,
+          "rotationDegrees": 45,
+          "nominalLengthMeters": null,
+          "controlPointsMeters": null,
+          "colorKey": null,
+          "rawMetadata": {
+            "planner.version": 1,
+            "$original": {
+              "x": 200
+            }
+          }
+        }
+      ],
+      "numbers": [
+        {
+          "id": "number-a",
+          "text": "1",
+          "sequenceNumber": 1,
+          "xMeters": 9,
+          "yMeters": 8,
+          "linkedObstacleSourceId": "1",
+          "obstacleConnectionPoint": null,
+          "rawMetadata": {}
+        }
+      ],
+      "noGoZones": [],
+      "ignoredLogos": [],
+      "rawMetadata": {
+        "planner.version": 1,
+        "$original": "fictional"
+      }
+    },
+    "theme": {
+      "id": "theme-a",
+      "palette_key": "standard",
+      "theme_json": {}
+    }
+  },
+  "venue": {
+    "id": "e9-venue-a",
+    "slug": "fictional-club",
+    "name": "Example venue",
+    "country": "ES",
+    "city": "Example town",
+    "surface": "grass",
+    "indoor_outdoor": "outdoor"
+  },
+  "ring": {
+    "id": "e9-ring-a",
+    "venue_id": "e9-venue-a",
+    "name": "Example ring",
+    "length_m": 40,
+    "width_m": 20,
+    "border_clearance_m": 1,
+    "surface": "grass",
+    "doors": [],
+    "no_go_zones": [],
+    "markers": [
+      {
+        "id": "marker-0",
+        "label": "A",
+        "marker_uid": "fictional-marker-0",
+        "role": "anchor",
+        "x_m": 0,
+        "y_m": 0,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 0
+      },
+      {
+        "id": "marker-1",
+        "label": "B",
+        "marker_uid": "fictional-marker-1",
+        "role": "anchor",
+        "x_m": 20,
+        "y_m": 0,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 1
+      },
+      {
+        "id": "marker-2",
+        "label": "C",
+        "marker_uid": "fictional-marker-2",
+        "role": "anchor",
+        "x_m": 20,
+        "y_m": 40,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 2
+      },
+      {
+        "id": "marker-3",
+        "label": "D",
+        "marker_uid": "fictional-marker-3",
+        "role": "anchor",
+        "x_m": 0,
+        "y_m": 40,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 3
+      },
+      {
+        "id": "marker-4",
+        "label": "E",
+        "marker_uid": "fictional-marker-4",
+        "role": "anchor",
+        "x_m": 0,
+        "y_m": 20,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 4
+      },
+      {
+        "id": "marker-5",
+        "label": "F",
+        "marker_uid": "fictional-marker-5",
+        "role": "anchor",
+        "x_m": 20,
+        "y_m": 20,
+        "z_m": 0,
+        "rotation_y_deg": 0,
+        "physical_width_m": 0.2,
+        "physical_height_m": 0.2,
+        "is_fixed": true,
+        "is_active": true,
+        "april_tag_id": 5
+      }
+    ]
+  },
+  "assetProfile": {
+    "profileId": "generic-fci",
+    "fallbackChain": [
+      "generic-fci"
+    ]
+  }
+}

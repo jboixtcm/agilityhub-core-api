@@ -1,0 +1,1029 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/courses",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/courses",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "name": {
+        "ca": "Practice course"
+      },
+      "discipline": "AGILITY",
+      "source": "SMARTER",
+      "levelIds": [],
+      "tags": [],
+      "visibility": "CLUB",
+      "normalizedJson": {
+        "id": "fictional-course",
+        "source": "smarter-agility",
+        "sourceFileName": "fictional.txt",
+        "title": "Practice course",
+        "titleRaw": "Practice course",
+        "units": "M",
+        "designLengthMeters": 40,
+        "designWidthMeters": 20,
+        "canvasWidth": 800,
+        "canvasHeight": 400,
+        "origin": "LB",
+        "metadata": {
+          "type": "",
+          "courseType": "Agility",
+          "grade": "1",
+          "category": "",
+          "location": "",
+          "designer": "Example Designer",
+          "organization": "",
+          "date": "2026-10-08",
+          "exportVersion": null,
+          "obstacleSummary": null
+        },
+        "obstacles": [
+          {
+            "id": "obstacle-a",
+            "sourceId": "1",
+            "sourceCode": "jb",
+            "obstacleType": "Jump",
+            "xMeters": 10,
+            "yMeters": 8,
+            "rotationDegrees": 45,
+            "nominalLengthMeters": null,
+            "controlPointsMeters": null,
+            "colorKey": null,
+            "rawMetadata": {
+              "planner.version": 1,
+              "$original": {
+                "x": 200
+              }
+            }
+          }
+        ],
+        "numbers": [
+          {
+            "id": "number-a",
+            "text": "1",
+            "sequenceNumber": 1,
+            "xMeters": 9,
+            "yMeters": 8,
+            "linkedObstacleSourceId": "1",
+            "obstacleConnectionPoint": null,
+            "rawMetadata": {}
+          }
+        ],
+        "noGoZones": [],
+        "ignoredLogos": [],
+        "rawMetadata": {
+          "planner.version": 1,
+          "$original": "fictional"
+        }
+      },
+      "schemaVersion": 1,
+      "agilityhubLevel": "EASY"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/courses/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": true,
+    "roles": [
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/courses/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1,
+      "normalizedJson": {
+        "id": "fictional-course",
+        "source": "smarter-agility",
+        "sourceFileName": "fictional.txt",
+        "title": "Practice course",
+        "titleRaw": "Practice course",
+        "units": "M",
+        "designLengthMeters": 40,
+        "designWidthMeters": 20,
+        "canvasWidth": 800,
+        "canvasHeight": 400,
+        "origin": "LB",
+        "metadata": {
+          "type": "",
+          "courseType": "Agility",
+          "grade": "1",
+          "category": "",
+          "location": "",
+          "designer": "Example Designer",
+          "organization": "",
+          "date": "2026-10-08",
+          "exportVersion": null,
+          "obstacleSummary": null
+        },
+        "obstacles": [
+          {
+            "id": "obstacle-a",
+            "sourceId": "1",
+            "sourceCode": "jb",
+            "obstacleType": "Jump",
+            "xMeters": 10,
+            "yMeters": 8,
+            "rotationDegrees": 45,
+            "nominalLengthMeters": null,
+            "controlPointsMeters": null,
+            "colorKey": null,
+            "rawMetadata": {
+              "planner.version": 1,
+              "$original": {
+                "x": 200
+              }
+            }
+          }
+        ],
+        "numbers": [
+          {
+            "id": "number-a",
+            "text": "1",
+            "sequenceNumber": 1,
+            "xMeters": 9,
+            "yMeters": 8,
+            "linkedObstacleSourceId": "1",
+            "obstacleConnectionPoint": null,
+            "rawMetadata": {}
+          }
+        ],
+        "noGoZones": [],
+        "ignoredLogos": [],
+        "rawMetadata": {
+          "planner.version": 1,
+          "$original": "fictional"
+        }
+      },
+      "schemaVersion": 1,
+      "agilityhubLevel": "EASY"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/courses/{id}",
+    "success": 204,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {
+      "version": "1"
+    },
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/courses/{id}/duplicate",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "name": {
+        "ca": "Copied course"
+      }
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/courses/{id}/copy-to-club",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "name": {
+        "ca": "Copied course"
+      }
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/courses/upload-urls",
+    "success": 201,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "purpose": "SMARTER_SOURCE",
+      "contentType": "text/plain",
+      "size": 100
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings/{id}/geometry",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/rings/{id}/geometry",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "lengthM": 40.0,
+      "widthM": 20.0,
+      "borderClearanceM": 1.5,
+      "orientationDeg": null,
+      "surface": null,
+      "notes": null,
+      "doors": [
+        {
+          "id": "e9-item-a",
+          "label": "A",
+          "side": "NORTH",
+          "startM": 1.5,
+          "endM": 1.5,
+          "flow": "IN",
+          "clearanceM": 1.5,
+          "polygonPointsM": [],
+          "isActive": true,
+          "notes": null
+        }
+      ],
+      "noGoZones": [],
+      "markers": [
+        {
+          "id": "marker-0",
+          "label": "A",
+          "markerUid": "marker-a",
+          "role": "ANCHOR",
+          "xM": 0,
+          "yM": 0,
+          "zM": 1.5,
+          "rotationYDeg": 1.5,
+          "physicalWidthM": 1.5,
+          "physicalHeightM": 1.5,
+          "isFixed": true,
+          "isActive": true,
+          "aprilTagId": null,
+          "notes": null
+        },
+        {
+          "id": "marker-1",
+          "label": "B",
+          "markerUid": "marker-a",
+          "role": "ANCHOR",
+          "xM": 20,
+          "yM": 0,
+          "zM": 1.5,
+          "rotationYDeg": 1.5,
+          "physicalWidthM": 1.5,
+          "physicalHeightM": 1.5,
+          "isFixed": true,
+          "isActive": true,
+          "aprilTagId": null,
+          "notes": null
+        },
+        {
+          "id": "marker-2",
+          "label": "C",
+          "markerUid": "marker-a",
+          "role": "ANCHOR",
+          "xM": 20,
+          "yM": 40,
+          "zM": 1.5,
+          "rotationYDeg": 1.5,
+          "physicalWidthM": 1.5,
+          "physicalHeightM": 1.5,
+          "isFixed": true,
+          "isActive": true,
+          "aprilTagId": null,
+          "notes": null
+        }
+      ],
+      "version": 1
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/rings/{id}/geometry",
+    "success": 204,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {
+      "version": "1"
+    },
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings/{id}/marker-sheet",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings/{id}/setups",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/rings/{id}/calibrations",
+    "success": 201,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "outcome": "GREEN",
+      "averageErrorCm": 1.5,
+      "maxErrorCm": 1.5,
+      "markerCount": 1,
+      "rawMetadata": {}
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings/{id}/calibrations",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/placements",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {
+      "ringId": "e9-ring-a",
+      "courseId": "e9-course-a",
+      "activityId": "e9-activity-a"
+    },
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/placements/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/placements",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "courseId": "e9-course-a",
+      "courseVersion": 1,
+      "ringId": "e9-ring-a",
+      "transform": {
+        "offsetXM": 1.5,
+        "offsetYM": 1.5,
+        "rotationDeg": 1.5,
+        "flipX": true,
+        "flipY": true
+      },
+      "placementMode": "PRESERVE_METERS",
+      "resolvedObstacles": [],
+      "warnings": [],
+      "force": false
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/placements/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "courseId": "e9-course-a",
+      "courseVersion": 1,
+      "ringId": "e9-ring-a",
+      "transform": {
+        "offsetXM": 1.5,
+        "offsetYM": 1.5,
+        "rotationDeg": 1.5,
+        "flipX": true,
+        "flipY": true
+      },
+      "placementMode": "PRESERVE_METERS",
+      "resolvedObstacles": [],
+      "warnings": [],
+      "version": 1,
+      "force": false
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/placements/{id}/build-sheet",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "fileKey": "e9-club-a/courses/sheet.pdf"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/placements/{id}/build-sheet",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/ring-setups",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "ringId": "e9-ring-a",
+      "kind": "AGILITY",
+      "levelIds": [],
+      "courseId": "e9-course-a",
+      "placementId": "e9-placement-a",
+      "imageFileKey": null
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/ring-setups/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": true,
+    "roles": [
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/ring-setups/{id}/dismantle",
+    "success": 200,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/ring-setups/{id}/renewal",
+    "success": 200,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {},
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/ring-setups",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": true,
+    "roles": [
+      "MEMBER",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "ringIds": "e9-ring-a"
+    },
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/build-sessions",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "placementId": "e9-placement-a",
+      "live": true
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/build-sessions/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/build-sessions/{id}/obstacles/{obstacleId}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "status": "NOT_PLACED"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/build-sessions/{id}/finish",
+    "success": 200,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/build-sessions/{id}/events",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/build-sessions/join",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": {
+      "code": "DEMO42"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/build-sessions/{id}/export",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/obstacle-inventories/{scope}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/obstacle-inventories/{scope}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "items": [
+        {
+          "type": "Jump",
+          "count": 1,
+          "notes": null
+        }
+      ]
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/courses",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/courses",
+    "success": 201,
+    "idempotency": true,
+    "impersonation": false,
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": {
+      "name": {
+        "ca": "Practice course"
+      },
+      "discipline": "AGILITY",
+      "source": "SMARTER",
+      "levelIds": [],
+      "tags": [],
+      "visibility": "CLUB",
+      "normalizedJson": {
+        "id": "fictional-course",
+        "source": "smarter-agility",
+        "sourceFileName": "fictional.txt",
+        "title": "Practice course",
+        "titleRaw": "Practice course",
+        "units": "M",
+        "designLengthMeters": 40,
+        "designWidthMeters": 20,
+        "canvasWidth": 800,
+        "canvasHeight": 400,
+        "origin": "LB",
+        "metadata": {
+          "type": "",
+          "courseType": "Agility",
+          "grade": "1",
+          "category": "",
+          "location": "",
+          "designer": "Example Designer",
+          "organization": "",
+          "date": "2026-10-08",
+          "exportVersion": null,
+          "obstacleSummary": null
+        },
+        "obstacles": [
+          {
+            "id": "obstacle-a",
+            "sourceId": "1",
+            "sourceCode": "jb",
+            "obstacleType": "Jump",
+            "xMeters": 10,
+            "yMeters": 8,
+            "rotationDegrees": 45,
+            "nominalLengthMeters": null,
+            "controlPointsMeters": null,
+            "colorKey": null,
+            "rawMetadata": {
+              "planner.version": 1,
+              "$original": {
+                "x": 200
+              }
+            }
+          }
+        ],
+        "numbers": [
+          {
+            "id": "number-a",
+            "text": "1",
+            "sequenceNumber": 1,
+            "xMeters": 9,
+            "yMeters": 8,
+            "linkedObstacleSourceId": "1",
+            "obstacleConnectionPoint": null,
+            "rawMetadata": {}
+          }
+        ],
+        "noGoZones": [],
+        "ignoredLogos": [],
+        "rawMetadata": {
+          "planner.version": 1,
+          "$original": "fictional"
+        }
+      },
+      "schemaVersion": 1,
+      "agilityhubLevel": "EASY"
+    },
+    "params": {},
+    "platform": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/platform/courses/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": {
+      "version": 1,
+      "normalizedJson": {
+        "id": "fictional-course",
+        "source": "smarter-agility",
+        "sourceFileName": "fictional.txt",
+        "title": "Practice course",
+        "titleRaw": "Practice course",
+        "units": "M",
+        "designLengthMeters": 40,
+        "designWidthMeters": 20,
+        "canvasWidth": 800,
+        "canvasHeight": 400,
+        "origin": "LB",
+        "metadata": {
+          "type": "",
+          "courseType": "Agility",
+          "grade": "1",
+          "category": "",
+          "location": "",
+          "designer": "Example Designer",
+          "organization": "",
+          "date": "2026-10-08",
+          "exportVersion": null,
+          "obstacleSummary": null
+        },
+        "obstacles": [
+          {
+            "id": "obstacle-a",
+            "sourceId": "1",
+            "sourceCode": "jb",
+            "obstacleType": "Jump",
+            "xMeters": 10,
+            "yMeters": 8,
+            "rotationDegrees": 45,
+            "nominalLengthMeters": null,
+            "controlPointsMeters": null,
+            "colorKey": null,
+            "rawMetadata": {
+              "planner.version": 1,
+              "$original": {
+                "x": 200
+              }
+            }
+          }
+        ],
+        "numbers": [
+          {
+            "id": "number-a",
+            "text": "1",
+            "sequenceNumber": 1,
+            "xMeters": 9,
+            "yMeters": 8,
+            "linkedObstacleSourceId": "1",
+            "obstacleConnectionPoint": null,
+            "rawMetadata": {}
+          }
+        ],
+        "noGoZones": [],
+        "ignoredLogos": [],
+        "rawMetadata": {
+          "planner.version": 1,
+          "$original": "fictional"
+        }
+      },
+      "schemaVersion": 1,
+      "agilityhubLevel": "EASY"
+    },
+    "params": {},
+    "platform": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/challenges",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/challenges/{id}",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": false,
+    "roles": [
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/challenges/{id}/attempts",
+    "success": 200,
+    "idempotency": true,
+    "impersonation": true,
+    "roles": [
+      "MEMBER"
+    ],
+    "body": {
+      "dogId": "e9-dog-a",
+      "timeMs": 1,
+      "faults": 1,
+      "ringSetupId": "e9-setup-a"
+    },
+    "params": {},
+    "platform": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/challenge-attempts",
+    "success": 200,
+    "idempotency": false,
+    "impersonation": true,
+    "roles": [
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "platform": false
+  }
+]

@@ -36,9 +36,10 @@ class ParameterValidatorTest {
         invalid("billing.entryFeePerDog", Map.of("amountMinor", 100, "currency", "USD"));
         invalid("billing.entryFeePerDog", Map.of("amountMinor", -1, "currency", "EUR"));
         invalid("billing.entryFeePerDog", Map.of("amountMinor", 1.5, "currency", "EUR"));
-        valid("courses.gateClearanceMeters", 1.5); invalid("courses.gateClearanceMeters", "1.5");
-        invalid("courses.gateClearanceMeters", Double.NaN); invalid("courses.placementMarginMeters", Double.POSITIVE_INFINITY);
-        invalid("courses.placementMarginMeters", Map.of()); invalid("signup.rateLimit", "free text");
+        valid("courses.defaultWarningThresholdM", 1.5); valid("courses.defaultWarningThresholdM", 0);
+        invalid("courses.defaultWarningThresholdM", -0.01); invalid("courses.defaultWarningThresholdM", "1.5");
+        invalid("courses.defaultWarningThresholdM", Double.NaN); invalid("courses.defaultWarningThresholdM", Double.POSITIVE_INFINITY);
+        invalid("courses.defaultWarningThresholdM", Map.of()); invalid("signup.rateLimit", "free text");
         valid("signup.rateLimit", Map.of("requestLimit", 1)); valid("signup.rateLimit", List.of());
         invalid("files.allowedTypes", "image/*");
     }

@@ -1,0 +1,63 @@
+{
+  "id": "fictional-course",
+  "source": "smarter-agility",
+  "sourceFileName": "fictional.txt",
+  "title": "Practice course",
+  "titleRaw": "Practice course",
+  "units": "M",
+  "designLengthMeters": 40,
+  "designWidthMeters": 20,
+  "canvasWidth": 800,
+  "canvasHeight": 400,
+  "origin": "LB",
+  "metadata": {
+    "type": "",
+    "courseType": "Agility",
+    "grade": "1",
+    "category": "",
+    "location": "",
+    "designer": "Example Designer",
+    "organization": "",
+    "date": "2026-10-08",
+    "exportVersion": null,
+    "obstacleSummary": null
+  },
+  "obstacles": [
+    {
+      "id": "obstacle-a",
+      "sourceId": "1",
+      "sourceCode": "jb",
+      "obstacleType": "Jump",
+      "xMeters": 10,
+      "yMeters": 8,
+      "rotationDegrees": 45,
+      "nominalLengthMeters": null,
+      "controlPointsMeters": null,
+      "colorKey": null,
+      "rawMetadata": {
+        "planner.version": 1,
+        "$original": {
+          "x": 200
+        }
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "id": "number-a",
+      "text": "1",
+      "sequenceNumber": 1,
+      "xMeters": 9,
+      "yMeters": 8,
+      "linkedObstacleSourceId": "1",
+      "obstacleConnectionPoint": null,
+      "rawMetadata": {}
+    }
+  ],
+  "noGoZones": [],
+  "ignoredLogos": [],
+  "rawMetadata": {
+    "planner.version": 1,
+    "$original": "fictional"
+  }
+}

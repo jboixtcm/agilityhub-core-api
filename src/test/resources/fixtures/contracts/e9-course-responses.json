@@ -1,0 +1,212 @@
+{
+  "Course": {
+    "id": "e9-course-a",
+    "ownerType": "AGILITYHUB",
+    "clubId": null,
+    "ownerAccountId": null,
+    "visibility": "PUBLIC",
+    "name": "Practice course",
+    "nameI18n": {
+      "ca": "Recorregut de prova"
+    },
+    "discipline": "AGILITY",
+    "designerName": null,
+    "designedOn": null,
+    "eventName": null,
+    "agilityhubLevel": "EASY",
+    "levelIds": [],
+    "tags": [],
+    "notes": null,
+    "source": "SMARTER",
+    "sourceCourseId": null,
+    "sourceFileKey": null,
+    "imageFileKey": null,
+    "imageUrl": null,
+    "thumbnailFileKey": null,
+    "thumbnailUrl": null,
+    "normalizedJson": {
+      "id": "fictional-course",
+      "source": "smarter-agility",
+      "sourceFileName": "fictional.txt",
+      "title": "Practice course",
+      "titleRaw": "Practice course",
+      "units": "M",
+      "designLengthMeters": 40,
+      "designWidthMeters": 20,
+      "canvasWidth": 800,
+      "canvasHeight": 400,
+      "origin": "LB",
+      "metadata": {
+        "type": "",
+        "courseType": "Agility",
+        "grade": "1",
+        "category": "",
+        "location": "",
+        "designer": "Example Designer",
+        "organization": "",
+        "date": "2026-10-08",
+        "exportVersion": null,
+        "obstacleSummary": null
+      },
+      "obstacles": [
+        {
+          "id": "obstacle-a",
+          "sourceId": "1",
+          "sourceCode": "jb",
+          "obstacleType": "Jump",
+          "xMeters": 10,
+          "yMeters": 8,
+          "rotationDegrees": 45,
+          "nominalLengthMeters": null,
+          "controlPointsMeters": null,
+          "colorKey": null,
+          "rawMetadata": {
+            "planner.version": 1,
+            "$original": {
+              "x": 200
+            }
+          }
+        }
+      ],
+      "numbers": [
+        {
+          "id": "number-a",
+          "text": "1",
+          "sequenceNumber": 1,
+          "xMeters": 9,
+          "yMeters": 8,
+          "linkedObstacleSourceId": "1",
+          "obstacleConnectionPoint": null,
+          "rawMetadata": {}
+        }
+      ],
+      "noGoZones": [],
+      "ignoredLogos": [],
+      "rawMetadata": {
+        "planner.version": 1,
+        "$original": "fictional"
+      }
+    },
+    "schemaVersion": 1,
+    "designLengthM": null,
+    "designWidthM": null,
+    "canvasWidth": null,
+    "canvasHeight": null,
+    "origin": null,
+    "courseGrade": null,
+    "courseType": null,
+    "sizeCategory": null,
+    "stats": {
+      "obstacleCount": 1,
+      "pathLengthM": 1.5,
+      "bbox": {
+        "w": 1.5,
+        "h": 1.5
+      }
+    },
+    "version": 1,
+    "createdAt": "2026-10-08T08:00:00Z",
+    "createdByAccountId": "e9-INSTRUCTOR",
+    "updatedAt": "2026-10-08T08:00:00Z"
+  },
+  "CourseListItem": {
+    "id": "e9-item-a",
+    "name": "Practice course",
+    "discipline": "AGILITY",
+    "level": null,
+    "designerName": null,
+    "source": "SMARTER",
+    "thumbnailUrl": null,
+    "stats": {
+      "obstacleCount": 1,
+      "pathLengthM": 1.5,
+      "bbox": {
+        "w": 1.5,
+        "h": 1.5
+      }
+    },
+    "ownerType": "AGILITYHUB",
+    "activeOnRings": []
+  },
+  "CoursePage": {
+    "items": [
+      {
+        "id": "e9-item-a",
+        "name": "Practice course",
+        "discipline": "AGILITY",
+        "level": null,
+        "designerName": null,
+        "source": "SMARTER",
+        "thumbnailUrl": null,
+        "stats": {
+          "obstacleCount": 1,
+          "pathLengthM": 1.5,
+          "bbox": {
+            "w": 1.5,
+            "h": 1.5
+          }
+        },
+        "ownerType": "AGILITYHUB",
+        "activeOnRings": []
+      }
+    ],
+    "page": 1,
+    "size": 1,
+    "totalItems": 1,
+    "totalPages": 1,
+    "appliedFilters": []
+  },
+  "CourseStats": {
+    "obstacleCount": 1,
+    "pathLengthM": 1.5,
+    "bbox": {
+      "w": 1.5,
+      "h": 1.5
+    }
+  },
+  "CourseBbox": {
+    "w": 1.5,
+    "h": 1.5
+  },
+  "ActiveRing": {
+    "id": "e9-item-a",
+    "name": "Practice course"
+  },
+  "UploadUrl": {
+    "uploadUrl": "Example",
+    "fileKey": "Example"
+  },
+  "Challenge": {
+    "id": "e9-item-a",
+    "courseId": "e9-course-a",
+    "title": "Example",
+    "description": "Example",
+    "agilityhubLevel": "EASY",
+    "rules": {},
+    "validFrom": "2026-10-08",
+    "validTo": "2026-10-08",
+    "status": "DRAFT"
+  },
+  "ChallengeAttempt": {
+    "challengeId": "Example",
+    "dogId": "Example",
+    "ringSetupId": null,
+    "timeMs": 1,
+    "faults": 1,
+    "videoUrl": null,
+    "submittedAt": "2026-10-08T08:00:00Z",
+    "status": "SUBMITTED"
+  },
+  "CourseModelInvalidDetails": {
+    "schemaErrors": [
+      {
+        "path": "$.obstacles",
+        "message": "Required field"
+      }
+    ]
+  },
+  "SchemaError": {
+    "path": "Example",
+    "message": "Example"
+  }
+}

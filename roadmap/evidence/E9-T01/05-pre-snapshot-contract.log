@@ -1,0 +1,40 @@
+[ERROR] Tests run: 6, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.695 s <<< FAILURE! -- in com.agilityhub.core.configuration.E9ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields -- Time elapsed: 0.338 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 35
+ but was: 33
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields(E9ResponseContractTest.java:32)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_03_T_16_21_allFortyTwoOperationsPublishTypedFormsHeadersAndCanonicalErrors -- Time elapsed: 0.029 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[/api/v1/courses] 
+Expecting value to be false but was true
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_03_T_16_21_allFortyTwoOperationsPublishTypedFormsHeadersAndCanonicalErrors(E9ResponseContractTest.java:100)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E9ResponseContractTest.T_16_03_T_16_21_allFortyTwoOperationsPublishTypedFormsHeadersAndCanonicalErrors:100 [/api/v1/courses] 
+Expecting value to be false but was true
+[ERROR]   E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields:32 
+expected: 35
+ but was: 33
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit 1

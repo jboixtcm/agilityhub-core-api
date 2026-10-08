@@ -68,12 +68,14 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
             "/api/v1/invoices", com.agilityhub.core.payments.application.BillingContractAccess.INVOICES.fields(),
             "/api/v1/remittances", com.agilityhub.core.payments.application.BillingContractAccess.REMITTANCES.fields(),
             "/api/v1/inactivity-periods", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.INACTIVITY_PERIODS.fields(),
-            "/api/v1/leave-requests", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.LEAVE_REQUESTS.fields());
+            "/api/v1/leave-requests", com.agilityhub.core.clubs.census.application.LifecycleContractAccess.LEAVE_REQUESTS.fields(),
+            "/api/v1/courses", com.agilityhub.core.courses.application.CourseListContract.COURSES.fields(),
+            "/api/v1/platform/courses", com.agilityhub.core.courses.application.CourseListContract.COURSES.fields());
     /**
      * The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves
      * invoices, E8-T03 remittances).
      */
-    static final Set<String> STUBS = Set.of();
+    static final Set<String> STUBS = Set.of("/api/v1/courses", "/api/v1/platform/courses");
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -152,7 +154,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
             }
             if (!keys.contains(rowId)) { problems.add(path + " x-fields " + keys + " without the row id " + rowId); }
             String url = path.replace("{name}", "cleanup").replace("{id}", path.startsWith("/api/v1/members/") ? auditedMember(canic) : registeredActivity(canic));
-            for (String role : List.of("ADMIN", "INSTRUCTOR")) {
+            for (String role : path.equals("/api/v1/platform/courses") ? List.of("AGILITYHUB_ADMIN") : List.of("ADMIN", "INSTRUCTOR")) {
                 var whole = read(url, null, canic, role);
                 if (whole.status() == 403 && role.equals("INSTRUCTOR")) { continue; }
                 if (STUBS.contains(path)) {

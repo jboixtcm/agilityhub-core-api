@@ -1,0 +1,20 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/configuration/E9ResponseContractTest.java:[66,72] method contains in class org.assertj.core.api.AbstractIterableAssert<SELF,ACTUAL,ELEMENT,ELEMENT_ASSERT> cannot be applied to given types;
+  required: capture#1 of ?[]
+  found:    java.lang.String
+  reason: varargs mismatch; java.lang.String cannot be converted to capture#1 of ?
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/configuration/E9ResponseContractTest.java:[66,72] method contains in class org.assertj.core.api.AbstractIterableAssert<SELF,ACTUAL,ELEMENT,ELEMENT_ASSERT> cannot be applied to given types;
+[ERROR]   required: capture#1 of ?[]
+[ERROR]   found:    java.lang.String
+[ERROR]   reason: varargs mismatch; java.lang.String cannot be converted to capture#1 of ?
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit 1

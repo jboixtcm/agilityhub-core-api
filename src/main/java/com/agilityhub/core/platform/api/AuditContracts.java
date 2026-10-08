@@ -91,7 +91,11 @@ public final class AuditContracts {
         ERASURE_CANCELLED,
         MEMBER_ERASED,
         ACCOUNT_ERASED,
-        ONBOARDING_COMPLETED
+        ONBOARDING_COMPLETED,
+        /** S16 wire contract; real audited writers land in E9-T02/T03. */
+        COURSE_FORCED_PLACEMENT,
+        RING_GEOMETRY_CHANGED,
+        RING_SETUP_REGISTERED
     }
     public enum AuditActorRole { ADMIN, INSTRUCTOR, MEMBER, SYSTEM, PLATFORM, WEBHOOK }
     /** PUBLIC (E3-T09): an anonymous mutation of the public signup, the readmission submission of R-04-06. */

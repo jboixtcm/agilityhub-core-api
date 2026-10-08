@@ -1,0 +1,49 @@
+{
+  "BuildSession": {
+    "id": "e9-session-a",
+    "placementId": "e9-placement-a",
+    "ringId": "e9-ring-a",
+    "status": "NOT_STARTED",
+    "selectedStrategy": "EQUIPMENT_TYPE",
+    "live": true,
+    "startedByAccountId": "e9-INSTRUCTOR",
+    "startedAt": null,
+    "finishedAt": null,
+    "lastKnownMarkerId": null,
+    "localCacheVersion": 1,
+    "progressJson": null,
+    "joinCode": "DEMO42",
+    "joinToken": null,
+    "joinTokenRotatedAt": null,
+    "obstacles": [
+      {
+        "obstacleId": "obstacle-a",
+        "status": "NOT_PLACED",
+        "byAccountId": null,
+        "at": null,
+        "lastUpdatedClientSessionId": null
+      }
+    ],
+    "participants": [
+      {
+        "accountId": "Example",
+        "joinedAt": "2026-10-08T08:00:00Z",
+        "joinedVia": "QR"
+      }
+    ],
+    "buildSheetFileKey": null,
+    "version": 1
+  },
+  "BuildObstacle": {
+    "obstacleId": "obstacle-a",
+    "status": "NOT_PLACED",
+    "byAccountId": null,
+    "at": null,
+    "lastUpdatedClientSessionId": null
+  },
+  "BuildParticipant": {
+    "accountId": "Example",
+    "joinedAt": "2026-10-08T08:00:00Z",
+    "joinedVia": "QR"
+  }
+}

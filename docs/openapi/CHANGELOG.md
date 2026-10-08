@@ -2,6 +2,65 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-08 · E9-T01 · S16 contract
+
+**42 operations added (359 → 401); 52 schemas added.** All are guarded `501 NOT_IMPLEMENTED` contracts. S16 behavior is reserved for E9-T02…T04; the challenges routes remain R2 reservations.
+
+The club routes require `COURSES`; `/platform/courses*` requires AGILITYHUB_ADMIN without a tenant or module. Five member routes permit impersonation. Club/platform course writes validate the pinned draft-07 CourseData before the stub. List projections require only `id`; writes take localized `name` maps. Nullable object/enum fields use OpenAPI 3.1 unions. `BUILD_SESSION_FINISHED` follows the catalog at 422. Platform course idempotency uses the account and null club scope; failed stubs release their claims.
+
+Added operations (paths relative to `/api/v1`):
+
+- `POST /build-sessions`
+- `POST /build-sessions/join`
+- `GET /build-sessions/{id}`
+- `GET /build-sessions/{id}/events`
+- `GET /build-sessions/{id}/export`
+- `POST /build-sessions/{id}/finish`
+- `PATCH /build-sessions/{id}/obstacles/{obstacleId}`
+- `GET /challenges`
+- `GET /challenges/{id}`
+- `POST /challenges/{id}/attempts`
+- `GET /courses`
+- `POST /courses`
+- `POST /courses/upload-urls`
+- `DELETE /courses/{id}`
+- `GET /courses/{id}`
+- `PATCH /courses/{id}`
+- `POST /courses/{id}/copy-to-club`
+- `POST /courses/{id}/duplicate`
+- `GET /me/challenge-attempts`
+- `GET /me/ring-setups`
+- `GET /obstacle-inventories/{scope}`
+- `PUT /obstacle-inventories/{scope}`
+- `GET /placements`
+- `POST /placements`
+- `GET /placements/{id}`
+- `PUT /placements/{id}`
+- `GET /placements/{id}/build-sheet`
+- `POST /placements/{id}/build-sheet`
+- `GET /platform/courses`
+- `POST /platform/courses`
+- `PATCH /platform/courses/{id}`
+- `POST /ring-setups`
+- `GET /ring-setups/{id}`
+- `POST /ring-setups/{id}/dismantle`
+- `POST /ring-setups/{id}/renewal`
+- `GET /rings/{id}/calibrations`
+- `POST /rings/{id}/calibrations`
+- `DELETE /rings/{id}/geometry`
+- `GET /rings/{id}/geometry`
+- `PUT /rings/{id}/geometry`
+- `GET /rings/{id}/marker-sheet`
+- `GET /rings/{id}/setups`
+
+Added schemas:
+
+`ActiveRing`, `BuildJoinRequest`, `BuildObstacle`, `BuildObstacleRequest`, `BuildParticipant`, `BuildSession`, `BuildSessionExportV1`, `BuildSessionRequest`, `BuildSheetRequest`, `CalibrationLog`, `CalibrationRequest`, `Challenge`, `ChallengeAttempt`, `ChallengeAttemptRequest`, `Course`, `CourseBbox`, `CourseCopyRequest`, `CourseDataV1`, `CourseListItem`, `CourseModelInvalidDetails`, `CoursePage`, `CoursePatchRequest`, `CourseRequest`, `CourseStats`, `CourseUploadUrl`, `CourseUploadUrlRequest`, `InventoryItem`, `InventoryRequest`, `JsonNode`, `MeRingSetup`, `MeRingSetupSummary`, `MemberRingSetup`, `ObstacleInventory`, `Placement`, `PlacementBlockedDetails`, `PlacementRequest`, `PlacementTransform`, `PlacementUpdateRequest`, `PlacementWarning`, `PointM`, `RenewalRequest`, `ResolvedObstacle`, `RingDoor`, `RingGeometry`, `RingGeometryRequest`, `RingMarker`, `RingNoGoZone`, `RingSetup`, `RingSetupCreated`, `RingSetupPage`, `RingSetupRequest`, `SchemaError`.
+
+The course upload schemas use `CourseUploadUrl`/`CourseUploadUrlRequest` to preserve the existing census forms under their original names.
+
+Existing `AuditAction` adds `COURSE_FORCED_PLACEMENT`, `RING_GEOMETRY_CHANGED`, `RING_SETUP_REGISTERED`. `CourseDataV1`, `BuildSessionExportV1` and `PlacementWarning` preserve the committed planner schema shapes.
+
 ## 2026-10-08 · E8-T06 · accounting export and E8 processes
 
 - `GET /billing/exports` is served (no longer 501): `200` with the file (CSV: UTF-8 with BOM, `;`, decimal comma by the admin's locale; or XLSX) or `202 ExportAccepted` for a large period, through the S14 engine with `listKey = accounting`. The file name follows the S14 export naming, not `facturacio-YYYY-MM.csv`.

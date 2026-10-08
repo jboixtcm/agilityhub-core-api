@@ -1,0 +1,68 @@
+{
+  "CourseCreated": {
+    "courseId": "course-a",
+    "ownerType": "CLUB",
+    "source": "SMARTER"
+  },
+  "CourseUpdated": {
+    "courseId": "course-a",
+    "diff": {
+      "name": {
+        "before": "Before",
+        "after": "After"
+      }
+    }
+  },
+  "CourseImported": {
+    "courseId": "course-a",
+    "source": "SMARTER",
+    "warnings": []
+  },
+  "CourseDeleted": {
+    "courseId": "course-a"
+  },
+  "CourseCopied": {
+    "courseId": "course-b",
+    "fromCourseId": "course-a"
+  },
+  "RingGeometryChanged": {
+    "ringId": "ring-a",
+    "version": 2
+  },
+  "PlacementCreated": {
+    "placementId": "placement-a",
+    "ringId": "ring-a",
+    "courseId": "course-a",
+    "warnings": []
+  },
+  "PlacementUpdated": {
+    "placementId": "placement-a",
+    "stale": false
+  },
+  "RingSetupChanged": {
+    "ringId": "ring-a",
+    "setupId": "setup-a",
+    "status": "ACTIVE",
+    "replacedSetupId": null,
+    "kind": "AGILITY",
+    "byAccountId": "account-a"
+  },
+  "BuildSessionStarted": {
+    "sessionId": "session-a",
+    "placementId": "placement-a",
+    "live": true
+  },
+  "BuildSessionProgress": {
+    "sessionId": "session-a",
+    "obstacleId": "obstacle-a",
+    "status": "PLACED"
+  },
+  "BuildSessionFinished": {
+    "sessionId": "session-a",
+    "setupId": "setup-a"
+  },
+  "InventoryChanged": {
+    "scope": "CLUB",
+    "ringId": null
+  }
+}

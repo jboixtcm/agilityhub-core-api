@@ -30,7 +30,7 @@ class OpenApiRequiredContractTest {
             "NotificationPreferencesRequest", "EmailByCategoryPatch", "AnnouncementRecipients", "NotificationSubject",
             // E8-T01 (S12 §6, S13 §6): the run's totals per provider (a provider the club does not use is absent), the reactivation
             // (planId, priceId, nextInvoiceDate required with BILLING only, R-13-16) and the admin's cancellation note.
-            "ByProvider", "ReactivationRequest", "AdminCancellationRequest");
+            "ByProvider", "ReactivationRequest", "AdminCancellationRequest", "CourseCopyRequest", "RenewalRequest");
 
     @Test void E1_T11_everySnapshotObjectDeclaresItsRequiredProperties() throws Exception {
         var schemas = new ObjectMapper().readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");
@@ -65,6 +65,10 @@ class OpenApiRequiredContractTest {
         assertThat(required(schemas, "OnboardingField")).containsExactlyInAnyOrder("key", "required");
         assertThat(required(schemas, "TokenRequest")).containsExactlyInAnyOrder("grant_type", "client_id");
         assertThat(required(schemas, "MemberPatch")).containsExactly("version");
+        assertThat(required(schemas, "CoursePatchRequest")).containsExactly("version");
+        assertThat(required(schemas, "CourseListItem")).containsExactly("id");
+        assertThat(required(schemas, "CourseRequest")).containsExactlyInAnyOrder("name", "discipline", "source", "levelIds", "tags", "visibility");
+        assertThat(required(schemas, "PlacementUpdateRequest")).contains("version", "courseId", "ringId", "transform", "resolvedObstacles", "warnings");
         for (String name : List.of("WeekTemplatePatchRequest", "TimeBandPatchRequest", "TemplateClassPatchRequest", "ClassSessionPatchRequest", "RingBlockPatchRequest", "ActivityPatchRequest")) {
             assertThat(required(schemas, name)).as(name).containsExactly("version");
         }

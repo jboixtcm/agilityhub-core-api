@@ -211,6 +211,18 @@ final class ArchitectureRules {
             })
             .because("E8-T01: payments → clubs.catalogs.application, clubs.census.application, platform, shared");
 
+    /** S16 reaches other club data only through catalogs.application and its own ports. */
+    static final ArchRule COURSES_DEPENDENCIES = noClasses().that().resideInAPackage(BASE_PACKAGE + "courses..")
+            .should().dependOnClassesThat(new DescribedPredicate<>("belong to a forbidden course dependency") {
+                @Override public boolean test(JavaClass type) {
+                    return contextOf(type).filter(context -> !List.of("courses", "clubs.catalogs", "identity", "platform", "shared").contains(context)
+                            || context.equals("clubs.catalogs") && !inPackage(type, BASE_PACKAGE + "clubs.catalogs.application")
+                            || context.equals("identity") && !inPackage(type, BASE_PACKAGE + "identity.application")).isPresent();
+                }
+            });
+    static final ArchRule CLUBS_WITHOUT_COURSES = noClasses().that().resideInAPackage(BASE_PACKAGE + "clubs..")
+            .should().dependOnClassesThat().resideInAPackage(BASE_PACKAGE + "courses..");
+
     /**
      * The census classes of E3's signup flow that call `payments.application` directly (the upfront rows and the checkout of a
      * signup, E3-T03). They predate E8's convention; any other census class reaches payments through its own ports.

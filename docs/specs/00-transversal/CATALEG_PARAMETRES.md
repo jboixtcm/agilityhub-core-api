@@ -137,7 +137,7 @@ Paràmetres de **sistema**: no surten a cap bloc de D11 i el club no els edita (
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
 | `courses.setupAutoExpireDays` | int | 7 | caducitat automàtica del «recorregut muntat» |
-| `courses.placementMarginMeters` | json decimal | 1.5 | marge mínim entre obstacle i límit del ring (avís) |
+| `courses.defaultWarningThresholdM` | decimal | 1.5 | llindar per defecte de `Placement.warningThresholdM` (R-16-05), mínim 0; mòdul COURSES |
 | `courses.showSetupToMembers` | bool | true | l'alumne veu el recorregut muntat a 08/10 |
 | `courses.allowInstructorPublish` | bool | true | l'instructor pot registrar muntatges sense l'admin |
 
@@ -192,7 +192,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `jobs.alertAdminsOnFailure` | bool | true | Processos automàtics | S15 |
 | `jobs.retention.domainEventsDays` · `jobRunsDays` · `stripeEventsDays` · `exportFilesDays` · `orphanUploadsHours` | int | 90 · 90 · 400 · 7 · 48 | sistema | S15 |
 | `classes.finishGraceMinutes` | int | 15 | Classes | S15 |
-| `courses.buildSessionMaxHours` · `courses.gateClearanceMeters` · `courses.obstacleClearanceMeters` | int · decimal · decimal | 12 · 1.5 · 0.5 | Recorreguts | S16 |
+| `courses.buildSessionMaxHours` | int | 12 | Recorreguts | S16 |
 | `files.allowedTypes` (+ `text/plain` per a Smarter) | list | — | sistema | S16 |
 | `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 |
 | `migration.exportRetentionDays` · `migration.leftMaxYears` · `migration.reconciliationTolerancePct` · `migration.playoffReadOnlyMonths` | int | 30 · 5 · 1 · 3 | sistema | S18 |

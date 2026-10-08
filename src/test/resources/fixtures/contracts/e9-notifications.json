@@ -1,0 +1,11 @@
+{
+  "N-31": {
+    "event": "RingSetupChanged",
+    "variables": [
+      "ring_name",
+      "setup_kind",
+      "level"
+    ],
+    "action": "OPEN_SETUP"
+  }
+}

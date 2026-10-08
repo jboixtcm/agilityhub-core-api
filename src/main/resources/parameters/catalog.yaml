@@ -1015,18 +1015,18 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "7"
-  - key: "courses.placementMarginMeters"
-    type: "json"
+  - key: "courses.defaultWarningThresholdM"
+    type: "decimal"
     default: 1.5
     block: "courses"
-    labelKey: "admin-settings:param.courses.placementMarginMeters.label"
-    helpKey: "admin-settings:param.courses.placementMarginMeters.help"
-    constraints: {"min": 0, "validator": "decimal"}
+    labelKey: "admin-settings:param.courses.defaultWarningThresholdM.label"
+    helpKey: "admin-settings:param.courses.defaultWarningThresholdM.help"
+    constraints: {"min": 0}
     modules: ["COURSES"]
     scope: "club"
     editableBy: "CLUB"
     restartRequired: false
-    documentType: "json decimal"
+    documentType: "decimal"
     documentDefault: "1.5"
   - key: "courses.showSetupToMembers"
     type: "bool"
@@ -1799,32 +1799,6 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "12"
-  - key: "courses.gateClearanceMeters"
-    type: "decimal"
-    default: 1.5
-    block: "courses"
-    labelKey: "admin-settings:param.courses.gateClearanceMeters.label"
-    helpKey: "admin-settings:param.courses.gateClearanceMeters.help"
-    constraints: {"min": 0}
-    modules: ["COURSES"]
-    scope: "club"
-    editableBy: "CLUB"
-    restartRequired: false
-    documentType: "decimal"
-    documentDefault: "1.5"
-  - key: "courses.obstacleClearanceMeters"
-    type: "decimal"
-    default: 0.5
-    block: "courses"
-    labelKey: "admin-settings:param.courses.obstacleClearanceMeters.label"
-    helpKey: "admin-settings:param.courses.obstacleClearanceMeters.help"
-    constraints: {"min": 0}
-    modules: ["COURSES"]
-    scope: "club"
-    editableBy: "CLUB"
-    restartRequired: false
-    documentType: "decimal"
-    documentDefault: "0.5"
   - key: "platform.domainRecheckDays"
     type: "int"
     default: 7

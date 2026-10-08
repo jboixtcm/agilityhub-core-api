@@ -36,14 +36,14 @@ public class IdempotencyRepository extends TenantRepository<IdempotencyRecord> {
     }
 
     public Claim claim(String clubId, String accountId, String key, String hash, Instant now) {
-        Query scope = tenantQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key));
+        Query scope = scopeQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key));
         // TTL cleanup is asynchronous, so expired keys must also be reusable before the next TTL sweep.
-        mongo.remove(tenantQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key)
+        mongo.remove(scopeQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key)
                 .and("createdAt").lte(now.minus(Duration.ofHours(24)))), IdempotencyRecord.class);
         // CONVENCIONS_API §7 (E79): a claim still IN_PROGRESS past its lease belongs to a request that stopped before its answer
         // or its clean-up (the process died). The same request (same key, scope and body) takes it over; another body never
         // does. The new record fences the old request out: its lock and its answer find no record and fail ({@link #taken}).
-        long stale = mongo.remove(tenantQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key)
+        long stale = mongo.remove(scopeQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key)
                 .and("status").is(IdempotencyRecord.Status.IN_PROGRESS).and("requestHash").is(hash)
                 .and("createdAt").lte(now.minus(CLAIM_LEASE))), IdempotencyRecord.class).getDeletedCount();
         if (stale > 0) { LOG.warn("Idempotency claim taken over after its lease: clubId={} lease={}", clubId, CLAIM_LEASE); }
@@ -89,8 +89,17 @@ public class IdempotencyRepository extends TenantRepository<IdempotencyRecord> {
     }
 
     private Query recordQuery(IdempotencyRecord record) {
-        return tenantQuery(record.clubId()).addCriteria(Criteria.where("_id").is(record.id())
+        return scopeQuery(record.clubId()).addCriteria(Criteria.where("_id").is(record.id())
                 .and("accountId").is(record.accountId()));
+    }
+
+    /** Only an explicitly global request can use the null scope; a club request keeps TenantRepository's checks. */
+    private Query scopeQuery(String clubId) {
+        if (clubId != null) { return tenantQuery(clubId); }
+        if (com.agilityhub.core.shared.application.TenantContext.current() != null) {
+            throw new ApiException(ErrorCode.TENANT_MISMATCH);
+        }
+        return Query.query(Criteria.where("clubId").is(null));
     }
 
     public record Claim(IdempotencyRecord record, boolean acquired) { }

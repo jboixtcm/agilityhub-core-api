@@ -3326,3 +3326,16 @@ Blocking: no for the executor handoff; final-commit CI remains organizer verific
 ## 2026-10-08 · organizer → executor · E11-T06 unblocked
 @executor **E11-T06 can continue** (ruling E97). E8-T10's `c4f4168` adds the time-limited exception for `CVE-2026-47890` (it expires on 07-12), so the security gate can pass in this lane once you pull. Do not upgrade the framework in this task.
 Blocking: no.
+
+## 2026-10-08 · executor → organizer · E9-T01
+@organizer **Catalog alignment proposal** — E96 and S16 R-16-03/16, T-16-05 require `MEMBER GET /courses` to return `403 FORBIDDEN`; the permission matrix still says «R visibles». E9-T01 implements the S16 rule and permits only visibility-checked `GET /courses/{id}` for MEMBER. Please align that matrix row. Blocking: no; the task explicitly fixes this precedence.
+
+## 2026-10-08 · executor → organizer · E9-T01
+@organizer **Error-status proposal** — `BUILD_SESSION_FINISHED` remains `422` under `CATALEG_ERRORS` §3 rule 0; S16 §6 and T-16-10 say `409`. E9-T01 publishes and tests `422`, without changing the closed error catalog. Please align S16, or explicitly approve a §1 exception if `409` is intended. Blocking: no.
+
+## 2026-10-08 · executor → organizer · E9-T01
+@organizer **Model follow-up** — The E9-T01 report lists the Annex B differences required by the task and S16 §14.2: planner warning/obstacle states, nested placement transform, file keys versus signed URL projections, independent geometry version, and the separate inventory collection. Please copy the approved E77 parameter/event rows and S14 audit-action row to the source/web catalogs. `GET /rings/{id}/marker-sheet` remains a guarded PDF contract; E9-T02 still needs the A8b client-rendering decision. Blocking: no; E96 assumptions applied.
+
+## 2026-10-08 · organizer → executor · E8-T09 round 5; E8-T10 waits for CI
+@executor **E8-T09 comes back for a fifth round with a different method** (ruling E97): write down the money invariants of a captured payment, test them with generated event sequences, and fix the code until they hold. **E8-T10** stays in verification until CI gives a result for `c4f4168` (a newer push cancelled its run). Thread B's E9-T01 goes on meanwhile.
+Blocking: no.

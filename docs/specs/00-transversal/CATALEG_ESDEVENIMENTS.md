@@ -88,11 +88,19 @@
 | `PushSubscribed` / `PushUnsubscribed` | accountId, endpoint | S11 | — |
 | `ReminderDue` | bookingId/trainingBookingId, memberId | S15 | N-13 |
 | **Recorreguts** | | | |
-| `CourseCreated` / `CourseUpdated` / `CourseImported` | courseId, source | S16 | biblioteca |
-| `RingGeometryChanged` | ringId | S16 | recàlcul d'avisos de col·locacions actives |
-| `PlacementCreated` / `PlacementUpdated` | placementId, warnings[] | S16 | — |
-| `RingSetupChanged` | ringId, setupId, status | S16 | N-31 (opcional), quadres 08/10/23, caducitat |
-| `BuildSessionStarted` / `BuildSessionProgress` / `BuildSessionFinished` | sessionId, obstacleId?, status | S16 | SSE live, `RingSetupChanged` en acabar |
+| `CourseCreated` | courseId, ownerType, source | S16 | biblioteca |
+| `CourseUpdated` | courseId, diff | S16 | biblioteca |
+| `CourseImported` | courseId, source (SMARTER), warnings[] | S16 | importació |
+| `CourseDeleted` | courseId | S16 | esborrat lògic |
+| `CourseCopied` | courseId, fromCourseId | S16 | còpia |
+| `RingGeometryChanged` | ringId, version | S16 | marca les col·locacions com a obsoletes |
+| `PlacementCreated` | placementId, ringId, courseId, warnings[] | S16 | col·locació |
+| `PlacementUpdated` | placementId, stale | S16 | col·locació |
+| `RingSetupChanged` | ringId, setupId, status, replacedSetupId?, kind, byAccountId | S16 | N-31 opcional i quadres |
+| `BuildSessionStarted` | sessionId, placementId, live | S16 | sessió |
+| `BuildSessionProgress` | sessionId, obstacleId, status | S16 | SSE |
+| `BuildSessionFinished` | sessionId, setupId | S16 | finalització |
+| `InventoryChanged` | scope, ringId? | S16 | inventari |
 | **Sistema** | | | |
 | `WeekOpened` | weekStart | S15 | N-33, `TrainingCounterReset` |
 | `SchedulerRun` | job, clubId, startedAt, finishedAt, effects | S15 | traça (principi 0.3.7) |
@@ -125,7 +133,7 @@
 | `InactivityChanged` · `InactivityCancelled` · `LeaveCancelled` · `LeaveResolved{source, decision, cancelledBookings[]}` · `InactivityResolved{fee, cancelledBookings[]}` | inactivitat/baixa | S13 |
 | `AccountErasureRequested{accountId?, memberIds[], clubIds[], executeAt, source}` · `AccountErased{…}` · `DataExported{jobId, kind}` | RGPD | S14 |
 | `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
-| `CourseDeleted` · `CourseCopied{fromCourseId}` · `InventoryChanged{scope}` | recorreguts | S16 |
+| S16: vegeu el bloc «Recorreguts» (E77, aplicat a E9-T01) | recorreguts | S16 |
 | `ClubDomainVerified` · `ClubDomainBroken` · `PlatformRoleChanged` · `ClubPaymentProviderChanged` · `ClubApplied{slug, diffSummary, dryRun}` · `SupportAccessStarted` | consola | S17 |
 | `MigrationRunStarted` · `MigrationRunCompleted{counters}` · `MigrationRunFailed{step}` | migració | S18 |
 | `ChallengePublished` · `ChallengeClosed` · `ChallengeAttemptSubmitted` · `ChallengeAttemptValidated` · `AccountSharingChanged` (R2) | Learn | S19 |
