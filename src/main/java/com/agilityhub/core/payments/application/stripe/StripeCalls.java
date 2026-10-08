@@ -31,10 +31,16 @@ public class StripeCalls {
                 if (status == 429) {
                     throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.RATE_LIMITED);
                 }
-                // Authentication/permission rejection happens before execution, unlike ambiguous 400/5xx outcomes.
-                if (status == 401 || status == 403) {
+                // Typed content/card rejection created no successful money movement. A concurrent-key
+                // rejection is different: the other request may still execute. Unknown 4xx stays uncertain.
+                boolean rejected = failure instanceof com.stripe.exception.CardException
+                        || failure instanceof com.stripe.exception.InvalidRequestException
+                        && !"idempotency_key_in_use".equals(failure.getCode());
+                if (status == 401 || status == 403 || rejected) {
                     throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
                 }
+                // IdempotencyException, ApiConnectionException and ApiException may hide an earlier
+                // effect. Retry the same command within its safe window, then reconcile by webhook.
                 throw new ApiException(status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
             }
         }

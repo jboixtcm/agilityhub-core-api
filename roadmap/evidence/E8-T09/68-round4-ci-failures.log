@@ -1,0 +1,170 @@
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	﻿2026-10-08T18:33:29.2724932Z ##[group]Run python3 bin/security-scan-test.py
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2725967Z [36;1mpython3 bin/security-scan-test.py[0m
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2726329Z [36;1mbin/security-scan rootfs target[0m
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2789237Z shell: /usr/bin/bash -e {0}
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2789507Z env:
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2789831Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2790360Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.12-1/x64
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2790763Z   MAVEN_ARGS: -ntp
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.2790987Z ##[endgroup]
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.3636429Z ..........
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.3638850Z ----------------------------------------------------------------------
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.3639573Z Ran 10 tests in 0.001s
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.3639775Z
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:29.3639885Z OK
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:31.0848726Z Trivy 0.74.0: rootfs vulnerability audit
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:31.1353402Z 2026-10-08T18:33:31Z	INFO	[vulndb] Need to update DB
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:31.1354402Z 2026-10-08T18:33:31Z	INFO	[vulndb] Downloading vulnerability DB...
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:31.1355975Z 2026-10-08T18:33:31Z	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:37.5201461Z 2026-10-08T18:33:37Z	INFO	[vulndb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-db:2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:37.5206089Z 2026-10-08T18:33:37Z	INFO	[vuln] Vulnerability scanning is enabled
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:37.5647597Z 2026-10-08T18:33:37Z	INFO	[javadb] Downloading Java DB...
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:37.5648914Z 2026-10-08T18:33:37Z	INFO	[javadb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:56.6361704Z 2026-10-08T18:33:56Z	INFO	[javadb] Artifact successfully downloaded	repo="mirror.gcr.io/aquasec/trivy-java-db:1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:56.6363827Z 2026-10-08T18:33:56Z	INFO	[javadb] Java DB is cached for 3 days. If you want to update the database more frequently, "trivy clean --java-db" command clears the DB cache.
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0296574Z 2026-10-08T18:33:58Z	INFO	Number of language-specific files	num=1
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0297624Z 2026-10-08T18:33:58Z	INFO	[jar] Detecting vulnerabilities...
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0399371Z
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0399935Z 📣 [34mNotices:[0m
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0400567Z   - Version 0.75.0 of Trivy is now available, current version is 0.74.0
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0401110Z
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0401563Z To suppress version checks, run Trivy scans with the --skip-version-check flag
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0402263Z
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0436719Z {
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0437177Z   "vulnerabilities": 18,
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0437622Z   "fixableCritical": [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0438033Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0438367Z       "CVE-2026-47890",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0438785Z       "org.springframework:spring-webmvc",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0439220Z       "7.0.9"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0439505Z     ]
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0440124Z   ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0440432Z   "suppressedCritical": [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0440788Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0441083Z       "CVE-2026-47884",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0441489Z       "org.springframework:spring-webmvc",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0441929Z       "6.2.19",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0442223Z       "7.0.9",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0442521Z       "2026-12-07",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0443321Z       "org.springframework/spring-webmvc: Spring Framework: Remote Code Execution via improper path limitation in XsltView"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0444222Z     ]
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0444510Z   ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0444795Z   "secretRules": [],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0445387Z   "otherFindings": [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0445761Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0446058Z       "CVE-2026-89407",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0446477Z       "com.fasterxml.jackson.core:jackson-core",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0446952Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0447253Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0447566Z       "2.18.11, 2.21.7, 2.22.3"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0447937Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0448213Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0448502Z       "CVE-2026-89425",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0448937Z       "com.fasterxml.jackson.core:jackson-core",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0449793Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0450100Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0450412Z       "2.21.7, 2.22.3, 2.18.11"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0450763Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0451048Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0451333Z       "CVE-2026-68497",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0451747Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0452223Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0452513Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0452817Z       "2.18.10, 2.21.6, 2.22.2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0453167Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0453433Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0453720Z       "CVE-2026-91776",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0454134Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0454602Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0454895Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0455420Z       "2.18.11, 2.21.7, 2.22.3"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0455798Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0456075Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0456367Z       "CVE-2026-91777",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0456810Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0457311Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0457615Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0457935Z       "2.21.7, 2.18.11, 2.22.3"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0458288Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0458560Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0458855Z       "CVE-2026-19032",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0459268Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0459746Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0460065Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0460495Z       "2.18.10, 2.21.6, 2.22.2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0460842Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0461120Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0461409Z       "CVE-2026-54515",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0461831Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0462367Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0462678Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0462988Z       "3.1.4, 2.18.9, 2.21.5, 2.22.1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0463377Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0463645Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0463944Z       "CVE-2026-59889",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0464354Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0464823Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0465471Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0465829Z       "2.21.5, 2.18.9, 2.22.1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0466200Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0466476Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0466763Z       "CVE-2026-77310",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0467191Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0467671Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0467987Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0468316Z       "2.18.9, 2.21.5, 2.22.1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0468672Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0468928Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0469223Z       "CVE-2026-83557",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0469636Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0470326Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0470610Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0470896Z       "2.18.10, 2.21.6, 2.22.2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0471265Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0471551Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0471858Z       "GHSA-mhm7-754m-9p8w",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0472319Z       "com.fasterxml.jackson.core:jackson-databind",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0472790Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0473101Z       "2.21.4",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0473429Z       "2.18.9, 2.21.5"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0473732Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0473985Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0474313Z       "CVE-2025-48924",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0474668Z       "org.apache.commons:commons-lang3",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0475340Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0475651Z       "3.17.0",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0475952Z       "3.18.0"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0476263Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0476546Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0476850Z       "CVE-2026-64607",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0477303Z       "org.apache.httpcomponents.client5:httpclient5",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0477823Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0478123Z       "5.5.2",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0478435Z       "5.6.3"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0479077Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0479402Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0479732Z       "CVE-2026-54399",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0480237Z       "org.apache.httpcomponents.core5:httpcore5",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0480784Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0481107Z       "5.3.6",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0481441Z       "5.4.3, 5.5-beta2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0481788Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0482070Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0482362Z       "CVE-2026-54428",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0482848Z       "org.apache.httpcomponents.core5:httpcore5-h2",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0483377Z       "HIGH",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0483674Z       "5.3.6",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0483999Z       "5.4.3, 5.5-beta2"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0484330Z     ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0484601Z     [
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0484900Z       "CVE-2026-49844",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0485592Z       "org.apache.logging.log4j:log4j-api",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0486077Z       "MEDIUM",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0486392Z       "2.24.3",
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0486701Z       "2.25.5, 2.26.1"
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0487044Z     ]
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0487317Z   ],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0487642Z   "expiredSuppressions": [],
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0488053Z   "javaPackages": 180
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0488391Z }
+Dependency vulnerability audit	Prove the scan policy and audit packaged dependencies	2026-10-08T18:33:58.0574056Z ##[error]Process completed with exit code 1.

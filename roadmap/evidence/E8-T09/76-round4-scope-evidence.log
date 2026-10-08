@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T09/check-evidence.py", line 17, in <module>
+    assert [p for p in changed if p.startswith('roadmap/tasks/')] == ['roadmap/tasks/E8-T09.md']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

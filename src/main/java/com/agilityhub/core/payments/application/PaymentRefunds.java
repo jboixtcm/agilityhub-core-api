@@ -88,16 +88,33 @@ public class PaymentRefunds {
         tx.run(() -> {
             upfront.lock(paymentId);
             var payment = upfront.findById(paymentId).orElseThrow();
-            if (compensated(payment)) { return null; }
+            if (payment.bookingId() != null && charges.forBooking(payment.bookingId()).isPresent()) { return null; }
             if (beforeConfirmation || "REFUND".equals(policy)) {
-                upfront(paymentId, null, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED", "refund:" + paymentId);
-            } else if ("CREDIT".equals(policy)) {
+                upfront.refundCompensation(paymentId, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED");
+                compensateRemaining(payment);
+            } else if ("CREDIT".equals(policy) && !compensated(payment)) {
                 Money captured = new Money(remaining(payment), payment.amountPaid().currency());
                 charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
                         new Money(-captured.amountMinor(), captured.currency()), payment.concept(), clock.instant(), null, null));
             }
             return null;
         });
+    }
+    /** Called under the payment lock, after the changed refund status is visible in the same transaction. */
+    private void compensateRemaining(UpfrontPayment payment) {
+        String key = "refund:" + payment.id();
+        var reason = upfront.refundCompensation(payment.id())
+                .or(() -> operations.byKey(key).map(PaymentOperation::reason));
+        if (reason.isEmpty() || remaining(payment) <= 0) { return; }
+        long commands = operations.forTarget(payment.id()).stream()
+                .filter(op -> op.key().equals(key) || op.key().startsWith(key + ":")).count();
+        upfront(payment.id(), null, reason.get(), commands == 0 ? key : key + ":" + commands);
+    }
+    private void reconsiderCompensation(String intent) {
+        for (var payment : upfront.forIntent(intent)) {
+            upfront.lock(payment.id());
+            compensateRemaining(upfront.findById(payment.id()).orElseThrow());
+        }
     }
     private boolean compensated(UpfrontPayment payment) {
         return operations.byKey("refund:" + payment.id()).isPresent()
@@ -118,10 +135,10 @@ public class PaymentRefunds {
         tx.run(() -> {
             upfront.lock(paymentId);
             var payment = upfront.findById(paymentId).orElseThrow();
-            if (compensated(payment) || operations.byKey("late:" + reference).isPresent()) { return null; }
+            if (operations.byKey("late:" + reference).isPresent()) { return null; }
             if ("PAID".equals(payment.status()) && payment.stripe() != null && reference.equals(payment.stripe().paymentIntentId())) {
-                upfront(paymentId, null, "LATE_COMPLETION", "refund:" + paymentId);
-            } else {
+                compensate(paymentId, "REFUND", true);
+            } else if (!compensated(payment)) {
                 operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", paymentId, reference,
                         amount, "refund:" + paymentId, "LATE_COMPLETION", null, null, clock.instant(), null));
             }
@@ -148,7 +165,15 @@ public class PaymentRefunds {
             });
         }, () -> {
             // Proven non-execution releases the reservation. Earlier uncertain outcomes still await Stripe.
-            if (!operations.submissionUncertain(id)) { operations.providerStatus(id, "failed"); }
+            if (!operations.submissionUncertain(id)) {
+                operations.providerStatus(id, "failed");
+                // A rejected administrative refund can free money owed by a previous cancellation.
+                // Do not bypass bounded retries by endlessly replacing a rejected compensation itself.
+                String compensationKey = "refund:" + op.targetId();
+                if (!op.key().equals(compensationKey) && !op.key().startsWith(compensationKey + ":")) {
+                    reconsiderCompensation(op.providerRef());
+                }
+            }
         });
     }
     /** Refund objects are authoritative. A terminal failure wins over a redelivered older success. */
@@ -170,6 +195,7 @@ public class PaymentRefunds {
         }
         refundStates.outcome(refundId, intent, amount, status, at);
         if (operation != null) { operations.refundStatus(operation.id(), status); }
+        if (Set.of("failed", "canceled").contains(status)) { reconsiderCompensation(intent); }
         return true;
     }
     private String entityType(PaymentOperation operation) {

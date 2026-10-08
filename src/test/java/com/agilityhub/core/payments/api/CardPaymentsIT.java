@@ -1251,6 +1251,7 @@ class CardPaymentsIT extends BillingItSupport {
         Object[][] cases = {
             {402, "card_error", "card_declined", "CardException", true},
             {400, "invalid_request_error", "parameter_missing", "InvalidRequestException", true},
+            {400, "invalid_request_error", null, "InvalidRequestException", true},
             {404, "invalid_request_error", "resource_missing", "InvalidRequestException", true},
             {400, "invalid_request_error", "charge_already_refunded", "InvalidRequestException", true},
             {401, "invalid_request_error", "api_key_expired", "AuthenticationException", true},
@@ -1324,11 +1325,12 @@ class CardPaymentsIT extends BillingItSupport {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.CsvSource({
-        "failed,true,200,false", "canceled,true,200,false", "failed,false,200,false", "canceled,false,200,false",
-        "failed,true,200,true", "canceled,true,200,true", "failed,true,1200,false", "canceled,true,1200,false"
+        "failed,true,200,false,false", "canceled,true,200,false,false", "failed,false,200,false,false", "canceled,false,200,false,false",
+        "failed,true,200,true,false", "canceled,true,200,true,false", "failed,true,1200,false,false", "canceled,true,1200,false,false",
+        "failed,true,200,false,true", "canceled,true,1200,false,true"
     })
     void T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String status, boolean compensationFirst,
-            long partialAmount, boolean reverseSuccess) throws Exception {
+            long partialAmount, boolean reverseSuccess, boolean lateFirst) throws Exception {
         String payment = "r4-compensation", pi = "pi_r4_compensation";
         mongo.insert(new UpfrontPayment(payment, CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
                 "PAID", "STRIPE", null, clock.instant(), clock.instant(), "r4-booking", null, null, null, null,
@@ -1338,7 +1340,8 @@ class CardPaymentsIT extends BillingItSupport {
             fake.refundStatus("pending");
             var accepted = refunds.upfront(payment, new Money(partialAmount, "EUR"), "Partial", "r4-partial");
             refunds.execute(accepted.id()); partial = operations.findById(accepted.id()).orElseThrow();
-            refunds.compensate(payment, "REFUND", false);
+            if (lateFirst) { refunds.lateBooking(payment, pi, new Money(1200, "EUR")); }
+            else { refunds.compensate(payment, "REFUND", false); }
             if (partialAmount < 1200) {
                 compensation = operations.byKey("refund:" + payment).orElseThrow();
                 assertThat(compensation.amount().amountMinor()).isEqualTo(1200 - partialAmount);
@@ -1349,6 +1352,8 @@ class CardPaymentsIT extends BillingItSupport {
             webhook("evt_r4_compensation", "refund.updated", refundEvent(pi, compensation.resultId(), 1200 - partialAmount, "succeeded", compensation.id()));
         }
         if (reverseSuccess) {
+            // A cancellation issued before this release has the command but no new obligation marker.
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(payment)), new Update().unset("refundCompensationReason"), "upfront_payments");
             webhook("evt_r4_partial_success", "refund.updated", refundEvent(pi, partial.resultId(), partialAmount, "succeeded", partial.id()));
         }
         webhook("evt_r4_partial_terminal", "refund.updated", refundEvent(pi, partial.resultId(), partialAmount, status, partial.id()));
@@ -1373,6 +1378,45 @@ class CardPaymentsIT extends BillingItSupport {
             int count = operations.forTarget(payment).size();
             refunds.compensate(payment, "REFUND", false);
             assertThat(operations.forTarget(payment)).hasSize(count);
+        }
+    }
+
+    @Test void T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement() throws Exception {
+        String payment = "r4-rejected", pi = "pi_r4_rejected";
+        mongo.insert(new UpfrontPayment(payment, CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "r4-rejected-booking", null, null, null, null,
+                new UpfrontPayment.StripeRefs(pi, null), null, null, List.of(), null));
+        try (var tenant = TenantContext.open(CLUB);
+                var http = new com.agilityhub.core.payments.application.stripe.StripeHttpFixture()) {
+            var partial = refunds.upfront(payment, new Money(200, "EUR"), "Partial", "r4-rejected-partial");
+            refunds.compensate(payment, "REFUND", false);
+            var compensation = operations.byKey("refund:" + payment).orElseThrow();
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders.STRIPE.secretKeyEnc",
+                    vault.encrypt("sk_test_example", CLUB, "STRIPE", "secretKeyEnc")), "clubs");
+            configs.invalidate(CLUB);
+            Object original = org.springframework.test.util.ReflectionTestUtils.getField(registry, "stripe");
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+            try {
+                for (String id : List.of(partial.id(), compensation.id())) {
+                    for (int attempt = 0; attempt < 3; attempt++) {
+                        assertThatThrownBy(() -> refunds.execute(id)).hasMessage("PROVIDER_CONFIG_INVALID");
+                        clock.setInstant(clock.instant().plusSeconds(60));
+                    }
+                    refunds.execute(id);
+                }
+                assertThat(http.requests).hasValue(6);
+                assertThat(operations.forTarget(payment)).hasSize(3);
+                assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id())))
+                        .singleElement().satisfies(op -> assertThat(op.amount()).isEqualTo(new Money(200, "EUR")));
+            } finally {
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
+            }
+            // Repair and explicit cancellation retry cover the remainder without changing an existing payload/key.
+            refunds.compensate(payment, "REFUND", false);
+            assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id()))
+                    .mapToLong(op -> op.amount().amountMinor()).sum()).isEqualTo(1200);
         }
     }
 

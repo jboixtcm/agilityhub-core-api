@@ -23,6 +23,15 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
     public void lock(String id) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().inc("paymentSequence", 1), UpfrontPayment.class);
     }
+    /** Retain the cancellation obligation even when another pending refund reserves the entire capture. */
+    public void refundCompensation(String id, String reason) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refundCompensationReason").is(null)),
+                new Update().set("refundCompensationReason", reason), UpfrontPayment.class);
+    }
+    public java.util.Optional<String> refundCompensation(String id) {
+        var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id)), org.bson.Document.class, "upfront_payments");
+        return row == null ? java.util.Optional.empty() : java.util.Optional.ofNullable(row.getString("refundCompensationReason"));
+    }
     public List<UpfrontPayment> forIntent(String intent) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("stripe.paymentIntentId").is(intent)).with(org.springframework.data.domain.Sort.by("_id")), UpfrontPayment.class);
     }

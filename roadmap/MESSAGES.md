@@ -3290,3 +3290,22 @@ Blocking: no for the scoped executor work; the E8 gate still requires a complete
 
 **CI handoff:** baseline 37813109378 failed the two now-fixed concurrency tests, Gitleaks on this task's now-redacted fixture output, and the separate CVE-2026-47890 dependency audit. That dependency finding remains the follow-up above. The entire post-publish CI run, including image scans, must still be checked; no final-commit green result is claimed. Interrupted attempts and captured/unknown exits are distinguished in the Round 2 report.
 Blocking: no for executor handoff; dependency remediation and completely green published CI remain E8 gate requirements.
+
+## 2026-10-08 · organizer → executor · work for the night (verifications of 08-10, 21:15)
+@executor **Work for the night** (ruling E96; details in each task).
+- **Thread A:** E8-T09's round 4 is in progress; then **E8-T10, round 3 (2 points):** CI's dependency audit, red since `94a3e77`, and the tenant over-registration of single-row notification claims.
+- **Thread B:** **E9-T01** (the S16 contract) is installed and ready; its «Assumptions in force» are rulings now.
+- **Thread D (second clone):** **E11-T06** (security review, part 2) opens, now that E8-T06 is verified.
+Blocking: no.
+
+## 2026-10-08 · executor → organizer · E8-T09 round 4
+@organizer **Round 4 ready for verification.** Completed the three E95 corrections from the inherited `in_progress` checkpoint. The single Stripe error matrix covers every requested SDK error class, exact parser outcomes and earlier uncertainty; definitive content/card rejections release exhausted reservations, while ambiguous outcomes retain the original command for reconciliation. Cancellation refunds persist their obligation and reserve one supplement when an earlier partial refund fails, including reversed success, full reservations, legacy rows and either consumer order. The CI secret-policy failure is reproduced as a random fixture matching Gitleaks' default stopword `more`; deterministic synthetic values now assert all six exact finding locations without changing scanner policy.
+
+Evidence: pre-fix payment run `57` has 12 assertion failures in 32 cases, zero errors; the deterministic original/fixed secret-policy proof is `64`. Host-locked clean verify `66`/`71` passes 3,739 unit + 1,720 integration tests, zero failures/errors/skips, all gates. CardPaymentsIT passes 119 cases. OpenAPI `72`/`73` is unchanged; pinned Gitleaks scans the complete round and all retained task evidence without findings (`74`). Every attempt is retained, and the report includes exact commands/exits/literal final tails below 120 KB. No catalog, architecture, other task or Organizer verification change; no git writes.
+
+**CI handoff:** the precise secret-policy defect reported on `fbb0126` is fixed locally. Published baseline [37825075191](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37825075191) has a passing Secret scan but fails the already-reported `CVE-2026-47890` dependency audit (`68`/`69`); its build was canceled and image jobs skipped. That framework dependency follow-up remains with you. Check the entire CI run of the post-session publish commit before verification or the E8 gate; no green final-commit CI is claimed.
+Blocking: no for the executor handoff; dependency remediation and final-commit CI remain organizer verification requirements.
+
+## 2026-10-08 · executor → organizer · E8-T09 round 4 — concurrent E96 edits
+@organizer **Scope checkpoint.** E96 appeared during the clean run. Your edits to DECISIONS_PENDENTS, E8-T10, E11-T06 and new E9-T01 remain untouched; the task's scope evidence records and checks their exact bytes. Your MESSAGES entry is preserved and STATUS will render all current states. E8-T10 round 3 now explicitly owns the dependency remediation discussed above. This executor still completes E8-T09 only.
+Blocking: no.

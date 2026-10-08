@@ -1,0 +1,687 @@
+20:57:12.865 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CardPaymentsIT]: CardPaymentsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:57:13.045 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CardPaymentsIT
+20:57:13.163 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+20:57:13.165 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+20:57:13.170 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+20:57:13.372 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+20:57:13.577 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+20:57:13.578 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+20:57:13.592 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+20:57:13.887 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+20:57:13.971 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+20:57:14.065 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 96616207...[truncated]
+20:57:14.263 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.375864S
+20:57:14.268 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+20:57:14.268 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+20:57:14.268 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+20:57:14.269 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+20:57:14.307 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: eb9376a3...[truncated]
+20:57:14.853 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.584932S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-08T20:57:15.666+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Starting CardPaymentsIT using Java [redacted] with PID 21369 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-08T20:57:15.668+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-08T20:57:17.096+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-08T20:57:17.151+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 50 ms. Found 0 MongoDB repository interfaces.
+2026-10-08T20:57:17.672+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3252daf5], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2bc1cc26, com.mongodb.Jep395RecordCodecProvider@ad77547, com.mongodb.KotlinCodecProvider@53b7e674]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:56522], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@77961b85], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-08T20:57:17.678+02:00 INFO  [cluster-ClusterId{value='6ac7e78d...[truncated]', description='null'}-localhost:56522] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:56522, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12960375, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=eb9376a3e9d1:27017, hosts=[eb9376a3e9d1:27017], passives=[], arbiters=[], primary='eb9376a3e9d1:27017', tagSet=TagSet{[]}, electionId=7fffffff...[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6ac7e78a...[truncated], counter=6}, lastWriteDate=Thu Oct 08 20:57:15 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-08T20:57:22.022+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-08T20:57:22.022+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-08T20:57:22.023+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-08T20:57:22.075+02:00 INFO  [main] c.a.core.payments.api.CardPaymentsIT traceId= clubId= accountId= : Started CardPaymentsIT in 6.668 seconds (process running for 9.945)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-08T20:57:24.679+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5da69fe7-fef6-46f5-9a7b-5d3df612485a clubId= accountId= : Payment operation recovery exhausted: eventId=117091c5-e323-4867-8557-bdf508cec7f6 traceId=5da69fe7-fef6-46f5-9a7b-5d3df612485a
+2026-10-08T20:57:25.456+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=83998f25-cfe4-4ed9-ba5e-dee7ae8495b8 clubId= accountId= : Payment operation recovery exhausted: eventId=49960869-af0f-414d-b185-0ed813ac45ec traceId=83998f25-cfe4-4ed9-ba5e-dee7ae8495b8
+2026-10-08T20:57:25.510+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=da1ff588-8463-4007-b8a7-6ca71b5327d8 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=da1ff588-8463-4007-b8a7-6ca71b5327d8
+2026-10-08T20:57:26.139+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5fe9d93a-6571-4cc8-8a9f-ba7ebad88851 clubId= accountId= : Payment operation recovery exhausted: eventId=d0a317ab-8b40-4af5-[redacted]=5fe9d93a-6571-4cc8-8a9f-ba7ebad88851
+2026-10-08T20:57:26.843+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a6a99661-d4cd-4a10-a8d4-3b3355953691 clubId= accountId= : Payment operation recovery exhausted: eventId=6f4e6967-b24a-4360-8791-4de4db06cf91 traceId=a6a99661-d4cd-4a10-a8d4-3b3355953691
+2026-10-08T20:57:26.888+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5c2643f8-e923-47dc-8321-d5b5c1340951 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=5c2643f8-e923-47dc-8321-d5b5c1340951
+2026-10-08T20:57:27.549+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ea7a762f-7e72-4621-92a4-576619c8c7d6 clubId= accountId= : Payment operation recovery exhausted: eventId=100e4e41-e5fc-48d5-a360-3f2c28ac1ad4 traceId=ea7a762f-7e72-4621-92a4-576619c8c7d6
+2026-10-08T20:57:28.253+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=df41cd04-83c1-436e-8d1f-b7ad6d2e4885 clubId= accountId= : Payment operation recovery exhausted: eventId=2492e06d-3b35-43d8-9983-7df9683639b4 traceId=[redacted]
+2026-10-08T20:57:28.304+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f3aaa742-6c46-4269-ab98-f5b5315c9c4e clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=f3aaa742-6c46-4269-[redacted]
+2026-10-08T20:57:28.971+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=071f53a6-22d7-43b2-9616-7cd9b2894b61 clubId= accountId= : Payment operation recovery exhausted: eventId=afa33716-3584-49fb-b808-a9ad0ad1587d traceId=071f53a6-22d7-43b2-9616-7cd9b2894b61
+2026-10-08T20:57:29.914+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=44489f68-e795-4e3f-a70f-ada21cfdc6e1 clubId= accountId= : Payment operation recovery exhausted: eventId=28810903-2ec0-40ea-8a97-71618d18104c traceId=44489f68-e795-4e3f-a70f-ada21cfdc6e1
+2026-10-08T20:57:30.024+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cc438d0e-9a50-4dbc-b5e4-4b7311c310b8 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=[redacted]
+2026-10-08T20:57:31.050+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8cd065e2-7f9c-4b79-ac42-c6893e112129 clubId= accountId= : Payment operation recovery exhausted: eventId=6f0bbdd0-331c-4fe4-[redacted]=8cd065e2-7f9c-4b79-[redacted]
+2026-10-08T20:57:31.748+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6c3c08cb-a54a-4c5d-af7e-ee285114037d clubId= accountId= : Payment operation recovery exhausted: eventId=d7ab96df-2226-4743-9fda-026b65200885 traceId=6c3c08cb-a54a-4c5d-af7e-ee285114037d
+2026-10-08T20:57:31.806+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=908419d4-bc07-4374-a3d0-57760bf40312 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=908419d4-[redacted]
+2026-10-08T20:57:32.666+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=21fed375-7096-4f35-a118-bf95e97ae92a clubId= accountId= : Payment operation recovery exhausted: eventId=e133e944-aa4d-4472-b3dd-c1861c86cfb5 traceId=21fed375-7096-4f35-a118-bf95e97ae92a
+2026-10-08T20:57:33.151+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4eaba493-6967-4d5b-8591-cacd37c1124a clubId= accountId= : Payment operation recovery exhausted: eventId=aa4fa1f8-50dd-41e7-abed-6a8e37599f57 traceId=4eaba493-6967-4d5b-8591-cacd37c1124a
+2026-10-08T20:57:33.178+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c93219dc-b586-4d39-b880-762dde6dc8f7 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=c93219dc-b586-4d39-b880-762dde6dc8f7
+2026-10-08T20:57:34.640+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4697f545-ef68-4aec-b27b-d8b45a69b426 clubId= accountId= : Payment operation recovery exhausted: eventId=b99d8e76-4756-4146-aea3-b9cac255bb7f traceId=4697f545-[redacted]
+2026-10-08T20:57:35.921+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8d2b40c8-3526-48eb-b303-ba1bc99f1a9d clubId= accountId= : Payment operation recovery exhausted: eventId=37c52749-59ed-4b59-82f7-126c8702df53 traceId=8d2b40c8-3526-48eb-b303-ba1bc99f1a9d
+2026-10-08T20:57:35.994+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8bec3328-074a-4f8e-814e-7b111c800b75 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=8bec3328-074a-4f8e-814e-7b111c800b75
+2026-10-08T20:57:36.512+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fbc9d24e-fc3e-4f0e-8957-b7be68971cb6 clubId= accountId= : Payment operation recovery exhausted: eventId=69b9f8a6-ff9d-4dde-a0fd-457ed34674e6 traceId=fbc9d24e-fc3e-4f0e-8957-b7be68971cb6
+2026-10-08T20:57:36.533+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8b5a7e50-ff3b-449b-a955-0ca3c8d6e8df clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=8b5a7e50-ff3b-449b-a955-0ca3c8d6e8df
+2026-10-08T20:57:36.925+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c6ae9e16-0355-42a1-93cf-d5824d6c4db6 clubId= accountId= : Payment operation recovery exhausted: eventId=368fe678-e6ab-4f38-b689-28a59debd3ec traceId=c6ae9e16-0355-42a1-93cf-d5824d6c4db6
+2026-10-08T20:57:36.944+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f3ff236e-1357-4d82-bace-40210925480f clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=f3ff236e-1357-4d82-bace-40210925480f
+2026-10-08T20:57:37.430+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=257772c3-e566-4123-8137-c9023d512129 clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=257772c3-e566-4123-8137-c9023d512129
+2026-10-08T20:57:37.454+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=67941f76-b538-4768-b58d-79c1002f7272 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=67941f76-b538-4768-b58d-79c1002f7272
+2026-10-08T20:57:37.878+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8e2eb0c0-7b5e-4d01-bf97-cd3fb59dc883 clubId= accountId= : Payment operation recovery exhausted: eventId=736c371d-95db-4c46-a58a-1bf1af471bc2 traceId=8e2eb0c0-7b5e-4d01-[redacted]
+2026-10-08T20:57:37.903+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=49d816f7-5c72-4e3d-ad64-869abed7ff0a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=49d816f7-5c72-4e3d-[redacted]
+2026-10-08T20:57:38.328+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a21d2a47-f753-4798-83dc-3bedbc72a716 clubId= accountId= : Payment operation recovery exhausted: eventId=70589ce2-[redacted]=a21d2a47-f753-4798-83dc-3bedbc72a716
+2026-10-08T20:57:38.348+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e364304c-78c6-4143-87de-152e5320c5f3 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=e364304c-78c6-4143-87de-152e5320c5f3
+2026-10-08T20:57:38.749+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dc574cfb-f994-4dfd-8f9b-77c8ba577323 clubId= accountId= : Payment operation recovery exhausted: eventId=b6e0a9e8-a7c0-4701-9696-6057d020d4f2 traceId=[redacted]
+2026-10-08T20:57:38.774+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5cac90b2-0813-4ffd-bb39-495722cfcfa5 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=5cac90b2-0813-4ffd-[redacted]
+2026-10-08T20:57:39.232+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=99e30743-b354-4dc9-8907-41a75fa16fd8 clubId= accountId= : Payment operation recovery exhausted: eventId=806ddcfe-b960-4a5d-[redacted]=99e30743-b354-4dc9-8907-41a75fa16fd8
+2026-10-08T20:57:39.257+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a3fb0679-e611-4e38-b05f-e3126f1dc4f4 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=a3fb0679-e611-4e38-b05f-e3126f1dc4f4
+2026-10-08T20:57:39.637+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fd1456c5-90f8-4dbc-9d40-1b61f7c5fb75 clubId= accountId= : Payment operation recovery exhausted: eventId=01df99cf-d148-4b58-965e-61418ce50eb9 traceId=[redacted]
+2026-10-08T20:57:39.658+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=88e9b008-9c1c-4016-b6e3-2b5f39b43438 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=88e9b008-9c1c-4016-b6e3-2b5f39b43438
+2026-10-08T20:57:40.109+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=19a2f868-96be-4700-a475-f80b82a3521c clubId= accountId= : Payment operation recovery exhausted: eventId=d75768f4-dc9a-4529-9397-b84c5d8bba0e traceId=19a2f868-96be-4700-a475-f80b82a3521c
+2026-10-08T20:57:40.136+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=adb808ce-e929-48aa-85fa-5123ee77828a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=adb808ce-e929-48aa-85fa-5123ee77828a
+2026-10-08T20:57:40.569+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=279cfcbe-198f-45d2-85c8-5b812e8d7272 clubId= accountId= : Payment operation recovery exhausted: eventId=faa0ffa9-[redacted]=279cfcbe-198f-45d2-85c8-5b812e8d7272
+2026-10-08T20:57:40.590+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8a209773-b361-486f-b21f-e90f249b1f23 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_r4_error traceId=8a209773-b361-486f-b21f-e90f249b1f23
+2026-10-08T20:57:40.888+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0dd0a150-fd39-4386-90b8-520a32a07213 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3f07ff04-51a4-4847-8d2b-7218363c44d5 traceId=0dd0a150-[redacted]
+2026-10-08T20:57:41.228+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6954a18a-16b6-4a22-8a96-952cc19d0e73 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_e35d25cf-8167-4bda-b9c2-0dca515ec3f6 traceId=6954a18a-16b6-4a22-8a96-952cc19d0e73
+2026-10-08T20:57:41.501+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a9b133d9-3aa1-4a03-93c3-ce1fb6e95fcd clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_8c80cc5a-e7ea-4564-968f-[redacted]=a9b133d9-3aa1-4a03-93c3-ce1fb6e95fcd
+2026-10-08T20:57:41.748+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=643d9ddb-9a42-4575-b334-105bc244e4d7 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_36aa26f7-9f68-4939-bd3e-abaf47100813 traceId=643d9ddb-9a42-4575-b334-105bc244e4d7
+2026-10-08T20:57:42.036+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=51217804-fec6-430b-b2e3-451c79740fe9 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_84226200-6db3-4876-8653-9a17097f91b2 traceId=51217804-fec6-430b-b2e3-451c79740fe9
+2026-10-08T20:57:42.380+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7363e519-53d2-42e3-84fa-af362fc9e72c clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_4163328f-b0ea-42d0-8cfb-e3c623da7a6a traceId=7363e519-53d2-42e3-84fa-af362fc9e72c
+2026-10-08T20:57:42.731+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=07f0bad0-42f8-4f1a-b76b-c12f5791921d clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_844d44b7-a8b3-4859-98dd-477f0af087e9 traceId=07f0bad0-42f8-4f1a-b76b-c12f5791921d
+2026-10-08T20:57:42.962+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=651d5b96-0b59-44ab-8ec0-a3bd824dce03 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_24255bdd-557d-4414-894c-2bab01da36b3 traceId=651d5b96-0b59-44ab-8ec0-a3bd824dce03
+[ERROR] Tests run: 32, Failures: 12, Errors: 0, Skipped: 0, Time elapsed: 30.22 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CardPaymentsIT
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(int, String, String, String, boolean, boolean)[1] -- Time elapsed: 2.276 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: false
+ but was: true
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(CardPaymentsIT.java:1306)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(int, String, String, String, boolean, boolean)[3] -- Time elapsed: 0.611 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: false
+ but was: true
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(CardPaymentsIT.java:1306)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(int, String, String, String, boolean, boolean)[5] -- Time elapsed: 0.648 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: false
+ but was: true
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(CardPaymentsIT.java:1306)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(int, String, String, String, boolean, boolean)[7] -- Time elapsed: 0.644 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: false
+ but was: true
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(CardPaymentsIT.java:1306)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[1] -- Time elapsed: 0.295 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[2] -- Time elapsed: 0.339 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[3] -- Time elapsed: 0.267 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[4] -- Time elapsed: 0.245 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[5] -- Time elapsed: 0.296 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[6] -- Time elapsed: 0.354 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[7] -- Time elapsed: 0.340 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String, boolean, long, boolean)[8] -- Time elapsed: 0.222 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(CardPaymentsIT.java:1358)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome:1306
+expected: false
+ but was: true
+[ERROR]   CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome:1306
+expected: false
+ but was: true
+[ERROR]   CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome:1306
+expected: false
+ but was: true
+[ERROR]   CardPaymentsIT.T_12_17_round4_point1_everyStripeErrorHasARefundOutcome:1306
+expected: false
+ but was: true
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CardPaymentsIT.T_12_17_round4_point2_failedPartialRefundRecomputesCancellation:1358
+Expected size: 1 but was: 0 in:
+[]
+[ERROR] Tests run: 32, Failures: 12, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

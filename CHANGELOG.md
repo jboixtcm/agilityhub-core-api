@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T09 round 4: definitive Stripe card/content rejections release exhausted refund reservations while concurrent-key, network and server outcomes retain reconciliation safeguards. Cancellation refunds retain their full obligation and schedule an idempotent supplement when an earlier partial refund fails. The CI secret-policy check uses deterministic synthetic values and verifies each expected detection location, eliminating random stopword failures without relaxing the scanner policy.
+
 - E8-T10 round 2: all tenant Mongo mutations, including saved views and context-free workers, participate in the transactional reset fence; unfinished writers and legacy checkpoints block reset. Standalone writes retry aborted transactions without replaying uncertain commits. Reconciliation checks the import lease before and after its simulation and event writes, rolling back stale workers. Recovery tests now use S18's T-18-13 identifier.
 
 - E8-T09 round 3: uncertain charges and refunds stop replaying before Stripe's 24-hour key retention ends, and legacy commands with unknown submission times await reconciliation. Refund webhooks complete lost-response commands atomically with settlement, preserving the exact remaining refundable amount. Exhausted HTTP 429 rejections release reservations only when no earlier submission remains uncertain.
