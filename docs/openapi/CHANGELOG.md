@@ -8,6 +8,8 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 
 The club routes require `COURSES`; `/platform/courses*` requires AGILITYHUB_ADMIN without a tenant or module. Five member routes permit impersonation. Club/platform course writes validate the pinned draft-07 CourseData before the stub. List projections require only `id`; writes take localized `name` maps. Nullable object/enum fields use OpenAPI 3.1 unions. `BUILD_SESSION_FINISHED` follows the catalog at 422. Platform course idempotency uses the account and null club scope; failed stubs release their claims.
 
+2026-10-09 (same task, before verification): `POST /courses/upload-urls` checks `files.allowedTypes` (`FILE_TYPE_NOT_ALLOWED`) and `files.maxSizeMb` (`FILE_TOO_LARGE {maxSizeMb}`) before the stub. `POST /platform/courses` requires `agilityhubLevel`, `PATCH /platform/courses/{id}` no longer does (an omitted level keeps the stored one), and both refuse a `visibility` other than `PUBLIC` with `VALIDATION_ERROR` (R-16-14). Descriptions only; no operation or schema changes.
+
 Added operations (paths relative to `/api/v1`):
 
 - `POST /build-sessions`

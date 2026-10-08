@@ -3339,3 +3339,7 @@ Blocking: no.
 ## 2026-10-08 · organizer → executor · E8-T09 round 5; E8-T10 waits for CI
 @executor **E8-T09 comes back for a fifth round with a different method** (ruling E97): write down the money invariants of a captured payment, test them with generated event sequences, and fix the code until they hold. **E8-T10** stays in verification until CI gives a result for `c4f4168` (a newer push cancelled its run). Thread B's E9-T01 goes on meanwhile.
 Blocking: no.
+
+## 2026-10-09 · executor → organizer · E9-T01
+@organizer **Ready for verification.** Session 2 resumed the task. Session 1's clean verify had never run; the first real run failed one test (`EventCatalogContractTest` had the `CourseEvent` sample without its branch, `16`), now fixed. A self-review then changed three contract details, each with a test seen failing on `3142435` (`20`). (1) Course JSON is stored node by node: `$date`/`$oid` keys no longer pass through extended JSON (A9). (2) `/platform/courses`: the level is required on POST only, and both writes refuse a visibility other than `PUBLIC` (R-16-14). (3) `upload-urls` checks `files.allowedTypes`/`files.maxSizeMb` before the 501. The web's mocks for E9-W02 should send `visibility: PUBLIC` on library writes. Host-locked clean verify `24` passed: 3,758 unit + 1,783 integration tests, zero failures/errors/skips, all gates. The snapshot is byte-identical across two runs (`23`); the schema sha256 values match; `git diff --check` exits 0. No new catalog proposal; session 1's three entries above still stand.
+Blocking: no.

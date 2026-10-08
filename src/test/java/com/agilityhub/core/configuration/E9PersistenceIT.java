@@ -54,6 +54,9 @@ class E9PersistenceIT extends AbstractIntegrationTest {
         var original=E9Fixtures.document(Course.class,"e9p-course",CLUB);
         var json=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.valueToTree(original);
         json.withArray("history").add(mapper.createObjectNode().put("version",0).put("schemaVersion",1).set("normalizedJson",original.normalizedJson()));
+        // A9: keys that extended JSON would reinterpret stay plain keys with their own values.
+        var metadata=(com.fasterxml.jackson.databind.node.ObjectNode)json.path("normalizedJson").path("rawMetadata");
+        metadata.put("$date",0);metadata.put("$numberLong","not-a-number");metadata.putObject("when").put("$date",0);metadata.putObject("nested").put("$oid","bad").put("exact",new java.math.BigDecimal("0.10"));
         original=mapper.treeToValue(json,Course.class);
         try(var scope=TenantContext.open(CLUB)) {
             courses.insert(original);var stored=courses.findById(original.id()).orElseThrow();
@@ -61,7 +64,12 @@ class E9PersistenceIT extends AbstractIntegrationTest {
             assertThat(stored.normalizedJson().path("rawMetadata").path("planner.version").asInt()).isEqualTo(1);
             assertThat(stored.normalizedJson().path("rawMetadata").has("$original")).isTrue();
             var raw=mongo.findById(original.id(),Document.class,"courses");
-            assertThat(raw.get("normalizedJson",Document.class).get("rawMetadata",Document.class)).containsKeys("planner.version","$original");
+            assertThat(raw.get("normalizedJson",Document.class).get("rawMetadata",Document.class)).containsKeys("planner.version","$original")
+                    .containsEntry("$date",0).containsEntry("$numberLong","not-a-number");
+            assertThat(stored.normalizedJson().at("/rawMetadata/$date").isInt()).isTrue();
+            assertThat(stored.normalizedJson().at("/rawMetadata/when/$date").isInt()).isTrue();
+            assertThat(stored.normalizedJson().at("/rawMetadata/nested/$oid").asText()).isEqualTo("bad");
+            assertThat(stored.normalizedJson().at("/rawMetadata/nested/exact").decimalValue()).isEqualByComparingTo("0.10");
         }
         var publicCourse=E9Fixtures.document(Course.class,"e9p-public",null);mongo.insert(publicCourse);
         assertThat(global.findById(publicCourse.id())).contains(publicCourse);

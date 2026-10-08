@@ -1,0 +1,3 @@
+900c696fb1963939c47a90bb55b239aad636aabbf12811fab7849d0e4d23577e  src/main/resources/schemas/build-session-export.v1.schema.json
+50ceb48e2dfb9be21bdfe0878978bde1a6f23167369c9f603f5e5faf1e2b3628  src/main/resources/schemas/course-data.v1.schema.json
+exit 0

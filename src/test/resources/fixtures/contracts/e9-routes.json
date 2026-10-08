@@ -815,7 +815,7 @@
       "source": "SMARTER",
       "levelIds": [],
       "tags": [],
-      "visibility": "CLUB",
+      "visibility": "PUBLIC",
       "normalizedJson": {
         "id": "fictional-course",
         "source": "smarter-agility",

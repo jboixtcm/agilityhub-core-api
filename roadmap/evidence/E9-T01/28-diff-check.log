@@ -1,0 +1,159 @@
+exit 0
+roadmap/evidence/E9-T01/01-compile.log:1: trailing whitespace.
++[ERROR] COMPILATION ERROR : 
+roadmap/evidence/E9-T01/01-compile.log:5: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/01-compile.log:7: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/01-compile.log:10: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/02-schemas.log:11: trailing whitespace.
++[ERROR] Errors: 
+roadmap/evidence/E9-T01/02-schemas.log:14: trailing whitespace.
++[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+roadmap/evidence/E9-T01/02-schemas.log:15: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/02-schemas.log:19: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/02-schemas.log:22: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/03-schemas.log:13: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/E9-T01/03-schemas.log:17: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/03-schemas.log:21: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/03-schemas.log:24: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/04-pre-snapshot-contract.log:1: trailing whitespace.
++[ERROR] COMPILATION ERROR : 
+roadmap/evidence/E9-T01/04-pre-snapshot-contract.log:11: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/04-pre-snapshot-contract.log:13: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/04-pre-snapshot-contract.log:16: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:3: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:13: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:14: trailing whitespace.
++[/api/v1/courses] 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:21: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:22: trailing whitespace.
++[ERROR]   E9ResponseContractTest.T_16_03_T_16_21_allFortyTwoOperationsPublishTypedFormsHeadersAndCanonicalErrors:100 [/api/v1/courses] 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:24: trailing whitespace.
++[ERROR]   E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields:32 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:29: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:33: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/05-pre-snapshot-contract.log:36: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/06-snapshot.log:11: trailing whitespace.
++22:21:12.100 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/06-snapshot.log:16: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/07-http-contract.log:9: trailing whitespace.
++22:21:49.152 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/07-http-contract.log:14: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/07-http-contract.log:3561: trailing whitespace.
++[ERROR] Errors: 
+roadmap/evidence/E9-T01/07-http-contract.log:3612: trailing whitespace.
++[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+roadmap/evidence/E9-T01/07-http-contract.log:3613: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/07-http-contract.log:3617: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/07-http-contract.log:3620: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/08-http-contract.log:9: trailing whitespace.
++22:23:16.539 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/08-http-contract.log:14: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/08-http-contract.log:633: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/08-http-contract.log:634: trailing whitespace.
++[GET /api/v1/placements/e9-placement-a/build-sheet {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"73721667-0659-4ab6-871e-4333c8fb05a5"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:746: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/08-http-contract.log:747: trailing whitespace.
++[POST /api/v1/ring-setups {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 26146f27-617d-4c3d-96d4-df7e509b2825 al club.","details":{},"traceId":"26146f27-617d-4c3d-96d4-df7e509b2825"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:757: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/08-http-contract.log:758: trailing whitespace.
++[POST /api/v1/placements {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"aec5a4d1-ddeb-481f-9e12-d20931f8cba3"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:768: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/08-http-contract.log:769: trailing whitespace.
++[POST /api/v1/platform/courses {"code":"NO_MEMBERSHIP","message":"El compte no té accés a aquest club.","details":{},"traceId":"ef68afce-b8a5-4587-ba2a-e744aba00b7c"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:779: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/08-http-contract.log:780: trailing whitespace.
++[POST /api/v1/platform/courses {"code":"NO_MEMBERSHIP","message":"El compte no té accés a aquest club.","details":{},"traceId":"5a592e4e-fc46-409a-9a77-5b0d98c127db"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:789: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/E9-T01/08-http-contract.log:790: trailing whitespace.
++[ERROR]   E9ContractIT.T_16_03_bothCourseWritersValidateTheRealJsonBeforeTheStub:145->error:86 [POST /api/v1/platform/courses {"code":"NO_MEMBERSHIP","message":"El compte no té accés a aquest club.","details":{},"traceId":"5a592e4e-fc46-409a-9a77-5b0d98c127db"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:793: trailing whitespace.
++[ERROR]   E9ContractIT.T_16_05_T_16_21_T_19_01_eachOperationChecksRolesHostMembershipAndWritesNothing:99->error:86 [GET /api/v1/placements/e9-placement-a/build-sheet {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"73721667-0659-4ab6-871e-4333c8fb05a5"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:797: trailing whitespace.
++[ERROR]   E9ContractIT.T_16_05_everyPathAndBodyOrQueryReferenceIsTenantScoped:133->error:86 [POST /api/v1/placements {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"aec5a4d1-ddeb-481f-9e12-d20931f8cba3"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:801: trailing whitespace.
++[ERROR]   E9ContractIT.T_16_07_T_16_09_T_16_21_conditionalPermissionsApplyBefore501:158->error:86 [POST /api/v1/ring-setups {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 26146f27-617d-4c3d-96d4-df7e509b2825 al club.","details":{},"traceId":"26146f27-617d-4c3d-96d4-df7e509b2825"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:804: trailing whitespace.
++[ERROR]   E9ContractIT.T_16_12_everyClubRouteChecksTheModuleBeforeTheStubAndBodyValidation:112->error:86 [POST /api/v1/platform/courses {"code":"NO_MEMBERSHIP","message":"El compte no té accés a aquest club.","details":{},"traceId":"ef68afce-b8a5-4587-ba2a-e744aba00b7c"}] 
+roadmap/evidence/E9-T01/08-http-contract.log:809: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/08-http-contract.log:813: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/08-http-contract.log:816: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/09-courses-integration.log:9: trailing whitespace.
++22:28:17.940 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/09-courses-integration.log:14: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/09-courses-integration.log:61: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/09-courses-integration.log:74: trailing whitespace.
++org.opentest4j.AssertionFailedError: 
+roadmap/evidence/E9-T01/09-courses-integration.log:139: trailing whitespace.
++[ERROR] Failures: 
+roadmap/evidence/E9-T01/09-courses-integration.log:140: trailing whitespace.
++[ERROR]   E9PersistenceIT.T_16_03_rawJsonFieldsPreserveArraysObjectsAndExplicitNull:77 
+roadmap/evidence/E9-T01/09-courses-integration.log:143: trailing whitespace.
++[ERROR]   E9PersistenceIT.T_16_05_sevenRepositoriesBindEveryReadAndWriteToTheCurrentTenant:40 
+roadmap/evidence/E9-T01/09-courses-integration.log:149: trailing whitespace.
++[ERROR] Errors: 
+roadmap/evidence/E9-T01/09-courses-integration.log:153: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/09-courses-integration.log:157: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/09-courses-integration.log:160: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/10-courses-integration.log:9: trailing whitespace.
++22:29:17.007 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/10-courses-integration.log:14: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/10-courses-integration.log:90: trailing whitespace.
++[ERROR] Errors: 
+roadmap/evidence/E9-T01/10-courses-integration.log:93: trailing whitespace.
++[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+roadmap/evidence/E9-T01/10-courses-integration.log:94: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/10-courses-integration.log:98: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/10-courses-integration.log:101: trailing whitespace.
++[ERROR] 
+roadmap/evidence/E9-T01/11-openapi-first.log:11: trailing whitespace.
++22:36:46.507 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/11-openapi-first.log:16: trailing whitespace.
++  Labels: 
+roadmap/evidence/E9-T01/12-openapi-second.log:11: trailing whitespace.
++22:52:01.206 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+roadmap/evidence/E9-T01/12-openapi-second.log:16: trailing whitespace.
++  Labels: 
+exit 2
+exit 0

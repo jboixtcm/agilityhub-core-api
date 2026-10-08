@@ -158,6 +158,10 @@ class EventCatalogContractTest {
                 for (var kind : com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
                 assertThat(event.aggregateType()).isEqualTo("LeaveRequest"); assertThat(event.payload()).containsKeys("requestId", "memberId"); return;
             }
+            if (event instanceof com.agilityhub.core.courses.domain.CourseEvent) {
+                for (var kind : com.agilityhub.core.courses.domain.CourseEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("Course"); assertThat(event.payload()).containsKeys("courseId", "ownerType", "source"); return;
+            }
             if (event instanceof com.agilityhub.core.payments.domain.SignupPaymentEvent) {
                 assertThat(catalog).contains("UpfrontPaymentRecorded","UpfrontPaymentSucceeded");
                 assertThat(event.aggregateType()).isEqualTo("UpfrontPayment");assertThat(event.payload()).containsKeys("paymentId","provider");return;

@@ -37922,7 +37922,7 @@
     },
     "/api/v1/courses/upload-urls" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. contentType ∈ files.allowedTypes → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb → else FILE_TOO_LARGE (FileTooLargeDetails {maxSizeMb}). E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "courseUploadUrl",
         "requestBody" : {
           "content" : {
@@ -70851,7 +70851,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: agilityhubLevel required and visibility PUBLIC, otherwise VALIDATION_ERROR. E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "createPlatformCourse",
         "parameters" : [ {
           "in" : "header",
@@ -71008,7 +71008,7 @@
     },
     "/api/v1/platform/courses/{id}" : {
       "patch" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: an omitted agilityhubLevel keeps the stored one; a visibility other than PUBLIC is VALIDATION_ERROR. E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "patchPlatformCourse",
         "parameters" : [ {
           "in" : "path",

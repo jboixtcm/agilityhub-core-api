@@ -112,9 +112,10 @@ public class CoursesController {
     @PostMapping(value = "/api/v1/courses/upload-urls")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE})
-    @Operation(summary = "courseUploadUrl", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "courseUploadUrl", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. contentType ∈ files.allowedTypes → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb → else FILE_TOO_LARGE (FileTooLargeDetails {maxSizeMb}). E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "201", description = "S16 UploadUrl", useReturnTypeSchema = true))
     public UploadUrl courseUploadUrl(@Valid @RequestBody UploadUrlRequest request) {
+        guards.upload(request.contentType(), request.size());
         throw new UnsupportedOperationException("S16 contract");
     }
 }

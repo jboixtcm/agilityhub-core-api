@@ -72,6 +72,16 @@ public class CourseContractGuards {
     }
     public void canPublish() { if (!role("ADMIN") && !enabled("courses.allowInstructorPublish")) { throw new ApiException(FORBIDDEN); } }
     public void memberVisibility() { if (!staff() && !enabled("courses.showSetupToMembers")) { throw new ApiException(NOT_FOUND); } }
+    /** R-16-16: the club's `files.allowedTypes` (a `type/*` entry matches its family) and `files.maxSizeMb`; per-purpose MIME rules are E9-T02's. */
+    public void upload(String contentType, long size) {
+        var config = configs.get(TenantContext.require());
+        boolean allowed = config.get("files.allowedTypes", List.class).stream().anyMatch(raw -> {
+            String item = raw.toString(); return item.endsWith("/*") ? contentType.startsWith(item.substring(0, item.length() - 1)) : contentType.equals(item);
+        });
+        if (!allowed) { throw new ApiException(FILE_TYPE_NOT_ALLOWED); }
+        int max = config.get("files.maxSizeMb", Integer.class);
+        if (size <= 0 || size > max * 1024L * 1024) { throw new ApiException(FILE_TOO_LARGE, java.util.Map.of("maxSizeMb", max)); }
+    }
     private boolean enabled(String key) { return Boolean.TRUE.equals(configs.get(TenantContext.require()).get(key, Boolean.class)); }
     public void setup(String id) { memberVisibility(); if (setups.findById(id).isEmpty()) { throw new ApiException(NOT_FOUND); } }
     public void setupReference(String id) { if (id != null && setups.findById(id).isEmpty()) { throw new ApiException(NOT_FOUND); } }

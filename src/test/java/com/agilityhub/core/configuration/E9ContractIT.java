@@ -177,6 +177,15 @@ class E9ContractIT extends AbstractIntegrationTest {
         var mine=routes().filter(r->r.path().equals("/api/v1/me/ring-setups")).findFirst().orElseThrow();
         error(call(mine,"MEMBER").with(req->{req.removeParameter("ringIds");return req;}),501,"NOT_IMPLEMENTED");
     }
+    @Test void T_16_21_courseUploadUrlsCheckTheClubFileParametersBefore501() throws Exception {
+        var upload=routes().filter(r->r.path().equals("/api/v1/courses/upload-urls")).findFirst().orElseThrow();
+        var body=((ObjectNode)upload.body()).deepCopy();
+        error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("contentType","application/zip").toString()),400,"FILE_TYPE_NOT_ALLOWED");
+        for(long size:List.of(0L,25L*1024*1024+1)) {
+            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("size",size).toString()),400,"FILE_TOO_LARGE").andExpect(jsonPath("$.details.maxSizeMb").value(25));
+        }
+        error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("contentType","image/png").put("size",25L*1024*1024).toString()),501,"NOT_IMPLEMENTED");
+    }
     @Test void T_16_07_T_16_09_T_16_21_conditionalPermissionsApplyBefore501() throws Exception {
         for(var route:routes().filter(r->r.method().equals("POST")&&r.path().equals("/api/v1/placements")||r.method().equals("PUT")&&r.path().equals("/api/v1/placements/{id}")).toList()) {
             var forced=((ObjectNode)route.body()).deepCopy().put("force",true);
@@ -189,8 +198,15 @@ class E9ContractIT extends AbstractIntegrationTest {
             error(call(route,"MEMBER"),404,"NOT_FOUND");error(call(route,"INSTRUCTOR"),501,"NOT_IMPLEMENTED");
         }
         for(var route:routes().filter(r->r.platform()&&r.body()!=null&&r.body().isObject()).toList()) {
+            // R-16-14: the level is required when the library course is created; a PATCH that omits it keeps the stored one.
             var body=((ObjectNode)route.body()).deepCopy();body.remove("agilityhubLevel");
-            error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
+            if(route.method().equals("POST")) error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
+            else error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+            // R-16-14: a library course is always PUBLIC.
+            for(String visibility:List.of("PRIVATE","CLUB")) {
+                body=((ObjectNode)route.body()).deepCopy();body.put("visibility",visibility);
+                error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
+            }
             body=((ObjectNode)route.body()).deepCopy();body.putArray("levelIds").add("e9-level-a");
             error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),404,"NOT_FOUND");
         }
