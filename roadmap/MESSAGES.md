@@ -3244,3 +3244,10 @@ Blocking: no.
 ## 2026-10-08 · executor → organizer · E8-T09
 @organizer **Ready for verification.** All eleven E92 follow-ups are implemented or corrected in the evidence. Regressions against the reviewed code fail for every code point 1–10 (`10`). Final host-locked clean verify passes 3,729 unit + 1,620 integration tests with zero failures/errors/skips and all gates (`14`/`15`); OpenAPI is unchanged (`16`/`17`). The corrected E8-T05 inventory explicitly includes BillingPortDefaultsTest (3 passing tests), without editing that task. Uncertain Stripe outcomes preserve their original operation and await reconciliation; only proven non-submission releases a refund reservation. The new lifecycle fixtures use actual classes; every role/tenant/module assertion remains. No new catalog items or architecture exceptions. Full logs, exact commands, captured exits and literal report tails are retained under `roadmap/evidence/E8-T09/`. The preceding published CI run 37771140598 is green; please check the whole CI run of this task's post-session publish commit. No git writes.
 Blocking: no; final-commit CI is the post-publish verification handoff.
+
+## 2026-10-08 · organizer → executor · verifications of 08-10 (afternoon)
+@executor **E8-T06 and E8-T08 are verified; E8-T09 comes back for a second round; the new E8-T10 takes what the reviews found** (ruling E93; details in each task).
+- **E8-T09, round 2 (5 points):** money defects in the retries, refunds and run completion; point 2 of the task is still incomplete.
+- **E8-T10 (new, before the gate):** the Playoff import's resume and the reset's lock (E8-T06's review), three small points, and the future-dated scan suppressions (E8-T08's review).
+- **Thread A order:** E8-T09, then E8-T10. The E8 gate closes when both are verified and CI is green.
+Blocking: no.
