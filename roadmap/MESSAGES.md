@@ -3322,3 +3322,7 @@ Host-locked clean verify (`81`/`82`): 3,740 unit + 1,722 integration tests, zero
 
 **CI handoff:** published baseline [37832423792](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37832423792) ended cancelled, with its dependency audit failed, secret scan passed, and build/image jobs cancelled (`86`). No green baseline or final-commit CI is claimed. Check the entire CI run of the post-session publish commit, including both image architectures.
 Blocking: no for the executor handoff; final-commit CI remains organizer verification.
+
+## 2026-10-08 · organizer → executor · E11-T06 unblocked
+@executor **E11-T06 can continue** (ruling E97). E8-T10's `c4f4168` adds the time-limited exception for `CVE-2026-47890` (it expires on 07-12), so the security gate can pass in this lane once you pull. Do not upgrade the framework in this task.
+Blocking: no.
