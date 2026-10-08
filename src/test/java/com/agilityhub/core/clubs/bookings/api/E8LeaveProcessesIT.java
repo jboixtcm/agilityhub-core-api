@@ -17,6 +17,7 @@ import static org.mockito.Mockito.*;
 /** T-15-21's defensive leave sweep through P5's real per-item transaction. */
 class E8LeaveProcessesIT extends BookingFixtures {
     @Autowired JobRunner jobs;
+    @Autowired com.agilityhub.core.clubs.census.application.LifecycleBookings lifecycle;
     @MockitoSpyBean TrainingCancellationPort training;
     String kept, cancelled;
     @BeforeEach void leaveFixture() throws Exception {
@@ -42,8 +43,9 @@ class E8LeaveProcessesIT extends BookingFixtures {
         assertThat(booking(kept).getString("state")).isEqualTo("ACTIVE");
         clock.setInstant(local("2026-10-09T00:10"));
         var dry = jobs.manual(CLUB, JobName.EXPIRATIONS, true, "s08-admin");
+        // The Friday class, the Saturday waitlist entry and the Saturday training; the description names what P5 really found.
         assertThat(dry.items()).filteredOn(i -> i.action().equals("WOULD_LEAVE")).singleElement().satisfies(i ->
-                assertThat(i.detail()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("futureBookings", 3)));
+                assertThat(i.detail()).as(this::plannedCancellations).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("futureBookings", 3)));
         var run = jobs.manual(CLUB, JobName.EXPIRATIONS, false, "s08-admin");
         assertThat(run.status()).as(run.errors().toString()).isEqualTo(JobStatus.SUCCEEDED);
         assertThat(booking(cancelled)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "LEAVE");
@@ -57,6 +59,11 @@ class E8LeaveProcessesIT extends BookingFixtures {
         assertThat(count("notifications", Criteria.where("code").in("N-05", "N-07"))).isZero();
         assertThat(jobs.manual(CLUB, JobName.EXPIRATIONS, false, "s08-admin").items()).noneMatch(i -> i.action().equals("LEAVE"));
         assertThat(events("MemberStatusChanged")).isEqualTo(1);
+    }
+    String plannedCancellations() {
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            return "planned " + lifecycle.inside("s08-m-laura", LocalDate.parse("2026-10-09"), null, false, true);
+        }
     }
     @Test void T_15_21_anS09FailureRollsBackTheWholeP5ItemAndReportsPartial() {
         doAnswer(invocation -> {
