@@ -27,6 +27,17 @@ class FakeWebhookCommandTest {
         assertThat(command.name()).isEqualTo("billing:fake-webhook");
     }
 
+    @Test void T_12_15_theCommandIsAbsentFromStagingAndProductionContexts() {
+        for (String profiles : List.of("local", "test", "staging", "prod", "local,staging", "test,prod")) {
+            new org.springframework.boot.test.context.runner.ApplicationContextRunner().withPropertyValues("spring.profiles.active=" + profiles)
+                    .withUserConfiguration(FakeWebhookCommand.class).withBean(ClubConfigService.class, () -> clubs)
+                    .withBean(FakePaymentProvider.class, () -> fake).withBean(Clock.class, Clock::systemUTC).run(context -> {
+                        assertThat(context).hasNotFailed();
+                        assertThat(context.containsBean("fakeWebhookCommand")).isEqualTo(profiles.equals("local") || profiles.equals("test"));
+                    });
+        }
+    }
+
     @Test void T_12_15_wrongArgumentsAndUnknownClubsDeliverNothing() {
         for (String[] args : List.of(new String[]{"payment_intent.succeeded", "pi_1"}, new String[]{"charge.refunded", "pi_1", "--club=fifo"},
                 new String[]{"payment_intent.succeeded", "in_1", "--club=fifo"}, new String[]{"payment_intent.succeeded", "pi_1", "--club=a", "--club=b"},

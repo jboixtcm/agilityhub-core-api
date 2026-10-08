@@ -35,10 +35,12 @@ public class PendingChargeConsumers {
 
     public void attendanceMarked(AttendanceEvent event) {
         try (var tenant = TenantContext.open(event.clubId())) {
-            var booking = chargeable(Objects.toString(event.payload().get("bookingId"), null));
-            if (booking.isEmpty()) { return; }
-            stamp(booking.get(), charges.attendance(view(booking.get()), string(event.payload().get("state")), string(event.payload().get("previousState"))));
+            attendanceMarked(Objects.toString(event.payload().get("bookingId"), null), string(event.payload().get("state")), string(event.payload().get("previousState")));
         }
+    }
+    /** Same idempotent write for outbox delivery and the demo's synchronous attendance history. */
+    public void attendanceMarked(String bookingId, String state, String previousState) {
+        chargeable(bookingId).ifPresent(booking -> stamp(booking, charges.attendance(view(booking), state, previousState)));
     }
     public void bookingCancelled(BookingEvent event) {
         if (!Boolean.TRUE.equals(event.payload().get("late"))) { return; }

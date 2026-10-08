@@ -38,7 +38,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         fixture = copyOf(Path.of("src/test/resources/fixtures/playoff"));
         TenantContext.clear(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
         for (String collection:List.of("members","dogs","family_groups","accounts","memberships","clubs","parameters","levels","plans","prices","migration_runs",
-                "invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
+                "leave_requests","invoices","pack_balances","collections","remittances","upload_grants","migration_reset_guards","migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
         clubs.save(PlatformFixtures.club(CLUB,CLUB+".example.test")); clubs.save(PlatformFixtures.club(OTHER,OTHER+".example.test")); configs.invalidate(CLUB); configs.invalidate(OTHER);
         // The plan and level codes of seeds/club-canic.yaml (S05 §12).
         for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6","COMPETICIO_1")) {
@@ -488,17 +488,17 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var receipts = new StringBuilder("Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n");
         for (int index=1; index<=103; index++) {
             receipts.append("receipt-").append(index).append(';').append(source(1)).append(';').append(index)
-                .append(";2026-02-15;Febrer 2026 fictional fee;30,50;").append(index==1 ? "Impagado" : index==2 ? "Pendiente" : "Pagado").append(";SEPA_DD\n");
+                .append(";2026-02-15;Febrer 2026 fictional fee;30,50;").append(index==1 ? "Impagado" : index==2 ? "Pendiente" : index==3 ? "Vencido" : "Pagado").append(";SEPA_DD\n");
         }
         receipts.append("old;").append(source(1)).append(";999;2023-01-01;old;1,00;Pagado;MANUAL\n");
         Files.writeString(fixture.resolve("rebuts.csv"),receipts);
-        Files.writeString(fixture.resolve("packs.csv"),"Pack ID;Member ID;Plan;Opened on;Consumed\nactive;"+source(1)+";PACK10;2026-08-01;3\nexpired;"+source(1)+";PACK10;2026-01-01;2\n");
+        Files.writeString(fixture.resolve("packs.csv"),"Pack ID;Member ID;Plan;Opened on;Consumed\nactive;"+source(1)+";PACK10;2026-08-01;6\nexpired;"+source(1)+";PACK10;2026-01-01;2\n");
         var dry=importer.importDirectory(fixture,MAPPING,CLUB,true,false,false,LocalDate.of(2026,9,1));
         assertThat(dry.hasErrors()).as(dry.render()).isFalse(); assertThat(rows("invoices")).isEmpty(); assertThat(rows("members")).isEmpty();
         var report=importer.importDirectory(fixture,MAPPING,CLUB,false,false,false,LocalDate.of(2026,9,1));
         assertThat(report.hasErrors()).as(report.render()).isFalse();
         assertThat(report.count("invoices","CREATED")).isEqualTo(103); assertThat(report.count("packBalances","CREATED")).isEqualTo(2);
-        assertThat(report.totals()).containsEntry("invoicesPAID",101L).containsEntry("invoicesPENDING",1L).containsEntry("invoicesFAILED",1L)
+        assertThat(report.totals()).containsEntry("invoicesPAID",100L).containsEntry("invoicesPENDING",2L).containsEntry("invoicesFAILED",1L)
                 .containsEntry("packsACTIVE",1L).containsEntry("packsEXPIRED",1L);
         assertThat(rows("invoices")).allSatisfy(invoice -> {
             assertThat(invoice).containsEntry("kind","MIGRATED").containsEntry("series","PLAYOFF").containsEntry("period","2026-02");
@@ -509,15 +509,85 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             assertThat(pack.getList("movements",Document.class)).singleElement().satisfies(movement -> assertThat(movement).containsEntry("type","OPEN").containsEntry("reason","MIGRATED"));
             assertThat(pack.getInteger("remaining")+pack.getInteger("consumed")).isEqualTo(10);
         });
+        assertThat(warnings(report, "PACK_DOG_AMBIGUOUS")).isEqualTo(2);
+        for (var pack : rows("pack_balances")) {
+            boolean active = "active".equals(pack.get("sourceIds", Document.class).getString("playoffPackId"));
+            assertThat(pack).containsEntry("state", active ? "ACTIVE" : "EXPIRED")
+                    .containsEntry("expiresOn", active ? "2027-01-31" : "2026-06-30")
+                    .containsEntry("remaining", active ? 4 : 8).containsEntry("consumed", active ? 6 : 2)
+                    .containsEntry("dogId", dog(1).getString("_id"));
+        }
+        for (var invoice : rows("invoices")) {
+            long number = ((Number) invoice.get("number")).longValue();
+            assertThat(invoice.getString("displayNumber")).isEqualTo(Long.toString(number));
+            assertThat(invoice.getString("status")).isEqualTo(number == 1 ? "FAILED" : number <= 3 ? "PENDING" : "PAID");
+            assertThat(invoice.getList("lines", Document.class).getFirst()).containsEntry("description", "Febrer 2026 fictional fee");
+        }
         assertThat(rows("collections")).isEmpty(); assertThat(rows("remittances")).isEmpty();
         var again=importer.importDirectory(fixture,MAPPING,CLUB,false,false,false,LocalDate.of(2026,9,1));
         assertThat(again.count("invoices","CREATED")).isZero(); assertThat(again.count("packBalances","CREATED")).isZero();
         assertThat(rows("invoices")).hasSize(103); assertThat(rows("pack_balances")).hasSize(2);
+        try (var tenant = TenantContext.open(CLUB)) {
+            var fresh = transactions.execute(status -> invoiceActions.createManual(member(1).getString("_id"),
+                    List.of(new com.agilityhub.core.payments.application.InvoiceActions.ManualLine("Fictional adjustment", new Money(1000, "EUR"), java.math.BigDecimal.ZERO)), false, null));
+            assertThat(fresh.invoice().series()).isEqualTo("2026"); assertThat(fresh.invoice().number()).isEqualTo(1);
+            assertThat(fresh.invoice().displayNumber()).isEqualTo("2026-0001");
+        }
+        assertThat(rows("invoices")).hasSize(104);
         // R-18-15: ids and codes only (`holder@88` is E2-T10's row reference, not an address).
         assertThat(report.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}|ES[0-9]{22}|[0-9]{8}[A-Z]");
     }
+    @Test void T_18_05_receiptsForSkippedMembersAndCollidingNumbersWarnWithoutBlockingTheLoad() throws Exception {
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "kept;" + source(1) + ";A-1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "collision;" + source(1) + ";B-1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n"
+                + "skipped-member;" + source(190) + ";2;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        var report = apply();
+        assertThat(report.hasErrors()).as(report.render()).isFalse();
+        assertThat(report.count("members", "CREATED")).isEqualTo(187);
+        assertThat(report.count("invoices", "CREATED")).isEqualTo(1);
+        assertThat(report.count("invoices", "SKIPPED")).isEqualTo(2);
+        assertThat(report.rows()).filteredOn(r -> r.entity().equals("invoices") && r.outcome().equals("WARNING"))
+                .extracting(MigrationReport.Entry::code).containsExactly("NUMBER_CONFLICT", "MAPPING_INVALID");
+        assertThat(rows("invoices")).singleElement().satisfies(i -> assertThat(i.getString("displayNumber")).isEqualTo("A-1"));
+        Files.writeString(fixture.resolve("rebuts.csv"), "Receipt ID;Member ID;Number;Date;Concept;Total;Status;Method\n"
+                + "later-collision;" + source(1) + ";C-1;2026-08-01;Fictional fee;10,00;Pagado;MANUAL\n");
+        var later = apply(); assertThat(later.hasErrors()).as(later.render()).isFalse();
+        assertThat(later.rows()).filteredOn(r -> r.entity().equals("invoices") && r.code().equals("NUMBER_CONFLICT")).hasSize(1);
+        assertThat(later.count("invoices", "SKIPPED")).isEqualTo(1);
+        assertThat(rows("invoices")).hasSize(1);
+    }
+    @Test void T_18_15_futureLeaveImportsAnApprovedMigratedRequestOnceWithoutNotifications() throws Exception {
+        var table = PlayoffTable.read(fixture.resolve("socis.csv"));
+        int left = table.getFirst().indexOf("Data baixa"); assertThat(left).isNotNegative();
+        table.set(1, new ArrayList<>(table.get(1))); table.get(1).set(left, "2026-12-31");
+        PlayoffTable.write(fixture.resolve("socis.csv"), table);
+        var report = apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
+        var member = member(1); assertThat(member).containsEntry("status", "ACTIVE").containsEntry("leaveDate", "2026-12-31");
+        var request = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("memberId").is(member.getString("_id"))), Document.class, "leave_requests");
+        assertThat(request).isNotNull();
+        assertThat(request).containsEntry("source", "MIGRATED").containsEntry("state", "APPROVED");
+        assertThat(request.get("decision", Document.class)).containsEntry("effectiveDate", "2026-12-31");
+        assertThat(member.getString("leaveRequestId")).isEqualTo(request.getString("_id"));
+        apply();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "leave_requests")).containsExactly(request);
+        assertThat(rows("notifications")).isEmpty();
+    }
+    @Test void T_18_04_malformedExportedMandateDatesProduceSafeReportRows() throws Exception {
+        for (String date : List.of("", "not-a-date")) {
+            Files.writeString(fixture.resolve("mandats.csv"), "Member ID;Mandate reference;Signed on\n" + source(50) + ";legacy-reference;" + date + "\n");
+            var report = importer.importDirectory(fixture, MAPPING, CLUB, true, false, false);
+            assertThat(report.hasErrors()).isTrue();
+            assertThat(report.rows()).anySatisfy(r -> {
+                assertThat(r.file()).isEqualTo("mandates"); assertThat(r.code()).isEqualTo("INPUT_SCHEMA_MISMATCH");
+            });
+            assertThat(rows("members")).isEmpty();
+        }
+    }
     @Autowired com.agilityhub.core.payments.application.BillingMigrationAccess billing;
     @Autowired MigrationResetService reset;
+    @Autowired org.springframework.transaction.support.TransactionTemplate transactions;
+    @Autowired com.agilityhub.core.payments.application.InvoiceActions invoiceActions;
     @Autowired com.agilityhub.core.platform.application.definition.ClubDefinitions definitions;
     @Autowired com.agilityhub.core.clubs.census.application.MemberService memberService;
     /** The Cànic's plan kinds with fictional prices and a SEPA creditor, so that S12's simulation bills the migrated census. */
@@ -566,6 +636,20 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(reconciled.hasErrors()).as(reconciled.render()).isFalse();
         assertThat(reconciled.totals()).containsEntry("reconciliationExpectedMinor", simulated.totalMinor()).containsEntry("reconciliationDifferenceMinor", 0L);
         assertThat(lastRun().getString("status")).isEqualTo("RECONCILED");
+        String changedId = simulated.byMember().keySet().iterator().next();
+        for (long delta : List.of(simulated.totalMinor() / 200, simulated.totalMinor() / 20)) {
+            Files.writeString(fixture.resolve("previsio.csv"), matching + sources.get(changedId) + ";2026-10;" + euros(delta) + "\n");
+            clock.setInstant(clock.instant().plusSeconds(60));
+            var changed = importer.importDirectory(fixture, MAPPING, CLUB, false, false, false, cutover);
+            boolean within = delta == simulated.totalMinor() / 200;
+            assertThat(changed.totals()).containsEntry("reconciliationDifferenceMinor", -delta);
+            assertThat(lastRun().getString("status")).isEqualTo(within ? "RECONCILED" : "COMPLETED");
+            var differences = changed.rows().stream().filter(r -> r.entity().equals("reconciliation")).toList();
+            if (within) { assertThat(differences).isEmpty(); }
+            else { assertThat(differences).singleElement().satisfies(r -> {
+                assertThat(r.code()).isEqualTo("MAPPING_INVALID"); assertThat(r.field()).isEqualTo(changedId);
+            }); }
+        }
         var unbanked = simulated.incidents().entrySet().stream().filter(e -> e.getValue().equals("NO_BANK_ACCOUNT")).map(Map.Entry::getKey).toList();
         assertThat(unbanked).hasSizeGreaterThanOrEqualTo(26); // the 26 without an IBAN, plus the ones whose IBAN failed mod-97
         var playoff = new StringBuilder(matching);
@@ -578,6 +662,12 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(explained.rows()).filteredOn(r -> r.entity().equals("reconciliation"))
                 .extracting(MigrationReport.Entry::field, MigrationReport.Entry::code)
                 .containsExactlyInAnyOrderElementsOf(unbanked.stream().map(id -> tuple(id, "NO_BANK_ACCOUNT")).toList());
+        for (var row : input().files().get("members")) {
+            for (String field : List.of("firstName", "surname", "email", "document", "iban")) {
+                if (!row.get(field).isBlank()) { assertThat(explained.render()).doesNotContain(row.get(field)); }
+            }
+        }
+        assertThat(explained.render()).doesNotContainPattern("\\b[XYZ][0-9]{7}[A-Z]\\b|\\bES(?:[ \\t]*[0-9]){22}\\b");
         assertThat(explained.render()).doesNotContainPattern("[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}|ES[0-9]{22}|\\b[0-9]{8}[A-Z]\\b");
     }
 
@@ -603,6 +693,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
                     e -> assertThat(e.code()).isEqualTo(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION));
             assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isEqualTo(187);
             assertThat(reset.reset("canic", seed, "canic", "canic")).isEqualTo(canic);
+            assertThat(mongo.find(Query.query(Criteria.where("clubId").is(canic).and("action").is("MIGRATION_APPLIED").and("reason").is("RESET")), Document.class, "audit_entries"))
+                    .singleElement().satisfies(a -> assertThat(a.getString("entityId")).isEqualTo(canic));
             assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "members")).isZero();
             assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "migration_runs")).isZero();
             assertThat(mongo.count(Query.query(Criteria.where("clubId").is(canic)), "plans")).isEqualTo(plans);
@@ -645,15 +737,20 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         server.createContext("/large",exchange -> { try { exchange.getResponseHeaders().set("Content-Type","image/png"); exchange.sendResponseHeaders(200,large.length); exchange.getResponseBody().write(large); } catch(java.io.IOException cancelled) { } finally { exchange.close(); } });
         server.start();
         try {
-            var selected=rows("dogs").subList(0,6); String base="http://127.0.0.1:"+server.getAddress().getPort();
-            for (int index=0;index<6;index++) {
-                String source=index==4 ? "[redacted]" : base+List.of("/ok","/missing","/wrong","/large","/ok","/ok").get(index);
-                var update=new Update().set("sourceIds.playoffPhoto",source); if(index==5) { update.set("photoFileKey","existing-upload"); }
+            var selected=rows("dogs").subList(0,7); String base="http://127.0.0.1:"+server.getAddress().getPort();
+            for (int index=0;index<7;index++) {
+                String source=index==4 ? "[redacted]" : base+List.of("/ok","/missing","/wrong","/large","/ok","/ok","/ok").get(index);
+                var update=new Update().set("sourceIds.playoffPhoto",source);
+                if (index==6) { update.set("status", "PENDING").set("readmissionRequest", Map.of("requestedAt", Date.from(clock.instant()))); }
+                if(index==5) { update.set("photoFileKey","existing-upload"); }
                 mongo.updateFirst(Query.query(Criteria.where("_id").is(selected.get(index).get("_id"))),update,"dogs");
             }
             assertThat(photos.run(CLUB,true)).filteredOn(row -> row.outcome().equals("IMPORTED")).isEmpty();
             var result=photos.run(CLUB,false);
             assertThat(result).filteredOn(row -> row.outcome().equals("IMPORTED")).hasSize(1);
+            assertThat(result).filteredOn(row -> row.dogId().equals(selected.get(6).getString("_id"))).singleElement()
+                    .satisfies(row -> assertThat(row.outcome()).isEqualTo("INVALID_STATE"));
+            assertThat(mongo.findById(selected.get(6).getString("_id"), Document.class, "dogs").get("photoFileKey")).isNull();
             assertThat(result).extracting(MigrationPhotos.Row::outcome).contains("NOT_FOUND","FILE_TYPE_NOT_ALLOWED","FILE_TOO_LARGE","SKIPPED");
             assertThat(mongo.findById(selected.get(0).get("_id"),Document.class,"dogs").get("photoFileKey")).isNotNull();
             assertThat(mongo.findById(selected.get(5).get("_id"),Document.class,"dogs").get("photoFileKey")).isEqualTo("existing-upload");

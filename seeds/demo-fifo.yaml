@@ -56,4 +56,7 @@ scenario:
 # card with fake Stripe ids, and ordinal 5 (UNICA) has two attended single classes waiting to be billed.
 billing:
   cardMember: 7
-  pendingCharges: [5, 5]
+  # Historical CHARGE_ON_ATTENDANCE classes, before UNICA switched to PAY_TO_BOOK.
+  pendingCharges:
+    - {member: 5, weeksAgo: 2, day: MONDAY, start: '18:00', end: '19:00', ring: PIS, level: GEN, instructor: 0}
+    - {member: 5, weeksAgo: 1, day: MONDAY, start: '18:00', end: '19:00', ring: PIS, level: GEN, instructor: 0}

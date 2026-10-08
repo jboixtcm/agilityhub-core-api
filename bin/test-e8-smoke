@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Targeted E8 smoke regressions; no Docker or external account needed."""
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+from types import SimpleNamespace
+import unittest
+import hashlib
+import hmac
+import json
+import tempfile
+from unittest.mock import Mock, patch
+
+loader = importlib.machinery.SourceFileLoader("e8smoke", str(Path(__file__).with_name("e8-smoke")))
+spec = importlib.util.spec_from_loader("e8smoke", loader)
+m = importlib.util.module_from_spec(spec)
+loader.exec_module(m)
+
+
+class E8SmokeTest(unittest.TestCase):
+    def xml(self, count="1", total="10.00", sequence="RCUR"):
+        return f'''<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02"><CstmrDrctDbtInitn>
+        <GrpHdr><NbOfTxs>{count}</NbOfTxs><CtrlSum>{total}</CtrlSum></GrpHdr><PmtInf><SeqTp>{sequence}</SeqTp>
+        <CdtrSchmeId><Id><PrvtId><Othr><Id>{m.SEPA_CREDITOR}</Id></Othr></PrvtId></Id></CdtrSchmeId>
+        <DrctDbtTxInf><InstdAmt>10.00</InstdAmt><MndtId>fictional</MndtId></DrctDbtTxInf>
+        </PmtInf></CstmrDrctDbtInitn></Document>'''.encode()
+
+    def test_T_12_11_checks_the_bank_header_and_rcur(self):
+        remit = dict(count=1, total=dict(amountMinor=1000))
+        m.check_sepa(self.xml(), remit)
+        for args in (dict(count="2"), dict(total="9.00"), dict(sequence="FRST")):
+            with self.subTest(args=args), self.assertRaises(AssertionError):
+                m.check_sepa(self.xml(**args), remit)
+
+    def test_T_12_15_configured_keys_use_the_real_leg(self):
+        smoke = object.__new__(m.E8)
+        smoke.s = SimpleNamespace(fifo="club", fifo_host="fifo.example.test", cli=Mock())
+        smoke.fifo_admin = "fictional"
+        smoke.period = "2026-11"
+        smoke.stripe = True
+        smoke.m = m.load_smoke()
+        smoke.member = Mock(return_value={"_id": "member"})
+        smoke.mongo = Mock(return_value={"_id": "invoice"})
+        smoke.call = Mock(side_effect=[{"id": "simulation"}, {"run": {"id": "run"}}, {"submitted": 1}])
+        smoke.wait = Mock(side_effect=[{"providerRef": "pi_fictional"}, "PAID"])
+        smoke.record = Mock()
+        smoke.prepare_real_stripe = Mock()
+        smoke.deliver_real_stripe = Mock()
+        smoke.card_leg()
+        smoke.prepare_real_stripe.assert_called_once()
+        smoke.deliver_real_stripe.assert_called_once_with("pi_fictional")
+        smoke.s.cli.assert_not_called()
+
+    def test_T_12_21_replays_the_fetched_event_with_its_body_signature(self):
+        with tempfile.TemporaryDirectory() as directory:
+            smoke = object.__new__(m.E8)
+            smoke.m = m.load_smoke()
+            smoke.private = Path(directory)
+            smoke.s = SimpleNamespace(base="http://localhost:8080", fifo="club", env={})
+            smoke.signing_secret = "fictional-local-signing-secret"
+            event = {"id": "evt_fictional", "type": "payment_intent.succeeded", "livemode": False,
+                     "data": {"object": {"id": "pi_fictional", "status": "succeeded"}}}
+            smoke.stripe_api = Mock(side_effect=[{"status": "succeeded", "livemode": False}, {"data": [event]}])
+            smoke.wait = lambda action, *args, **kwargs: action()
+            with patch.object(m.time, "time", return_value=1800000000), patch.object(m.subprocess, "run", return_value=SimpleNamespace(returncode=0, stdout="200")) as request:
+                smoke.deliver_real_stripe("pi_fictional")
+            raw = (smoke.private / "stripe-event").read_bytes()
+            self.assertEqual(json.loads(raw), event)
+            signature = hmac.new(smoke.signing_secret.encode(), b"1800000000." + raw, hashlib.sha256).hexdigest()
+            config = request.call_args.kwargs["input"]
+            self.assertIn("t=1800000000,v1=" + signature, config)
+            self.assertIn("/webhooks/stripe/club", config)
+            self.assertNotIn("Authorization", config)
+
+    def test_T_12_15_refuses_live_keys_before_an_external_call(self):
+        smoke = object.__new__(m.E8)
+        smoke.m = m.load_smoke()
+        with patch.dict(m.os.environ, {"STRIPE_TEST_SECRET_KEY": "sk_live_fictional"}), patch.object(m.subprocess, "run") as request:
+            with self.assertRaises(AssertionError):
+                smoke.stripe_api("POST", "customers", {})
+            request.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

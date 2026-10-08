@@ -1,0 +1,39 @@
+test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) ... 
+  test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) (args={'total': '9.00'}) ... FAIL
+  test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) (args={'sequence': 'FRST'}) ... FAIL
+test_T_12_15_configured_keys_use_the_real_leg (__main__.E8SmokeTest.test_T_12_15_configured_keys_use_the_real_leg) ... Card leg on FakePaymentProvider: no Stripe test keys in this shell (STRIPE_TEST_SECRET_KEY unset); the webhook goes through bin/core billing:fake-webhook, the route's signature check is not exercised
+FAIL
+
+======================================================================
+FAIL: test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) (args={'total': '9.00'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/test-e8-smoke", line 28, in test_T_12_11_checks_the_bank_header_and_rcur
+    with self.subTest(args=args), self.assertRaises(AssertionError):
+                                  ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: AssertionError not raised
+
+======================================================================
+FAIL: test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) (args={'sequence': 'FRST'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/test-e8-smoke", line 28, in test_T_12_11_checks_the_bank_header_and_rcur
+    with self.subTest(args=args), self.assertRaises(AssertionError):
+                                  ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: AssertionError not raised
+
+======================================================================
+FAIL: test_T_12_15_configured_keys_use_the_real_leg (__main__.E8SmokeTest.test_T_12_15_configured_keys_use_the_real_leg)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/test-e8-smoke", line 46, in test_T_12_15_configured_keys_use_the_real_leg
+    smoke.prepare_real_stripe.assert_called_once()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 965, in assert_called_once
+    raise AssertionError(msg)
+AssertionError: Expected 'mock' to have been called once. Called 0 times.
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.028s
+
+FAILED (failures=3)

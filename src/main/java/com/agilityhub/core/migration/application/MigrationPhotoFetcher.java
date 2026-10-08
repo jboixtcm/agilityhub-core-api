@@ -24,7 +24,7 @@ public class MigrationPhotoFetcher {
             var uri = URI.create(source);
             if (!List.of("https", "http").contains(uri.getScheme()) || uri.getUserInfo() != null || uri.getHost() == null) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
             for (var address : InetAddress.getAllByName(uri.getHost())) {
-                if ((address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress())
+                if (privateAddress(address)
                         && !(environment.matchesProfiles("test") && address.isLoopbackAddress())) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
             }
             request = client.sendAsync(HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(20)).GET().build(), info -> new LimitedBody(maxBytes));
@@ -39,6 +39,12 @@ public class MigrationPhotoFetcher {
             throw new ApiException(ErrorCode.NOT_FOUND);
         } catch (TimeoutException | java.io.IOException | IllegalArgumentException failure) { throw new ApiException(ErrorCode.NOT_FOUND); }
         finally { if (request != null && !request.isDone()) { request.cancel(true); } }
+    }
+    static boolean privateAddress(InetAddress address) {
+        byte[] bytes = address.getAddress();
+        return address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress()
+                || bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc
+                || bytes.length == 4 && bytes[0] == 100 && (bytes[1] & 0xc0) == 0x40;
     }
     private static final class LimitedBody implements HttpResponse.BodySubscriber<byte[]> {
         private final int limit; private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();

@@ -3230,3 +3230,9 @@ Blocking: no.
 - **Proposal:** a dependency task before 2026-12-07: Spring Boot 4 / Framework 7, plus the report-only Jackson/httpcore HIGHs.
 - **Denied here:** `xmllint` (the golden file is unchanged and the in-JVM XSD validation passes).
 Blocking: no.
+
+## 2026-10-08 · executor → organizer · E8-T06 round 2 — demo seed signature
+@organizer **Web handoff** — `seeds/demo-fifo.yaml` now describes two historical classes; their pending charges reference real bookings and PRESENT attendance. This changes the stored demo signature again. Existing demo stacks (including `--reanchor`) may return `CLUB_NOT_EMPTY`; E8-W04 must start a fresh disposable stack. No existing stack was reset by this session. The Cànic billing section from round 1 already changed its signature too.
+
+## 2026-10-08 · executor → organizer · E8-T06 round 2 — migration reports and remaining photo nit
+@organizer **Assumptions** — Receipts for excluded members use existing `MAPPING_INVALID`, and normalized-number collisions use existing `NUMBER_CONFLICT`, as WARNING plus SKIPPED rows; neither blocks the rest of the load. Existing PLAYOFF numbers in earlier batches are included. `LeaveSource.MIGRATED` already exists in the model/code, so future dates now create its approved request without a new catalog item. The photo fetcher now also blocks IPv6 ULA and 100.64/10. Its DNS rebinding gap (review #16) remains: a complete fix needs a transport that connects to the validated address while preserving TLS hostname checks, beyond the requested short nits. Please schedule that transport hardening; the operator CLI remains bounded and rejects private-address classes and redirects. The readmission freeze and tenant-scoped RESET audit are fixed and tested in this task.

@@ -7,7 +7,6 @@ import com.agilityhub.core.shared.domain.*;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
-import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -18,7 +17,7 @@ class MigrationResetServiceTest {
     final MigrationClubAccess clubs = mock(MigrationClubAccess.class);
     final Environment environment = mock(Environment.class);
     final MigrationResetService service = new MigrationResetService(data, definitions, clubs, mock(ClubConfigService.class),
-            mock(TransactionTemplate.class), environment);
+            mock(MigrationResetChanges.class), environment);
 
     @Test void T_18_16_theProductionProfileRefusesTheResetBeforeTouchingAnything() {
         when(environment.matchesProfiles("prod", "production")).thenReturn(true);

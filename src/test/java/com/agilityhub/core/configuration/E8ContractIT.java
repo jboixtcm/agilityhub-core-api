@@ -619,12 +619,8 @@ class E8ContractIT extends AbstractIntegrationTest {
         }
         return result;
     }
-    @Test void T_12_21_T_13_24_theStubsWriteNothing() throws Exception {
-        var before = database();
-        for (Route route : stubRoutes().toList()) {
-            for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
-        }
-        assertThat(database()).isEqualTo(before);
+    @Test void T_12_21_T_13_24_allBillingAndLifecycleRoutesAreImplemented() throws Exception {
+        assertThat(stubRoutes()).isEmpty();
     }
 
     @Test void WP_12_A_WP_13_A_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndCanonicalStatuses() throws Exception {

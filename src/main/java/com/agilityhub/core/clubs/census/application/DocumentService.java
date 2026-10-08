@@ -136,7 +136,7 @@ public class DocumentService {
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#dogId", member = "owner(#dogId)")
     public boolean migrationPhoto(String dogId, AttachmentService.File file) {
-        access.members.lock(); var dog = access.mutableDog(dogId);
+        access.members.lock(); var dog = CensusAccess.unfrozen(access.mutableDog(dogId));
         if (dog.photoFileKey != null && !dog.photoFileKey.isBlank()) { return false; }
         attachments.bindMigrationPhoto(file, dogId); dog.photoFileKey = file.fileKey(); access.dogs.save(dog);
         events.emit("DogUpdated", "Dog", dogId, object("dogId", dogId, "memberId", dog.memberId,

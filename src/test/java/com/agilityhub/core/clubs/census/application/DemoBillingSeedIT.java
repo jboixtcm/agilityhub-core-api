@@ -74,7 +74,15 @@ class DemoBillingSeedIT extends AbstractIntegrationTest {
         seed("fifo");
         assertThat(member(fifo, 8).get("paymentMethod", Document.class)).containsEntry("type", "CARD");
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(fifo)), Document.class, "pending_charges")).hasSize(2)
-                .allSatisfy(c -> assertThat(c.getString("memberId")).isEqualTo(member(fifo, 6).getString("_id")));
+                .allSatisfy(c -> {
+                    assertThat(c.getString("memberId")).isEqualTo(member(fifo, 6).getString("_id"));
+                    var booking = mongo.findById(c.getString("bookingId"), Document.class, "bookings");
+                    assertThat(booking).as("Pending charge references a real booking").isNotNull();
+                    assertThat(booking).containsEntry("memberId", c.getString("memberId")).containsEntry("dogId", c.getString("dogId"));
+                    assertThat(mongo.findById(booking.getString("classSessionId"), Document.class, "class_sessions")).isNotNull();
+                    assertThat(mongo.findOne(Query.query(Criteria.where("bookingId").is(booking.getString("_id"))), Document.class, "attendances"))
+                            .containsEntry("state", "PRESENT");
+                });
         // The FIFO club's section does not reach the Cànic.
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club)), "pending_charges")).isZero();
 

@@ -22,7 +22,7 @@ public record MigrationReport(boolean dryRun, List<Entry> rows, Map<String, Long
             out.append(REEXECUTION_UNSUPPORTED).append(": ").append(unsupported())
                 .append(" records cannot be reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.\n");
         }
-        for (String entity : List.of("members", "dogs", "familyGroups", "accounts", "invoices", "packBalances")) {
+        for (String entity : List.of("members", "dogs", "familyGroups", "accounts", "invoices", "packBalances", "leaves")) {
             out.append(entity).append(": created=").append(count(entity,"CREATED")).append(" updated=").append(count(entity,"UPDATED"))
                 .append(" skipped=").append(count(entity,"SKIPPED")).append(" errors=").append(count(entity,"ERROR"));
             // R-18-12: family groups proposed to the club for records that share an email; never created by the import.

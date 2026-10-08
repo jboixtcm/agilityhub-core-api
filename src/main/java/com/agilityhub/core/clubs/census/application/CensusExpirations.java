@@ -58,6 +58,10 @@ public class CensusExpirations {
     }
     public List<JobItem> signups(JobContext context) {
         int days = context.parameter("signup.pendingExpiryDays", Integer.class);
+        if (marks.contains("REMIND_SIGNUPS", context.localDate().toString())) {
+            context.recorder().count("alreadyDone", 1);
+            return List.of();
+        }
         var members = census.members.matching(Criteria.where("status").is("PENDING")).stream()
                 .filter(m -> submitted(m) != null && age(m, context) > days).toList();
         if (members.isEmpty()) { return List.of(); }

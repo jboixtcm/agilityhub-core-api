@@ -1,0 +1,9 @@
+test_T_12_11_checks_the_bank_header_and_rcur (__main__.E8SmokeTest.test_T_12_11_checks_the_bank_header_and_rcur) ... ok
+test_T_12_15_configured_keys_use_the_real_leg (__main__.E8SmokeTest.test_T_12_15_configured_keys_use_the_real_leg) ... ok
+test_T_12_15_refuses_live_keys_before_an_external_call (__main__.E8SmokeTest.test_T_12_15_refuses_live_keys_before_an_external_call) ... ok
+test_T_12_21_replays_the_fetched_event_with_its_body_signature (__main__.E8SmokeTest.test_T_12_21_replays_the_fetched_event_with_its_body_signature) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.010s
+
+OK

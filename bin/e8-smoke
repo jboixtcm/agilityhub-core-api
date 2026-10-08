@@ -16,6 +16,9 @@ import argparse
 import base64
 import csv
 import datetime
+from decimal import Decimal
+import hashlib
+import hmac
 import importlib.machinery
 import importlib.util
 import io
@@ -27,6 +30,9 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
+import urllib.parse
+import uuid
 import xml.etree.ElementTree as ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +53,25 @@ def euros(money):
     return f"{money['amountMinor'] / 100:.2f} {money['currency']}"
 
 
+def check_sepa(xml, remittance):
+    """Return the bank header and transaction facts used by the gate evidence."""
+    root = ElementTree.fromstring(xml)
+    namespace = root.tag.split("}")[0].strip("{")
+    q = lambda path: "/".join("{" + namespace + "}" + part for part in path.split("/"))
+    header = root.find(q("CstmrDrctDbtInitn/GrpHdr"))
+    transactions = root.findall(".//" + q("DrctDbtTxInf"))
+    creditor = root.find(".//" + q("CdtrSchmeId/Id/PrvtId/Othr/Id")).text
+    total = sum(Decimal(t.find(q("InstdAmt")).text) * 100 for t in transactions)
+    require = load_smoke().require
+    require("pain.008" in namespace and int(header.find(q("NbOfTxs")).text) == len(transactions) == remittance["count"], "pain.008 count mismatch")
+    require(total == remittance["total"]["amountMinor"] and creditor == SEPA_CREDITOR, "pain.008 total or creditor mismatch")
+    require(all(t.find(".//" + q("MndtId")) is not None for t in transactions), "A debit without its mandate")
+    sequences = sorted({s.text for s in root.iter("{" + namespace + "}SeqTp")})
+    require(Decimal(header.find(q("CtrlSum")).text) * 100 == total, "pain.008 header CtrlSum mismatch")
+    require(sequences == ["RCUR"], "pain.008 sequence must be RCUR")
+    return namespace, transactions, total, creditor, sequences
+
+
 class E8:
     def __init__(self, smoke_module, private, image):
         self.m = smoke_module
@@ -57,6 +82,8 @@ class E8:
         args[args.index("--project-name") + 1] = self.s.project
         self.s.sign_in = self.sign_in
         self.stripe = bool(os.environ.get("STRIPE_TEST_SECRET_KEY"))
+        self.stripe_customer = None
+        self.stripe_intent = None
         # Fresh keys for the run's bank and provider vaults; they never leave the private override.
         override_path = private / "compose.override.json"
         override = json.loads(override_path.read_text())
@@ -237,17 +264,7 @@ class E8:
 
         link = self.call("GET", f"/api/v1/remittances/{remittance['id']}/file", access=self.admin)
         xml = self.download_unauthenticated(link["downloadUrl"])
-        root = ElementTree.fromstring(xml)
-        namespace = root.tag.split("}")[0].strip("{")
-        q = lambda path: "/".join("{" + namespace + "}" + part for part in path.split("/"))
-        header = root.find(q("CstmrDrctDbtInitn/GrpHdr"))
-        transactions = root.findall(".//" + q("DrctDbtTxInf"))
-        creditor = root.find(".//" + q("CdtrSchmeId/Id/PrvtId/Othr/Id")).text
-        total = sum(round(float(t.find(q("InstdAmt")).text) * 100) for t in transactions)
-        self.require("pain.008" in namespace and int(header.find(q("NbOfTxs")).text) == len(transactions) == remittance["count"], "pain.008 count mismatch")
-        self.require(total == remittance["total"]["amountMinor"] and creditor == SEPA_CREDITOR, "pain.008 total or creditor mismatch")
-        self.require(all(t.find(".//" + q("MndtId")) is not None for t in transactions), "A debit without its mandate")
-        sequences = sorted({s.text for s in root.iter("{" + namespace + "}SeqTp")})
+        namespace, transactions, total, creditor, sequences = check_sepa(xml, remittance)
         stored = s.call("GET", f"/api/v1/remittances/{remittance['id']}", access=self.admin, quiet=True)
         self.require(stored.get("xsdValidatedAt"), "The remittance was not validated against the XSD")
         self.record("GET /remittances/{id}/file → signed link → pain.008", "200", f"{namespace.rsplit(':', 1)[-1]}, {len(transactions)} DrctDbtTxInf, "
@@ -285,6 +302,8 @@ class E8:
 
     def card_leg(self):
         s = self.s
+        if self.stripe:
+            self.prepare_real_stripe()
         fifo = dict(access=self.fifo_admin, host=s.fifo_host)
         simulation = self.call("POST", "/api/v1/billing/simulations", 201, body=dict(period=self.period), **fifo)
         result = self.call("POST", "/api/v1/billing/runs", 201, idempotent=True, body=dict(period=self.period, simulationId=simulation["id"]), **fifo)
@@ -297,14 +316,101 @@ class E8:
         intent = self.wait(lambda: self.mongo('db.collections.findOne({invoiceId:' + json.dumps(invoice["_id"]) + ',providerRef:{$ne:null}},{providerRef:1})'),
                            "The card charge has no PaymentIntent")["providerRef"]
         if self.stripe:
-            self.record("Card leg", "skipped", "STRIPE_TEST_SECRET_KEY is set but the local profile charges through the fake provider (S12 E8-T04)")
-        print("Card leg on FakePaymentProvider: no Stripe test keys in this shell (STRIPE_TEST_SECRET_KEY unset); "
-              "the webhook goes through bin/core billing:fake-webhook, the route's signature check is not exercised", flush=True)
-        s.cli("billing:fake-webhook", "payment_intent.succeeded", intent, "--club=fifo")
+            self.deliver_real_stripe(intent)
+        else:
+            print("Card leg on FakePaymentProvider: STRIPE_TEST_SECRET_KEY is unset; "
+                  "billing:fake-webhook exercises the handler without the route's signature check", flush=True)
+            s.cli("billing:fake-webhook", "payment_intent.succeeded", intent, "--club=fifo")
         status = self.wait(lambda: (lambda v: v if v == "PAID" else None)(self.mongo('db.invoices.findOne({_id:' + json.dumps(invoice["_id"]) + '}).status')),
                            "The card receipt is not PAID after the webhook")
-        self.record("POST /billing/runs/{id}/card-charges + payment_intent.succeeded (fake provider)", "202 → " + status,
+        self.record("POST /billing/runs/{id}/card-charges + payment_intent.succeeded (" + ("Stripe test mode, signed replay" if self.stripe else "fake provider") + ")", "202 → " + status,
                     f"{charged['submitted']} submitted; PaymentIntent {intent[:12]}…[truncated]")
+
+    def stripe_api(self, method, resource, values=None):
+        """Stripe test API, credentials only in curl stdin; provider response and error bodies stay private."""
+        key = os.environ.get("STRIPE_TEST_SECRET_KEY", "")
+        self.require(key.startswith("sk_test_"), "The real card leg requires a Stripe test key (live keys refused)")
+        headers = ["Authorization: Bearer " + key]
+        args = ["curl", "--silent", "--show-error", "--max-time", "60", "--request", method,
+                "--output", str(self.private / "stripe-response"), "--write-out", "%{http_code}", "--config", "-"]
+        if values is not None:
+            payload = self.private / "stripe-request"
+            payload.write_text(urllib.parse.urlencode(values))
+            args += ["--data-binary", "@" + str(payload)]
+            headers += ["Content-Type: application/x-www-form-urlencoded", "Idempotency-Key: " + str(uuid.uuid4())]
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps("https://api.stripe.com/v1/" + resource)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0 and result.stdout.startswith("2"), "Stripe test API " + method + " failed (details withheld)")
+        return json.loads((self.private / "stripe-response").read_text())
+
+    def prepare_real_stripe(self):
+        """Use Stripe's reusable test PaymentMethod, never card numbers or a real person's account.
+
+        References: https://docs.stripe.com/testing and https://docs.stripe.com/api/events/list.
+        The signed local replay below uses a real event fetched from Stripe; it is not public webhook delivery.
+        """
+        self.stripe_customer = self.stripe_api("POST", "customers", {"description": "Disposable AgilityHub E8 smoke"})["id"]
+        setup = self.stripe_api("POST", "setup_intents", {"customer": self.stripe_customer, "payment_method": "pm_card_visa",
+                                "confirm": "true", "usage": "off_session", "payment_method_types[0]": "card"})
+        self.require(setup["status"] == "succeeded", "Stripe test card setup did not succeed")
+        self.signing_secret = "whsec_" + secrets.token_hex(32)
+        override_path = self.private / "compose.override.json"
+        override = json.loads(override_path.read_text())
+        environment = override["services"][self.s.service]["environment"]
+        data = dict(club=self.s.fifo, member=self.member(FIFO_CARD, self.s.fifo)["_id"], customer=self.stripe_customer,
+                    paymentMethod=setup["payment_method"], key=environment["BILLING_SECRETS_KEY"],
+                    secret=os.environ["STRIPE_TEST_SECRET_KEY"], signing=self.signing_secret)
+        # mongosh's Node crypto matches ProviderSecretVault (nonce || ciphertext || GCM tag, tenant/field AAD).
+        # All credentials travel on stdin; even the encrypted values never appear in argv or evidence.
+        script = "const d=" + json.dumps(data) + ";" + r"""
+const crypto=require('crypto');
+function encrypted(value,field) {
+  const nonce=crypto.randomBytes(12), cipher=crypto.createCipheriv('aes-256-gcm',Buffer.from(d.key,'base64'),nonce);
+  cipher.setAAD(Buffer.from(d.club+':STRIPE.'+field));
+  return Buffer.concat([nonce,cipher.update(value,'utf8'),cipher.final(),cipher.getAuthTag()]).toString('base64');
+}
+db.clubs.updateOne({_id:d.club},{$set:{'paymentProviders.STRIPE':{enabled:true,mode:'test',
+  secretKeyEnc:encrypted(d.secret,'secretKeyEnc'),webhookSecretEnc:encrypted(d.signing,'webhookSecretEnc')}}});
+db.members.updateOne({_id:d.member,clubId:d.club},{$set:{paymentMethod:{type:'CARD',card:{stripeCustomerId:d.customer,
+  stripePaymentMethodId:d.paymentMethod,last4:'4242',brand:'visa',invalid:false}}}});
+"""
+        args = [*self.s.compose_args, "exec", "-T", "mongo", "mongosh", "--quiet", "e5_smoke", "--file", "/dev/stdin"]
+        result = subprocess.run(args, input=script, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+        self.require(result.returncode == 0, "Failed to install the disposable Stripe test fixture (details withheld)")
+        environment["CORE_PAYMENTS_LOCAL_REAL_STRIPE"] = "true"
+        override_path.write_text(json.dumps(override))
+        self.s.compose("up", "-d", "--no-deps", "--force-recreate", "--wait", "--wait-timeout", "180", self.s.service)
+        self.sign_in()
+        print("Card leg on the real Stripe adapter: test mode; a fetched provider event is replayed through the signed HTTP route", flush=True)
+
+    def deliver_real_stripe(self, intent):
+        self.require(not intent.startswith("pi_fake_"), "The configured real card leg used the fake provider")
+        self.stripe_intent = intent
+        payment = self.stripe_api("GET", "payment_intents/" + intent)
+        self.require(payment["status"] == "succeeded" and payment["livemode"] is False, "Stripe test charge did not succeed")
+        def matching_event():
+            events = self.stripe_api("GET", "events?type=payment_intent.succeeded&limit=100")["data"]
+            return next((e for e in events if e["data"]["object"]["id"] == intent and e["livemode"] is False), None)
+        event = self.wait(matching_event, "Stripe did not publish the test payment's success event", timeout=60)
+        raw = json.dumps(event, separators=(",", ":")).encode()
+        payload = self.private / "stripe-event"
+        payload.write_bytes(raw)
+        timestamp = str(int(time.time()))
+        signature = hmac.new(self.signing_secret.encode(), timestamp.encode() + b"." + raw, hashlib.sha256).hexdigest()
+        args = ["curl", "--silent", "--show-error", "--max-time", "60", "--request", "POST", "--output", str(self.private / "webhook-response"),
+                "--write-out", "%{http_code}", "--data-binary", "@" + str(payload), "--config", "-"]
+        config = "header = " + json.dumps("Stripe-Signature: t=" + timestamp + ",v1=" + signature) + "\nheader = \"Content-Type: application/json\"\nurl = " + json.dumps(self.s.base + "/webhooks/stripe/" + self.s.fifo)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0 and result.stdout == "200", "Signed Stripe test webhook replay did not return 200")
+
+    def cleanup_stripe(self):
+        """Remove only this run's test customer and refund its test charge, including on failed assertions."""
+        try:
+            if self.stripe_intent:
+                self.stripe_api("POST", "refunds", {"payment_intent": self.stripe_intent})
+        finally:
+            if self.stripe_customer:
+                self.stripe_api("DELETE", "customers/" + self.stripe_customer)
 
     def processes(self):
         s = self.s
@@ -397,7 +503,7 @@ class E8:
         for step, status, values in self.s.summary:
             print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
         print("PASS E8 backend gate: the month simulated, generated, its pain.008 checked, a bank return, the rollback and the same "
-              "numbers again, a cash payment, a card charge with its webhook (fake provider), a pack consumed and returned, an "
+              "numbers again, a cash payment, a card charge with its webhook (" + ("Stripe test mode" if self.stripe else "fake provider") + "), a pack consumed and returned, an "
               "inactivity and a leave with their effect on the receipt, P5 and P10 at 06:00, and the accounting export", flush=True)
 
 
@@ -416,7 +522,10 @@ def main():
             smoke.scenario()
             smoke.report()
         finally:
-            smoke.s.cleanup()
+            try:
+                smoke.cleanup_stripe()
+            finally:
+                smoke.s.cleanup()
 
 
 if __name__ == "__main__":

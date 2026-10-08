@@ -33,11 +33,12 @@ class E8ScheduledProcessesIT extends BillingItSupport {
     long counter(JobRun run, String name) {
         return run.counters().stream().filter(e -> e.key().equals(name)).mapToLong(e -> ((Number) e.value()).longValue()).findFirst().orElseThrow();
     }
-    Map<String, Long> counts() {
-        var result = new TreeMap<String, Long>();
+    Map<String, List<Document>> snapshot() {
+        var result = new TreeMap<String, List<Document>>();
         for (String collection : mongo.getCollectionNames()) {
             if (!Set.of("job_runs", "job_locks").contains(collection)) {
-                result.put(collection, mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), collection));
+                var documents = mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, collection);
+                if (!documents.isEmpty()) { result.put(collection, documents); }
             }
         }
         return result;
@@ -57,8 +58,8 @@ class E8ScheduledProcessesIT extends BillingItSupport {
                 .append("state", "PENDING").append("files", List.of()).append("version", 0L).append("createdAt", Date.from(NOW.minusSeconds(30L * 86400))), "dog_documents");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("nuria")), new Update().set("signup.submittedAt", Date.from(NOW.minusSeconds(40L * 86400))), "members");
         clock.setInstant(Instant.parse("2026-09-01T04:00:00Z"));
-        var before = counts(); var dry = runJob(JobName.EXPIRATIONS, true);
-        assertThat(counts()).containsAllEntriesOf(before);
+        var before = snapshot(); var dry = runJob(JobName.EXPIRATIONS, true);
+        assertThat(snapshot()).isEqualTo(before);
         assertThat(dry.items()).extracting(JobRun.Item::action).contains("WOULD_EXPIRE_PACK", "WOULD_WARN_PACK", "WOULD_START_INACTIVITY",
                 "WOULD_LEAVE", "WOULD_REMIND_SIGNUPS", "WOULD_REMIND_DOCUMENT");
         var real = runJob(JobName.EXPIRATIONS, false);
@@ -80,8 +81,8 @@ class E8ScheduledProcessesIT extends BillingItSupport {
     }
     @Test void T_15_28_reminderTargetsNextMonthOnceAndNeverCreatesBusinessRows() throws Exception {
         admin("bill-admin", CLUB); clock.setInstant(Instant.parse("2026-08-22T04:00:00Z"));
-        var before = counts(); var dry = runJob(JobName.BILLING_REMINDER, true);
-        assertThat(counts()).containsAllEntriesOf(before);
+        var before = snapshot(); var dry = runJob(JobName.BILLING_REMINDER, true);
+        assertThat(snapshot()).isEqualTo(before);
         assertThat(dry.items()).singleElement().satisfies(i -> assertThat(i.detail()).contains(new JobRun.Entry("period", "2026-09")));
         var real = runJob(JobName.BILLING_REMINDER, false);
         assertThat(counter(real, "remittanceReminders")).isEqualTo(1);
@@ -101,6 +102,7 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         var result = run("2026-09", simulate("2026-09").path("id").asText());
         String remittance = result.at("/remittance/id").asText();
         ok(admin(keyed(post("/api/v1/remittances/" + remittance + "/submission"), Map.of("submittedAt", "2026-08-25"))), 200);
+        clock.setInstant(Instant.parse("2026-08-31T21:59:00Z"));
         assertThat(counter(runJob(JobName.EXPIRATIONS, false), "settledInvoices")).isZero();
         clock.setInstant(Instant.parse("2026-09-01T04:00:00Z"));
         var dry = runJob(JobName.EXPIRATIONS, true);
@@ -165,7 +167,12 @@ class E8ScheduledProcessesIT extends BillingItSupport {
             assertThat(packs.balance("roca", "e8-dog-c", LocalDate.of(2026, 9, 1))).hasValueSatisfying(b -> assertThat(b.remaining()).isZero());
         }
         assertThat(eventsOf("PackExpiring", warned)).hasSize(1); assertThat(eventsOf("PackExpired", expired)).hasSize(1);
-        long n11b = notices("N-11b"); assertThat(n11b).isPositive();
+        assertThat(notices("N-11b")).isEqualTo(2);
+        for (String type : List.of("PackExpiring", "PackExpired")) {
+            String eventId = events(type).getFirst().getString("_id");
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-11b").and("eventId").is(eventId)), "notifications"))
+                    .as(type + " notice once").isEqualTo(1);
+        }
         var next = expirationsAt("2026-09-02T04:00:00Z", false);
         assertThat(actions(next)).noneMatch(a -> a.startsWith(warned) || a.startsWith(expired)).contains(later + ":WARN_PACK");
         assertThat(eventsOf("PackExpiring", warned)).hasSize(1); assertThat(eventsOf("PackExpired", expired)).hasSize(1);
@@ -281,7 +288,8 @@ class E8ScheduledProcessesIT extends BillingItSupport {
         var again = runJob(JobName.EXPIRATIONS, false);
         assertThat(counter(again, "alreadyDone")).isEqualTo(1); assertThat(counter(again, "signupReminders")).isZero();
         assertThat(events("SignupPendingAging")).hasSize(1);
-        assertThat(notices("N-34")).isPositive(); long n34 = notices("N-34");
+        assertThat(notices("N-34")).isEqualTo(1); long n34 = notices("N-34");
+        assertThat(runJob(JobName.EXPIRATIONS, true).items()).noneMatch(i -> i.action().equals("WOULD_REMIND_SIGNUPS"));
         parameter(CLUB, "messaging.documentReminderDays", 15);
         var reminded = runJob(JobName.EXPIRATIONS, false);
         assertThat(counter(reminded, "documentReminders")).isEqualTo(1);

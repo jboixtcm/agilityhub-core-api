@@ -23,6 +23,13 @@ public class BillingMigrationAccess {
         this.invoices = invoices; this.packs = packs; this.balances = balances; this.simulations = simulations; this.clock = clock;
     }
     public Set<String> receiptSources() { return sources(invoices.findAll().stream().map(Invoice::sourceIds).toList(), "playoffReceiptId"); }
+    /** Include previous batches when checking a new import's PLAYOFF numbers; the annual series stays independent. */
+    public Map<Long, String> receiptNumberSources() {
+        var result = new HashMap<Long, String>();
+        invoices.findAll().stream().filter(i -> "PLAYOFF".equals(i.series())).forEach(i ->
+                result.put(i.number(), i.sourceIds() == null ? "" : Objects.toString(i.sourceIds().get("playoffReceiptId"), "")));
+        return result;
+    }
     public Set<String> packSources() { return sources(packs.findAll().stream().map(PackBalance::sourceIds).toList(), "playoffPackId"); }
     private static Set<String> sources(List<Map<String, Object>> rows, String field) {
         var result = new HashSet<String>(); for (var row : rows) { if (row != null && row.get(field) != null) { result.add(row.get(field).toString()); } } return result;

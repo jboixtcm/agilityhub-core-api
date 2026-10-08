@@ -43,7 +43,8 @@ public class MigrationApplyService {
                 }
                 fields.put("paymentMethod",payment);
                 census.member(change.id(),fields);
-            } else if (change.entity().equals("dogs")) { census.dog(change.id(),fields); }
+            } else if (change.entity().equals("leaves")) { census.plannedLeave(change.id(), string(fields.get("memberId")), string(fields.get("effectiveDate"))); }
+            else if (change.entity().equals("dogs")) { census.dog(change.id(),fields); }
             else { census.group(change.id(),fields); }
         }
         for (var identity:plan.identities()) {
@@ -55,7 +56,7 @@ public class MigrationApplyService {
     @Audited(action=AuditAction.MIGRATION_APPLIED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
     public Applied complete(MigrationRun run, MigrationReport report, boolean reconciled) {
         var counters=new TreeMap<String,Long>(report.totals());
-        for (String entity:List.of("members","dogs","familyGroups","accounts","invoices","packBalances")) {
+        for (String entity:List.of("members","dogs","familyGroups","accounts","invoices","packBalances","leaves")) {
             for (String outcome:List.of("CREATED","UPDATED","SKIPPED","ERROR")) { counters.put(entity+outcome,report.count(entity,outcome)); }
         }
         var completed=new MigrationRun(run.id(),run.clubId(),run.source(),run.mode(),run.env(),run.mappingVersion(),

@@ -15,6 +15,9 @@ public class PaymentProviderRegistry implements PaymentProvider {
     private final ClubPaymentProviders clubs;
     private final ObjectProvider<FakePaymentProvider> fake;
     private final StripePaymentProvider stripe;
+    /** Explicit local smoke opt-in; deployed profiles already use Stripe because they never contain the fake bean. */
+    @org.springframework.beans.factory.annotation.Value("${core.payments.local-real-stripe:false}")
+    private boolean localRealStripe;
     public PaymentProviderRegistry(ClubPaymentProviders clubs, ObjectProvider<FakePaymentProvider> fake, StripePaymentProvider stripe) {
         this.clubs = clubs; this.fake = fake; this.stripe = stripe;
     }
@@ -23,7 +26,7 @@ public class PaymentProviderRegistry implements PaymentProvider {
         return implementation();
     }
     private PaymentProvider implementation() {
-        return fake.getIfAvailable(() -> null) == null ? stripe : fake.getObject();
+        return localRealStripe || fake.getIfAvailable(() -> null) == null ? stripe : fake.getObject();
     }
     public void require(Capability capability) {
         if (!supports(capability)) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }

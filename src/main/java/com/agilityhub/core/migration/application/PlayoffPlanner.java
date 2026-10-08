@@ -249,6 +249,13 @@ public class PlayoffPlanner {
                 if (birth!=null && birth.isAfter(today.minusYears(mapping.suspectBirthYears())) && row.get("dogBirth").isEmpty()) { birth=null; warn(row,"BIRTHDATE_SUSPECT"); }
                 fields.put("birthDate",birth==null ? null : birth.toString());
                 fields.put("leaveDate",c.left()==null ? null : c.left().toString());
+                if (c.status().equals("ACTIVE") && c.left() != null && c.left().isAfter(today)
+                        && (old == null || old.get("leaveRequestId") == null)) {
+                    String requestId = id("leave", source);
+                    fields.put("leaveRequestId", requestId);
+                    changes.add(new Change("leaves", requestId, Map.of("memberId", memberId, "effectiveDate", c.left().toString()), row));
+                    incident(row, "leaves", "CREATED", "");
+                }
                 fields.put("leftAt",c.status().equals("LEFT") ? instant(c.left()) : null);
                 fields.put("leftReason",c.status().equals("LEFT") ? "MIGRATED" : null);
                 fields.put("bookingBlock",normalize(row.get("status")).equals("bloqueado") ? object("active",true,"reason","Migrated from Playoff: blocked","since",instant(c.joined())) : object("active",false));
@@ -263,8 +270,13 @@ public class PlayoffPlanner {
                     // Other clubs can supply their original mandate; the Cànic's export carries none (R-18-08).
                     var mandate = input.files().getOrDefault("mandates", List.of()).stream().filter(m -> m.get("memberId").equals(row.get("id"))).findFirst();
                     if (mandate.isPresent() && !mandate.get().get("mandateRef").isEmpty()) {
-                        payment.put("mandateRef", mandate.get().get("mandateRef"));
-                        payment.put("mandateSignedAt", instant(PlayoffBillingPlanner.date(mandate.get().get("mandateSignedAt"))));
+                        try {
+                            var signed = PlayoffBillingPlanner.date(mandate.get().get("mandateSignedAt"));
+                            payment.put("mandateRef", mandate.get().get("mandateRef"));
+                            payment.put("mandateSignedAt", instant(signed));
+                        } catch (java.time.format.DateTimeParseException invalid) {
+                            incident(mandate.get(), "members", "ERROR", "INPUT_SCHEMA_MISMATCH");
+                        }
                     }
                     payment.put("holderTaxId",document.isEmpty() ? null : document);
                 }

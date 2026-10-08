@@ -48,16 +48,19 @@ public class PlayoffBillingPlanner {
                 && map(e.getValue().get("paymentMethod")).get("mandateRef") != null).count());
         var receipts = new ArrayList<BillingMigrationAccess.Receipt>(); var packs = new ArrayList<BillingMigrationAccess.Pack>();
         var receiptSources = billing.receiptSources(); var packSources = billing.packSources();
-        var receiptNumbers = new HashSet<Long>();
+        var receiptNumbers = billing.receiptNumberSources();
         if (config.modules().contains(Module.BILLING)) {
             for (var row : input.files().getOrDefault("receipts", List.of())) {
                 try {
                     String source = required(row, "id"); var date = date(required(row, "date"));
                     if (date.isBefore(cutover.minusMonths(mapping.history().receiptsMonths())) || date.isAfter(cutover)) { add(rows, row, "invoices", "SKIPPED", ""); continue; }
-                    String memberId = bySource.get(required(row, "memberId")); if (memberId == null) { throw invalid(); }
+                    String memberId = bySource.get(required(row, "memberId"));
+                    if (memberId == null) { skipReceipt(rows, row, "MAPPING_INVALID"); continue; }
                     var member = members.get(memberId); String original = required(row, "number");
                     long number = Long.parseLong(original.replaceAll("[^0-9]", ""));
-                    if (!receiptNumbers.add(number)) { throw invalid(); }
+                    if (receiptNumbers.containsKey(number) && !source.equals(receiptNumbers.get(number))) {
+                        skipReceipt(rows, row, "NUMBER_CONFLICT"); continue;
+                    }
                     String status = switch (MappingConfig.normalize(required(row, "status"))) {
                         case "pagado", "pagat", "paid" -> "PAID";
                         case "pendiente", "pendent", "vencido", "vençut", "pending" -> "PENDING";
@@ -72,6 +75,7 @@ public class PlayoffBillingPlanner {
                             name(member), string(map(member.get("paymentMethod")).get("holderTaxId")), row.get("concept"),
                             new Money(Math.subtractExact(total, tax), currency), row.get("taxPercent").isEmpty() ? BigDecimal.ZERO : decimal(row.get("taxPercent")),
                             new Money(tax, currency), new Money(total, currency), method, status);
+                    receiptNumbers.put(number, source);
                     boolean existing = !receiptSources.add(source);
                     add(rows, row, "invoices", existing ? "SKIPPED" : "CREATED", ""); counters.merge("invoices" + status, 1L, Long::sum);
                     if (!existing) { receipts.add(receipt); }
@@ -83,7 +87,15 @@ public class PlayoffBillingPlanner {
                 try {
                     String source = required(row, "id"), memberId = bySource.get(required(row, "memberId"));
                     if (memberId == null) { throw invalid(); }
-                    var memberDogs = dogs.entrySet().stream().filter(e -> memberId.equals(e.getValue().get("memberId"))).sorted(Map.Entry.comparingByKey()).toList();
+                    // R-18-10: prefer the dog of the source record, then the input's record order, never an internal UUID.
+                    var sourceOrder = new HashMap<String, Integer>();
+                    var sourceMembers = input.files().getOrDefault("members", List.of());
+                    for (int index = 0; index < sourceMembers.size(); index++) { sourceOrder.put(sourceMembers.get(index).get("id"), index); }
+                    var memberDogs = dogs.entrySet().stream().filter(e -> memberId.equals(e.getValue().get("memberId")))
+                            .sorted(Comparator.<Map.Entry<String, Map<String, Object>>>comparingInt(e ->
+                                    row.get("memberId").equals(map(e.getValue().get("sourceIds")).get("playoffMemberId")) ? -1 :
+                                            sourceOrder.getOrDefault(string(map(e.getValue().get("sourceIds")).get("playoffMemberId")), Integer.MAX_VALUE))
+                                    .thenComparing(Map.Entry::getKey)).toList();
                     if (memberDogs.isEmpty()) { throw invalid(); }
                     if (memberDogs.size() > 1) { add(rows, row, "packBalances", "WARNING", "PACK_DOG_AMBIGUOUS"); }
                     var plan = planByCode.get(row.get("plan"));
@@ -110,6 +122,10 @@ public class PlayoffBillingPlanner {
     }
     private static void add(List<MigrationReport.Entry> rows, PlayoffInput.Row row, String entity, String outcome, String code) {
         rows.add(new MigrationReport.Entry(row.file(), row.row(), entity, outcome, code));
+    }
+    private static void skipReceipt(List<MigrationReport.Entry> rows, PlayoffInput.Row row, String code) {
+        add(rows, row, "invoices", "WARNING", code);
+        add(rows, row, "invoices", "SKIPPED", "");
     }
     static LocalDate date(String value) {
         return value.contains("/") ? LocalDate.parse(value, DateTimeFormatter.ofPattern("dd/MM/uuuu")) : LocalDate.parse(value);
