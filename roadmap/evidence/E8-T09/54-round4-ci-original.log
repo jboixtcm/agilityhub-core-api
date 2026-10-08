@@ -1,0 +1,14 @@
+Secret scan	Prove evidence exceptions cannot hide credentials	﻿2026-10-08T15:55:36.7391980Z ##[group]Run python3 bin/security-secret-policy-test.py
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:36.7392489Z [36;1mpython3 bin/security-secret-policy-test.py[0m
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:36.7619707Z shell: /usr/bin/bash -e {0}
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:36.7620054Z ##[endgroup]
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7153273Z PASS UUID trace/idempotency identifiers and empty example variables
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7153783Z PASS the exact fictional export filename argument
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7995179Z Traceback (most recent call last):
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7996121Z   File "/home/runner/work/agilityhub-core-api/agilityhub-core-api/bin/security-secret-policy-test.py", line 57, in <module>
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7996989Z     main()
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7997481Z   File "/home/runner/work/agilityhub-core-api/agilityhub-core-api/bin/security-secret-policy-test.py", line 52, in main
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7998175Z     assert code == 1 and len(findings) == 6, 'Every injected secret must remain detected'
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7998611Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.7999368Z AssertionError: Every injected secret must remain detected
+Secret scan	Prove evidence exceptions cannot hide credentials	2026-10-08T15:55:37.8173950Z ##[error]Process completed with exit code 1.

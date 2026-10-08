@@ -1246,4 +1246,134 @@ class CardPaymentsIT extends BillingItSupport {
         }
     }
 
+    static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> refundErrors() {
+        // Actual stripe-java 34 v1 parsing, including the concurrent-key exception to content rejection.
+        Object[][] cases = {
+            {402, "card_error", "card_declined", "CardException", true},
+            {400, "invalid_request_error", "parameter_missing", "InvalidRequestException", true},
+            {404, "invalid_request_error", "resource_missing", "InvalidRequestException", true},
+            {400, "invalid_request_error", "charge_already_refunded", "InvalidRequestException", true},
+            {401, "invalid_request_error", "api_key_expired", "AuthenticationException", true},
+            {403, "invalid_request_error", "permission_denied", "PermissionException", true},
+            {429, "rate_limit_error", "rate_limit", "RateLimitException", true},
+            {400, "idempotency_error", "idempotency_error", "IdempotencyException", false},
+            {400, "invalid_request_error", "idempotency_key_in_use", "InvalidRequestException", false},
+            {0, "api_connection_error", "connection_lost", "ApiConnectionException", false},
+            {500, "api_error", "api_error", "ApiException", false},
+            {409, "api_error", "conflict", "ApiException", false}
+        };
+        return Arrays.stream(cases).flatMap(row -> java.util.stream.Stream.of(false, true).map(uncertain ->
+                org.junit.jupiter.params.provider.Arguments.of(row[0], row[1], row[2], row[3], row[4], uncertain)));
+    }
+    @org.junit.jupiter.params.ParameterizedTest(name = "{2}, earlier uncertainty={5}")
+    @org.junit.jupiter.params.provider.MethodSource("refundErrors")
+    void T_12_17_round4_point1_everyStripeErrorHasARefundOutcome(int status, String type, String code,
+            String exception, boolean rejected, boolean earlierUncertain) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        String pi = intent(invoice);
+        webhook("evt_r4_paid", "payment_intent.succeeded", Map.of("id", pi));
+        String operation;
+        try (var tenant = TenantContext.open(CLUB);
+                var http = new com.agilityhub.core.payments.application.stripe.StripeHttpFixture()) {
+            http.status = status; http.type = type; http.code = code; http.disconnect = status == 0;
+            operation = refunds.invoice(invoice, null, "Correction", "r4-error").id();
+            if (earlierUncertain) {
+                fake.beforeRefundReturn((call, result) -> { throw new IllegalStateException("Lost response"); });
+                assertThatThrownBy(() -> refunds.execute(operation)).hasMessage("Lost response");
+                fake.beforeRefundReturn((call, result) -> {});
+                clock.setInstant(clock.instant().plusSeconds(60));
+            }
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders.STRIPE.secretKeyEnc",
+                    vault.encrypt("sk_test_example", CLUB, "STRIPE", "secretKeyEnc")), "clubs");
+            configs.invalidate(CLUB);
+            Object original = org.springframework.test.util.ReflectionTestUtils.getField(registry, "stripe");
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+            try {
+                for (int i = earlierUncertain ? 1 : 0; i < 3; i++) {
+                    assertThatThrownBy(() -> refunds.execute(operation)).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+                    clock.setInstant(clock.instant().plusSeconds(60));
+                }
+                assertThat(http.exceptions).isNotEmpty().allSatisfy(actual -> assertThat(actual.getSimpleName()).isEqualTo(exception));
+                int requests = http.requests.get();
+                refunds.execute(operation);
+                assertThat(http.requests).hasValue(requests); // Exhaustion never silently changes the key.
+            } finally {
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
+            }
+            boolean release = rejected && !earlierUncertain;
+            assertThat(operations.submissionUncertain(operation)).isEqualTo(!release);
+            assertThat(operations.refundFailed(operation)).isEqualTo(release);
+            if (release) {
+                var repaired = refunds.invoice(invoice, null, "Repaired configuration", "r4-repaired");
+                assertThat(repaired.amount()).isEqualTo(new Money(6000, "EUR"));
+                refunds.execute(repaired.id());
+                assertThat(operations.findById(repaired.id()).orElseThrow().resultId()).isNotNull();
+            } else {
+                assertThatThrownBy(() -> refunds.invoice(invoice, null, "Unsafe replacement", "r4-repaired")).hasMessage("REFUND_EXCEEDS_PAID");
+            }
+        }
+        if (!rejected || earlierUncertain) {
+            webhook("evt_r4_reconciled", "refund.updated", refundEvent(pi, "re_r4_error", 6000, "failed", operation));
+            try (var tenant = TenantContext.open(CLUB)) {
+                assertThat(refunds.invoice(invoice, null, "Reconciled replacement", "r4-reconciled").amount()).isEqualTo(new Money(6000, "EUR"));
+            }
+        }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "failed,true,200,false", "canceled,true,200,false", "failed,false,200,false", "canceled,false,200,false",
+        "failed,true,200,true", "canceled,true,200,true", "failed,true,1200,false", "canceled,true,1200,false"
+    })
+    void T_12_17_round4_point2_failedPartialRefundRecomputesCancellation(String status, boolean compensationFirst,
+            long partialAmount, boolean reverseSuccess) throws Exception {
+        String payment = "r4-compensation", pi = "pi_r4_compensation";
+        mongo.insert(new UpfrontPayment(payment, CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "r4-booking", null, null, null, null,
+                new UpfrontPayment.StripeRefs(pi, null), null, null, List.of(), null));
+        PaymentOperation partial, compensation = null;
+        try (var tenant = TenantContext.open(CLUB)) {
+            fake.refundStatus("pending");
+            var accepted = refunds.upfront(payment, new Money(partialAmount, "EUR"), "Partial", "r4-partial");
+            refunds.execute(accepted.id()); partial = operations.findById(accepted.id()).orElseThrow();
+            refunds.compensate(payment, "REFUND", false);
+            if (partialAmount < 1200) {
+                compensation = operations.byKey("refund:" + payment).orElseThrow();
+                assertThat(compensation.amount().amountMinor()).isEqualTo(1200 - partialAmount);
+                refunds.execute(compensation.id()); compensation = operations.findById(compensation.id()).orElseThrow();
+            }
+        }
+        if (compensationFirst && compensation != null) {
+            webhook("evt_r4_compensation", "refund.updated", refundEvent(pi, compensation.resultId(), 1200 - partialAmount, "succeeded", compensation.id()));
+        }
+        if (reverseSuccess) {
+            webhook("evt_r4_partial_success", "refund.updated", refundEvent(pi, partial.resultId(), partialAmount, "succeeded", partial.id()));
+        }
+        webhook("evt_r4_partial_terminal", "refund.updated", refundEvent(pi, partial.resultId(), partialAmount, status, partial.id()));
+        webhook("evt_r4_partial_duplicate", "refund.updated", refundEvent(pi, partial.resultId(), partialAmount, status, partial.id()));
+        try (var tenant = TenantContext.open(CLUB)) {
+            var due = operations.forTarget(payment).stream().filter(op -> op.resultId() == null).toList();
+            assertThat(due).singleElement().satisfies(op -> assertThat(op.amount().amountMinor()).isEqualTo(partialAmount));
+            // The webhook already scheduled it; repeated cancellation and late-confirmation consumers must not add commands.
+            refunds.compensate(payment, "REFUND", false); refunds.lateBooking(payment, pi, new Money(1200, "EUR"));
+            assertThat(operations.forTarget(payment).stream().filter(op -> op.resultId() == null)).hasSize(1);
+            refunds.execute(due.getFirst().id());
+            var supplemental = operations.findById(due.getFirst().id()).orElseThrow();
+            webhook("evt_r4_supplemental", "refund.updated", refundEvent(pi, supplemental.resultId(), partialAmount, "succeeded", supplemental.id()));
+        }
+        if (!compensationFirst && compensation != null) {
+            webhook("evt_r4_compensation", "refund.updated", refundEvent(pi, compensation.resultId(), 1200 - partialAmount, "succeeded", compensation.id()));
+        }
+        assertThat(paymentRow(payment).getString("status")).isEqualTo("REFUNDED");
+        assertThat(paymentRow(payment).getList("refunds", Document.class).stream().mapToLong(r ->
+                ((Number) r.get("amount", Document.class).get("amountMinor")).longValue()).sum()).isEqualTo(1200);
+        try (var tenant = TenantContext.open(CLUB)) {
+            int count = operations.forTarget(payment).size();
+            refunds.compensate(payment, "REFUND", false);
+            assertThat(operations.forTarget(payment)).hasSize(count);
+        }
+    }
+
 }
