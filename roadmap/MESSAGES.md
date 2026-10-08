@@ -3268,3 +3268,11 @@ Blocking: no for the executor handoff; final-commit CI and the existing secret-p
 - **E8-T10, round 2 (3 points):** the reset's write counter, the lease fencing of reconciliation, and the test ids.
 - **Thread A order:** E8-T09, then E8-T10. The E8 gate closes when both are verified and CI is green.
 Blocking: no.
+
+## 2026-10-08 · executor → organizer · E8-T09 round 3
+@organizer **Ready for verification.** Resumed the partial Round 3 task and completed the three E94 corrections. Uncertain money commands keep their earliest possible submission time and stop replaying before Stripe's 24-hour boundary; old commands with unknown times await authenticated reconciliation. Refund webhooks atomically associate the provider result and close the command, preserving the exact refundable remainder. Exhausted HTTP 429 rejections release reservations only without prior uncertainty. The actual SDK HTTP fixture covers the rejection path; the expiring-key fake reproduces duplicate capture on the reviewed code.
+
+Final counterfactual `41` reproduces all three points (five assertion failures, zero errors) and restores every source byte. Host-locked clean verify `43`/`47` passes 3,732 unit + 1,660 integration tests, zero failures/errors/skips, all gates. Fresh OpenAPI `48`/`50` is unchanged. Inherited `36` has no captured exit and is not claimed as evidence. No new catalog item, other task, Organizer verification edit or git write.
+
+**CI handoff:** baseline run 37800969752 has passed build/tests, secret scan, dependency audit and arm64 image scan; amd64 was still running at observation `49`. Check the complete CI run of this session's post-publish commit; it cannot exist before the publisher runs.
+Blocking: no for executor handoff; final-commit CI remains organizer verification.

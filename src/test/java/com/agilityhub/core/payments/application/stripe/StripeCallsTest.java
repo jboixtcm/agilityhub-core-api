@@ -31,13 +31,20 @@ class StripeCallsTest {
     }
     private static ApiException failure(int status) { return new ApiException("private-provider-message", null, null, status, null); }
 
-    @Test void T_12_17_round2_point2_onlyAuthenticationRejectionProvesNonExecution() {
+    @Test void T_12_17_round3_point3_authenticationAndRateLimitRejectionsProveNonExecution() {
         var calls = new StripeCalls(millis -> {});
         for (int status : List.of(400, 401, 403, 429, 500)) {
             var error = catchThrowable(() -> calls.call(() -> { throw failure(status); }));
             assertThat(error instanceof com.agilityhub.core.payments.application.PaymentNotSubmitted)
-                    .as("HTTP %s definitively refused execution", status).isEqualTo(status == 401 || status == 403);
+                    .as("HTTP %s definitively refused execution", status).isEqualTo(status == 401 || status == 403 || status == 429);
             assertThat(error.getMessage()).doesNotContain("private-provider-message");
         }
+    }
+    @Test void T_12_17_round3_point3_serverFailureAfterRateLimitingStaysUncertain() {
+        var calls = new StripeCalls(millis -> {}); var attempts = new AtomicInteger();
+        var error = catchThrowable(() -> calls.call(() -> { throw failure(attempts.incrementAndGet() < 3 ? 429 : 500); }));
+        assertThat(attempts).hasValue(3);
+        assertThat(error).isNotInstanceOf(com.agilityhub.core.payments.application.PaymentNotSubmitted.class);
+        assertThat(error).hasMessage("INTERNAL_ERROR");
     }
 }

@@ -138,6 +138,9 @@ public class CardPayments implements CardChargingPort {
         if (collection == null || collection.provider() != CollectionProvider.STRIPE) { throw new ApiException(ErrorCode.NOT_FOUND); }
         if (collection.providerRef() != null && !collection.providerRef().equals(paymentIntentId)) { throw new ApiException(ErrorCode.INVALID_STATE); }
         collections.submitted(collection.id(), paymentIntentId);
+        operations.forTarget(collection.invoiceId()).stream()
+                .filter(op -> "CHARGE".equals(op.kind()) && collection.id().equals(op.providerRef()))
+                .forEach(op -> operations.reconciled(op.id(), paymentIntentId));
         return resolve(collection, success, code, at);
     }
     private boolean resolve(Collection collection, boolean success, String code, Instant at) {

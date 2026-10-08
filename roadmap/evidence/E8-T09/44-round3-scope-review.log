@@ -1,0 +1,7 @@
+Scope: only E8-T09 task; ROADMAP and Organizer verification unchanged; MESSAGES append-only.
+git diff --check (complete round from supplied base): exit 0
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T09/check-evidence.py", line 34, in <module>
+    assert not re.search(r'[ \t]+$', text, re.MULTILINE), f'Trailing whitespace: {path}'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Trailing whitespace: /Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T09/43-round3-clean-verify.log

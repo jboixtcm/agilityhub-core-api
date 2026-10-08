@@ -2,6 +2,7 @@
 """Summarize the final clean run and correct E8-T05's complete changed-class inventory."""
 from pathlib import Path
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parents[3]
@@ -30,7 +31,8 @@ def report(paths):
         total = {key: sum(counts[key] for counts in matches) for key in metrics}
         print(name + ': ' + ', '.join(f'{key}={total[key]}' for key in metrics))
 
-changed = subprocess.check_output(['git', 'diff', '--name-only', '--', 'src/test/java'], cwd=root, text=True).splitlines()
+base = sys.argv[1] if len(sys.argv) > 1 else 'HEAD'
+changed = subprocess.check_output(['git', 'diff', base, '--name-only', '--', 'src/test/java'], cwd=root, text=True).splitlines()
 print('\nE8-T09 changed test classes:')
 report(set(changed) | {'src/test/java/com/agilityhub/core/payments/application/stripe/StripeHttpFixture.java'})
 commits = ['39ac529', '188ac1e', '875942e', '057ee05', '7b5521d']

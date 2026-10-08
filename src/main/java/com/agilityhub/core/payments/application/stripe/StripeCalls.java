@@ -20,15 +20,22 @@ public class StripeCalls {
                 int status = failure.getStatusCode() == null ? 500 : failure.getStatusCode();
                 if (status == 429 && attempt < 2) {
                     try { pause.sleep(100L << attempt); }
-                    catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new ApiException(ErrorCode.INTERNAL_ERROR); }
+                    catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.INTERNAL_ERROR);
+                    }
                     continue;
+                }
+                // Stripe rejects rate limits before idempotency and does not execute lock-timeout 429s either.
+                // SDK retries are disabled; this loop retries only 429, so all earlier calls were also rejected.
+                if (status == 429) {
+                    throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.RATE_LIMITED);
                 }
                 // Authentication/permission rejection happens before execution, unlike ambiguous 400/5xx outcomes.
                 if (status == 401 || status == 403) {
                     throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
                 }
-                throw new ApiException(status == 429 ? ErrorCode.RATE_LIMITED
-                        : status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
+                throw new ApiException(status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
             }
         }
     }

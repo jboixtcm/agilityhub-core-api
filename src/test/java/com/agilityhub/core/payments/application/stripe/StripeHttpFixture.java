@@ -19,7 +19,9 @@ public final class StripeHttpFixture implements AutoCloseable {
         server.createContext("/v1/refunds", exchange -> {
             requests.incrementAndGet();
             exchange.getRequestBody().readAllBytes();
-            byte[] body = "{\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Fixture authentication rejection\"}}".getBytes(StandardCharsets.UTF_8);
+            String error = status == 429 ? "{\"type\":\"rate_limit_error\",\"message\":\"Fixture rate limit rejection\"}"
+                    : "{\"type\":\"invalid_request_error\",\"message\":\"Fixture authentication rejection\"}";
+            byte[] body = ("{\"error\":" + error + "}").getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             if (status == 429) { exchange.getResponseHeaders().set("Stripe-Rate-Limited-Reason", "global-rate"); }
             exchange.sendResponseHeaders(status, body.length);

@@ -3,6 +3,7 @@
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 root = Path(__file__).resolve().parents[3]
 evidence = Path(__file__).resolve().parent
@@ -11,16 +12,17 @@ task = root / 'roadmap/tasks/E8-T09.md'
 def git(*args):
     return subprocess.check_output(['git', *args], cwd=root, text=True)
 
-changed = git('diff', '--name-only').splitlines()
+base = sys.argv[1] if len(sys.argv) > 1 else 'HEAD'
+changed = git('diff', base, '--name-only').splitlines()
 assert [p for p in changed if p.startswith('roadmap/tasks/')] == ['roadmap/tasks/E8-T09.md']
 assert 'roadmap/ROADMAP.md' not in changed
-original = git('show', 'HEAD:roadmap/tasks/E8-T09.md')
+original = git('show', base + ':roadmap/tasks/E8-T09.md')
 assert task.read_text().split('## Organizer verification', 1)[1] == original.split('## Organizer verification', 1)[1]
-assert (root / 'roadmap/MESSAGES.md').read_text().startswith(git('show', 'HEAD:roadmap/MESSAGES.md'))
+assert (root / 'roadmap/MESSAGES.md').read_text().startswith(git('show', base + ':roadmap/MESSAGES.md'))
 assert task.stat().st_size < 120 * 1024
-subprocess.run(['git', 'diff', '--check'], cwd=root, check=True)
+subprocess.run(['git', 'diff', '--check', base], cwd=root, check=True)
 print('Scope: only E8-T09 task; ROADMAP and Organizer verification unchanged; MESSAGES append-only.')
-print('git diff --check: exit 0')
+print('git diff --check (complete round from supplied base): exit 0')
 
 untracked = set(git('ls-files', '--others', '--exclude-standard').splitlines())
 files = {root / p for p in changed + sorted(untracked)} | {p for p in evidence.iterdir() if p.is_file()}

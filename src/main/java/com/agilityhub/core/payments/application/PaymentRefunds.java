@@ -142,8 +142,8 @@ public class PaymentRefunds {
                 execution.fence();
                 if (operations.findById(id).orElseThrow().resultId() == null) {
                     operations.completed(id, result.id());
-                    operations.providerStatus(id, result.status());
                 }
+                operations.providerStatus(id, result.status());
                 return null;
             });
         }, () -> {
@@ -156,10 +156,13 @@ public class PaymentRefunds {
         var previous = refundStates.lock(refundId);
         if (previous.status() != null) {
             if (!Objects.equals(previous.intent(), intent) || !previous.amount().equals(amount)) { throw new ApiException(ErrorCode.INVALID_STATE); }
+        }
+        var operation = operation(intent, refundId, amount, operationId);
+        if (operation != null) { operations.reconciled(operation.id(), refundId); }
+        if (previous.status() != null) {
             if (Set.of("failed", "canceled").contains(previous.status()) || previous.status().equals(status)
                     || "succeeded".equals(previous.status()) && !Set.of("failed", "canceled").contains(status)) { return false; }
         }
-        var operation = operation(intent, refundId, amount, operationId);
         if ("succeeded".equals(status)) { settled(intent, refundId, amount, at, reason, operationId); }
         else if (Set.of("failed", "canceled").contains(status)) {
             reverse(intent, refundId, operation, status);
@@ -177,7 +180,9 @@ public class PaymentRefunds {
         var operation = operationId == null ? operations.forResult(refundId).orElse(null)
                 : operations.findById(operationId).orElseThrow(() -> new ApiException(ErrorCode.INVALID_STATE));
         if (operation != null && (!operation.kind().startsWith("REFUND") || !Objects.equals(operation.providerRef(), intent)
-                || !operation.amount().equals(amount))) { throw new ApiException(ErrorCode.INVALID_STATE); }
+                || !operation.amount().equals(amount) || operation.resultId() != null && !operation.resultId().equals(refundId))) {
+            throw new ApiException(ErrorCode.INVALID_STATE);
+        }
         return operation;
     }
     private void reverse(String intent, String refundId, PaymentOperation operation, String status) {

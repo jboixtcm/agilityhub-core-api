@@ -949,7 +949,12 @@ class CardPaymentsIT extends BillingItSupport {
         try (var tenant = TenantContext.open(CLUB);
                 var http = new com.agilityhub.core.payments.application.stripe.StripeHttpFixture()) {
             var accepted = refunds.invoice(invoice, null, "Correction", "round2-auth");
-            if (earlierUncertain) { operations.submissionUncertain(accepted.id(), true); }
+            if (earlierUncertain) {
+                fake.beforeRefundReturn((call, result) -> { throw new IllegalStateException("Lost response"); });
+                assertThatThrownBy(() -> refunds.execute(accepted.id())).hasMessage("Lost response");
+                fake.beforeRefundReturn((call, result) -> {});
+                clock.setInstant(clock.instant().plusSeconds(60));
+            }
             mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders.STRIPE.secretKeyEnc",
                     vault.encrypt("sk_test_example", CLUB, "STRIPE", "secretKeyEnc")), "clubs");
             configs.invalidate(CLUB);
@@ -957,7 +962,7 @@ class CardPaymentsIT extends BillingItSupport {
             org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
             org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
             try {
-                for (int i = 0; i < 3; i++) {
+                for (int i = earlierUncertain ? 1 : 0; i < 3; i++) {
                     assertThatThrownBy(() -> refunds.execute(accepted.id())).isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class)
                             .hasMessage("PROVIDER_CONFIG_INVALID");
                     clock.setInstant(clock.instant().plusSeconds(60));
@@ -966,7 +971,7 @@ class CardPaymentsIT extends BillingItSupport {
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
             }
-            assertThat(http.requests).hasValue(3);
+            assertThat(http.requests).hasValue(earlierUncertain ? 2 : 3);
             assertThat(operations.submissionUncertain(accepted.id())).isEqualTo(earlierUncertain);
             if (earlierUncertain) {
                 assertThatThrownBy(() -> refunds.invoice(invoice, null, "Repaired", "round2-auth-repaired"))
@@ -1074,6 +1079,65 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
     }
 
+    @Test void T_12_21_round3_point1_inWindowRetriesKeepTheFirstSubmissionTime() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); Instant first = clock.instant();
+        fake.afterCharge(result -> { throw new IllegalStateException("Lost response"); });
+        try (var tenant = TenantContext.open(CLUB)) { assertThatThrownBy(() -> cards.chargeRun(run)).hasMessage("Lost response"); }
+        clock.setInstant(first.plusSeconds(3600)); recovery.recover();
+        var op = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
+        assertThat(op.getDate("firstSubmittedAt").toInstant()).isEqualTo(first);
+        assertThat(op.getInteger("attempts")).isEqualTo(2);
+        fake.afterCharge(result -> {});
+        clock.setInstant(first.plusSeconds(23 * 3600)); recovery.recover();
+        var completed = mongo.findById(op.getString("_id"), Document.class, "payment_operations");
+        assertThat(completed.getDate("firstSubmittedAt").toInstant()).isEqualTo(first);
+        assertThat(completed.getString("resultId")).isNotNull();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"REFUND_LATE,false", "REFUND_LATE,true", "REFUND_UPFRONT,false", "REFUND_UPFRONT,true"})
+    void T_12_17_round3_point1_refundsWaitWhenSubmissionTimeIsExpiredOrUnknown(String kind, boolean missingTime) {
+        Instant first = clock.instant();
+        var op = new PaymentOperation("r3-window-refund", CLUB, kind, "payment", "pi_window", new Money(200, "EUR"),
+                "r3-window", "Correction", null, null, first, null);
+        try (var tenant = TenantContext.open(CLUB)) {
+            operations.insert(op);
+            fake.beforeRefundReturn((call, result) -> { throw new IllegalStateException("Lost refund response"); });
+            assertThatThrownBy(() -> refunds.execute(op.id())).hasMessage("Lost refund response");
+            if (missingTime) {
+                mongo.updateFirst(Query.query(Criteria.where("_id").is(op.id())),
+                        new Update().unset("firstSubmittedAt").unset("submissionUncertain"), "payment_operations");
+            }
+            clock.setInstant(first.plusSeconds(25 * 3600));
+            assertThat(operations.pending()).noneMatch(row -> row.id().equals(op.id()));
+            assertThat(operations.lateRefunds()).noneMatch(row -> row.id().equals(op.id()));
+            refunds.execute(op.id()); recovery.recover();
+            assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
+            var stored = mongo.findById(op.id(), Document.class, "payment_operations");
+            assertThat(stored.getString("resultId")).isNull();
+            assertThat(stored.getInteger("attempts")).isEqualTo(1);
+            assertThat(operations.submissionUncertain(op.id())).isTrue();
+        }
+    }
+
+    @Test void T_12_21_round3_point1_definiteRejectionCanStartANewWindowAfterAnOutage() throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); Instant first = clock.instant();
+        org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThatThrownBy(() -> cards.chargeRun(run)).hasMessage("PROVIDER_CONFIG_INVALID");
+        } finally { org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false); }
+        fake.afterCharge(result -> { throw new IllegalStateException("Lost response"); });
+        Instant submitted = first.plusSeconds(48 * 3600);
+        clock.setInstant(submitted); recovery.recover();
+        var op = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
+        assertThat(op.getDate("firstSubmittedAt").toInstant()).isEqualTo(submitted);
+        fake.afterCharge(result -> {});
+        clock.setInstant(submitted.plusSeconds(60)); recovery.recover();
+        assertThat(mongo.findById(op.getString("_id"), Document.class, "payment_operations").getString("resultId")).isNotNull();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+    }
+
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     void T_12_17_round3_point2_lostRefundReconciliationReleasesExactRemainder(boolean cancel) throws Exception {
@@ -1098,7 +1162,7 @@ class CardPaymentsIT extends BillingItSupport {
         webhook("evt_r3_lost_refund_duplicate", "refund.updated", refundEvent("pi_round3_refund", remote.get(), 200, "succeeded", operation));
         try (var tenant = TenantContext.open(CLUB)) {
             if (cancel) { refunds.compensate(payment, "REFUND", false); }
-            else { refunds.upfront(payment, new Money(1000, "EUR"), "Remainder", "refund:" + payment); }
+            else { assertThatCode(() -> refunds.upfront(payment, new Money(1000, "EUR"), "Remainder", "refund:" + payment)).doesNotThrowAnyException(); }
             var remainder = operations.byKey("refund:" + payment).orElseThrow();
             assertThat(remainder.amount()).isEqualTo(new Money(1000, "EUR"));
             assertThat(operations.findById(operation).orElseThrow().resultId()).isEqualTo(remote.get());
@@ -1108,6 +1172,35 @@ class CardPaymentsIT extends BillingItSupport {
         }
         assertThat(paymentRow(payment).getString("status")).isEqualTo("REFUNDED");
         assertThat(paymentRow(payment).getList("refunds", Document.class)).hasSize(2);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"pending", "succeeded", "failed", "canceled"})
+    void T_12_17_round3_point2_invoiceWebhookCompletesLostCommandWithoutReposting(String status) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        String pi = intent(invoice);
+        webhook("evt_r3_command_paid", "payment_intent.succeeded", Map.of("id", pi));
+        var remote = new java.util.concurrent.atomic.AtomicReference<String>(); String operation;
+        try (var tenant = TenantContext.open(CLUB)) {
+            operation = refunds.invoice(invoice, new Money(1000, "EUR"), "Correction", "r3-command").id();
+            fake.beforeRefundReturn((call, result) -> { remote.set(result.id()); throw new IllegalStateException("Lost response"); });
+            assertThatThrownBy(() -> refunds.execute(operation)).hasMessage("Lost response");
+        }
+        webhook("evt_r3_command", "refund.updated", refundEvent(pi, remote.get(), 1000, status, operation));
+        webhook("evt_r3_command_duplicate", "refund.updated", refundEvent(pi, remote.get(), 1000, status, operation));
+        var reconciled = mongo.findById(operation, Document.class, "payment_operations");
+        assertThat(reconciled.getString("resultId")).isEqualTo(remote.get());
+        assertThat(reconciled.getString("outcome")).isEqualTo("PROCESSED");
+        assertThat(reconciled.getString("refundStatus")).isEqualTo(status);
+        assertThat(reconciled.getInteger("attempts")).isEqualTo(1);
+        assertThat(reconciled.get("nextAttemptAt")).isNull();
+        clock.setInstant(clock.instant().plusSeconds(60)); recovery.recover();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
+        assertThat(detail(invoice).path("refundedTotal").path("amountMinor").asLong()).isEqualTo("succeeded".equals(status) ? 1000 : 0);
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(refunds.invoice(invoice, null, "Remainder", "r3-command-remainder").amount().amountMinor())
+                    .isEqualTo(Set.of("failed", "canceled").contains(status) ? 6000 : 5000);
+        }
     }
 
     @org.junit.jupiter.params.ParameterizedTest
