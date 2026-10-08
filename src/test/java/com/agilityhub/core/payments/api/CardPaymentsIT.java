@@ -1049,4 +1049,108 @@ class CardPaymentsIT extends BillingItSupport {
         assertThat(audits.stream().map(row -> row.get("details", Document.class).get("amount", Document.class).get("amountMinor")))
                 .containsExactlyInAnyOrder(1000L, -1000L);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints = {24, 25})
+    void T_12_21_round3_point1_expiredProviderKeyNeverReplaysLostCapture(int hours) throws Exception {
+        String run = runId(generated()), invoice = invoiceId();
+        var captured = new java.util.concurrent.atomic.AtomicReference<String>();
+        Instant firstSubmission = clock.instant();
+        fake.afterCharge(result -> { captured.set(result.paymentIntentId()); throw new IllegalStateException("Lost response"); });
+        try (var tenant = TenantContext.open(CLUB)) { assertThatThrownBy(() -> cards.chargeRun(run)).hasMessage("Lost response"); }
+        var op = mongo.findOne(Query.query(Criteria.where("targetId").is(invoice).and("kind").is("CHARGE")), Document.class, "payment_operations");
+        String originalIntent = captured.get();
+        clock.setInstant(firstSubmission.plus(java.time.Duration.ofHours(hours)));
+        recovery.recover();
+        try (var tenant = TenantContext.open(CLUB)) { cards.execute(op.getString("_id")); }
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+        assertThat(captured.get()).isEqualTo(originalIntent);
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("COLLECTING");
+        assertThat(mongo.findById(op.getString("_id"), Document.class, "payment_operations").getDate("firstSubmittedAt").toInstant()).isEqualTo(firstSubmission);
+        assertThat(operations.pending()).noneMatch(p -> p.id().equals(op.getString("_id")));
+        webhook("evt_r3_expired_key", "payment_intent.succeeded", Map.of("id", originalIntent, "metadata", Map.of("collectionId", op.getString("providerRef"))));
+        assertThat(detail(invoice).path("status").asText()).isEqualTo("PAID");
+        assertThat(mongo.findById(op.getString("_id"), Document.class, "payment_operations").getString("resultId")).isEqualTo(originalIntent);
+        recovery.recover();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("charge"))).hasSize(1);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_round3_point2_lostRefundReconciliationReleasesExactRemainder(boolean cancel) throws Exception {
+        String payment = "round3-lost-refund";
+        mongo.insert(new UpfrontPayment(payment, CLUB, "card-member", null, "SINGLE_CLASS", null, new Money(1200, "EUR"), new Money(1200, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "round3-booking", null, null, null, null,
+                new UpfrontPayment.StripeRefs("pi_round3_refund", null), null, null, List.of(), null));
+        var remote = new java.util.concurrent.atomic.AtomicReference<String>();
+        String operation;
+        try (var tenant = TenantContext.open(CLUB)) {
+            operation = refunds.upfront(payment, new Money(200, "EUR"), "Partial", "round3-partial").id();
+            fake.beforeRefundReturn((call, result) -> { remote.set(result.id()); throw new IllegalStateException("Lost refund response"); });
+            for (int attempt = 0; attempt < 3; attempt++) {
+                assertThatThrownBy(() -> refunds.execute(operation)).hasMessage("Lost refund response");
+                clock.setInstant(clock.instant().plusSeconds(60));
+            }
+        }
+        assertThat(mongo.findById(operation, Document.class, "payment_operations").getString("resultId")).isNull();
+        assertThat(fake.calls().stream().filter(c -> c.operation().equals("refund"))).hasSize(1);
+        fake.beforeRefundReturn((call, result) -> {});
+        webhook("evt_r3_lost_refund", "refund.updated", refundEvent("pi_round3_refund", remote.get(), 200, "succeeded", operation));
+        webhook("evt_r3_lost_refund_duplicate", "refund.updated", refundEvent("pi_round3_refund", remote.get(), 200, "succeeded", operation));
+        try (var tenant = TenantContext.open(CLUB)) {
+            if (cancel) { refunds.compensate(payment, "REFUND", false); }
+            else { refunds.upfront(payment, new Money(1000, "EUR"), "Remainder", "refund:" + payment); }
+            var remainder = operations.byKey("refund:" + payment).orElseThrow();
+            assertThat(remainder.amount()).isEqualTo(new Money(1000, "EUR"));
+            assertThat(operations.findById(operation).orElseThrow().resultId()).isEqualTo(remote.get());
+            assertThat(mongo.findById(operation, Document.class, "payment_operations").getString("outcome")).isEqualTo("PROCESSED");
+            refunds.execute(remainder.id());
+            webhook("evt_r3_remainder", "refund.updated", refundEvent("pi_round3_refund", operations.findById(remainder.id()).orElseThrow().resultId(), 1000, "succeeded", remainder.id()));
+        }
+        assertThat(paymentRow(payment).getString("status")).isEqualTo("REFUNDED");
+        assertThat(paymentRow(payment).getList("refunds", Document.class)).hasSize(2);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_12_17_round3_point3_rateLimitedRefundReleasesOnlyDefinitiveReservation(boolean earlierUncertain) throws Exception {
+        String run = runId(generated()), invoice = invoiceId(); charge(run);
+        webhook("evt_r3_rate_paid", "payment_intent.succeeded", Map.of("id", intent(invoice)));
+        try (var tenant = TenantContext.open(CLUB);
+                var http = new com.agilityhub.core.payments.application.stripe.StripeHttpFixture()) {
+            http.status = 429;
+            var accepted = refunds.invoice(invoice, null, "Correction", "round3-rate");
+            if (earlierUncertain) {
+                fake.beforeRefundReturn((call, result) -> { throw new IllegalStateException("Lost response"); });
+                assertThatThrownBy(() -> refunds.execute(accepted.id())).hasMessage("Lost response");
+                fake.beforeRefundReturn((call, result) -> {});
+                clock.setInstant(clock.instant().plusSeconds(60));
+            }
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().set("paymentProviders.STRIPE.secretKeyEnc",
+                    vault.encrypt("sk_test_example", CLUB, "STRIPE", "secretKeyEnc")), "clubs");
+            configs.invalidate(CLUB);
+            Object original = org.springframework.test.util.ReflectionTestUtils.getField(registry, "stripe");
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
+            org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
+            try {
+                for (int i = earlierUncertain ? 1 : 0; i < 3; i++) {
+                    assertThatThrownBy(() -> refunds.execute(accepted.id())).hasMessage("RATE_LIMITED");
+                    clock.setInstant(clock.instant().plusSeconds(60));
+                }
+            } finally {
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
+                org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
+            }
+            assertThat(http.requests).hasValue(earlierUncertain ? 6 : 9);
+            assertThat(operations.submissionUncertain(accepted.id())).isEqualTo(earlierUncertain);
+            if (earlierUncertain) {
+                assertThatThrownBy(() -> refunds.invoice(invoice, null, "Retry", "round3-rate-retry")).hasMessage("REFUND_EXCEEDS_PAID");
+            } else {
+                var replacement = refunds.invoice(invoice, null, "Retry", "round3-rate-retry");
+                refunds.execute(replacement.id());
+                assertThat(operations.findById(replacement.id()).orElseThrow().resultId()).isNotNull();
+                assertThat(fake.calls().stream().filter(call -> call.operation().equals("refund"))).hasSize(1);
+            }
+        }
+    }
+
 }

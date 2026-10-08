@@ -16,6 +16,7 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     @org.springframework.beans.factory.annotation.Autowired private ObjectProvider<StripeWebhooks> webhooks;
     private final List<Call> calls = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, Object> results = new ConcurrentHashMap<>();
+    private final Map<String, java.time.Instant> moneyCreatedAt = new ConcurrentHashMap<>();
     private final Queue<String> outcomes = new java.util.concurrent.ConcurrentLinkedQueue<>();
     public FakePaymentProvider(ObjectProvider<CheckoutService> checkout) { super(checkout); }
     public void deliverWebhook(String type, Map<String, Object> payload) {
@@ -35,7 +36,14 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     private String refundStatus = "succeeded";
     public void refundStatus(String status) { refundStatus = status; }
     public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
-    public void reset() { calls.clear(); results.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
+    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
+    /** Model Stripe pruning keys after 24 hours, including a lost response after the remote effect. */
+    private Object moneyResult(String key, java.util.function.Supplier<Object> create) {
+        return results.compute(key, (ignored, previous) -> {
+            if (previous != null && clock.instant().isBefore(moneyCreatedAt.get(key).plus(java.time.Duration.ofHours(24)))) { return previous; }
+            var result = create.get(); moneyCreatedAt.put(key, clock.instant()); return result;
+        });
+    }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);
@@ -46,10 +54,10 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     }
     @Override public OffSessionResult createOffSessionPayment(OffSessionRequest request) {
         String club = TenantContext.require(), key = club + ":charge:" + request.idempotencyKey();
-        var result = (OffSessionResult) results.computeIfAbsent(key, ignored -> {
+        var result = (OffSessionResult) moneyResult(key, () -> {
             calls.add(new Call(club, "charge", request.idempotencyKey(), request));
             String outcome = outcomes.poll(); if (outcome == null) { outcome = "succeeded"; }
-            return new OffSessionResult("pi_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+            return new OffSessionResult("pi_fake_" + UUID.randomUUID(),
                     outcome.startsWith("failed:") ? "failed" : outcome, outcome.startsWith("failed:") ? outcome.substring(7) : null);
         });
         afterCharge.accept(result);
@@ -60,15 +68,15 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     }
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
         String club = TenantContext.require(), key = club + ":refund:" + idempotencyKey;
-        return (RefundResult) results.computeIfAbsent(key, ignored -> {
-            var request = new LinkedHashMap<String, Object>(Map.of("chargeId", chargeId, "amount", amount, "reason", reason));
-            if (operationId != null) { request.put("operationId", operationId); }
-            var call = new Call(club, "refund", idempotencyKey, request);
+        var request = new LinkedHashMap<String, Object>(Map.of("chargeId", chargeId, "amount", amount, "reason", reason));
+        if (operationId != null) { request.put("operationId", operationId); }
+        var call = new Call(club, "refund", idempotencyKey, request);
+        var result = (RefundResult) moneyResult(key, () -> {
             calls.add(call);
-            var result = new RefundResult("re_fake_" + UUID.nameUUIDFromBytes(key.getBytes(java.nio.charset.StandardCharsets.UTF_8)), refundStatus);
-            beforeRefundReturn.accept(call, result);
-            return result;
+            return new RefundResult("re_fake_" + UUID.randomUUID(), refundStatus);
         });
+        beforeRefundReturn.accept(call, result);
+        return result;
     }
     @Override public WebhookEvent parseWebhook(String payload, String signature, String secret) { return PaymentWebhookParser.authenticate(payload, signature, secret, clock); }
     private final Map<String, com.agilityhub.core.shared.application.BillingCensusAccess.Card> cards = new ConcurrentHashMap<>();
