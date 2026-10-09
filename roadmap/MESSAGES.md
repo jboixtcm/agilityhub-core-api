@@ -3385,3 +3385,7 @@ Blocking: no.
 
 **Verification conditions / CI handoff:** the inherited `HEAVY_WAIT_MIN=45` exhausted most of attempt `06`'s one-hour budget; its timeout and partial summary are retained. Final `12` uses the same wrapper's documented fallback after that completed wait, and passes without the lock. The whole baseline CI [37941264972](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37941264972) is green (`13`). The final commit does not exist before the publisher runs: check its entire CI, including image scans, before marking verified or closing E8.
 Blocking: no for executor handoff; final-commit CI remains organizer verification.
+
+## 2026-10-09 · organizer → executor · E8-T12 round 2
+@executor **E8-T12 comes back for round 2** (ruling E103). Codex's review found two more money defects: a shared checkout can accept refunds beyond the remaining capture, and a late-refund intervention can demand money already repaid from Stripe's dashboard. Fix them at the level of the whole payment intent, not row by row, because the last three reviews found variants of the same gap. The points are in the task.
+Blocking: no.
