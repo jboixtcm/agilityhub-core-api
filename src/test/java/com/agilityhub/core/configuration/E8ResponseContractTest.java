@@ -189,6 +189,7 @@ class E8ResponseContractTest {
         fields.put("RemittanceSimulated", "simulationId,period,incidents,totals"); fields.put("RemittanceGenerated", "remittanceId,runId,invoiceIds,fileKey");
         fields.put("RemittanceRolledBack", "remittanceId,runId,invoiceIds"); fields.put("UpfrontPaymentRecorded", "paymentId,memberId,concept,provider,amountPaid,bookingId");
         fields.put("UpfrontPaymentSucceeded", "paymentId,concept,provider,amountPaid,bookingId,packBalanceId,memberId"); fields.put("UpfrontPaymentFailed", "paymentId,memberId,concept,provider,bookingId,reason");
+        fields.put("UpfrontRefundIntervention", "paymentId,memberId,reason,amount"); // E101, S12 R-12-20
         fields.put("PackOpened", "packBalanceId,memberId,dogId,expiresOn"); fields.put("PackConsumed", "packBalanceId,memberId,dogId,bookingId,remaining");
         fields.put("PackRefunded", "packBalanceId,memberId,dogId,bookingId,remaining"); fields.put("PackLowBalance", "packBalanceId,memberId,dogId,remaining");
         fields.put("PackExpiring", "packBalanceId,memberId,dogId,remaining,expiresOn"); fields.put("PackExpired", "packBalanceId,memberId,dogId,remaining,expiresOn");
@@ -200,7 +201,7 @@ class E8ResponseContractTest {
         fields.put("InactivityChanged", "periodId,memberId,before,after,cancelledBookings"); fields.put("InactivityCancelled", "periodId,memberId,by,reason");
         fields.put("LeaveRequested", "requestId,memberId,requestedDate,reasonKey"); fields.put("LeaveResolved", "requestId,memberId,decision,source,effectiveDate,cancelledBookings");
         fields.put("LeaveCancelled", "requestId,memberId,by,reason");
-        assertThat(fields).hasSize(32);
+        assertThat(fields).hasSize(33);
         assertThat(fixtures.fieldNames()).toIterable().containsExactlyInAnyOrderElementsOf(fields.keySet());
         var kinds = new ArrayList<String>();
         for (var kind : BillingEvent.Kind.values()) { kinds.add(kind.name()); }
@@ -208,7 +209,7 @@ class E8ResponseContractTest {
         assertThat(kinds).containsExactlyInAnyOrderElementsOf(fields.keySet());
         Map<String, String> aggregates = Map.of("Invoice", "InvoiceIssued,InvoiceCollecting,InvoicePaid,InvoiceFailed,InvoiceCancelled",
                 "Remittance", "RemittanceGenerated,RemittanceRolledBack", "BillingSimulation", "RemittanceSimulated",
-                "UpfrontPayment", "UpfrontPaymentRecorded,UpfrontPaymentSucceeded,UpfrontPaymentFailed",
+                "UpfrontPayment", "UpfrontPaymentRecorded,UpfrontPaymentSucceeded,UpfrontPaymentFailed,UpfrontRefundIntervention",
                 "PackBalance", "PackOpened,PackConsumed,PackRefunded,PackLowBalance,PackExpiring,PackExpired,PackAdjusted",
                 "StripeEvent", "StripeWebhookReceived", "BillingRun", "BillingRunCreated,BillingRunCompleted", "Member", "MemberCardInvalidated", "Club", "RemittanceReminderDue",
                 "InactivityPeriod", "InactivityRequested,InactivityResolved,InactivityStarted,InactivityEnded,InactivityChanged,InactivityCancelled");
@@ -248,7 +249,7 @@ class E8ResponseContractTest {
                 assertThat(payload).as(entry.getKey() + " main row lists " + field).containsPattern("(?<![A-Za-z])" + field + "(?![A-Za-z])");
             }
         }
-        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(24);
+        assertThat(mainRows).as("the S12 §7 and S13 §7 events with a main row").isEqualTo(25);
         // The proposals of S12 §13 and S13 §13 are the Annex A rows.
         assertThat(row(catalog, "| `BillingRunCreated` ·")).contains("`BillingRunCompleted`", "`PackAdjusted{delta, reason}`", "`MemberCardInvalidated`");
         assertThat(row(catalog, "| `InactivityChanged` ·")).contains("`InactivityCancelled`", "`LeaveCancelled`", "`LeaveResolved{source, decision, cancelledBookings[]}`");
@@ -274,7 +275,7 @@ class E8ResponseContractTest {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_NOTIFICACIONS.md"));
         var fixtures = fixture("e8-notifications");
         assertThat(fixtures.fieldNames()).toIterable().containsExactly("N-10", "N-11a", "N-11b", "N-14", "N-18a", "N-18b", "N-18c", "N-18d", "N-28", "N-30",
-                "N-35", "N-38", "N-41");
+                "N-35", "N-38", "N-41", "N-55");
         var closing = catalog.lines().filter(line -> line.startsWith("Variants:")).findFirst().orElseThrow();
         fixtures.fields().forEachRemaining(entry -> {
             String code = entry.getKey();

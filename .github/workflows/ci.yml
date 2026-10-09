@@ -10,16 +10,16 @@ on:
 permissions:
   contents: read
 
-# Superseded pushes must not replace :main after a newer green build.
+# Every push gets its own group (even pending runs survive); only superseded PRs cancel.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   tests:
     name: Build and tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -169,7 +169,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish only the two scanned image digests
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           image=ghcr.io/jboixtcm/agilityhub-core-api
-          docker buildx imagetools create --tag "$image:main" --tag "$image:sha-${GITHUB_SHA::7}" \
+          docker buildx imagetools create --tag "$image:sha-${GITHUB_SHA::7}" \
             "$image:ci-$GITHUB_SHA-amd64" "$image:ci-$GITHUB_SHA-arm64"
+          # An older successful run still publishes its immutable tag, but cannot replace the current main image.
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [[ "$latest" == "$GITHUB_SHA" ]]; then
+            docker buildx imagetools create --tag "$image:main" "$image:sha-${GITHUB_SHA::7}"
+          fi

@@ -1,0 +1,6 @@
+T-11-05 snapshot ca: 52 seeded codes, 21 staff texts
+T-11-05 snapshot es: 52 seeded codes, 21 staff texts
+T-11-05 snapshot en: 52 seeded codes, 21 staff texts
+E7-T03 seed: 52 templates per locale (ca, es, en); without a template: [N-25, N-26, N-27, N-39, N-43, N-44, N-45, N-48, N-52, N-53]
+NotificationCatalog parity: 62 rows (43 main + 19 Annex A) = 62 codes; N-12 absent
+NotificationCatalog variables: 75 used, 0 outside the catalog lists

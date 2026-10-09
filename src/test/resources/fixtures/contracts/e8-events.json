@@ -10,6 +10,7 @@
   "UpfrontPaymentRecorded": {"paymentId": "payment-a", "memberId": "member-a", "concept": "PACK", "provider": "MANUAL", "amountPaid": {"amountMinor": 12000, "currency": "EUR"}, "bookingId": null},
   "UpfrontPaymentSucceeded": {"paymentId": "payment-a", "concept": "PACK", "provider": "STRIPE", "amountPaid": {"amountMinor": 12000, "currency": "EUR"}, "bookingId": null, "packBalanceId": "pack-a", "memberId": "member-a"},
   "UpfrontPaymentFailed": {"paymentId": "payment-b", "memberId": "member-a", "concept": "SINGLE_CLASS", "provider": "STRIPE", "bookingId": "booking-a", "reason": "EXPIRED"},
+  "UpfrontRefundIntervention": {"paymentId": "payment-b", "memberId": "member-a", "reason": "COMPENSATION_INTERVENTION", "amount": {"amountMinor": 1200, "currency": "EUR"}},
   "PackOpened": {"packBalanceId": "pack-a", "memberId": "member-a", "dogId": "dog-a", "expiresOn": "2026-11-11"},
   "PackConsumed": {"packBalanceId": "pack-a", "memberId": "member-a", "dogId": "dog-a", "bookingId": "booking-a", "remaining": 3},
   "PackRefunded": {"packBalanceId": "pack-a", "memberId": "member-a", "dogId": "dog-a", "bookingId": "booking-a", "remaining": 4},

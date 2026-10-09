@@ -69,6 +69,7 @@
 | `UpfrontPaymentRecorded` | paymentId, memberId, concept, provider, amountPaid, bookingId? | S04/S12 | registre manual, auditoria |
 | `UpfrontPaymentSucceeded` | paymentId, memberId, concept, provider, amountPaid, bookingId?, packBalanceId? | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
 | `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, bookingId?, reason | S04/S12 | S08 allibera la reserva `PAYMENT_PENDING` |
+| `UpfrontRefundIntervention` | paymentId, memberId, reason, amount (Money) | S12 R-12-20 (E101, aprovat 09-10) | N-55 als admins; `COMPENSATION_INTERVENTION`: total pendent actualitzat; `REFUND_OVER_CREDIT`: increment pagat de més |
 | `PackOpened` | packBalanceId, memberId, dogId, expiresOn | S12 | anul·la la baixa prevista `PACK_EXPIRED` (S13 R-13-14) |
 | `PackConsumed` / `PackRefunded` | packBalanceId, memberId, dogId, bookingId, remaining | S08/S12 | — |
 | `PackLowBalance` | packBalanceId, memberId, dogId, remaining | S08/S12 | N-11a |

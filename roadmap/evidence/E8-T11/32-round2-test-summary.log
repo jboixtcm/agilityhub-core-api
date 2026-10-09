@@ -1,0 +1,24 @@
+surefire: tests=3814, failures=0, errors=0, skipped=0
+failsafe: tests=1810, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.CiWorkflowTest: tests=3, failures=0, errors=0, skipped=0
+  PASS T_12_17_e8t11_round2_point5_oldRunsPublishOnlyTheirOwnImage(boolean, Path)[1]
+  PASS T_12_17_e8t11_round2_point5_oldRunsPublishOnlyTheirOwnImage(boolean, Path)[2]
+  PASS T_12_17_e8t11_round2_point5_mainRunsAreIndependentAndHaveTimeToFinish
+com.agilityhub.core.configuration.E8ResponseContractTest: tests=11, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=27, failures=0, errors=0, skipped=0
+  PASS T_12_17_e8t11_round2_point1_pendingRefundReducesCreditBeforeBilling(boolean)[1]
+  PASS T_12_17_e8t11_round2_point1_pendingRefundReducesCreditBeforeBilling(boolean)[2]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[1]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[2]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[3]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[4]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[5]
+  PASS T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[6]
+  PASS T_12_17_e8t11_round2_point3_laterFailureUpdatesTheWholeOwedBalance
+  PASS T_12_17_e8t11_round2_point4_billedCreditWarnsOnceOnlyAfterCommit(CapturedOutput)
+com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.domain.NotificationSpecTest: tests=6, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedChecksTest: tests=3, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.messaging.application.engine.NotificationSeedSnapshotTest: tests=3, failures=0, errors=0, skipped=0
+E8-T11, 80 seeds x 24 steps reached: {admin refund n=561, bill credit=50, cancel CREDIT=91, cancel CREDIT before confirmation=17, cancel REFUND=87, cancel REFUND before confirmation=23, dashboard nothing=55, dashboard refund pending=34, dashboard refund succeeded=38, disable Stripe=72, enable Stripe=34, execute (lost response)=46, execute (pending)=42, execute (refused)=32, execute (refused, not reached)=15, execute (rejected)=22, execute (rejected, not reached)=9, execute (succeeded)=35, late confirmation=84, n h later, recover=51, recover=171, redeliver canceled=5, redeliver failed=5, redeliver pending=22, redeliver succeeded=23, webhook canceled=34, webhook failed=75, webhook pending=58, webhook succeeded=129, ~ compensation postponed by an outage (E8-T11 point 1)=7, ~ credit absorbed a dashboard refund (E8-T11 point 3)=12, ~ credit grown after a failed refund (finding 1)=2, ~ dashboard refund beyond a billed credit (E8-T11 point 3)=3, ~ obligation CREDIT=26, ~ obligation CREDIT with intervention=4, ~ obligation REFUND=24, ~ obligation REFUND with intervention=26, ~ reconciled while Stripe was disabled=35}

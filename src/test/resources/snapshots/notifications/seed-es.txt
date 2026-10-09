@@ -317,4 +317,8 @@ body: Club Agility Exemple: miércoles 12 · 18:50 · B+C (Central) ha quedado p
 title: Clase con pocos alumnos
 body: Club Agility Exemple: miércoles 12 · 18:50 · B+C (Central) ha quedado por debajo del mínimo: 1 perro inscrito.
 
-# 51 codes, 20 staff texts
+## N-55 ADMINS
+title: Reembolso manual necesario
+body: Hay que revisar el reembolso de Laura Serra Puig: 45,00 €.
+
+# 52 codes, 21 staff texts

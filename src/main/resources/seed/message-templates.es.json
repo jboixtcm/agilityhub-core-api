@@ -747,6 +747,20 @@
           "SMS": false
         }
       }
+    },
+    {
+      "code": "N-55",
+      "title": "Reembolso manual necesario",
+      "body": "{reason, select, COMPENSATION_INTERVENTION {Hay que devolver {amount} a {member_name}. Este es el total pendiente, sin los reembolsos en curso.} REFUND_OVER_CREDIT {{member_name} ha recibido {amount} de más tras un abono ya facturado. Hay que revisarlo.} other {Hay que revisar el reembolso de {member_name}: {amount}.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
     }
   ]
 }

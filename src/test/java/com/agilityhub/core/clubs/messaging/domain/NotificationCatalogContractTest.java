@@ -98,7 +98,7 @@ class NotificationCatalogContractTest {
     @Test void WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections() throws Exception {
         var rows = rows();
         assertThat(rows.stream().filter(r -> !r.annex())).hasSize(43);
-        assertThat(rows.stream().filter(Row::annex)).hasSize(18);
+        assertThat(rows.stream().filter(Row::annex)).hasSize(19);
         assertThat(rows.stream().map(Row::code).toList()).as("both directions, the document's order").containsExactlyElementsOf(NotificationCatalog.codes())
                 .doesNotContain("N-12");
         var additions = annexVariables();

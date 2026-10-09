@@ -49,7 +49,7 @@ class MessageTemplateSeedChecksTest {
         assertThatThrownBy(() -> load(files)).as(reason).isInstanceOf(IllegalStateException.class).hasMessageContaining(reason);
     }
 
-    @Test void E7_T03_theSeedFilesAsCommittedLoad() throws Exception { assertThat(load(files()).size()).isEqualTo(51); }
+    @Test void E7_T03_theSeedFilesAsCommittedLoad() throws Exception { assertThat(load(files()).size()).isEqualTo(52); }
 
     @Test void E7_T03_aBrokenSeedFileStopsTheStartWithItsReason() throws Exception {
         fails(files -> files.remove("en"), "Missing /seed/message-templates.en.json");

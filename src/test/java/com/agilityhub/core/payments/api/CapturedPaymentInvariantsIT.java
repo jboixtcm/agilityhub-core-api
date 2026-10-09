@@ -50,6 +50,8 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     @Autowired PaymentRefunds refunds;
     @Autowired StripeInbox inbox;
     @Autowired BillingTransactions transactions;
+    @Autowired com.agilityhub.core.clubs.messaging.application.FakeEmailSender mail;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notifications;
 
     /** Stripe's side of a refund it created: every status it went through, the last one current. */
     record StripeRefund(String id, long amount, String operationId, List<String> history) {
@@ -66,7 +68,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     @AfterEach void provider() { fake.reset(); }
 
     void reset() {
-        for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "upfront_payments", "pending_charges", "audit_entries")) {
+        for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "upfront_payments", "pending_charges", "audit_entries", "domain_events", "notifications")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         fake.reset(); stripe.clear(); deliveries.clear();
@@ -82,6 +84,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         mongo.insert(new UpfrontPayment(PAYMENT, CLUB, "inv-member", null, "SINGLE_CLASS", null, new Money(CAPTURED, "EUR"), new Money(CAPTURED, "EUR"),
                 "PAID", "STRIPE", null, clock.instant(), clock.instant(), BOOKING, null, null, null, null,
                 new UpfrontPayment.StripeRefs(PI, null), null, null, List.of(), null));
+        member("inv-member", 399, "Refund", "Example", card(false), "single");
         recordRefunds(false);
     }
 
@@ -181,7 +184,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         assertThat(compensationCommands()).hasSize(1);
         assertThat(paymentRow().get("compensationInterventionAt")).isNotNull();
         assertThat(interventions()).singleElement().satisfies(entry -> {
-            assertThat(entry.getString("action")).isEqualTo("PAYMENT_REFUNDED");
+            assertThat(entry.getString("action")).isEqualTo("PAYMENT_REFUND_INTERVENTION");
             assertThat(entry.getString("entityType")).isEqualTo("UpfrontPayment");
             assertThat(entry.getString("entityId")).isEqualTo(PAYMENT);
             assertThat(entry.getString("memberId")).isEqualTo("inv-member");
@@ -386,6 +389,137 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         invariants(true);
     }
 
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void T_12_17_e8t11_round2_point1_pendingRefundReducesCreditBeforeBilling(boolean submitted) throws Exception {
+        fake.refundStatus("pending");
+        String partial = tenant(() -> refunds.upfront(PAYMENT, new Money(200, "EUR"), "Partial", "r2-p1").id());
+        if (submitted) { tenant(() -> refunds.execute(partial)); }
+        tenant(() -> refunds.compensate(PAYMENT, "CREDIT", false));
+        assertThat(amount(creditRow())).isEqualTo(-1000);
+        var dashboard = new StripeRefund("re_r2_p1", 100, null, new ArrayList<>(List.of("succeeded")));
+        stripe.put(dashboard.id(), dashboard);
+        webhook("evt_r2_p1", refundObject(dashboard, "succeeded"));
+        assertThat(amount(creditRow())).as("reserve 2 EUR and refund 1 EUR before billing the credit").isEqualTo(-900);
+        assertThat(ledger().consistent()).isTrue();
+        bill();
+        if (!submitted) { tenant(() -> refunds.execute(partial)); }
+        terminate(stripe.get(operation(partial).getString("resultId")), "succeeded", "evt_r2_p1_partial");
+        assertThat(ledger().refunded() + ledger().credited()).isEqualTo(CAPTURED);
+        assertThat(interventions()).isEmpty();
+        invariants(true);
+    }
+
+    @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.PAYMENT_REFUND_INTERVENTION)
+    @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"ca,false", "es,false", "en,false", "ca,true", "es,true", "en,true"})
+    void T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String locale, boolean billed) throws Exception {
+        notificationRecipients(locale);
+        if (billed) {
+            tenant(() -> refunds.compensate(PAYMENT, "CREDIT", false)); bill();
+            var dashboard = new StripeRefund("re_r2_p2_dashboard", 500, null, new ArrayList<>(List.of("succeeded")));
+            stripe.put(dashboard.id(), dashboard);
+            webhook("evt_r2_p2", refundObject(dashboard, "succeeded"));
+            webhook("evt_r2_p2_copy", refundObject(dashboard, "succeeded"));
+        } else {
+            fake.refundStatus("pending");
+            tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+            String command = compensationCommands().getFirst().getString("_id");
+            tenant(() -> refunds.execute(command));
+            var failed = stripe.get(operation(command).getString("resultId"));
+            terminate(failed, "failed", "evt_r2_p2");
+            webhook("evt_r2_p2_copy", refundObject(failed, "failed"));
+        }
+        tenant(() -> refunds.compensate(PAYMENT, billed ? "CREDIT" : "REFUND", false));
+        deliverInterventions(1, locale, billed ? "5" : "12");
+        assertThat(interventions()).singleElement().satisfies(entry ->
+                assertThat(entry.getString("action")).isEqualTo("PAYMENT_REFUND_INTERVENTION"));
+        assertThat(events("UpfrontRefundIntervention")).singleElement().satisfies(event -> {
+            var payload = event.get("payload", Document.class);
+            assertThat(payload.getString("paymentId")).isEqualTo(PAYMENT);
+            assertThat(payload.getString("memberId")).isEqualTo("inv-member");
+            assertThat(payload.getString("reason")).isEqualTo(billed ? "REFUND_OVER_CREDIT" : "COMPENSATION_INTERVENTION");
+            assertThat(amount(payload, "amount")).isEqualTo(billed ? 500 : CAPTURED);
+        });
+    }
+
+    @Test void T_12_17_e8t11_round2_point3_laterFailureUpdatesTheWholeOwedBalance() throws Exception {
+        notificationRecipients("ca");
+        fake.refundStatus("pending");
+        String partial = tenant(() -> refunds.upfront(PAYMENT, new Money(200, "EUR"), "Partial", "r2-p3").id());
+        tenant(() -> refunds.execute(partial));
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        String command = compensationCommands().getFirst().getString("_id");
+        tenant(() -> refunds.execute(command));
+        terminate(stripe.get(operation(command).getString("resultId")), "failed", "evt_r2_p3_compensation");
+        assertThat(interventions()).extracting(e -> amount(e.get("details", Document.class), "owed")).containsExactly(1000L);
+        var failed = stripe.get(operation(partial).getString("resultId"));
+        terminate(failed, "failed", "evt_r2_p3_partial");
+        webhook("evt_r2_p3_duplicate", refundObject(failed, "failed"));
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        assertThat(interventions()).extracting(e -> amount(e.get("details", Document.class), "owed")).containsExactly(1000L, 1200L);
+        assertThat(amount(paymentRow(), "compensationInterventionOwed")).isEqualTo(1200);
+        deliverInterventions(2, "ca", "10", "12");
+        assertThat(compensationCommands()).hasSize(1);
+        // The admin's new reservation and its success reduce the persisted balance to zero, with no new demand.
+        String repayment = tenant(() -> refunds.upfront(PAYMENT, new Money(CAPTURED, "EUR"), "Repayment", "r2-p3-repay").id());
+        assertThat(amount(paymentRow(), "compensationInterventionOwed")).isZero();
+        tenant(() -> refunds.execute(repayment));
+        terminate(stripe.get(operation(repayment).getString("resultId")), "succeeded", "evt_r2_p3_repaid");
+        assertThat(interventions()).hasSize(2);
+        invariants(true);
+    }
+
+    @Test @ExtendWith(OutputCaptureExtension.class)
+    void T_12_17_e8t11_round2_point4_billedCreditWarnsOnceOnlyAfterCommit(CapturedOutput output) throws Exception {
+        tenant(() -> refunds.compensate(PAYMENT, "CREDIT", false)); bill();
+        assertThatThrownBy(() -> tenant(() -> transactions.<Void>run(() -> {
+            refunds.reconcile(PI, "re_r2_p4_rollback", new Money(500, "EUR"), "succeeded", clock.instant(), "requested_by_customer", null);
+            throw new IllegalStateException("rolled back");
+        }))).hasMessage("rolled back");
+        assertThat(warnings(output)).isEmpty();
+        assertThat(events("UpfrontRefundIntervention")).isEmpty();
+        for (int i = 1; i <= 2; i++) {
+            var dashboard = new StripeRefund("re_r2_p4_" + i, i == 1 ? 500 : 300, null, new ArrayList<>(List.of("succeeded")));
+            stripe.put(dashboard.id(), dashboard);
+            webhook("evt_r2_p4_" + i, refundObject(dashboard, "succeeded"));
+            webhook("evt_r2_p4_duplicate_" + i, refundObject(dashboard, "succeeded"));
+        }
+        assertThat(interventions()).hasSize(2);
+        assertThat(overpaid()).isEqualTo(800);
+        assertThat(warnings(output)).singleElement().asString().contains("WARN", "paymentId=" + PAYMENT);
+    }
+
+    void notificationRecipients(String locale) {
+        mail.clear();
+        admin("bill-refund-admin", CLUB); admin("bill-other-admin", OTHER);
+        admin("bill-refund-instructor", CLUB);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("bill-refund-instructor")), new Update().set("roles", List.of("INSTRUCTOR")).set("defaultProfile", "INSTRUCTOR"), "memberships");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("bill-refund-admin")), new Update().set("locale", locale), "accounts");
+    }
+    void deliverInterventions(int count, String locale, String... amounts) {
+        outbox.dispatch(); outbox.dispatch();
+        assertThat(events("UpfrontRefundIntervention")).hasSize(count).allSatisfy(event -> {
+            assertThat(event.getString("status")).as("outbox failure: %s", event.get("error")).isEqualTo("PUBLISHED");
+        });
+        var query = Query.query(Criteria.where("code").is("N-55"));
+        var notices = mongo.find(query, Document.class, "notifications");
+        assertThat(notices).as("admin-visible N-55").hasSize(count);
+        tenant(() -> notifications.dispatch(notices.stream().map(n -> n.getString("_id")).toList()));
+        tenant(() -> notifications.dispatch(notices.stream().map(n -> n.getString("_id")).toList()));
+        assertThat(mongo.find(query, Document.class, "notifications")).allSatisfy(n -> {
+            assertThat(n.getString("clubId")).isEqualTo(CLUB);
+            assertThat(n.get("recipient", Document.class).getString("accountId")).isEqualTo("bill-refund-admin");
+            assertThat(n.getString("audience")).isEqualTo("ADMINS");
+            assertThat(n.getString("locale")).isEqualTo(locale);
+            assertThat(n.get("action", Document.class).getString("type")).isEqualTo("OPEN_MEMBER");
+            assertThat(n.get("subject", Document.class).getString("memberId")).isEqualTo("inv-member");
+            assertThat(n.getString("body")).contains("Refund Example");
+            assertThat(n.getList("deliveries", Document.class)).extracting(d -> d.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL");
+            assertThat(n.getList("deliveries", Document.class)).allSatisfy(d -> assertThat(d.getString("status")).isIn("SENT", "DELIVERED"));
+        });
+        assertThat(mail.messages()).hasSize(count).allSatisfy(m -> assertThat(m.to()).isEqualTo("bill-refund-admin@example.test"));
+        for (String amount : amounts) { assertThat(notices).anySatisfy(n -> assertThat(n.getString("body")).contains(amount)); }
+    }
+
     String step(Random random, long seed, int step) throws Exception {
         int dice = random.nextInt(100);
         // A pick with nothing to act on falls back to the step that creates it: webhook → execute → admin refund.
@@ -532,7 +666,14 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         long freed = operations().stream().filter(op -> !commands.contains(op) && failed(op)).count()
                 + stripe.values().stream().filter(r -> r.operationId() == null && r.history().stream().anyMatch(CapturedPaymentInvariantsIT::terminalFailure)).count();
         assertThat(commands).as("compensation refunds, %s other refunds failed", freed).hasSizeLessThanOrEqualTo((int) (1 + freed));
-        assertThat(interventions().stream().filter(entry -> "COMPENSATION_INTERVENTION".equals(entry.getString("reason")))).as("admin told once").hasSizeLessThanOrEqualTo(1);
+        var owedNotices = interventions().stream().filter(entry -> "COMPENSATION_INTERVENTION".equals(entry.getString("reason"))).toList();
+        if (!owedNotices.isEmpty()) {
+            assertThat(amount(payment, "compensationInterventionOwed")).as("persisted outstanding balance").isEqualTo(ledger.due());
+        }
+        var credit = creditRow();
+        if (ledger.credited() > 0 && credit.getString("invoiceId") == null) {
+            assertThat(ledger.consistent()).as("unbilled credit includes live reservations: %s", ledger).isTrue();
+        }
         if (payment.get("compensationInterventionAt") != null && !MONEY_ONLY) { assertThat(interventions()).as("intervention without telling the admin").isNotEmpty(); }
         if (!MONEY_ONLY) {
             assertThat(refundObligation == null || creditObligation == null).as("one obligation").isTrue();
@@ -557,7 +698,6 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
             assertThat(commands.stream().anyMatch(this::failed)).as("intervention needs a failed compensation").isTrue();
         }
         if (intervention != null && creditObligation != null) {
-            var credit = creditRow();
             assertThat(credit.getString("invoiceId") != null || credit.get("voidedAt") != null)
                     .as("credit intervention needs a credit that can no longer change").isTrue();
         }
@@ -567,7 +707,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         return CAPTURED - stripe.values().stream().filter(r -> !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
     }
     List<Document> interventions() {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED").and("details.intervention").is(true)),
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUND_INTERVENTION").and("details.intervention").is(true)),
                 Document.class, "audit_entries");
     }
     long overpaid() {

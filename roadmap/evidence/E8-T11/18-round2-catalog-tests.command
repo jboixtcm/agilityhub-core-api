@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=CiWorkflowTest,NotificationCatalogContractTest,MessageTemplateSeedTest,NotificationSeedSnapshotTest' -Dsnapshots.update=true test > roadmap/evidence/E8-T11/18-round2-catalog-tests.log 2>&1

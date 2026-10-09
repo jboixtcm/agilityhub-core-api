@@ -1,0 +1,63 @@
+
+X main CI · 37914340118
+Triggered via push about 32 minutes ago
+
+JOBS
+✓ Secret scan in 14s (ID 113766757858)
+✓ Dependency vulnerability audit in 1m17s (ID 113766757893)
+X Build and tests in 30m19s (ID 113766757969)
+- Publish API image in 0s (ID 113777201606)
+- Scan image (${{ matrix.arch }}) (ID 113777201679)
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+X The job has exceeded the maximum execution time of 30m0s
+Build and tests: .github#1
+
+X The operation was canceled.
+Build and tests: .github#13819
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+
+ARTIFACTS
+gitleaks-results.sarif
+
+For more information about a job, try: gh run view --job=<job-id>
+View this run on GitHub: https://github.com/jboixtcm/agilityhub-core-api/actions/runs/37914340118

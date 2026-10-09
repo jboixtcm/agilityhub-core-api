@@ -747,6 +747,20 @@
           "SMS": false
         }
       }
+    },
+    {
+      "code": "N-55",
+      "title": "Manual refund required",
+      "body": "{reason, select, COMPENSATION_INTERVENTION {Return {amount} to {member_name}. This is the outstanding total, excluding refunds in progress.} REFUND_OVER_CREDIT {{member_name} received an extra {amount} after a credit was already billed. Review this overpayment.} other {Review the refund for {member_name}: {amount}.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
     }
   ]
 }

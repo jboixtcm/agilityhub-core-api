@@ -747,6 +747,20 @@
           "SMS": false
         }
       }
+    },
+    {
+      "code": "N-55",
+      "title": "Reemborsament a fer a mà",
+      "body": "{reason, select, COMPENSATION_INTERVENTION {Cal retornar {amount} a {member_name}. Aquest és el total pendent, sense els reemborsaments en curs.} REFUND_OVER_CREDIT {{member_name} ha rebut {amount} de més després d’un abonament ja facturat. Cal revisar-ho.} other {Cal revisar el reemborsament de {member_name}: {amount}.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
     }
   ]
 }

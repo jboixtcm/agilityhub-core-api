@@ -317,4 +317,8 @@ body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C (Central) is below the 
 title: Class with few students
 body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C (Central) is below the minimum: 1 dog booked.
 
-# 51 codes, 20 staff texts
+## N-55 ADMINS
+title: Manual refund required
+body: Review the refund for Laura Serra Puig: €45.00.
+
+# 52 codes, 21 staff texts

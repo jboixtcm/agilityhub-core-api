@@ -18,6 +18,7 @@ public class PaymentRefunds {
     @org.springframework.beans.factory.annotation.Autowired private PaymentRetryPolicy retries;
     @org.springframework.beans.factory.annotation.Autowired private PendingChargeRepository charges;
     @org.springframework.beans.factory.annotation.Autowired private StripeRefundRepository refundStates;
+    @org.springframework.beans.factory.annotation.Autowired private BillingEvents events;
     public record Accepted(String id, Money amount, String providerRef) { }
     /**
      * The longest retry backoff: the commands of a disabled club, and the automatic ones an outage of its Stripe access rejected
@@ -62,8 +63,10 @@ public class PaymentRefunds {
             var refunds = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
             // Money a CREDIT compensation already gave back is not refundable again (ledger invariant 1).
             var captured = upfront.captured(id).orElse(payment.amountPaid());
-            return reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), new Money(captured.amountMinor() - credited(payment), captured.currency()),
+            var accepted = reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), new Money(captured.amountMinor() - credited(payment), captured.currency()),
                     amount, reason, key, refunds.stream().map(UpfrontPayment.Refund::providerRef).toList(), refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum());
+            compensateRemaining(payment);
+            return accepted;
         });
     }
     private Accepted reserve(String kind, String target, String reference, Money paid, Money requested, String reason, String key,
@@ -111,8 +114,9 @@ public class PaymentRefunds {
         String key = "refund:" + payment.id();
         var obligation = upfront.compensation(payment.id())
                 .or(() -> operations.byKey(key).map(op -> new UpfrontPaymentRepository.Compensation("REFUND", op.reason(), null)));
-        if (obligation.isEmpty() || obligation.get().interventionAt() != null || consumption(payment)) { return; }
+        if (obligation.isEmpty() || consumption(payment)) { return; }
         long due = ledger(payment).due();
+        if (obligation.get().interventionAt() != null) { intervene(payment, due); return; }
         if (due <= 0) { return; }
         if ("CREDIT".equals(obligation.get().policy())) { credit(payment, due); return; }
         var commands = operations.forTarget(payment.id()).stream().filter(PaymentRefunds::compensation).toList();
@@ -138,11 +142,17 @@ public class PaymentRefunds {
         long current = existing.get().amount().amountMinor();
         if (!charges.credit(existing.get().id(), current, current - due)) { intervene(payment, due); }
     }
-    /** Automatic compensation stops: the admin learns once, in the member's audit trail and the log, what is still owed (E8-T11). */
+    /** E101: keep the outstanding balance current; only a changed positive total emits another audit and admin notification. */
     private void intervene(UpfrontPayment payment, long owed) {
-        if (!upfront.intervention(payment.id(), clock.instant())) { return; }
-        audit.intervention(payment.id(), payment.memberId(), "COMPENSATION_INTERVENTION", "owed", new Money(owed, payment.amountPaid().currency()));
-        retries.warnIntervention(payment.id());
+        var amount = new Money(owed, payment.amountPaid().currency());
+        if (!upfront.interventionOwed(payment.id(), amount) || owed <= 0) { return; }
+        if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+        reportIntervention(payment, "COMPENSATION_INTERVENTION", "owed", amount);
+    }
+    private void reportIntervention(UpfrontPayment payment, String reason, String kind, Money amount) {
+        audit.intervention(payment.id(), payment.memberId(), reason, kind, amount);
+        events.publish(BillingEvent.Kind.UpfrontRefundIntervention, payment.id(), Map.of("paymentId", payment.id(),
+                "memberId", payment.memberId(), "reason", reason, "amount", amount));
     }
     /** The obligation's own refund commands: the first, its supplements, and a late confirmation's refund of the same payment. */
     private static boolean compensation(PaymentOperation op) {
@@ -166,15 +176,18 @@ public class PaymentRefunds {
         var credit = charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
         if (credit == null) { return; }
         long current = credit.amount().amountMinor();
-        long overshoot = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
+        // Re-read after refund(): this settlement no longer reserves its operation, but every other live command still does.
+        long reserved = ledger(upfront.findById(payment.id()).orElseThrow()).reserved();
+        long settledExcess = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
+        long overshoot = settledExcess + reserved;
         if (overshoot <= 0) { return; }
         boolean absorbed = current + overshoot < 0 ? charges.credit(credit.id(), current, current + overshoot)
                 : credit.invoiceId() == null && charges.voided(credit.id(), clock.instant());
         if (absorbed) { return; }
-        // An earlier refund's excess was already reported: this entry carries only what this one added.
-        upfront.intervention(payment.id(), clock.instant());
-        audit.intervention(payment.id(), payment.memberId(), "REFUND_OVER_CREDIT", "overpaid", new Money(Math.min(part, overshoot), payment.amountPaid().currency()));
-        retries.warnIntervention(payment.id());
+        // A billed credit cannot shrink. Report only money already overpaid, not reservations that may still fail.
+        if (settledExcess <= 0) { return; }
+        if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+        reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(Math.min(part, settledExcess), payment.amountPaid().currency()));
     }
     private void reconsiderCompensation(String intent) {
         for (var payment : upfront.forIntent(intent)) {
@@ -272,7 +285,7 @@ public class PaymentRefunds {
         }
         refundStates.outcome(refundId, intent, amount, status, at);
         if (operation != null) { operations.refundStatus(operation.id(), status); }
-        if (Set.of("failed", "canceled").contains(status)) { reconsiderCompensation(intent); }
+        if (Set.of("succeeded", "failed", "canceled").contains(status)) { reconsiderCompensation(intent); }
         return true;
     }
     private String entityType(PaymentOperation operation) {

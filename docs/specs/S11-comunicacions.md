@@ -254,6 +254,7 @@ Codis d'error propis: `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`, `TEM
 | `DogLevelChanged` · `DogRegistered` · `DogDeactivated{CLUB}` · `MemberNoteChanged` | N-09 · N-37 · N-37 · N-22 | S03 |
 | `WaitlistNotified{entryIds[], confirmBy?}` | N-15 | SMS + PUSH; `confirm_by` només FIFO |
 | `InvoiceFailed{provider}` · `InvoicePaid{STRIPE}` · `UpfrontPaymentSucceeded` | N-10 (+ N-35 si `STRIPE`) · N-30 · N-30 | N-30 amb Stripe només si `billing.stripeReceiptEmail = false` |
+| `UpfrontRefundIntervention{paymentId, memberId, reason, amount}` | N-55 | E101: intervenció necessària o nou total pendent; duplicats sense avís nou |
 | `PackLowBalance` · `PackExpiring` · `PackExpired` | N-11a · N-11b | S12/S15 |
 | `ReminderDue` · `NoShowNoticeDue` · `SignupPendingAging` · `WeekOpened` · `DocumentReminderDue` | N-13 · N-19 · N-34 · N-33 · N-23 | S15; N-33 només si `messaging.notifyWeekOpening` |
 | `LeaveRequested` · `LeaveResolved` · `Inactivity{Requested, Resolved, Ended}` | N-14 · N-28 · N-18a/b/c | S13 |
@@ -273,6 +274,7 @@ Codis d'error propis: `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`, `TEM
 | N-24 Comunicat del club | `AnnouncementSent` (R-11-13) | selecció → APP + EMAIL (`emailByCategory.CLUB_NEWS`) + PUSH (`pushClubNews`) | text lliure amb `member_*`, `gender`, `dog_name`, `club_name` |
 | N-49 (proposta) Límit mensual d'SMS assolit | primer `SKIPPED_CAP` del mes | ADMINS → APP + EMAIL (`OPERATIONAL`) | `month`, `cap` |
 | N-51 (proposta) Correu rebotat | `EmailBounced` | ADMINS → APP · `OPEN_MEMBER` | `member_name`, `email` |
+| N-55 (proposta aprovada E101, 09-10) Reemborsament a fer a mà | `UpfrontRefundIntervention` (S12 R-12-20) | ADMINS → APP+EMAIL (`OPERATIONAL`) · `OPEN_MEMBER` | `member_name`, `amount`, `reason` |
 
 La resta de codis els **renderitza i envia** aquest vertical amb el moment i les variables que fixa cada spec (§7).
 

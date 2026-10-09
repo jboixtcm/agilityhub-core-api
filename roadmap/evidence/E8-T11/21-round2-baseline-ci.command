@@ -1,0 +1,1 @@
+gh run view 37914340118 --json databaseId,status,conclusion,url,jobs --jq '{databaseId,status,conclusion,url,jobs:[.jobs[] | {name,status,conclusion}]}' > roadmap/evidence/E8-T11/21-round2-baseline-ci.log 2>&1

@@ -47,6 +47,11 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionAt").is(null)),
                 new Update().set("compensationInterventionAt", at), UpfrontPayment.class).getModifiedCount() == 1;
     }
+    /** Under the payment lock: remember the latest total, including zero, so a duplicate cannot notify it again. */
+    public boolean interventionOwed(String id, com.agilityhub.core.shared.domain.Money amount) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionOwed").ne(amount)),
+                new Update().set("compensationInterventionOwed", amount), UpfrontPayment.class).getModifiedCount() == 1;
+    }
     public List<UpfrontPayment> forIntent(String intent) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("stripe.paymentIntentId").is(intent)).with(org.springframework.data.domain.Sort.by("_id")), UpfrontPayment.class);
     }

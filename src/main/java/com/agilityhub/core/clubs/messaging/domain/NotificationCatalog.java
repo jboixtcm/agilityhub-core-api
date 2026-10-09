@@ -19,7 +19,7 @@ import static com.agilityhub.core.clubs.messaging.domain.NotificationCategory.*;
 import static com.agilityhub.core.clubs.messaging.domain.NotificationChannel.*;
 
 /**
- * `CATALEG_NOTIFICACIONS.md` as code (S11 WP-11-A): every row of the main table (N-01…N-38, 43 rows) and of Annex A (18
+ * `CATALEG_NOTIFICACIONS.md` as code (S11 WP-11-A): every row of the main table (N-01…N-38, 43 rows) and of Annex A (19
  * rows), in the document's order. N-12 does not exist (the numbering jumps from N-11b to N-13). `NotificationCatalogContractTest`
  * proves both directions against the document. Product code, never stored in the database; read-only lookups.
  *
@@ -226,6 +226,8 @@ public final class NotificationCatalog {
                 .vars("class_date", "class_time", "class_description", "ring_name", "dogs_count").build());
         // `POST /platform/clubs/{id}/admins` (S17) is a request, not an event: the console triggers N-53 directly.
         rows.add(code("N-53", SYSTEM).to(APPLICANT, EMAIL).vars("club_name", "link", "inviter_name").build());
+        rows.add(code("N-55", OPERATIONAL, "UpfrontRefundIntervention").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER)
+                .vars("member_name", "amount", "reason").modules(Module.BILLING).build());
         return rows;
     }
 

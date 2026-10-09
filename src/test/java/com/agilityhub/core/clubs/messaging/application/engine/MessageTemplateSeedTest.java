@@ -30,14 +30,14 @@ class MessageTemplateSeedTest {
         var eligible = NotificationCatalog.specs().stream().filter(spec -> spec.stage() == NotificationSpec.Stage.R1 && spec.category() != NotificationCategory.SYSTEM)
                 .map(NotificationSpec::code).toList();
         assertThat(seed.all()).extracting(MessageTemplateSeed.Seeded::code).containsExactlyElementsOf(eligible);
-        assertThat(seed.size()).isEqualTo(51);
+        assertThat(seed.size()).isEqualTo(52);
         var withoutTemplate = NotificationCatalog.codes().stream().filter(code -> !eligible.contains(code)).toList();
         assertThat(withoutTemplate).containsExactly("N-25", "N-26", "N-27", "N-39", "N-43", "N-44", "N-45", "N-48", "N-52", "N-53");
         var mapper = new ObjectMapper();
         for (String locale : List.of("ca", "es", "en")) {
             var file = mapper.readTree(Files.readString(Path.of("src/main/resources/seed/message-templates." + locale + ".json")));
             assertThat(file.path("locale").asText()).isEqualTo(locale);
-            assertThat(file.path("templates")).hasSize(51);
+            assertThat(file.path("templates")).hasSize(52);
         }
         System.out.println("E7-T03 seed: " + seed.size() + " templates per locale (ca, es, en); without a template: " + withoutTemplate);
     }

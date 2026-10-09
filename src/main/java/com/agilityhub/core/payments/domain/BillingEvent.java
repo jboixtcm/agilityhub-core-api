@@ -25,7 +25,7 @@ public record BillingEvent(Kind kind, String clubId, String aggregateId, Instant
     public enum Kind {
         InvoiceIssued("Invoice"), InvoiceCollecting("Invoice"), InvoicePaid("Invoice"), InvoiceFailed("Invoice"), InvoiceCancelled("Invoice"),
         RemittanceSimulated("BillingSimulation"), RemittanceGenerated("Remittance"), RemittanceRolledBack("Remittance"),
-        UpfrontPaymentRecorded("UpfrontPayment"), UpfrontPaymentSucceeded("UpfrontPayment"), UpfrontPaymentFailed("UpfrontPayment"),
+        UpfrontPaymentRecorded("UpfrontPayment"), UpfrontPaymentSucceeded("UpfrontPayment"), UpfrontPaymentFailed("UpfrontPayment"), UpfrontRefundIntervention("UpfrontPayment"),
         PackOpened("PackBalance"), PackConsumed("PackBalance"), PackRefunded("PackBalance"), PackLowBalance("PackBalance"),
         PackExpiring("PackBalance"), PackExpired("PackBalance"), PackAdjusted("PackBalance"),
         StripeWebhookReceived("StripeEvent"), BillingRunCreated("BillingRun"), BillingRunCompleted("BillingRun"),

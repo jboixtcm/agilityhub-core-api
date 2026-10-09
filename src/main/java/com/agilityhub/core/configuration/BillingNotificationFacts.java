@@ -25,12 +25,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class BillingNotificationFacts implements NotificationFactsPort {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.payments.application.PaymentNotificationFacts payments;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort members;
     private final InvoiceActions invoices; private final CensusClubSettings settings;
     public BillingNotificationFacts(InvoiceActions invoices, CensusClubSettings settings) { this.invoices = invoices; this.settings = settings; }
 
-    @Override public Set<String> eventTypes() { return Set.of("InvoiceFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated"); }
+    @Override public Set<String> eventTypes() { return Set.of("InvoiceFailed", "InvoicePaid", "UpfrontPaymentSucceeded", "MemberCardInvalidated", "UpfrontRefundIntervention"); }
 
     @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) {
+        if (trigger.type().equals("UpfrontRefundIntervention") && code.equals("N-55")) {
+            String member = trigger.text("memberId");
+            var contact = member == null ? null : members.find(member).orElse(null);
+            if (contact == null) { return Optional.empty(); }
+            var money = trigger.map("amount");
+            var amount = new com.agilityhub.core.shared.domain.Money(((Number) money.get("amountMinor")).longValue(), (String) money.get("currency"));
+            return Optional.of(NotificationFacts.builder().audiences("ADMINS").noMembers().subject(NotificationSubject.member(member))
+                    .value("member_name", contact.displayName()).value("amount", amount).value("reason", trigger.text("reason"))
+                    .value("entityId", member).build());
+        }
         String invoiceId = trigger.text("invoiceId");
         if (invoiceId == null) {
             if (!Set.of("UpfrontPaymentSucceeded", "MemberCardInvalidated").contains(trigger.type())

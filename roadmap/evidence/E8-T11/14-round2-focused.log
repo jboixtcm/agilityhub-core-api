@@ -1,0 +1,490 @@
+12:00:19.463 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT]: CapturedPaymentInvariantsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:00:19.625 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+12:00:19.721 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:00:19.722 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:00:19.727 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+12:00:19.906 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:00:20.082 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:00:20.083 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:00:20.093 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:00:20.374 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+12:00:20.435 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:00:20.501 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 795aa412e8c85c515ad538fe42c20b14a4870e51003ffcd33c4a98882ade7035
+12:00:20.658 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.28396S
+12:00:20.662 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:00:20.663 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:00:20.663 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:00:20.663 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:00:20.702 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: d7cbc7900c3972d8094fda1e4e05591092c57eea64f747e5ebc675460a40bf33
+12:00:21.198 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.53446S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-09T12:00:21.861+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Starting CapturedPaymentInvariantsIT using Java [redacted] with PID 34827 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-09T12:00:21.863+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-09T12:00:23.181+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-09T12:00:23.236+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 51 ms. Found 0 MongoDB repository interfaces.
+2026-10-09T12:00:23.740+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@57b30c41], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5715e1dd, com.mongodb.Jep395RecordCodecProvider@4f2e5a0b, com.mongodb.KotlinCodecProvider@5b45bcae]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:63462], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@145b7283], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-09T12:00:23.747+02:00 INFO  [cluster-ClusterId{value='6ac8bb372feaa9eccc8731f0', description='null'}-localhost:63462] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:63462, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10695250, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=d7cbc7900c39:27017, hosts=[d7cbc7900c39:27017], passives=[], arbiters=[], primary='d7cbc7900c39:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac8bb34eebf72e60a69ad55, counter=6}, lastWriteDate=Fri Oct 09 12:00:21 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-09T12:00:27.517+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-09T12:00:27.517+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-09T12:00:27.517+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-09T12:00:27.564+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Started CapturedPaymentInvariantsIT in 5.921 seconds (process running for 8.673)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-09T12:00:30.128+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=79cccb9d-7536-41c2-8298-668ae43b4fb9 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f37da516-ef1e-43b4-b703-54d11f1c0e66 traceId=79cccb9d-7536-41c2-8298-668ae43b4fb9
+2026-10-09T12:00:30.159+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ff1a86e4-f736-4685-8bee-5691d13fcc6d clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_405cf8cc-15c0-4d88-979b-07ace7ffaa79 traceId=ff1a86e4-f736-4685-8bee-5691d13fcc6d
+2026-10-09T12:00:30.188+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=33fbb151-d20b-4198-a612-8aff1358f957 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_bd4f2228-8ea7-4f7d-a71e-ba1da4511559 traceId=33fbb151-d20b-4198-a612-8aff1358f957
+2026-10-09T12:00:30.220+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=54d9ecc1-523a-45af-a354-cd918e3f551f clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_62e47c93-b115-4924-b57a-f11bf6fa2623 traceId=54d9ecc1-523a-45af-a354-cd918e3f551f
+2026-10-09T12:00:31.392+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=35b759e2-2dd0-4c90-9e2c-68165aabeb6f clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_611b17a4-07d2-452e-b91c-e45f175d9f86 traceId=35b759e2-2dd0-4c90-9e2c-68165aabeb6f
+2026-10-09T12:00:31.410+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=35b759e2-2dd0-4c90-9e2c-68165aabeb6f clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=35b759e2-2dd0-4c90-9e2c-68165aabeb6f
+2026-10-09T12:00:31.753+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ef0f5e56-fb31-4dcd-aa5f-6ce1aff41f51 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=ef0f5e56-[redacted]
+2026-10-09T12:00:31.754+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=49d352c0-145a-4276-a837-a2495d9dc203 clubId= accountId= : Payment operation recovery exhausted: eventId=175e9c74-21ee-4ae1-b9e9-6569f2928696 traceId=49d352c0-145a-4276-a837-a2495d9dc203
+2026-10-09T12:00:32.086+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=be80a167-997b-4bf3-8272-e1685208a2ae clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_f2b9e5ce-47eb-4fb5-80ac-8cfde45b0efb traceId=[redacted]
+2026-10-09T12:00:32.419+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c8566d76-142f-4ac2-a59d-06bd4257d387 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_6c54c8b8-f37d-4224-9711-f7c22cffa4a9 traceId=c8566d76-142f-4ac2-a59d-06bd4257d387
+2026-10-09T12:00:32.430+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c8566d76-142f-4ac2-a59d-06bd4257d387 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=c8566d76-142f-4ac2-a59d-06bd4257d387
+2026-10-09T12:00:32.697+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=abb9a68c-6584-4d43-a4c5-67d6b8c12f14 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9eb3c778-6f39-4c6a-badb-aec900e14a98 traceId=abb9a68c-6584-4d43-a4c5-67d6b8c12f14
+2026-10-09T12:00:32.706+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=abb9a68c-6584-4d43-a4c5-67d6b8c12f14 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=abb9a68c-6584-4d43-a4c5-67d6b8c12f14
+2026-10-09T12:00:32.989+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b1f91321-39ee-4cdf-91d1-4c9c3498f4af clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_21840c81-87b5-415a-9d03-50468e1c7443 traceId=b1f91321-39ee-4cdf-91d1-4c9c3498f4af
+2026-10-09T12:00:32.999+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b1f91321-39ee-4cdf-91d1-4c9c3498f4af clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=b1f91321-39ee-4cdf-91d1-4c9c3498f4af
+2026-10-09T12:00:33.340+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f2157798-0a90-47b0-b171-7475a6104c78 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d7521b9f-cc7e-45e7-a7dd-d5c78b722b6d traceId=f2157798-0a90-47b0-b171-7475a6104c78
+2026-10-09T12:00:33.353+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f2157798-0a90-47b0-b171-7475a6104c78 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=f2157798-0a90-47b0-b171-7475a6104c78
+2026-10-09T12:00:33.795+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=866f6bd9-46b6-495b-96ff-abdfda70ed65 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_13fe3b64-500f-43e2-8738-[redacted]=866f6bd9-46b6-495b-96ff-abdfda70ed65
+2026-10-09T12:00:33.807+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=866f6bd9-46b6-495b-96ff-abdfda70ed65 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=866f6bd9-46b6-495b-96ff-abdfda70ed65
+2026-10-09T12:00:34.107+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=31a46509-fc30-4ec4-ae82-672598fcb29a clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=31a46509-[redacted]
+2026-10-09T12:00:34.374+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8fd5ea85-bc98-4b72-a7b9-204003f12e1c clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=8fd5ea85-[redacted]
+2026-10-09T12:00:34.652+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d2a7967f-999e-4486-84d0-c4942da9f393 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=d2a7967f-999e-4486-84d0-c4942da9f393
+2026-10-09T12:00:35.329+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d2880501-2af1-49e3-8032-a269d2e9028c clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=d2880501-2af1-49e3-8032-a269d2e9028c
+2026-10-09T12:00:35.595+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3c63590d-cee1-468b-b63e-612785e2ee94 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_32cfc4ed-fef5-403e-[redacted]=3c63590d-cee1-468b-b63e-612785e2ee94
+2026-10-09T12:00:35.606+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3c63590d-cee1-468b-b63e-612785e2ee94 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=3c63590d-cee1-468b-b63e-612785e2ee94
+2026-10-09T12:00:35.620+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=eb0cfd36-f20e-4603-bac9-a24c7b549a86 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d00f065d-7e47-4d71-81c3-230a9dad5b29 traceId=eb0cfd36-f20e-4603-bac9-a24c7b549a86
+2026-10-09T12:00:36.569+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bfc3dcca-de06-41ea-893e-0b910ec65f98 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_9ab0ab7b-8f06-4f35-8f73-bccd91e098e4 traceId=bfc3dcca-[redacted]
+2026-10-09T12:00:36.836+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0397600e-a8a3-40d3-b20d-541f77731154 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=0397600e-a8a3-40d3-b20d-541f77731154
+2026-10-09T12:00:37.191+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=410eb7eb-5f29-47e5-a55e-189687882a3a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5c48d1ec-874f-46f1-9356-d639dda04727 traceId=410eb7eb-5f29-47e5-a55e-189687882a3a
+2026-10-09T12:00:37.210+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3cd400c9-991a-4d11-a9bb-f9757b0cba4b clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_15 traceId=3cd400c9-991a-4d11-a9bb-f9757b0cba4b
+2026-10-09T12:00:37.278+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c4106cca-c0a7-4fcc-882a-84423d2b19f2 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_81b263af-1f50-4ca9-bfb6-84b12ed4a206 traceId=c4106cca-c0a7-4fcc-882a-84423d2b19f2
+2026-10-09T12:00:37.289+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c4106cca-c0a7-4fcc-882a-84423d2b19f2 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=c4106cca-c0a7-4fcc-882a-84423d2b19f2
+2026-10-09T12:00:37.489+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=57bb671d-0145-4e3e-adbe-08171518c56e clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_2fd8b93a-e90d-48e6-b922-298741be1fde traceId=57bb671d-0145-4e3e-adbe-08171518c56e
+2026-10-09T12:00:37.499+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=57bb671d-0145-4e3e-adbe-08171518c56e clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=57bb671d-0145-4e3e-adbe-08171518c56e
+2026-10-09T12:00:38.018+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6504cf3c-3e3e-46a9-94c0-e58e9b3b4d9e clubId= accountId= : Payment operation recovery exhausted: eventId=f0efb46b-4d6b-42a8-a07f-ffda07101d6b traceId=6504cf3c-3e3e-46a9-94c0-e58e9b3b4d9e
+2026-10-09T12:00:38.029+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=470d49ed-9f2e-4828-a8c9-eab624057b92 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_30 traceId=470d49ed-9f2e-4828-a8c9-eab624057b92
+2026-10-09T12:00:38.172+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=34a8b183-a112-4d14-b0e0-08731a2ab9c2 clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_f7075557-c3d5-4db8-aea0-7b3ca1489001 traceId=34a8b183-a112-4d14-b0e0-08731a2ab9c2
+2026-10-09T12:00:39.197+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5f554efb-38c3-4fca-a952-52551d190f57 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=5f554efb-38c3-4fca-a952-52551d190f57
+2026-10-09T12:00:39.199+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ad13bbc3-d83c-4ddd-bc9f-7df2b7a5da2f clubId= accountId= : Payment operation recovery exhausted: eventId=895c4b3a-0191-435e-a28b-9b1ce9f64060 traceId=[redacted]
+2026-10-09T12:00:39.240+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7e5a3249-3d17-4aa3-8c22-9c5ad2a12d26 clubId= accountId= : Payment operation recovery exhausted: eventId=61a38d5d-98b4-401d-[redacted]=7e5a3249-3d17-4aa3-8c22-9c5ad2a12d26
+2026-10-09T12:00:39.265+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6ff24e0c-fb1f-4463-a2ec-8d53f9147324 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_50 traceId=6ff24e0c-fb1f-4463-a2ec-8d53f9147324
+2026-10-09T12:00:39.742+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=13920902-4292-4159-a7e5-0c839fbdb2d7 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7d7936bf-d5b8-4258-a382-0e93643bd4a4 traceId=13920902-4292-4159-a7e5-0c839fbdb2d7
+2026-10-09T12:00:39.897+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bc820a05-6981-483f-ad41-be1ff6c9c03b clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[redacted]
+2026-10-09T12:00:40.188+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=54d7c7c1-db8a-4ecf-85be-f94e14867c9d clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=54d7c7c1-db8a-4ecf-85be-f94e14867c9d
+2026-10-09T12:00:40.243+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e0f6ad44-a4a5-4657-ac3f-a38baa7739a9 clubId= accountId= : Payment operation recovery exhausted: eventId=528bd9c8-5d01-41cf-b7fb-3cbdd7b9c8fa traceId=e0f6ad44-a4a5-4657-ac3f-a38baa7739a9
+2026-10-09T12:00:40.403+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=79ef633d-af48-4d0b-bc20-8adc25a040b3 clubId= accountId= : Payment operation recovery exhausted: eventId=b7083db9-2069-4d86-80c0-a8d091ce5ef5 traceId=79ef633d-[redacted]
+2026-10-09T12:00:40.484+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=948a76de-909c-40cb-8475-67e30e59b8d9 clubId= accountId= : Payment operation recovery exhausted: eventId=5e788204-6fa5-44b0-832d-0818725ab853 traceId=948a76de-909c-40cb-8475-67e30e59b8d9
+2026-10-09T12:00:40.839+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=331fa4f0-3b79-46bd-af87-d7f35a104c87 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_b72434ff-14f2-47e0-abe3-84563320766d traceId=331fa4f0-3b79-46bd-[redacted]
+2026-10-09T12:00:41.219+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a1c2e9d4-38e2-4d95-b539-c098ca57e39e clubId= accountId= : Payment operation recovery exhausted: eventId=add6c27e-08fd-4af2-a981-9839d58298db traceId=a1c2e9d4-38e2-4d95-b539-c098ca57e39e
+2026-10-09T12:00:41.334+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=835675f9-c9fa-4907-ac35-72bb676f0bfd clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_3868dd37-d07c-4302-[redacted]=835675f9-c9fa-4907-[redacted]
+2026-10-09T12:00:41.397+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=677c8558-8662-46b2-89a1-f11b9bc4b222 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_84ebdd25-5202-4b3b-a19d-813ce920fb42 traceId=677c8558-8662-46b2-89a1-f11b9bc4b222
+2026-10-09T12:00:41.407+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=677c8558-8662-46b2-89a1-f11b9bc4b222 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=677c8558-8662-46b2-89a1-f11b9bc4b222
+2026-10-09T12:00:41.692+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5165de21-7c22-45b3-973b-81bb89dd3b55 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_0db0bbab-1e82-4f0e-b295-51fa417647c8 traceId=5165de21-7c22-45b3-973b-81bb89dd3b55
+2026-10-09T12:00:41.700+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5165de21-7c22-45b3-973b-81bb89dd3b55 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=5165de21-7c22-45b3-973b-81bb89dd3b55
+2026-10-09T12:00:41.927+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fdd581e6-203d-48e3-ba59-d6344646022b clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_099b9e68-12cb-4258-9ac8-a0ee8a577c4a traceId=fdd581e6-203d-48e3-[redacted]
+2026-10-09T12:00:42.128+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5027b535-1dde-49e5-a00b-c09c5439130c clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1c9b78e0-6375-41f3-bd4b-5a56915d813f traceId=5027b535-1dde-49e5-a00b-c09c5439130c
+2026-10-09T12:00:42.204+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6550cf5c-2aed-4eef-911c-acdd2a97be02 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_544e7b2c-728c-4359-9eea-264509066f58 traceId=6550cf5c-2aed-4eef-911c-acdd2a97be02
+2026-10-09T12:00:42.211+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b4667c6f-2903-40f4-8fa0-979758bbf9df clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=b4667c6f-2903-40f4-8fa0-979758bbf9df
+2026-10-09T12:00:42.290+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4956b026-88e4-48f2-b880-737d851452dd clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_110 traceId=4956b026-88e4-48f2-b880-737d851452dd
+2026-10-09T12:00:42.432+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d906d7cd-fcbd-41f4-b643-ff29abc35dea clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_daa50160-d7bb-429d-bce8-81b1cdbd1eb3 traceId=d906d7cd-fcbd-41f4-b643-ff29abc35dea
+2026-10-09T12:00:42.700+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ac85e1dc-fc98-45b1-bb58-86c8a7f17231 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ce7316ed-033f-44b1-b1cd-4bddda452027 traceId=[redacted]
+2026-10-09T12:00:43.213+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ce42bdc9-9547-4cc3-8663-aea716aa2ced clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_130 traceId=[redacted]
+2026-10-09T12:00:43.454+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=567f3209-e198-4ef4-9aed-c55f09f91492 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_7226da9f-f45c-442d-[redacted]=567f3209-e198-4ef4-9aed-c55f09f91492
+2026-10-09T12:00:43.465+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4beefb09-8e27-4355-bebe-37e0bbe0e493 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_05028bfb-e762-4822-9ebe-e7b36f4d978a traceId=4beefb09-8e27-4355-bebe-37e0bbe0e493
+2026-10-09T12:00:43.644+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=533c79c3-49fc-4d50-aac2-040423dd380a clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_54b3f8c8-eed3-4089-923d-d54b2b416279 traceId=533c79c3-49fc-4d50-aac2-040423dd380a
+2026-10-09T12:00:43.805+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=abc60a12-b4b5-4638-a825-9102185904c0 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1a9fea5a-b428-4af8-83ca-5beb57dbb7af traceId=abc60a12-b4b5-4638-a825-9102185904c0
+2026-10-09T12:00:43.814+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=abc60a12-b4b5-4638-a825-9102185904c0 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=abc60a12-b4b5-4638-a825-9102185904c0
+2026-10-09T12:00:43.963+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=530e187a-34b5-4310-afd5-e63c4678b0e2 clubId= accountId= : Payment operation recovery exhausted: eventId=e2cc7a29-f611-4bac-[redacted]=530e187a-34b5-4310-afd5-e63c4678b0e2
+2026-10-09T12:00:44.770+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3d02c663-cb88-48c5-85b9-548cd7722ee6 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_afa5be6f-edfa-47ed-9f00-41dbef66c3dd traceId=3d02c663-[redacted]
+2026-10-09T12:00:45.215+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b75a9867-4e84-41b0-8eca-cc62e9a18443 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_8ec6b0e6-f421-422e-927e-87b3fe39e8c0 traceId=b75a9867-4e84-41b0-8eca-cc62e9a18443
+2026-10-09T12:00:45.682+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f545bc3b-e1e9-4c69-892c-1667bd615fa3 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=f545bc3b-e1e9-4c69-892c-1667bd615fa3
+2026-10-09T12:00:45.683+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f4f51459-775f-4a0d-93fb-eacc8bf0b9ed clubId= accountId= : Payment operation recovery exhausted: eventId=8b2d7364-4974-4c75-942b-271f956b7618 traceId=f4f51459-775f-4a0d-93fb-eacc8bf0b9ed
+2026-10-09T12:00:45.798+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c69b5c8f-1f18-48e8-a623-9a4e073c92ae clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=c69b5c8f-1f18-48e8-a623-9a4e073c92ae
+2026-10-09T12:00:45.932+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9d2110d3-16e3-4ca3-b76f-7f68643c8468 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_f2737534-4615-47ae-8f16-c96dd94cea46 traceId=9d2110d3-16e3-4ca3-b76f-7f68643c8468
+2026-10-09T12:00:46.012+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c6feeccb-09d6-4c1a-a3bb-9a72185f5dae clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_189 traceId=c6feeccb-09d6-4c1a-a3bb-9a72185f5dae
+2026-10-09T12:00:46.131+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6e15b2cc-4b16-430d-8506-2c6983a44163 clubId= accountId= : Payment operation recovery exhausted: eventId=86dbbd23-140b-49c3-b62c-b7804b16a909 traceId=6e15b2cc-4b16-430d-8506-2c6983a44163
+2026-10-09T12:00:46.319+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6a74087a-397b-4b75-acf5-ea29be0936a4 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_b306d45b-7ac8-4087-86e0-[redacted]=6a74087a-397b-4b75-acf5-ea29be0936a4
+2026-10-09T12:00:46.500+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=779d1b9d-0ce4-47d6-9965-884116958532 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9f57b7ab-d3ea-4f5e-8aee-5b79b9197147 traceId=779d1b9d-0ce4-47d6-9965-884116958532
+2026-10-09T12:00:46.506+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=779d1b9d-0ce4-47d6-9965-884116958532 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=779d1b9d-0ce4-47d6-9965-884116958532
+2026-10-09T12:00:46.750+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=920a0c00-5ba2-4923-a41c-88cc06addda7 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_208 traceId=920a0c00-5ba2-4923-a41c-88cc06addda7
+2026-10-09T12:00:47.005+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8ea0e036-8942-4c2f-947e-4a9350bee954 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_43d53339-e770-4e8e-8bc6-0acb05ffa591 traceId=8ea0e036-8942-4c2f-947e-4a9350bee954
+2026-10-09T12:00:47.012+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=eef2e577-0452-48fb-869b-b49ad2df388a clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=eef2e577-0452-48fb-869b-b49ad2df388a
+2026-10-09T12:00:47.220+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=eb56807f-1f57-4a80-8d3a-dfd3d1e2f774 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_8a7b0502-f66e-47e4-[redacted]=[redacted]
+2026-10-09T12:00:47.373+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a6b12732-9ac6-4a3e-901f-f7698a706b1b clubId= accountId= : Payment operation recovery exhausted: eventId=95c0ff07-0441-4e15-bebc-f723485f8cd4 traceId=a6b12732-9ac6-4a3e-901f-f7698a706b1b
+2026-10-09T12:00:47.750+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=96f1958f-4ce6-4972-85ec-216fe8db7a5c clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_20a86901-3aca-41fa-bdb3-991857808b2c traceId=96f1958f-4ce6-4972-85ec-216fe8db7a5c
+2026-10-09T12:00:47.916+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d554cb78-68c8-4df1-8397-df910bdbfdae clubId= accountId= : Payment operation recovery exhausted: eventId=8b099cbe-8522-429a-863b-c94ed1134913 traceId=d554cb78-68c8-4df1-8397-df910bdbfdae
+2026-10-09T12:00:48.139+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5b351fb7-ca82-44c5-952c-ba486533e275 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_105e0750-b3fd-40a5-b11b-fbb878459c24 traceId=5b351fb7-[redacted]
+2026-10-09T12:00:48.147+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5b351fb7-ca82-44c5-952c-ba486533e275 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=5b351fb7-[redacted]
+2026-10-09T12:00:48.315+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9003dc50-9805-462c-bb25-ea9f00a20b4f clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_7802d2c1-9bc6-4b37-b180-dff0467c312a traceId=9003dc50-9805-462c-[redacted]
+2026-10-09T12:00:48.658+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fb156714-5b25-4cab-b2b7-3d8b533105fc clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_26ddbed1-2e55-4060-b2be-26eb27919cb2 traceId=[redacted]
+2026-10-09T12:00:48.664+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fb156714-5b25-4cab-b2b7-3d8b533105fc clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-09T12:00:48.680+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d6acb918-c28d-4136-bdc1-25ce88723350 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_249 traceId=d6acb918-c28d-4136-bdc1-25ce88723350
+2026-10-09T12:00:49.308+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1eaa7243-a459-479c-a460-6bca770bafdb clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_262 traceId=1eaa7243-a459-479c-a460-6bca770bafdb
+2026-10-09T12:00:49.378+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ec93ab8f-a7c0-4417-8f96-9f4e4f9afb7a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_2e7ca83d-712a-49cd-80c2-bdee70ee1ea4 traceId=[redacted]
+2026-10-09T12:00:49.386+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ec93ab8f-a7c0-4417-8f96-9f4e4f9afb7a clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-09T12:00:49.921+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=541d98aa-324b-4af7-b85d-592ee4aa6c32 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_275 traceId=541d98aa-324b-4af7-b85d-592ee4aa6c32
+2026-10-09T12:00:50.207+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e36b8c80-bc2a-4787-99ad-f0b4c8eab4b7 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_282 traceId=e36b8c80-bc2a-4787-99ad-f0b4c8eab4b7
+2026-10-09T12:00:50.290+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bc242dc5-c1db-4db4-9457-972c935c0a18 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_9374e4d6-54f2-42b8-[redacted]=[redacted]
+2026-10-09T12:00:50.447+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dbb41f86-675f-425b-b1f7-62c12c095423 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7abf23a5-1fd1-444f-b47a-94f7de26f784 traceId=dbb41f86-675f-425b-b1f7-62c12c095423
+2026-10-09T12:00:50.735+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ea470ed7-b6bf-4a9e-b4fe-f0f1c7306296 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_297 traceId=[redacted]
+2026-10-09T12:00:50.927+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=644a2846-8207-4405-a48c-8622fa662024 clubId= accountId= : Payment operation recovery exhausted: eventId=a70461cf-f09c-4335-a268-94edfbe952a5 traceId=644a2846-8207-4405-a48c-8622fa662024
+2026-10-09T12:00:50.939+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8e731945-a5b7-4e8e-8179-09ce967feea3 clubId= accountId= : Payment operation recovery exhausted: eventId=9820a79c-[redacted]=8e731945-a5b7-4e8e-8179-09ce967feea3
+2026-10-09T12:00:51.031+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9532cca4-56f3-484e-8b7b-ca1d71bff184 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_052aca1a-735b-42b3-a12e-0b29ce8b661a traceId=9532cca4-56f3-484e-8b7b-ca1d71bff184
+2026-10-09T12:00:51.037+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9532cca4-56f3-484e-8b7b-ca1d71bff184 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=9532cca4-56f3-484e-8b7b-ca1d71bff184
+2026-10-09T12:00:51.234+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=50b96f4e-1e0f-4bd0-9edd-26762519809b clubId= accountId= : Payment operation recovery exhausted: eventId=b47916b2-aadc-4e39-[redacted]=50b96f4e-1e0f-4bd0-9edd-26762519809b
+2026-10-09T12:00:51.272+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a7e3efdc-9cde-485c-a089-9029a9c54d2a clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_307 traceId=a7e3efdc-9cde-485c-a089-9029a9c54d2a
+2026-10-09T12:00:51.360+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1b9765bc-6785-4efe-867b-1d4aabd41870 clubId= accountId= : Payment operation recovery exhausted: eventId=1987b6e2-d9ea-47b4-bbda-6f0e8ae7bfa4 traceId=1b9765bc-6785-4efe-867b-1d4aabd41870
+2026-10-09T12:00:51.377+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=52430156-8fe2-4985-8013-232f319f1f8a clubId= accountId= : Payment operation recovery exhausted: eventId=22b89211-73c4-4749-[redacted]=52430156-8fe2-4985-8013-232f319f1f8a
+2026-10-09T12:00:51.573+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7d6ad4a9-3129-4c84-bbe9-d20df6993dec clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_156f9c9f-2797-44eb-85c4-7967a577a558 traceId=7d6ad4a9-3129-4c84-bbe9-d20df6993dec
+2026-10-09T12:00:51.581+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=7d6ad4a9-3129-4c84-bbe9-d20df6993dec clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=7d6ad4a9-3129-4c84-bbe9-d20df6993dec
+2026-10-09T12:00:51.777+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fe7348d4-042e-4d78-b2fb-f7d946c14bd2 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_1b88c8f9-f086-4cfd-[redacted]=[redacted]
+2026-10-09T12:00:51.878+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2a6a4469-3fce-4c68-b94b-ebb39f0d763a clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_f401088c-5898-4f54-9ef5-bf4df35e9245 traceId=2a6a4469-3fce-4c68-b94b-ebb39f0d763a
+2026-10-09T12:00:51.886+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2a6a4469-3fce-4c68-b94b-ebb39f0d763a clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=2a6a4469-3fce-4c68-b94b-ebb39f0d763a
+2026-10-09T12:00:51.950+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9b6cefc6-4673-4bf7-8415-ef5d747756ea clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_ba25f16b-0e25-4a75-b4b0-b2d7a2877fe5 traceId=9b6cefc6-4673-4bf7-8415-ef5d747756ea
+2026-10-09T12:00:52.162+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=23b374a4-947b-470b-a2c3-0fa344da2641 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_329 traceId=23b374a4-947b-470b-a2c3-0fa344da2641
+2026-10-09T12:00:52.187+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=224986f0-ab0a-43e3-8d93-93518e6fcf12 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_758cb907-093d-440a-be1f-f835f8051a44 traceId=224986f0-ab0a-43e3-8d93-93518e6fcf12
+2026-10-09T12:00:52.294+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5381f432-6d46-4325-8c2f-b620bbd1043c clubId= accountId= : Payment operation recovery exhausted: eventId=1eab7d01-c288-4048-bffb-e6f149329db9 traceId=5381f432-6d46-4325-8c2f-b620bbd1043c
+2026-10-09T12:00:52.481+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b564a612-c4b5-43c8-9ec5-b01f1403e50e clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_aeb83e51-c1f5-4030-a0b4-543e5d41df6e traceId=b564a612-c4b5-43c8-9ec5-b01f1403e50e
+2026-10-09T12:00:52.487+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b564a612-c4b5-43c8-9ec5-b01f1403e50e clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=b564a612-c4b5-43c8-9ec5-b01f1403e50e
+2026-10-09T12:00:52.920+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=86cbc92b-ff08-490c-b94b-f707eb78d682 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_e46d6984-f44f-4155-8fa6-65a0f956b795 traceId=86cbc92b-[redacted]
+2026-10-09T12:00:52.956+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=36d0aa56-2fd1-4b7e-96f5-337bb4a68743 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3b08ba64-f302-48e1-a055-[redacted]=36d0aa56-2fd1-4b7e-96f5-337bb4a68743
+2026-10-09T12:00:52.963+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=36d0aa56-2fd1-4b7e-96f5-337bb4a68743 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=36d0aa56-2fd1-4b7e-96f5-337bb4a68743
+2026-10-09T12:00:53.200+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ba6c745a-ec6e-400e-8fe6-24dd0072a68a clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=ba6c745a-ec6e-400e-8fe6-24dd0072a68a
+2026-10-09T12:00:53.200+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1a354017-159b-4479-a191-7d2a4460558b clubId= accountId= : Payment operation recovery exhausted: eventId=9dc07d6f-98f7-4991-83f9-142f7c1de341 traceId=1a354017-159b-4479-a191-7d2a4460558b
+2026-10-09T12:00:53.428+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=46b1ffd8-7542-48f7-bb78-0ea9b45ca6a0 clubId= accountId= : Payment operation recovery exhausted: eventId=643440fd-6cb5-4a81-9bb3-c09fa6716f73 traceId=46b1ffd8-7542-48f7-[redacted]
+2026-10-09T12:00:53.494+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=479ea5e2-ca39-498a-95ef-ae6ca8238b0f clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_9774567c-4f45-4954-b8c5-a1788f6de102 traceId=479ea5e2-[redacted]
+2026-10-09T12:00:53.503+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=479ea5e2-ca39-498a-95ef-ae6ca8238b0f clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=479ea5e2-[redacted]
+2026-10-09T12:00:53.599+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a134cb3a-7b9c-4e1a-8b96-b6f9dae5abeb clubId= accountId= : Payment operation recovery exhausted: eventId=45d89640-0cae-44d2-b9fe-178abb640469 traceId=a134cb3a-7b9c-4e1a-8b96-b6f9dae5abeb
+2026-10-09T12:00:53.612+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9fd046c0-494c-4822-9eb6-1515bd0e0aa3 clubId= accountId= : Payment operation recovery exhausted: eventId=7133f8df-6a3e-4df4-aeff-[redacted]=9fd046c0-494c-4822-9eb6-1515bd0e0aa3
+2026-10-09T12:00:53.868+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b593dc61-56bb-4fa8-8c46-2bed6343a5c8 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_374 traceId=b593dc61-56bb-4fa8-8c46-2bed6343a5c8
+2026-10-09T12:00:54.036+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5fa1f86e-f572-4990-8887-f34adcf22ac4 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_93ec8805-[redacted]=5fa1f86e-f572-4990-8887-f34adcf22ac4
+2026-10-09T12:00:54.391+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c1ffe2af-b099-4560-adb8-a3a1f7ecccbb clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_689e432b-2909-4ae6-a5c1-c0d93f327f69 traceId=c1ffe2af-b099-4560-adb8-a3a1f7ecccbb
+2026-10-09T12:00:54.656+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e4c2d0d3-614d-4255-9325-5b328df36fb4 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_062be366-9145-4711-93d6-[redacted]=e4c2d0d3-614d-4255-9325-5b328df36fb4
+2026-10-09T12:00:54.977+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b8bc41b3-b743-4899-a220-bd0c2778b4bf clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_c991a68c-8896-4237-bb1e-f5e15ece0c9f traceId=b8bc41b3-b743-4899-a220-bd0c2778b4bf
+2026-10-09T12:00:54.983+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1e17ed22-a015-4e6d-9749-dba3c4e74943 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=1e17ed22-a015-4e6d-9749-dba3c4e74943
+2026-10-09T12:00:55.188+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=275335a1-7277-45ef-9205-f20722d4f94e clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=275335a1-7277-45ef-9205-f20722d4f94e
+2026-10-09T12:00:55.447+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=50a7f818-8df3-49e0-8e19-c7c8ddfc335a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_419 traceId=50a7f818-8df3-49e0-8e19-c7c8ddfc335a
+2026-10-09T12:00:55.511+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=24800a9f-dec7-42d3-8b80-97dc1b60eb87 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=24800a9f-dec7-42d3-8b80-97dc1b60eb87
+2026-10-09T12:00:55.512+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9163d22f-2d1a-4872-9bbb-2a9977fd4a7d clubId= accountId= : Payment operation recovery exhausted: eventId=6762dc4c-c463-49d4-b97f-6902a9243f41 traceId=9163d22f-2d1a-4872-9bbb-2a9977fd4a7d
+2026-10-09T12:00:55.618+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3cfc7fb8-5a2b-4f1d-910d-1ab9d9a9126b clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_c7f7b814-c188-4ebb-af2c-4eaee7d519fd traceId=3cfc7fb8-5a2b-4f1d-910d-1ab9d9a9126b
+2026-10-09T12:00:55.626+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3cfc7fb8-5a2b-4f1d-910d-1ab9d9a9126b clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=3cfc7fb8-5a2b-4f1d-910d-1ab9d9a9126b
+2026-10-09T12:00:55.684+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a7c0460b-0e78-4791-a336-33863874011a clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_718ab317-7f4f-44d3-a041-e836961bb4cd traceId=a7c0460b-0e78-4791-a336-33863874011a
+2026-10-09T12:00:55.810+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=237c838b-c8c5-4ed0-a0df-f70365614ef1 clubId= accountId= : Payment operation recovery exhausted: eventId=7f8746ad-c466-4fff-bdee-a0e6beea9a1d traceId=237c838b-c8c5-4ed0-a0df-f70365614ef1
+2026-10-09T12:00:55.888+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=67aa96d4-1731-466e-aa62-22e0e408867e clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_431 traceId=67aa96d4-1731-466e-[redacted]
+2026-10-09T12:00:56.223+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8602cd10-1652-4cd4-9cee-7d2c78a4aaf6 clubId= accountId= : Payment operation recovery exhausted: eventId=489cd367-3363-4093-82c4-f48d24707adb traceId=8602cd10-1652-4cd4-9cee-7d2c78a4aaf6
+2026-10-09T12:00:56.288+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2c42788d-4adb-44c5-9084-f845331514fe clubId= accountId= : Payment operation recovery exhausted: eventId=c5f216cc-99b1-4b44-b4b8-19484a54dc5f traceId=2c42788d-4adb-44c5-9084-f845331514fe
+2026-10-09T12:00:56.319+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=86fb4e9e-9e95-475d-9da5-cb440a24c746 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_437 traceId=86fb4e9e-9e95-475d-9da5-cb440a24c746
+2026-10-09T12:00:56.453+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=2e5bfecf-6f1b-4f0b-9984-9d1eee8cf131 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f5a7c020-5666-4229-a03f-129bc18c8db9 traceId=2e5bfecf-6f1b-4f0b-9984-9d1eee8cf131
+2026-10-09T12:00:56.607+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=9fdfdc2e-fecf-405f-b761-b6612f0a049b clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_444 traceId=9fdfdc2e-fecf-405f-b761-b6612f0a049b
+2026-10-09T12:00:56.676+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c7a926e0-e23d-4c40-af3c-2bcb2823b5a2 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7a734ab6-0699-462d-8189-c8fca97912f5 traceId=c7a926e0-e23d-4c40-af3c-2bcb2823b5a2
+2026-10-09T12:00:57.124+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8150bd1a-14e1-49e9-9988-d5376507db86 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_455 traceId=8150bd1a-14e1-49e9-9988-d5376507db86
+2026-10-09T12:00:57.261+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=06dea843-9eb6-47fd-8023-2ed988cc6015 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f2d24747-a518-4213-b88d-ae7c43eae88b traceId=06dea843-9eb6-47fd-8023-2ed988cc6015
+2026-10-09T12:00:57.270+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=06dea843-9eb6-47fd-8023-2ed988cc6015 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=06dea843-9eb6-47fd-8023-2ed988cc6015
+2026-10-09T12:00:57.467+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=0bbbbdcc-42dc-4163-a684-4676d2cd9baa clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_466 traceId=0bbbbdcc-42dc-4163-a684-4676d2cd9baa
+2026-10-09T12:00:57.642+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=26c38b65-fb1b-433d-a3e9-c17b93625fd0 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_470 traceId=26c38b65-fb1b-433d-a3e9-c17b93625fd0
+2026-10-09T12:00:57.876+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=951dd1a6-ced4-488b-a04e-21a292491eb2 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5853eec1-fabb-476b-a68c-4ffbb6f4a922 traceId=951dd1a6-ced4-488b-a04e-21a292491eb2
+2026-10-09T12:00:58.036+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=190629db-b7d1-40a0-a2f0-bc4ac69f1ac3 clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_481 traceId=190629db-b7d1-40a0-a2f0-bc4ac69f1ac3
+2026-10-09T12:00:58.385+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1ff67212-348a-4936-9b2d-1430e5b1b514 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_490 traceId=1ff67212-348a-4936-9b2d-1430e5b1b514
+2026-10-09T12:00:58.569+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4c2af4ca-dbb7-492c-893a-973b63df13bb clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_494 traceId=4c2af4ca-dbb7-492c-893a-973b63df13bb
+2026-10-09T12:00:59.126+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=82347801-1819-4556-a30e-e2168467a44e clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_b6c50eca-6276-4838-8dc4-8b8b6590696b traceId=82347801-1819-4556-a30e-e2168467a44e
+2026-10-09T12:00:59.320+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f2bead7f-31ed-419a-973a-36815cfb5f4b clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_954b4c7e-6536-4c16-9314-c692734efd07 traceId=f2bead7f-31ed-419a-973a-36815cfb5f4b
+2026-10-09T12:00:59.329+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1539fa10-9078-4d1d-8086-ce69f9f229fd clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=1539fa10-9078-4d1d-8086-ce69f9f229fd
+2026-10-09T12:00:59.912+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=45686574-e697-40f7-ac56-8bb814c60dbf clubId= accountId= : Payment operation recovery exhausted: eventId=3425ba68-d9c0-4db9-acac-2c3387797be2 traceId=45686574-e697-40f7-[redacted]
+2026-10-09T12:01:00.115+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3720e3b7-25f4-4725-b316-25a43769e6dd clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_fab82141-11f0-4de8-a72f-7bcd194995f3 traceId=3720e3b7-25f4-4725-b316-25a43769e6dd
+2026-10-09T12:01:00.123+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=3720e3b7-25f4-4725-b316-25a43769e6dd clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=3720e3b7-25f4-4725-b316-25a43769e6dd
+2026-10-09T12:01:00.404+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1b7eec90-6998-48a6-abb1-61a68f40b57c clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_519 traceId=1b7eec90-6998-48a6-abb1-61a68f40b57c
+2026-10-09T12:01:00.868+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=465f9b99-c361-4a04-b1c6-d0f334f69bfb clubId= accountId= : Payment operation recovery exhausted: eventId=deeefd85-6d67-4b17-9874-9c71f22f67a1 traceId=465f9b99-c361-4a04-b1c6-d0f334f69bfb
+2026-10-09T12:01:01.451+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fde57130-b220-40ff-9d06-7348129acbea clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ca86095c-f200-4342-a416-e12fb83ef153 traceId=fde57130-b220-40ff-9d06-7348129acbea
+2026-10-09T12:01:01.459+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fde57130-b220-40ff-9d06-7348129acbea clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=fde57130-b220-40ff-9d06-7348129acbea
+2026-10-09T12:01:01.626+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=895bb6bf-5551-41ef-a944-bb0a0df39d7a clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_538 traceId=895bb6bf-5551-41ef-a944-bb0a0df39d7a
+E8-T11, 80 seeds x 24 steps reached: {admin refund n=561, bill credit=50, cancel CREDIT=91, cancel CREDIT before confirmation=17, cancel REFUND=87, cancel REFUND before confirmation=23, dashboard nothing=55, dashboard refund pending=34, dashboard refund succeeded=38, disable Stripe=72, enable Stripe=34, execute (lost response)=46, execute (pending)=42, execute (refused)=32, execute (refused, not reached)=15, execute (rejected)=22, execute (rejected, not reached)=9, execute (succeeded)=35, late confirmation=84, n h later, recover=51, recover=171, redeliver canceled=5, redeliver failed=5, redeliver pending=22, redeliver succeeded=23, webhook canceled=34, webhook failed=75, webhook pending=58, webhook succeeded=129, ~ compensation postponed by an outage (E8-T11 point 1)=7, ~ credit absorbed a dashboard refund (E8-T11 point 3)=12, ~ credit grown after a failed refund (finding 1)=2, ~ dashboard refund beyond a billed credit (E8-T11 point 3)=3, ~ obligation CREDIT=26, ~ obligation CREDIT with intervention=4, ~ obligation REFUND=24, ~ obligation REFUND with intervention=26, ~ reconciled while Stripe was disabled=35}
+2026-10-09T12:01:01.889+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=369844fa-f69e-42b7-9f06-9bd803fc2c76 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=369844fa-f69e-42b7-9f06-9bd803fc2c76
+2026-10-09T12:01:02.237+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a00078c4-37ec-4b93-95d2-82ce445449b6 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=a00078c4-37ec-4b93-95d2-82ce445449b6
+2026-10-09T12:01:02.439+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=68f0496e-893e-4701-8fad-8ee3d0ce627c clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_17cbe09e-ff5d-4e42-8c86-b4653122c6f0 traceId=68f0496e-893e-4701-8fad-8ee3d0ce627c
+2026-10-09T12:01:02.646+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ed0ef84f-29a1-4520-bb0e-e3c3f5223f4c clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d993677a-8d7e-448f-[redacted]=ed0ef84f-29a1-4520-bb0e-e3c3f5223f4c
+2026-10-09T12:01:02.654+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ed0ef84f-29a1-4520-bb0e-e3c3f5223f4c clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=ed0ef84f-29a1-4520-bb0e-e3c3f5223f4c
+[ERROR] Tests run: 27, Failures: 7, Errors: 0, Skipped: 0, Time elapsed: 43.29 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[1] -- Time elapsed: 0.320 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[2] -- Time elapsed: 0.352 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[3] -- Time elapsed: 0.433 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[4] -- Time elapsed: 0.288 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[5] -- Time elapsed: 0.264 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(String, boolean)[6] -- Time elapsed: 0.281 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce(CapturedPaymentInvariantsIT.java:432)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point3_laterFailureUpdatesTheWholeOwedBalance -- Time elapsed: 0.336 s <<< FAILURE!
+java.lang.AssertionError:
+[admin-visible N-55]
+Expected size: 2 but was: 0 in:
+[]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.deliverInterventions(CapturedPaymentInvariantsIT.java:502)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point3_laterFailureUpdatesTheWholeOwedBalance(CapturedPaymentInvariantsIT.java:460)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce:432->deliverInterventions:502 [admin-visible N-55]
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point3_laterFailureUpdatesTheWholeOwedBalance:460->deliverInterventions:502 [admin-visible N-55]
+Expected size: 2 but was: 0 in:
+[]
+[ERROR] Tests run: 27, Failures: 7, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
