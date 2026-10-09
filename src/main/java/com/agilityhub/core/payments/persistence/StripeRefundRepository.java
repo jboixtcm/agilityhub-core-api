@@ -17,6 +17,11 @@ import org.springframework.stereotype.Repository;
 public class StripeRefundRepository extends TenantRepository<StripeRefundRepository.State> {
     @Document("stripe_refunds")
     public record State(@Id String id, String clubId, String intent, Money amount, String status, Instant at) implements TenantEntity { }
+    /** Provider-side reservations, including refunds created outside this application's command queue. */
+    public java.util.List<State> pending(String intent) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("intent").is(intent).and("status").is("pending")), State.class);
+    }
+    public String refundId(State state) { return state.id().substring(TenantContext.require().length() + 1); }
     public StripeRefundRepository(MongoTemplate mongo) { super(mongo, State.class); }
     private String id(String refundId) { return TenantContext.require() + ":" + refundId; }
     public State lock(String refundId) {

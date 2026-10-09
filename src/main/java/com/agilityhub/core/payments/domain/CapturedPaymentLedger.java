@@ -3,7 +3,7 @@ package com.agilityhub.core.payments.domain;
 /**
  * The money of one captured Stripe payment (S12 R-12-20, ruling E97), in minor units of its currency:
  * {@code captured} = C, {@code refunded} = S (refunds Stripe settled), {@code reserved} = R (refund commands neither settled
- * nor failed/canceled), {@code credited} = K (the CREDIT compensation, a negative {@code PendingCharge}).
+ * nor failed/canceled, plus unlinked pending dashboard refunds), {@code credited} = K (the CREDIT compensation, a negative {@code PendingCharge}).
  * <p>
  * Invariants, checked after every step of the generated sequences in {@code CapturedPaymentInvariantsIT}:
  * <ol>

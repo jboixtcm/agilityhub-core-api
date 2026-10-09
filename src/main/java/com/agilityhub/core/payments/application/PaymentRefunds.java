@@ -19,6 +19,7 @@ public class PaymentRefunds {
     @org.springframework.beans.factory.annotation.Autowired private PendingChargeRepository charges;
     @org.springframework.beans.factory.annotation.Autowired private StripeRefundRepository refundStates;
     @org.springframework.beans.factory.annotation.Autowired private BillingEvents events;
+    @org.springframework.beans.factory.annotation.Autowired private SignupCheckoutRepository checkouts;
     public record Accepted(String id, Money amount, String providerRef) { }
     /**
      * The longest retry backoff: the commands of a disabled club, and the automatic ones an outage of its Stripe access rejected
@@ -76,6 +77,7 @@ public class PaymentRefunds {
         if (retry.isPresent()) { var op = retry.get(); return new Accepted(op.id(), op.amount(), op.resultId()); }
         long pending = existing.stream().filter(op -> op.kind().startsWith("REFUND") && !settled.contains(op.resultId())
                 && !operations.refundFailed(op.id())).mapToLong(op -> op.amount().amountMinor()).sum();
+        pending += "REFUND_UPFRONT".equals(kind) ? externalReserved(upfront.findById(target).orElseThrow()) : 0;
         long remaining = paid.amountMinor() - refunded - pending;
         Money amount = requested == null ? new Money(remaining, paid.currency()) : requested;
         if (!amount.currency().equals(paid.currency())) { throw new ApiException(ErrorCode.CURRENCY_MISMATCH); }
@@ -176,7 +178,7 @@ public class PaymentRefunds {
         var credit = charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
         if (credit == null) { return; }
         long current = credit.amount().amountMinor();
-        // Re-read after refund(): this settlement no longer reserves its operation, but every other live command still does.
+        // Re-read after reconciliation: settled refunds no longer reserve, but local commands and external pending refunds do.
         long reserved = ledger(upfront.findById(payment.id()).orElseThrow()).reserved();
         long settledExcess = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
         long overshoot = settledExcess + reserved;
@@ -185,15 +187,53 @@ public class PaymentRefunds {
                 : credit.invoiceId() == null && charges.voided(credit.id(), clock.instant());
         if (absorbed) { return; }
         // A billed credit cannot shrink. Report only money already overpaid, not reservations that may still fail.
-        if (settledExcess <= 0) { return; }
+        if (settledExcess <= 0 || part <= 0) { return; }
         if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
         reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(Math.min(part, settledExcess), payment.amountPaid().currency()));
     }
-    private void reconsiderCompensation(String intent) {
+    private void reconsiderCompensation(String intent, PaymentOperation operation) {
+        if (operation != null && "REFUND_LATE".equals(operation.kind())) {
+            reconsiderLate(operation);
+            return;
+        }
         for (var payment : upfront.forIntent(intent)) {
             upfront.lock(payment.id());
-            compensateRemaining(upfront.findById(payment.id()).orElseThrow());
+            var current = upfront.findById(payment.id()).orElseThrow();
+            long refunded = current.refunds() == null ? 0 : current.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
+            absorb(current, refunded, 0);
+            compensateRemaining(current);
         }
+    }
+    /** Expired checkouts never attach their late intent to an upfront row. Resolve their own immutable command target. */
+    private void reconsiderLate(PaymentOperation operation) {
+        if (!operations.refundFailed(operation.id())) { return; }
+        var payment = upfront.findById(operation.targetId()).or(() -> checkouts.findById(operation.targetId())
+                .flatMap(session -> session.upfrontPaymentIds().stream().map(upfront::findById).flatMap(Optional::stream).findFirst()))
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_STATE));
+        upfront.lock(payment.id());
+        var owed = operation.amount();
+        if (!operations.interventionOwed(operation.id(), owed) || owed.amountMinor() <= 0) { return; }
+        if (upfront.lateInterventionWarning(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+        reportIntervention(payment, "COMPENSATION_INTERVENTION", "owed", owed);
+    }
+    /** An operation-linked checkpoint is already reserved by that operation, including a lost-response webhook. */
+    private long externalPending(String intent) {
+        if (intent == null) { return 0; }
+        return refundStates.pending(intent).stream().filter(state -> operations.forResult(refundStates.refundId(state)).isEmpty())
+                .mapToLong(state -> state.amount().amountMinor()).sum();
+    }
+    /** Split a shared checkout's external reservation in the same stable row order as settlement. */
+    private long externalReserved(UpfrontPayment payment) {
+        if (payment.stripe() == null) { return 0; }
+        long remaining = externalPending(payment.stripe().paymentIntentId());
+        if (remaining == 0) { return 0; }
+        for (var row : upfront.forIntent(payment.stripe().paymentIntentId())) {
+            long refunded = row.refunds() == null ? 0 : row.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
+            long part = Math.min(remaining, Math.max(0, upfront.captured(row.id()).orElse(row.amountPaid()).amountMinor() - refunded));
+            if (row.id().equals(payment.id())) { return part; }
+            remaining -= part;
+        }
+        return 0;
     }
     private boolean compensated(UpfrontPayment payment) {
         return operations.byKey("refund:" + payment.id()).isPresent()
@@ -216,7 +256,7 @@ public class PaymentRefunds {
         long reserved = operations.forTarget(payment.id()).stream().filter(op -> op.kind().startsWith("REFUND")
                 && !ids.contains(op.resultId()) && !operations.refundFailed(op.id())).mapToLong(op -> op.amount().amountMinor()).sum();
         return new CapturedPaymentLedger(upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor(),
-                settled.stream().mapToLong(r -> r.amount().amountMinor()).sum(), reserved, credited(payment));
+                settled.stream().mapToLong(r -> r.amount().amountMinor()).sum(), reserved + externalReserved(payment), credited(payment));
     }
     /** A booking has one upfront capture: the late path uses the same payment key as BookingCancelled. */
     public void lateBooking(String paymentId, String reference, Money amount) {
@@ -262,7 +302,7 @@ public class PaymentRefunds {
             if (!operations.submissionUncertain(id)) {
                 operations.providerStatus(id, "failed");
                 // A rejected refund can free money a cancellation still owes; a refused compensation itself becomes an intervention.
-                reconsiderCompensation(op.providerRef());
+                reconsiderCompensation(op.providerRef(), op);
             }
         }, failure -> outage(op, failure), DEFERRAL);
     }
@@ -278,14 +318,15 @@ public class PaymentRefunds {
             if (Set.of("failed", "canceled").contains(previous.status()) || previous.status().equals(status)
                     || "succeeded".equals(previous.status()) && !Set.of("failed", "canceled").contains(status)) { return false; }
         }
+        // The current checkpoint must be visible to ledger reads in settlement and compensation in this transaction.
+        refundStates.outcome(refundId, intent, amount, status, at);
+        if (operation != null) { operations.refundStatus(operation.id(), status); }
         if ("succeeded".equals(status)) { settled(intent, refundId, amount, at, reason, operationId); }
         else if (Set.of("failed", "canceled").contains(status)) {
             reverse(intent, refundId, operation, status);
             retries.warnRefund(refundId, status);
         }
-        refundStates.outcome(refundId, intent, amount, status, at);
-        if (operation != null) { operations.refundStatus(operation.id(), status); }
-        if (Set.of("succeeded", "failed", "canceled").contains(status)) { reconsiderCompensation(intent); }
+        reconsiderCompensation(intent, operation);
         return true;
     }
     private String entityType(PaymentOperation operation) {

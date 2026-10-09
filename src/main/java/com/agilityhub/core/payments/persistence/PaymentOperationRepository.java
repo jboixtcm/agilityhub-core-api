@@ -64,6 +64,11 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id)).addCriteria(new Criteria().orOperator(
                 Criteria.where("refundStatus").in("failed", "canceled"), Criteria.where("refundStatus").is(null).and("providerStatus").in("failed", "canceled"))), PaymentOperation.class);
     }
+    /** A late capture belongs to this operation, independently of any newer payment on the same checkout rows. */
+    public boolean interventionOwed(String id, com.agilityhub.core.shared.domain.Money amount) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("interventionOwed").ne(amount)),
+                new Update().set("interventionOwed", amount), PaymentOperation.class).getModifiedCount() == 1;
+    }
     public boolean reverseRefund(String id, String refundId) {
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund.providerRef").is(refundId)),
                 new Update().unset("refund"), PaymentOperation.class).getModifiedCount() == 1;

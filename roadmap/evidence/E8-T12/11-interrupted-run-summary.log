@@ -1,0 +1,4 @@
+Run 06 ended with timeout exit 124 after the inherited 45-minute host-lock wait; these are incomplete reports.
+surefire: {'tests': 3814, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe: {'tests': 768, 'failures': 0, 'errors': 0, 'skipped': 0}
+This attempt's integration-test fork PID 79715 had already exited.

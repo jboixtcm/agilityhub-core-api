@@ -42,10 +42,17 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
         if (row.getString("creditCompensationReason") != null) { return java.util.Optional.of(new Compensation("CREDIT", row.getString("creditCompensationReason"), instant)); }
         return java.util.Optional.empty();
     }
-    /** True only for the call that stops automatic compensation, so the warning is logged once. */
+    /** Stop automatic compensation once; warn only if neither this capture nor a late one has already warned. */
     public boolean intervention(String id, java.time.Instant at) {
-        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionAt").is(null)),
-                new Update().set("compensationInterventionAt", at), UpfrontPayment.class).getModifiedCount() == 1;
+        var previous = mongo.findAndModify(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionAt").is(null)),
+                new Update().set("compensationInterventionAt", at), org.bson.Document.class, "upfront_payments");
+        return previous != null && previous.get("lateRefundInterventionAt") == null;
+    }
+    /** A late capture can need an admin without stopping compensation of a different, valid capture on this row. */
+    public boolean lateInterventionWarning(String id, java.time.Instant at) {
+        var previous = mongo.findAndModify(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("lateRefundInterventionAt").is(null)),
+                new Update().set("lateRefundInterventionAt", at), org.bson.Document.class, "upfront_payments");
+        return previous != null && previous.get("compensationInterventionAt") == null;
     }
     /** Under the payment lock: remember the latest total, including zero, so a duplicate cannot notify it again. */
     public boolean interventionOwed(String id, com.agilityhub.core.shared.domain.Money amount) {
