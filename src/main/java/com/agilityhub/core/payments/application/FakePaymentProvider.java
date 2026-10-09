@@ -36,7 +36,10 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     private String refundStatus = "succeeded";
     public void refundStatus(String status) { refundStatus = status; }
     public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
-    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; }
+    private final Queue<com.agilityhub.core.shared.domain.ErrorCode> refundRejections = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    /** The next refund call is definitively rejected before any money moves, as Stripe's 4xx answers are. */
+    public void rejectRefund(com.agilityhub.core.shared.domain.ErrorCode code) { refundRejections.add(code); }
+    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; refundRejections.clear(); }
     /** Model Stripe pruning keys after 24 hours, including a lost response after the remote effect. */
     private Object moneyResult(String key, java.util.function.Supplier<Object> create) {
         return results.compute(key, (ignored, previous) -> {
@@ -68,6 +71,8 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     }
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
         String club = TenantContext.require(), key = club + ":refund:" + idempotencyKey;
+        var rejection = results.containsKey(key) ? null : refundRejections.poll(); // Stripe replays a key that already moved money.
+        if (rejection != null) { throw new PaymentNotSubmitted(rejection); }
         var request = new LinkedHashMap<String, Object>(Map.of("chargeId", chargeId, "amount", amount, "reason", reason));
         if (operationId != null) { request.put("operationId", operationId); }
         var call = new Call(club, "refund", idempotencyKey, request);

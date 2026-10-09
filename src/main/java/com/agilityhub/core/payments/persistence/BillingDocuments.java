@@ -409,6 +409,11 @@ public final class BillingDocuments {
             return mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("invoiceId").in(List.copyOf(invoiceIds))),
                     new Update().set("invoiceId", null), PendingCharge.class).getModifiedCount();
         }
+        /** R-12-20: grows an unbilled CREDIT compensation from {@code expected} (false once billed, voided or changed meanwhile). */
+        public boolean credit(String id, long expected, long amountMinor) {
+            return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("invoiceId").is(null).and("voidedAt").is(null)
+                    .and("amount.amountMinor").is(expected)), new Update().set("amount.amountMinor", amountMinor), PendingCharge.class).getModifiedCount() == 1;
+        }
         /** S10 R-10-07: voided (`at`) or reinstated (null) before billing; false once billed. */
         public boolean voided(String id, java.time.Instant at) {
             return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("invoiceId").is(null)),

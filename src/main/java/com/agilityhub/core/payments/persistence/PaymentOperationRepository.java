@@ -68,6 +68,13 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refund.providerRef").is(refundId)),
                 new Update().unset("refund"), PaymentOperation.class).getModifiedCount() == 1;
     }
+    /** A disabled provider postpones an unclaimed command without spending its attempts; the delay keeps the pending set fair. */
+    public void defer(String id, java.time.Instant until) {
+        var now = clock.instant();
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null))
+                .addCriteria(new Criteria().orOperator(Criteria.where("claimUntil").is(null), Criteria.where("claimUntil").lte(now))),
+                new Update().set("nextAttemptAt", until), PaymentOperation.class);
+    }
     public boolean submissionUncertain(String id) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("submissionUncertain").ne(false)), PaymentOperation.class);
     }

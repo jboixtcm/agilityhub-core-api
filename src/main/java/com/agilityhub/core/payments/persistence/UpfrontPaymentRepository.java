@@ -23,14 +23,29 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
     public void lock(String id) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().inc("paymentSequence", 1), UpfrontPayment.class);
     }
-    /** Retain the cancellation obligation even when another pending refund reserves the entire capture. */
-    public void refundCompensation(String id, String reason) {
-        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refundCompensationReason").is(null)),
-                new Update().set("refundCompensationReason", reason), UpfrontPayment.class);
+    /**
+     * R-12-20's cancellation obligation, retained even when other refunds reserve the entire capture: `REFUND` or `CREDIT`, and
+     * `interventionAt` once automatic compensation has stopped and an admin must repay what is still owed (ruling E97).
+     */
+    public record Compensation(String policy, String reason, java.time.Instant interventionAt) { }
+    /** One obligation per payment: the first recorded policy wins. */
+    public void compensation(String id, String policy, String reason) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refundCompensationReason").is(null).and("creditCompensationReason").is(null)),
+                new Update().set("REFUND".equals(policy) ? "refundCompensationReason" : "creditCompensationReason", reason), UpfrontPayment.class);
     }
-    public java.util.Optional<String> refundCompensation(String id) {
+    public java.util.Optional<Compensation> compensation(String id) {
         var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id)), org.bson.Document.class, "upfront_payments");
-        return row == null ? java.util.Optional.empty() : java.util.Optional.ofNullable(row.getString("refundCompensationReason"));
+        if (row == null) { return java.util.Optional.empty(); }
+        var at = row.getDate("compensationInterventionAt");
+        var instant = at == null ? null : at.toInstant();
+        if (row.getString("refundCompensationReason") != null) { return java.util.Optional.of(new Compensation("REFUND", row.getString("refundCompensationReason"), instant)); }
+        if (row.getString("creditCompensationReason") != null) { return java.util.Optional.of(new Compensation("CREDIT", row.getString("creditCompensationReason"), instant)); }
+        return java.util.Optional.empty();
+    }
+    /** True only for the call that stops automatic compensation, so the warning is logged once. */
+    public boolean intervention(String id, java.time.Instant at) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionAt").is(null)),
+                new Update().set("compensationInterventionAt", at), UpfrontPayment.class).getModifiedCount() == 1;
     }
     public List<UpfrontPayment> forIntent(String intent) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("stripe.paymentIntentId").is(intent)).with(org.springframework.data.domain.Sort.by("_id")), UpfrontPayment.class);

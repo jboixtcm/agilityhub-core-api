@@ -1,0 +1,6 @@
+completed	success	executor: E9-T01 awaiting_verification · claude:claude-opus-5-5	CI	main	push	37862002338	31m13s	2026-10-08T23:54:35Z
+completed	failure	executor: E8-T09 changes_requested, E9-T01 in_progress · codex:gpt-6-…	CI	main	push	37843363080	2m33s	2026-10-08T20:58:02Z
+completed	cancelled	executor: E8-T10 awaiting_verification · codex:gpt-6-astra	CI	main	push	37836210606	31m50s	2026-10-08T20:00:38Z
+completed	cancelled	executor: E11-T06 blocked · codex:gpt-6-astra	CI	main	push	37835233108	9m24s	2026-10-08T19:52:45Z
+completed	cancelled	executor: E11-T06 ready, E8-T09 awaiting_verification, E8-T10 changes…	CI	main	push	37832423792	22m55s	2026-10-08T19:30:10Z
+completed	failure	executor: E8-T10 awaiting_verification · codex:gpt-6-astra	CI	main	push	37825075191	30m21s	2026-10-08T18:32:27Z

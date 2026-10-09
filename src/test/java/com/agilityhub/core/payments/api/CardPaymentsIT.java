@@ -1413,8 +1413,12 @@ class CardPaymentsIT extends BillingItSupport {
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
             }
-            // Repair and explicit cancellation retry cover the remainder without changing an existing payload/key.
+            // Round 5 (ruling E97): the rejected compensation is terminal, so a redelivered cancellation adds nothing and the
+            // payment waits for an admin, who repays the remainder by hand once the configuration is repaired.
             refunds.compensate(payment, "REFUND", false);
+            assertThat(operations.forTarget(payment)).hasSize(3);
+            assertThat(paymentRow(payment).get("compensationInterventionAt")).isNotNull();
+            assertThat(refunds.upfront(payment, null, "Manual repayment", "r4-manual").amount()).isEqualTo(new Money(1000, "EUR"));
             assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id()))
                     .mapToLong(op -> op.amount().amountMinor()).sum()).isEqualTo(1200);
         }

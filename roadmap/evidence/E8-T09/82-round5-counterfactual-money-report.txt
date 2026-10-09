@@ -1,0 +1,17 @@
+-------------------------------------------------------------------------------
+Test set: com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 17.42 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants -- Time elapsed: 3.236 s <<< FAILURE!
+java.lang.AssertionError: seed 3 after [admin refund 211, admin refund 1200, execute (succeeded), cancel CREDIT]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants(CapturedPaymentInvariantsIT.java:101)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.opentest4j.AssertionFailedError: [accepted 287 of free 0] 
+Expecting value to be true but was false
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.adminRefund(CapturedPaymentInvariantsIT.java:248)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.step(CapturedPaymentInvariantsIT.java:223)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants(CapturedPaymentInvariantsIT.java:83)
+	... 3 more
+

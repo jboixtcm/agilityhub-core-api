@@ -1,0 +1,20 @@
+surefire: tests=3761, failures=0, errors=0, skipped=0
+failsafe: tests=1790, failures=0, errors=0, skipped=0
+
+E8-T09 round 5 test classes (added or changed):
+com.agilityhub.core.payments.domain.CapturedPaymentLedgerTest: tests=3, failures=0, errors=0, skipped=0
+  T_12_17_round5_generatedLedgersConserveTheCapture 0.001s
+  T_12_17_round5_anOvercommittedOrNegativeLedgerIsInconsistentAndOwesNothing 0.0s
+  T_12_17_round5_freeIsWhatIsNeitherRefundedReservedNorCredited 0.0s
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=7, failures=0, errors=0, skipped=0
+  T_12_17_round5_finding3_acceptedFailureReconcilesWhileStripeIsDisabled 0.213s
+  T_12_17_round5_finding2_failedCompensationIsTerminalNotReplaced(String)[1] 0.166s
+  T_12_17_round5_finding2_failedCompensationIsTerminalNotReplaced(String)[2] 0.155s
+  T_12_17_round5_finding2_replacementsAreBoundedAcrossTheObligation 0.232s
+  T_12_17_round5_generatedSequencesKeepTheLedgerInvariants 20.947s
+  T_12_17_round5_finding1_failedPartialRefundCompletesTheCreditOnce(boolean)[1] 0.216s
+  T_12_17_round5_finding1_failedPartialRefundCompletesTheCreditOnce(boolean)[2] 0.226s
+com.agilityhub.core.payments.api.CardPaymentsIT: tests=119, failures=0, errors=0, skipped=0
+  T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement 0.27s
+
+Generator reach: E8-T09 round 5, 80 seeds x 24 steps reached: {admin refund n=616, bill credit=56, cancel CREDIT=94, cancel CREDIT before confirmation=22, cancel REFUND=97, cancel REFUND before confirmation=23, disable Stripe=63, enable Stripe=31, execute (lost response)=45, execute (pending)=46, execute (rejected)=56, execute (succeeded)=61, late confirmation=80, n h later, recover=56, recover=161, redeliver canceled=8, redeliver failed=8, redeliver pending=14, redeliver succeeded=28, webhook canceled=40, webhook failed=101, webhook pending=62, webhook succeeded=152, ~ credit grown after a failed refund (finding 1)=5, ~ obligation CREDIT=20, ~ obligation CREDIT with intervention=4, ~ obligation REFUND=24, ~ obligation REFUND with intervention=28, ~ obligation none=4, ~ reconciled while Stripe was disabled=21}

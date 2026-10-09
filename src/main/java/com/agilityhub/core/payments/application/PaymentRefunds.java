@@ -19,6 +19,8 @@ public class PaymentRefunds {
     @org.springframework.beans.factory.annotation.Autowired private PendingChargeRepository charges;
     @org.springframework.beans.factory.annotation.Autowired private StripeRefundRepository refundStates;
     public record Accepted(String id, Money amount, String providerRef) { }
+    /** The longest retry backoff: a disabled club's commands stay out of the shared pending page meanwhile. */
+    static final java.time.Duration DISABLED_DEFERRAL = java.time.Duration.ofMinutes(5);
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final UpfrontPaymentRepository upfront;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingTransactions tx;
     private final Clock clock; private final PaymentAudits audit;
@@ -55,8 +57,10 @@ public class PaymentRefunds {
             if (!"PAID".equals(payment.status()) || payment.stripe() == null) { throw new ApiException(ErrorCode.INVALID_STATE); }
             upfront.lock(id);
             var refunds = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
-            return reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), upfront.captured(id).orElse(payment.amountPaid()), amount, reason, key,
-                    refunds.stream().map(UpfrontPayment.Refund::providerRef).toList(), refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum());
+            // Money a CREDIT compensation already gave back is not refundable again (ledger invariant 1).
+            var captured = upfront.captured(id).orElse(payment.amountPaid());
+            return reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), new Money(captured.amountMinor() - credited(payment), captured.currency()),
+                    amount, reason, key, refunds.stream().map(UpfrontPayment.Refund::providerRef).toList(), refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum());
         });
     }
     private Accepted reserve(String kind, String target, String reference, Money paid, Money requested, String reason, String key,
@@ -83,32 +87,55 @@ public class PaymentRefunds {
         operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_LATE", sessionId, reference,
                 amount, key, "LATE_COMPLETION", null, null, clock.instant(), null));
     }
-    /** Both cancellation consumers serialize on the payment before deciding refund versus credit. */
+    /** Both cancellation consumers serialize on the payment, record its one obligation and let the ledger say what is still owed. */
     public void compensate(String paymentId, String policy, boolean beforeConfirmation) {
         tx.run(() -> {
             upfront.lock(paymentId);
             var payment = upfront.findById(paymentId).orElseThrow();
-            if (payment.bookingId() != null && charges.forBooking(payment.bookingId()).isPresent()) { return null; }
-            if (beforeConfirmation || "REFUND".equals(policy)) {
-                upfront.refundCompensation(paymentId, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED");
-                compensateRemaining(payment);
-            } else if ("CREDIT".equals(policy) && !compensated(payment)) {
-                Money captured = new Money(remaining(payment), payment.amountPaid().currency());
-                charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
-                        new Money(-captured.amountMinor(), captured.currency()), payment.concept(), clock.instant(), null, null));
-            }
+            String chosen = beforeConfirmation ? "REFUND" : policy;
+            if (consumption(payment) || !Set.of("REFUND", "CREDIT").contains(chosen)) { return null; }
+            upfront.compensation(paymentId, chosen, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED");
+            compensateRemaining(payment);
             return null;
         });
     }
-    /** Called under the payment lock, after the changed refund status is visible in the same transaction. */
+    /**
+     * Drives the obligation's due amount (ledger D) to zero, under the payment lock and after the changed refund status is visible
+     * in the same transaction. It never calls the provider, so a Stripe reconciliation always commits (ledger invariant 3); the
+     * refund command waits for the provider in {@link #execute}. A compensation that cannot proceed becomes an intervention.
+     */
     private void compensateRemaining(UpfrontPayment payment) {
         String key = "refund:" + payment.id();
-        var reason = upfront.refundCompensation(payment.id())
-                .or(() -> operations.byKey(key).map(PaymentOperation::reason));
-        if (reason.isEmpty() || remaining(payment) <= 0) { return; }
-        long commands = operations.forTarget(payment.id()).stream()
-                .filter(op -> op.key().equals(key) || op.key().startsWith(key + ":")).count();
-        upfront(payment.id(), null, reason.get(), commands == 0 ? key : key + ":" + commands);
+        var obligation = upfront.compensation(payment.id())
+                .or(() -> operations.byKey(key).map(op -> new UpfrontPaymentRepository.Compensation("REFUND", op.reason(), null)));
+        if (obligation.isEmpty() || obligation.get().interventionAt() != null || consumption(payment)) { return; }
+        long due = ledger(payment).due();
+        if (due <= 0) { return; }
+        if ("CREDIT".equals(obligation.get().policy())) { credit(payment, due); return; }
+        var commands = operations.forTarget(payment.id()).stream().filter(op -> op.key().equals(key) || op.key().startsWith(key + ":")).toList();
+        // Bounded across the obligation (E8-T04 round 2, point 5): a failed compensation refund is terminal, never replaced.
+        if (payment.stripe() == null || commands.size() >= retries.maxAttempts() || commands.stream().anyMatch(op -> operations.refundFailed(op.id()))) {
+            intervene(payment);
+            return;
+        }
+        operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_UPFRONT", payment.id(),
+                payment.stripe().paymentIntentId(), new Money(due, payment.amountPaid().currency()), commands.isEmpty() ? key : key + ":" + commands.size(),
+                obligation.get().reason(), BillingEvents.actor(), null, clock.instant(), null));
+    }
+    /** One credit row per booking: written once, grown while unbilled when a failed refund frees money; a billed one needs an admin. */
+    private void credit(UpfrontPayment payment, long due) {
+        if (payment.bookingId() == null) { intervene(payment); return; }
+        var existing = charges.forBooking(payment.bookingId());
+        if (existing.isEmpty()) {
+            charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
+                    new Money(-due, payment.amountPaid().currency()), payment.concept(), clock.instant(), null, null));
+            return;
+        }
+        long current = existing.get().amount().amountMinor();
+        if (!charges.credit(existing.get().id(), current, current - due)) { intervene(payment); }
+    }
+    private void intervene(UpfrontPayment payment) {
+        if (upfront.intervention(payment.id(), clock.instant())) { retries.warn("Refund compensation", payment.id()); }
     }
     private void reconsiderCompensation(String intent) {
         for (var payment : upfront.forIntent(intent)) {
@@ -118,16 +145,26 @@ public class PaymentRefunds {
     }
     private boolean compensated(UpfrontPayment payment) {
         return operations.byKey("refund:" + payment.id()).isPresent()
-                || Set.of("PAID", "REFUNDED").contains(payment.status()) && remaining(payment) <= 0
+                || Set.of("PAID", "REFUNDED").contains(payment.status()) && ledger(payment).free() <= 0
                 || payment.bookingId() != null && charges.forBooking(payment.bookingId()).isPresent();
     }
-    private long remaining(UpfrontPayment payment) {
+    /** A non-negative charge on the booking is a consumption charge (R-12-25), never a compensation. */
+    private boolean consumption(UpfrontPayment payment) {
+        return payment.bookingId() != null && charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() >= 0).isPresent();
+    }
+    private long credited(UpfrontPayment payment) {
+        if (payment.bookingId() == null) { return 0; }
+        return charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null)
+                .map(c -> -c.amount().amountMinor()).orElse(0L);
+    }
+    /** The ledger of {@link CapturedPaymentLedger}; a settled late-completion command still counts as reserved, as its money left. */
+    private CapturedPaymentLedger ledger(UpfrontPayment payment) {
         var settled = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
         var ids = settled.stream().map(UpfrontPayment.Refund::providerRef).toList();
-        long pending = operations.forTarget(payment.id()).stream().filter(op -> op.kind().startsWith("REFUND")
+        long reserved = operations.forTarget(payment.id()).stream().filter(op -> op.kind().startsWith("REFUND")
                 && !ids.contains(op.resultId()) && !operations.refundFailed(op.id())).mapToLong(op -> op.amount().amountMinor()).sum();
-        return upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor()
-                - settled.stream().mapToLong(r -> r.amount().amountMinor()).sum() - pending;
+        return new CapturedPaymentLedger(upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor(),
+                settled.stream().mapToLong(r -> r.amount().amountMinor()).sum(), reserved, credited(payment));
     }
     /** A booking has one upfront capture: the late path uses the same payment key as BookingCancelled. */
     public void lateBooking(String paymentId, String reference, Money amount) {
@@ -153,6 +190,11 @@ public class PaymentRefunds {
     public void execute(String id) {
         var op = operations.findById(id).orElseThrow();
         if (op.resultId() != null) { return; }
+        if (!provider.supports(PaymentProvider.Capability.REFUND)) {
+            // A disabled Stripe postpones the command, keeping its reservation and its attempts (ledger invariant 3).
+            tx.run(() -> { operations.defer(id, clock.instant().plus(DISABLED_DEFERRAL)); return null; });
+            return;
+        }
         retries.execute(op, execution -> {
             var result = provider.refund(op.providerRef(), op.amount(), op.key(), op.reason(), op.id());
             tx.run(() -> {
@@ -167,12 +209,8 @@ public class PaymentRefunds {
             // Proven non-execution releases the reservation. Earlier uncertain outcomes still await Stripe.
             if (!operations.submissionUncertain(id)) {
                 operations.providerStatus(id, "failed");
-                // A rejected administrative refund can free money owed by a previous cancellation.
-                // Do not bypass bounded retries by endlessly replacing a rejected compensation itself.
-                String compensationKey = "refund:" + op.targetId();
-                if (!op.key().equals(compensationKey) && !op.key().startsWith(compensationKey + ":")) {
-                    reconsiderCompensation(op.providerRef());
-                }
+                // A rejected refund can free money a cancellation still owes; a rejected compensation itself becomes an intervention.
+                reconsiderCompensation(op.providerRef());
             }
         });
     }
