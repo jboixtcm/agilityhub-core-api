@@ -64,3 +64,5 @@ __pycache__/
 .local/e11-buildx/
 .local/e11-openapi-committed.json
 .local/e11-broken.Dockerfile
+# E11-T06 scratch: staged copies of tests, report drafts, the PIT classpath.
+.local/e11-t06-*

@@ -1,0 +1,10 @@
+test_E11_T06_batches_merge_and_a_mutation_reported_twice_is_refused (__main__.MutationGateTest.test_E11_T06_batches_merge_and_a_mutation_reported_twice_is_refused) ... ok
+test_E11_T06_missing_package_never_passes (__main__.MutationGateTest.test_E11_T06_missing_package_never_passes) ... ok
+test_E11_T06_pit_selects_every_critical_package_without_class_exclusions (__main__.MutationGateTest.test_E11_T06_pit_selects_every_critical_package_without_class_exclusions) ... ok
+test_E11_T06_two_mutants_of_one_line_differ_by_their_index (__main__.MutationGateTest.test_E11_T06_two_mutants_of_one_line_differ_by_their_index) ... ok
+test_E11_T06_uncovered_mutants_stay_in_the_denominator (__main__.MutationGateTest.test_E11_T06_uncovered_mutants_stay_in_the_denominator) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.008s
+
+OK

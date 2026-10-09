@@ -1,0 +1,14 @@
+heavy.sh: 07:48 waiting for the host lock, held by: 06:29 agilityhub-core-api-c: ./mvnw -q -Pmutation -DtargetClasses=com.agilityhub.core.clubs.bookings.api.*,com.agilityhub.core.clubs.bookings.domain.*,com.agilityhub.core.clubs.bookings.persistence.*,com.agilityhub.core.clubs.bookings.application.jobs.*,com.agilityhub.core.clubs.bookings.application.ports.* -DtargetTests=com.agilityhub.core.cli.*,com.agilityhub.core.clubs.*,com.agilityhub.core.configuration.*,com.agilityhub.core.courses.*,com.agilityhub.core.identity.*,com.agilityhub.core.migration.*,com.agilityhub.core.payments.*,com.agilityhub.core.platform.*,com.agilityhub.core.shared.api.*,com.agilityhub.core.shared.application.*,com.agilityhub.core.shared.persistence.*,com.agilityhub.core.shared.domain.ErrorCatalogContractTest,com.agilityhub.core.shared.domain.LocalizedTextTest,com.agilityhub.core.shared.domain.MoneyTest,com.agilityhub.core.support.* -DmutationUnitSize=10 test-compile org.pitest:pitest-maven:mutationCoverage
+heavy.sh: 08:25 got the host lock after 36 min 33 s
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/configuration/SentryCaptureTest.java:[103,13] unreported exception org.springframework.web.context.request.async.AsyncRequestNotUsableException; must be caught or declared to be thrown
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/configuration/SentryCaptureTest.java:[103,13] unreported exception org.springframework.web.context.request.async.AsyncRequestNotUsableException; must be caught or declared to be thrown
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

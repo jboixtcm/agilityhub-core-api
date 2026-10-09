@@ -126,7 +126,7 @@ def main():
         def docker(*arguments, **kwargs):
             return run(compose + list(arguments), env=environment, **kwargs)
 
-        def script(name, *arguments, expected=0, wrong_writer=False):
+        def script(name, *arguments, expected=0, wrong_writer=False, failure=None):
             selected = writer_envfile if name == 'backup-mongo' or wrong_writer else recovery_envfile
             invocation_env = dict(environment, DEPLOY_ENV_FILE=str(selected))
             result = run([str(ROOT / 'bin' / name), *arguments], env=invocation_env, check=False, text=True)
@@ -136,6 +136,8 @@ def main():
             print(result.stderr.strip(), flush=True)
             if result.returncode != expected:
                 raise RuntimeError(f'{name}: expected exit {expected}')
+            if failure is not None and failure not in result.stderr:
+                raise RuntimeError(f'{name}: expected the failure {failure!r}')
             return result.stdout
 
         def helper(code):
@@ -382,7 +384,8 @@ def main():
             print('PASS ops memory is 1 GiB and its anonymous work volume disappears with the container', flush=True)
             output = script('backup-mongo')
             key = re.search(r'BACKUP_OK key=(\S+)', output).group(1)
-            script('restore-mongo', '--verify', wrong_writer=True, expected=1)
+            # The writer may list and put, never read: the S3 client error is the denied HeadObject/GetObject.
+            script('restore-mongo', '--verify', wrong_writer=True, expected=1, failure='FAILED: ClientError')
             print('PASS writer environment cannot verify a backup (GetObject denied)', flush=True)
             script('restore-mongo', '--verify')
             script('restore-mongo', '--verify', key)

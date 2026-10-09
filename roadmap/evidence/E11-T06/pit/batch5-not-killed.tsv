@@ -1,0 +1,68 @@
+status	file	class	method	line	mutator	description
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	color	125	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	color	125	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/ReceiptPdf::color
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	49	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	50	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	51	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	52	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	61	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	62	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	64	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	64	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	67	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	67	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	68	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	71	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	79	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	88	MathMutator	Replaced float subtraction with addition
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	58	NegateConditionalsMutator	negated conditional
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	67	NegateConditionalsMutator	negated conditional
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	85	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	85	NegateConditionalsMutator	negated conditional
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	88	NegateConditionalsMutator	negated conditional
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	48	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setNonStrokingColor
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	49	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::addRect
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	49	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::fill
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	62	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/ReceiptPdf::write
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	67	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/ReceiptPdf::write
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	render	88	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/ReceiptPdf::write
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	wrap	110	ConditionalsBoundaryMutator	changed conditional boundary
+NO_COVERAGE	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	wrap	110	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	wrap	110	MathMutator	Replaced float multiplication with division
+NO_COVERAGE	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	wrap	110	NegateConditionalsMutator	negated conditional
+SURVIVED	ReceiptPdf.java	com.agilityhub.core.payments.application.ReceiptPdf	write	103	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setNonStrokingColor
+NO_COVERAGE	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	handle	90	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	handle	92	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	handle	92	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	handle	92	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	hash	166	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/payments/application/StripeWebhooks::hash
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	invalidate	132	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/payments/application/StripeWebhooks::invalidate
+NO_COVERAGE	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$handle$2	97	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$2
+NO_COVERAGE	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$handle$3	108	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$3
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$process$0	58	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/persistence/StripeInbox::lock
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$process$0	65	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/BillingEvents::publish
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$process$1	75	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$process$1	76	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	lambda$process$1	76	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/BillingEvents::publish
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	safe	143	NegateConditionalsMutator	negated conditional
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	safe	151	NegateConditionalsMutator	negated conditional
+SURVIVED	PendingChargeService.java	com.agilityhub.core.payments.application.PendingChargeService	apply	67	EmptyObjectReturnValsMutator	replaced return value with Optional.empty for com/agilityhub/core/payments/application/PendingChargeService::apply
+SURVIVED	PendingChargeService.java	com.agilityhub.core.payments.application.PendingChargeService	cancellation	54	EmptyObjectReturnValsMutator	replaced return value with Optional.empty for com/agilityhub/core/payments/application/PendingChargeService::cancellation
+SURVIVED	PendingChargeService.java	com.agilityhub.core.payments.application.PendingChargeService	existing	90	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/PendingChargeService::existing
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	allocate	103	NegateConditionalsMutator	negated conditional
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	allocate	103	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/UpfrontPayments::opened
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	checkout	223	NegateConditionalsMutator	negated conditional
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	checkout	222	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/UpfrontPayments::opened
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	lambda$owed$4	65	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/payments/application/UpfrontPayments::lambda$owed$4
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	lambda$replace$6	158	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/payments/application/UpfrontPayments::lambda$replace$6
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	lambda$selected$3	56	EmptyObjectReturnValsMutator	replaced Integer return value with 0 for com/agilityhub/core/payments/application/UpfrontPayments::lambda$selected$3
+SURVIVED	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	opened	42	VoidMethodCallMutator	removed call to com/agilityhub/core/payments/application/ports/PackBalanceOpeningPort::open
+NO_COVERAGE	UpfrontPayments.java	com.agilityhub.core.payments.application.UpfrontPayments	replacement	141	MathMutator	Replaced long addition with subtraction
+NO_COVERAGE	StripeWebhookSignatures.java	com.agilityhub.core.payments.application.StripeWebhookSignatures	secret	58	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/payments/application/StripeWebhookSignatures::secret
+SURVIVED	StripeWebhookSignatures.java	com.agilityhub.core.payments.application.StripeWebhookSignatures	valid	76	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	RemittanceService.java	com.agilityhub.core.payments.application.RemittanceService	lambda$download$1	66	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/payments/application/RemittanceService::lambda$download$1
+NO_COVERAGE	RemittanceService.java	com.agilityhub.core.payments.application.RemittanceService	lambda$download$2	66	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/RemittanceService::lambda$download$2
+NO_COVERAGE	RemittanceService.java	com.agilityhub.core.payments.application.RemittanceService	lambda$get$0	50	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/RemittanceService::lambda$get$0
+SURVIVED	RemittanceLists.java	com.agilityhub.core.payments.application.RemittanceLists	keys	29	EmptyObjectReturnValsMutator	replaced return value with Collections.emptySet for com/agilityhub/core/payments/application/RemittanceLists::keys
+NO_COVERAGE	RemittanceLists.java	com.agilityhub.core.payments.application.RemittanceLists	lambda$dataset$0	40	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/payments/application/RemittanceLists::lambda$dataset$0
+SURVIVED	StripeWebhooks.java	com.agilityhub.core.payments.application.StripeWebhooks	text	135	NegateConditionalsMutator	negated conditional

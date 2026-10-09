@@ -256,7 +256,7 @@ class RemittancesIT extends BillingItSupport {
     }
     /** The remittance files the local store holds for the club (the test profile's `exports.local-directory`). */
     static Set<Path> storedFiles() throws Exception {
-        var root = Path.of("target/test-exports/remittances/" + CLUB);
+        var root = com.agilityhub.core.support.AbstractIntegrationTest.EXPORTS.resolve("remittances/" + CLUB);
         if (!Files.exists(root)) { return Set.of(); }
         try (var walk = Files.walk(root)) { return walk.filter(Files::isRegularFile).collect(java.util.stream.Collectors.toSet()); }
     }

@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/pit/killers.py <test method> roadmap/evidence/E11-T06/pit/final-batch{1..7}-mutations.xml (once per suspect method, appended) > roadmap/evidence/E11-T06/71-pit-suspect-killers.log 2>&1

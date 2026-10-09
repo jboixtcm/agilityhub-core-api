@@ -92,6 +92,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         if (path.startsWith("/webhooks/")) { return Route.WEBHOOK; }
         if (path.equals("/api/v1/auth/handoff")) { return Route.HANDOFF; }
         if (path.matches("/api/v1/attachments/(uploads|files)/[^/]+")
+                || path.matches("/api/v1/remittances/files/[^/]+/[^/]+")
                 || path.equals("/api/v1/signup/uploads") || path.equals("/api/v1/signup/files")
                 || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics")) { return Route.SIGNED_FILE; }
         if (method.equals("POST")) {

@@ -1,0 +1,91 @@
+
+=== Java regressions with steps 1, 2, 3 and 7 reverted: ./mvnw -q -Dsurefire.failIfNoSpecifiedTests=false -Dtest=SentryCaptureTest#T_14_30_handled500ReachesTransportOnceWithResponseTraceAndNoPrivateData*,LogPrivacyTest#T_14_30_phoneFormatsAreExcludedFromConsoleAndSentry*,RateLimitIT#T_01_15_unicodeEquivalentAccountsShareQuotaAcrossIps*,AnonymousRateLimitsTest#T_12_15_E11_paymentRoutesHaveIndependentQuotas* test
+exit 1
+FAILED: SentryCaptureTest.T_14_30_handled500ReachesTransportOnceWithResponseTraceAndNoPrivateData(String, String)[1] 
+FAILED: SentryCaptureTest.T_14_30_handled500ReachesTransportOnceWithResponseTraceAndNoPrivateData(String, String)[2] 
+FAILED: LogPrivacyTest.T_14_30_phoneFormatsAreExcludedFromConsoleAndSentry(String)[1] 
+FAILED: LogPrivacyTest.T_14_30_phoneFormatsAreExcludedFromConsoleAndSentry(String)[2] 
+passed: LogPrivacyTest.T_14_30_phoneFormatsAreExcludedFromConsoleAndSentry(String)[3] 
+FAILED: RateLimitIT.T_01_15_unicodeEquivalentAccountsShareQuotaAcrossIps Status expected:<429> but was:<400>
+FAILED: AnonymousRateLimitsTest.T_12_15_E11_paymentRoutesHaveIndependentQuotas(String, String, String, String)[1] 
+FAILED: AnonymousRateLimitsTest.T_12_15_E11_paymentRoutesHaveIndependentQuotas(String, String, String, String)[2] 
+
+=== Deployment regressions with steps 4 and 6 reverted: python3 -m unittest -v deploy.test_round2.DeploymentReviewTest.test_E11_T06_production_mongo_wiring_without_uri_override deploy.test_round2.DeploymentReviewTest.test_E11_T06_predeploy_verification_selects_recovery_identity
+exit 1
+GRID_API_KEY': 'REPLACE_BEFORE_RELEASE', 'SENDGRID_WEBHOOK_PUBLIC_KEY': 'REPLACE_BEFORE_RELEASE', 'SENTRY_DSN': '', 'SERVER_PORT': '8080', 'SHARED_SCHEDULING_ENABLED': 'false', 'SIGNUP_CAPABILITY_KEY': 'REPLACE_BEFORE_RELEASE', 'SMS_ALLOWED_NUMBERS': '', 'SPRING_DATA_MONGODB_URI': 'mongodb://fictional:fictional@mongo/agilityhub', 'SPRING_PROFILES_ACTIVE': 'prod', 'TRUSTED_PROXY_PATTERN': '172\\.30\\.240\\.10', 'TWILIO_ACCOUNT_SID': 'REPLACE_BEFORE_RELEASE', 'TWILIO_AUTH_TOKEN': 'REPLACE_BEFORE_RELEASE', 'TWILIO_MESSAGING_SERVICE_SID': '', 'VAPID_PRIVATE_KEY': 'REPLACE_BEFORE_RELEASE', 'VAPID_PUBLIC_KEY': 'REPLACE_BEFORE_RELEASE', 'VAPID_SUBJECT': 'REPLACE_BEFORE_RELEASE'}
+
+======================================================================
+FAIL: test_E11_T06_predeploy_verification_selects_recovery_identity (deploy.test_round2.DeploymentReviewTest.test_E11_T06_predeploy_verification_selects_recovery_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/test_round2.py", line 62, in test_E11_T06_predeploy_verification_selects_recovery_identity
+    self.assertIn('DEPLOY_ENV_FILE=/etc/agilityhub/recovery.env bin/restore-mongo --verify', predeploy)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'DEPLOY_ENV_FILE=/etc/agilityhub/recovery.env bin/restore-mongo --verify' not found in '4. From the installed checkout, set the non-secret file path below. Validate\n   without printing resolved credentials, build the ops image once, and on an\n   existing deployment take and verify a pre-deploy backup. Do not run the local\n   override or demo seed on the release host.\n\n   ```sh\n   export DEPLOY_ENV_FILE=/etc/agilityhub/core.env\n   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml config --quiet\n   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml build backup\n   bin/backup-mongo\n   # Supply BACKUP_AGE_IDENTITY from escrow; recovery.env holds Get/List credentials.\n   bin/restore-mongo --verify\n   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml pull core caddy\n   docker compose --env-file "$DEPLOY_ENV_FILE" -f deploy/compose.prod.yaml up -d --wait --wait-timeout 420\n   ```\n\n'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.153s
+
+FAILED (failures=2)
+
+
+=== Backup inventory regression with step 5 reverted: docker run --rm --network none -v /Users/jordib/dev/agilityhub/agilityhub-core-api-c/deploy/backup:/review:ro --entrypoint /opt/backup/bin/python agilityhub-backup:2 -m unittest discover -v -s /review -p test_backup.py
+exit 1
+test_E11_T04_archive_stream_tracks_only_the_actual_oplog (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_dump_failure_closes_source_without_lock_or_upload (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_inventory_excludes_internal_cluster_keys (test_backup.BackupSafetyTest) ... FAIL
+test_E11_T04_low_space_refused (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_no_backup_or_escape_fails_before_writing (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_prefix_filters_outside_keys_among_valid_pages (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_restore_checks_disk_before_download (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_size_estimate_uses_backup_role_collection_stats (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_snapshot_counts_all_collections_at_one_timestamp (test_backup.BackupSafetyTest) ... ok
+test_E11_T04_successful_backup_needs_only_list_and_put (test_backup.BackupSafetyTest) ... ok
+
+======================================================================
+FAIL: test_E11_T04_inventory_excludes_internal_cluster_keys (test_backup.BackupSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/review/test_backup.py", line 51, in test_E11_T04_inventory_excludes_internal_cluster_keys
+    self.assertEqual([('admin', 'system.users'), ('fictional', 'empty')], [r[:2] for r in backup.inventory(client)])
+AssertionError: Lists differ: [('ad[14 chars]users'), ('fictional', 'empty')] != [('ad[14 chars]users'), ('fictional', 'empty'), ('fictional', 'system.views')]
+
+Second list contains 1 additional elements.
+First extra element 2:
+('fictional', 'system.views')
+
+- [('admin', 'system.users'), ('fictional', 'empty')]
++ [('admin', 'system.users'),
++  ('fictional', 'empty'),
++  ('fictional', 'system.views')]
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.146s
+
+FAILED (failures=1)
+
+
+=== Mutation scope regression with step 8 reverted: python3 bin/mutation-gate-test.py
+exit 1
+test_E11_T06_missing_package_never_passes (__main__.MutationGateTest.test_E11_T06_missing_package_never_passes) ... ok
+test_E11_T06_pit_selects_every_critical_package_without_class_exclusions (__main__.MutationGateTest.test_E11_T06_pit_selects_every_critical_package_without_class_exclusions) ... FAIL
+test_E11_T06_uncovered_mutants_stay_in_the_denominator (__main__.MutationGateTest.test_E11_T06_uncovered_mutants_stay_in_the_denominator) ... ok
+
+======================================================================
+FAIL: test_E11_T06_pit_selects_every_critical_package_without_class_exclusions (__main__.MutationGateTest.test_E11_T06_pit_selects_every_critical_package_without_class_exclusions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/mutation-gate-test.py", line 41, in test_E11_T06_pit_selects_every_critical_package_without_class_exclusions
+    self.assertEqual({prefix + '*' for prefix in gate.PACKAGES.values()}, targets)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the first set but not the second:
+'com.agilityhub.core.payments.*'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (failures=1)
+
+
+RESTORED every touched source byte-for-byte (SHA-256 before == after) for 7 files
+SUMMARY SentryCaptureTest=fails-before, LogPrivacyTest=fails-before, RateLimitIT=fails-before, AnonymousRateLimitsTest=fails-before, steps 4 and 6=fails-before, step 5=fails-before, step 8=fails-before

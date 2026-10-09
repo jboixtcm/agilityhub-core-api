@@ -27,6 +27,9 @@ public abstract class AbstractIntegrationTest {
     protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
     // E8-T01 round 2: ProviderSecretVault's key, so the ITs store a fixture Stripe webhook secret encrypted as production does.
     protected static final String BILLING_SECRETS = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+    // E11-T06: one local export root per test JVM. PIT's parallel minions share the working directory, and the remittance
+    // tests that check "the failed run wrote no file" must see only their own JVM's files.
+    public static final java.nio.file.Path EXPORTS = java.nio.file.Path.of("target/test-exports", String.valueOf(ProcessHandle.current().pid()));
     // Fixtures use MockClock; Mongo's wall-clock TTL worker would delete their historical
     // tokens/events nondeterministically. Keep TTL indexes and application expiry checks.
     protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7")
@@ -57,6 +60,7 @@ public abstract class AbstractIntegrationTest {
     static void mongoProperties(DynamicPropertyRegistry registry) {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
         registry.add("core.billing.secrets-key", () -> BILLING_SECRETS);
+        registry.add("exports.local-directory", EXPORTS::toString);
         registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
     }
 

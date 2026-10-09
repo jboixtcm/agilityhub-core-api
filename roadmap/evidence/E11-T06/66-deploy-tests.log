@@ -1,0 +1,20 @@
+test_E11_T04_01_no_write_lock (deploy.test_round2.DeploymentReviewTest.test_E11_T04_01_no_write_lock) ... ok
+test_E11_T04_02_production_local_core (deploy.test_round2.DeploymentReviewTest.test_E11_T04_02_production_local_core) ... ok
+test_E11_T04_03_bounded_disk_work (deploy.test_round2.DeploymentReviewTest.test_E11_T04_03_bounded_disk_work) ... ok
+test_E11_T04_04_backup_only_role (deploy.test_round2.DeploymentReviewTest.test_E11_T04_04_backup_only_role) ... ok
+test_E11_T04_05_real_caddy_index_headers (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_real_caddy_index_headers) ... ok
+test_E11_T04_05_spa_cache_after_rewrite (deploy.test_round2.DeploymentReviewTest.test_E11_T04_05_spa_cache_after_rewrite) ... ok
+test_E11_T04_06_cron_alert_and_lock_exit (deploy.test_round2.DeploymentReviewTest.test_E11_T04_06_cron_alert_and_lock_exit) ... ok
+test_E11_T04_06_cron_executes_alert_for_failure_and_busy_lock (deploy.test_round2.DeploymentReviewTest.test_E11_T04_06_cron_executes_alert_for_failure_and_busy_lock) ... ok
+test_E11_T04_07_allow_path_uses_same_bridge (deploy.test_round2.DeploymentReviewTest.test_E11_T04_07_allow_path_uses_same_bridge) ... ok
+test_E11_T04_08_public_recipient_and_lifecycle (deploy.test_round2.DeploymentReviewTest.test_E11_T04_08_public_recipient_and_lifecycle) ... ok
+test_E11_T04_09_retired_key_absent (deploy.test_round2.DeploymentReviewTest.test_E11_T04_09_retired_key_absent) ... ok
+test_E11_T04_10_portable_docs_and_pinned_images (deploy.test_round2.DeploymentReviewTest.test_E11_T04_10_portable_docs_and_pinned_images) ... ok
+test_E11_T04_11_billing_provider_key (deploy.test_round2.DeploymentReviewTest.test_E11_T04_11_billing_provider_key) ... ok
+test_E11_T06_predeploy_verification_selects_recovery_identity (deploy.test_round2.DeploymentReviewTest.test_E11_T06_predeploy_verification_selects_recovery_identity) ... ok
+test_E11_T06_production_mongo_wiring_without_uri_override (deploy.test_round2.DeploymentReviewTest.test_E11_T06_production_mongo_wiring_without_uri_override) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.459s
+
+OK

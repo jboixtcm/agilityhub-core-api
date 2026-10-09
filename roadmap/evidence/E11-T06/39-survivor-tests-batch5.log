@@ -1,0 +1,13 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+05:56:16.487 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Charge awaiting webhook recovery exhausted: eventId=op-1 traceId=9daffd4f-90a6-4cd1-81f3-c4ae1c10f290
+05:56:16.489 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Payment operation recovery exhausted: eventId=op-1 traceId=877b71ae-5ca2-4025-9651-9995e4ec20ff
+05:56:17.587 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Payment operation recovery exhausted: eventId=op-1 traceId=f6e94a5b-5abe-4f9a-a4d5-53a791797387
+05:56:17.588 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Refund reconciliation status=failed: eventId=re_1 traceId=32d5fd33-e348-45bb-aa49-8a49800ce22d
+Fake provider webhook delivered: payment_intent.succeeded
+05:56:17.685 [main] WARN com.agilityhub.core.payments.application.CheckoutService -- Checkout abandonment failed after a provider call failure: checkoutSessionId=session-1 clubId=club-a error=java.lang.IllegalStateException
+Fake provider completion delivered: checkoutSessionId=cs_fake_1

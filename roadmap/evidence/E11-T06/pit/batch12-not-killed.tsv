@@ -1,0 +1,4 @@
+status	file	class	method	line	mutator	description
+SURVIVED	MeController.java	com.agilityhub.core.identity.api.MeController	lambda$me$1	61	EmptyObjectReturnValsMutator	replaced return value with Optional.empty for com/agilityhub/core/identity/api/MeController::lambda$me$1
+SURVIVED	MagicLinkTokenRepository.java	com.agilityhub.core.identity.persistence.MagicLinkTokenRepository	trim	35	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	CurrentUserFilter.java	com.agilityhub.core.identity.api.CurrentUserFilter	doFilterInternal	37	VoidMethodCallMutator	removed call to org/springframework/security/core/context/SecurityContext::setAuthentication

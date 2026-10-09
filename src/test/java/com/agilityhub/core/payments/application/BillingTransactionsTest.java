@@ -36,7 +36,12 @@ class BillingTransactionsTest {
         var once = new AtomicInteger();
         assertThatThrownBy(() -> transactions.run(() -> { once.incrementAndGet(); throw new IllegalStateException("fictional failure"); })).hasMessage("fictional failure");
         assertThat(once).hasValue(1);
-        assertThatThrownBy(() -> transactions.run(() -> { throw new DuplicateKeyException("always"); })).hasMessage("STALE_VERSION");
+        // E11-T06: an endless retry fails here with an assertion instead of hanging.
+        var always = new AtomicInteger();
+        assertThatThrownBy(() -> transactions.run(() -> {
+            if (always.incrementAndGet() > BillingTransactions.ATTEMPTS) { throw new AssertionError("retried past the attempt budget"); }
+            throw new DuplicateKeyException("always");
+        })).hasMessage("STALE_VERSION");
         assertThat(retries.exhaustions("billing")).isEqualTo(1);
     }
 

@@ -179,7 +179,10 @@ keep the `AGE-SECRET-KEY-1…` identity in off-host encrypted escrow. Supply it 
 to normal backup runs. Verification uses a separate S3 principal with
 GetObject/ListBucket, supplied through a private `DEPLOY_ENV_FILE`; the normal
 cron principal has only PutObject/ListBucket on its prefix. No private identity
-belongs in the cron env or backup bucket.
+belongs in the cron env or backup bucket. Create that file once as
+`/etc/agilityhub/recovery.env`: a copy of `core.env` (`install -m 0600`) whose
+`BACKUP_S3_ACCESS_KEY`/`BACKUP_S3_SECRET_KEY` are the Get/List principal's; step 4
+of the release runs the pre-deploy verification with it.
 
 The helper uses a **private anonymous disk volume** at `/work`, with mode-0700
 per-run directories and a **1 GiB container memory limit**. `compose run --rm`
@@ -1233,7 +1236,7 @@ Spring's environment binding, e.g. `CORE_SECURITY_RATELIMITS_ANONYMOUS_CAPACITY`
 | `core.security.rate-limits.branding` | 120 / 1m | IP |
 | `core.security.rate-limits.public-routes` | 60 / 1m | IP for the public API |
 | `core.security.rate-limits.me` | 600 / 1m | Account across IPs and `/me` children |
-| `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, checkout polling |
+| `core.security.rate-limits.anonymous` | 120 / 1m | IP; discovery/authorize/logout, signup form, manifest, country/postal lookup, unsubscribe, other checkout-session paths |
 | `core.security.rate-limits.webhook` | 600 / 1m | IP; email provider signature validation is still required |
 | `core.security.rate-limits.stripe-webhook` | 600 / 1m | IP; independent Stripe delivery quota; signature validation still required |
 | `core.security.rate-limits.checkout-status` | 120 / 1m | IP; independent checkout polling quota; X-Signup-Token or authenticated ownership still required |
@@ -1287,9 +1290,10 @@ Sentry uses `send-default-pii: false`, no request-body capture, no tracing or lo
 streaming. Its `beforeSend` builds a closed copy: request/user/contexts,
 breadcrumbs, arbitrary extras and exception messages are omitted; messages are
 scrubbed with the same exclusion list, stack locations and the three IDs remain.
-Handled unexpected 5xx errors are captured explicitly in `ApiExceptionHandler` with the response trace id.
+Every handled 500 is captured explicitly in `ApiExceptionHandler` with the response trace id: unexpected
+exceptions, framework 5xx and `INTERNAL_ERROR` answers the code gives (for example a payment provider outage).
 The default Sentry exception resolver keeps its later order, so one error produces one event.
-Handled 4xx errors are not captured.
+Handled 4xx errors, `NOT_IMPLEMENTED` stubs, an expired async (SSE) request and a client that went away are not captured.
 
 The local deployment leaves `SENTRY_DSN` empty. Production telemetry is enabled
 only when its DSN is configured.

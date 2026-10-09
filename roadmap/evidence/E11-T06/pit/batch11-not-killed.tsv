@@ -1,0 +1,134 @@
+status	file	class	method	line	mutator	description
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	cancelForInactivity	234	PrimitiveReturnsMutator	replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::cancelForInactivity
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	cancelLocked	255	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	cancelLocked	248	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	classes	107	NegateConditionalsMutator	negated conditional
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	classes	106	VoidMethodCallMutator	removed call to java/util/Optional::ifPresent
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	classes	107	VoidMethodCallMutator	removed call to java/util/Optional::ifPresent
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelByMember$25	231	NegateConditionalsMutator	negated conditional
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelByMember$25	231	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$cancelByMember$25
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelForInactivity$26	236	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelForInactivity$26	236	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelForInactivity$26	236	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$cancelForInactivity$26	236	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$cancelForInactivity$26
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$claim$10	120	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$10
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$claim$11	127	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$11
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$claim$13	119	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$claim$9	116	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$9
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$full$15	141	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$full$15
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$join$0	47	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$leave$4	90	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$4
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$leave$5	94	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$5
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$leave$6	93	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$offer$16	158	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$offer$16
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$offer$22	156	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$reachable$3	83	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$reachable$3
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	lambda$sweep$24	219	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	headers	108	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	141	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	140	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setStrokingColor
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	140	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setLineWidth
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	141	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::moveTo
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	141	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::lineTo
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	line	141	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::stroke
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	113	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	113	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	114	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	117	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	117	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	120	MathMutator	Replaced float addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	120	MathMutator	Replaced float addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	123	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	123	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	111	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::close
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	113	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setNonStrokingColor
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	113	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::addRect
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	113	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::fill
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	114	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setNonStrokingColor
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	114	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::newLineAtOffset
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	116	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setNonStrokingColor
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	118	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	118	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::newLineAtOffset
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	120	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	page	123	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::line
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	127	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	127	MathMutator	Replaced float multiplication with division
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	127	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	130	MathMutator	Replaced float multiplication with division
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	130	MathMutator	Replaced float addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	label	87	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	label	87	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	label	87	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	label	88	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	label	94	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	48	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	48	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	48	MathMutator	Replaced float division with multiplication
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	58	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	64	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	64	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	49	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	57	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	57	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	64	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	64	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::row
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	69	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::newLineAtOffset
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	render	69	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::endText
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	wrap	149	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	wrap	151	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	wrap	149	MathMutator	Replaced float multiplication with division
+NO_COVERAGE	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf	wrap	152	VoidMethodCallMutator	removed call to java/lang/StringBuilder::setLength
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	lambda$week$0	43	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	lambda$week$3	76	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/WeekAgendaQuery::lambda$week$3
+NO_COVERAGE	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	lambda$week$4	77	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/WeekAgendaQuery::lambda$week$4
+NO_COVERAGE	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	lambda$week$5	77	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/WeekAgendaQuery::lambda$week$5
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	week	51	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	week	71	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	week	71	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	week	81	NegateConditionalsMutator	negated conditional
+SURVIVED	WeekAgendaQuery.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery	week	76	VoidMethodCallMutator	removed call to java/util/ArrayList::sort
+SURVIVED	MemberHomeQuery.java	com.agilityhub.core.clubs.bookings.application.MemberHomeQuery	classRows	111	NegateConditionalsMutator	negated conditional
+SURVIVED	MemberHomeQuery.java	com.agilityhub.core.clubs.bookings.application.MemberHomeQuery	lambda$classRows$6	95	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/MemberHomeQuery::lambda$classRows$6
+NO_COVERAGE	MemberHomeQuery.java	com.agilityhub.core.clubs.bookings.application.MemberHomeQuery	lambda$home$0	42	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/MemberHomeQuery::lambda$home$0
+NO_COVERAGE	MemberHomeQuery.java	com.agilityhub.core.clubs.bookings.application.MemberHomeQuery	lambda$home$3	70	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/MemberHomeQuery::lambda$home$3
+NO_COVERAGE	MemberHomeQuery.java	com.agilityhub.core.clubs.bookings.application.MemberHomeQuery	lambda$home$4	70	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/MemberHomeQuery::lambda$home$4
+SURVIVED	SeatHoldService.java	com.agilityhub.core.clubs.bookings.application.SeatHoldService	lambda$hold$1	43	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/SeatHoldService::precheck
+SURVIVED	SeatHoldService.java	com.agilityhub.core.clubs.bookings.application.SeatHoldService	lambda$offer$4	105	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/SeatHoldService::lambda$offer$4
+SURVIVED	SeatHoldService.java	com.agilityhub.core.clubs.bookings.application.SeatHoldService	precheck	60	NegateConditionalsMutator	negated conditional
+SURVIVED	InstructorDayQuery.java	com.agilityhub.core.clubs.bookings.application.InstructorDayQuery	lambda$day$3	58	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	InstructorDayQuery.java	com.agilityhub.core.clubs.bookings.application.InstructorDayQuery	lambda$day$3	58	NegateConditionalsMutator	negated conditional
+SURVIVED	InstructorDayQuery.java	com.agilityhub.core.clubs.bookings.application.InstructorDayQuery	lambda$day$3	58	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/InstructorDayQuery::lambda$day$3
+NO_COVERAGE	InstructorCardQuery.java	com.agilityhub.core.clubs.bookings.application.InstructorCardQuery	lambda$card$0	39	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/InstructorCardQuery::lambda$card$0
+SURVIVED	InstructorCardQuery.java	com.agilityhub.core.clubs.bookings.application.InstructorCardQuery	lambda$card$4	61	NegateConditionalsMutator	negated conditional
+SURVIVED	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	offerNext	151	PrimitiveReturnsMutator	replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	reachable	84	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	reachable	84	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	reachable	84	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::reachable
+NO_COVERAGE	WaitlistService.java	com.agilityhub.core.clubs.bookings.application.WaitlistService	sweepStarted	214	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/WaitlistService::sweepStarted
+TIMED_OUT	WaitlistTransitions.java	com.agilityhub.core.clubs.bookings.application.WaitlistTransitions	demoteIfFull	51	EmptyObjectReturnValsMutator	replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::demoteIfFull
+SURVIVED	WaitlistTransitions.java	com.agilityhub.core.clubs.bookings.application.WaitlistTransitions	expire	80	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::expire
+SURVIVED	WaitlistTransitions.java	com.agilityhub.core.clubs.bookings.application.WaitlistTransitions	write	91	MathMutator	Replaced long addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	130	MathMutator	Replaced float addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	133	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	MathMutator	Replaced float multiplication with division
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	MathMutator	Replaced float addition with subtraction
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	MathMutator	Replaced float subtraction with addition
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	127	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	127	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	128	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	128	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::newLineAtOffset
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	128	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::showText
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	132	VoidMethodCallMutator	removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont
+SURVIVED	WeekAgendaPdf.java	com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages	row	136	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::line
+SURVIVED	PendingChargeConsumers.java	com.agilityhub.core.clubs.bookings.application.PendingChargeConsumers	bookingCancelled	50	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/application/PendingChargeConsumers::stamp
+SURVIVED	WaitlistFifoJob.java	com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob	apply	45	VoidMethodCallMutator	removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock
+NO_COVERAGE	WaitlistFifoJob.java	com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob	apply	44	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistFifoJob::apply
+NO_COVERAGE	WaitlistFifoJob.java	com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob	apply	49	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistFifoJob::apply
+NO_COVERAGE	PaymentTimeoutsJob.java	com.agilityhub.core.clubs.bookings.application.PaymentTimeoutsJob	apply	39	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/PaymentTimeoutsJob::apply
+NO_COVERAGE	PaymentTimeoutsJob.java	com.agilityhub.core.clubs.bookings.application.PaymentTimeoutsJob	apply	40	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/PaymentTimeoutsJob::apply
+NO_COVERAGE	SingleClassCharges.java	com.agilityhub.core.clubs.bookings.application.SingleClassCharges	lambda$open$0	46	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/clubs/bookings/application/SingleClassCharges::lambda$open$0
+SURVIVED	MemberDogs.java	com.agilityhub.core.clubs.bookings.application.MemberDogs	lambda$chips$3	31	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/MemberDogs::lambda$chips$3
+NO_COVERAGE	PaymentsPackBalanceAdapter.java	com.agilityhub.core.clubs.bookings.application.PaymentsPackBalanceAdapter	consume	19	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/PaymentsPackBalanceAdapter::consume
+SURVIVED	PaymentsPackBalanceAdapter.java	com.agilityhub.core.clubs.bookings.application.PaymentsPackBalanceAdapter	consume	20	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/clubs/bookings/application/PaymentsPackBalanceAdapter::consume

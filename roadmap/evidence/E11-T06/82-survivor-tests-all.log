@@ -1,0 +1,20 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+20:37:12.607 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Charge awaiting webhook recovery exhausted: eventId=op-1 traceId=c9ebd829-4d30-445a-a9cb-6cd9e1e56a73
+20:37:12.608 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Payment operation recovery exhausted: eventId=op-1 traceId=c5ee10e6-e144-4b54-8454-884b9c134fca
+20:37:13.586 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Payment operation recovery exhausted: eventId=op-1 traceId=751f3b94-d7ce-426a-9204-6e9dc6ecfed8
+20:37:13.586 [main] WARN com.agilityhub.core.payments.application.PaymentRetryPolicy -- Refund reconciliation status=failed: eventId=re_1 traceId=aeaedf4c-b3e7-40cb-8064-62f1f7d6378f
+Fake provider webhook delivered: payment_intent.succeeded
+20:37:13.698 [main] WARN com.agilityhub.core.payments.application.CheckoutService -- Checkout abandonment failed after a provider call failure: checkoutSessionId=session-1 clubId=club-a error=java.lang.IllegalStateException
+20:37:13.730 [main] WARN com.agilityhub.core.payments.application.CheckoutService -- Late provider completion to refund: the signup checkout had expired checkoutSessionId=session-1 bookingId=null providerPaymentId=pi_1 clubId=club-a
+20:37:13.732 [main] WARN com.agilityhub.core.payments.application.CheckoutService -- Late provider completion to refund: the checkout deadline passed checkoutSessionId=session-1 bookingId=booking-1 providerPaymentId=pi_1 clubId=club-a
+Fake provider completion delivered: checkoutSessionId=cs_fake_1
+20:37:16.173 [main] INFO com.agilityhub.core.clubs.bookings.application.BookingEvents -- Booking blocked operation=hold class=class-a account=account-laura traceId=trace-1
+Platform administrator role ensured.
+Imported: 1 created, 0 linked, 0 skipped, 0 errors
+Reasons: {NEW_ACCOUNT=1}
+20:37:17.666 [main] WARN com.agilityhub.core.identity.application.CompromisedPasswords -- Compromised password check unavailable; continuing per A2

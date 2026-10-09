@@ -45,7 +45,8 @@ public class StripeCalls {
                 }
                 // IdempotencyException, ApiConnectionException and ApiException may hide an earlier
                 // effect. Retry the same command within its safe window, then reconcile by webhook.
-                throw new ApiException(status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR);
+                // The cause stays for telemetry; exception values never leave the process (SentryPrivacyConfiguration).
+                throw new ApiException(status == 400 ? ErrorCode.PROVIDER_CONFIG_INVALID : ErrorCode.INTERNAL_ERROR, failure);
             }
         }
     }

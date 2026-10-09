@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""E11: assertion kills / all generated mutations, independently for each critical package."""
+"""E11: assertion kills / all generated mutations, independently for each critical package.
+
+A timeout, run error, memory error or non-viable result is never proof: it stays in the denominator as not killed.
+"""
 import argparse
 from collections import Counter
 import json
@@ -9,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 PACKAGES = {'bookings': 'com.agilityhub.core.clubs.bookings.',
             'identity': 'com.agilityhub.core.identity.', 'payments': 'com.agilityhub.core.payments.'}
+IDENTITY = ('mutatedClass', 'mutatedMethod', 'methodDescription', 'lineNumber', 'mutator', 'description')
 INVALID = {'TIMED_OUT', 'RUN_ERROR', 'MEMORY_ERROR', 'NON_VIABLE'}
 
 
@@ -33,13 +37,30 @@ def summarize(mutations, thresholds):
         ratio = 100 * outcomes['KILLED'] / total if total else 0
         result[name] = {'generated': total, 'outcomes': dict(outcomes), 'assertionKillPercent': round(ratio, 4),
                         'minimumPercent': thresholds[name],
-                        'passed': total > 0 and not (outcomes.keys() & INVALID) and ratio >= thresholds[name]}
+                        'notProof': sum(outcomes[status] for status in INVALID),
+                        'passed': total > 0 and ratio >= thresholds[name]}
     return result, survivors
+
+
+def merge(paths):
+    """The mutations of every batch; the same mutation reported twice would count twice, so it is an error."""
+    rows, seen = [], set()
+    for path in paths:
+        for mutation in ET.parse(path).getroot():
+            # Two mutants of one line differ only by their instruction indexes/blocks (child elements).
+            identity = tuple(mutation.findtext(key, '') for key in IDENTITY) + tuple(
+                tuple(node.text for node in mutation.iter(tag)) for tag in ('index', 'block'))
+            if identity in seen:
+                raise ValueError(f'Mutation reported by two batches: {identity}')
+            seen.add(identity)
+            rows.append(mutation)
+    return rows
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--xml', type=Path, default=Path('target/pit-reports/mutations.xml'))
+    parser.add_argument('--xml', type=Path, action='append',
+                        help='A mutations.xml; repeat it for bounded batches (a mutation in two batches is refused)')
     parser.add_argument('--output', type=Path, required=True)
     for name in PACKAGES:
         parser.add_argument('--minimum-' + name, type=float, required=True)
@@ -47,7 +68,7 @@ def main():
     thresholds = {name: getattr(args, 'minimum_' + name) for name in PACKAGES}
     if any(not 0 <= value <= 100 for value in thresholds.values()):
         parser.error('Thresholds must be between 0 and 100')
-    summary, survivors = summarize(ET.parse(args.xml).getroot(), thresholds)
+    summary, survivors = summarize(merge(args.xml or [Path('target/pit-reports/mutations.xml')]), thresholds)
     args.output.mkdir(parents=True, exist_ok=True)
     for filename, document in [('summary.json', summary), ('survivors.json', survivors)]:
         with (args.output / filename).open('x') as output:

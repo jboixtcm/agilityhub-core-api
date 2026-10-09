@@ -1,0 +1,24 @@
+status	file	class	method	line	mutator	description
+SURVIVED	PendingChargeRules.java	com.agilityhub.core.payments.domain.PendingChargeRules	onAttendance	18	NegateConditionalsMutator	negated conditional
+SURVIVED	SepaDirectDebits.java	com.agilityhub.core.payments.domain.SepaDirectDebits	creditorIdentifier	68	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	createCheckoutSession	62	NegateConditionalsMutator	negated conditional
+SURVIVED	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	createCheckoutSession	70	NegateConditionalsMutator	negated conditional
+SURVIVED	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	lambda$expire$9	143	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$expire$9
+SURVIVED	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	lambda$forgetCustomer$8	131	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$forgetCustomer$8
+NO_COVERAGE	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	charges	253	EmptyObjectReturnValsMutator	replaced return value with Collections.emptyList for com/agilityhub/core/payments/domain/InvoicingRules::charges
+NO_COVERAGE	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	familyShare	236	NegateConditionalsMutator	negated conditional
+NO_COVERAGE	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	familyShare	240	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/domain/InvoicingRules::familyShare
+NO_COVERAGE	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	familyShare	245	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/domain/InvoicingRules::familyShare
+SURVIVED	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	lambda$month$2	137	BooleanTrueReturnValsMutator	replaced boolean return with true for com/agilityhub/core/payments/domain/InvoicingRules::lambda$month$2
+SURVIVED	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	own	205	ConditionalsBoundaryMutator	changed conditional boundary
+NO_COVERAGE	InvoicingRules.java	com.agilityhub.core.payments.domain.InvoicingRules	own	224	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/domain/InvoicingRules::own
+SURVIVED	Pain008Document.java	com.agilityhub.core.payments.application.sepa.Pain008Document	validate	120	VoidMethodCallMutator	removed call to javax/xml/validation/Validator::setProperty
+SURVIVED	Pain008Document.java	com.agilityhub.core.payments.application.sepa.Pain008Document	validate	121	VoidMethodCallMutator	removed call to javax/xml/validation/Validator::setProperty
+SURVIVED	Pain008Document.java	com.agilityhub.core.payments.application.sepa.Pain008Document	write	98	VoidMethodCallMutator	removed call to jakarta/xml/bind/Marshaller::setProperty
+SURVIVED	SepaText.java	com.agilityhub.core.payments.domain.SepaText	allowed	37	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	SepaText.java	com.agilityhub.core.payments.domain.SepaText	allowed	37	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	SepaText.java	com.agilityhub.core.payments.domain.SepaText	allowed	37	ConditionalsBoundaryMutator	changed conditional boundary
+SURVIVED	SepaText.java	com.agilityhub.core.payments.domain.SepaText	of	22	ConditionalsBoundaryMutator	changed conditional boundary
+NO_COVERAGE	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	parseWebhook	113	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::parseWebhook
+SURVIVED	StripePaymentProvider.java	com.agilityhub.core.payments.application.stripe.StripePaymentProvider	refund	102	NullReturnValsMutator	replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::refund
+SURVIVED	SignupPaymentEvent.java	com.agilityhub.core.payments.domain.SignupPaymentEvent	aggregateType	10	EmptyObjectReturnValsMutator	replaced return value with "" for com/agilityhub/core/payments/domain/SignupPaymentEvent::aggregateType

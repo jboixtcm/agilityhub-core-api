@@ -26,7 +26,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 class SentryCaptureTest {
     @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({"telemetry-failure,IllegalStateException", "telemetry-framework,ResponseStatusException"})
+    @org.junit.jupiter.params.provider.CsvSource({"telemetry-failure,IllegalStateException", "telemetry-framework,ResponseStatusException",
+            "telemetry-answered,ApiException"})
     void T_14_30_handled500ReachesTransportOnceWithResponseTraceAndNoPrivateData(String path, String type) {
         var events = new ArrayList<SentryEvent>();
         new WebApplicationContextRunner()
@@ -59,16 +60,23 @@ class SentryCaptureTest {
                         assertThat(event.getTag("traceId")).isEqualTo(trace);
                         assertThat(event.getRequest()).isNull();
                         assertThat(event.getUser()).isNull();
-                        assertThat(event.getExceptions()).singleElement().satisfies(error -> {
-                            assertThat(error.getType()).isEqualTo(type);
-                            assertThat(error.getValue()).isNull();
-                        });
+                        // The answered 500 keeps its cause in the chain; no exception value (message) is ever sent.
+                        assertThat(event.getExceptions()).extracting(io.sentry.protocol.SentryException::getType).contains(type);
+                        assertThat(event.getExceptions()).allSatisfy(error -> assertThat(error.getValue()).isNull());
                     });
                     var encoded = new java.io.StringWriter();
                     new JsonSerializer(new SentryOptions()).serialize(events.getFirst(), encoded);
                     assertThat(encoded.toString()).doesNotContain("privacy@example.test", "fictional-private-value", "private-body");
                     mvc.perform(get("/telemetry-rejected")).andExpect(status().isBadRequest());
                     mvc.perform(get("/telemetry-missing")).andExpect(status().isNotFound());
+                    // A 501 stub and an expired SSE request are expected answers, not internal errors.
+                    mvc.perform(get("/telemetry-stub")).andExpect(status().isNotImplemented());
+                    mvc.perform(get("/telemetry-stream-timeout"));
+                    mvc.perform(get("/telemetry-stream-gone"));
+                    mvc.perform(get("/telemetry-download-aborted"));
+                    // An SSE stream that already sent events ends without a JSON error appended to it.
+                    assertThat(mvc.perform(get("/telemetry-stream-committed")).andReturn().getResponse().getContentAsString())
+                            .isEqualTo("data: fictional\n\n");
                     assertThat(events).hasSize(1);
                 });
     }
@@ -87,6 +95,27 @@ class SentryCaptureTest {
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
                     "private-body privacy@example.test");
         }
+        @GetMapping("/telemetry-answered") void answered() {
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, new IllegalStateException("private-body privacy@example.test"));
+        }
         @GetMapping("/telemetry-rejected") void rejected() { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        @GetMapping("/telemetry-stub") void stub() { throw new ApiException(ErrorCode.NOT_IMPLEMENTED); }
+        @GetMapping("/telemetry-stream-timeout") void streamTimeout() {
+            throw new org.springframework.web.context.request.async.AsyncRequestTimeoutException();
+        }
+        /** An SSE stream that timed out after its first event: the response is already committed. */
+        @GetMapping("/telemetry-stream-committed") void streamCommitted(jakarta.servlet.http.HttpServletResponse response)
+                throws java.io.IOException {
+            response.getOutputStream().write("data: fictional\n\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            response.flushBuffer();
+            throw new org.springframework.web.context.request.async.AsyncRequestTimeoutException();
+        }
+        /** A client that closed the connection during a download (Tomcat's ClientAbortException). */
+        @GetMapping("/telemetry-download-aborted") void downloadAborted() throws java.io.IOException {
+            throw new org.apache.catalina.connector.ClientAbortException("fictional client closed the download");
+        }
+        @GetMapping("/telemetry-stream-gone") void streamGone() throws java.io.IOException {
+            throw new org.springframework.web.context.request.async.AsyncRequestNotUsableException("fictional client went away");
+        }
     }
 }

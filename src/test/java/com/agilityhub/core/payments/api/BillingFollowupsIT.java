@@ -39,7 +39,7 @@ class BillingFollowupsIT extends BillingItSupport {
         var stored = mongo.findById(receipt.path("id").asText(), Document.class, "invoices");
         assertThat(stored.get("paymentMethod", Document.class).getString("mandateRef")).isEqualTo("bill-a-208-1");
         String key = mongo.findById(result.at("/remittance/id").asText(), Document.class, "remittances").getString("fileKey");
-        String xml = Files.readString(Path.of("target/test-exports").resolve(key));
+        String xml = Files.readString(com.agilityhub.core.support.AbstractIntegrationTest.EXPORTS.resolve(key));
         String debit = Arrays.stream(xml.split("<DrctDbtTxInf>")).filter(part -> part.contains("<EndToEndId>" + receipt.path("displayNumber").asText() + "</EndToEndId>"))
                 .findFirst().orElseThrow().split("</DrctDbtTxInf>")[0];
         assertThat(debit).contains("<MndtId>bill-a-208-2</MndtId>", "<DtOfSgntr>2026-08-25</DtOfSgntr>", "<Nm>New Holder Example</Nm>");

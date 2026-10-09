@@ -1,0 +1,26 @@
+final-batch1-mutations.xml: 1 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+  SepaText:22 ConditionalsBoundaryMutator idx=['11']
+final-batch2-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+final-batch3-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+final-batch4-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+final-batch5-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+final-batch6-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+final-batch7-mutations.xml: 0 kills by R_12_12_aStoredOverlongReceiptNumberFailsBeforeAnyRunWrites
+total 1
+final-batch1-mutations.xml: 6 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+  Pain008Document:134 VoidMethodCallMutator idx=['35']
+  Pain008Document:89 VoidMethodCallMutator idx=['149']
+  Pain008Document:99 VoidMethodCallMutator idx=['219']
+  Pain008Document$InvalidDocument:47 PrimitiveReturnsMutator idx=['5']
+  Pain008Document$InvalidDocument:46 PrimitiveReturnsMutator idx=['5']
+  InvoiceAmounts:51 ConditionalsBoundaryMutator idx=['21']
+final-batch2-mutations.xml: 1 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+  BillingRunService:319 NegateConditionalsMutator idx=['80']
+final-batch3-mutations.xml: 1 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+  InvoicingService$1:157 NullReturnValsMutator idx=['18']
+final-batch4-mutations.xml: 0 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+final-batch5-mutations.xml: 0 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+final-batch6-mutations.xml: 0 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+final-batch7-mutations.xml: 1 kills by R_12_11_aFileTheSchemaRefusesAbortsTheRunAndWritesNothing
+  BillingDocuments$InvoiceRepository:129 BooleanTrueReturnValsMutator idx=['14']
+total 9

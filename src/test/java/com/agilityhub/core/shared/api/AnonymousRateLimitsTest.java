@@ -24,7 +24,9 @@ class AnonymousRateLimitsTest {
         "GET,/api/v1/country-profile", "GET,/api/v1/country-profile/postal-codes/00000",
         "GET,/api/v1/checkout-sessions/example", "POST,/webhooks/email/sendgrid", "POST,/webhooks/stripe/example",
         "PUT,/api/v1/attachments/uploads/example", "GET,/api/v1/attachments/files/example",
-        "GET,/api/v1/signup/files", "PUT,/api/v1/signup/uploads", "GET,/api/v1/bookings/example/calendar.ics"
+        "GET,/api/v1/signup/files", "PUT,/api/v1/signup/uploads", "GET,/api/v1/bookings/example/calendar.ics",
+        // E11-T06: E8's signed remittance-file download (SignedFileRequests) is anonymous too.
+        "GET,/api/v1/remittances/files/example-club/example"
     })
     void T_01_15_E11_anonymousFamiliesRefuseWithRetryAndEventThenRecover(String method, String path) throws Exception {
         var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));

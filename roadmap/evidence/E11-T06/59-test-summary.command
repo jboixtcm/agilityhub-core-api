@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/test-summary.py SentryCaptureTest LogPrivacyTest RateLimitIT AnonymousRateLimitsTest SecurityInventoryIT HealthControllerTest E8ContractIT BillingTransactionsTest ArchitectureTest EventCatalogContractTest > roadmap/evidence/E11-T06/59-test-summary.log 2>&1

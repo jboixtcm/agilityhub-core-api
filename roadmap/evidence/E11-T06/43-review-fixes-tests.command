@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q '-Dtest=SentryCaptureTest,CheckoutServiceSurvivorsTest' -Dsurefire.failIfNoSpecifiedTests=false test > roadmap/evidence/E11-T06/43-review-fixes-tests.log 2>&1

@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify -Dmaven.test.failure.ignore=true > roadmap/evidence/E11-T06/58-clean-verify-all-results.log 2>&1

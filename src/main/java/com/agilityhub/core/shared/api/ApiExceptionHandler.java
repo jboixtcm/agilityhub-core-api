@@ -38,7 +38,20 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> unexpected(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<ApiError> unexpected(Exception exception, HttpServletRequest request,
+                                               jakarta.servlet.http.HttpServletResponse response) {
+        if (exception instanceof org.springframework.web.context.request.async.AsyncRequestNotUsableException
+                || org.springframework.web.util.DisconnectedClientHelper.isClientDisconnectedException(exception)) {
+            // The client went away (a download or an SSE stream): nothing can be written and nothing failed on our side.
+            LOG.debug("Async response no longer usable traceId={}", RequestTraceFilter.traceId(request));
+            return null;
+        }
+        if (exception instanceof org.springframework.web.context.request.async.AsyncRequestTimeoutException
+                && response.isCommitted()) {
+            // An SSE stream already sent events: a JSON error cannot follow them (as Spring's own handler does).
+            LOG.debug("Async request timed out after the response was committed traceId={}", RequestTraceFilter.traceId(request));
+            return null;
+        }
         if (exception instanceof ErrorResponse framework) {
             int status = framework.getStatusCode().value();
             ErrorCode code = switch (status) {
@@ -52,7 +65,8 @@ public class ApiExceptionHandler {
                 case 429 -> ErrorCode.RATE_LIMITED;
                 default -> status < 500 ? ErrorCode.VALIDATION_ERROR : ErrorCode.INTERNAL_ERROR;
             };
-            if (status < 500) {
+            if (status < 500 || exception instanceof org.springframework.web.context.request.async.AsyncRequestTimeoutException) {
+                // An expired async request (SSE) is an expected end of the stream, not an internal error.
                 LOG.warn("Framework request rejected status={} code={} traceId={}", status, code,
                         RequestTraceFilter.traceId(request));
             } else {
@@ -65,10 +79,10 @@ public class ApiExceptionHandler {
         }
         captureInternalError(exception, request);
         LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
-        return handle(new ApiException(ErrorCode.INTERNAL_ERROR), request);
+        return respond(new ApiException(ErrorCode.INTERNAL_ERROR), request);
     }
 
-    /** Capture handled 5xx once, before MVC resolves them; the default Sentry resolver runs afterwards. */
+    /** R-14-18 (E11-T06): capture each handled 500 once, before MVC resolves it; Sentry's own resolver runs later and never sees it. */
     private void captureInternalError(Exception exception, HttpServletRequest request) {
         if (sentry != null) {
             var event = new io.sentry.SentryEvent(exception);
@@ -84,6 +98,15 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handle(ApiException exception, HttpServletRequest request) {
+        if (exception.code() == ErrorCode.INTERNAL_ERROR) {
+            // A 500 the code chose to answer (e.g. a provider outage) is still an internal error for telemetry.
+            captureInternalError(exception, request);
+            LOG.error("Internal error answered traceId={}", RequestTraceFilter.traceId(request), exception);
+        }
+        return respond(exception, request);
+    }
+
+    private ResponseEntity<ApiError> respond(ApiException exception, HttpServletRequest request) {
         LOG.debug("Request rejected code={} traceId={}", exception.code(), RequestTraceFilter.traceId(request));
         var response = ResponseEntity.status(exception.code().httpStatus());
         if (exception.details().get("retryAfter") instanceof Number retry) { response.header("Retry-After", retry.toString()); }
