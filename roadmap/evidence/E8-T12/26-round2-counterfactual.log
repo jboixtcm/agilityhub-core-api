@@ -1,0 +1,523 @@
+Reviewed PaymentRefunds: f1a8e5d; final regression tests and supporting repositories retained.
+Command: ./mvnw -q '-Dit.test=CapturedPaymentInvariantsIT#T_12_17_e8t12_round2*' test-compile failsafe:integration-test failsafe:verify
+20:16:36.691 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT]: CapturedPaymentInvariantsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:16:36.898 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+20:16:37.023 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+20:16:37.025 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+20:16:37.031 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+20:16:37.251 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+20:16:37.457 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+20:16:37.458 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+20:16:37.472 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+20:16:37.885 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+20:16:37.958 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+20:16:38.063 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 6d1175d9409e97820edaf9baaaf1f29f6057bc3748d82b51221203b1560347c1
+20:16:38.333 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.448258S
+20:16:38.339 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+20:16:38.339 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+20:16:38.340 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+20:16:38.340 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+20:16:38.397 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 6ef1d8d351d72809a161775ab11010ec15d2f7dede984ad792fedb3e42f32c6b
+20:16:38.865 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.52406S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-09T20:16:39.906+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Starting CapturedPaymentInvariantsIT using Java [redacted] with PID 11797 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-09T20:16:39.909+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-09T20:16:41.856+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-09T20:16:41.920+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 59 ms. Found 0 MongoDB repository interfaces.
+2026-10-09T20:16:42.639+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1e4afd9a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@79cb6e98, com.mongodb.Jep395RecordCodecProvider@4e11dfaf, com.mongodb.KotlinCodecProvider@413bf74f]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:62488], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@8d464df], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-09T20:16:42.648+02:00 INFO  [cluster-ClusterId{value='6ac92f8aac2c3db0ff1e4239', description='null'}-localhost:62488] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:62488, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=14947083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=6ef1d8d351d7:27017, hosts=[6ef1d8d351d7:27017], passives=[], arbiters=[], primary='6ef1d8d351d7:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac92f867360a300a4490acb, counter=6}, lastWriteDate=Fri Oct 09 20:16:39 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-09T20:16:47.576+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-09T20:16:47.576+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-09T20:16:47.577+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-09T20:16:47.627+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Started CapturedPaymentInvariantsIT in 8.057 seconds (process running for 11.701)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-09T20:16:49.673+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c7e9062f-3069-4a02-bc4d-d3ccd1a40aaa clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_9dd46d68-9754-4534-b0af-ba4d4d01b232 traceId=c7e9062f-3069-4a02-bc4d-d3ccd1a40aaa
+2026-10-09T20:16:50.433+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=91334bfe-7935-431f-a507-eab9795d0640 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=91334bfe-7935-431f-a507-eab9795d0640
+2026-10-09T20:16:50.571+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=52074e06-c5c5-47bf-b256-1c698543d60d clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_25c6401d-1c68-4afe-bcd5-101bcfb5e7e2 traceId=52074e06-c5c5-47bf-b256-1c698543d60d
+2026-10-09T20:16:50.609+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=52074e06-c5c5-47bf-b256-1c698543d60d clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=52074e06-c5c5-47bf-b256-1c698543d60d
+2026-10-09T20:16:50.640+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=c02fd9ae-d83a-4c8f-ab74-cd11a7ce8c63 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_5 traceId=c02fd9ae-d83a-4c8f-[redacted]
+2026-10-09T20:16:50.682+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=dd8b4f6f-1edc-4c44-8ad8-a618df723358 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_0d1368fc-8a24-4868-ab4b-8c695e702070 traceId=dd8b4f6f-1edc-4c44-8ad8-a618df723358
+2026-10-09T20:16:51.248+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=baa6cd2c-6fbd-402f-b1f2-2c9822f54a5d clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_14 traceId=baa6cd2c-6fbd-402f-b1f2-2c9822f54a5d
+2026-10-09T20:16:51.773+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=a8c65f1d-9a43-4d29-b159-6a420ab6fc17 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_cff6d613-d03f-4b29-84aa-d41d23747232 traceId=a8c65f1d-9a43-4d29-b159-6a420ab6fc17
+2026-10-09T20:16:51.930+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d67ac422-8cd9-420c-996d-e599a502cd86 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_39cd0838-30ed-4175-892f-eb9a2f743516 traceId=d67ac422-8cd9-420c-996d-e599a502cd86
+2026-10-09T20:16:51.955+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=43d4d463-7818-4450-8142-126da1960736 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=43d4d463-7818-4450-8142-126da1960736
+2026-10-09T20:16:52.976+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=3d7b2fe4-b75f-430c-ab6f-b9d58357175c clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=f29c462b-c9cf-483e-b597-b5a261b877a1 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:53.095+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=846dad34-484c-4b86-84ca-d4a71be0351e clubId= accountId= : Stripe event recovery exhausted: eventId=evt_round2_dashboard_1 traceId=846dad34-484c-4b86-84ca-d4a71be0351e
+2026-10-09T20:16:53.115+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=56c07502-1875-4f32-b5cc-42c0e72b39a7 clubId= accountId= : Refund compensation needs an admin: paymentId=cba5ee02-449a-4165-9086-c268b2b3c913 traceId=56c07502-1875-4f32-b5cc-42c0e72b39a7
+2026-10-09T20:16:53.117+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=448d6d93-dec1-491f-8482-5073ff1b63ff clubId= accountId= : Payment operation recovery exhausted: eventId=90badf58-f581-4f33-[redacted]=448d6d93-dec1-491f-8482-5073ff1b63ff
+2026-10-09T20:16:54.330+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=24f5b3c4-5465-46d4-8352-9f761a2629a5 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=78e0362b-d473-455d-b008-2da9ba419d0a bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:54.871+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=2e289098-4807-4602-be8e-aeb056652c4f clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=f3f8a77e-e9bc-4547-b086-518064d08bd0 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:55.379+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=63d10d52-cadc-4cc2-8310-63890dee98fe clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=0faf4f37-747c-4501-8f99-e13be8551343 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:55.539+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=028b23e9-ee5a-4e0c-94f6-45c6954c8de4 clubId= accountId= : Refund compensation needs an admin: paymentId=c0aaaf75-1fc3-46e1-854a-4006db16cf39 traceId=028b23e9-ee5a-4e0c-94f6-45c6954c8de4
+2026-10-09T20:16:55.541+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=bf093288-4673-4686-9c7f-dec73cbf7769 clubId= accountId= : Payment operation recovery exhausted: eventId=2d04b8e1-9a1f-4c9e-8c19-f4e9d088500d traceId=[redacted]
+2026-10-09T20:16:56.081+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=25587bfb-e4fa-4708-95b3-600fe6ee4880 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=157badf6-ff4d-4345-913e-64feb7db4688 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:56.207+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=ee4f6618-6d50-4e3e-be49-4d03e6d2e681 clubId= accountId= : Refund compensation needs an admin: paymentId=105f0499-4369-4278-a7a8-9ed99395361c traceId=ee4f6618-6d50-4e3e-[redacted]
+2026-10-09T20:16:56.211+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=74610ad4-4b02-407d-8acd-e52a5a06dcbc clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=74610ad4-4b02-407d-8acd-e52a5a06dcbc
+2026-10-09T20:16:56.696+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=2b58a30a-808c-4e46-a6b4-59b08c1ea65a clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=1f11b862-4eb1-4df7-a6df-563ae4bbd5f9 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:57.074+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=586e4116-a97d-4746-8ddd-0b8b2b316086 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=1bc72c7d-0d3a-4964-8e1b-b77fc838549e bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-09T20:16:57.443+02:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=1863f38d-48e0-48ee-bb47-2169423240f5 clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=9f346628-d592-4f1d-ac7a-5bc3ce6da1e7 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+[ERROR] Tests run: 14, Failures: 14, Errors: 0, Skipped: 0, Time elapsed: 22.43 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent -- Time elapsed: 4.519 s <<< FAILURE!
+java.lang.AssertionError: shared seed 3 after [accepted inv-payment 211, execute (lost response), cancel CREDIT, execute (pending), refused inv-payment, cancel CREDIT, cancel REFUND, cancel CREDIT, execute nothing, dashboard, dashboard]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent(CapturedPaymentInvariantsIT.java:701)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.AssertionError: [one capture allowance, including credits] 
+Expecting actual:
+  2611L
+to be less than or equal to:
+  2400L 
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInvariants(CapturedPaymentInvariantsIT.java:859)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent(CapturedPaymentInvariantsIT.java:697)
+	... 3 more
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent -- Time elapsed: 0.657 s <<< FAILURE!
+java.lang.AssertionError: late repayment seed 1 after [webhook succeeded]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent(CapturedPaymentInvariantsIT.java:791)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.opentest4j.AssertionFailedError: 
+expected: 0L
+ but was: 2L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent(CapturedPaymentInvariantsIT.java:788)
+	... 3 more
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit -- Time elapsed: 0.679 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "REFUND_EXCEEDS_PAID"
+ but was: "ACCEPTED"
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit(CapturedPaymentInvariantsIT.java:734)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[1] -- Time elapsed: 0.558 s <<< FAILURE!
+java.lang.AssertionError: 
+[external refund reconciled] 
+Expecting actual not to be null
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.assertProcessedRefund(CapturedPaymentInvariantsIT.java:842)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:746)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[2] -- Time elapsed: 0.511 s <<< FAILURE!
+java.lang.AssertionError: 
+[external refund reconciled] 
+Expecting actual not to be null
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.assertProcessedRefund(CapturedPaymentInvariantsIT.java:842)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:746)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[3] -- Time elapsed: 0.621 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 700L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:749)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[4] -- Time elapsed: 0.672 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 0L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:749)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[5] -- Time elapsed: 0.515 s <<< FAILURE!
+java.lang.AssertionError: 
+[external refund reconciled] 
+Expecting actual not to be null
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.assertProcessedRefund(CapturedPaymentInvariantsIT.java:842)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:746)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[6] -- Time elapsed: 0.385 s <<< FAILURE!
+java.lang.AssertionError: 
+[external refund reconciled] 
+Expecting actual not to be null
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.assertProcessedRefund(CapturedPaymentInvariantsIT.java:842)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(CapturedPaymentInvariantsIT.java:746)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateRepaymentDoesNotSpendAnotherCapture -- Time elapsed: 0.363 s <<< FAILURE!
+java.lang.AssertionError: 
+[external refund reconciled] 
+Expecting actual not to be null
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.assertProcessedRefund(CapturedPaymentInvariantsIT.java:842)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateRepaymentDoesNotSpendAnotherCapture(CapturedPaymentInvariantsIT.java:804)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[1] -- Time elapsed: 0.343 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(CapturedPaymentInvariantsIT.java:640)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[2] -- Time elapsed: 0.419 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(CapturedPaymentInvariantsIT.java:640)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[3] -- Time elapsed: 0.398 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(CapturedPaymentInvariantsIT.java:640)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[4] -- Time elapsed: 0.396 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(CapturedPaymentInvariantsIT.java:640)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit:734 
+expected: "REFUND_EXCEEDS_PAID"
+ but was: "ACCEPTED"
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance:640 
+Expecting code to raise a throwable.
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance:640 
+Expecting code to raise a throwable.
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance:640 
+Expecting code to raise a throwable.
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance:640 
+Expecting code to raise a throwable.
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent:701 shared seed 3 after [accepted inv-payment 211, execute (lost response), cancel CREDIT, execute (pending), refused inv-payment, cancel CREDIT, cancel REFUND, cancel CREDIT, execute nothing, dashboard, dashboard]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent:791 late repayment seed 1 after [webhook succeeded]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:746->assertProcessedRefund:842 [external refund reconciled] 
+Expecting actual not to be null
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:746->assertProcessedRefund:842 [external refund reconciled] 
+Expecting actual not to be null
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:749 
+expected: 700L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:749 
+expected: 0L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:746->assertProcessedRefund:842 [external refund reconciled] 
+Expecting actual not to be null
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments:746->assertProcessedRefund:842 [external refund reconciled] 
+Expecting actual not to be null
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round2_point2_lateRepaymentDoesNotSpendAnotherCapture:804->assertProcessedRefund:842 [external refund reconciled] 
+Expecting actual not to be null
+[ERROR] Tests run: 14, Failures: 14, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+Maven exit: 1
+point1_sharedCaptureHasOneAllowance: 4 assertion failures
+point1_concurrentRowsRecheckTheCaptureAfterCommit: 1 assertion failures
+point2_lateInterventionSubtractsDashboardRepayments: 6 assertion failures
+point2_generatedLateRepaymentsKeepTheBalanceCurrent: 1 assertion failures
+point2_lateRepaymentDoesNotSpendAnotherCapture: 1 assertion failures
+Totals: tests=14, failures=14, errors=0, skipped=0
+Final PaymentRefunds restored byte for byte.

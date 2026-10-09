@@ -4,6 +4,11 @@ package com.agilityhub.core.payments.domain;
  * The money of one captured Stripe payment (S12 R-12-20, ruling E97), in minor units of its currency:
  * {@code captured} = C, {@code refunded} = S (refunds Stripe settled), {@code reserved} = R (refund commands neither settled
  * nor failed/canceled, plus unlinked pending dashboard refunds), {@code credited} = K (the CREDIT compensation, a negative {@code PendingCharge}).
+ * A shared checkout has one allowance for the entire payment intent, serialized with every reservation and reconciliation.
+ * Local reservations prefer their target row; allocation uses uncredited money, then unbilled credits, then billed credits,
+ * in stable row order within each tier. Row allocation
+ * never increases that allowance. A separate late capture uses its operation's original amount and its own intent's refund
+ * checkpoints; its intervention is C minus settled and pending repayments, including dashboard refunds, closed at zero.
  * <p>
  * Invariants, checked after every step of the generated sequences in {@code CapturedPaymentInvariantsIT}:
  * <ol>

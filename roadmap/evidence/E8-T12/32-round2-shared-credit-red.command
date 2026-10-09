@@ -1,0 +1,1 @@
+./mvnw -q '-Dit.test=CapturedPaymentInvariantsIT#T_12_17_e8t12_round2_point1_dashboardUses*+T_12_17_e8t12_round2_point1_sharedCredits*' test-compile failsafe:integration-test failsafe:verify > roadmap/evidence/E8-T12/32-round2-shared-credit-red.log 2>&1

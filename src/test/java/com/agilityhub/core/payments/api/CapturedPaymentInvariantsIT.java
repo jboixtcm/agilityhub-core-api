@@ -66,6 +66,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     private String lateTarget;
     private boolean enabled;
     private int events;
+    private long intentCaptured = CAPTURED;
 
     @BeforeEach void captured() { reset(); }
     /** The provider bean is shared with the other billing ITs: leave none of this class's hooks behind. */
@@ -75,7 +76,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "checkout_sessions", "upfront_payments", "pending_charges", "audit_entries", "domain_events", "notifications")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
-        fake.reset(); stripe.clear(); deliveries.clear(); paymentId = "inv-payment"; lateTarget = null;
+        fake.reset(); stripe.clear(); deliveries.clear(); paymentId = "inv-payment"; lateTarget = null; intentCaptured = CAPTURED;
         // Stripe refuses a refund beyond what is left of the charge (the generator's dashboard refunds can leave less than D).
         fake.beforeRefund(call -> {
             if (((Money) ((Map<?, ?>) call.request()).get("amount")).amountMinor() > available()) {
@@ -630,6 +631,264 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         assertThat(outcomes).containsExactlyInAnyOrder("failed with intervention", "succeeded");
         System.out.println("E8-T12 expired checkout generator: 24 seeds x " + STEPS + " steps; " + outcomes);
     }
+    @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"succeeded,true", "succeeded,false", "failed,true", "failed,false"})
+    void T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String outcome, boolean dashboardFirst) throws Exception {
+        sharedCapture();
+        String local = tenant(() -> refunds.upfront(paymentId, new Money(1200, "EUR"), "Partial", "shared-local").id());
+        execute(local, "pending");
+        var dashboard = dashboardRefund(1200, "pending");
+        assertThatThrownBy(() -> tenant(() -> refunds.upfront("inv-payment-b", new Money(1, "EUR"), "Third refund", "shared-third")))
+                .isInstanceOf(ApiException.class).hasMessage("REFUND_EXCEEDS_PAID");
+        tenant(() -> refunds.compensate("inv-payment-b", "CREDIT", false));
+        assertThat(mongo.findOne(Query.query(Criteria.where("bookingId").is("inv-booking-b")), Document.class, "pending_charges")).isNull();
+        var own = stripe.get(operation(local).getString("resultId"));
+        var first = dashboardFirst ? dashboard : own;
+        var second = dashboardFirst ? own : dashboard;
+        terminate(first, first == own ? outcome : "succeeded", "evt_shared_first");
+        sharedInvariants();
+        terminate(second, second == own ? outcome : "succeeded", "evt_shared_second");
+        sharedInvariants();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI)), Document.class, "stripe_refunds"))
+                .hasSize(2);
+        assertThat(allRefunded()).isEqualTo("succeeded".equals(outcome) ? 2400 : 1200);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("processedAt").is(null)), "stripe_events")).isZero();
+    }
+
+    @Test void T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent() throws Exception {
+        var reach = new TreeSet<String>();
+        for (int seed = 1; seed <= 32; seed++) {
+            reset(); sharedCapture();
+            var random = new Random(seed);
+            var trace = new ArrayList<String>();
+            try {
+                for (int step = 0; step < STEPS; step++) {
+                    clock.setInstant(clock.instant().plusSeconds(360));
+                    int choice = random.nextInt(7);
+                    if (choice == 0 || stripe.isEmpty() && pendingCommands().isEmpty()) {
+                        String target = random.nextBoolean() ? paymentId : "inv-payment-b";
+                        long requested = 1 + random.nextInt(1200);
+                        long allowance = intentCaptured - allRefunded() - allReserved() - allCredited();
+                        String key = "shared-" + seed + "-" + step;
+                        try {
+                            tenant(() -> refunds.upfront(target, new Money(requested, "EUR"), "Generated", key));
+                            assertThat(requested).as("intent allowance").isLessThanOrEqualTo(allowance);
+                            trace.add("accepted " + target + " " + requested);
+                        } catch (ApiException rejected) {
+                            assertThat(rejected.code()).isIn(ErrorCode.REFUND_EXCEEDS_PAID, ErrorCode.INVALID_STATE);
+                            trace.add("refused " + target);
+                        }
+                    } else if (choice == 1 || stripe.isEmpty()) {
+                        trace.add(execute(random));
+                    } else if (choice == 2) {
+                        // The dashboard can overtake a command not yet sent. Do not create synthetic over-reservations here:
+                        // this generator checks strict conservation; the existing generator covers that provider race.
+                        long free = Math.min(available(), intentCaptured - allRefunded() - allReserved());
+                        if (free > 0) { dashboardRefund(1 + random.nextInt((int) free), random.nextBoolean() ? "pending" : "succeeded"); }
+                        trace.add("dashboard");
+                    } else if (choice == 3) { trace.add(webhook(random)); }
+                    else if (choice == 4) { recovery.recover(); trace.add("recover"); }
+                    else {
+                        String target = random.nextBoolean() ? paymentId : "inv-payment-b";
+                        String policy = choice == 5 ? "CREDIT" : "REFUND";
+                        tenant(() -> refunds.compensate(target, policy, false));
+                        trace.add("cancel " + policy);
+                    }
+                    reach.add(trace.getLast().split(" ")[0]);
+                    sharedInvariants();
+                }
+                drain(random); sharedInvariants();
+                assertThat(allReserved()).isZero();
+            } catch (Exception | AssertionError failure) { throw new AssertionError("shared seed " + seed + " after " + trace, failure); }
+        }
+        assertThat(reach).contains("accepted", "refused", "dashboard", "webhook", "execute", "recover", "cancel");
+        System.out.println("E8-T12 round 2 shared generator: 32 seeds x " + STEPS + " steps; " + reach);
+    }
+
+    @Test void T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit() throws Exception {
+        sharedCapture();
+        var held = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        try (var workers = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var first = workers.submit(() -> tenant(() -> transactions.run(() -> {
+                refunds.upfront(paymentId, new Money(1200, "EUR"), "First", "concurrent-first");
+                refunds.reconcile(PI, "re_concurrent_external", new Money(1200, "EUR"), "pending", clock.instant(), "requested_by_customer", null);
+                held.countDown();
+                try { assertThat(release.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue(); }
+                catch (InterruptedException interrupted) { throw new IllegalStateException(interrupted); }
+                return null;
+            })));
+            try {
+                assertThat(held.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                var second = workers.submit(() -> {
+                    entered.countDown();
+                    return tenant(() -> {
+                        try { refunds.upfront("inv-payment-b", new Money(1, "EUR"), "Third", "concurrent-third"); return "ACCEPTED"; }
+                        catch (ApiException rejected) { return rejected.getMessage(); }
+                    });
+                });
+                assertThat(entered.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                assertThatThrownBy(() -> second.get(150, java.util.concurrent.TimeUnit.MILLISECONDS)).isInstanceOf(java.util.concurrent.TimeoutException.class);
+                release.countDown();
+                first.get(10, java.util.concurrent.TimeUnit.SECONDS);
+                assertThat(second.get(10, java.util.concurrent.TimeUnit.SECONDS)).isEqualTo("REFUND_EXCEEDS_PAID");
+            } finally { release.countDown(); }
+        }
+        assertThat(allReserved()).isEqualTo(2400);
+    }
+
+    @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"500,true", "1500,true", "2400,true", "500,false", "1500,false", "2400,false"})
+    void T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long repaid, boolean billed) throws Exception {
+        sharedCapture();
+        tenant(() -> refunds.compensate(paymentId, "CREDIT", false));
+        if (billed) { bill(); }
+        var external = dashboardRefund(repaid, "pending");
+        assertThat(overpaid()).isZero();
+        assertThat(allCredited()).isEqualTo(billed ? 1200 : Math.min(1200, 2400 - repaid));
+        terminate(external, "succeeded", "evt_shared_credit_success");
+        assertThat(overpaid()).as("actual capture-wide overpayment").isEqualTo(billed ? Math.max(0, repaid - 1200) : 0);
+        assertThat(allRefunded() + allCredited()).isLessThanOrEqualTo(2400 + overpaid());
+    }
+
+    @Test void T_12_17_e8t12_round2_point1_sharedCreditsAbsorbBeforeABilledCreditNeedsIntervention() throws Exception {
+        sharedCapture();
+        tenant(() -> refunds.compensate(paymentId, "CREDIT", false)); bill();
+        tenant(() -> refunds.compensate("inv-payment-b", "CREDIT", false));
+        var external = dashboardRefund(500, "pending");
+        assertThat(allCredited()).isEqualTo(1900);
+        terminate(external, "succeeded", "evt_shared_two_credits");
+        assertThat(overpaid()).isZero();
+        assertThat(allRefunded() + allCredited()).isEqualTo(2400);
+    }
+
+    @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"500,succeeded,true", "1200,succeeded,true", "500,pending,true", "1200,pending,true", "500,succeeded,false", "1200,succeeded,false"})
+    void T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long repaid, String status, boolean booking) throws Exception {
+        notificationRecipients("ca");
+        fake.rejectRefund(ErrorCode.PROVIDER_CONFIG_INVALID);
+        String command = expiredCheckout(booking);
+        var external = dashboardRefund(repaid, status);
+        assertProcessedRefund(external.id());
+        exhaustLate(command);
+        long owed = CAPTURED - repaid;
+        assertThat(amount(operation(command), "interventionOwed")).isEqualTo(owed);
+        assertThat(interventions()).hasSize(owed > 0 ? 1 : 0);
+        if (owed > 0) {
+            assertThat(amount(events("UpfrontRefundIntervention").getFirst().get("payload", Document.class), "amount")).isEqualTo(owed);
+            deliverInterventions(1, "ca", "7");
+            var remainder = dashboardRefund(owed, "pending");
+            assertThat(amount(operation(command), "interventionOwed")).as("in-flight repayment closes the demand").isZero();
+            terminate(remainder, "succeeded", "evt_late_remainder");
+        }
+        if ("pending".equals(status)) { terminate(external, "succeeded", "evt_late_external_success"); }
+        webhook("evt_late_external_duplicate", refundObject(external, "succeeded"));
+        recovery.recover();
+        assertThat(amount(operation(command), "interventionOwed")).isZero();
+        assertThat(interventions()).hasSize(owed > 0 ? 1 : 0);
+        assertThat(paymentRow().get("stripe")).isNull();
+        assertThat(amount(paymentRow(), "amountPaid")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("processedAt").is(null)), "stripe_events")).isZero();
+    }
+
+    @Test void T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent() throws Exception {
+        var reach = new TreeSet<String>();
+        for (int seed = 1; seed <= 24; seed++) {
+            reset(); fake.rejectRefund(ErrorCode.PROVIDER_CONFIG_INVALID);
+            String command = expiredCheckout(seed % 2 == 0);
+            var random = new Random(seed);
+            var trace = new ArrayList<String>();
+            try {
+                dashboardRefund(seed % 3 == 0 ? CAPTURED : 1 + random.nextInt(1199), seed % 2 == 0 ? "pending" : "succeeded");
+                exhaustLate(command);
+                for (int step = 0; step < STEPS; step++) {
+                    if (random.nextBoolean() && available() > 0) { trace.add(dashboard(random)); }
+                    else { trace.add(webhook(random)); }
+                    recovery.recover();
+                    long settled = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI).and("status").in("pending", "succeeded")), Document.class, "stripe_refunds")
+                            .stream().mapToLong(this::amount).sum();
+                    long expected = Math.max(0, CAPTURED - settled);
+                    assertThat(amount(operation(command), "interventionOwed")).isEqualTo(expected);
+                    reach.add(expected == 0 ? "closed" : "owed");
+                    assertThat(events("UpfrontRefundIntervention")).hasSize(interventions().size());
+                    assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("outcome").is("FAILED")), "stripe_events")).isZero();
+                }
+                drain(random);
+            } catch (Exception | AssertionError failure) { throw new AssertionError("late repayment seed " + seed + " after " + trace, failure); }
+        }
+        assertThat(reach).containsExactlyInAnyOrder("closed", "owed");
+        System.out.println("E8-T12 round 2 late repayment generator: 24 seeds x " + STEPS + " steps; " + reach);
+    }
+
+    @Test void T_12_17_e8t12_round2_point2_lateRepaymentDoesNotSpendAnotherCapture() throws Exception {
+        fake.rejectRefund(ErrorCode.PROVIDER_CONFIG_INVALID);
+        String command = expiredCheckout();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(paymentId)), new Update().set("status", "PAID")
+                .set("stripe", new Document("paymentIntentId", "pi_new_capture").append("chargeId", null))
+                .set("amountPaid", new Document("amountMinor", 1200L).append("currency", "EUR")), "upfront_payments");
+        var external = dashboardRefund(1200, "succeeded");
+        assertProcessedRefund(external.id()); exhaustLate(command);
+        assertThat(amount(operation(command), "interventionOwed")).isZero();
+        assertThat(paymentRow().get("stripe", Document.class).getString("paymentIntentId")).isEqualTo("pi_new_capture");
+        assertThat(paymentRow().getString("status")).isEqualTo("PAID");
+        assertThat(refundRows(paymentRow())).isEmpty();
+        assertThat(interventions()).isEmpty();
+    }
+
+    void sharedCapture() throws Exception {
+        intentCaptured = 2400;
+        mongo.insert(new UpfrontPayment("inv-payment-b", CLUB, "inv-member", null, "SINGLE_CLASS", null, new Money(CAPTURED, "EUR"), new Money(CAPTURED, "EUR"),
+                "PAID", "STRIPE", null, clock.instant(), clock.instant(), "inv-booking-b", null, null, null, null,
+                new UpfrontPayment.StripeRefs(PI, null), null, null, List.of(), null));
+        mongo.updateMulti(Query.query(Criteria.where("clubId").is(CLUB)), new Update().set("status", "DUE")
+                .set("amountPaid", new Document("amountMinor", 0L).append("currency", "EUR")).unset("stripe").unset("paidAt"), "upfront_payments");
+        String session = ok(admin(keyed(post("/api/v1/checkout-sessions"), Map.of("memberId", "inv-member", "upfrontPaymentIds", List.of(paymentId, "inv-payment-b"),
+                "successUrl", "https://" + HOST + "/ok", "cancelUrl", "https://" + HOST + "/ko"))), 201).path("checkoutSessionId").asText();
+        webhook("evt_shared_capture", "checkout.session.completed", Map.of("id", "cs_shared", "payment_intent", PI,
+                "amount_total", intentCaptured, "payment_status", "paid", "metadata", Map.of("operationId", session)));
+        assertThat(intentRows()).hasSize(2).allSatisfy(row -> {
+            assertThat(row.getString("status")).isEqualTo("PAID");
+            assertThat(amount(row, "amountPaid")).isEqualTo(CAPTURED);
+        });
+    }
+    StripeRefund dashboardRefund(long amount, String status) throws Exception {
+        var external = new StripeRefund("re_round2_dashboard_" + (++events), amount, null, new ArrayList<>(List.of(status)));
+        stripe.put(external.id(), external);
+        webhook("evt_round2_dashboard_" + events, refundObject(external, status));
+        return external;
+    }
+    void exhaustLate(String command) {
+        for (int i = 0; i < 3; i++) {
+            fake.refuseRefund(ErrorCode.PROVIDER_CONFIG_INVALID);
+            clock.setInstant(clock.instant().plusSeconds(360)); recovery.recover();
+        }
+        assertThat(failed(operation(command))).isTrue();
+    }
+    void assertProcessedRefund(String id) {
+        assertThat(mongo.findById(CLUB + ":" + id, Document.class, "stripe_refunds")).as("external refund reconciled").isNotNull();
+    }
+    List<Document> intentRows() { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("stripe.paymentIntentId").is(PI)), Document.class, "upfront_payments"); }
+    long allRefunded() { return intentRows().stream().flatMap(row -> refundRows(row).stream()).mapToLong(this::amount).sum(); }
+    long allCredited() {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").in(BOOKING, "inv-booking-b").and("voidedAt").is(null)), Document.class, "pending_charges")
+                .stream().mapToLong(row -> Math.max(0, -amount(row))).sum();
+    }
+    long allReserved() {
+        var settled = intentRows().stream().flatMap(row -> refundRows(row).stream()).map(row -> row.getString("providerRef")).toList();
+        var commands = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("providerRef").is(PI).and("kind").regex("^REFUND")), Document.class, "payment_operations");
+        var linked = commands.stream().map(op -> op.getString("resultId")).filter(Objects::nonNull).toList();
+        return commands.stream().filter(op -> !failed(op) && !settled.contains(op.getString("resultId"))).mapToLong(this::amount).sum()
+                + mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI).and("status").is("pending")), Document.class, "stripe_refunds")
+                .stream().filter(row -> !linked.contains(row.getString("_id").substring(CLUB.length() + 1))).mapToLong(this::amount).sum();
+    }
+    void sharedInvariants() {
+        assertThat(allRefunded() + allReserved() + allCredited()).as("one capture allowance, including credits").isLessThanOrEqualTo(intentCaptured);
+        for (var row : intentRows()) { assertThat(refundRows(row).stream().mapToLong(this::amount).sum()).isBetween(0L, CAPTURED); }
+        for (var refund : stripe.values()) {
+            var state = mongo.findById(CLUB + ":" + refund.id(), Document.class, "stripe_refunds");
+            long allocated = intentRows().stream().flatMap(row -> refundRows(row).stream()).filter(r -> refund.id().equals(r.getString("providerRef"))).mapToLong(this::amount).sum();
+            assertThat(allocated).as("settled allocation for %s", refund.id()).isEqualTo(state != null && "succeeded".equals(state.getString("status")) ? refund.amount() : 0);
+        }
+    }
+
     void lateInvariants(String command, boolean drained) {
         var ledger = ledger();
         assertThat(ledger.consistent()).isTrue();
@@ -894,7 +1153,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     }
     /** What Stripe still holds of the charge: it refuses a refund beyond it. */
     long available() {
-        return CAPTURED - stripe.values().stream().filter(r -> !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
+        return intentCaptured - stripe.values().stream().filter(r -> !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
     }
     List<Document> interventions() {
         return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUND_INTERVENTION").and("details.intervention").is(true)),

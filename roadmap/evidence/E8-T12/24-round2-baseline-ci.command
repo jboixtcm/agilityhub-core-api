@@ -1,0 +1,1 @@
+gh run list --branch main --limit 5 --json databaseId,headSha,status,conclusion,url --jq '.[] | {databaseId,commit:(.headSha[0:7]),status,conclusion,url}' > roadmap/evidence/E8-T12/24-round2-baseline-ci.log 2>&1

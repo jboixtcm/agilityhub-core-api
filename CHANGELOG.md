@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T12 round 2 (E103): shared checkout rows use one serialized refund allowance per Stripe payment intent, with consistent allocation of local and dashboard reservations and settlements. External repayments of expired captures reconcile against their original late-refund operation; N-55 reports only the remainder after settled and pending repayments and closes the balance at zero. Regressions cover both settlement orders, concurrent rows, shared cancellation credits, and generated shared-checkout and late-repayment sequences.
+
 - E8-T12: pending Stripe dashboard refunds reserve captured funds and reduce unbilled credits before billing, without counting operation-linked refunds twice. Failed late refunds from expired booking or signup checkouts resolve their stored target and emit the existing admin intervention audit and N-55 once, using the late capture amount. Generated payment sequences now cover both paths.
 
 - E8-T11 round 2 (E101): dashboard refunds reduce an unbilled credit with pending refund reservations included. Manual interventions use the approved `PAYMENT_REFUND_INTERVENTION` audit action and N-55 admin APP+EMAIL notification through the transactional outbox; their outstanding balance updates when another refund fails or an admin reserves repayment. Billed-credit interventions warn only once after commit. CI gives each main push an independent run, cancels only superseded pull requests, and allows 60 minutes for the test job; older successful runs keep their immutable image tag without replacing the current main image.

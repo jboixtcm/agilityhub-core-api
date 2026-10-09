@@ -26,6 +26,10 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
     public List<PaymentOperation> forTarget(String target) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("targetId").is(target)), PaymentOperation.class);
     }
+    public List<PaymentOperation> refundsForIntent(String intent) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("providerRef").is(intent).and("kind").regex("^REFUND"))
+                .with(org.springframework.data.domain.Sort.by("createdAt", "_id")), PaymentOperation.class);
+    }
     public void requestReference(String id, String reference) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("requestReference", reference), PaymentOperation.class);
     }
