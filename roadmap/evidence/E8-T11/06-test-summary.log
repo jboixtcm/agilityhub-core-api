@@ -1,0 +1,23 @@
+surefire: tests=3762, failures=0, errors=0, skipped=0
+failsafe: tests=1800, failures=0, errors=0, skipped=0
+
+E8-T11 test classes (added or changed), with their E8-T11 cases:
+com.agilityhub.core.payments.application.stripe.StripeCallsTest: tests=5, failures=0, errors=0, skipped=0
+  T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive 0.001s
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=17, failures=0, errors=0, skipped=0
+  T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses(String)[1] 0.217s
+  T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses(String)[2] 0.206s
+  T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses(String)[3] 0.241s
+  T_12_17_e8t11_point2_failedAdminRefundsNeverCapTheCompensation 0.622s
+  T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce(String)[1] 0.285s
+  T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce(String)[2] 0.288s
+  T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt(long, boolean)[1] 0.225s
+  T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt(long, boolean)[2] 0.211s
+  T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt(long, boolean)[3] 0.24s
+  T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall 0.206s
+  T_12_17_round5_generatedSequencesKeepTheLedgerInvariants 28.291s
+  T_12_17_e8t11_point5_interventionWarningIsWrittenOnceAfterCommit(CapturedOutput) 0.347s
+com.agilityhub.core.payments.api.CardPaymentsIT: tests=119, failures=0, errors=0, skipped=0
+  T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement 0.411s
+
+Generator reach: E8-T11, 80 seeds x 24 steps reached: {admin refund n=561, bill credit=50, cancel CREDIT=91, cancel CREDIT before confirmation=17, cancel REFUND=87, cancel REFUND before confirmation=23, dashboard nothing=55, dashboard refund pending=34, dashboard refund succeeded=38, disable Stripe=72, enable Stripe=34, execute (lost response)=46, execute (pending)=42, execute (refused)=32, execute (refused, not reached)=15, execute (rejected)=22, execute (rejected, not reached)=9, execute (succeeded)=35, late confirmation=84, n h later, recover=51, recover=171, redeliver canceled=5, redeliver failed=5, redeliver pending=22, redeliver succeeded=23, webhook canceled=34, webhook failed=75, webhook pending=58, webhook succeeded=129, ~ compensation postponed by an outage (E8-T11 point 1)=7, ~ credit absorbed a dashboard refund (E8-T11 point 3)=10, ~ credit grown after a failed refund (finding 1)=2, ~ dashboard refund beyond a billed credit (E8-T11 point 3)=3, ~ obligation CREDIT=26, ~ obligation CREDIT with intervention=4, ~ obligation REFUND=24, ~ obligation REFUND with intervention=26, ~ reconciled while Stripe was disabled=35}

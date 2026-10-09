@@ -40,6 +40,24 @@ class StripeCallsTest {
             assertThat(error.getMessage()).doesNotContain("private-provider-message");
         }
     }
+    @Test void T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive() {
+        var calls = new StripeCalls(millis -> {});
+        for (int status : List.of(401, 403, 429)) {
+            var error = catchThrowable(() -> calls.call(() -> { throw failure(status); }));
+            assertThat(error).as("HTTP %s is an outage of the club's access", status)
+                    .isInstanceOfSatisfying(com.agilityhub.core.payments.application.PaymentNotSubmitted.class, e -> assertThat(e.definitive()).isFalse());
+        }
+        var card = new com.stripe.exception.CardException("private-provider-message", null, "card_declined", null, null, null, 402, null);
+        var invalid = new com.stripe.exception.InvalidRequestException("private-provider-message", null, null, "charge_already_refunded", 400, null);
+        for (var rejection : List.<com.stripe.exception.StripeException>of(card, invalid)) {
+            var error = catchThrowable(() -> calls.call(() -> { throw rejection; }));
+            assertThat(error).as(rejection.getClass().getSimpleName())
+                    .isInstanceOfSatisfying(com.agilityhub.core.payments.application.PaymentNotSubmitted.class, e -> {
+                        assertThat(e.definitive()).isTrue();
+                        assertThat(e.code()).isEqualTo(ErrorCode.PROVIDER_CONFIG_INVALID);
+                    });
+        }
+    }
     @Test void T_12_17_round3_point3_serverFailureAfterRateLimitingStaysUncertain() {
         var calls = new StripeCalls(millis -> {}); var attempts = new AtomicInteger();
         var error = catchThrowable(() -> calls.call(() -> { throw failure(attempts.incrementAndGet() < 3 ? 429 : 500); }));

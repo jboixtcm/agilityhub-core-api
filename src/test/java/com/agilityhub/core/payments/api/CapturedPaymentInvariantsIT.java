@@ -15,11 +15,15 @@ import java.util.function.Supplier;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.bson.Document;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.data.mongodb.core.query.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,10 +31,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * E8-T09 round 5 (ruling E97): {@link CapturedPaymentLedger}'s invariants under generated event sequences. Each seed drives one
  * captured 12 € class payment through random admin refunds, REFUND and CREDIT cancellations, late confirmations, command executions
- * (Stripe answers pending or succeeded, loses the response or rejects the call), refund webhooks (pending, succeeded, failed,
- * canceled; late, duplicated, out of order, or accepted and processed by a later recovery pass), Stripe disabled and re-enabled, the
- * credit billed, recovery passes (restarts) and jumps past Stripe's 24-hour key window. The invariants are checked after every step
- * and again once everything has drained. The three findings of the round-4 review are fixed examples beside the generator.
+ * (Stripe answers pending or succeeded, loses the response, rejects the call during an outage of the club's access, or refuses its
+ * content), refunds made in Stripe's dashboard, refund webhooks (pending, succeeded, failed, canceled; late, duplicated, out of
+ * order, or accepted and processed by a later recovery pass), Stripe disabled and re-enabled, the credit billed, recovery passes
+ * (restarts) and jumps past Stripe's 24-hour key window. Stripe refuses a refund beyond what is left of the charge. The invariants
+ * are checked after every step and again once everything has drained. The findings of the round-4 review and E8-T11's points
+ * (the review of round 5, ruling E99) are fixed examples beside the generator.
  */
 class CapturedPaymentInvariantsIT extends BillingItSupport {
     private static final String SECRET = "whsec_example_fixture", PAYMENT = "inv-payment", BOOKING = "inv-booking", PI = "pi_invariants";
@@ -43,6 +49,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     @Autowired PaymentRecovery recovery;
     @Autowired PaymentRefunds refunds;
     @Autowired StripeInbox inbox;
+    @Autowired BillingTransactions transactions;
 
     /** Stripe's side of a refund it created: every status it went through, the last one current. */
     record StripeRefund(String id, long amount, String operationId, List<String> history) {
@@ -50,16 +57,25 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     }
     private final Map<String, StripeRefund> stripe = new LinkedHashMap<>();
     private final List<String[]> deliveries = new ArrayList<>();
+    private final Map<String, Integer> reached = new TreeMap<>();
     private boolean enabled;
     private int events;
 
     @BeforeEach void captured() { reset(); }
+    /** The provider bean is shared with the other billing ITs: leave none of this class's hooks behind. */
+    @AfterEach void provider() { fake.reset(); }
 
     void reset() {
-        for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "upfront_payments", "pending_charges")) {
+        for (String collection : List.of("stripe_refunds", "payment_operations", "stripe_events", "upfront_payments", "pending_charges", "audit_entries")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         fake.reset(); stripe.clear(); deliveries.clear();
+        // Stripe refuses a refund beyond what is left of the charge (the generator's dashboard refunds can leave less than D).
+        fake.beforeRefund(call -> {
+            if (((Money) ((Map<?, ?>) call.request()).get("amount")).amountMinor() > available()) {
+                throw PaymentNotSubmitted.refused(ErrorCode.PROVIDER_CONFIG_INVALID);
+            }
+        });
         club(CLUB, HOST, "Europe/Madrid", List.of(Module.values()), Map.of("STRIPE", Map.of("enabled", true, "mode", "test",
                 "webhookSecretEnc", vault.encrypt(SECRET, CLUB, "STRIPE", "webhookSecretEnc"))));
         enabled = true;
@@ -70,7 +86,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     }
 
     @Test void T_12_17_round5_generatedSequencesKeepTheLedgerInvariants() {
-        var reached = new TreeMap<String, Integer>();
+        reached.clear();
         for (long seed = 1; seed <= SEEDS; seed++) {
             if (seed > 1) { reset(); }
             var random = new Random(seed);
@@ -89,6 +105,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                     invariants(false);
                     long now = ledger().credited();
                     if (credited > 0 && now > credited) { reached.merge("~ credit grown after a failed refund (finding 1)", 1, Integer::sum); }
+                    if (now < credited) { reached.merge("~ credit absorbed a dashboard refund (E8-T11 point 3)", 1, Integer::sum); }
                     credited = now;
                 }
                 trace.add("drain");
@@ -97,15 +114,191 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 var payment = paymentRow();
                 String obligation = payment.getString("refundCompensationReason") != null ? "REFUND" : payment.getString("creditCompensationReason") != null ? "CREDIT" : "none";
                 reached.merge("~ obligation " + obligation + (payment.get("compensationInterventionAt") != null ? " with intervention" : ""), 1, Integer::sum);
+                if (overpaid() > 0) { reached.merge("~ dashboard refund beyond a billed credit (E8-T11 point 3)", 1, Integer::sum); }
             } catch (Exception | AssertionError failure) {
                 throw new AssertionError("seed " + seed + " after " + trace, failure);
             }
         }
-        System.out.println("E8-T09 round 5, " + SEEDS + " seeds x " + STEPS + " steps reached: " + reached);
+        System.out.println("E8-T11, " + SEEDS + " seeds x " + STEPS + " steps reached: " + reached);
         if (!MONEY_ONLY) {
             assertThat(reached).containsKeys("~ credit grown after a failed refund (finding 1)", "~ obligation REFUND with intervention",
-                    "~ reconciled while Stripe was disabled", "~ obligation REFUND", "~ obligation CREDIT");
+                    "~ reconciled while Stripe was disabled", "~ obligation REFUND", "~ obligation CREDIT",
+                    "~ compensation postponed by an outage (E8-T11 point 1)", "~ credit absorbed a dashboard refund (E8-T11 point 3)");
         }
+    }
+
+    @ParameterizedTest(name = "outage {0}")
+    @ValueSource(strings = {"PROVIDER_CONFIG_INVALID", "RATE_LIMITED", "PAYMENT_PROVIDER_NOT_ENABLED"})
+    void T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses(String code) throws Exception {
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        String command = compensationCommands().getFirst().getString("_id");
+        // Longer than billing.stripeMaxAttempts (3) retries: an outage spends none of them.
+        for (int i = 0; i < 5; i++) {
+            fake.rejectRefund(ErrorCode.valueOf(code));
+            clock.setInstant(clock.instant().plus(Duration.ofMinutes(6)));
+            recovery.recover();
+            assertThat(fake.clearRefundRejections()).as("pass %s reached Stripe", i).isZero();
+        }
+        var waiting = operation(command);
+        assertThat(waiting.get("attempts")).isNull();
+        assertThat(waiting.get("processedAt")).isNull();
+        assertThat(failed(waiting)).isFalse();
+        assertThat(waiting.getDate("nextAttemptAt").toInstant()).isAfter(clock.instant());
+        assertThat(paymentRow().get("compensationInterventionAt")).isNull();
+        assertThat(interventions()).isEmpty();
+        assertThat(ledger().reserved()).isEqualTo(CAPTURED);
+        // The outage passes: the same command, under its own key, refunds the member.
+        clock.setInstant(clock.instant().plus(Duration.ofMinutes(6)));
+        recovery.recover();
+        String refund = operation(command).getString("resultId");
+        assertThat(refund).isNotNull();
+        assertThat(fake.calls().stream().filter(call -> call.operation().equals("refund"))).singleElement()
+                .satisfies(call -> assertThat(call.key()).isEqualTo("refund:" + PAYMENT));
+        webhook("evt_p1_outage_over", refundObject(stripe.get(refund), "succeeded"));
+        assertThat(paymentRow().getString("status")).isEqualTo("REFUNDED");
+        invariants(true);
+    }
+
+    @ParameterizedTest(name = "compensation {0}")
+    @ValueSource(strings = {"failed at Stripe", "refused by Stripe"})
+    void T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce(String how) throws Exception {
+        fake.refundStatus("pending");
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        String command = compensationCommands().getFirst().getString("_id");
+        if (how.startsWith("failed")) {
+            tenant(() -> refunds.execute(command));
+            terminate(stripe.get(operation(command).getString("resultId")), "failed", "evt_p1_failed");
+        } else {
+            for (int i = 0; i < 3; i++) {
+                fake.refuseRefund(ErrorCode.PROVIDER_CONFIG_INVALID);
+                clock.setInstant(clock.instant().plus(Duration.ofMinutes(6)));
+                recovery.recover();
+            }
+        }
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        clock.setInstant(clock.instant().plus(Duration.ofMinutes(6)));
+        recovery.recover();
+        assertThat(compensationCommands()).hasSize(1);
+        assertThat(paymentRow().get("compensationInterventionAt")).isNotNull();
+        assertThat(interventions()).singleElement().satisfies(entry -> {
+            assertThat(entry.getString("action")).isEqualTo("PAYMENT_REFUNDED");
+            assertThat(entry.getString("entityType")).isEqualTo("UpfrontPayment");
+            assertThat(entry.getString("entityId")).isEqualTo(PAYMENT);
+            assertThat(entry.getString("memberId")).isEqualTo("inv-member");
+            assertThat(entry.getString("reason")).isEqualTo("COMPENSATION_INTERVENTION");
+            assertThat(amount(entry.get("details", Document.class), "owed")).isEqualTo(CAPTURED);
+        });
+        // The admin repays exactly what is owed with the existing refund endpoint.
+        adminRefund(CAPTURED, "p1-repay");
+        assertThat(ledger().free()).isZero();
+        invariants(false);
+    }
+
+    @Test void T_12_17_e8t11_point2_failedAdminRefundsNeverCapTheCompensation() throws Exception {
+        fake.refundStatus("pending");
+        var partials = new ArrayList<String>();
+        for (int i = 0; i < 4; i++) {
+            String key = "p2-partial-" + i;
+            partials.add(tenant(() -> refunds.upfront(PAYMENT, new Money(100, "EUR"), "Partial", key).id()));
+            tenant(() -> refunds.execute(partials.getLast()));
+        }
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        for (int i = 0; i < partials.size(); i++) {
+            terminate(stripe.get(operation(partials.get(i)).getString("resultId")), "failed", "evt_p2_partial_" + i);
+        }
+        // One supplement per failed admin refund, however many: no compensation failed, so no intervention.
+        assertThat(compensationCommands()).extracting(op -> op.getString("key")).containsExactlyInAnyOrder("refund:" + PAYMENT,
+                "refund:" + PAYMENT + ":1", "refund:" + PAYMENT + ":2", "refund:" + PAYMENT + ":3", "refund:" + PAYMENT + ":4");
+        assertThat(paymentRow().get("compensationInterventionAt")).isNull();
+        assertThat(interventions()).isEmpty();
+        assertThat(ledger().free()).isZero();
+        settleAll();
+        assertThat(paymentRow().getString("status")).isEqualTo("REFUNDED");
+        invariants(true);
+    }
+
+    @ParameterizedTest(name = "dashboard refund {0}, credit billed {1}")
+    @org.junit.jupiter.params.provider.CsvSource({"500,false", "1200,false", "500,true"})
+    void T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt(long amount, boolean billed) throws Exception {
+        tenant(() -> refunds.compensate(PAYMENT, "CREDIT", false));
+        assertThat(amount(creditRow())).isEqualTo(-CAPTURED);
+        if (billed) { bill(); }
+        var dashboard = new StripeRefund("re_p3_dashboard", amount, null, new ArrayList<>(List.of("succeeded")));
+        stripe.put(dashboard.id(), dashboard);
+        webhook("evt_p3_dashboard", refundObject(dashboard, "succeeded"));
+        assertThat(refundRows(paymentRow())).extracting(row -> row.getString("providerRef")).containsExactly(dashboard.id());
+        if (!billed) {
+            assertThat(ledger().credited()).isEqualTo(CAPTURED - amount);
+            assertThat(ledger().free()).isZero();
+            if (amount == CAPTURED) {
+                assertThat(creditRow().get("voidedAt")).isNotNull();
+                assertThat(amount(creditRow())).as("a voided credit never reads as a consumption charge").isNegative();
+            } else {
+                assertThat(amount(creditRow())).isEqualTo(-(CAPTURED - amount));
+            }
+            assertThat(paymentRow().get("compensationInterventionAt")).isNull();
+            assertThat(interventions()).isEmpty();
+            // A redelivered cancellation sees the obligation fulfilled.
+            tenant(() -> refunds.compensate(PAYMENT, "CREDIT", false));
+            assertThat(ledger().credited()).isEqualTo(CAPTURED - amount);
+        } else {
+            assertThat(amount(creditRow())).isEqualTo(-CAPTURED);
+            assertThat(paymentRow().get("compensationInterventionAt")).isNotNull();
+            assertThat(interventions()).singleElement().satisfies(entry -> {
+                assertThat(entry.getString("reason")).isEqualTo("REFUND_OVER_CREDIT");
+                assertThat(entry.getString("memberId")).isEqualTo("inv-member");
+                assertThat(amount(entry.get("details", Document.class), "overpaid")).isEqualTo(amount);
+            });
+            // A second dashboard refund reports only what it adds.
+            var second = new StripeRefund("re_p3_second", 300, null, new ArrayList<>(List.of("succeeded")));
+            stripe.put(second.id(), second);
+            webhook("evt_p3_second", refundObject(second, "succeeded"));
+            assertThat(interventions()).hasSize(2);
+            assertThat(overpaid()).isEqualTo(amount + 300);
+            assertThat(ledger().refunded() + ledger().credited()).isEqualTo(CAPTURED + overpaid());
+        }
+        invariants(true);
+    }
+
+    @Test @ExtendWith(OutputCaptureExtension.class)
+    void T_12_17_e8t11_point5_interventionWarningIsWrittenOnceAfterCommit(CapturedOutput output) {
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        String command = compensationCommands().getFirst().getString("_id");
+        // The state a refund.failed webhook leaves on the compensation, without that webhook's own transaction.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(command)), new Update().set("resultId", "re_p5").set("processedAt", clock.instant())
+                .set("refundStatus", "failed"), "payment_operations");
+        // Rolled back: nothing was saved, so nothing is reported.
+        assertThatThrownBy(() -> tenant(() -> transactions.<Void>run(() -> {
+            refunds.compensate(PAYMENT, "REFUND", false);
+            throw new IllegalStateException("rolled back");
+        }))).hasMessage("rolled back");
+        assertThat(paymentRow().get("compensationInterventionAt")).isNull();
+        assertThat(warnings(output)).isEmpty();
+        // A write conflict runs the whole transaction again: only the attempt that commits reports, once.
+        var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        tenant(() -> transactions.<Void>run(() -> {
+            refunds.compensate(PAYMENT, "REFUND", false);
+            if (attempts.incrementAndGet() == 1) { throw new org.springframework.dao.DuplicateKeyException("write conflict"); }
+            return null;
+        }));
+        assertThat(attempts).hasValue(2);
+        assertThat(paymentRow().get("compensationInterventionAt")).isNotNull();
+        assertThat(interventions()).hasSize(1);
+        assertThat(warnings(output)).singleElement().asString().contains("WARN", "paymentId=" + PAYMENT);
+        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
+        assertThat(warnings(output)).hasSize(1);
+    }
+
+    @Test void T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall() {
+        fake.refundStatus("pending");
+        String first = tenant(() -> refunds.upfront(PAYMENT, new Money(200, "EUR"), "Partial", "p6-first").id());
+        stripe(false);
+        String label = execute(first, "rejected");
+        stripe(true);
+        clock.setInstant(clock.instant().plus(Duration.ofMinutes(6)));
+        execute(first, "pending");
+        assertThat(operation(first).getString("resultId")).as("the later call was rejected by an earlier step's queued rejection").isNotNull();
+        assertThat(label).isEqualTo("execute (rejected, not reached)");
     }
 
     @ParameterizedTest(name = "credit billed before the failure: {0}")
@@ -159,26 +352,6 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         invariants(false);
     }
 
-    @Test void T_12_17_round5_finding2_replacementsAreBoundedAcrossTheObligation() throws Exception {
-        fake.refundStatus("pending");
-        var partials = new ArrayList<String>();
-        for (int i = 0; i < 4; i++) {
-            String key = "f2-partial-" + i;
-            partials.add(tenant(() -> refunds.upfront(PAYMENT, new Money(100, "EUR"), "Partial", key).id()));
-            tenant(() -> refunds.execute(partials.getLast()));
-        }
-        tenant(() -> refunds.compensate(PAYMENT, "REFUND", false));
-        for (int i = 0; i < partials.size(); i++) {
-            terminate(stripe.get(operation(partials.get(i)).getString("resultId")), "failed", "evt_f2_partial_" + i);
-        }
-        // refund:<payment>, then :1 and :2 for the first two freed amounts; the rest waits for an admin.
-        assertThat(compensationCommands()).extracting(op -> op.getString("key"))
-                .containsExactlyInAnyOrder("refund:" + PAYMENT, "refund:" + PAYMENT + ":1", "refund:" + PAYMENT + ":2");
-        assertThat(paymentRow().get("compensationInterventionAt")).isNotNull();
-        assertThat(ledger().free()).isEqualTo(200);
-        invariants(false);
-    }
-
     @Test void T_12_17_round5_finding3_acceptedFailureReconcilesWhileStripeIsDisabled() throws Exception {
         fake.refundStatus("pending");
         String partial = tenant(() -> refunds.upfront(PAYMENT, new Money(200, "EUR"), "Partial", "f3-partial").id());
@@ -216,7 +389,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     String step(Random random, long seed, int step) throws Exception {
         int dice = random.nextInt(100);
         // A pick with nothing to act on falls back to the step that creates it: webhook → execute → admin refund.
-        if (dice >= 52 && dice < 80 && stripe.isEmpty()) { dice = 30; }
+        if (dice >= 52 && dice < 74 && stripe.isEmpty()) { dice = 30; }
         if (dice >= 30 && dice < 52 && pendingCommands().isEmpty()) { dice = 0; }
         if (dice < 14) {
             long amount = List.of(200L, 500L, CAPTURED, 1L + random.nextInt((int) CAPTURED)).get(random.nextInt(4));
@@ -231,7 +404,8 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         }
         if (dice < 30) { tenant(() -> refunds.lateBooking(PAYMENT, PI, new Money(CAPTURED, "EUR"))); return "late confirmation"; }
         if (dice < 52) { return execute(random); }
-        if (dice < 80) { return webhook(random); }
+        if (dice < 74) { return webhook(random); }
+        if (dice < 80) { return dashboard(random); }
         if (dice < 86) { stripe(!enabled); return enabled ? "enable Stripe" : "disable Stripe"; }
         if (dice < 89) { bill(); return "bill credit"; }
         if (dice < 97) { recovery.recover(); return "recover"; }
@@ -257,14 +431,40 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         var pending = pendingCommands();
         if (pending.isEmpty()) { return "execute nothing"; }
         String id = pending.get(random.nextInt(pending.size())).getString("_id");
-        String mode = List.of("pending", "succeeded", "lost response", "rejected").get(random.nextInt(4));
+        String mode = List.of("pending", "succeeded", "lost response", "rejected", "refused").get(random.nextInt(5));
+        String action = execute(id, mode);
+        if (action.equals("execute (rejected)") && compensationCommands().stream().anyMatch(op -> op.getString("_id").equals(id))) {
+            reached.merge("~ compensation postponed by an outage (E8-T11 point 1)", 1, Integer::sum);
+        }
+        return action;
+    }
+
+    /** Stripe answers {@code mode}: rejected = an outage of the club's access (401/403/429); refused = its content (4xx). */
+    String execute(String id, String mode) {
         fake.refundStatus("succeeded".equals(mode) ? "succeeded" : "pending");
         if ("rejected".equals(mode)) { fake.rejectRefund(ErrorCode.PROVIDER_CONFIG_INVALID); }
+        if ("refused".equals(mode)) { fake.refuseRefund(ErrorCode.PROVIDER_CONFIG_INVALID); }
         recordRefunds("lost response".equals(mode));
+        int unused;
         try (var tenant = TenantContext.open(CLUB)) { refunds.execute(id); }
         catch (RuntimeException retriedLater) { /* The command keeps its checkpoint. */ }
-        finally { recordRefunds(false); }
-        return "execute (" + mode + ")";
+        finally {
+            recordRefunds(false);
+            // E8-T11 point 6: a disabled Stripe or a command not yet due never calls it; its rejection must not fire later.
+            unused = fake.clearRefundRejections();
+        }
+        return "execute (" + mode + (unused > 0 ? ", not reached)" : ")");
+    }
+
+    /** A refund made in Stripe's dashboard: no operation, at most what Stripe still holds of the charge. */
+    String dashboard(Random random) throws Exception {
+        long left = available();
+        if (left <= 0) { return "dashboard nothing"; }
+        long amount = random.nextBoolean() ? left : 1L + random.nextInt((int) left);
+        var refund = new StripeRefund("re_dashboard_" + (++events), amount, null, new ArrayList<>(List.of(random.nextBoolean() ? "succeeded" : "pending")));
+        stripe.put(refund.id(), refund);
+        send("evt_inv_" + (++events), refund.id(), refund.current(), random);
+        return "dashboard refund " + refund.current();
     }
 
     String webhook(Random random) throws Exception {
@@ -314,20 +514,31 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     void invariants(boolean drained) {
         var payment = paymentRow();
         var ledger = ledger();
-        assertThat(ledger.consistent()).as("conservation: %s", ledger).isTrue();
-        long committed = stripe.values().stream().filter(r -> !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
+        var settled = refundRows(payment).stream().map(row -> row.getString("providerRef")).toList();
+        // What an admin was told the member received beyond the capture (a dashboard refund after a billed credit, E8-T11 point 3).
+        long overpaid = overpaid();
+        assertThat(ledger.refunded() >= 0 && ledger.reserved() >= 0 && ledger.credited() >= 0).as("non-negative: %s", ledger).isTrue();
+        assertThat(ledger.refunded() + ledger.credited()).as("refunded plus credited: %s, overpaid %s", ledger, overpaid).isLessThanOrEqualTo(CAPTURED + overpaid);
+        // A dashboard refund is outside the reservations: until Stripe refuses the commands it outran, only it may overcommit them.
+        if (stripe.values().stream().noneMatch(r -> r.operationId() == null)) { assertThat(ledger.consistent()).as("conservation: %s", ledger).isTrue(); }
+        // Our own commands and the credit never give more than the capture; only a dashboard refund can, and then it is reported.
+        long committed = stripe.values().stream().filter(r -> r.operationId() != null && !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
         assertThat(committed + ledger.credited()).as("Stripe refunds %s plus credit %s", committed, ledger.credited()).isLessThanOrEqualTo(CAPTURED);
         String refundObligation = payment.getString("refundCompensationReason"), creditObligation = payment.getString("creditCompensationReason");
         if (MONEY_ONLY && creditRow() != null) { creditObligation = "BOOKING_CANCELLED"; }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(BOOKING)), "pending_charges")).isLessThanOrEqualTo(1);
         var commands = compensationCommands();
-        assertThat(commands).as("compensation refunds").hasSizeLessThanOrEqualTo(3);
+        // E8-T11 point 2: one compensation, plus one supplement per other refund that failed (an admin's, or one made in the dashboard).
+        long freed = operations().stream().filter(op -> !commands.contains(op) && failed(op)).count()
+                + stripe.values().stream().filter(r -> r.operationId() == null && r.history().stream().anyMatch(CapturedPaymentInvariantsIT::terminalFailure)).count();
+        assertThat(commands).as("compensation refunds, %s other refunds failed", freed).hasSizeLessThanOrEqualTo((int) (1 + freed));
+        assertThat(interventions().stream().filter(entry -> "COMPENSATION_INTERVENTION".equals(entry.getString("reason")))).as("admin told once").hasSizeLessThanOrEqualTo(1);
+        if (payment.get("compensationInterventionAt") != null && !MONEY_ONLY) { assertThat(interventions()).as("intervention without telling the admin").isNotEmpty(); }
         if (!MONEY_ONLY) {
             assertThat(refundObligation == null || creditObligation == null).as("one obligation").isTrue();
             if (creditObligation == null) { assertThat(ledger.credited()).as("credit without a CREDIT obligation").isZero(); }
             if (refundObligation == null) { assertThat(commands).as("compensation refunds without a REFUND obligation").isEmpty(); }
         }
-        var settled = refundRows(payment).stream().map(row -> row.getString("providerRef")).toList();
         for (var refund : stripe.values()) {
             var seen = processedStatuses(refund.id());
             if (seen.stream().anyMatch(CapturedPaymentInvariantsIT::terminalFailure)) { assertThat(settled).as("failed %s", refund.id()).doesNotContain(refund.id()); }
@@ -342,10 +553,38 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         }
         if (MONEY_ONLY) { return; }
         if (intervention != null && refundObligation != null) {
-            assertThat(commands.size() >= 3 || commands.stream().anyMatch(this::failed)).as("intervention needs a failed or exhausted compensation").isTrue();
+            // E8-T11: only a compensation Stripe failed or refused needs an admin; an outage never does, nor a count of supplements.
+            assertThat(commands.stream().anyMatch(this::failed)).as("intervention needs a failed compensation").isTrue();
         }
         if (intervention != null && creditObligation != null) {
-            assertThat(creditRow().getString("invoiceId")).as("credit intervention needs a billed credit").isNotNull();
+            var credit = creditRow();
+            assertThat(credit.getString("invoiceId") != null || credit.get("voidedAt") != null)
+                    .as("credit intervention needs a credit that can no longer change").isTrue();
+        }
+    }
+    /** What Stripe still holds of the charge: it refuses a refund beyond it. */
+    long available() {
+        return CAPTURED - stripe.values().stream().filter(r -> !terminalFailure(r.current())).mapToLong(StripeRefund::amount).sum();
+    }
+    List<Document> interventions() {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PAYMENT_REFUNDED").and("details.intervention").is(true)),
+                Document.class, "audit_entries");
+    }
+    long overpaid() {
+        return interventions().stream().filter(entry -> "REFUND_OVER_CREDIT".equals(entry.getString("reason")))
+                .mapToLong(entry -> amount(entry.get("details", Document.class), "overpaid")).sum();
+    }
+    long amount(Document details, String key) { return ((Number) details.get(key, Document.class).get("amountMinor")).longValue(); }
+    List<String> warnings(CapturedOutput output) {
+        return output.getOut().lines().filter(line -> line.contains("Refund compensation") && line.contains(PAYMENT)).toList();
+    }
+    /** Executes every command (Stripe answers succeeded) and delivers each refund's success. */
+    void settleAll() throws Exception {
+        fake.refundStatus("succeeded");
+        for (var command : pendingCommands()) { tenant(() -> refunds.execute(command.getString("_id"))); }
+        for (var refund : List.copyOf(stripe.values())) {
+            if ("pending".equals(refund.current())) { refund.history().add("succeeded"); }
+            if ("succeeded".equals(refund.current())) { webhook("evt_settle_" + refund.id(), refundObject(refund, "succeeded")); }
         }
     }
 

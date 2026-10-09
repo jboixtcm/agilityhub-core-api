@@ -19,8 +19,11 @@ public class PaymentRefunds {
     @org.springframework.beans.factory.annotation.Autowired private PendingChargeRepository charges;
     @org.springframework.beans.factory.annotation.Autowired private StripeRefundRepository refundStates;
     public record Accepted(String id, Money amount, String providerRef) { }
-    /** The longest retry backoff: a disabled club's commands stay out of the shared pending page meanwhile. */
-    static final java.time.Duration DISABLED_DEFERRAL = java.time.Duration.ofMinutes(5);
+    /**
+     * The longest retry backoff: the commands of a disabled club, and the automatic ones an outage of its Stripe access rejected
+     * (E8-T11), stay out of the shared pending page meanwhile.
+     */
+    static final java.time.Duration DEFERRAL = java.time.Duration.ofMinutes(5);
     private final InvoiceRepository invoices; private final CollectionRepository collections; private final UpfrontPaymentRepository upfront;
     private final PaymentOperationRepository operations; private final PaymentProviderRegistry provider; private final BillingTransactions tx;
     private final Clock clock; private final PaymentAudits audit;
@@ -112,10 +115,11 @@ public class PaymentRefunds {
         long due = ledger(payment).due();
         if (due <= 0) { return; }
         if ("CREDIT".equals(obligation.get().policy())) { credit(payment, due); return; }
-        var commands = operations.forTarget(payment.id()).stream().filter(op -> op.key().equals(key) || op.key().startsWith(key + ":")).toList();
-        // Bounded across the obligation (E8-T04 round 2, point 5): a failed compensation refund is terminal, never replaced.
-        if (payment.stripe() == null || commands.size() >= retries.maxAttempts() || commands.stream().anyMatch(op -> operations.refundFailed(op.id()))) {
-            intervene(payment);
+        var commands = operations.forTarget(payment.id()).stream().filter(PaymentRefunds::compensation).toList();
+        // Bounded across the obligation (E8-T04 round 2, point 5): a failed compensation refund is terminal, never replaced. Each
+        // supplement exists only because a distinct non-compensation refund failed; an outage never fails a compensation (E8-T11).
+        if (payment.stripe() == null || commands.stream().anyMatch(op -> operations.refundFailed(op.id()))) {
+            intervene(payment, due);
             return;
         }
         operations.insert(new PaymentOperation(UUID.randomUUID().toString(), TenantContext.require(), "REFUND_UPFRONT", payment.id(),
@@ -124,7 +128,7 @@ public class PaymentRefunds {
     }
     /** One credit row per booking: written once, grown while unbilled when a failed refund frees money; a billed one needs an admin. */
     private void credit(UpfrontPayment payment, long due) {
-        if (payment.bookingId() == null) { intervene(payment); return; }
+        if (payment.bookingId() == null) { intervene(payment, due); return; }
         var existing = charges.forBooking(payment.bookingId());
         if (existing.isEmpty()) {
             charges.insert(new PendingCharge(UUID.randomUUID().toString(), TenantContext.require(), payment.memberId(), payment.dogId(), payment.bookingId(), null,
@@ -132,10 +136,45 @@ public class PaymentRefunds {
             return;
         }
         long current = existing.get().amount().amountMinor();
-        if (!charges.credit(existing.get().id(), current, current - due)) { intervene(payment); }
+        if (!charges.credit(existing.get().id(), current, current - due)) { intervene(payment, due); }
     }
-    private void intervene(UpfrontPayment payment) {
-        if (upfront.intervention(payment.id(), clock.instant())) { retries.warn("Refund compensation", payment.id()); }
+    /** Automatic compensation stops: the admin learns once, in the member's audit trail and the log, what is still owed (E8-T11). */
+    private void intervene(UpfrontPayment payment, long owed) {
+        if (!upfront.intervention(payment.id(), clock.instant())) { return; }
+        audit.intervention(payment.id(), payment.memberId(), "COMPENSATION_INTERVENTION", "owed", new Money(owed, payment.amountPaid().currency()));
+        retries.warnIntervention(payment.id());
+    }
+    /** The obligation's own refund commands: the first, its supplements, and a late confirmation's refund of the same payment. */
+    private static boolean compensation(PaymentOperation op) {
+        return op.key().equals("refund:" + op.targetId()) || op.key().startsWith("refund:" + op.targetId() + ":");
+    }
+    /**
+     * E8-T11: an automatic refund (a compensation or a late confirmation's) rejected by an outage of the club's Stripe access
+     * waits like a disabled provider's, without spending attempts, instead of becoming manual work. An admin refund keeps
+     * its bounded attempts and is released: the admin, who asked for it, can ask again.
+     */
+    private static boolean outage(PaymentOperation op, RuntimeException failure) {
+        return (compensation(op) || "REFUND_LATE".equals(op.kind())) && failure instanceof PaymentNotSubmitted rejected && !rejected.definitive();
+    }
+    /**
+     * E8-T11: a refund made in Stripe's dashboard after a CREDIT. Refunded plus credited never exceeds the capture: the unbilled
+     * credit shrinks by the overshoot (voided at zero, keeping its negative amount so it never reads as a consumption charge);
+     * a billed one cannot, and the admin learns how much of this refund the member received twice.
+     */
+    private void absorb(UpfrontPayment payment, long refunded, long part) {
+        if (payment.bookingId() == null) { return; }
+        var credit = charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
+        if (credit == null) { return; }
+        long current = credit.amount().amountMinor();
+        long overshoot = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
+        if (overshoot <= 0) { return; }
+        boolean absorbed = current + overshoot < 0 ? charges.credit(credit.id(), current, current + overshoot)
+                : credit.invoiceId() == null && charges.voided(credit.id(), clock.instant());
+        if (absorbed) { return; }
+        // An earlier refund's excess was already reported: this entry carries only what this one added.
+        upfront.intervention(payment.id(), clock.instant());
+        audit.intervention(payment.id(), payment.memberId(), "REFUND_OVER_CREDIT", "overpaid", new Money(Math.min(part, overshoot), payment.amountPaid().currency()));
+        retries.warnIntervention(payment.id());
     }
     private void reconsiderCompensation(String intent) {
         for (var payment : upfront.forIntent(intent)) {
@@ -192,7 +231,7 @@ public class PaymentRefunds {
         if (op.resultId() != null) { return; }
         if (!provider.supports(PaymentProvider.Capability.REFUND)) {
             // A disabled Stripe postpones the command, keeping its reservation and its attempts (ledger invariant 3).
-            tx.run(() -> { operations.defer(id, clock.instant().plus(DISABLED_DEFERRAL)); return null; });
+            tx.run(() -> { operations.defer(id, clock.instant().plus(DEFERRAL)); return null; });
             return;
         }
         retries.execute(op, execution -> {
@@ -209,10 +248,10 @@ public class PaymentRefunds {
             // Proven non-execution releases the reservation. Earlier uncertain outcomes still await Stripe.
             if (!operations.submissionUncertain(id)) {
                 operations.providerStatus(id, "failed");
-                // A rejected refund can free money a cancellation still owes; a rejected compensation itself becomes an intervention.
+                // A rejected refund can free money a cancellation still owes; a refused compensation itself becomes an intervention.
                 reconsiderCompensation(op.providerRef());
             }
-        });
+        }, failure -> outage(op, failure), DEFERRAL);
     }
     /** Refund objects are authoritative. A terminal failure wins over a redelivered older success. */
     public boolean reconcile(String intent, String refundId, Money amount, String status, Instant at, String reason, String operationId) {
@@ -323,6 +362,7 @@ public class PaymentRefunds {
             if (part > 0) {
                 upfront.refund(payment.id(), new UpfrontPayment.Refund(new Money(part, amount.currency()), refundId, at, reason, actor), part + refunded == paid);
                 audit.refunded("UpfrontPayment", payment.id(), new Money(part, amount.currency()), refundId, reason);
+                absorb(payment, refunded + part, part);
                 remaining -= part; changed = true;
             }
         }

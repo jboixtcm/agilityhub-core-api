@@ -16,6 +16,16 @@ public class PaymentAudits {
     public Map<String, Object> refunded(String type, String id, Money amount, String providerRef, String reason) {
         return Map.of("amount", amount, "providerRef", providerRef);
     }
+    /**
+     * E8-T11: automatic compensation stopped and an admin must settle {@code amount} by hand, in the member's audit trail. Under the
+     * closed catalogs it is a {@code PAYMENT_REFUNDED} entry without money movement: `reason` says which case and `details` the
+     * amount — {@code owed} (the club still owes the member) or {@code overpaid} (Stripe refunded more than the credit allowed).
+     */
+    @Audited(action = AuditAction.PAYMENT_REFUNDED, entityType = "'UpfrontPayment'", entity = "#id", member = "#memberId", reason = "#reason",
+            before = "null", details = "#result")
+    public Map<String, Object> intervention(String id, String memberId, String reason, String kind, Money amount) {
+        return Map.of(kind, amount, "intervention", true);
+    }
     @Audited(action = AuditAction.UPFRONT_PAYMENT_RECORDED, entityType = "'UpfrontPayment'", entity = "#id", member = "#memberId", before = "null", details = "#result")
     public Map<String, Object> recorded(String id, String memberId, Money amount) { return Map.of("amountPaid", amount); }
 }

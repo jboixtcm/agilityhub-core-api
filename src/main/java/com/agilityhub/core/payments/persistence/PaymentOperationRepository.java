@@ -75,6 +75,11 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
                 .addCriteria(new Criteria().orOperator(Criteria.where("claimUntil").is(null), Criteria.where("claimUntil").lte(now))),
                 new Update().set("nextAttemptAt", until), PaymentOperation.class);
     }
+    /** E8-T11: the claimant, already fenced, postpones its own command after an outage, without spending an attempt. */
+    public void postpone(String id, java.time.Instant until) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("resultId").is(null).and("processedAt").is(null)),
+                new Update().set("nextAttemptAt", until), PaymentOperation.class);
+    }
     public boolean submissionUncertain(String id) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("submissionUncertain").ne(false)), PaymentOperation.class);
     }

@@ -1398,29 +1398,35 @@ class CardPaymentsIT extends BillingItSupport {
             org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", http.provider(providerSettings, vault, sessions));
             org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", true);
             try {
-                for (String id : List.of(partial.id(), compensation.id())) {
-                    for (int attempt = 0; attempt < 3; attempt++) {
-                        assertThatThrownBy(() -> refunds.execute(id)).hasMessage("PROVIDER_CONFIG_INVALID");
-                        clock.setInstant(clock.instant().plusSeconds(60));
-                    }
-                    refunds.execute(id);
+                for (int attempt = 0; attempt < 3; attempt++) {
+                    assertThatThrownBy(() -> refunds.execute(partial.id())).hasMessage("PROVIDER_CONFIG_INVALID");
+                    clock.setInstant(clock.instant().plusSeconds(60));
                 }
-                assertThat(http.requests).hasValue(6);
+                refunds.execute(partial.id());
                 assertThat(operations.forTarget(payment)).hasSize(3);
-                assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id())))
-                        .singleElement().satisfies(op -> assertThat(op.amount()).isEqualTo(new Money(200, "EUR")));
+                // E8-T11 point 1: the same revoked key never exhausts the automatic compensation; it waits, spending no attempt.
+                for (int pass = 0; pass < 5; pass++) {
+                    assertThatThrownBy(() -> refunds.execute(compensation.id())).hasMessage("PROVIDER_CONFIG_INVALID");
+                    refunds.execute(compensation.id()); // Postponed: no request before the deferral ends.
+                    clock.setInstant(clock.instant().plus(java.time.Duration.ofMinutes(6)));
+                }
+                assertThat(http.requests).hasValue(8);
+                assertThat(mongo.findById(compensation.id(), Document.class, "payment_operations").get("attempts")).isNull();
+                assertThat(operations.refundFailed(compensation.id())).isFalse();
+                assertThat(paymentRow(payment).get("compensationInterventionAt")).isNull();
             } finally {
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "stripe", original);
                 org.springframework.test.util.ReflectionTestUtils.setField(registry, "localRealStripe", false);
             }
-            // Round 5 (ruling E97): the rejected compensation is terminal, so a redelivered cancellation adds nothing and the
-            // payment waits for an admin, who repays the remainder by hand once the configuration is repaired.
+            // Repaired configuration: the compensation and the supplement for the released admin refund go out (rounds 1-3:
+            // a configuration error releases or retries, never turns R-12-20's automatic refund into manual work).
+            for (var op : operations.forTarget(payment)) { if (!operations.refundFailed(op.id())) { refunds.execute(op.id()); } }
+            assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id())))
+                    .allSatisfy(op -> assertThat(op.resultId()).isNotNull())
+                    .extracting(op -> op.amount().amountMinor()).containsExactlyInAnyOrder(1000L, 200L);
             refunds.compensate(payment, "REFUND", false);
             assertThat(operations.forTarget(payment)).hasSize(3);
-            assertThat(paymentRow(payment).get("compensationInterventionAt")).isNotNull();
-            assertThat(refunds.upfront(payment, null, "Manual repayment", "r4-manual").amount()).isEqualTo(new Money(1000, "EUR"));
-            assertThat(operations.forTarget(payment).stream().filter(op -> !operations.refundFailed(op.id()))
-                    .mapToLong(op -> op.amount().amountMinor()).sum()).isEqualTo(1200);
+            assertThat(paymentRow(payment).get("compensationInterventionAt")).isNull();
         }
     }
 

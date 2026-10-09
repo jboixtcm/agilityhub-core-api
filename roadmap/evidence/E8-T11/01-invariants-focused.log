@@ -1,0 +1,102 @@
+09:29:02.247 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT]: CapturedPaymentInvariantsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:29:02.575 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+09:29:02.789 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+09:29:02.793 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+09:29:02.802 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+09:29:03.130 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+09:29:03.466 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+09:29:03.468 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+09:29:03.483 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels:
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+09:29:03.885 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+09:29:03.982 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+09:29:04.101 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 95fcee4101492c083c639d493c4d89208c2d30cfeb345121b4847b6590ce403b
+09:29:04.355 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.470854S
+09:29:04.362 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+09:29:04.363 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+09:29:04.363 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+09:29:04.364 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+09:29:04.425 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 70bf6e6cd15a33dff2459a5427fd7eb951977d961d1cb5f4bd09a18b6e2f3a0b
+09:29:04.986 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.622336S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-09T09:29:06.154+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Starting CapturedPaymentInvariantsIT using Java [redacted] with PID 14125 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-09T09:29:06.157+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-09T09:29:08.910+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-09T09:29:08.997+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 81 ms. Found 0 MongoDB repository interfaces.
+2026-10-09T09:29:09.827+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@719e1c26], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@25ea076d, com.mongodb.Jep395RecordCodecProvider@55dea9a4, com.mongodb.KotlinCodecProvider@5e6956fa]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54575], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5f971e3d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-09T09:29:09.836+02:00 INFO  [cluster-ClusterId{value='6ac897c5cadc22383fbce680', description='null'}-localhost:54575] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54575, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=14065917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=70bf6e6cd15a:27017, hosts=[70bf6e6cd15a:27017], passives=[], arbiters=[], primary='70bf6e6cd15a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ac897c0eb8ac5bb7bbe935b, counter=6}, lastWriteDate=Fri Oct 09 09:29:05 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-09T09:29:16.304+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-09T09:29:16.304+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-09T09:29:16.305+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-09T09:29:16.361+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Started CapturedPaymentInvariantsIT in 10.556 seconds (process running for 15.076)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-09T09:29:21.324+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=fb75a523-b237-4918-80e5-cec80ba69060 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f20fab9c-0d6e-4944-adb5-47d71bc28fa8 traceId=[redacted]
+2026-10-09T09:29:21.398+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=b69c3a83-aa75-474f-8e41-66e793318b3f clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_20059d10-98b9-4ddb-babe-[redacted]=b69c3a83-[redacted]
+2026-10-09T09:29:21.480+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=920ecb9a-d4ef-493c-994c-c5c1fc802aa0 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ee817a71-fce3-4185-b9fb-684aa08f4f8b traceId=920ecb9a-d4ef-493c-994c-c5c1fc802aa0
+2026-10-09T09:29:21.556+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=23e99ac5-6692-482e-a555-b37238045835 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_e060e534-26d0-47a0-be1c-b51929906eec traceId=23e99ac5-6692-482e-a555-b37238045835
+2026-10-09T09:29:22.524+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=12ae1d4a-ca2a-4dd5-891a-7032dd0aabfb clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_30c62c8a-f3d1-4622-baa6-232ceb134905 traceId=12ae1d4a-ca2a-4dd5-891a-7032dd0aabfb
+2026-10-09T09:29:22.545+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=12ae1d4a-ca2a-4dd5-891a-7032dd0aabfb clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=12ae1d4a-ca2a-4dd5-891a-7032dd0aabfb
+2026-10-09T09:29:23.106+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d5e5be28-e97d-4e72-ab17-c5164bf75223 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=d5e5be28-e97d-4e72-[redacted]
+2026-10-09T09:29:23.109+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=46e1b9d3-c3be-44f6-80d9-50e7beedb717 clubId= accountId= : Payment operation recovery exhausted: eventId=8d1d8f11-2b01-4cff-b733-0ed3e298426c traceId=46e1b9d3-c3be-44f6-80d9-50e7beedb717
+2026-10-09T09:29:23.674+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cd4137a3-5a95-49b3-9539-cf441cca78b5 clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_afc2e996-55e4-44ef-9297-ef9b69883f0a traceId=[redacted]
+2026-10-09T09:29:24.346+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=132b637c-002f-437e-83d6-80b3e8ce800e clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_e91e92f3-3868-4192-b1e9-f408ef18ca56 traceId=132b637c-002f-437e-83d6-80b3e8ce800e
+2026-10-09T09:29:24.366+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=132b637c-002f-437e-83d6-80b3e8ce800e clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=132b637c-002f-437e-83d6-80b3e8ce800e
+2026-10-09T09:29:25.005+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f9902812-96fe-4050-a23a-7d2becdebce6 clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_0967dc38-fd4f-4743-9d07-c7f4b09cdb80 traceId=f9902812-96fe-4050-a23a-7d2becdebce6
+2026-10-09T09:29:25.020+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=f9902812-96fe-4050-a23a-7d2becdebce6 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=f9902812-96fe-4050-a23a-7d2becdebce6
+2026-10-09T09:29:26.503+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=49dcabc8-9d21-4b6e-9455-c98152998b93 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=49dcabc8-9d21-4b6e-9455-c98152998b93
+2026-10-09T09:29:28.467+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=d088e869-5e3d-4fc5-960c-ba15e438a88d clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_7549222d-a76f-46cd-b469-bd5a70a1275e traceId=d088e869-5e3d-4fc5-960c-ba15e438a88d
+2026-10-09T09:29:28.878+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6a1f52bf-9018-43c0-9309-58a83889a9d3 clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=6a1f52bf-9018-43c0-9309-58a83889a9d3
+2026-10-09T09:29:29.468+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=544f8f84-3419-43e3-a213-fcdb4026357b clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=544f8f84-3419-43e3-a213-fcdb4026357b
+2026-10-09T09:29:29.952+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=8a085f21-3628-4b0b-8c42-3aa4ec800688 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_25c6689f-a547-45b9-b737-7f76537bfe96 traceId=8a085f21-3628-4b0b-8c42-3aa4ec800688
+2026-10-09T09:29:30.546+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1d7f9e68-28f8-4c62-9090-b9039db12297 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f3fd7ce0-f219-4d14-9dee-f70d604a0993 traceId=1d7f9e68-28f8-4c62-9090-b9039db12297
+2026-10-09T09:29:30.563+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1d7f9e68-28f8-4c62-9090-b9039db12297 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=1d7f9e68-28f8-4c62-9090-b9039db12297
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 28.50 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants -- Time elapsed: 1.918 s <<< FAILURE!
+java.lang.AssertionError: seed 3 after [admin refund 211, admin refund 1200, execute (lost response), cancel CREDIT, execute (refused, not reached), recover, recover, admin refund 200, recover, admin refund 500, cancel CREDIT, bill credit, recover, dashboard refund succeeded, cancel REFUND, recover]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants(CapturedPaymentInvariantsIT.java:119)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.AssertionError: [Stripe refunds 1025 plus credit 989]
+Expecting actual:
+  2014L
+to be less than or equal to:
+  1803L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.invariants(CapturedPaymentInvariantsIT.java:521)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants(CapturedPaymentInvariantsIT.java:105)
+	... 3 more
+
+[ERROR] Failures:
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_round5_generatedSequencesKeepTheLedgerInvariants:119 seed 3 after [admin refund 211, admin refund 1200, execute (lost response), cancel CREDIT, execute (refused, not reached), recover, recover, admin refund 200, recover, admin refund 500, cancel CREDIT, bill credit, recover, dashboard refund succeeded, cancel REFUND, recover]
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

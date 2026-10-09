@@ -36,7 +36,11 @@ public class StripeCalls {
                 boolean rejected = failure instanceof com.stripe.exception.CardException
                         || failure instanceof com.stripe.exception.InvalidRequestException
                         && !"idempotency_key_in_use".equals(failure.getCode());
-                if (status == 401 || status == 403 || rejected) {
+                if (rejected) {
+                    throw com.agilityhub.core.payments.application.PaymentNotSubmitted.refused(ErrorCode.PROVIDER_CONFIG_INVALID);
+                }
+                // An invalid, revoked or unauthorised key is an outage of the club's access, repaired outside the request (E8-T11).
+                if (status == 401 || status == 403) {
                     throw new com.agilityhub.core.payments.application.PaymentNotSubmitted(ErrorCode.PROVIDER_CONFIG_INVALID);
                 }
                 // IdempotencyException, ApiConnectionException and ApiException may hide an earlier

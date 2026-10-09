@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /** R-12-21: failures back off and eventually leave the pending set; never log provider payloads or errors. */
 @Service
@@ -44,6 +46,14 @@ public class PaymentRetryPolicy {
         execute(operation, ignored -> action.run(), exhausted);
     }
     public void execute(PaymentOperation operation, java.util.function.Consumer<Execution> action, Runnable exhausted) {
+        execute(operation, action, exhausted, failure -> false, java.time.Duration.ZERO);
+    }
+    /**
+     * E8-T11: a failure {@code postponed} accepts spends no attempt and never exhausts the command: it waits {@code delay}, keeps
+     * its reservation and runs again once the outage has passed, as a disabled provider's commands do.
+     */
+    public void execute(PaymentOperation operation, java.util.function.Consumer<Execution> action, Runnable exhausted,
+            java.util.function.Predicate<RuntimeException> postponed, java.time.Duration delay) {
         boolean money = operation.kind().equals("CHARGE") || operation.kind().startsWith("REFUND");
         // Claim and uncertainty commit together before the network call; competing workers cannot clear either.
         var claim = tx.run(() -> operations.claim(operation.id(), money));
@@ -55,6 +65,7 @@ public class PaymentRetryPolicy {
                 if (money && !claim.previouslyUncertain() && failure instanceof PaymentNotSubmitted) {
                     operations.submissionUncertain(operation.id(), false);
                 }
+                if (postponed.test(failure)) { operations.postpone(operation.id(), clock.instant().plus(delay)); return false; }
                 boolean terminal = operations.failed(operation.id(), clock.instant(), maxAttempts());
                 if (terminal) { exhausted.run(); }
                 return terminal;
@@ -64,15 +75,26 @@ public class PaymentRetryPolicy {
             tx.run(() -> { operations.release(operation.id(), claim.token()); return null; });
         }
     }
-    public void warnRefund(String id, String status) { warning("Refund reconciliation status=" + status, id); }
+    public void warnRefund(String id, String status) { warning("Refund reconciliation status=" + status, "eventId", id); }
     public void warn(String kind, String id) {
-        warning(kind + " recovery exhausted", id);
+        warning(kind + " recovery exhausted", "eventId", id);
     }
-    private void warning(String message, String id) {
+    /**
+     * E8-T11: an automatic compensation stopped and an admin must act. Written once, after the transaction that recorded the
+     * intervention commits: a rolled-back or retried attempt logs nothing.
+     */
+    public void warnIntervention(String paymentId) {
+        Runnable warning = () -> warning("Refund compensation needs an admin", "paymentId", paymentId);
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) { warning.run(); return; }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { warning.run(); }
+        });
+    }
+    private void warning(String message, String label, String id) {
         String previous = MDC.get("traceId");
         try {
             if (previous == null || previous.isBlank()) { MDC.put("traceId", UUID.randomUUID().toString()); }
-            LOG.warn("{}: eventId={} traceId={}", message, id, MDC.get("traceId"));
+            LOG.warn("{}: {}={} traceId={}", message, label, id, MDC.get("traceId"));
         } finally {
             if (previous == null) { MDC.remove("traceId"); } else { MDC.put("traceId", previous); }
         }

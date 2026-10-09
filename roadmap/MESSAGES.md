@@ -3359,3 +3359,11 @@ Blocking: no.
 ## 2026-10-09 · organizer → executor · Block 8 first; Claude until Monday
 @executor **Until Monday 12-10 00:00 Claude works only on closing block 8** (Jordi, ruling E100): this clone takes only thread A, so **E8-T11** goes next. E9-T01's round 2 (thread B) and E11-T06 (api-c, paused after its current session) wait for next week, when Codex is back. This replaces the order in the previous message.
 Blocking: no.
+
+## 2026-10-09 · executor → organizer · E8-T11
+@organizer **Ready for verification.** All six points are done; the 13 point tests fail on the reviewed code (`04`, reproducible with the committed `prove-counterfactual.py`) and pass now. Host-locked clean verify passes 3,762 unit + 1,800 integration tests (`05`/`06`); OpenAPI is unchanged. Summary: an outage of the club's Stripe access (401/403, exhausted 429, invalid key, provider disabled mid-call) postpones automatic refunds without spending attempts; only Stripe's failure or a refusal of a compensation's content is terminal. The compensation cap is gone, so **no new parameter is needed** for point 2: supplements are bounded by the other refunds that failed. A dashboard refund after a CREDIT shrinks the unbilled credit; against a billed one it is reported. The generator now also covers dashboard refunds and outage/refusal answers.
+Blocking: no.
+
+## 2026-10-09 · executor → organizer · E8-T11 — how the admin learns of an intervention
+@organizer **Catalog proposal.** Under the closed catalogs, an intervention is a `PAYMENT_REFUNDED` audit entry on the member (`entityType = UpfrontPayment`, no money moved). `reason` is `COMPENSATION_INTERVENTION`, with `details {owed, intervention: true}`, or `REFUND_OVER_CREDIT`, with `details {overpaid, intervention: true}`. One WARN line with the payment id is logged after commit. No notification or D6 incident fits: N-10 needs an invoice, N-42 an S15 job, and R-12-07's incidents belong to the run simulation. Proposal: (a) a dedicated audit action `PAYMENT_REFUND_INTERVENTION` (S14 R-14-09), and (b) an ADMINS → APP+EMAIL notification «Reemborsament a fer a mà» (`member_name`, `amount`, `reason`, action `OPEN_MEMBER`), on an event such as `UpfrontRefundIntervention{paymentId, memberId, reason, amount}`. Assumption meanwhile: the audit entry above.
+Blocking: no.

@@ -1,0 +1,236 @@
+roadmap/tasks/E8-T11.md:137: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall:300 [the later call was rejected by an earlier step's queued rejection]
+roadmap/tasks/E8-T11.md:139: trailing whitespace.
++[ERROR]   CardPaymentsIT.T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement:1409
+roadmap/tasks/E8-T11.md:143: trailing whitespace.
++[ERROR]
+roadmap/tasks/E8-T11.md:147: trailing whitespace.
++[ERROR]
+roadmap/tasks/E8-T11.md:150: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/01-invariants-focused.log:9: trailing whitespace.
++09:29:03.483 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/01-invariants-focused.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T11/01-invariants-focused.log:80: trailing whitespace.
++Caused by: java.lang.AssertionError: [Stripe refunds 1025 plus credit 989]
+roadmap/evidence/E8-T11/01-invariants-focused.log:84: trailing whitespace.
++  1803L
+roadmap/evidence/E8-T11/01-invariants-focused.log:89: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T11/01-invariants-focused.log:93: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/01-invariants-focused.log:97: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/01-invariants-focused.log:100: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/02-invariants-focused.log:9: trailing whitespace.
++09:30:51.369 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/02-invariants-focused.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T11/03-card-payments-focused.log:9: trailing whitespace.
++09:32:27.436 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/03-card-payments-focused.log:14: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T11/04-counterfactual.log:4: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:13: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T11/04-counterfactual.log:14: trailing whitespace.
++[ERROR]   StripeCallsTest.T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive:55->lambda$T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive$20:56
+roadmap/evidence/E8-T11/04-counterfactual.log:18: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/04-counterfactual.log:22: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/04-counterfactual.log:25: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/04-counterfactual.log:38: trailing whitespace.
++09:35:17.421 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/04-counterfactual.log:43: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T11/04-counterfactual.log:87: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:115: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:116: trailing whitespace.
++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:157: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:158: trailing whitespace.
++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:199: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:200: trailing whitespace.
++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:241: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:260: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:302: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:344: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:379: trailing whitespace.
++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/04-counterfactual.log:414: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:448: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:449: trailing whitespace.
++[the later call was rejected by an earlier step's queued rejection]
+roadmap/evidence/E8-T11/04-counterfactual.log:457: trailing whitespace.
++java.lang.AssertionError:
+roadmap/evidence/E8-T11/04-counterfactual.log:465: trailing whitespace.
++[ERROR] Failures:
+roadmap/evidence/E8-T11/04-counterfactual.log:466: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce:183
+roadmap/evidence/E8-T11/04-counterfactual.log:469: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce:183
+roadmap/evidence/E8-T11/04-counterfactual.log:472: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:475: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:478: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/04-counterfactual.log:481: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point2_failedAdminRefundsNeverCapTheCompensation:210
+roadmap/evidence/E8-T11/04-counterfactual.log:493: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:231
+roadmap/evidence/E8-T11/04-counterfactual.log:496: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:231
+roadmap/evidence/E8-T11/04-counterfactual.log:499: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:246
+roadmap/evidence/E8-T11/04-counterfactual.log:501: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point5_interventionWarningIsWrittenOnceAfterCommit:276
+roadmap/evidence/E8-T11/04-counterfactual.log:503: trailing whitespace.
++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall:300 [the later call was rejected by an earlier step's queued rejection]
+roadmap/evidence/E8-T11/04-counterfactual.log:505: trailing whitespace.
++[ERROR]   CardPaymentsIT.T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement:1409
+roadmap/evidence/E8-T11/04-counterfactual.log:509: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/04-counterfactual.log:513: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/04-counterfactual.log:516: trailing whitespace.
++[ERROR]
+roadmap/evidence/E8-T11/05-clean-verify.log:4696: trailing whitespace.
++09:38:46.718 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/05-clean-verify.log:4701: trailing whitespace.
++  Labels:
+roadmap/evidence/E8-T11/09-whitespace.log:2: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall:300 [the later call was rejected by an earlier step's queued rejection]
+roadmap/evidence/E8-T11/09-whitespace.log:4: trailing whitespace.
+++[ERROR]   CardPaymentsIT.T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement:1409
+roadmap/evidence/E8-T11/09-whitespace.log:6: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:8: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:10: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:12: trailing whitespace.
+++09:29:03.483 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/09-whitespace.log:14: trailing whitespace.
+++  Labels:
+roadmap/evidence/E8-T11/09-whitespace.log:16: trailing whitespace.
+++Caused by: java.lang.AssertionError: [Stripe refunds 1025 plus credit 989]
+roadmap/evidence/E8-T11/09-whitespace.log:18: trailing whitespace.
+++  1803L
+roadmap/evidence/E8-T11/09-whitespace.log:20: trailing whitespace.
+++[ERROR] Failures:
+roadmap/evidence/E8-T11/09-whitespace.log:22: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:24: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:26: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:28: trailing whitespace.
+++09:30:51.369 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/09-whitespace.log:30: trailing whitespace.
+++  Labels:
+roadmap/evidence/E8-T11/09-whitespace.log:32: trailing whitespace.
+++09:32:27.436 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/09-whitespace.log:34: trailing whitespace.
+++  Labels:
+roadmap/evidence/E8-T11/09-whitespace.log:36: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:38: trailing whitespace.
+++[ERROR] Failures:
+roadmap/evidence/E8-T11/09-whitespace.log:40: trailing whitespace.
+++[ERROR]   StripeCallsTest.T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive:55->lambda$T_12_17_e8t11_point1_onlyContentRejectionsAreDefinitive$20:56
+roadmap/evidence/E8-T11/09-whitespace.log:42: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:44: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:46: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:48: trailing whitespace.
+++09:35:17.421 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/09-whitespace.log:50: trailing whitespace.
+++  Labels:
+roadmap/evidence/E8-T11/09-whitespace.log:52: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:54: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:56: trailing whitespace.
+++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:58: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:60: trailing whitespace.
+++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:62: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:64: trailing whitespace.
+++[pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:66: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:68: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:70: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:72: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:74: trailing whitespace.
+++org.opentest4j.AssertionFailedError:
+roadmap/evidence/E8-T11/09-whitespace.log:76: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:78: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:80: trailing whitespace.
+++[the later call was rejected by an earlier step's queued rejection]
+roadmap/evidence/E8-T11/09-whitespace.log:82: trailing whitespace.
+++java.lang.AssertionError:
+roadmap/evidence/E8-T11/09-whitespace.log:84: trailing whitespace.
+++[ERROR] Failures:
+roadmap/evidence/E8-T11/09-whitespace.log:86: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce:183
+roadmap/evidence/E8-T11/09-whitespace.log:88: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_aNeededInterventionTellsTheAdminOnce:183
+roadmap/evidence/E8-T11/09-whitespace.log:90: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:92: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:94: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point1_outageDefersTheCompensationUntilItPasses:140 [pass 3 reached Stripe]
+roadmap/evidence/E8-T11/09-whitespace.log:96: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point2_failedAdminRefundsNeverCapTheCompensation:210
+roadmap/evidence/E8-T11/09-whitespace.log:98: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:231
+roadmap/evidence/E8-T11/09-whitespace.log:100: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:231
+roadmap/evidence/E8-T11/09-whitespace.log:102: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point3_dashboardRefundAfterACreditIsReconciledWithIt:246
+roadmap/evidence/E8-T11/09-whitespace.log:104: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point5_interventionWarningIsWrittenOnceAfterCommit:276
+roadmap/evidence/E8-T11/09-whitespace.log:106: trailing whitespace.
+++[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t11_point6_aRejectionStripeNeverReceivedDoesNotReachALaterCall:300 [the later call was rejected by an earlier step's queued rejection]
+roadmap/evidence/E8-T11/09-whitespace.log:108: trailing whitespace.
+++[ERROR]   CardPaymentsIT.T_12_17_round4_point2_rejectedContributionRecomputesWithoutUnboundedReplacement:1409
+roadmap/evidence/E8-T11/09-whitespace.log:110: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:112: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:114: trailing whitespace.
+++[ERROR]
+roadmap/evidence/E8-T11/09-whitespace.log:116: trailing whitespace.
+++09:38:46.718 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
+roadmap/evidence/E8-T11/09-whitespace.log:118: trailing whitespace.
+++  Labels:

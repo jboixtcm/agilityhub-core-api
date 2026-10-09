@@ -36,10 +36,17 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     private String refundStatus = "succeeded";
     public void refundStatus(String status) { refundStatus = status; }
     public void beforeRefundReturn(java.util.function.BiConsumer<Call, RefundResult> callback) { beforeRefundReturn = callback; }
-    private final Queue<com.agilityhub.core.shared.domain.ErrorCode> refundRejections = new java.util.concurrent.ConcurrentLinkedQueue<>();
-    /** The next refund call is definitively rejected before any money moves, as Stripe's 4xx answers are. */
-    public void rejectRefund(com.agilityhub.core.shared.domain.ErrorCode code) { refundRejections.add(code); }
-    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; refundStatus = "succeeded"; refundRejections.clear(); }
+    private final Queue<PaymentNotSubmitted> refundRejections = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    /** The next refund call is rejected before any money moves by an outage of the club's access (Stripe's 401, 403, 429). */
+    public void rejectRefund(com.agilityhub.core.shared.domain.ErrorCode code) { refundRejections.add(new PaymentNotSubmitted(code)); }
+    /** The next refund call is refused for its content before any money moves (Stripe's card and invalid-request errors). */
+    public void refuseRefund(com.agilityhub.core.shared.domain.ErrorCode code) { refundRejections.add(PaymentNotSubmitted.refused(code)); }
+    /** Drops the rejections no refund call consumed, so none fires on a later, unrelated call; returns how many. */
+    public int clearRefundRejections() { int left = refundRejections.size(); refundRejections.clear(); return left; }
+    private java.util.function.Consumer<Call> beforeRefund = call -> {};
+    /** Stripe's own checks before a refund moves money (more than is left of the charge is refused); may throw. */
+    public void beforeRefund(java.util.function.Consumer<Call> check) { beforeRefund = check; }
+    public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = "succeeded"; refundRejections.clear(); }
     /** Model Stripe pruning keys after 24 hours, including a lost response after the remote effect. */
     private Object moneyResult(String key, java.util.function.Supplier<Object> create) {
         return results.compute(key, (ignored, previous) -> {
@@ -72,11 +79,12 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
     @Override public RefundResult refund(String chargeId, Money amount, String idempotencyKey, String reason, String operationId) {
         String club = TenantContext.require(), key = club + ":refund:" + idempotencyKey;
         var rejection = results.containsKey(key) ? null : refundRejections.poll(); // Stripe replays a key that already moved money.
-        if (rejection != null) { throw new PaymentNotSubmitted(rejection); }
+        if (rejection != null) { throw rejection; }
         var request = new LinkedHashMap<String, Object>(Map.of("chargeId", chargeId, "amount", amount, "reason", reason));
         if (operationId != null) { request.put("operationId", operationId); }
         var call = new Call(club, "refund", idempotencyKey, request);
         var result = (RefundResult) moneyResult(key, () -> {
+            beforeRefund.accept(call);
             calls.add(call);
             return new RefundResult("re_fake_" + UUID.randomUUID(), refundStatus);
         });
