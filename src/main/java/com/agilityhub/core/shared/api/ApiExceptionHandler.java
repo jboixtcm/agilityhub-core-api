@@ -108,7 +108,9 @@ public class ApiExceptionHandler {
 
     private ResponseEntity<ApiError> respond(ApiException exception, HttpServletRequest request) {
         LOG.debug("Request rejected code={} traceId={}", exception.code(), RequestTraceFilter.traceId(request));
-        var response = ResponseEntity.status(exception.code().httpStatus());
+        // Errors retain the canonical JSON envelope even when the successful representation is YAML or a file.
+        var response = ResponseEntity.status(exception.code().httpStatus())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON);
         if (exception.details().get("retryAfter") instanceof Number retry) { response.header("Retry-After", retry.toString()); }
         return response.body(body(exception, request));
     }

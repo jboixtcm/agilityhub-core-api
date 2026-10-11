@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=E10ContractIT#T_17_02_R_17_02_yamlExportStillUsesTheCanonicalJsonStubError' test-compile failsafe:integration-test failsafe:verify

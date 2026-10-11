@@ -58,6 +58,7 @@ class E10ContractIT extends AbstractIntegrationTest {
     void error(MockHttpServletRequestBuilder request,int status,String code) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();
         assertThat(response.getStatus()).as(request.buildRequest(new org.springframework.mock.web.MockServletContext()).getRequestURI()+" "+response.getContentAsString()).isEqualTo(status);
+        assertThat(response.getContentType()).as("Canonical API error media type").startsWith("application/json");
         var body=mapper.readTree(response.getContentAsString());
         assertThat(body.path("code").asText()).isEqualTo(code);
         assertThat(body.path("traceId").asText()).isNotBlank();
@@ -187,6 +188,8 @@ class E10ContractIT extends AbstractIntegrationTest {
 
     @Test void T_17_02_R_17_02_yamlExportStillUsesTheCanonicalJsonStubError() throws Exception {
         error(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml"),501,"NOT_IMPLEMENTED");
+        error(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml")
+                .with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
     }
 
 }

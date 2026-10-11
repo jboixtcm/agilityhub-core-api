@@ -26,9 +26,12 @@ public class CurrentUserFilter extends OncePerRequestFilter {
         var origin = bearer.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) ? DomainEvent.Origin.BACKOFFICE
                 : bearer.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_INSTRUCTOR")) ? DomainEvent.Origin.INSTRUCTOR : DomainEvent.Origin.APP;
         if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
-            // S16/S17: platform routes have no tenant in which to validate a member grant. Refuse impersonation
-            // with the contract's explicit code before the generic global-route denial in validate().
-            if (request.getRequestURI().startsWith("/api/v1/platform/")) {
+            // S16/S17 contract routes use an explicit denial. Existing platform delegates retain validate()'s denial.
+            String path = request.getRequestURI();
+            boolean console = path.equals("/api/v1/platform/club-templates")
+                    || path.matches("/api/v1/platform/clubs(?:/[^/]+)?")
+                    || path.matches("/api/v1/platform/clubs/[^/]+/(?:definition|domains|theme|modules|payment-providers|parameters|catalog-clone|admins|status|support-access|public-api-key|usage|checklist)(?:/.*)?");
+            if (console || path.matches("/api/v1/platform/courses(?:/[^/]+)?")) {
                 throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
             }
             if (request.getRequestURI().matches(".*/members/[^/]+/impersonation-token")) { impersonations.deny(jwt.getClaimAsString("actorAccountId")); }

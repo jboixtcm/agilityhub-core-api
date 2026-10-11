@@ -6,22 +6,22 @@
 14:03:26.925 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 14:03:27.054 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 14:03:27.055 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-14:03:27.065 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+14:03:27.065 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 14:03:27.414 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 14:03:27.455 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-14:03:27.533 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 467330de95a36cfadf7f916e469607753df295629af13431abc7c9de667debf0
+14:03:27.533 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 467330de...[truncated]
 14:03:27.731 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.31679S
 14:03:27.734 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
 14:03:27.734 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
 14:03:27.734 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
 14:03:27.735 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
-14:03:27.786 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: fd3047aa2f6508176b684a88ee923730e9e75660499a87d87d64683ec717fcf4
+14:03:27.786 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: fd3047aa...[truncated]
 14:03:28.421 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.686498S
 Integration JVM availableProcessors=18
 
@@ -50,28 +50,28 @@ WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/
 WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
-2026-10-11T14:03:36.038+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=8e244119-45d9-400e-9fc0-4df085f15089 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=8e244119-45d9-400e-9fc0-4df085f15089
-2026-10-11T14:03:36.127+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=517b3254-86c8-419d-8cd2-67dc13a0d47a clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=517b3254-86c8-419d-8cd2-67dc13a0d47a
-2026-10-11T14:03:36.156+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ac270278-e2be-4a51-8a3d-4664e46e621b clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[redacted]
-2026-10-11T14:03:36.184+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f5cf0178-f8dd-4061-b264-20881ffac6fa clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=f5cf0178-f8dd-4061-b264-20881ffac6fa
-2026-10-11T14:03:36.229+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=46545928-698e-44c3-9710-87e3a124365d clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=46545928-698e-44c3-9710-87e3a124365d
-2026-10-11T14:03:36.273+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=10eb82cf-8ddd-4c5b-bae7-305ca3e64459 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=10eb82cf-8ddd-4c5b-bae7-305ca3e64459
-2026-10-11T14:03:36.291+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=c298d324-ded6-40d0-a6e5-cd4b86bae0b9 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=c298d324-ded6-40d0-a6e5-cd4b86bae0b9
-2026-10-11T14:03:36.309+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=70a896c9-15ca-43c1-994c-255b24377c18 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=70a896c9-15ca-43c1-994c-255b24377c18
-2026-10-11T14:03:36.329+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=350878d0-f910-4472-8c18-b6c149bb5a9a clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=350878d0-f910-4472-8c18-b6c149bb5a9a
-2026-10-11T14:03:36.350+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=b773d1f1-4871-4938-9a07-f5be20c5d725 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=b773d1f1-4871-4938-9a07-f5be20c5d725
-2026-10-11T14:03:36.370+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e79a07e5-fa33-443c-8c68-497df9ee6ca8 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=e79a07e5-[redacted]
-2026-10-11T14:03:36.419+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=37d75aa9-11de-4b12-b135-c3717824c161 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=37d75aa9-11de-4b12-b135-c3717824c161
-2026-10-11T14:03:36.461+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=8bb89360-8a23-413c-a349-9af432478d43 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=8bb89360-8a23-413c-a349-9af432478d43
-2026-10-11T14:03:36.484+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1521beae-a917-47d5-a662-2fa670c3055f clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=1521beae-a917-47d5-a662-2fa670c3055f
-2026-10-11T14:03:36.545+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3110e217-817d-4181-a314-9797fae9d1c3 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=3110e217-817d-4181-a314-9797fae9d1c3
-2026-10-11T14:03:36.576+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=2647d5bf-7783-43c9-b20d-6490f48219b6 clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=2647d5bf-7783-43c9-b20d-6490f48219b6
-2026-10-11T14:03:36.603+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=23bae143-35ae-40d8-9739-b45dcd08537b clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=23bae143-35ae-40d8-9739-b45dcd08537b
-2026-10-11T14:03:39.013+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=84485de7-6788-4c35-bd9a-6579d586a83e clubId=- accountId=- : Init duration for springdoc-openapi is: 2380 ms
+2026-10-11T14:03:36.038+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.127+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.156+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[redacted]
+2026-10-11T14:03:36.184+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.229+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.273+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.291+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.309+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.329+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.350+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.370+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=e79a07e5-[redacted]
+2026-10-11T14:03:36.419+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.461+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.484+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.545+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.576+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:36.603+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=404 code=NOT_FOUND traceId=[truncated]
+2026-10-11T14:03:39.013+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=- : Init duration for springdoc-openapi is: 2380 ms
 [ERROR] Tests run: 26, Failures: 26, Errors: 0, Skipped: 0, Time elapsed: 12.56 s <<< FAILURE! -- in com.agilityhub.core.configuration.E10ContractIT
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[1] -- Time elapsed: 0.541 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119-45d9-400e-9fc0-4df085f15089"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -119,7 +119,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[2] -- Time elapsed: 0.036 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -168,8 +168,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[3] -- Time elapsed: 0.030 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254-86c8-419d-8cd2-67dc13a0d47a"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -217,8 +217,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[4] -- Time elapsed: 0.027 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278-e2be-4a51-8a3d-4664e46e621b"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -266,8 +266,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[5] -- Time elapsed: 0.027 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178-f8dd-4061-b264-20881ffac6fa"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -315,7 +315,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[6] -- Time elapsed: 0.022 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -364,8 +364,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[7] -- Time elapsed: 0.023 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928-698e-44c3-9710-87e3a124365d"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -413,7 +413,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[8] -- Time elapsed: 0.018 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -462,8 +462,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[9] -- Time elapsed: 0.020 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf-8ddd-4c5b-bae7-305ca3e64459"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -511,8 +511,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[10] -- Time elapsed: 0.017 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324-ded6-40d0-a6e5-cd4b86bae0b9"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -560,8 +560,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[11] -- Time elapsed: 0.018 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9-15ca-43c1-994c-255b24377c18"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -609,8 +609,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[12] -- Time elapsed: 0.019 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0-f910-4472-8c18-b6c149bb5a9a"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -658,8 +658,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[13] -- Time elapsed: 0.020 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1-4871-4938-9a07-f5be20c5d725"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -707,8 +707,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[14] -- Time elapsed: 0.019 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5-fa33-443c-8c68-497df9ee6ca8"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -756,7 +756,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[15] -- Time elapsed: 0.023 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -805,8 +805,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[16] -- Time elapsed: 0.024 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9-11de-4b12-b135-c3717824c161"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -854,7 +854,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[17] -- Time elapsed: 0.019 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -903,8 +903,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[18] -- Time elapsed: 0.021 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360-8a23-413c-a349-9af432478d43"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -952,8 +952,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[19] -- Time elapsed: 0.022 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae-a917-47d5-a662-2fa670c3055f"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -1001,7 +1001,7 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[20] -- Time elapsed: 0.019 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -1050,7 +1050,7 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[21] -- Time elapsed: 0.015 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
@@ -1099,8 +1099,8 @@ expected: "FORBIDDEN"
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[22] -- Time elapsed: 0.025 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217-817d-4181-a314-9797fae9d1c3"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -1148,8 +1148,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[23] -- Time elapsed: 0.032 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf-7783-43c9-b20d-6490f48219b6"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -1197,8 +1197,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route)[24] -- Time elapsed: 0.022 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143-35ae-40d8-9739-b45dcd08537b"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143...[truncated]"}]
 expected: 403
  but was: 404
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -1246,8 +1246,8 @@ expected: 403
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_03_internalDomainCheckIsNeverPubliclyAuthorized -- Time elapsed: 0.010 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c-aacf-445e-bf16-a09747e12f48"}] 
+org.opentest4j.AssertionFailedError:
+[/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c...[truncated]"}]
 expected: 501
  but was: 401
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -1257,101 +1257,101 @@ expected: 501
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_02_to_11_eachRulePublishesTypedFormsCanonicalErrorsAndIdempotency -- Time elapsed: 2.569 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[GET /api/v1/platform/clubs] 
+org.opentest4j.AssertionFailedError:
+[GET /api/v1/platform/clubs]
 Expecting value to be false but was true
 	at com.agilityhub.core.configuration.E10ContractIT.T_17_02_to_11_eachRulePublishesTypedFormsCanonicalErrorsAndIdempotency(E10ContractIT.java:81)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   E10ContractIT.T_17_02_to_11_eachRulePublishesTypedFormsCanonicalErrorsAndIdempotency:81 [GET /api/v1/platform/clubs] 
+[ERROR] Failures:
+[ERROR]   E10ContractIT.T_17_02_to_11_eachRulePublishesTypedFormsCanonicalErrorsAndIdempotency:81 [GET /api/v1/platform/clubs]
 Expecting value to be false but was true
-[ERROR]   E10ContractIT.T_17_03_internalDomainCheckIsNeverPubliclyAuthorized:97->error:55 [/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c-aacf-445e-bf16-a09747e12f48"}] 
+[ERROR]   E10ContractIT.T_17_03_internalDomainCheckIsNeverPubliclyAuthorized:97->error:55 [/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c...[truncated]"}]
 expected: 501
  but was: 401
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324-ded6-40d0-a6e5-cd4b86bae0b9"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9-15ca-43c1-994c-255b24377c18"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0-f910-4472-8c18-b6c149bb5a9a"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1-4871-4938-9a07-f5be20c5d725"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5-fa33-443c-8c68-497df9ee6ca8"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9-11de-4b12-b135-c3717824c161"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360-8a23-413c-a349-9af432478d43"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae-a917-47d5-a662-2fa670c3055f"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119-45d9-400e-9fc0-4df085f15089"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217-817d-4181-a314-9797fae9d1c3"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf-7783-43c9-b20d-6490f48219b6"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143-35ae-40d8-9739-b45dcd08537b"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254-86c8-419d-8cd2-67dc13a0d47a"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278-e2be-4a51-8a3d-4664e46e621b"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178-f8dd-4061-b264-20881ffac6fa"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928-698e-44c3-9710-87e3a124365d"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928...[truncated]"}]
 expected: 403
  but was: 404
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:57
 expected: "FORBIDDEN"
  but was: "NO_MEMBERSHIP"
-[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf-8ddd-4c5b-bae7-305ca3e64459"}] 
+[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf...[truncated]"}]
 expected: 403
  but was: 404
 [ERROR] Tests run: 26, Failures: 26, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=NoTests -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=ImpersonationHandoffIT#T_01_11_claimsMemberViewAuditedMutationAndRevocation' test-compile failsafe:integration-test failsafe:verify

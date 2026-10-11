@@ -1,0 +1,76 @@
+roadmap/evidence/E10-T01/01-contract-red.log:74: trailing whitespace.
++[/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:172: trailing whitespace.
++[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:221: trailing whitespace.
++[/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:270: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:368: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:466: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:515: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:564: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:613: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:662: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:711: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:809: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:907: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:956: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1103: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1152: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1201: trailing whitespace.
++[/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1250: trailing whitespace.
++[/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1271: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_03_internalDomainCheckIsNeverPubliclyAuthorized:97->error:55 [/internal/domains/allowed {"code":"UNAUTHENTICATED","message":"Cal iniciar sessió.","details":{},"traceId":"7a72a59c...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1274: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/modules {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"c298d324...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1277: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"70a896c9...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1280: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"350878d0...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1283: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/stripe/test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"b773d1f1...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1286: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/parameters/levels.enabled {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"e79a07e5...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1292: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"37d75aa9...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1298: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/admins/e10-admin {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8bb89360...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1301: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/status {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"1521beae...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1304: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"8e244119...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1313: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/usage {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"3110e217...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1316: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/checklist {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"2647d5bf...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1319: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/club-templates {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"23bae143...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1325: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"517b3254...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1328: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"ac270278...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1331: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/definition {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"f5cf0178...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1337: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/domains/e10-target.example.test {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"46545928...[truncated]"}]
+roadmap/evidence/E10-T01/01-contract-red.log:1343: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs:71->error:55 [/api/v1/platform/clubs/e10-target/theme {"code":"NOT_FOUND","message":"No s'ha trobat el recurs.","details":{},"traceId":"10eb82cf...[truncated]"}]
+roadmap/evidence/E10-T01/03-extended-contract.log:71: trailing whitespace.
++[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c...[truncated]"}]
+roadmap/evidence/E10-T01/03-extended-contract.log:81: trailing whitespace.
++[ERROR]   E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked:130->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c...[truncated]"}]

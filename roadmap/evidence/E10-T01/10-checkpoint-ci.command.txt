@@ -1,0 +1,1 @@
+gh run view 38140949522 --json databaseId,headSha,status,conclusion,url,jobs --jq '{databaseId,headSha,status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion,url}]}'

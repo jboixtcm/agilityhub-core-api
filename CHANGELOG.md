@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E10-T01 verification follow-up: error responses explicitly use the canonical JSON media type, including the platform YAML export's 501 and missing-club 404. The universal-list search inventory includes the new console club list. Explicit impersonation denial is scoped to the new console and course routes, preserving existing platform delegates.
+
 - E8-T12 round 4 (E105): one payment-intent ledger now supplies refund allowances, reservation and settlement shares, credit absorption and overpayment reporting. All unbilled credits absorb the whole intent's excess before an admin is notified, even when prior refunds landed on a billed-credit row. The review sequence leaves EUR 2 of unbilled credit and no overpayment notice; generated shared-checkout sequences check absorption and final reporting after every action.
 
 - E9-T01 round 2: the member setup list remains accessible when setup visibility is disabled; its contract specifies null setups. Geometry dimensions retain their published bounds without pre-empting the future `GEOMETRY_INVALID` check. Club-owned courses cannot be published as `PUBLIC`, while account authors retain that option. Challenge attempts publish `201`; arbitrary JSON uses the language-neutral `AnyJson` schema. Fixtures and spec-id test names follow the corrected contract.

@@ -6,22 +6,22 @@
 14:07:08.503 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 14:07:08.633 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 14:07:08.634 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-14:07:08.645 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+14:07:08.645 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 14:07:09.006 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 14:07:09.102 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-14:07:09.193 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7a95d4e21b197805b23855b8cc37969dd756537fc278b111cf4d40d9bf5516b8
+14:07:09.193 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7a95d4e2...[truncated]
 14:07:09.417 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.41041S
 14:07:09.427 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
 14:07:09.428 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
 14:07:09.428 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
 14:07:09.428 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
-14:07:09.471 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: c4c85cd1f1c5284b74f195b205d16a858ede89db8d37b37edf3ee2026f98951b
+14:07:09.471 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: c4c85cd1...[truncated]
 14:07:09.995 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.567334S
 Integration JVM availableProcessors=18
 
@@ -51,24 +51,24 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
 2026-10-11T14:07:17.239+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
-2026-10-11T14:07:18.682+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=05c94f84-2270-4d94-87fd-6a81fa3614a1 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=05c94f84-2270-4d94-87fd-6a81fa3614a1
-2026-10-11T14:07:18.720+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6d283685-af1b-456c-baa9-326298270fd0 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=6d283685-af1b-456c-baa9-326298270fd0
-2026-10-11T14:07:18.725+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=306631ff-acc2-4133-b875-a6318f9476eb clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=306631ff-acc2-4133-b875-a6318f9476eb
-2026-10-11T14:07:18.740+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=2e1b567b-6e49-40dd-8ee7-201758c1810f clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=2e1b567b-6e49-40dd-8ee7-201758c1810f
-2026-10-11T14:07:19.032+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3a6e0f34-847a-4084-9b58-29c68c50aacd clubId=- accountId=e10-actor : Framework request rejected status=400 code=VALIDATION_ERROR traceId=3a6e0f34-847a-4084-9b58-29c68c50aacd
-2026-10-11T14:07:19.048+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3c098015-ffed-49bc-9c81-ee10b8614ec7 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=3c098015-ffed-49bc-9c81-ee10b8614ec7
-2026-10-11T14:07:19.103+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=a97ecbbb-fe6c-474f-9719-0d67a7bf8431 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=a97ecbbb-fe6c-474f-9719-0d67a7bf8431
-2026-10-11T14:07:19.255+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d3a7cd1c-9fb8-427b-8fab-8bbccf27ff51 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=d3a7cd1c-9fb8-427b-8fab-8bbccf27ff51
-2026-10-11T14:07:19.257+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=61f63088-f522-4514-b598-d2f0b227c60c clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=61f63088-f522-4514-b598-d2f0b227c60c
-2026-10-11T14:07:19.260+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=35366696-1861-46dc-8f52-91d7975c91e4 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=35366696-1861-46dc-8f52-91d7975c91e4
-2026-10-11T14:07:19.262+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=46347fe0-ea21-4859-ac47-24295c6221a1 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=46347fe0-[redacted]
-2026-10-11T14:07:21.620+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=4b8b1dc8-46ea-4c04-8497-f0409c253785 clubId=- accountId=- : Init duration for springdoc-openapi is: 2343 ms
-2026-10-11T14:07:21.811+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=b7a8df95-2321-4d9d-bf0b-456abe4a9725 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=b7a8df95-2321-4d9d-bf0b-456abe4a9725
-2026-10-11T14:07:21.878+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e4051ff3-efd6-4797-b6ec-c4198d891065 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=e4051ff3-efd6-4797-b6ec-c4198d891065
+2026-10-11T14:07:18.682+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:18.720+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:18.725+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:18.740+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.032+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=400 code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.048+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.103+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.255+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.257+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.260+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:19.262+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=46347fe0-[redacted]
+2026-10-11T14:07:21.620+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=- : Init duration for springdoc-openapi is: 2343 ms
+2026-10-11T14:07:21.811+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-11T14:07:21.878+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
 [ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 13.71 s <<< FAILURE! -- in com.agilityhub.core.configuration.E10ContractIT
 [ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked -- Time elapsed: 0.033 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c-1e37-4da4-9b3c-337b46d6f351"}] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c...[truncated]"}]
 expected: 400
  but was: 501
 	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
@@ -77,19 +77,19 @@ expected: 400
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked:130->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c-1e37-4da4-9b3c-337b46d6f351"}] 
+[ERROR] Failures:
+[ERROR]   E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked:130->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c...[truncated]"}]
 expected: 400
  but was: 501
 [ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

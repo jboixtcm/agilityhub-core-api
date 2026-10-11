@@ -89,6 +89,8 @@ class E5BackOfficeContractTest {
                 // E8-T01: D6's receipts (S12 §6 «q (número, abonat)») and «Inactivitats i baixes» (the member's name, S13 §2).
                 "GET /api/v1/invoices", "GET /api/v1/inactivity-periods", "GET /api/v1/leave-requests",
                 "GET /api/v1/courses", "GET /api/v1/platform/courses",
+                // S17: the platform club list searches the club name and slug.
+                "GET /api/v1/platform/clubs",
                 // Contract-only routes: their implementation (and search) is deferred.
                 "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/erasure-requests", "GET /api/v1/platform/security-events");
         for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",

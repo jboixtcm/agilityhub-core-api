@@ -17,6 +17,7 @@ metadata = root / (name + ".command.txt")
 if log.exists() or metadata.exists():
     raise SystemExit("Refusing to overwrite an earlier attempt")
 metadata.write_text(shlex.join(command) + "\n")
+(root / (name + ".cwd.txt")).write_text(str(Path.cwd()) + "\n")
 started = time.monotonic()
 with log.open("w") as output:
     process = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)

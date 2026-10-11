@@ -6,22 +6,22 @@
 14:05:35.859 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 14:05:36.018 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 14:05:36.019 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-14:05:36.030 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+14:05:36.030 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.8.2
   API Version: 1.56
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 14:05:36.426 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 14:05:36.527 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
-14:05:36.643 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: a29abb2a7bb082145b5fb0e5667c7b6677ad6c2ead898b32e000412d7b27dd56
+14:05:36.643 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: a29abb2a...[truncated]
 14:05:36.962 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.535789S
 14:05:36.966 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
 14:05:36.966 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
 14:05:36.966 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
 14:05:36.966 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
-14:05:37.017 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: a5b422d000a417d16833bac406b41dbc4a0f8e90f894a1075c0d9c682c9aa5d5
+14:05:37.017 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: a5b422d0...[truncated]
 14:05:37.541 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.574498S
 Integration JVM availableProcessors=18
 
@@ -51,4 +51,4 @@ WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicA
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 2026-10-11T14:05:44.908+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
-2026-10-11T14:05:48.526+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=38faca90-39d7-4515-9627-37a32a377234 clubId=- accountId=- : Init duration for springdoc-openapi is: 2360 ms
+2026-10-11T14:05:48.526+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=- : Init duration for springdoc-openapi is: 2360 ms

@@ -3,8 +3,9 @@
 import json
 from pathlib import Path
 import subprocess
+import sys
 
-before = json.loads(subprocess.check_output(['git', 'show', 'HEAD:docs/openapi/openapi.json']))
+before = json.loads(subprocess.check_output(['git', 'show', (sys.argv[1] if len(sys.argv)>1 else '92f5bb6e') + ':docs/openapi/openapi.json']))
 after = json.loads(Path('docs/openapi/openapi.json').read_text())
 methods = {'get', 'post', 'put', 'patch', 'delete', 'head', 'options'}
 def operations(document):
