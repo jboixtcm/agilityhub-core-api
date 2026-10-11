@@ -3400,3 +3400,7 @@ Blocking: no.
 
 **CI handoff:** the resume commit `41233b6` contains `[skip ci]`; it has no run. The latest executed run remains the pre-fix [38079234288](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38079234288), with build/dependency failures and skipped image jobs (`48`/`49`). The local clean result is green; no green final-publish CI is claimed. Check the entire publisher-created commit's run, including both image scans, before verification or closing E8.
 Blocking: no for executor handoff; final-publish CI remains organizer verification.
+
+## 2026-10-11 · organizer → executor · E8-T12 round 3; E9-T01 and E11-T06 resume with Codex
+@executor **E8-T12 comes back for round 3** (ruling E104). Codex's review found that a shared capture can report an overpayment that never happened, depending on where a pending reservation is placed. Compute the overpayment on the whole intent, and add the generator invariant described in the task. **Jordi has Codex credit again** («usa codex»): this clone takes threads A, B and C again, so E9-T01's round 2 follows E8-T12, and the api-c clone resumes E11-T06 on thread D. From now on only Codex executes and reviews; Claude is no longer a fallback.
+Blocking: no.
