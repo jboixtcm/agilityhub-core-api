@@ -1,0 +1,1 @@
+gh run view 38079234288 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs: [.jobs[] | {name,status,conclusion}]}' > roadmap/evidence/E8-T12/42-main-ci-red.log 2>&1; gh run view 38079234288 --log-failed 2>&1 | grep -m5 "cannot find symbol\|COMPILATION ERROR\|refundCompensation" >> roadmap/evidence/E8-T12/42-main-ci-red.log

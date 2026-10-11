@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh python3 roadmap/evidence/E8-T12/summarize-round2.py 43-round2-clean-verify > roadmap/evidence/E8-T12/45-round2-test-summary-locked.log 2>&1

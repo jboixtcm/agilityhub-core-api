@@ -1,0 +1,81 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 27, Failures: 2, Errors: 1, Skipped: 0, Time elapsed: 0.869 s <<< FAILURE! -- in com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest
+[ERROR] com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_anUpfrontRefundLocksItsKeyThenThePaymentBeforeReadingItsCapture -- Time elapsed: 0.005 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: REFUND_EXCEEDS_PAID
+	at com.agilityhub.core.payments.application.PaymentRefunds.reserve(PaymentRefunds.java:89)
+	at com.agilityhub.core.payments.application.PaymentRefunds.lambda$upfront$8(PaymentRefunds.java:69)
+	at com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.lambda$setUp$0(PaymentRefundsSurvivorsTest.java:68)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.access.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:84)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:136)
+	at com.agilityhub.core.payments.application.BillingTransactions.run(BillingTransactions.java:34)
+	at com.agilityhub.core.payments.application.PaymentRefunds.upfront(PaymentRefunds.java:57)
+	at com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_anUpfrontRefundLocksItsKeyThenThePaymentBeforeReadingItsCapture(PaymentRefundsSurvivorsTest.java:162)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_aRefundAnswerAfterALostClaimChangesNothing -- Time elapsed: 0.026 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_aRefundAnswerAfterALostClaimChangesNothing(PaymentRefundsSurvivorsTest.java:246)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_aCancellationAlreadyChargedAsCreditIsNotCompensatedAgain -- Time elapsed: 0.006 s <<< FAILURE!
+org.mockito.exceptions.verification.NeverWantedButInvoked: 
+
+upfrontPaymentRepository.compensation(
+    <any string>,
+    <any string>,
+    <any string>
+);
+Never wanted here:
+-> at com.agilityhub.core.payments.persistence.UpfrontPaymentRepository.compensation(UpfrontPaymentRepository.java:33)
+But invoked here:
+-> at com.agilityhub.core.payments.application.PaymentRefunds.lambda$compensate$12(PaymentRefunds.java:112) with arguments: [pay-1, REFUND, BOOKING_CANCELLED]
+
+	at com.agilityhub.core.payments.persistence.UpfrontPaymentRepository.compensation(UpfrontPaymentRepository.java:33)
+	at com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest.T_12_17_aCancellationAlreadyChargedAsCreditIsNotCompensatedAgain(PaymentRefundsSurvivorsTest.java:231)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   PaymentRefundsSurvivorsTest.T_12_17_aCancellationAlreadyChargedAsCreditIsNotCompensatedAgain:231 
+upfrontPaymentRepository.compensation(
+    <any string>,
+    <any string>,
+    <any string>
+);
+Never wanted here:
+-> at com.agilityhub.core.payments.persistence.UpfrontPaymentRepository.compensation(UpfrontPaymentRepository.java:33)
+But invoked here:
+-> at com.agilityhub.core.payments.application.PaymentRefunds.lambda$compensate$12(PaymentRefunds.java:112) with arguments: [pay-1, REFUND, BOOKING_CANCELLED]
+
+[ERROR]   PaymentRefundsSurvivorsTest.T_12_17_aRefundAnswerAfterALostClaimChangesNothing:246 
+Expecting code to raise a throwable.
+[ERROR] Errors: 
+[ERROR]   PaymentRefundsSurvivorsTest.T_12_17_anUpfrontRefundLocksItsKeyThenThePaymentBeforeReadingItsCapture:162->lambda$setUp$0:68 » Api REFUND_EXCEEDS_PAID
+[ERROR] Tests run: 27, Failures: 2, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

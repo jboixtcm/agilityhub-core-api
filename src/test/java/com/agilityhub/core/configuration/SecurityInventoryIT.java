@@ -34,9 +34,14 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
     @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts;
 
-    @Test void E11_T06_INC45_everyPublishedOperationEnforcesItsBearerRequirement() throws Exception {
-        clubs.save(PlatformFixtures.club("security-inventory", "inventory.example.test"));
+    /** Both tests share the context's database: the second one finds the club already stored (a versioned save would insert it twice). */
+    private void inventoryClub() {
+        if (clubs.findById("security-inventory").isEmpty()) { clubs.save(PlatformFixtures.club("security-inventory", "inventory.example.test")); }
         configs.invalidate("security-inventory"); hosts.invalidate();
+    }
+
+    @Test void E11_T06_INC45_everyPublishedOperationEnforcesItsBearerRequirement() throws Exception {
+        inventoryClub();
         var published = mapper.readTree(Files.readString(Path.of("docs/openapi/openapi.json")));
         var live = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
@@ -94,8 +99,7 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
      * CATALEG_ERRORS §1). Never a file and never a 401: no bearer is read there, so an invalid or an authenticated one changes nothing.
      */
     @Test void E11_T06_INC45_hiddenSignedRoutesRefuseAnUnsignedRequest() throws Exception {
-        clubs.save(PlatformFixtures.club("security-inventory", "inventory.example.test"));
-        configs.invalidate("security-inventory"); hosts.invalidate();
+        inventoryClub();
         var published = mapper.readTree(Files.readString(Path.of("docs/openapi/openapi.json"))).path("paths");
         // One concrete path per SignedFileRequests pattern: UPLOAD, both DOWNLOAD alternatives and the two signup paths.
         String[][] routes = {

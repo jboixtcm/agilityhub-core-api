@@ -1,0 +1,1 @@
+none: stopped by the executor (TaskStop) at 05:46; after a 60-minute host-lock wait it ran without the lock and in ~3 h wall time completed only 17 unit-test classes (host suspended/throttled); no result is claimed

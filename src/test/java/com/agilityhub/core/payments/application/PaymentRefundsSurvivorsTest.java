@@ -155,7 +155,10 @@ class PaymentRefundsSurvivorsTest {
 
     @Test void T_12_17_anUpfrontRefundLocksItsKeyThenThePaymentBeforeReadingItsCapture() {
         var locks = new AtomicInteger();
-        when(upfront.findById("pay-1")).thenReturn(Optional.of(payment("pay-1", "PAID", null, null)));
+        var payment = payment("pay-1", "PAID", null, null);
+        when(upfront.findById("pay-1")).thenReturn(Optional.of(payment));
+        // E8-T12 round 2: the allowance is the whole payment intent's, read from its rows.
+        when(upfront.forIntent("pi_1")).thenReturn(List.of(payment));
 
         PaymentRefunds.Accepted accepted;
         try (var scope = IdempotentOperation.open(locks::incrementAndGet, (status, body) -> { }, "request-1")) {
@@ -223,12 +226,16 @@ class PaymentRefundsSurvivorsTest {
     }
 
     @Test void T_12_17_aCancellationAlreadyChargedAsCreditIsNotCompensatedAgain() {
-        when(upfront.findById("pay-1")).thenReturn(Optional.of(payment("pay-1", "PAID", "booking-1", null)));
+        var payment = payment("pay-1", "PAID", "booking-1", null);
+        when(upfront.findById("pay-1")).thenReturn(Optional.of(payment));
+        when(upfront.forIntent("pi_1")).thenReturn(List.of(payment));
+        // The obligation is recorded (the first policy wins); the ledger then owes nothing: 1500 captured, 1500 credited.
+        when(upfront.compensation("pay-1")).thenReturn(Optional.of(new UpfrontPaymentRepository.Compensation("REFUND", "BOOKING_CANCELLED", null)));
         when(charges.forBooking("booking-1")).thenReturn(Optional.of(credit()));
 
         refunds.compensate("pay-1", "REFUND", false);
 
-        verify(upfront, never()).refundCompensation(anyString(), anyString());
+        verify(operations, never()).insert(any());
         verify(charges, never()).insert(any());
     }
 
@@ -237,6 +244,8 @@ class PaymentRefundsSurvivorsTest {
     @Test void T_12_17_aRefundAnswerAfterALostClaimChangesNothing() {
         // The real retry policy over the mocked command repository: the claim "token-1" is lost before the answer is written.
         ReflectionTestUtils.setField(refunds, "retries", new PaymentRetryPolicy(mock(ClubConfigService.class), operations, tx, clock));
+        // E8-T11: a disabled provider only postpones the command; this one is enabled.
+        when(provider.supports(PaymentProvider.Capability.REFUND)).thenReturn(true);
         when(operations.findById("op-1")).thenReturn(Optional.of(operation("op-1", "REFUND_UPFRONT", "pay-1", 700, "key-1", null)));
         when(operations.claim("op-1", true)).thenReturn(new PaymentOperationRepository.Claim("token-1", false));
         when(provider.refund("pi_1", new Money(700, "EUR"), "key-1", REASON, "op-1")).thenReturn(new PaymentProvider.RefundResult("re_1", "pending"));

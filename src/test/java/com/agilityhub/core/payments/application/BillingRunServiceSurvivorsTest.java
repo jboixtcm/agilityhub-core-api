@@ -124,7 +124,8 @@ class BillingRunServiceSurvivorsTest {
         assertThat(sepaTotals.remittanceId()).isEqualTo(outcome.remittance().id());
         assertThat(sepaTotals.count()).isEqualTo(2);
         assertThat(outcome.run().byProvider().manual().remittanceId()).isNull();
-        assertThat(outcome.run().skipped()).containsExactly(new BillingRun.Skipped("member-skipped", "Joan Example", BillingIncidentCode.NO_BANK_ACCOUNT));
+        // The month's incident is listed first and keeps its own name; the waiting receipt's duplicate is dropped.
+        assertThat(outcome.run().skipped()).containsExactly(new BillingRun.Skipped("member-skipped", "Joan Roca", BillingIncidentCode.NO_BANK_ACCOUNT));
     }
 
     @Test void T_12_09_aWaitingReceiptAloneOpensTheSepaTotalsOfAManualRun() {

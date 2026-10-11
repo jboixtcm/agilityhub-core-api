@@ -1,0 +1,9 @@
+heavy.sh: 04:50 waiting for the host lock, held by: 01:46 agilityhub-core-web: pnpm e2e:core E8-W04 e8-core.spec.ts
+heavy.sh: the lock is still held after 55 min by: 01:46 agilityhub-core-web: pnpm e2e:core E8-W04 e8-core.spec.ts
+heavy.sh: running WITHOUT the lock - if this run fails on timeouts, say so in the report
+surefire: tests=57, failures=0, errors=0, skipped=0
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E8-T12/summarize-round2.py", line 10, in <module>
+    assert reports, lane
+           ^^^^^^^
+AssertionError: failsafe
