@@ -1,0 +1,10 @@
+FAIL 9 changed/missing/new inputs:
+src/main/java/com/agilityhub/core/payments/application/PaymentRefunds.java
+src/main/java/com/agilityhub/core/payments/domain/CapturedPaymentLedger.java
+src/test/java/com/agilityhub/core/arch/ArchitectureTest.java
+src/test/java/com/agilityhub/core/configuration/E9ContractIT.java
+src/test/java/com/agilityhub/core/configuration/E9Fixtures.java
+src/test/java/com/agilityhub/core/configuration/E9PersistenceIT.java
+src/test/java/com/agilityhub/core/configuration/E9ResponseContractTest.java
+src/test/java/com/agilityhub/core/payments/api/CapturedPaymentInvariantsIT.java
+src/test/resources/fixtures/contracts/e9-routes.json

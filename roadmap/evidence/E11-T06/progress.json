@@ -23,5 +23,14 @@
     "running_session": "95587; evidence 100-pit-payments-integration; current source manifest pit/session3-clean-source-manifest.json; compiled input manifest pit/session3-unit-bytecode.json",
     "artifacts": "pit/session3-unit-mutations.xml (complete fresh full scope); 101-unit-pit-summary; 102-current-merge-tests (3 passing guard tests). POM forced history removed (95 red / 96 green). 26-counterfactual.py now also reinstates forced history and permits cached-only promotions, then tests and restores them; run it after all PIT work finishes.",
     "host_lock": "97 waited the complete 25-minute limit and ran WITHOUT the lock via heavy.sh fallback; other api clean verify has held the lock since 10:35. No resource contention inferred: the sole memory error is a deliberate infinite-loop CSV mutant, retained as not proved."
+  },
+  "session4": {
+    "date": "2026-10-11",
+    "baseline": "db2643a7",
+    "status": "blocked",
+    "blocker": "Inherited attempt 100 still owns the host lock (64729) and writes incomplete PIT XML (65739). SIGTERM is denied; saved exec session 95587 is unknown.",
+    "evidence": "105 denied stop, 106 nine changed PIT inputs, 107 live writer/incomplete XML/no exit and stdout inode mismatch; 108 whitespace, 109 scope.",
+    "remaining": "Host must stop the inherited process tree and confirm no writer/lock. Prior unit/payment reports are stale: start fresh against current sources, then finish all required verification and report.",
+    "changes": "Documentation and read-only evidence only; no product/test/build changes or git writes."
   }
 }

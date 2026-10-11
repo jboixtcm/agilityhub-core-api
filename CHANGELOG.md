@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- E11-T06 verification checkpoint: records the inherited PIT process access blocker and marks earlier mutation inputs as stale after payment changes; no new security-gate success is claimed.
+
 ### Fixed
 
 - E9-T01 round 2: the member setup list remains accessible when setup visibility is disabled; its contract specifies null setups. Geometry dimensions retain their published bounds without pre-empting the future `GEOMETRY_INVALID` check. Club-owned courses cannot be published as `PUBLIC`, while account authors retain that option. Challenge attempts publish `201`; arbitrary JSON uses the language-neutral `AnyJson` schema. Fixtures and spec-id test names follow the corrected contract.
