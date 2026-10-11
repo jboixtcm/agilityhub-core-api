@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E8-T12 round 4 verification completed on the current source: host-locked clean verification passes 4,476 unit and 1,865 integration tests, including all 70 payment invariants and coverage/architecture gates. The tested source matches its isolated snapshot; all changed test classes and immutable attempt evidence are recorded. No additional product changes were needed on resume.
+
 - E11-T06 verification checkpoint: records the inherited PIT process access blocker and marks earlier mutation inputs as stale after payment changes; no new security-gate success is claimed. Session 5 confirms that the inherited writer remains alive and follows the organizer's stop condition; fresh verification awaits host cleanup.
 
 ### Fixed

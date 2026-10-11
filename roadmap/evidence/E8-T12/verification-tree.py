@@ -9,7 +9,7 @@ import sys
 
 repository = Path(__file__).resolve().parents[3]
 destination = Path(sys.argv[2]).resolve()
-manifest = Path(__file__).parent / 'round4-verification-inputs.json'
+manifest = Path(__file__).parent / (sys.argv[3] if len(sys.argv) > 3 else 'round4-verification-inputs.json')
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()

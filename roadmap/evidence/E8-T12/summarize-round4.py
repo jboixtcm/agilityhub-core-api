@@ -15,9 +15,14 @@ for lane in ('surefire', 'failsafe'):
             totals[key] += int(suite.get(key, '0'))
     print(lane + ': ' + ', '.join(key + '=' + str(totals[key]) for key in metrics))
     assert totals['failures'] == totals['errors'] == totals['skipped'] == 0
-name = 'com.agilityhub.core.payments.domain.PaymentIntentLedgerTest'
-suite = ET.parse(root / f'target/surefire-reports/TEST-{name}.xml').getroot()
-print(name + ': ' + ', '.join(key + '=' + suite.get(key) for key in metrics))
+for lane, name in (
+    ('surefire', 'com.agilityhub.core.payments.domain.PaymentIntentLedgerTest'),
+    ('surefire', 'com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest'),
+    ('surefire', 'com.agilityhub.core.payments.application.BillingRunServiceSurvivorsTest'),
+    ('failsafe', 'com.agilityhub.core.configuration.SecurityInventoryIT'),
+):
+    suite = ET.parse(root / f'target/{lane}-reports/TEST-{name}.xml').getroot()
+    print(name + ': ' + ', '.join(key + '=' + suite.get(key) for key in metrics))
 name = 'com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT'
 suite = ET.parse(root / f'target/failsafe-reports/TEST-{name}.xml').getroot()
 print(name + ': ' + ', '.join(key + '=' + suite.get(key) for key in metrics))

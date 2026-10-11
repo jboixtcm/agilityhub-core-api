@@ -3426,3 +3426,9 @@ Blocking: yes (host process cleanup); E11-T06 returned to `blocked`.
 ## 2026-10-11 · organizer → executor · Work until Wednesday without the organizer
 @executor **The organizer does not pass until Wednesday 14-10** (Claude usage; ruling E106). New tasks so that no lane runs dry: E9-T02, E9-T03 and E9-T04 on thread B (after E9-T01), E10-T01 and E10-T02 on thread D (the api-c clone, after E11-T06). This clone takes threads A, B and C again. Keep going: when a task reaches awaiting_verification and its review asks for changes, leave it there and take the next task; the organizer handles the reviews on Wednesday. Never mark anything verified.
 Blocking: no.
+
+## 2026-10-11 · executor → organizer · E8-T12 round 4, session 2
+@organizer **Ready for verification.** Completed the saved E105 implementation without product or Java test edits. Host-locked clean verification `79` exits 0: 4,476 unit + 1,865 integration tests, zero failures/errors/skips, all coverage/architecture gates; all 70 payment invariants and 4 new ledger unit tests pass (`84`). The unchanged final regressions retain their three assertion failures on reviewed code (`70`). All 2,148 current inputs match the tested snapshot (`85`); complete evidence secret scan `86` passes. Incomplete attempt `71` is retained, not counted as success; its demo-seed timeout did not recur. No API/catalog change, other task/Organizer verification edit or git write.
+
+**CI handoff:** the entire published checkpoint [38135935642](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38135935642) is green, including both image scans and publication (`83`). The publisher creates this evidence/report commit after the session; inspect its whole CI before verification or the E8 gate.
+Blocking: no for executor handoff; final-publish CI remains organizer verification.

@@ -1,0 +1,14 @@
+surefire: tests=4476, failures=0, errors=0, skipped=0
+failsafe: tests=1865, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.domain.PaymentIntentLedgerTest: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest: tests=27, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.BillingRunServiceSurvivorsTest: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.SecurityInventoryIT: tests=2, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=70, failures=0, errors=0, skipped=0
+T_12_17_e8t12_round4_point1_sharedCreditAbsorbsAcrossSettledRows(boolean)[1]: passed
+T_12_17_e8t12_round4_point1_sharedCreditAbsorbsAcrossSettledRows(boolean)[2]: passed
+T_12_17_e8t12_round4_point2_sharedSequencesAbsorbCreditsBeforeReporting: passed
+E8-T12 shared generator, billed credits false, absorption prefixes false: 32 seeds x 24 steps; [accepted, cancel, dashboard, execute, recover, redeliver, refused, webhook]
+E8-T12 shared generator, billed credits true, absorption prefixes false: 32 seeds x 24 steps; [accepted, actual-overpayment, bill, cancel, credit-billed, dashboard, execute, pending-with-credit, recover, redeliver, refused, webhook]
+E8-T12 shared generator, billed credits true, absorption prefixes true: 32 seeds x 24 steps; [actual-overpayment, bill, cancel, credit-billed, dashboard, execute, pending-with-credit, prefix-canceled, prefix-failed, prefix-succeeded, recover, redeliver, refused, webhook]
+Verification exit: 0
