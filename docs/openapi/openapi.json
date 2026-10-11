@@ -4274,6 +4274,44 @@
         "required" : [ "memberId", "memberName" ],
         "type" : "object"
       },
+      "CatalogCloneRequest" : {
+        "properties" : {
+          "fromClubId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "parts" : {
+            "items" : {
+              "enum" : [ "LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES" ],
+              "type" : "string"
+            },
+            "minItems" : 1,
+            "type" : "array",
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "fromClubId", "parts" ],
+        "type" : "object"
+      },
+      "CatalogCloneResult" : {
+        "properties" : {
+          "copied" : {
+            "additionalProperties" : {
+              "format" : "int32",
+              "type" : "integer"
+            },
+            "type" : "object"
+          },
+          "warnings" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "copied", "warnings" ],
+        "type" : "object"
+      },
       "CatalogItemsAdministrator" : {
         "properties" : {
           "items" : {
@@ -5343,6 +5381,993 @@
           }
         },
         "required" : [ ],
+        "type" : "object"
+      },
+      "ClubDefinition" : {
+        "$schema" : "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties" : false,
+        "description" : "S17 ClubDefinition: WP-A's canonical layout (localization inside club). Console credentials accept environment references only; accounts/passwords and local page files are excluded. No environment lookup occurs in E10-T01.",
+        "oneOf" : [ {
+          "not" : {
+            "required" : [ "preset" ]
+          },
+          "required" : [ "modules" ]
+        }, {
+          "not" : {
+            "required" : [ "modules" ]
+          },
+          "required" : [ "preset" ]
+        } ],
+        "properties" : {
+          "admins" : {
+            "items" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "email" : {
+                  "pattern" : "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+                  "type" : "string"
+                },
+                "locale" : {
+                  "enum" : [ "ca", "es", "en" ],
+                  "type" : "string"
+                },
+                "name" : {
+                  "minLength" : 1,
+                  "type" : "string"
+                }
+              },
+              "required" : [ "email", "locale", "name" ],
+              "type" : "object"
+            },
+            "type" : "array"
+          },
+          "apiVersion" : {
+            "const" : "agilityhub.club/v1"
+          },
+          "catalogs" : {
+            "additionalProperties" : false,
+            "properties" : {
+              "faq" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "active" : {
+                      "type" : "boolean"
+                    },
+                    "answer" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "category" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "code" : {
+                      "maxLength" : 80,
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "order" : {
+                      "maximum" : 100000,
+                      "minimum" : 0,
+                      "type" : "integer"
+                    },
+                    "question" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "active", "answer", "category", "code", "order", "question" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              },
+              "fromTemplate" : {
+                "description" : "S17 template club reference; resolved by the implementation task.",
+                "minLength" : 1,
+                "type" : "string"
+              },
+              "instructors" : {
+                "description" : "Team members are provisioned by seed:demo after the census exists.",
+                "maxItems" : 0,
+                "type" : "array"
+              },
+              "levels" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "active" : {
+                      "type" : "boolean"
+                    },
+                    "capacity" : {
+                      "maximum" : 100,
+                      "minimum" : 1,
+                      "type" : "integer"
+                    },
+                    "code" : {
+                      "pattern" : "^[A-Z0-9_]{1,16}$",
+                      "type" : "string"
+                    },
+                    "color" : {
+                      "pattern" : "^#[a-fA-F0-9]{6}$",
+                      "type" : "string"
+                    },
+                    "grantsFreeTraining" : {
+                      "type" : "boolean"
+                    },
+                    "name" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "order" : {
+                      "maximum" : 100000,
+                      "minimum" : 0,
+                      "type" : "integer"
+                    },
+                    "progression" : {
+                      "description" : "S05 §3 (E29): part of the progression of levels; default true",
+                      "type" : "boolean"
+                    }
+                  },
+                  "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "name", "order" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              },
+              "plans" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "active" : {
+                      "type" : "boolean"
+                    },
+                    "billingMode" : {
+                      "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+                      "type" : "string"
+                    },
+                    "code" : {
+                      "pattern" : "^[A-Z0-9_]{1,16}$",
+                      "type" : "string"
+                    },
+                    "conditions" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "dogsIncluded" : {
+                      "maximum" : 9,
+                      "minimum" : 1,
+                      "type" : "integer"
+                    },
+                    "entryFee" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "amount" : {
+                          "additionalProperties" : false,
+                          "properties" : {
+                            "amountMinor" : {
+                              "maximum" : 1000000000,
+                              "minimum" : 0,
+                              "type" : "integer"
+                            },
+                            "currency" : {
+                              "pattern" : "^[A-Z]{3}$",
+                              "type" : "string"
+                            }
+                          },
+                          "required" : [ "amountMinor", "currency" ],
+                          "type" : "object"
+                        },
+                        "mode" : {
+                          "enum" : [ "STANDARD", "AMOUNT", "PERCENT", "NONE" ],
+                          "type" : "string"
+                        },
+                        "percent" : {
+                          "maximum" : 100,
+                          "minimum" : 0,
+                          "type" : "integer"
+                        }
+                      },
+                      "required" : [ "mode" ],
+                      "type" : "object"
+                    },
+                    "name" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "order" : {
+                      "maximum" : 100000,
+                      "minimum" : 0,
+                      "type" : "integer"
+                    },
+                    "pack" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "sessions" : {
+                          "maximum" : 1000,
+                          "minimum" : 1,
+                          "type" : "integer"
+                        },
+                        "validityMonths" : {
+                          "maximum" : 120,
+                          "minimum" : 1,
+                          "type" : "integer"
+                        }
+                      },
+                      "required" : [ "sessions", "validityMonths" ],
+                      "type" : "object"
+                    },
+                    "showOnSignup" : {
+                      "type" : "boolean"
+                    },
+                    "showOnWeb" : {
+                      "type" : "boolean"
+                    },
+                    "singleClass" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "cancelPolicy" : {
+                          "enum" : [ "REFUND", "CREDIT", "NONE" ],
+                          "type" : "string"
+                        },
+                        "chargeMode" : {
+                          "enum" : [ "CHARGE_ON_ATTENDANCE", "PAY_TO_BOOK" ],
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "cancelPolicy", "chargeMode" ],
+                      "type" : "object"
+                    },
+                    "texts" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "description" : {
+                          "additionalProperties" : false,
+                          "minProperties" : 1,
+                          "properties" : {
+                            "ca" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "en" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "es" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            }
+                          },
+                          "required" : [ ],
+                          "type" : "object"
+                        },
+                        "offerLabel" : {
+                          "additionalProperties" : false,
+                          "minProperties" : 1,
+                          "properties" : {
+                            "ca" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "en" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "es" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            }
+                          },
+                          "required" : [ ],
+                          "type" : "object"
+                        },
+                        "priceLabel" : {
+                          "additionalProperties" : false,
+                          "minProperties" : 1,
+                          "properties" : {
+                            "ca" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "en" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            },
+                            "es" : {
+                              "minLength" : 1,
+                              "type" : "string"
+                            }
+                          },
+                          "required" : [ ],
+                          "type" : "object"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    },
+                    "type" : {
+                      "enum" : [ "MONTHLY", "PACK", "SINGLE_CLASS" ],
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "active", "code", "dogsIncluded", "entryFee", "name", "order", "showOnSignup", "showOnWeb", "type" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              },
+              "prices" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "amount" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "amountMinor" : {
+                          "maximum" : 1000000000,
+                          "minimum" : 0,
+                          "type" : "integer"
+                        },
+                        "currency" : {
+                          "pattern" : "^[A-Z]{3}$",
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "amountMinor", "currency" ],
+                      "type" : "object"
+                    },
+                    "concept" : {
+                      "enum" : [ "MONTHLY_FEE", "MAINTENANCE_FEE", "PACK", "SINGLE_CLASS" ],
+                      "type" : "string"
+                    },
+                    "planCode" : {
+                      "pattern" : "^[A-Z0-9_]{1,16}$",
+                      "type" : "string"
+                    },
+                    "taxPercent" : {
+                      "maximum" : 100,
+                      "minimum" : 0,
+                      "multipleOf" : 0.01,
+                      "type" : "number"
+                    },
+                    "validFrom" : {
+                      "pattern" : "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "type" : "string"
+                    },
+                    "validTo" : {
+                      "anyOf" : [ {
+                        "pattern" : "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                        "type" : "string"
+                      }, {
+                        "type" : "null"
+                      } ]
+                    }
+                  },
+                  "required" : [ "amount", "concept", "planCode", "taxPercent", "validFrom" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              },
+              "rings" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "active" : {
+                      "type" : "boolean"
+                    },
+                    "allowsFreeTraining" : {
+                      "type" : "boolean"
+                    },
+                    "color" : {
+                      "pattern" : "^#[a-fA-F0-9]{6}$",
+                      "type" : "string"
+                    },
+                    "name" : {
+                      "maxLength" : 40,
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "order" : {
+                      "maximum" : 100000,
+                      "minimum" : 0,
+                      "type" : "integer"
+                    },
+                    "shortName" : {
+                      "pattern" : "^[A-Z0-9]{1,6}$",
+                      "type" : "string"
+                    },
+                    "trainingCapacity" : {
+                      "maximum" : 100,
+                      "minimum" : 1,
+                      "type" : [ "integer", "null" ]
+                    }
+                  },
+                  "required" : [ "active", "allowsFreeTraining", "color", "name", "order", "shortName" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              }
+            },
+            "required" : [ ],
+            "type" : "object"
+          },
+          "club" : {
+            "additionalProperties" : false,
+            "properties" : {
+              "address" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "city" : {
+                    "type" : "string"
+                  },
+                  "country" : {
+                    "type" : "string"
+                  },
+                  "postalCode" : {
+                    "type" : "string"
+                  },
+                  "region" : {
+                    "type" : "string"
+                  },
+                  "street" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [ ],
+                "type" : "object"
+              },
+              "contactEmail" : {
+                "type" : "string"
+              },
+              "contactPhone" : {
+                "type" : "string"
+              },
+              "countryProfile" : {
+                "enum" : [ "ES", "GENERIC" ],
+                "type" : "string"
+              },
+              "currency" : {
+                "pattern" : "^[A-Z]{3}$",
+                "type" : "string"
+              },
+              "defaultLocale" : {
+                "enum" : [ "ca", "es", "en" ],
+                "type" : "string"
+              },
+              "displayCity" : {
+                "type" : "string"
+              },
+              "legalName" : {
+                "type" : "string"
+              },
+              "locales" : {
+                "items" : {
+                  "enum" : [ "ca", "es", "en" ],
+                  "type" : "string"
+                },
+                "minItems" : 1,
+                "type" : "array",
+                "uniqueItems" : true
+              },
+              "name" : {
+                "minLength" : 1,
+                "type" : "string"
+              },
+              "slug" : {
+                "pattern" : "^[a-z0-9-]{3,40}$",
+                "type" : "string"
+              },
+              "status" : {
+                "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED" ],
+                "type" : "string"
+              },
+              "taxId" : {
+                "description" : "S02 §3 (amended 26-09): \"\" clears it and an omitted one is kept; null is refused (only PUT /club clears it with null).",
+                "type" : "string"
+              },
+              "template" : {
+                "type" : "boolean"
+              },
+              "timeZone" : {
+                "minLength" : 1,
+                "type" : "string"
+              },
+              "websiteUrl" : {
+                "type" : "string"
+              }
+            },
+            "required" : [ "countryProfile", "currency", "defaultLocale", "locales", "name", "slug", "status", "timeZone" ],
+            "type" : "object"
+          },
+          "domains" : {
+            "items" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "app" : {
+                  "enum" : [ "clubs", "clubs-admin" ],
+                  "type" : "string"
+                },
+                "host" : {
+                  "minLength" : 1,
+                  "pattern" : "^[A-Za-z0-9.-]+$",
+                  "type" : "string"
+                },
+                "primary" : {
+                  "type" : "boolean"
+                }
+              },
+              "required" : [ "host", "primary" ],
+              "type" : "object"
+            },
+            "type" : "array"
+          },
+          "legal" : {
+            "additionalProperties" : false,
+            "properties" : {
+              "imageConsentText" : {
+                "additionalProperties" : false,
+                "minProperties" : 0,
+                "properties" : {
+                  "ca" : {
+                    "minLength" : 1,
+                    "type" : "string"
+                  },
+                  "en" : {
+                    "minLength" : 1,
+                    "type" : "string"
+                  },
+                  "es" : {
+                    "minLength" : 1,
+                    "type" : "string"
+                  }
+                },
+                "required" : [ ],
+                "type" : "object"
+              },
+              "legalTextsVersion" : {
+                "type" : "string"
+              },
+              "privacyPolicyUrl" : {
+                "type" : "string"
+              }
+            },
+            "required" : [ "imageConsentText", "legalTextsVersion", "privacyPolicyUrl" ],
+            "type" : "object"
+          },
+          "messageTemplates" : {
+            "description" : "S11 §8 / R-11-01 (E7-T03): the notification codes whose product-seed template the club gets in its own languages; a code the club already has a template of is kept as edited at D9.",
+            "items" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "code" : {
+                  "pattern" : "^N-[0-9]{2}[a-d]?$",
+                  "type" : "string"
+                }
+              },
+              "required" : [ "code" ],
+              "type" : "object"
+            },
+            "type" : "array"
+          },
+          "modules" : {
+            "items" : {
+              "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          },
+          "pages" : {
+            "items" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "active" : {
+                  "type" : "boolean"
+                },
+                "body" : {
+                  "additionalProperties" : false,
+                  "minProperties" : 1,
+                  "properties" : {
+                    "ca" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "en" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "es" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ ],
+                  "type" : "object"
+                },
+                "key" : {
+                  "pattern" : "^(RULES|PRIVACY|IMAGE_CONSENT|WELCOME_GUIDE|[a-z0-9-]{2,40})$",
+                  "type" : "string"
+                },
+                "title" : {
+                  "additionalProperties" : false,
+                  "minProperties" : 1,
+                  "properties" : {
+                    "ca" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "en" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    },
+                    "es" : {
+                      "minLength" : 1,
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ ],
+                  "type" : "object"
+                }
+              },
+              "required" : [ "active", "body", "key", "title" ],
+              "type" : "object"
+            },
+            "type" : "array"
+          },
+          "parameters" : {
+            "additionalProperties" : true,
+            "type" : "object"
+          },
+          "paymentProviders" : {
+            "description" : "Provider switches and optional configuration; credentials use environment references only.",
+            "oneOf" : [ {
+              "items" : {
+                "enum" : [ "SEPA_XML", "STRIPE", "MANUAL" ],
+                "type" : "string"
+              },
+              "type" : "array",
+              "uniqueItems" : true
+            }, {
+              "additionalProperties" : false,
+              "properties" : {
+                "MANUAL" : {
+                  "additionalProperties" : false,
+                  "description" : "The cash switch and, optionally, its `instructions`: how to pay the initial amount, shown under the signup total (S04 §2 row 19; S12 `MANUAL {instructions: LocalizedText}`). They are the club's public text, never a credential, and must have the club's `defaultLocale` (S17 R-17-05). A definition without them keeps the stored ones.",
+                  "properties" : {
+                    "enabled" : {
+                      "type" : "boolean"
+                    },
+                    "instructions" : {
+                      "additionalProperties" : false,
+                      "minProperties" : 1,
+                      "properties" : {
+                        "ca" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "en" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        },
+                        "es" : {
+                          "minLength" : 1,
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "enabled" ],
+                  "type" : "object"
+                },
+                "SEPA_XML" : {
+                  "additionalProperties" : false,
+                  "description" : "Console configuration with environment references; omitted credentials preserve existing values.",
+                  "properties" : {
+                    "creditorId" : {
+                      "type" : "string"
+                    },
+                    "creditorName" : {
+                      "type" : "string"
+                    },
+                    "enabled" : {
+                      "type" : "boolean"
+                    },
+                    "iban" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "env" : {
+                          "pattern" : "^[A-Z][A-Z0-9_]*$",
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "env" ],
+                      "type" : "object"
+                    },
+                    "invoiceSeriesPattern" : {
+                      "type" : "string"
+                    },
+                    "suffix" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "enabled" ],
+                  "type" : "object"
+                },
+                "STRIPE" : {
+                  "additionalProperties" : false,
+                  "description" : "Console configuration with environment references; omitted credentials preserve existing values.",
+                  "properties" : {
+                    "enabled" : {
+                      "type" : "boolean"
+                    },
+                    "mode" : {
+                      "enum" : [ "test", "live" ],
+                      "type" : "string"
+                    },
+                    "publishableKey" : {
+                      "type" : "string"
+                    },
+                    "secretKey" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "env" : {
+                          "pattern" : "^[A-Z][A-Z0-9_]*$",
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "env" ],
+                      "type" : "object"
+                    },
+                    "webhookSecret" : {
+                      "additionalProperties" : false,
+                      "properties" : {
+                        "env" : {
+                          "pattern" : "^[A-Z][A-Z0-9_]*$",
+                          "type" : "string"
+                        }
+                      },
+                      "required" : [ "env" ],
+                      "type" : "object"
+                    }
+                  },
+                  "required" : [ "enabled" ],
+                  "type" : "object"
+                }
+              },
+              "required" : [ ],
+              "type" : "object"
+            } ]
+          },
+          "preset" : {
+            "enum" : [ "CANIC", "MINIM", "COMPLET" ],
+            "type" : "string"
+          },
+          "pwa" : {
+            "additionalProperties" : false,
+            "properties" : {
+              "icons" : {
+                "items" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "purpose" : {
+                      "type" : "string"
+                    },
+                    "sizes" : {
+                      "type" : "string"
+                    },
+                    "src" : {
+                      "type" : "string"
+                    },
+                    "type" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "sizes", "src", "type" ],
+                  "type" : "object"
+                },
+                "type" : "array"
+              },
+              "name" : {
+                "minLength" : 1,
+                "type" : "string"
+              },
+              "shortName" : {
+                "minLength" : 1,
+                "type" : "string"
+              }
+            },
+            "required" : [ "icons", "name", "shortName" ],
+            "type" : "object"
+          },
+          "theme" : {
+            "additionalProperties" : false,
+            "properties" : {
+              "colors" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "background" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "border" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "danger" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "info" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "onPrimary" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "primary" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "success" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "surface" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "surfaceAlt" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "text" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "textMuted" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  },
+                  "warning" : {
+                    "pattern" : "^#[0-9a-fA-F]{6}$",
+                    "type" : "string"
+                  }
+                },
+                "required" : [ "background", "primary", "surface", "text" ],
+                "type" : "object"
+              },
+              "fontFamily" : {
+                "minLength" : 1,
+                "type" : "string"
+              },
+              "logoDarkUrl" : {
+                "type" : "string"
+              },
+              "logoUrl" : {
+                "type" : "string"
+              },
+              "markUrl" : {
+                "type" : "string"
+              },
+              "mode" : {
+                "enum" : [ "dark", "light", "auto" ],
+                "type" : "string"
+              },
+              "radius" : {
+                "pattern" : "^\\d+(\\.\\d+)?px$",
+                "type" : "string"
+              },
+              "ringPalette" : {
+                "items" : {
+                  "pattern" : "^#[0-9a-fA-F]{6}$",
+                  "type" : "string"
+                },
+                "type" : "array"
+              }
+            },
+            "required" : [ "colors", "fontFamily", "mode", "radius", "ringPalette" ],
+            "type" : "object"
+          }
+        },
+        "required" : [ "apiVersion", "club", "theme" ],
+        "title" : "AgilityHub club definition v1",
         "type" : "object"
       },
       "ClubDomain" : {
@@ -7733,6 +8758,24 @@
           }
         },
         "required" : [ "activeDogWeeks", "levels", "others", "totalActiveDogs" ],
+        "type" : "object"
+      },
+      "DomainVerification" : {
+        "properties" : {
+          "checkedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "method" : {
+            "enum" : [ "CNAME", "TXT" ],
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "PENDING", "VERIFIED", "BROKEN" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "checkedAt", "method", "status" ],
         "type" : "object"
       },
       "EligibleDog" : {
@@ -14636,6 +15679,34 @@
         "required" : [ "redirectUrl" ],
         "type" : "object"
       },
+      "OnboardingChecklist" : {
+        "properties" : {
+          "branding" : {
+            "type" : "boolean"
+          },
+          "dns" : {
+            "type" : "boolean"
+          },
+          "faq" : {
+            "type" : "boolean"
+          },
+          "firstAdmin" : {
+            "type" : "boolean"
+          },
+          "legal" : {
+            "type" : "boolean"
+          },
+          "sepa" : {
+            "description" : "At least one configured payment provider when BILLING is enabled; legacy model key.",
+            "type" : "boolean"
+          },
+          "templates" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "branding", "dns", "faq", "firstAdmin", "legal", "sepa", "templates" ],
+        "type" : "object"
+      },
       "OnboardingField" : {
         "properties" : {
           "key" : {
@@ -16388,6 +17459,171 @@
         "required" : [ "email", "locale", "name" ],
         "type" : "object"
       },
+      "PlatformAdmin" : {
+        "properties" : {
+          "accountId" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "lastAccessAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "membershipStatus" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "accountId", "email", "membershipStatus", "name" ],
+        "type" : "object"
+      },
+      "PlatformAdminRequest" : {
+        "properties" : {
+          "email" : {
+            "format" : "email",
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "name" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "name" ],
+        "type" : "object"
+      },
+      "PlatformClub" : {
+        "properties" : {
+          "address" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClubAddress"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "contactEmail" : {
+            "type" : [ "string", "null" ]
+          },
+          "contactPhone" : {
+            "type" : [ "string", "null" ]
+          },
+          "countryProfile" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "currency" : {
+            "type" : "string"
+          },
+          "defaultLocale" : {
+            "type" : "string"
+          },
+          "displayCity" : {
+            "type" : [ "string", "null" ]
+          },
+          "domains" : {
+            "items" : {
+              "$ref" : "#/components/schemas/PlatformDomain"
+            },
+            "type" : "array"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "legal" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PlatformClubLegal"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "legalName" : {
+            "type" : [ "string", "null" ]
+          },
+          "locales" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "modules" : {
+            "items" : {
+              "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : [ "string", "null" ]
+          },
+          "onboardingChecklist" : {
+            "$ref" : "#/components/schemas/OnboardingChecklist"
+          },
+          "paymentProviders" : {
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/PlatformProviderSummary"
+            },
+            "type" : "object"
+          },
+          "slug" : {
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED" ],
+            "type" : "string"
+          },
+          "taxId" : {
+            "type" : [ "string", "null" ]
+          },
+          "template" : {
+            "type" : "boolean"
+          },
+          "theme" : {
+            "$ref" : "#/components/schemas/Theme"
+          },
+          "timeZone" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "usage" : {
+            "$ref" : "#/components/schemas/PlatformClubUsage"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "websiteUrl" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "countryProfile", "createdAt", "currency", "defaultLocale", "domains", "id", "locales", "modules", "name", "onboardingChecklist", "paymentProviders", "slug", "status", "template", "theme", "timeZone", "updatedAt", "usage", "version" ],
+        "type" : "object"
+      },
+      "PlatformClubCreated" : {
+        "properties" : {
+          "checklist" : {
+            "$ref" : "#/components/schemas/OnboardingChecklist"
+          },
+          "club" : {
+            "$ref" : "#/components/schemas/PlatformClub"
+          }
+        },
+        "required" : [ "checklist", "club" ],
+        "type" : "object"
+      },
       "PlatformClubJobs" : {
         "properties" : {
           "clubId" : {
@@ -16407,6 +17643,274 @@
           }
         },
         "required" : [ "clubId", "jobs", "name", "timeZone" ],
+        "type" : "object"
+      },
+      "PlatformClubLegal" : {
+        "properties" : {
+          "imageConsentText" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "legalTextsVersion" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "privacyPolicyUrl" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "imageConsentText", "legalTextsVersion", "privacyPolicyUrl" ],
+        "type" : "object"
+      },
+      "PlatformClubListItem" : {
+        "properties" : {
+          "countryProfile" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "lastAdminAccessAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "modules" : {
+            "items" : {
+              "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "onboardingChecklist" : {
+            "$ref" : "#/components/schemas/OnboardingChecklist"
+          },
+          "slug" : {
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED" ],
+            "type" : "string"
+          },
+          "template" : {
+            "type" : "boolean"
+          },
+          "timeZone" : {
+            "type" : "string"
+          },
+          "usage" : {
+            "$ref" : "#/components/schemas/PlatformClubUsage"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
+      "PlatformClubPage" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/PlatformClubListItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
+      "PlatformClubPatch" : {
+        "properties" : {
+          "address" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClubAddress"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "contactEmail" : {
+            "format" : "email",
+            "type" : [ "string", "null" ]
+          },
+          "contactPhone" : {
+            "type" : [ "string", "null" ]
+          },
+          "countryProfile" : {
+            "pattern" : "ES|GENERIC",
+            "type" : "string"
+          },
+          "currency" : {
+            "pattern" : "[A-Z]{3}",
+            "type" : "string"
+          },
+          "defaultLocale" : {
+            "pattern" : "ca|es|en",
+            "type" : "string"
+          },
+          "displayCity" : {
+            "type" : [ "string", "null" ]
+          },
+          "legal" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PlatformClubLegal"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "legalName" : {
+            "type" : [ "string", "null" ]
+          },
+          "locales" : {
+            "items" : {
+              "pattern" : "ca|es|en",
+              "type" : "string"
+            },
+            "maxItems" : 2147483647,
+            "minItems" : 1,
+            "type" : "array"
+          },
+          "name" : {
+            "maxLength" : 2147483647,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "notes" : {
+            "type" : [ "string", "null" ]
+          },
+          "taxId" : {
+            "type" : [ "string", "null" ]
+          },
+          "template" : {
+            "type" : "boolean"
+          },
+          "timeZone" : {
+            "maxLength" : 2147483647,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "websiteUrl" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "version" ],
+        "type" : "object"
+      },
+      "PlatformClubStatusRequest" : {
+        "properties" : {
+          "reason" : {
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "ONBOARDING", "ACTIVE", "SUSPENDED" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "status" ],
+        "type" : "object"
+      },
+      "PlatformClubTemplate" : {
+        "properties" : {
+          "currency" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "locales" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "currency", "id", "locales", "name" ],
+        "type" : "object"
+      },
+      "PlatformClubUsage" : {
+        "properties" : {
+          "membersActive" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "month" : {
+            "type" : "string"
+          },
+          "smsSentMonth" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "storageBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "membersActive", "month", "smsSentMonth", "storageBytes" ],
+        "type" : "object"
+      },
+      "PlatformDomain" : {
+        "properties" : {
+          "app" : {
+            "enum" : [ "clubs", "clubs-admin" ],
+            "type" : "string"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "primary" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "enum" : [ "PENDING", "VERIFIED", "BROKEN" ],
+            "type" : "string"
+          },
+          "verifiedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "app", "host", "primary", "status" ],
+        "type" : "object"
+      },
+      "PlatformDomainRequest" : {
+        "properties" : {
+          "app" : {
+            "enum" : [ "clubs", "clubs-admin" ],
+            "type" : "string"
+          },
+          "host" : {
+            "minLength" : 1,
+            "pattern" : "[A-Za-z0-9.-]+",
+            "type" : "string"
+          }
+        },
+        "required" : [ "app", "host" ],
         "type" : "object"
       },
       "PlatformJobCell" : {
@@ -16444,6 +17948,121 @@
         "required" : [ "clubs" ],
         "type" : "object"
       },
+      "PlatformModules" : {
+        "properties" : {
+          "modules" : {
+            "items" : {
+              "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "modules", "version" ],
+        "type" : "object"
+      },
+      "PlatformModulesRequest" : {
+        "properties" : {
+          "modules" : {
+            "items" : {
+              "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          },
+          "preset" : {
+            "enum" : [ "COMPLET", "MINIM", "CANIC" ],
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "version" ],
+        "type" : "object"
+      },
+      "PlatformProviderRequest" : {
+        "description" : "Provider-specific configuration. STRIPE requires publishableKey and mode; SEPA_XML requires creditorName, creditorId, iban and suffix; MANUAL requires instructions. Secrets are write-only. Omitted Stripe secrets preserve stored values.",
+        "properties" : {
+          "creditorId" : {
+            "type" : "string"
+          },
+          "creditorName" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "iban" : {
+            "type" : "string",
+            "writeOnly" : true
+          },
+          "instructions" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "mode" : {
+            "enum" : [ "test", "live" ],
+            "type" : "string"
+          },
+          "publishableKey" : {
+            "type" : "string"
+          },
+          "secretKey" : {
+            "type" : "string",
+            "writeOnly" : true
+          },
+          "suffix" : {
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "webhookSecret" : {
+            "type" : "string",
+            "writeOnly" : true
+          }
+        },
+        "required" : [ "version" ],
+        "type" : "object"
+      },
+      "PlatformProviderSummary" : {
+        "properties" : {
+          "configured" : {
+            "type" : "boolean"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "last4" : {
+            "description" : "Last four characters of the publishable key only.",
+            "type" : [ "string", "null" ]
+          },
+          "lastTestAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "masked" : {
+            "type" : [ "string", "null" ]
+          },
+          "mode" : {
+            "enum" : [ "test", "live", null ],
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "configured", "enabled" ],
+        "type" : "object"
+      },
       "PlatformRoles" : {
         "properties" : {
           "platformRoles" : {
@@ -16456,6 +18075,47 @@
           }
         },
         "required" : [ "platformRoles" ],
+        "type" : "object"
+      },
+      "PlatformThemeRequest" : {
+        "properties" : {
+          "colors" : {
+            "$ref" : "#/components/schemas/Colors"
+          },
+          "fontFamily" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "logoDarkFileKey" : {
+            "type" : "string"
+          },
+          "logoFileKey" : {
+            "description" : "Uploaded object key; never a local path.",
+            "type" : "string"
+          },
+          "markFileKey" : {
+            "type" : "string"
+          },
+          "mode" : {
+            "enum" : [ "auto", "light", "dark" ],
+            "type" : "string"
+          },
+          "radius" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "ringPalette" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "colors", "fontFamily", "mode", "radius", "ringPalette", "version" ],
         "type" : "object"
       },
       "PointM" : {
@@ -16687,6 +18347,22 @@
         "required" : [ "access_token" ],
         "type" : "object"
       },
+      "ProviderConnectionTest" : {
+        "properties" : {
+          "accountName" : {
+            "type" : "string"
+          },
+          "mode" : {
+            "enum" : [ "test", "live" ],
+            "type" : "string"
+          },
+          "ok" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "accountName", "mode", "ok" ],
+        "type" : "object"
+      },
       "ProviderTotals" : {
         "description" : "A provider's share of a month: remittanceId only for SEPA_XML, charged/failed only for STRIPE",
         "properties" : {
@@ -16881,6 +18557,15 @@
           }
         },
         "required" : [ "channel", "from", "open", "to" ],
+        "type" : "object"
+      },
+      "PublicApiKey" : {
+        "properties" : {
+          "apiKey" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "apiKey" ],
         "type" : "object"
       },
       "PublicClubPage" : {
@@ -20724,6 +22409,29 @@
           }
         },
         "required" : [ "submittedAt" ],
+        "type" : "object"
+      },
+      "SupportAccess" : {
+        "properties" : {
+          "expiresAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "token" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "expiresAt", "token" ],
+        "type" : "object"
+      },
+      "SupportAccessRequest" : {
+        "properties" : {
+          "reason" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "reason" ],
         "type" : "object"
       },
       "SwapOption" : {
@@ -70461,6 +72169,537 @@
         "x-sortable" : [ "at" ]
       }
     },
+    "/api/v1/platform/club-templates" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "listClubTemplates",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PlatformClubTemplate"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "List<PlatformClubTemplate>"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "listClubTemplates",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Default sort name,asc; usage contains aggregates only.",
+        "operationId" : "listPlatformClubs",
+        "parameters" : [ {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClubPage"
+                }
+              }
+            },
+            "description" : "PlatformClubPage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "listPlatformClubs",
+        "tags" : [ "platform" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "name"
+        }, {
+          "defaultVisible" : true,
+          "key" : "slug"
+        }, {
+          "defaultVisible" : true,
+          "key" : "status"
+        }, {
+          "defaultVisible" : true,
+          "key" : "countryProfile"
+        }, {
+          "defaultVisible" : true,
+          "key" : "timeZone"
+        }, {
+          "defaultVisible" : true,
+          "key" : "modules"
+        }, {
+          "defaultVisible" : true,
+          "key" : "lastAdminAccessAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "usage"
+        }, {
+          "defaultVisible" : true,
+          "key" : "onboardingChecklist"
+        }, {
+          "defaultVisible" : false,
+          "key" : "template"
+        } ],
+        "x-exportable" : false,
+        "x-fields" : [ "id", "name", "slug", "status", "countryProfile", "timeZone", "modules", "template", "lastAdminAccessAt", "usage", "onboardingChecklist" ],
+        "x-filter-operators" : { },
+        "x-filterable" : [ "status", "countryProfile", "module", "template" ],
+        "x-sortable" : [ "name", "slug" ]
+      },
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. ClubDefinition uses the published WP-A layout; credentials are env references only.",
+        "operationId" : "createPlatformClub",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClubDefinition"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClubCreated"
+                }
+              }
+            },
+            "description" : "PlatformClubCreated"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "SLUG_TAKEN, HOST_ALREADY_USED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DEPENDENCY, HOST_RESERVED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "createPlatformClub",
+        "tags" : [ "platform" ]
+      }
+    },
     "/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger" : {
       "post" : {
         "description" : "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED.",
@@ -70613,6 +72852,3300 @@
           }
         },
         "summary" : "platformTriggerJob",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. No member data, credentials or key hashes.",
+        "operationId" : "getPlatformClub",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClub"
+                }
+              }
+            },
+            "description" : "PlatformClub"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "getPlatformClub",
+        "tags" : [ "platform" ]
+      },
+      "patch" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "patchPlatformClub",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformClubPatch"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClub"
+                }
+              }
+            },
+            "description" : "PlatformClub"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TIMEZONE_CHANGE_BLOCKED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "patchPlatformClub",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/admins" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "listPlatformAdmins",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PlatformAdmin"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "List<PlatformAdmin>"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "listPlatformAdmins",
+        "tags" : [ "platform" ]
+      },
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "invitePlatformAdmin",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformAdminRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformAdmin"
+                }
+              }
+            },
+            "description" : "PlatformAdmin"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "LAST_ADMIN, MEMBERSHIP_EXISTS"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "invitePlatformAdmin",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/admins/{accountId}" : {
+      "delete" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "deletePlatformAdmin",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "accountId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "LAST_ADMIN"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "deletePlatformAdmin",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/catalog-clone" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Empty destination parts only; warnings describe locale fallback.",
+        "operationId" : "clonePlatformCatalog",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CatalogCloneRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CatalogCloneResult"
+                }
+              }
+            },
+            "description" : "CatalogCloneResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND, TEMPLATE_CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CATALOG_NOT_EMPTY"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CURRENCY_MISMATCH"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "clonePlatformCatalog",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/checklist" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Seven model fields; sepa means at least one configured provider when BILLING is enabled.",
+        "operationId" : "getPlatformChecklist",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingChecklist"
+                }
+              }
+            },
+            "description" : "OnboardingChecklist"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "getPlatformChecklist",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/definition" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "exportPlatformClub",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/yaml" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "String"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "exportPlatformClub",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/domains" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "addPlatformDomain",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformDomainRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformDomain"
+                }
+              }
+            },
+            "description" : "PlatformDomain"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "HOST_ALREADY_USED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "HOST_RESERVED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "addPlatformDomain",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/domains/{host}" : {
+      "delete" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "deletePlatformDomain",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "host",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND, NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "deletePlatformDomain",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/domains/{host}/verification" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "verifyPlatformDomain",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "host",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DomainVerification"
+                }
+              }
+            },
+            "description" : "DomainVerification"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND, NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "HOST_NOT_VERIFIED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "verifyPlatformDomain",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/modules" : {
+      "put" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "updatePlatformModules",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformModulesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformModules"
+                }
+              }
+            },
+            "description" : "PlatformModules"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DEPENDENCY"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updatePlatformModules",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/parameters/{key}" : {
+      "put" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "updatePlatformParameter",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "key",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ParameterUpdate"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Parameter"
+                }
+              }
+            },
+            "description" : "SettingsContracts.Parameter"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, UNKNOWN_PARAMETER, PARAMETER_INVALID"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updatePlatformParameter",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/payment-providers/stripe/test" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "testPlatformStripe",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProviderConnectionTest"
+                }
+              }
+            },
+            "description" : "ProviderConnectionTest"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STRIPE_CONNECTION_FAILED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "testPlatformStripe",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/payment-providers/{provider}" : {
+      "delete" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Version is the current club version; returns the unconfigured provider summary.",
+        "operationId" : "deletePlatformProvider",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "provider",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "SEPA_XML", "STRIPE", "MANUAL" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "version",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformProviderSummary"
+                }
+              }
+            },
+            "description" : "PlatformProviderSummary"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PROVIDER_IN_USE"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "deletePlatformProvider",
+        "tags" : [ "platform" ]
+      },
+      "put" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted.",
+        "operationId" : "updatePlatformProvider",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "provider",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "SEPA_XML", "STRIPE", "MANUAL" ],
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformProviderRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformProviderSummary"
+                }
+              }
+            },
+            "description" : "PlatformProviderSummary"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PROVIDER_CONFIG_INVALID"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updatePlatformProvider",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/public-api-key" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. One-time key response; previous key overlaps for 24 hours.",
+        "operationId" : "rotatePublicApiKey",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicApiKey"
+                }
+              }
+            },
+            "description" : "PublicApiKey"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "rotatePublicApiKey",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/status" : {
+      "put" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "updatePlatformStatus",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformClubStatusRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClub"
+                }
+              }
+            },
+            "description" : "PlatformClub"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_STATE"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updatePlatformStatus",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/support-access" : {
+      "post" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. SUPPORT grant, ADMIN role and PLATFORM_SUPPORT origin; no personal exports or full IBAN.",
+        "operationId" : "startSupportAccess",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SupportAccessRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SupportAccess"
+                }
+              }
+            },
+            "description" : "SupportAccess"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "startSupportAccess",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/theme" : {
+      "put" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Logos use uploaded file keys; the result contains display URLs.",
+        "operationId" : "updatePlatformTheme",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformThemeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Theme"
+                }
+              }
+            },
+            "description" : "Theme"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "THEME_CONTRAST"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updatePlatformTheme",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/platform/clubs/{id}/usage" : {
+      "get" : {
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "operationId" : "getPlatformUsage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "month",
+          "required" : false,
+          "schema" : {
+            "pattern" : "[0-9]{4}-(0[1-9]|1[0-2])",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformClubUsage"
+                }
+              }
+            },
+            "description" : "PlatformClubUsage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "getPlatformUsage",
         "tags" : [ "platform" ]
       }
     },
@@ -86466,6 +91999,119 @@
         "security" : [ ],
         "summary" : "End the OpenID provider session",
         "tags" : [ "identity" ]
+      }
+    },
+    "/internal/domains/allowed" : {
+      "get" : {
+        "description" : "S17 R-17-03. Caddy internal-network endpoint, no bearer or tenant. Public ingress blocks /internal/*. The request address must be loopback or RFC1918 under the existing trusted-proxy configuration; untrusted forwarded headers grant no access. Contract only: never authorizes a certificate yet.",
+        "operationId" : "allowed",
+        "parameters" : [ {
+          "description" : "DNS host",
+          "in" : "query",
+          "name" : "host",
+          "required" : true,
+          "schema" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Domain allowed"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_IMPLEMENTED"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "isDomainAllowed",
+        "tags" : [ "platform" ]
       }
     },
     "/oauth2/authorize" : {
