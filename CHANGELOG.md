@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- E11-T06 verification checkpoint: records the inherited PIT process access blocker and marks earlier mutation inputs as stale after payment changes; no new security-gate success is claimed.
+- E11-T06 verification checkpoint: records the inherited PIT process access blocker and marks earlier mutation inputs as stale after payment changes; no new security-gate success is claimed. Session 5 confirms that the inherited writer remains alive and follows the organizer's stop condition; fresh verification awaits host cleanup.
 
 ### Fixed
 

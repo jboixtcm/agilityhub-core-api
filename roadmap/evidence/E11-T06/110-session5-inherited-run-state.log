@@ -1,0 +1,17 @@
+2026-10-11T10:47:30.262258+00:00
+Host lock pid: 64729
+Host lock what: 11:13 agilityhub-core-api-c: ./mvnw -q -Pmutation -DtargetClasses=com.agilityhub.core.payments.* -DtargetTests=com.agilityhub.core.*Test,com.agilityhub.core.payments.*,com.agilityhub.core.clubs.bookings.api.BookingsIT,com.agilityhub.core.clubs.bookings.api.LifecycleConcurrencyIT,com.agilityhub.core.clubs.bookings.api.LifecycleIT,com.agilityhub.core.clubs.bookings.api.SingleClassCheckoutIT,com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT,com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT,com.agilityhub.core.clubs.census.api.SignupGateFixesIT,com.agilityhub.core.clubs.census.api.SignupIT,com.agilityhub.core.clubs.census.api.SignupMinorFixesIT,com.agilityhub.core.clubs.dashboard.api.DashboardIT,com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT,com.agilityhub.core.configuration.E3ContractIT,com.agilityhub.core.configuration.E3ResponseContractTest,com.agilityhub.core.configuration.E5BackOfficeContractTest,com.agilityhub.core.configuration.E8ContractIT,com.agilityhub.core.configuration.E8PersistenceIT,com.agilityhub.core.configuration.E8ResponseContractTest,com.agilityhub.core.configuration.ListFieldsContractIT,com.agilityhub.core.configuration.S04ErrorContractTest,com.agilityhub.core.migration.PlayoffAdapterTest,com.agilityhub.core.migration.PlayoffMigrationIT,com.agilityhub.core.shared.api.AnonymousRateLimitsTest -DmutationUnitSize=50 -DreportsDirectory=target/pit-reports-session3-payments -DhistoryInputFile=.local/pitest/session3-unit.bin -DhistoryOutputFile=.local/pitest/session3-payments.bin test-compile org.pitest:pitest-maven:mutationCoverage
+Command: lsof -n -a -p 64729,65739 -d cwd,1,2
+COMMAND   PID   USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME
+bash    64729 jordib  cwd    DIR   1,18     1152 47405452 /Users/jordib/dev/agilityhub/agilityhub-core-api-c
+bash    64729 jordib    1w   REG   1,18    15460 53436871 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T06/100-pit-payments-integration.log
+bash    64729 jordib    2w   REG   1,18    15460 53436871 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T06/100-pit-payments-integration.log
+java    65739 jordib  cwd    DIR   1,18     1152 47405452 /Users/jordib/dev/agilityhub/agilityhub-core-api-c
+java    65739 jordib    1w   REG   1,18    15460 53436871 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T06/100-pit-payments-integration.log
+java    65739 jordib    2w   REG   1,18    15460 53436871 /Users/jordib/dev/agilityhub/agilityhub-core-api-c/roadmap/evidence/E11-T06/100-pit-payments-integration.log
+lsof exit: 0
+Current mutation report: target/pit-reports-session3-payments/mutations.xml
+Report bytes: 2547712
+Incomplete mutation report: no element found: line 2737, column 745
+Checkout evidence 100-pit-payments-integration.log: inode=53675139, bytes=15396
+Checkout evidence 100-pit-payments-integration.exit: absent

@@ -32,5 +32,13 @@
     "evidence": "105 denied stop, 106 nine changed PIT inputs, 107 live writer/incomplete XML/no exit and stdout inode mismatch; 108 whitespace, 109 scope.",
     "remaining": "Host must stop the inherited process tree and confirm no writer/lock. Prior unit/payment reports are stale: start fresh against current sources, then finish all required verification and report.",
     "changes": "Documentation and read-only evidence only; no product/test/build changes or git writes."
+  },
+  "session5": {
+    "date": "2026-10-11",
+    "status": "blocked",
+    "blocker": "Fresh inspection still finds inherited shell 64729 and Maven/PIT 65739 writing this checkout; host lock remains held. Followed latest organizer note: stop if still alive.",
+    "evidence": "110 fresh process/lock/incomplete-report inspection; 111 whitespace; 112 initial scope; 113 self-reference rejection after embedding its command; 114 final anchored scope check.",
+    "remaining": "Complete host process cleanup, then resume fresh current-source PIT and the remaining session-3 verification; enforce a one-hour deadline for every PIT run.",
+    "changes": "Documentation and read-only evidence only; no product/test/build changes, process control or git writes."
   }
 }
