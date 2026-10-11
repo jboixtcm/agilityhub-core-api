@@ -1,0 +1,20 @@
+batch1: final report leaves 6 not killed, all with a reason row
+batch1: 23 not killed, 23 triage rows
+batch10: 119 not killed, 119 triage rows
+batch11: 133 not killed, 133 triage rows
+batch12: 3 not killed, 3 triage rows
+batch2: final report leaves 1 not killed, all with a reason row
+batch2: 71 not killed, 71 triage rows
+batch3: final report leaves 1 not killed, all with a reason row
+batch3: 121 not killed, 121 triage rows
+batch4: final report leaves 1 not killed, all with a reason row
+batch4: 109 not killed, 109 triage rows
+batch5: final report leaves 4 not killed, all with a reason row
+batch5: 67 not killed, 67 triage rows
+batch6: final report leaves 0 not killed, all with a reason row
+batch6: 55 not killed, 55 triage rows
+batch7: final report leaves 0 not killed, all with a reason row
+batch7: 33 not killed, 33 triage rows
+batch8: 63 not killed, 63 triage rows
+batch9: 68 not killed, 68 triage rows
+decisions {'test': 791, 'reason': 73, 'rerun': 1}

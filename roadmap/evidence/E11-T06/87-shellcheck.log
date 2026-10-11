@@ -1,0 +1,2 @@
+Command could not start: FileNotFoundError: shellcheck is not installed on PATH.
+Runner exit 1; ShellCheck did not execute.

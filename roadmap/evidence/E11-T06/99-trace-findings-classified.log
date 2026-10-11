@@ -1,0 +1,9 @@
+TRACE_UUID roadmap/evidence/E11-T06/10-payment-inventory.log:53; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/64-security-inventory.log:53; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:4969; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:5006; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:5010; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:5088; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:8220; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/58-clean-verify-all-results.log:10746; Springdoc correlation field, no credential
+PASS 8 findings classified; no scanner rules or historical logs changed.

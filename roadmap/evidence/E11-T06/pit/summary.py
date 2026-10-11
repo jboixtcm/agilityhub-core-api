@@ -22,13 +22,13 @@ def row(name, counts, reused):
 
 
 def from_history(mutations):
-    """Verdicts PIT took from its history file: a covered mutant reported without running any test."""
-    return sum(1 for m in mutations if m.get('status') != 'NO_COVERAGE' and m.get('numberOfTestsRun') == '0')
+    """Only zero-test KILLED rows imply reused kills; worker errors can also have zero tests."""
+    return sum(1 for m in mutations if m.get('status') == 'KILLED' and m.get('numberOfTestsRun') == '0')
 
 
 def main():
     paths = [Path(arg) for arg in sys.argv[1:]]
-    print('| Report | Generated | ' + ' | '.join(STATUSES) + ' | From history | Killed / generated |')
+    print('| Report | Generated | ' + ' | '.join(STATUSES) + ' | Reused kills | Killed / generated |')
     print('|---|---:|' + '---:|' * len(STATUSES) + '---:|---:|')
     for path in paths:
         mutations = list(ET.parse(path).getroot())

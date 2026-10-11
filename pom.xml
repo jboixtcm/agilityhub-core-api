@@ -341,8 +341,7 @@
                             <!-- Spring/Mongo fixtures need startup headroom; a timeout is not an assertion kill. -->
                             <timeoutFactor>2</timeoutFactor>
                             <timeoutConstant>30000</timeoutConstant>
-                            <historyInputFile>${project.basedir}/.local/pitest/history.bin</historyInputFile>
-                            <historyOutputFile>${project.basedir}/.local/pitest/history.bin</historyOutputFile>
+                            <!-- The gate is fresh by default. A local exploratory run may opt into history via CLI. -->
                             <outputFormats><param>XML</param><param>HTML</param></outputFormats>
                             <excludedTestClasses><param>com.agilityhub.core.arch.*</param></excludedTestClasses>
                             <timestampedReports>false</timestampedReports>

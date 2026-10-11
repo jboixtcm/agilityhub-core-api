@@ -2,6 +2,23 @@
 
 Reviewer guide to this directory. Scripts are stdlib Python, read the XML reports only, and never run Maven.
 
+## Resume on 11-10-2026
+
+The batches below are **historical evidence**, not the final current gate. The last identity run (`83`) has no recorded
+exit and left incomplete XML after a worker memory error. Subsequent E8 payment changes invalidate those classes' earlier
+results. The hand-written-source partition also omitted `payments.sepa.generated` (59 schema-generated source files).
+
+Session 3 therefore starts over the POM's three complete package selections, using unit tests first. Attempt `90` exposed
+another gap: the explicit POM history paths overrode its CLI flags and reused 233 outcomes. It was interrupted, and those
+paths were removed (`95` fails before, `96` passes after). Clean attempt `97` starts with no history input. Generated
+classes and uncovered mutants stay in the denominator. The current input snapshot is `session3-clean-source-manifest.json`
+(the earlier snapshot remains historical). Public digests are stored as eight words, losslessly, so they cannot resemble
+access keys beside token-related source filenames. `freshness.py` checks the inputs and can compare PIT's bytecode with the
+later clean verification build. Current results and integration supplements will be recorded separately. Until those
+finish, no complete fresh mutation score is claimed.
+
+## Historical run notes (08–09-10)
+
 ## Configuration and batches
 - `pom.xml` profile `mutation`: `targetClasses` = the three packages, no class exclusions (`bin/mutation-gate-test.py`
   checks this); `threads 4`, `-Xmx2g -XX:ActiveProcessorCount=2`, `timeoutFactor 2` + `timeoutConstant 30000`,
@@ -80,3 +97,5 @@ python3 roadmap/evidence/E11-T06/pit/triage-check.py
 python3 bin/mutation-gate-test.py
 ```
 FINAL-REPORTS: (filled at hand-off)
+
+Current integration supplements select the package tests and its relevant cross-module tests. The clean full-unit pass supplies all witnessed unit kills; the merge preserves those even when a supplement does not select their tests. Attempt 100 additionally selected all unit tests; later supplements avoid that repeated coverage cost. Every supplement still mutates the complete package and must match every mutation identity.

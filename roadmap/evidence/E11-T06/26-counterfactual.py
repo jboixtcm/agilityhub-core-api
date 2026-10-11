@@ -64,11 +64,15 @@ DEPLOY = {
     # Step 6: pre-deploy verification with the deployment environment (writer credentials).
     'docs/DEPLOY.md': [('   DEPLOY_ENV_FILE=/etc/agilityhub/recovery.env bin/restore-mongo --verify\n', '   bin/restore-mongo --verify\n')],
 }
-POM = {'pom.xml': [('                                <param>com.agilityhub.core.payments.*</param>\n', '')],
+POM = {'pom.xml': [('                                <param>com.agilityhub.core.payments.*</param>\n', ''),
+                   ('                            <!-- The gate is fresh by default. A local exploratory run may opt into history via CLI. -->',
+                    '                            <historyInputFile>${project.basedir}/.local/pitest/history.bin</historyInputFile>')],
        # Step 8 (review pass): the mutation identity read `indexes`/`blocks` as text, so two mutants of one line collided.
        'bin/mutation-gate': [("""tuple(mutation.findtext(key, '') for key in IDENTITY) + tuple(
                 tuple(node.text for node in mutation.iter(tag)) for tag in ('index', 'block'))""",
-                              """tuple(mutation.findtext(key, '') for key in IDENTITY + ('indexes', 'blocks'))""")]}
+                              """tuple(mutation.findtext(key, '') for key in IDENTITY + ('indexes', 'blocks'))""")],
+       'roadmap/evidence/E11-T06/pit/merge-current.py': [
+           ("if int(mutation.get('numberOfTestsRun', '0')) == 0:", 'if False:')]}
 
 
 def digest(path):
@@ -159,6 +163,13 @@ def main():
                                             result.stderr) is not None
         failures_seen['step 8 gate identity'] = re.search(
             r'test_E11_T06_two_mutants_of_one_line_differ_by_their_index \(.*\) \.\.\. (FAIL|ERROR)', result.stderr) is not None
+        failures_seen['step 8 forced history'] = re.search(
+            r'test_E11_T06_gate_never_forces_a_previous_runs_history \(.*\) \.\.\. FAIL', result.stderr) is not None
+        result = run('Current merge regression with its executed-test guard removed',
+                     ['python3', 'roadmap/evidence/E11-T06/pit/test_current_merge.py'])
+        print(result.stderr[-2500:])
+        failures_seen['step 8 witnessed kills'] = re.search(
+            r'test_E11_T06_zero_test_cached_result_cannot_create_a_new_kill \(.*\) \.\.\. FAIL', result.stderr) is not None
     finally:
         restore(saved)
     after = {path: digest(path) for path in touched}

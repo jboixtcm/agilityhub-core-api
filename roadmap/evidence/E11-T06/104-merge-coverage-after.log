@@ -1,0 +1,9 @@
+test_E11_T06_integration_coverage_updates_an_uncovered_survivors_triage (__main__.CurrentMergeTest.test_E11_T06_integration_coverage_updates_an_uncovered_survivors_triage) ... ok
+test_E11_T06_missing_generated_mutant_or_changed_code_refuses_the_merge (__main__.CurrentMergeTest.test_E11_T06_missing_generated_mutant_or_changed_code_refuses_the_merge) ... ok
+test_E11_T06_new_executed_kill_preserves_the_full_denominator (__main__.CurrentMergeTest.test_E11_T06_new_executed_kill_preserves_the_full_denominator) ... ok
+test_E11_T06_zero_test_cached_result_cannot_create_a_new_kill (__main__.CurrentMergeTest.test_E11_T06_zero_test_cached_result_cannot_create_a_new_kill) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.221s
+
+OK

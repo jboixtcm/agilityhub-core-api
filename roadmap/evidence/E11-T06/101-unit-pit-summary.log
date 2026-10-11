@@ -1,0 +1,6 @@
+| Report | Generated | KILLED | SURVIVED | NO_COVERAGE | TIMED_OUT | RUN_ERROR | MEMORY_ERROR | NON_VIABLE | Reused kills | Killed / generated |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| session3-unit-mutations.xml | 6466 | 3911 | 677 | 1877 | 0 | 0 | 1 | 0 | 0 | 60.49 % |
+| **bookings** (merged) | 2109 | 1284 | 247 | 578 | 0 | 0 | 0 | 0 | 0 | 60.88 % |
+| **identity** (merged) | 1314 | 831 | 114 | 368 | 0 | 0 | 1 | 0 | 0 | 63.24 % |
+| **payments** (merged) | 3043 | 1796 | 316 | 931 | 0 | 0 | 0 | 0 | 0 | 59.02 % |

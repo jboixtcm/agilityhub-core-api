@@ -1,0 +1,20 @@
+test_E11_T06_batches_merge_and_a_mutation_reported_twice_is_refused (__main__.MutationGateTest.test_E11_T06_batches_merge_and_a_mutation_reported_twice_is_refused) ... ok
+test_E11_T06_gate_never_forces_a_previous_runs_history (__main__.MutationGateTest.test_E11_T06_gate_never_forces_a_previous_runs_history) ... FAIL
+test_E11_T06_missing_package_never_passes (__main__.MutationGateTest.test_E11_T06_missing_package_never_passes) ... ok
+test_E11_T06_pit_selects_every_critical_package_without_class_exclusions (__main__.MutationGateTest.test_E11_T06_pit_selects_every_critical_package_without_class_exclusions) ... ok
+test_E11_T06_two_mutants_of_one_line_differ_by_their_index (__main__.MutationGateTest.test_E11_T06_two_mutants_of_one_line_differ_by_their_index) ... ok
+test_E11_T06_uncovered_mutants_stay_in_the_denominator (__main__.MutationGateTest.test_E11_T06_uncovered_mutants_stay_in_the_denominator) ... ok
+
+======================================================================
+FAIL: test_E11_T06_gate_never_forces_a_previous_runs_history (__main__.MutationGateTest.test_E11_T06_gate_never_forces_a_previous_runs_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/bin/mutation-gate-test.py", line 83, in test_E11_T06_gate_never_forces_a_previous_runs_history
+    self.assertIsNone(config.find('m:historyInputFile', ns))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: <Element '{http://maven.apache.org/POM/4.0.0}historyInputFile' at 0x10a02bab0> is not None
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.008s
+
+FAILED (failures=1)

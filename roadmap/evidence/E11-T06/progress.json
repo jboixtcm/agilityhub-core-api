@@ -12,5 +12,16 @@
     "steps_1_to_7": "implemented and verified (counterfactual, rehearsal 63, inventory 64, image scan 62)",
     "step_8": "payments, clubs.bookings and identity PIT in 14 bounded batches (pit/batches.py); survivor triage in pit/triage-batch*.md",
     "known_outside_issue": "EventCatalogContractTest fails on main since E9-T01's 31424351 (CourseEvent sample without its branch)"
+  },
+  "session3": {
+    "date": "2026-10-11",
+    "baseline": "405d21be",
+    "status": "in_progress",
+    "step_8": "97 completed clean full-package unit PIT: 6466 generated, 3911 witnessed assertion kills, 677 survived, 1877 uncovered, 1 MEMORY_ERROR (LearnCsv CRLF index decrement loops indefinitely). No reused kills. Unit-only scores are below the gates. 100 payments integration supplement acquired the host lock at 11:13 and is running initial coverage. Next: bookings and identity supplements; exact-identity merge; current triage.",
+    "completed": "Deployment static 85 (15 tests), mutation policy 96 (6 tests), ShellCheck 88, historical triage consistency 89, backup unit 91 (10 tests). Strict evidence scan 98 has 8 Springdoc UUID false positives validated by 99, no scanner exceptions. Public input digests are split into words to avoid false key detection.",
+    "remaining": "Finish fresh mutation scoring and current survivor triage; counterfactual, inventory, clean verify and full test summary; image audit/rehearsal; final report and scope review.",
+    "running_session": "95587; evidence 100-pit-payments-integration; current source manifest pit/session3-clean-source-manifest.json; compiled input manifest pit/session3-unit-bytecode.json",
+    "artifacts": "pit/session3-unit-mutations.xml (complete fresh full scope); 101-unit-pit-summary; 102-current-merge-tests (3 passing guard tests). POM forced history removed (95 red / 96 green). 26-counterfactual.py now also reinstates forced history and permits cached-only promotions, then tests and restores them; run it after all PIT work finishes.",
+    "host_lock": "97 waited the complete 25-minute limit and ran WITHOUT the lock via heavy.sh fallback; other api clean verify has held the lock since 10:35. No resource contention inferred: the sole memory error is a deliberate infinite-loop CSV mutant, retained as not proved."
   }
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/10-payment-inventory.log",
+    "StartLine": 53,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/64-security-inventory.log",
+    "StartLine": 53,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 4969,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 5006,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 5010,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 5088,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 8220,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  },
+  {
+    "RuleID": "generic-api-key",
+    "File": "roadmap/evidence/E11-T06/58-clean-verify-all-results.log",
+    "StartLine": 10746,
+    "Match": "o.springdoc.api.AbstractOpenApiResource traceId=REDACTED "
+  }
+]

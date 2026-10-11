@@ -73,6 +73,16 @@ class MutationGateTest(unittest.TestCase):
         self.assertEqual({prefix + '*' for prefix in gate.PACKAGES.values()}, targets)
         self.assertIsNone(config.find('m:excludedClasses', ns))
 
+    def test_E11_T06_gate_never_forces_a_previous_runs_history(self):
+        ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
+        pom = ET.parse(ROOT / 'pom.xml')
+        config = next(profile for profile in pom.findall('m:profiles/m:profile', ns)
+                      if profile.findtext('m:id', namespaces=ns) == 'mutation').find('m:build/m:plugins/m:plugin/m:configuration', ns)
+        # Explicit paths in plugin configuration override the CLI's historyInputFile.
+        # The release gate must execute current tests; history is an optional caller choice.
+        self.assertIsNone(config.find('m:historyInputFile', ns))
+        self.assertIsNone(config.find('m:historyOutputFile', ns))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
