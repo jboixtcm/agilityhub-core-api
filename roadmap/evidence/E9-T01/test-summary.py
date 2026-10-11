@@ -14,7 +14,7 @@ wanted = {
     "OpenApiRequiredContractTest", "OpenApiNullableEnumContractTest", "ListFieldsContractIT",
     "SecurityInventoryIT", "CourseSchemasTest", "EventCatalogContractTest", "ErrorCatalogContractTest",
     "AuditContractTest", "E2ContractIT", "ParameterCatalogContractTest", "ParameterValidatorTest",
-    "ClubDefinitionsIT", "NotificationCatalogContractTest", "OpenApiSnapshotTest",
+    "ClubDefinitionsIT", "NotificationCatalogContractTest", "OpenApiSnapshotTest", "E5BackOfficeContractTest",
 }
 seen = set()
 for folder in ("surefire-reports", "failsafe-reports"):

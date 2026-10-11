@@ -1,0 +1,5 @@
+{
+  "command": "gh run view 38139387780 --json conclusion,status,url,jobs",
+  "exit_code": 0,
+  "seconds": 1.36
+}

@@ -1,0 +1,5 @@
+{
+  "command": "gh run list --branch main --limit 3 --json headSha,status,conclusion,url",
+  "exit_code": 0,
+  "seconds": 1.03
+}
