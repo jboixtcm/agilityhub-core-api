@@ -45,7 +45,7 @@ public class ChallengesController {
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
     @Operation(summary = "submitChallengeAttempt", description = "Roles: MEMBER. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
-            responses = @ApiResponse(responseCode = "200", description = "S16 ChallengeAttempt", useReturnTypeSchema = true))
+            responses = @ApiResponse(responseCode = "201", description = "S16 ChallengeAttempt", useReturnTypeSchema = true))
     public ChallengeAttempt submitChallengeAttempt(@PathVariable String id,
             @Valid @RequestBody ChallengeAttemptRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {

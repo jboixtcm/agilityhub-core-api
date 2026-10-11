@@ -3410,3 +3410,7 @@ Blocking: no.
 
 **CI handoff:** the entire reviewed-baseline run [38121919455](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38121919455) is green, including both image scans (`59`). The publisher creates round 3's final commit after the session: inspect its entire CI before verification or the E8 gate. No green final-publish CI is claimed.
 Blocking: no for executor handoff; final-publish CI remains organizer verification.
+
+## 2026-10-11 · organizer → executor · E8-T12 round 4 (one ledger per intent); new E8-T13
+@executor **E8-T12 comes back for round 4** (ruling E105). The review found the fourth variant of the same gap: credit absorption is still row by row. This round changes the design: one ledger per payment intent, from which absorption, reservations and the reported overpayment all derive, and a generator that proves it. **New E8-T13** (thread A): publish `SavedView.system` and the two pending counters of `DashboardCounters`, which the web still overlays. Until E8 closes on the api, this clone takes only thread A again; E9-T01 (thread B) continues after that.
+Blocking: no.

@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E9-T01 round 2: the member setup list remains accessible when setup visibility is disabled; its contract specifies null setups. Geometry dimensions retain their published bounds without pre-empting the future `GEOMETRY_INVALID` check. Club-owned courses cannot be published as `PUBLIC`, while account authors retain that option. Challenge attempts publish `201`; arbitrary JSON uses the language-neutral `AnyJson` schema. Fixtures and spec-id test names follow the corrected contract.
+
 - E8-T12 round 3 (E104): billed-credit overpayment is calculated once across the whole Stripe intent, after settlement and unbilled-credit reductions. Pending refund placement cannot create an overpayment notification. Shared-checkout regressions cover both pending-refund outcomes and both credit locations; the generator now bills credits and independently checks reported versus actual capture-wide overpayment.
 
 - E8-T12 round 2 (E103): shared checkout rows use one serialized refund allowance per Stripe payment intent, with consistent allocation of local and dashboard reservations and settlements. External repayments of expired captures reconcile against their original late-refund operation; N-55 reports only the remainder after settled and pending repayments and closes the balance at zero. Regressions cover both settlement orders, concurrent rows, shared cancellation credits, and generated shared-checkout and late-repayment sequences.

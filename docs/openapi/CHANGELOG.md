@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-11 · E9-T01 round 2 · S16 corrections
+
+**0 operations added or removed (401 total); `AnyJson` replaces `JsonNode`.**
+
+- `GET /me/ring-setups`: disabling `courses.showSetupToMembers` keeps the MEMBER list accessible with `setup = null` per ring; INSTRUCTOR visibility is unchanged. Both remain guarded 501 stubs in this task.
+- `PUT /rings/{id}/geometry`: dimensions remain published as 10–60 m. Bounds reach the E9-T02 business-validation boundary (`422 GEOMETRY_INVALID`), without a premature Bean Validation 400.
+- `POST /courses` and `PATCH /courses/{id}`: a CLUB owner cannot use `PUBLIC` (`400 VALIDATION_ERROR`); an ACCOUNT author may still publish. Reads never grant public access to an invalid CLUB/PUBLIC document.
+- `POST /challenges/{id}/attempts`: success contract is `201 ChallengeAttempt`; R1 still returns guarded 501.
+- `CalibrationLog.rawMetadata`, `CalibrationRequest.rawMetadata`, `BuildSession.progressJson`, and `Challenge.rules`: `AnyJson` is an unconstrained JSON schema, accepting objects, arrays, scalars and null. Required/optional property sets and the pinned planner schemas are unchanged. The build-session export response description uses `BuildSessionExportV1`.
+
 ## 2026-10-08 · E9-T01 · S16 contract
 
 **42 operations added (359 → 401); 52 schemas added.** All are guarded `501 NOT_IMPLEMENTED` contracts. S16 behavior is reserved for E9-T02…T04; the challenges routes remain R2 reservations.

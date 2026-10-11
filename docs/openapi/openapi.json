@@ -1399,6 +1399,7 @@
         "required" : [ "recipientCount" ],
         "type" : "object"
       },
+      "AnyJson" : { },
       "ApiError" : {
         "properties" : {
           "code" : {
@@ -2877,11 +2878,7 @@
             "type" : "string"
           },
           "progressJson" : {
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/JsonNode"
-            }, {
-              "type" : "null"
-            } ]
+            "$ref" : "#/components/schemas/AnyJson"
           },
           "ringId" : {
             "type" : "string"
@@ -3903,7 +3900,7 @@
             "type" : "string"
           },
           "rawMetadata" : {
-            "$ref" : "#/components/schemas/JsonNode"
+            "$ref" : "#/components/schemas/AnyJson"
           },
           "ringId" : {
             "type" : "string"
@@ -3946,7 +3943,7 @@
             "type" : "string"
           },
           "rawMetadata" : {
-            "$ref" : "#/components/schemas/JsonNode"
+            "$ref" : "#/components/schemas/AnyJson"
           }
         },
         "required" : [ "averageErrorCm", "markerCount", "maxErrorCm", "outcome", "rawMetadata" ],
@@ -4477,7 +4474,7 @@
             "type" : "string"
           },
           "rules" : {
-            "$ref" : "#/components/schemas/JsonNode"
+            "$ref" : "#/components/schemas/AnyJson"
           },
           "status" : {
             "enum" : [ "DRAFT", "PUBLISHED", "CLOSED" ],
@@ -10714,7 +10711,6 @@
         "required" : [ "dryRun" ],
         "type" : "object"
       },
-      "JsonNode" : { },
       "JwkSet" : {
         "properties" : {
           "keys" : {
@@ -32667,7 +32663,7 @@
                 }
               }
             },
-            "description" : "S16 JsonNode"
+            "description" : "S16 BuildSessionExportV1"
           },
           "400" : {
             "content" : {
@@ -33430,7 +33426,7 @@
           "required" : true
         },
         "responses" : {
-          "200" : {
+          "201" : {
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -37765,7 +37761,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "createCourse",
         "parameters" : [ {
           "in" : "header",
@@ -38363,7 +38359,7 @@
         "tags" : [ "courses" ]
       },
       "patch" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: PUBLIC visibility is allowed for an ACCOUNT author, never a CLUB owner (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "patchCourse",
         "parameters" : [ {
           "in" : "path",
@@ -58435,7 +58431,7 @@
     },
     "/api/v1/me/ring-setups" : {
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: MEMBER, INSTRUCTOR. Module: COURSES. R-16-09: when courses.showSetupToMembers is false, the MEMBER list remains accessible with setup = null for every ring; the INSTRUCTOR projection is unchanged. E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "myRingSetups",
         "parameters" : [ {
           "in" : "query",
@@ -77539,7 +77535,7 @@
         "tags" : [ "courses" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM must be within [10, 60]; geometry checks return GEOMETRY_INVALID (422), implemented in E9-T02. E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "putRingGeometry",
         "parameters" : [ {
           "in" : "path",

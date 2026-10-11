@@ -25,7 +25,7 @@ final class E9Fixtures {
         json.put("createdAt", "2026-10-08T08:00:00Z"); json.put("updatedAt", "2026-10-08T08:00:00Z");
         json.put("createdByAccountId", "e9-INSTRUCTOR"); json.put("updatedByAccountId", "e9-INSTRUCTOR");
         if (type.getSimpleName().equals("Course")) {
-            json.put("ownerType", clubId == null ? "AGILITYHUB" : "CLUB"); json.put("visibility", "PUBLIC");
+            json.put("ownerType", clubId == null ? "AGILITYHUB" : "CLUB"); json.put("visibility", clubId == null ? "PUBLIC" : "CLUB");
             json.set("name", MAPPER.createObjectNode().put("ca", "Recorregut de prova")); json.putArray("history");
         }
         if (type.getSimpleName().equals("Placement")) { json.set("warningsJson", json.remove("warnings")); }

@@ -91,7 +91,7 @@ public class BuildSessionsController {
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
     @Operation(summary = "exportBuildSession", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
-            responses = @ApiResponse(responseCode = "200", description = "S16 JsonNode", content = @Content(mediaType = "application/json", schema = @Schema(ref = "#/components/schemas/BuildSessionExportV1"))))
+            responses = @ApiResponse(responseCode = "200", description = "S16 BuildSessionExportV1", content = @Content(mediaType = "application/json", schema = @Schema(ref = "#/components/schemas/BuildSessionExportV1"))))
     public com.fasterxml.jackson.databind.JsonNode exportBuildSession(@PathVariable String id) {
         guards.session(id);
         throw new UnsupportedOperationException("S16 contract");

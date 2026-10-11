@@ -63,7 +63,7 @@ class E9ResponseContractTest {
         assertThat(strings(mapper.valueToTree(WarningSeverity.values()))).containsExactlyElementsOf(strings(warning.at("/properties/severity/enum")));
         assertThat(strings(mapper.valueToTree(ObstacleType.values()))).containsExactlyElementsOf(strings(schema("course-data").at("/properties/obstacles/items/properties/obstacleType/enum")));
     }
-    @Test void T_16_16_coreEnumsAndParameterDefaultsAreTheSpecLists() {
+    @Test void E9_T01_coreEnumsAndParameterDefaultsAreTheSpecLists() {
         Map<Class<? extends Enum<?>>,String> enums=new LinkedHashMap<>();
         enums.put(OwnerType.class,"CLUB,AGILITYHUB,ACCOUNT");enums.put(Visibility.class,"PRIVATE,CLUB,PUBLIC");enums.put(Discipline.class,"AGILITY,JUMPING,OTHER");
         enums.put(CourseSource.class,"SMARTER,EDITOR,IMAGE,AGILITYHUB_COPY");enums.put(AgilityHubLevel.class,"EASY,MEDIUM,HARD");enums.put(SizeCategory.class,"GRAND,GARDEN");
@@ -108,7 +108,7 @@ class E9ResponseContractTest {
         for(String variable:strings(fixture.path("variables"))) assertThat(row).contains(variable);
         assertThat(row).contains("RingSetupChanged","OPEN_SETUP");
     }
-    @Test void T_16_16_errorStatusesFollowTheCatalogIncludingFinished422() {
+    @Test void E9_T01_errorStatusesFollowTheCatalogIncludingFinished422() {
         Map<Integer,String> codes=Map.of(400,"COURSE_MODEL_INVALID,SCHEMA_VERSION_UNSUPPORTED,FILE_TYPE_NOT_ALLOWED,FILE_TOO_LARGE,VALIDATION_ERROR",
                 403,"FORBIDDEN,IMPERSONATION_DENIED",404,"COURSE_NOT_VISIBLE,NOT_FOUND,MODULE_DISABLED",409,"STALE_VERSION,INVALID_STATE,COURSE_IN_USE,RING_GEOMETRY_IN_USE",
                 422,"GEOMETRY_INVALID,PLACEMENT_BLOCKED,RING_WITHOUT_GEOMETRY,PLACEMENT_RING_MISMATCH,SETUP_SOURCE_REQUIRED,INVENTORY_INVALID,BUILD_SESSION_FINISHED",501,"NOT_IMPLEMENTED");
@@ -144,5 +144,51 @@ class E9ResponseContractTest {
         assertThat(api.at("/components/schemas/PlacementWarning"))
                 .isEqualTo(schema("build-session-export").at("/properties/placement/properties/warnings_json/items"));
         assertThat(api.at("/paths/~1api~1v1~1build-sessions~1{id}~1events/get/parameters").findValuesAsText("name")).doesNotContain("access_token");
+    }
+
+    @Test void T_16_05_courseFixturesUseVisibilityAllowedForTheirOwner() throws Exception {
+        var club=E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class,"course-a","club-a");
+        var library=E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class,"course-public",null);
+        assertThat(club.ownerType()).isEqualTo(OwnerType.CLUB);
+        assertThat(club.visibility()).isEqualTo(Visibility.CLUB);
+        assertThat(library.ownerType()).isEqualTo(OwnerType.AGILITYHUB);
+        assertThat(library.visibility()).isEqualTo(Visibility.PUBLIC);
+    }
+
+    @Test void T_19_01_attemptCreationPublishes201WhileR1RemainsAStub() throws Exception {
+        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());
+        var responses=api.at("/paths/~1api~1v1~1challenges~1{id}~1attempts/post/responses");
+        assertThat(responses.has("201")).isTrue();
+        assertThat(responses.has("200")).isFalse();
+        assertThat(responses.at("/201/content/application~1json/schema/$ref").asText()).endsWith("/ChallengeAttempt");
+        assertThat(responses.at("/501/description").asText()).isEqualTo("NOT_IMPLEMENTED");
+    }
+
+    @Test void E9_T01_anyJsonFieldsPublishLanguageNeutralSchemasWithoutNarrowingValues() throws Exception {
+        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());
+        var schemas=api.at("/components/schemas");
+        assertThat(schemas.has("JsonNode")).isFalse();
+        assertThat(api.findValuesAsText("$ref")).doesNotContain("#/components/schemas/JsonNode");
+        for(var entry:Map.of("CalibrationLog","rawMetadata","CalibrationRequest","rawMetadata",
+                "BuildSession","progressJson","Challenge","rules").entrySet()) {
+            var field=schemas.path(entry.getKey()).path("properties").path(entry.getValue());
+            assertThat(field.path("$ref").asText()).isEqualTo("#/components/schemas/AnyJson");
+        }
+        assertThat(schemas.path("AnyJson").isObject()).isTrue();
+        assertThat(schemas.path("AnyJson")).isEmpty(); // {} accepts objects, arrays, scalars and null.
+        assertThat(strings(schemas.at("/CalibrationRequest/required"))).contains("rawMetadata");
+        assertThat(strings(schemas.at("/BuildSession/required"))).doesNotContain("progressJson");
+    }
+
+    @Test void T_16_06_T_16_09_geometryAndHiddenSetupSemanticsStayInThePublishedContract() throws Exception {
+        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());
+        for(String field:List.of("lengthM","widthM")) {
+            var shape=api.at("/components/schemas/RingGeometryRequest/properties").path(field);
+            assertThat(shape.path("minimum").asDouble()).isEqualTo(10);
+            assertThat(shape.path("maximum").asDouble()).isEqualTo(60);
+        }
+        assertThat(api.at("/paths/~1api~1v1~1rings~1{id}~1geometry/put/responses/422/description").asText()).contains("GEOMETRY_INVALID");
+        assertThat(api.at("/paths/~1api~1v1~1me~1ring-setups/get/description").asText())
+                .contains("courses.showSetupToMembers", "setup = null", "MEMBER", "INSTRUCTOR");
     }
 }

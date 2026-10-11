@@ -60,8 +60,8 @@ public final class CourseRequests {
             @NotBlank String contentType,
             @NotNull @PositiveOrZero Long size) { }
 
-    public record RingGeometryRequest(@NotNull @DecimalMin("10") @DecimalMax("60") Double lengthM,
-            @NotNull @DecimalMin("10") @DecimalMax("60") Double widthM,
+    public record RingGeometryRequest(@NotNull @Schema(minimum = "10", maximum = "60") Double lengthM,
+            @NotNull @Schema(minimum = "10", maximum = "60") Double widthM,
             @NotNull @PositiveOrZero Double borderClearanceM,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Double orientationDeg,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Surface surface,

@@ -998,7 +998,7 @@
   {
     "method": "POST",
     "path": "/api/v1/challenges/{id}/attempts",
-    "success": 200,
+    "success": 201,
     "idempotency": true,
     "impersonation": true,
     "roles": [

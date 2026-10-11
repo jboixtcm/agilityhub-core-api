@@ -44,10 +44,11 @@ public class CoursesController {
     @PostMapping(value = "/api/v1/courses")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED})
-    @Operation(summary = "createCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "createCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "201", description = "S16 Course", useReturnTypeSchema = true))
     public Course createCourse(@Valid @RequestBody CourseRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        guards.courseVisibility(com.agilityhub.core.courses.domain.CourseTypes.OwnerType.CLUB, request.visibility());
         guards.levels(request.levelIds()); validateModel(request.schemaVersion(), request.normalizedJson());
         throw new UnsupportedOperationException("S16 contract");
     }
@@ -66,11 +67,13 @@ public class CoursesController {
     @PatchMapping(value = "/api/v1/courses/{id}")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, STALE_VERSION, COURSE_NOT_VISIBLE, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED})
-    @Operation(summary = "patchCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "patchCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: PUBLIC visibility is allowed for an ACCOUNT author, never a CLUB owner (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "200", description = "S16 Course", useReturnTypeSchema = true))
     public Course patchCourse(@PathVariable String id,
             @Valid @RequestBody CoursePatchRequest request) {
-        guards.course(id, true); guards.levels(request.levelIds()); validateModel(request.schemaVersion(), request.normalizedJson());
+        var course = guards.course(id, true);
+        guards.courseVisibility(course.ownerType(), request.visibility());
+        guards.levels(request.levelIds()); validateModel(request.schemaVersion(), request.normalizedJson());
         throw new UnsupportedOperationException("S16 contract");
     }
 

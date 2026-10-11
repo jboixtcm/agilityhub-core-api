@@ -1,0 +1,72 @@
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 1.011 s <<< FAILURE! -- in com.agilityhub.core.configuration.E9ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_05_courseFixturesUseVisibilityAllowedForTheirOwner -- Time elapsed: 0.216 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: CLUB
+ but was: PUBLIC
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_05_courseFixturesUseVisibilityAllowedForTheirOwner(E9ResponseContractTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.E9_T01_anyJsonFieldsPublishLanguageNeutralSchemasWithoutNarrowingValues -- Time elapsed: 0.015 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at com.agilityhub.core.configuration.E9ResponseContractTest.E9_T01_anyJsonFieldsPublishLanguageNeutralSchemasWithoutNarrowingValues(E9ResponseContractTest.java:170)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_19_01_attemptCreationPublishes201WhileR1RemainsAStub -- Time elapsed: 0.013 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_19_01_attemptCreationPublishes201WhileR1RemainsAStub(E9ResponseContractTest.java:161)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_06_T_16_09_geometryAndHiddenSetupSemanticsStayInThePublishedContract -- Time elapsed: 0.015 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Roles: MEMBER, INSTRUCTOR. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED."
+to contain:
+  ["courses.showSetupToMembers", "setup = null", "MEMBER", "INSTRUCTOR"]
+but could not find:
+  ["courses.showSetupToMembers", "setup = null"]
+ 
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_06_T_16_09_geometryAndHiddenSetupSemanticsStayInThePublishedContract(E9ResponseContractTest.java:192)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E9ResponseContractTest.E9_T01_anyJsonFieldsPublishLanguageNeutralSchemasWithoutNarrowingValues:170 
+Expecting value to be false but was true
+[ERROR]   E9ResponseContractTest.T_16_05_courseFixturesUseVisibilityAllowedForTheirOwner:153 
+expected: CLUB
+ but was: PUBLIC
+[ERROR]   E9ResponseContractTest.T_16_06_T_16_09_geometryAndHiddenSetupSemanticsStayInThePublishedContract:192 
+Expecting actual:
+  "Roles: MEMBER, INSTRUCTOR. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED."
+to contain:
+  ["courses.showSetupToMembers", "setup = null", "MEMBER", "INSTRUCTOR"]
+but could not find:
+  ["courses.showSetupToMembers", "setup = null"]
+ 
+[ERROR]   E9ResponseContractTest.T_19_01_attemptCreationPublishes201WhileR1RemainsAStub:161 
+Expecting value to be true but was false
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

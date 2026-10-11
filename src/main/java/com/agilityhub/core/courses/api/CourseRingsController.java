@@ -37,7 +37,7 @@ public class CourseRingsController {
     @PutMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, GEOMETRY_INVALID, STALE_VERSION})
-    @Operation(summary = "putRingGeometry", description = "Roles: ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "putRingGeometry", description = "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM must be within [10, 60]; geometry checks return GEOMETRY_INVALID (422), implemented in E9-T02. E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingGeometry", useReturnTypeSchema = true))
     public RingGeometry putRingGeometry(@PathVariable String id,
             @Valid @RequestBody RingGeometryRequest request) {

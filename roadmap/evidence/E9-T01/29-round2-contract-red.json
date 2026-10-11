@@ -1,0 +1,5 @@
+{
+  "command": "./mvnw -q -Dtest=E9ResponseContractTest test",
+  "exit_code": 1,
+  "seconds": 18.64
+}

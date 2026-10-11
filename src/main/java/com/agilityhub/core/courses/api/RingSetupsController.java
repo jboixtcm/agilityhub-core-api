@@ -73,10 +73,10 @@ public class RingSetupsController {
     @PreAuthorize("hasAnyRole('MEMBER', 'INSTRUCTOR')")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "myRingSetups", description = "Roles: MEMBER, INSTRUCTOR. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "myRingSetups", description = "Roles: MEMBER, INSTRUCTOR. Module: COURSES. R-16-09: when courses.showSetupToMembers is false, the MEMBER list remains accessible with setup = null for every ring; the INSTRUCTOR projection is unchanged. E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "200", description = "S16 List<MeRingSetup>", useReturnTypeSchema = true))
     public List<MeRingSetup> myRingSetups(@RequestParam(required = false) List<String> ringIds) {
-        guards.memberVisibility(); guards.rings(ringIds);
+        guards.rings(ringIds);
         throw new UnsupportedOperationException("S16 contract");
     }
 }

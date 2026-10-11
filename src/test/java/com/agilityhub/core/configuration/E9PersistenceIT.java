@@ -78,7 +78,7 @@ class E9PersistenceIT extends AbstractIntegrationTest {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(publicCourse.id())),new Update().set("deletedAt",clock.instant()),Course.class);
         assertThat(global.findById(publicCourse.id())).isEmpty();
     }
-    @Test void T_16_06_calendarDatesStayDateOnlyAcrossDstBoundaries() throws Exception {
+    @Test void E9_T01_calendarDatesStayDateOnlyAcrossDstBoundaries() throws Exception {
         Map<Class<?>,String> fields=Map.of(Course.class,"designedOn",RingSetup.class,"expectedUntil",Venue.class,"partnerSince");
         for(var entry:fields.entrySet()) {
             var json=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.valueToTree(E9Fixtures.document(entry.getKey(),"e9p-dates-"+entry.getKey().getSimpleName(),CLUB));
@@ -114,7 +114,7 @@ class E9PersistenceIT extends AbstractIntegrationTest {
             assertThat(mongo.findById(value.id(),BuildSession.class).progressJson()).isEqualTo(mapper.readTree(raw));
         }
     }
-    @Test void T_16_07_T_16_11_fourUniqueGuardsAreRealMongoIndexesAndReleaseOnlyClosedRows() throws Exception {
+    @Test void E9_T01_fourUniqueGuardsAreRealMongoIndexesAndReleaseOnlyClosedRows() throws Exception {
         for(String collection:List.of("ring_setups","build_sessions","obstacle_inventories","venues")) {
             Document a=new Document("_id","e9p-"+collection+"-a").append("clubId",CLUB).append("ringId","ring-a").append("scope","RING")
                     .append("status",collection.equals("build_sessions")?"NOT_STARTED":"ACTIVE").append("joinCode","DEMO42").append("slug","e9p-"+collection);
@@ -160,7 +160,7 @@ class E9PersistenceIT extends AbstractIntegrationTest {
         assertThatThrownBy(()->geometry.replace(new RingGeometryRepository.GeometryRecord(ring.id(),CLUB,value))).isInstanceOf(UnsupportedOperationException.class);
         assertThatThrownBy(()->geometry.deleteById(ring.id())).isInstanceOf(UnsupportedOperationException.class);
     }
-    @Test void T_16_16_indexesMatchEveryDeclaredQueryAndMongoshListsAllSevenCollections() throws Exception {
+    @Test void E9_T01_indexesMatchEveryDeclaredQueryAndMongoshListsAllSevenCollections() throws Exception {
         Map<String,List<String>> expected=Map.of("courses",List.of("clubId,deletedAt,updatedAt","ownerType,visibility,deletedAt","ownerAccountId,deletedAt"),
                 "placements",List.of("clubId,ringId","clubId,courseId","clubId,activityId"),
                 "ring_setups",List.of("clubId,ringId","clubId,ringId,builtAt","clubId,status,expiresAt","clubId,courseId,status","clubId,placementId,status"),

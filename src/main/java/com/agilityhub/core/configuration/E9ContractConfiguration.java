@@ -58,6 +58,15 @@ public class E9ContractConfiguration implements WebMvcConfigurer {
                             .addAnyOfItem(new Schema<>().types(java.util.Set.of("null"))));
                 }
             }
+            // An empty JSON Schema accepts every JSON value, including scalars, arrays and null.
+            // Keep Jackson's implementation type out of the public wire contract.
+            schemas.put("AnyJson", new Schema<>());
+            java.util.Map.of("CalibrationLog", "rawMetadata", "CalibrationRequest", "rawMetadata",
+                    "BuildSession", "progressJson", "Challenge", "rules").forEach((name, field) -> {
+                var model = schemas.get(name);
+                if (model != null) { model.getProperties().put(field, new Schema<>().$ref("#/components/schemas/AnyJson")); }
+            });
+            schemas.remove("JsonNode");
             var owned = new java.util.ArrayList<String>();
             for (Class<?> owner : List.of(CourseContracts.class, CourseParts.class, com.agilityhub.core.courses.api.CourseRequests.class)) {
                 for (Class<?> nested : owner.getDeclaredClasses()) { owned.add(nested.getSimpleName()); }

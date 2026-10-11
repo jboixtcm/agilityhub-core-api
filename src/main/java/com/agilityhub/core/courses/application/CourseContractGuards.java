@@ -38,11 +38,16 @@ public class CourseContractGuards {
     public Course course(String id, boolean write) {
         Course course = courses.findById(id).filter(c -> c.deletedAt() == null).or(() -> global.findById(id)).orElseThrow(() -> new ApiException(NOT_FOUND));
         boolean author = java.util.Objects.equals(course.ownerAccountId(), CurrentUser.current().accountId());
-        boolean visible = course.visibility() == Visibility.PUBLIC || course.visibility() == Visibility.PRIVATE && author
+        boolean visible = course.visibility() == Visibility.PUBLIC && course.ownerType() != OwnerType.CLUB
+                || course.visibility() == Visibility.PRIVATE && author
                 || course.visibility() == Visibility.CLUB && staff() && TenantContext.require().equals(course.clubId());
         if (!visible) { throw new ApiException(COURSE_NOT_VISIBLE); }
         if (write && (course.ownerType() == OwnerType.AGILITYHUB || course.ownerType() == OwnerType.ACCOUNT && !author)) { throw new ApiException(FORBIDDEN); }
         return course;
+    }
+    /** S16 §3: only library and account owners can publish a course to all clubs. */
+    public void courseVisibility(OwnerType owner, Visibility visibility) {
+        if (owner == OwnerType.CLUB && visibility == Visibility.PUBLIC) { throw new ApiException(VALIDATION_ERROR); }
     }
     public void platformCourse(String id) {
         if (global.findById(id).filter(c -> c.ownerType() == OwnerType.AGILITYHUB).isEmpty()) { throw new ApiException(NOT_FOUND); }
