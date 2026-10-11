@@ -1,0 +1,62 @@
+{
+  "docs/DECISIONS_PENDENTS.md": [
+    "bdcc9e07",
+    "7e5fb1d2",
+    "32510e0a",
+    "acbe268d",
+    "050ad10c",
+    "c068db88",
+    "7da79ba4",
+    "6a601bbb"
+  ],
+  "roadmap/tasks/E10-T01.md": [
+    "cd224a2f",
+    "ea9668b6",
+    "a26c503a",
+    "87c00908",
+    "da16ca38",
+    "dc5ab133",
+    "3b939356",
+    "762f1f7b"
+  ],
+  "roadmap/tasks/E10-T02.md": [
+    "fe24fe70",
+    "71d219ea",
+    "6fab8813",
+    "bcc3f329",
+    "aed2483e",
+    "3af41c3a",
+    "a1948fbc",
+    "a0be952e"
+  ],
+  "roadmap/tasks/E9-T02.md": [
+    "d4fd4f74",
+    "a2464e3d",
+    "229d4ad0",
+    "e37be1a7",
+    "63659ad9",
+    "f0f06656",
+    "1713c0f5",
+    "f2e38020"
+  ],
+  "roadmap/tasks/E9-T03.md": [
+    "94ff8a53",
+    "84b2b08e",
+    "8d1ee3d1",
+    "fae6930d",
+    "04c1f64c",
+    "5de089f6",
+    "fa311a1d",
+    "92f545b1"
+  ],
+  "roadmap/tasks/E9-T04.md": [
+    "869f467c",
+    "e037839d",
+    "071dcb5a",
+    "023b9bfe",
+    "e202b83f",
+    "9c91f50d",
+    "527b0b19",
+    "22da879b"
+  ]
+}

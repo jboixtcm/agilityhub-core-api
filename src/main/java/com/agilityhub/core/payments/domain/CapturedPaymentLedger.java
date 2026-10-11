@@ -4,7 +4,9 @@ package com.agilityhub.core.payments.domain;
  * The money of one captured Stripe payment (S12 R-12-20, ruling E97), in minor units of its currency:
  * {@code captured} = C, {@code refunded} = S (refunds Stripe settled), {@code reserved} = R (refund commands neither settled
  * nor failed/canceled, plus unlinked pending dashboard refunds), {@code credited} = K (the CREDIT compensation, a negative {@code PendingCharge}).
- * A shared checkout has one allowance for the entire payment intent, serialized with every reservation and reconciliation.
+ * {@link PaymentIntentLedger} owns the complete shared checkout: capture, settled refunds, reservations and every billed or
+ * unbilled credit. Its aggregate drives absorption, allowance and overpayment; rows only show their allocated shares.
+ * The snapshot is loaded under the intent fence and refreshed after changes in the same transaction.
  * Local reservations prefer their target row; allocation uses uncredited money, then unbilled credits, then billed credits,
  * in stable row order within each tier. Row allocation
  * never increases that allowance. A separate late capture uses its operation's original amount and its own intent's refund
@@ -17,7 +19,9 @@ package com.agilityhub.core.payments.domain;
  * intervention (an admin repays it by hand). An admin refund can never take more than D. A refund made in Stripe's dashboard
  * after a CREDIT shrinks the unbilled credit by S + R + K beyond C (including pending refund reservations); a billed credit cannot shrink, and the overpaid
  * amount is recorded as an intervention (E8-T11). The increment is computed once across the whole intent after settlement and
- * credit reduction as the positive change in max(0, S + K - C), independent of reservation placement (E104).</li>
+ * credit reduction as the positive change in max(0, S + K - C), independent of reservation placement (E104).
+ * If any unbilled credit remains, S + R + K cannot exceed C: reductions use all of the intent's credits, irrespective of
+ * which row received earlier settlements (E105).</li>
  * <li><b>One compensation per cause.</b> A payment has at most one cancellation obligation (the first of REFUND or CREDIT wins), at
  * most one credit row, one compensation refund command plus one supplement per other refund that failed after it, and none after
  * a compensation refund itself failed: Stripe's failure or a refusal of its content is terminal and becomes an intervention, which

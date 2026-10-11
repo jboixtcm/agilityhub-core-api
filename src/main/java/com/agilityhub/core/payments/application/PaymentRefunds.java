@@ -64,9 +64,9 @@ public class PaymentRefunds {
             refundStates.lockIntent(payment.stripe().paymentIntentId());
             upfront.lock(id);
             var refunds = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
-            // Money a CREDIT compensation already gave back is not refundable again (ledger invariant 1).
+            // The intent ledger accounts for every credit and refund when reserving this row's share.
             var captured = upfront.captured(id).orElse(payment.amountPaid());
-            var accepted = reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), new Money(captured.amountMinor() - credited(payment), captured.currency()),
+            var accepted = reserve("REFUND_UPFRONT", id, payment.stripe().paymentIntentId(), captured,
                     amount, reason, key, refunds.stream().map(UpfrontPayment.Refund::providerRef).toList(), refunds.stream().mapToLong(r -> r.amount().amountMinor()).sum());
             reconsiderCompensation(payment.stripe().paymentIntentId());
             return accepted;
@@ -82,7 +82,7 @@ public class PaymentRefunds {
         long remaining = paid.amountMinor() - refunded - pending;
         if ("REFUND_UPFRONT".equals(kind)) {
             var payment = upfront.findById(target).orElseThrow();
-            remaining = Math.min(ledger(payment).free(), intentLedger(reference).free());
+            remaining = intentLedger(reference).freeFor(payment.id());
         }
         Money amount = requested == null ? new Money(remaining, paid.currency()) : requested;
         if (!amount.currency().equals(paid.currency())) { throw new ApiException(ErrorCode.CURRENCY_MISMATCH); }
@@ -124,8 +124,8 @@ public class PaymentRefunds {
         var obligation = upfront.compensation(payment.id())
                 .or(() -> operations.byKey(key).map(op -> new UpfrontPaymentRepository.Compensation("REFUND", op.reason(), null)));
         if (obligation.isEmpty() || consumption(payment)) { return; }
-        long due = ledger(payment).due();
-        if (payment.stripe() != null) { due = Math.min(due, intentLedger(payment.stripe().paymentIntentId()).due()); }
+        long due = payment.stripe() == null ? ledger(payment).due()
+                : Math.max(0, intentLedger(payment.stripe().paymentIntentId()).freeFor(payment.id()));
         if (obligation.get().interventionAt() != null) { intervene(payment, due); return; }
         if (due <= 0) { return; }
         if ("CREDIT".equals(obligation.get().policy())) { credit(payment, due); return; }
@@ -176,35 +176,26 @@ public class PaymentRefunds {
     private static boolean outage(PaymentOperation op, RuntimeException failure) {
         return (compensation(op) || "REFUND_LATE".equals(op.kind())) && failure instanceof PaymentNotSubmitted rejected && !rejected.definitive();
     }
-    /**
-     * E8-T11: a refund made in Stripe's dashboard after a CREDIT. Refunded plus credited never exceeds the capture: the unbilled
-     * credit shrinks by the overshoot (voided at zero, keeping its negative amount so it never reads as a consumption charge);
-     * a billed one cannot, and the admin learns how much of this refund the member received twice.
-     */
-    private void absorb(UpfrontPayment payment, long refunded) {
-        if (payment.bookingId() == null) { return; }
-        var credit = charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
-        if (credit == null) { return; }
-        long current = credit.amount().amountMinor();
-        // Re-read after reconciliation: settled refunds no longer reserve, but local commands and external pending refunds do.
-        long reserved = ledger(upfront.findById(payment.id()).orElseThrow()).reserved();
-        long settledExcess = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
-        long overshoot = settledExcess + reserved;
-        if (overshoot <= 0) { return; }
-        if (current + overshoot < 0) { charges.credit(credit.id(), current, current + overshoot); }
-        else if (credit.invoiceId() == null) { charges.voided(credit.id(), clock.instant()); }
-    }
-    /** E104: row placement only allocates money; actual overpayment excludes every pending reservation. */
-    private long overpaid(List<UpfrontPayment> payments) {
-        return Math.max(0, payments.stream().mapToLong(p -> refunded(p) + credited(p) - captured(p)).sum());
+    /** E105: absorption is a decision of the whole intent; rows only persist the resulting credit reductions. */
+    private void absorb(String intent) {
+        var ledger = intentLedger(intent);
+        for (var reduction : ledger.creditReductions().entrySet()) {
+            var payment = upfront.findById(reduction.getKey()).orElseThrow();
+            var credit = charges.forBooking(payment.bookingId()).orElseThrow();
+            long current = credit.amount().amountMinor();
+            boolean changed = current + reduction.getValue() < 0
+                    ? charges.credit(credit.id(), current, current + reduction.getValue())
+                    : charges.voided(credit.id(), clock.instant());
+            // Billing and absorption update the same document. Retry the transaction if its mutable credit changed.
+            if (!changed) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        }
     }
     private void reportOverpayment(String intent, long previous) {
-        var payments = upfront.forIntent(intent);
-        long increment = overpaid(payments) - previous;
+        var ledger = intentLedger(intent);
+        long increment = ledger.overpaid() - previous;
         if (increment <= 0) { return; }
-        // All settlements and unbilled credit reductions are visible before choosing the billed credit's audit subject.
-        var billed = credits(payments, true);
-        payments.stream().filter(p -> billed.containsKey(p.id())).findFirst().ifPresent(payment -> {
+        ledger.rows().stream().filter(row -> row.billed() && row.credited() > 0).findFirst().ifPresent(row -> {
+            var payment = upfront.findById(row.id()).orElseThrow();
             if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
             reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(increment, payment.amountPaid().currency()));
         });
@@ -212,12 +203,10 @@ public class PaymentRefunds {
     private void reconsiderCompensation(String intent) {
         refundStates.lockIntent(intent);
         for (var late : operations.refundsForIntent(intent).stream().filter(op -> "REFUND_LATE".equals(op.kind())).toList()) { reconsiderLate(late); }
+        absorb(intent);
         for (var payment : upfront.forIntent(intent)) {
             upfront.lock(payment.id());
-            var current = upfront.findById(payment.id()).orElseThrow();
-            long refunded = current.refunds() == null ? 0 : current.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
-            absorb(current, refunded);
-            compensateRemaining(current);
+            compensateRemaining(upfront.findById(payment.id()).orElseThrow());
         }
     }
     /** Expired checkouts never attach their late intent to an upfront row. Resolve their own immutable command target. */
@@ -234,72 +223,40 @@ public class PaymentRefunds {
         if (upfront.lateInterventionWarning(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
         reportIntervention(payment, "COMPENSATION_INTERVENTION", "owed", owed);
     }
-    /** An operation-linked checkpoint is already reserved by that operation, including a lost-response webhook. */
-    private long externalPending(String intent) {
-        if (intent == null) { return 0; }
-        return refundStates.pending(intent).stream().filter(state -> operations.forResult(refundStates.refundId(state)).isEmpty())
-                .mapToLong(state -> state.amount().amountMinor()).sum();
-    }
     private long refunded(UpfrontPayment payment) {
         return payment.refunds() == null ? 0 : payment.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
     }
     private long captured(UpfrontPayment payment) { return upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor(); }
-    private List<PaymentOperation> reservedOperations(String intent) {
-        var settled = upfront.forIntent(intent).stream().filter(p -> p.refunds() != null).flatMap(p -> p.refunds().stream())
-                .map(UpfrontPayment.Refund::providerRef).toList();
-        return operations.refundsForIntent(intent).stream().filter(op -> !settled.contains(op.resultId()) && !operations.refundFailed(op.id())).toList();
-    }
-    /** The acceptance allowance is global: allocating its components to rows can never create more money. */
-    private CapturedPaymentLedger intentLedger(String intent) {
-        var rows = upfront.forIntent(intent);
-        return new CapturedPaymentLedger(rows.stream().mapToLong(this::captured).sum(), rows.stream().mapToLong(this::refunded).sum(),
-                reservedOperations(intent).stream().mapToLong(op -> op.amount().amountMinor()).sum() + externalPending(intent),
-                rows.stream().mapToLong(this::credited).sum());
-    }
-    /** Local reservations prefer their target; external refunds use uncredited money, then unbilled credits, then billed credits. */
-    private Map<String, Long> reservations(String intent, String excluding) {
-        var rows = upfront.forIntent(intent);
-        var capacity = new LinkedHashMap<String, Long>();
-        for (var row : rows) { capacity.put(row.id(), Math.max(0, captured(row) - refunded(row))); }
-        var credits = credits(rows, false); var billed = credits(rows, true);
-        var allocated = new LinkedHashMap<String, Long>();
-        for (var op : reservedOperations(intent)) {
-            reserveAllocation(op.amount().amountMinor(), op.targetId(), capacity, credits, billed,
-                    op.id().equals(excluding) ? new LinkedHashMap<>() : allocated);
+    /**
+     * The one money view for an intent, always read within its transaction fence. Settled refund shares are persisted in the
+     * same transaction as provider checkpoints. Local operations and unlinked pending checkpoints reserve each refund once,
+     * including a webhook that closed a lost provider response. Row allocation never supplies the absorption/reporting totals.
+     */
+    private PaymentIntentLedger intentLedger(String intent) {
+        var payments = upfront.forIntent(intent);
+        var rows = new ArrayList<PaymentIntentLedger.Row>();
+        var settled = new HashSet<String>();
+        for (var payment : payments) {
+            var credit = payment.bookingId() == null ? null : charges.forBooking(payment.bookingId())
+                    .filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
+            rows.add(new PaymentIntentLedger.Row(payment.id(), captured(payment), refunded(payment),
+                    credit == null ? 0 : -credit.amount().amountMinor(), credit != null && credit.invoiceId() != null));
+            if (payment.refunds() != null) { payment.refunds().forEach(refund -> settled.add(refund.providerRef())); }
         }
-        reserveAllocation(externalPending(intent), null, capacity, credits, billed, allocated);
-        return allocated;
-    }
-    private Map<String, Long> credits(List<UpfrontPayment> rows, boolean billedOnly) {
-        var result = new HashMap<String, Long>();
-        for (var row : rows) {
-            if (row.bookingId() != null) {
-                charges.forBooking(row.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null
-                        && (!billedOnly || c.invoiceId() != null)).ifPresent(c -> result.put(row.id(), -c.amount().amountMinor()));
+        var reservations = new ArrayList<PaymentIntentLedger.Reservation>();
+        var linked = new HashSet<String>();
+        for (var operation : operations.refundsForIntent(intent)) {
+            if (operation.resultId() != null) { linked.add(operation.resultId()); }
+            if (!settled.contains(operation.resultId()) && !operations.refundFailed(operation.id())) {
+                reservations.add(new PaymentIntentLedger.Reservation(operation.id(), operation.targetId(), operation.amount().amountMinor()));
             }
         }
-        return result;
-    }
-    private void reserveAllocation(long amount, String preferred, Map<String, Long> capacity, Map<String, Long> credits,
-            Map<String, Long> billed, Map<String, Long> allocated) {
-        long remaining = allocate(amount, preferred, capacity, credits, billed, allocated);
-        // The dashboard may overtake an unsubmitted command. Keep its full reservation visible until Stripe rejects it.
-        if (remaining > 0 && !capacity.isEmpty()) {
-            allocated.merge(capacity.containsKey(preferred) ? preferred : capacity.keySet().iterator().next(), remaining, Long::sum);
-        }
-    }
-    private long allocate(long amount, String preferred, Map<String, Long> capacity, Map<String, Long> credits,
-            Map<String, Long> billed, Map<String, Long> allocated) {
-        var order = new LinkedHashSet<String>();
-        if (capacity.containsKey(preferred)) { order.add(preferred); }
-        order.addAll(capacity.keySet());
-        for (var protectedCredit : List.of(credits, billed, Map.<String, Long>of())) {
-            for (String id : order) {
-                long part = Math.min(amount, Math.max(0, capacity.get(id) - protectedCredit.getOrDefault(id, 0L)));
-                allocated.merge(id, part, Long::sum); capacity.put(id, capacity.get(id) - part); amount -= part;
+        for (var state : refundStates.pending(intent)) {
+            if (!linked.contains(refundStates.refundId(state))) {
+                reservations.add(new PaymentIntentLedger.Reservation(state.id(), null, state.amount().amountMinor()));
             }
         }
-        return amount;
+        return new PaymentIntentLedger(rows, reservations);
     }
     private boolean compensated(UpfrontPayment payment) {
         return operations.byKey("refund:" + payment.id()).isPresent()
@@ -318,8 +275,7 @@ public class PaymentRefunds {
     /** The ledger of {@link CapturedPaymentLedger}; a settled late-completion command still counts as reserved, as its money left. */
     private CapturedPaymentLedger ledger(UpfrontPayment payment) {
         if (payment.stripe() != null) {
-            return new CapturedPaymentLedger(captured(payment), refunded(payment),
-                    reservations(payment.stripe().paymentIntentId(), null).getOrDefault(payment.id(), 0L), credited(payment));
+            return intentLedger(payment.stripe().paymentIntentId()).share(payment.id());
         }
         var settled = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
         var ids = settled.stream().map(UpfrontPayment.Refund::providerRef).toList();
@@ -499,8 +455,9 @@ public class PaymentRefunds {
             var refunds = payment.refunds() == null ? List.<UpfrontPayment.Refund>of() : payment.refunds();
             if (refunds.stream().anyMatch(r -> r.providerRef().equals(refundId))) { return false; }
         }
-        var parts = settlementParts(intent, amount.amountMinor(), operation);
-        long previousOverpaid = overpaid(payments);
+        var ledger = intentLedger(intent);
+        var parts = ledger.settlementShares(amount.amountMinor(), operation == null ? null : operation.targetId(), operation == null ? null : operation.id());
+        long previousOverpaid = ledger.overpaid();
         for (var payment : payments) {
             long paid = payment.amountPaid().amountMinor();
             long refunded = payment.refunds() == null ? 0 : payment.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
@@ -511,29 +468,11 @@ public class PaymentRefunds {
                 changed = true;
             }
         }
-        for (var payment : upfront.forIntent(intent)) { absorb(payment, refunded(payment)); }
+        absorb(intent);
         reportOverpayment(intent, previousOverpaid);
         return changed;
     }
     private PaymentOperation lateOperation(String intent) {
         return operations.refundsForIntent(intent).stream().filter(op -> "REFUND_LATE".equals(op.kind())).findFirst().orElse(null);
-    }
-    /** Settle into the same free space used by reservations, keeping another row's local refund reserved. */
-    private Map<String, Long> settlementParts(String intent, long amount, PaymentOperation operation) {
-        var rows = upfront.forIntent(intent);
-        var reserved = reservations(intent, operation == null ? null : operation.id());
-        var capacity = new LinkedHashMap<String, Long>();
-        for (var row : rows) { capacity.put(row.id(), Math.max(0, captured(row) - refunded(row))); }
-        if (capacity.values().stream().mapToLong(Long::longValue).sum() < amount) { throw new ApiException(ErrorCode.REFUND_EXCEEDS_PAID); }
-        var credits = credits(rows, false); var billed = credits(rows, true);
-        var unreserved = new LinkedHashMap<String, Long>();
-        capacity.forEach((id, value) -> unreserved.put(id, Math.max(0, value - reserved.getOrDefault(id, 0L))));
-        var parts = new LinkedHashMap<String, Long>();
-        String preferred = operation == null ? null : operation.targetId();
-        long remaining = allocate(amount, preferred, unreserved, credits, billed, parts);
-        // A settlement can overtake an unsubmitted command; its remaining reservation is then reallocated.
-        capacity.replaceAll((id, value) -> value - parts.getOrDefault(id, 0L));
-        allocate(remaining, preferred, capacity, credits, billed, parts);
-        return parts;
     }
 }

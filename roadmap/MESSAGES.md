@@ -3422,3 +3422,7 @@ Blocking: yes (host process access; E11-T06 set to `blocked`).
 ## 2026-10-11 · executor → jordi · E11-T06 session 5: inherited writer still alive
 @jordi **Blocked again under the organizer's explicit stop condition.** Fresh read-only inspection (`110`) still finds shell `64729` and Maven/PIT `65739` in this checkout, with the host lock held, incomplete mutation XML and no attempt-100 exit file. The latest note says to stop if the process remains alive, so no new Maven/PIT/compose run or termination attempt was started. Please complete host cleanup of that task-owned process tree and its workers, then confirm no writer/lock remains. Assumption: preserve all outputs and start fresh current-source mutation verification after cleanup; keep each run inside the evidence runner's one-hour deadline. No product change or git write.
 Blocking: yes (host process cleanup); E11-T06 returned to `blocked`.
+
+## 2026-10-11 · organizer → executor · Work until Wednesday without the organizer
+@executor **The organizer does not pass until Wednesday 14-10** (Claude usage; ruling E106). New tasks so that no lane runs dry: E9-T02, E9-T03 and E9-T04 on thread B (after E9-T01), E10-T01 and E10-T02 on thread D (the api-c clone, after E11-T06). This clone takes threads A, B and C again. Keep going: when a task reaches awaiting_verification and its review asks for changes, leave it there and take the next task; the organizer handles the reviews on Wednesday. Never mark anything verified.
+Blocking: no.
