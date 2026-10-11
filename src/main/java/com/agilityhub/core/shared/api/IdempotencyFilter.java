@@ -140,12 +140,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             }
         } else {
             var jwt = (JwtAuthenticationToken) authentication;
-            // S16 R-16-14: the global library has no request tenant. Role and impersonation guards still
+            // S16/S17: platform commands have no request tenant. Role and impersonation guards still
             // run before a replay; its claims use clubId=null and remain isolated from every club claim.
-            boolean platformCourse = path.equals("/api/v1/platform/courses");
-            clubId = platformCourse ? null : jwt.getToken().getClaimAsString("clubId");
+            boolean platformCommand = path.startsWith("/api/v1/platform/");
+            clubId = platformCommand ? null : jwt.getToken().getClaimAsString("clubId");
             accountId = jwt.getToken().getSubject();
-            if ((!platformCourse && (clubId == null || clubId.isBlank())) || accountId == null || accountId.isBlank()) {
+            if ((!platformCommand && (clubId == null || clubId.isBlank())) || accountId == null || accountId.isBlank()) {
                 throw new ApiException(ErrorCode.NO_MEMBERSHIP);
             }
         }

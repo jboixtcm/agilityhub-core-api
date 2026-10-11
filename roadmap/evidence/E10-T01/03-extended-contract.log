@@ -1,0 +1,95 @@
+14:07:08.214 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E10ContractIT]: E10ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:07:08.346 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E10ContractIT
+14:07:08.412 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+14:07:08.414 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+14:07:08.417 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+14:07:08.503 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+14:07:08.633 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+14:07:08.634 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+14:07:08.645 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+14:07:09.006 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+14:07:09.102 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+14:07:09.193 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7a95d4e21b197805b23855b8cc37969dd756537fc278b111cf4d40d9bf5516b8
+14:07:09.417 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.41041S
+14:07:09.427 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+14:07:09.428 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+14:07:09.428 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+14:07:09.428 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+14:07:09.471 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: c4c85cd1f1c5284b74f195b205d16a858ede89db8d37b37edf3ee2026f98951b
+14:07:09.995 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.567334S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-11T14:07:10.832+02:00 INFO  [main] c.a.core.configuration.E10ContractIT traceId= clubId= accountId= : Starting E10ContractIT using Java [redacted] with PID 10374 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-11T14:07:10.834+02:00 INFO  [main] c.a.core.configuration.E10ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-11T14:07:11.826+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-11T14:07:11.884+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 54 ms. Found 0 MongoDB repository interfaces.
+2026-10-11T14:07:12.322+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@37806ccb], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@606d2a92, com.mongodb.Jep395RecordCodecProvider@4a84beb7, com.mongodb.KotlinCodecProvider@72924f19]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:62229], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@46c093b4], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-11T14:07:12.329+02:00 INFO  [cluster-ClusterId{value='6acb7bf0fa2ad8eb8d4035ad', description='null'}-localhost:62229] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:62229, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10753167, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=c4c85cd1f1c5:27017, hosts=[c4c85cd1f1c5:27017], passives=[], arbiters=[], primary='c4c85cd1f1c5:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6acb7bedd5bdc209ae40de04, counter=6}, lastWriteDate=Sun Oct 11 14:07:10 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-11T14:07:16.338+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-11T14:07:16.338+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-11T14:07:16.339+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-11T14:07:16.387+02:00 INFO  [main] c.a.core.configuration.E10ContractIT traceId= clubId= accountId= : Started E10ContractIT in 5.739 seconds (process running for 8.563)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-11T14:07:17.239+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-11T14:07:18.682+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=05c94f84-2270-4d94-87fd-6a81fa3614a1 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=05c94f84-2270-4d94-87fd-6a81fa3614a1
+2026-10-11T14:07:18.720+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6d283685-af1b-456c-baa9-326298270fd0 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=6d283685-af1b-456c-baa9-326298270fd0
+2026-10-11T14:07:18.725+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=306631ff-acc2-4133-b875-a6318f9476eb clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=306631ff-acc2-4133-b875-a6318f9476eb
+2026-10-11T14:07:18.740+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=2e1b567b-6e49-40dd-8ee7-201758c1810f clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=2e1b567b-6e49-40dd-8ee7-201758c1810f
+2026-10-11T14:07:19.032+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3a6e0f34-847a-4084-9b58-29c68c50aacd clubId=- accountId=e10-actor : Framework request rejected status=400 code=VALIDATION_ERROR traceId=3a6e0f34-847a-4084-9b58-29c68c50aacd
+2026-10-11T14:07:19.048+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=3c098015-ffed-49bc-9c81-ee10b8614ec7 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=3c098015-ffed-49bc-9c81-ee10b8614ec7
+2026-10-11T14:07:19.103+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=a97ecbbb-fe6c-474f-9719-0d67a7bf8431 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=a97ecbbb-fe6c-474f-9719-0d67a7bf8431
+2026-10-11T14:07:19.255+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d3a7cd1c-9fb8-427b-8fab-8bbccf27ff51 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=d3a7cd1c-9fb8-427b-8fab-8bbccf27ff51
+2026-10-11T14:07:19.257+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=61f63088-f522-4514-b598-d2f0b227c60c clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=61f63088-f522-4514-b598-d2f0b227c60c
+2026-10-11T14:07:19.260+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=35366696-1861-46dc-8f52-91d7975c91e4 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=35366696-1861-46dc-8f52-91d7975c91e4
+2026-10-11T14:07:19.262+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=46347fe0-ea21-4859-ac47-24295c6221a1 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=46347fe0-[redacted]
+2026-10-11T14:07:21.620+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=4b8b1dc8-46ea-4c04-8497-f0409c253785 clubId=- accountId=- : Init duration for springdoc-openapi is: 2343 ms
+2026-10-11T14:07:21.811+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=b7a8df95-2321-4d9d-bf0b-456abe4a9725 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=b7a8df95-2321-4d9d-bf0b-456abe4a9725
+2026-10-11T14:07:21.878+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e4051ff3-efd6-4797-b6ec-c4198d891065 clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=e4051ff3-efd6-4797-b6ec-c4198d891065
+[ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 13.71 s <<< FAILURE! -- in com.agilityhub.core.configuration.E10ContractIT
+[ERROR] com.agilityhub.core.configuration.E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked -- Time elapsed: 0.033 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c-1e37-4da4-9b3c-337b46d6f351"}] 
+expected: 400
+ but was: 501
+	at com.agilityhub.core.configuration.E10ContractIT.error(E10ContractIT.java:55)
+	at com.agilityhub.core.configuration.E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked(E10ContractIT.java:130)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E10ContractIT.T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked:130->error:55 [/api/v1/platform/clubs/e10-target/payment-providers/STRIPE {"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"48605f4c-1e37-4da4-9b3c-337b46d6f351"}] 
+expected: 400
+ but was: 501
+[ERROR] Tests run: 36, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

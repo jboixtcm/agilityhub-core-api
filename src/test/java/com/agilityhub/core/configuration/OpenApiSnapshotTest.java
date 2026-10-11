@@ -104,9 +104,10 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(error.at("/properties/details/additionalProperties").asBoolean()).isTrue();
         document.path("paths").fields().forEachRemaining(path -> path.getValue().forEach(operation -> {
             assertThat(strings(operation.path("tags"))).hasSize(1).noneMatch(tag -> tag.endsWith("-controller"));
-            assertThat(names(operation.path("responses"))).contains("400", "401", "403", "404", "409", "429", "500", "4XX", "5XX");
+            assertThat(names(operation.path("responses"))).contains("400", "403", "404", "429", "500", "4XX", "5XX");
+            if (!path.getKey().equals("/internal/domains/allowed")) { assertThat(names(operation.path("responses"))).contains("401", "409"); }
             // E5-T13 (review E5-T09 #8): only the S15 process routes leave out a 422 that none of their codes maps to.
-            if (!JOB_ROUTES.contains(path.getKey())) { assertThat(names(operation.path("responses"))).contains("422"); }
+            if (!JOB_ROUTES.contains(path.getKey()) && !path.getKey().equals("/internal/domains/allowed")) { assertThat(names(operation.path("responses"))).contains("422"); }
             assertThat(names(operation.path("responses"))).anyMatch(code -> code.matches("[23][0-9]{2}"));
             operation.path("responses").fields().forEachRemaining(entry -> {
                 // E5-T27 step 5 (INC-01, A7-07): the health's 503 is its own envelope, asserted below.

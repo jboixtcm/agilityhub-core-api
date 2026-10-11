@@ -1,0 +1,371 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs",
+    "success": 201,
+    "body": {
+      "apiVersion": "agilityhub.club/v1",
+      "club": {
+        "slug": "example-console",
+        "name": "Example console",
+        "locales": [
+          "ca"
+        ],
+        "defaultLocale": "ca",
+        "timeZone": "Europe/Madrid",
+        "currency": "EUR",
+        "countryProfile": "ES",
+        "status": "ONBOARDING"
+      },
+      "modules": [],
+      "theme": {
+        "colors": {
+          "primary": "#123456",
+          "background": "#ffffff",
+          "surface": "#eeeeee",
+          "text": "#000000"
+        },
+        "fontFamily": "Arial",
+        "radius": "4px",
+        "ringPalette": [],
+        "mode": "light"
+      }
+    },
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "SLUG_TAKEN",
+        "HOST_ALREADY_USED"
+      ],
+      "422": [
+        "MODULE_DEPENDENCY",
+        "HOST_RESERVED"
+      ],
+      "400": [
+        "VALIDATION_ERROR"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs/{id}",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/platform/clubs/{id}",
+    "success": 200,
+    "body": {
+      "version": 0,
+      "name": "Example updated"
+    },
+    "key": false,
+    "params": {},
+    "errors": {
+      "409": [
+        "STALE_VERSION"
+      ],
+      "422": [
+        "TIMEZONE_CHANGE_BLOCKED"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs/{id}/definition",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/domains",
+    "success": 201,
+    "body": {
+      "host": "new.example.test",
+      "app": "clubs"
+    },
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "HOST_ALREADY_USED"
+      ],
+      "422": [
+        "HOST_RESERVED"
+      ]
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/platform/clubs/{id}/domains/{host}",
+    "success": 204,
+    "body": null,
+    "key": true,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/domains/{host}/verification",
+    "success": 200,
+    "body": null,
+    "key": true,
+    "params": {},
+    "errors": {
+      "422": [
+        "HOST_NOT_VERIFIED"
+      ]
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/platform/clubs/{id}/theme",
+    "success": 200,
+    "body": {
+      "version": 0,
+      "colors": {
+        "primary": "#123456",
+        "onPrimary": "#ffffff",
+        "background": "#ffffff",
+        "surface": "#eeeeee",
+        "surfaceAlt": "#dddddd",
+        "text": "#000000",
+        "textMuted": "#333333",
+        "border": "#777777",
+        "success": "#117711",
+        "warning": "#996600",
+        "danger": "#990000",
+        "info": "#114499"
+      },
+      "fontFamily": "Arial",
+      "radius": "4px",
+      "ringPalette": [],
+      "mode": "light"
+    },
+    "key": false,
+    "params": {},
+    "errors": {
+      "422": [
+        "THEME_CONTRAST"
+      ]
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/platform/clubs/{id}/modules",
+    "success": 200,
+    "body": {
+      "version": 0,
+      "preset": "MINIM"
+    },
+    "key": false,
+    "params": {},
+    "errors": {
+      "422": [
+        "MODULE_DEPENDENCY"
+      ]
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/platform/clubs/{id}/payment-providers/{provider}",
+    "success": 200,
+    "body": {
+      "version": 0,
+      "publishableKey": "fictional-publishable",
+      "mode": "test"
+    },
+    "key": false,
+    "params": {},
+    "errors": {
+      "422": [
+        "PROVIDER_CONFIG_INVALID"
+      ]
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/platform/clubs/{id}/payment-providers/{provider}",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {
+      "version": "0"
+    },
+    "errors": {
+      "409": [
+        "PROVIDER_IN_USE"
+      ]
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/payment-providers/stripe/test",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {
+      "422": [
+        "STRIPE_CONNECTION_FAILED"
+      ]
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/platform/clubs/{id}/parameters/{key}",
+    "success": 200,
+    "body": {
+      "version": 0,
+      "value": true
+    },
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/catalog-clone",
+    "success": 200,
+    "body": {
+      "fromClubId": "e10-source",
+      "parts": [
+        "LEVELS"
+      ]
+    },
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "CATALOG_NOT_EMPTY"
+      ],
+      "422": [
+        "CURRENCY_MISMATCH"
+      ],
+      "404": [
+        "TEMPLATE_CLUB_NOT_FOUND"
+      ]
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs/{id}/admins",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/admins",
+    "success": 201,
+    "body": {
+      "email": "console@example.test",
+      "name": "Example Admin"
+    },
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "LAST_ADMIN",
+        "MEMBERSHIP_EXISTS"
+      ]
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/platform/clubs/{id}/admins/{accountId}",
+    "success": 204,
+    "body": null,
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "LAST_ADMIN"
+      ]
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/platform/clubs/{id}/status",
+    "success": 200,
+    "body": {
+      "status": "SUSPENDED",
+      "reason": "Example pause"
+    },
+    "key": true,
+    "params": {},
+    "errors": {
+      "409": [
+        "INVALID_STATE"
+      ]
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/support-access",
+    "success": 201,
+    "body": {
+      "reason": "Example support"
+    },
+    "key": true,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{id}/public-api-key",
+    "success": 201,
+    "body": null,
+    "key": true,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs/{id}/usage",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {
+      "month": "2026-10"
+    },
+    "errors": {}
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/clubs/{id}/checklist",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/club-templates",
+    "success": 200,
+    "body": null,
+    "key": false,
+    "params": {},
+    "errors": {}
+  }
+]

@@ -1,0 +1,344 @@
+{
+  "PlatformDomain": {
+    "host": "club.example.test",
+    "app": "clubs",
+    "status": "BROKEN",
+    "verifiedAt": null,
+    "primary": true
+  },
+  "OnboardingChecklist": {
+    "dns": false,
+    "sepa": false,
+    "branding": false,
+    "templates": false,
+    "faq": false,
+    "legal": false,
+    "firstAdmin": false
+  },
+  "PlatformClubUsage": {
+    "month": "2026-10",
+    "membersActive": 0,
+    "smsSentMonth": 0,
+    "storageBytes": 0
+  },
+  "PlatformProviderSummary": {
+    "enabled": true,
+    "configured": false,
+    "masked": null,
+    "last4": null,
+    "mode": null,
+    "lastTestAt": null
+  },
+  "PlatformClub": {
+    "id": "club-example",
+    "slug": "club-example",
+    "name": "Example club",
+    "legalName": null,
+    "taxId": null,
+    "address": null,
+    "displayCity": null,
+    "contactEmail": null,
+    "contactPhone": null,
+    "websiteUrl": null,
+    "locales": [
+      "ca",
+      "es",
+      "en"
+    ],
+    "defaultLocale": "ca",
+    "timeZone": "Europe/Madrid",
+    "currency": "EUR",
+    "countryProfile": "ES",
+    "domains": [
+      {
+        "host": "club.example.test",
+        "app": "clubs",
+        "status": "BROKEN",
+        "verifiedAt": null,
+        "primary": true
+      }
+    ],
+    "theme": {
+      "colors": {
+        "primary": "#123456",
+        "onPrimary": "#ffffff",
+        "background": "#ffffff",
+        "surface": "#eeeeee",
+        "surfaceAlt": "#dddddd",
+        "text": "#000000",
+        "textMuted": "#333333",
+        "border": "#777777",
+        "success": "#117711",
+        "warning": "#996600",
+        "danger": "#990000",
+        "info": "#114499"
+      },
+      "fontFamily": "Arial",
+      "radius": "4px",
+      "ringPalette": [],
+      "mode": "light",
+      "logoUrl": null,
+      "logoDarkUrl": null,
+      "markUrl": null
+    },
+    "modules": [],
+    "paymentProviders": {
+      "STRIPE": {
+        "enabled": true,
+        "configured": false,
+        "masked": null,
+        "last4": null,
+        "mode": null,
+        "lastTestAt": null
+      }
+    },
+    "legal": {
+      "privacyPolicyUrl": "https://example.test/privacy",
+      "imageConsentText": {
+        "ca": "Text CA",
+        "es": "Texto ES",
+        "en": "Text EN"
+      },
+      "legalTextsVersion": "v1"
+    },
+    "status": "ONBOARDING",
+    "template": false,
+    "notes": null,
+    "onboardingChecklist": {
+      "dns": false,
+      "sepa": false,
+      "branding": false,
+      "templates": false,
+      "faq": false,
+      "legal": false,
+      "firstAdmin": false
+    },
+    "usage": {
+      "month": "2026-10",
+      "membersActive": 0,
+      "smsSentMonth": 0,
+      "storageBytes": 0
+    },
+    "version": 0,
+    "createdAt": "2026-10-11T10:00:00Z",
+    "updatedAt": "2026-10-11T10:00:00Z"
+  },
+  "PlatformClubListItem": {
+    "id": "club-example",
+    "name": "Example club",
+    "slug": "club-example",
+    "status": "ONBOARDING",
+    "countryProfile": "ES",
+    "timeZone": "Europe/Madrid",
+    "modules": [],
+    "template": false,
+    "usage": {
+      "month": "2026-10",
+      "membersActive": 0,
+      "smsSentMonth": 0,
+      "storageBytes": 0
+    },
+    "onboardingChecklist": {
+      "dns": false,
+      "sepa": false,
+      "branding": false,
+      "templates": false,
+      "faq": false,
+      "legal": false,
+      "firstAdmin": false
+    },
+    "lastAdminAccessAt": null
+  },
+  "PlatformClubPage": {
+    "items": [
+      {
+        "id": "club-example",
+        "name": "Example club",
+        "slug": "club-example",
+        "status": "ONBOARDING",
+        "countryProfile": "ES",
+        "timeZone": "Europe/Madrid",
+        "modules": [],
+        "template": false,
+        "usage": {
+          "month": "2026-10",
+          "membersActive": 0,
+          "smsSentMonth": 0,
+          "storageBytes": 0
+        },
+        "onboardingChecklist": {
+          "dns": false,
+          "sepa": false,
+          "branding": false,
+          "templates": false,
+          "faq": false,
+          "legal": false,
+          "firstAdmin": false
+        },
+        "lastAdminAccessAt": null
+      }
+    ],
+    "page": 0,
+    "size": 50,
+    "totalItems": 1,
+    "totalPages": 1
+  },
+  "PlatformClubCreated": {
+    "club": {
+      "id": "club-example",
+      "slug": "club-example",
+      "name": "Example club",
+      "legalName": null,
+      "taxId": null,
+      "address": null,
+      "displayCity": null,
+      "contactEmail": null,
+      "contactPhone": null,
+      "websiteUrl": null,
+      "locales": [
+        "ca",
+        "es",
+        "en"
+      ],
+      "defaultLocale": "ca",
+      "timeZone": "Europe/Madrid",
+      "currency": "EUR",
+      "countryProfile": "ES",
+      "domains": [
+        {
+          "host": "club.example.test",
+          "app": "clubs",
+          "status": "BROKEN",
+          "verifiedAt": null,
+          "primary": true
+        }
+      ],
+      "theme": {
+        "colors": {
+          "primary": "#123456",
+          "onPrimary": "#ffffff",
+          "background": "#ffffff",
+          "surface": "#eeeeee",
+          "surfaceAlt": "#dddddd",
+          "text": "#000000",
+          "textMuted": "#333333",
+          "border": "#777777",
+          "success": "#117711",
+          "warning": "#996600",
+          "danger": "#990000",
+          "info": "#114499"
+        },
+        "fontFamily": "Arial",
+        "radius": "4px",
+        "ringPalette": [],
+        "mode": "light",
+        "logoUrl": null,
+        "logoDarkUrl": null,
+        "markUrl": null
+      },
+      "modules": [],
+      "paymentProviders": {
+        "STRIPE": {
+          "enabled": true,
+          "configured": false,
+          "masked": null,
+          "last4": null,
+          "mode": null,
+          "lastTestAt": null
+        }
+      },
+      "legal": {
+        "privacyPolicyUrl": "https://example.test/privacy",
+        "imageConsentText": {
+          "ca": "Text CA",
+          "es": "Texto ES",
+          "en": "Text EN"
+        },
+        "legalTextsVersion": "v1"
+      },
+      "status": "ONBOARDING",
+      "template": false,
+      "notes": null,
+      "onboardingChecklist": {
+        "dns": false,
+        "sepa": false,
+        "branding": false,
+        "templates": false,
+        "faq": false,
+        "legal": false,
+        "firstAdmin": false
+      },
+      "usage": {
+        "month": "2026-10",
+        "membersActive": 0,
+        "smsSentMonth": 0,
+        "storageBytes": 0
+      },
+      "version": 0,
+      "createdAt": "2026-10-11T10:00:00Z",
+      "updatedAt": "2026-10-11T10:00:00Z"
+    },
+    "checklist": {
+      "dns": false,
+      "sepa": false,
+      "branding": false,
+      "templates": false,
+      "faq": false,
+      "legal": false,
+      "firstAdmin": false
+    }
+  },
+  "DomainVerification": {
+    "status": "VERIFIED",
+    "checkedAt": "2026-10-11T10:00:00Z",
+    "method": "CNAME"
+  },
+  "PlatformModules": {
+    "modules": [],
+    "version": 0
+  },
+  "ProviderConnectionTest": {
+    "ok": true,
+    "accountName": "Example account",
+    "mode": "test"
+  },
+  "CatalogCloneResult": {
+    "copied": {
+      "LEVELS": 2
+    },
+    "warnings": []
+  },
+  "PlatformAdmin": {
+    "accountId": "example-admin",
+    "name": "Example Admin",
+    "email": "admin@example.test",
+    "membershipStatus": "ACTIVE",
+    "lastAccessAt": null
+  },
+  "SupportAccess": {
+    "token": "fictional-support-value",
+    "expiresAt": "2026-10-11T11:00:00Z"
+  },
+  "PublicApiKey": {
+    "apiKey": "fictional-public-value"
+  },
+  "PlatformClubTemplate": {
+    "id": "example-template",
+    "name": "Example template",
+    "locales": [
+      "ca",
+      "es",
+      "en"
+    ],
+    "currency": "EUR"
+  },
+  "PlatformClubLegal": {
+    "privacyPolicyUrl": "https://example.test/privacy",
+    "imageConsentText": {
+      "ca": "Text CA",
+      "es": "Texto ES",
+      "en": "Text EN"
+    },
+    "legalTextsVersion": "v1"
+  }
+}

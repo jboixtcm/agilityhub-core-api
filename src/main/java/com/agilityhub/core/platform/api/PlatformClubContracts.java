@@ -1,0 +1,131 @@
+package com.agilityhub.core.platform.api;
+
+import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.platform.domain.Theme;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.AccessMode.WRITE_ONLY;
+
+/** S17 console projections: configuration and aggregate usage only; never a persistence Club. */
+public final class PlatformClubContracts {
+    private PlatformClubContracts() { }
+    public enum ClubStatus { ONBOARDING, ACTIVE, SUSPENDED }
+    public enum DomainStatus { PENDING, VERIFIED, BROKEN }
+    public enum DomainApp { @com.fasterxml.jackson.annotation.JsonProperty("clubs") CLUBS, @com.fasterxml.jackson.annotation.JsonProperty("clubs-admin") CLUBS_ADMIN }
+    public enum ModulePreset { COMPLET, MINIM, CANIC }
+    public enum Provider { SEPA_XML, STRIPE, MANUAL }
+    public enum StripeMode { @com.fasterxml.jackson.annotation.JsonProperty("test") TEST, @com.fasterxml.jackson.annotation.JsonProperty("live") LIVE }
+    public enum CatalogPart { LEVELS, RINGS, PLANS, FAQ, MESSAGE_TEMPLATES }
+    public enum VerificationMethod { CNAME, TXT }
+    public record PlatformDomain(String host, DomainApp app, DomainStatus status,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant verifiedAt, boolean primary) { }
+    public record OnboardingChecklist(boolean dns,
+            @Schema(description="At least one configured payment provider when BILLING is enabled; legacy model key.") boolean sepa,
+            boolean branding, boolean templates, boolean faq, boolean legal, boolean firstAdmin) { }
+    public record PlatformClubLegal(@NotBlank String privacyPolicyUrl, @NotNull Map<String,String> imageConsentText, @NotBlank String legalTextsVersion) { }
+    public record PlatformClubUsage(String month, long membersActive, long smsSentMonth, long storageBytes) { }
+    public record PlatformProviderSummary(boolean enabled, boolean configured,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String masked,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="Last four characters of the publishable key only.") String last4,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) StripeMode mode,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastTestAt) { }
+    public record PlatformClub(String id, String slug, String name,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String legalName,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String taxId,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) SettingsContracts.ClubAddress address,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String displayCity,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String contactEmail,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String contactPhone,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String websiteUrl,
+            List<String> locales, String defaultLocale, String timeZone, String currency, String countryProfile,
+            List<PlatformDomain> domains, Theme theme, Set<Module> modules,
+            Map<Provider,PlatformProviderSummary> paymentProviders,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) @Valid PlatformClubLegal legal,
+            ClubStatus status, boolean template,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String notes,
+            OnboardingChecklist onboardingChecklist, PlatformClubUsage usage, long version,
+            Instant createdAt, Instant updatedAt) { }
+    public record PlatformClubListItem(String id,
+            @Schema(requiredMode=NOT_REQUIRED) String name,
+            @Schema(requiredMode=NOT_REQUIRED) String slug,
+            @Schema(requiredMode=NOT_REQUIRED) ClubStatus status,
+            @Schema(requiredMode=NOT_REQUIRED) String countryProfile,
+            @Schema(requiredMode=NOT_REQUIRED) String timeZone,
+            @Schema(requiredMode=NOT_REQUIRED) Set<Module> modules,
+            @Schema(requiredMode=NOT_REQUIRED) boolean template,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastAdminAccessAt,
+            @Schema(requiredMode=NOT_REQUIRED) PlatformClubUsage usage,
+            @Schema(requiredMode=NOT_REQUIRED) OnboardingChecklist onboardingChecklist) { }
+    public record PlatformClubPage(List<PlatformClubListItem> items, int page, int size, long totalItems, int totalPages) { }
+    public record PlatformClubCreated(PlatformClub club, OnboardingChecklist checklist) { }
+    public record PlatformClubPatch(@NotNull @PositiveOrZero Long version,
+            @Schema(requiredMode=NOT_REQUIRED) @Size(min=1) String name,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String legalName,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String taxId,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) @Valid SettingsContracts.ClubAddress address,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String displayCity,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) @Email String contactEmail,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String contactPhone,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String websiteUrl,
+            @Schema(requiredMode=NOT_REQUIRED) @Size(min=1) List<@Pattern(regexp="ca|es|en") String> locales,
+            @Schema(requiredMode=NOT_REQUIRED) @Pattern(regexp="ca|es|en") String defaultLocale,
+            @Schema(requiredMode=NOT_REQUIRED) @Size(min=1) String timeZone,
+            @Schema(requiredMode=NOT_REQUIRED) @Pattern(regexp="[A-Z]{3}") String currency,
+            @Schema(requiredMode=NOT_REQUIRED) @Pattern(regexp="ES|GENERIC") String countryProfile,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) @Valid PlatformClubLegal legal,
+            @Schema(requiredMode=NOT_REQUIRED) Boolean template,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) String notes) { }
+    public record PlatformDomainRequest(@NotBlank @Pattern(regexp="[A-Za-z0-9.-]+") String host, @NotNull DomainApp app) { }
+    public record DomainVerification(DomainStatus status, Instant checkedAt, VerificationMethod method) { }
+    public record PlatformThemeRequest(@NotNull @PositiveOrZero Long version,
+            @NotNull @Valid Theme.Colors colors, @NotBlank String fontFamily, @NotBlank String radius,
+            @NotNull List<String> ringPalette, @NotNull Theme.Mode mode,
+            @Schema(requiredMode=NOT_REQUIRED, description="Uploaded object key; never a local path.") String logoFileKey,
+            @Schema(requiredMode=NOT_REQUIRED) String logoDarkFileKey,
+            @Schema(requiredMode=NOT_REQUIRED) String markFileKey) { }
+    public record PlatformModulesRequest(@NotNull @PositiveOrZero Long version,
+            @Schema(requiredMode=NOT_REQUIRED) Set<@NotNull Module> modules,
+            @Schema(requiredMode=NOT_REQUIRED) ModulePreset preset) {
+        @com.fasterxml.jackson.annotation.JsonIgnore @AssertTrue(message="Choose modules or preset")
+        public boolean isSelectionValid() { return (modules==null)!=(preset==null); }
+    }
+    public record PlatformModules(Set<Module> modules, long version) { }
+    @Schema(description="Provider-specific configuration. STRIPE requires publishableKey and mode; SEPA_XML requires creditorName, creditorId, iban and suffix; MANUAL requires instructions. Secrets are write-only. Omitted Stripe secrets preserve stored values.")
+    public record PlatformProviderRequest(@NotNull @PositiveOrZero Long version,
+            @Schema(requiredMode=NOT_REQUIRED) Boolean enabled,
+            @com.fasterxml.jackson.annotation.JsonProperty(access=com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+            @Schema(requiredMode=NOT_REQUIRED, accessMode=WRITE_ONLY) String secretKey,
+            @com.fasterxml.jackson.annotation.JsonProperty(access=com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+            @Schema(requiredMode=NOT_REQUIRED, accessMode=WRITE_ONLY) String webhookSecret,
+            @Schema(requiredMode=NOT_REQUIRED) String publishableKey,
+            @Schema(requiredMode=NOT_REQUIRED) StripeMode mode,
+            @Schema(requiredMode=NOT_REQUIRED) String creditorName,
+            @Schema(requiredMode=NOT_REQUIRED) String creditorId,
+            @com.fasterxml.jackson.annotation.JsonProperty(access=com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+            @Schema(requiredMode=NOT_REQUIRED, accessMode=WRITE_ONLY) String iban,
+            @Schema(requiredMode=NOT_REQUIRED) String suffix,
+            @Schema(requiredMode=NOT_REQUIRED) Map<String,String> instructions) {
+        @Override public String toString() { return "PlatformProviderRequest[redacted]"; }
+    }
+    public record ProviderConnectionTest(boolean ok, String accountName, StripeMode mode) { }
+    public record CatalogCloneRequest(@NotBlank String fromClubId, @NotEmpty Set<@NotNull CatalogPart> parts) { }
+    public record CatalogCloneResult(Map<CatalogPart,Integer> copied, List<String> warnings) { }
+    public record PlatformAdmin(String accountId, String name, String email, String membershipStatus,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastAccessAt) { }
+    public record PlatformAdminRequest(@NotBlank @Email String email, @NotBlank String name) { }
+    public record PlatformClubStatusRequest(@NotNull ClubStatus status,
+            @Schema(requiredMode=NOT_REQUIRED) String reason) {
+        @com.fasterxml.jackson.annotation.JsonIgnore @AssertTrue(message="Suspension requires a reason")
+        public boolean isReasonValid() { return status!=ClubStatus.SUSPENDED || reason!=null&&!reason.isBlank(); }
+    }
+    public record SupportAccessRequest(@NotBlank String reason) { }
+    public record SupportAccess(String token, Instant expiresAt) { }
+    public record PublicApiKey(String apiKey) { }
+    public record PlatformClubTemplate(String id, String name, List<String> locales, String currency) { }
+}
