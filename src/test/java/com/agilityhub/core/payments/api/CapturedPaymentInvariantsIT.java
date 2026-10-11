@@ -654,7 +654,46 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("processedAt").is(null)), "stripe_events")).isZero();
     }
 
-    @Test void T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent() throws Exception {
+    @ParameterizedTest(name = "pending dashboard refund ends {0}, credit on second row {1}")
+    @org.junit.jupiter.params.provider.CsvSource({"succeeded,false", "failed,false", "succeeded,true", "failed,true"})
+    void T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String outcome, boolean second) throws Exception {
+        sharedCapture();
+        notificationRecipients("ca");
+        String creditedPayment = second ? "inv-payment-b" : paymentId;
+        tenant(() -> refunds.compensate(creditedPayment, "CREDIT", false));
+        bill(second ? "inv-booking-b" : BOOKING);
+        var pending = dashboardRefund(1200, "pending");
+        dashboardRefund(500, "succeeded");
+        assertThat(allRefunded() + allCredited()).isEqualTo(1700);
+        assertThat(overpaid()).as("no actual overpayment while R1 is pending").isZero();
+        assertThat(events("UpfrontRefundIntervention")).isEmpty();
+        terminate(pending, outcome, "evt_round3_terminal");
+        terminate(pending, outcome, "evt_round3_duplicate");
+        recovery.recover();
+        long expected = "succeeded".equals(outcome) ? 500 : 0;
+        assertThat(overpaid()).isEqualTo(expected);
+        var notices = events("UpfrontRefundIntervention");
+        assertThat(notices).hasSize(expected == 0 ? 0 : 1);
+        if (expected > 0) {
+            assertThat(notices).singleElement().satisfies(event -> {
+                var payload = event.get("payload", Document.class);
+                assertThat(payload.getString("paymentId")).isEqualTo(creditedPayment);
+                assertThat(payload.getString("reason")).isEqualTo("REFUND_OVER_CREDIT");
+                assertThat(amount(payload, "amount")).isEqualTo(500);
+            });
+            assertThat(interventions()).singleElement().satisfies(entry -> {
+                assertThat(entry.getString("reason")).isEqualTo("REFUND_OVER_CREDIT");
+                assertThat(amount(entry.get("details", Document.class), "overpaid")).isEqualTo(500);
+            });
+            deliverInterventions(1, "ca", "5");
+        } else { deliverInterventions(0, "ca"); }
+        sharedOverpaymentInvariant();
+    }
+
+    @Test void T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent() throws Exception { sharedSequences(false); }
+    @Test void T_12_17_e8t12_round3_point2_sharedSequencesBillCreditsAndReportActualOverpayment() throws Exception { sharedSequences(true); }
+
+    void sharedSequences(boolean billCredits) throws Exception {
         var reach = new TreeSet<String>();
         for (int seed = 1; seed <= 32; seed++) {
             reset(); sharedCapture();
@@ -663,7 +702,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
             try {
                 for (int step = 0; step < STEPS; step++) {
                     clock.setInstant(clock.instant().plusSeconds(360));
-                    int choice = random.nextInt(7);
+                    int choice = random.nextInt(billCredits ? 8 : 7);
                     if (choice == 0 || stripe.isEmpty() && pendingCommands().isEmpty()) {
                         String target = random.nextBoolean() ? paymentId : "inv-payment-b";
                         long requested = 1 + random.nextInt(1200);
@@ -685,7 +724,12 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                         long free = Math.min(available(), intentCaptured - allRefunded() - allReserved());
                         if (free > 0) { dashboardRefund(1 + random.nextInt((int) free), random.nextBoolean() ? "pending" : "succeeded"); }
                         trace.add("dashboard");
-                    } else if (choice == 3) { trace.add(webhook(random)); }
+                    } else if (choice == 3) { trace.add(webhook(random, !billCredits)); }
+                    else if (choice == 7) {
+                        String booking = random.nextBoolean() ? BOOKING : "inv-booking-b";
+                        if (bill(booking)) { reach.add("credit-billed"); }
+                        trace.add("bill " + booking);
+                    }
                     else if (choice == 4) { recovery.recover(); trace.add("recover"); }
                     else {
                         String target = random.nextBoolean() ? paymentId : "inv-payment-b";
@@ -694,14 +738,17 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                         trace.add("cancel " + policy);
                     }
                     reach.add(trace.getLast().split(" ")[0]);
-                    sharedInvariants();
+                    sharedInvariants(billCredits);
+                    if (billCredits && overpaid() > 0) { reach.add("actual-overpayment"); }
+                    if (billCredits && allReserved() > 0 && allCredited() > 0 && overpaid() == 0) { reach.add("pending-with-credit"); }
                 }
-                drain(random); sharedInvariants();
+                drain(random); sharedInvariants(billCredits);
                 assertThat(allReserved()).isZero();
             } catch (Exception | AssertionError failure) { throw new AssertionError("shared seed " + seed + " after " + trace, failure); }
         }
         assertThat(reach).contains("accepted", "refused", "dashboard", "webhook", "execute", "recover", "cancel");
-        System.out.println("E8-T12 round 2 shared generator: 32 seeds x " + STEPS + " steps; " + reach);
+        if (billCredits) { assertThat(reach).contains("bill", "credit-billed", "actual-overpayment", "pending-with-credit"); }
+        System.out.println("E8-T12 shared generator, billed credits " + billCredits + ": 32 seeds x " + STEPS + " steps; " + reach);
     }
 
     @Test void T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit() throws Exception {
@@ -879,13 +926,28 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 + mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI).and("status").is("pending")), Document.class, "stripe_refunds")
                 .stream().filter(row -> !linked.contains(row.getString("_id").substring(CLUB.length() + 1))).mapToLong(this::amount).sum();
     }
-    void sharedInvariants() {
-        assertThat(allRefunded() + allReserved() + allCredited()).as("one capture allowance, including credits").isLessThanOrEqualTo(intentCaptured);
+    void sharedInvariants() { sharedInvariants(false); }
+    void sharedInvariants(boolean billedCredits) {
+        if (!billedCredits) {
+            assertThat(allRefunded() + allReserved() + allCredited()).as("one capture allowance, including credits").isLessThanOrEqualTo(intentCaptured);
+        } else {
+            assertThat(allRefunded() + allReserved()).as("provider capture allowance").isLessThanOrEqualTo(intentCaptured);
+            sharedOverpaymentInvariant();
+        }
         for (var row : intentRows()) { assertThat(refundRows(row).stream().mapToLong(this::amount).sum()).isBetween(0L, CAPTURED); }
         for (var refund : stripe.values()) {
             var state = mongo.findById(CLUB + ":" + refund.id(), Document.class, "stripe_refunds");
             long allocated = intentRows().stream().flatMap(row -> refundRows(row).stream()).filter(r -> refund.id().equals(r.getString("providerRef"))).mapToLong(this::amount).sum();
             assertThat(allocated).as("settled allocation for %s", refund.id()).isEqualTo(state != null && "succeeded".equals(state.getString("status")) ? refund.amount() : 0);
+        }
+    }
+
+    /** Independent capture-wide oracle: reservations do not contribute to money already overpaid. */
+    void sharedOverpaymentInvariant() {
+        long actual = Math.max(0, allRefunded() + allCredited() - intentCaptured);
+        assertThat(overpaid()).as("reported overpayment never exceeds the whole intent's real overpayment").isBetween(0L, actual);
+        if (allReserved() == 0) {
+            assertThat(overpaid()).as("all final outcomes report the exact overpayment").isEqualTo(actual);
         }
     }
 
@@ -1050,7 +1112,9 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         return "dashboard refund " + refund.current();
     }
 
-    String webhook(Random random) throws Exception {
+    String webhook(Random random) throws Exception { return webhook(random, true); }
+    // The billed variant compares append-only notices with final outcomes; the original generators also exercise reversals.
+    String webhook(Random random, boolean allowSuccessReversal) throws Exception {
         if (stripe.isEmpty()) { return "webhook nothing"; }
         int dice = random.nextInt(10);
         if (dice < 2 && !deliveries.isEmpty()) {
@@ -1063,7 +1127,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         if ("pending".equals(refund.current()) && dice < 8) {
             status = List.of("succeeded", "succeeded", "failed", "canceled").get(random.nextInt(4));
             refund.history().add(status);
-        } else if ("succeeded".equals(refund.current()) && dice < 4) {
+        } else if (allowSuccessReversal && "succeeded".equals(refund.current()) && dice < 4) {
             status = "failed";
             refund.history().add(status);
         } else {
@@ -1266,9 +1330,11 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         configs.invalidate(CLUB);
         enabled = on;
     }
-    void bill() {
-        mongo.updateFirst(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(BOOKING).and("invoiceId").is(null)),
-                new Update().set("invoiceId", "inv-billed"), "pending_charges");
+    void bill() { bill(BOOKING); }
+    boolean bill(String booking) {
+        return mongo.updateFirst(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(booking).and("invoiceId").is(null)
+                        .and("voidedAt").is(null).and("amount.amountMinor").lt(0)),
+                new Update().set("invoiceId", "inv-billed"), "pending_charges").getModifiedCount() > 0;
     }
     void tenant(Runnable work) { try (var tenant = TenantContext.open(CLUB)) { work.run(); } }
     <T> T tenant(Supplier<T> work) { try (var tenant = TenantContext.open(CLUB)) { return work.get(); } }

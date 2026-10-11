@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E8-T12 round 3 (E104): billed-credit overpayment is calculated once across the whole Stripe intent, after settlement and unbilled-credit reductions. Pending refund placement cannot create an overpayment notification. Shared-checkout regressions cover both pending-refund outcomes and both credit locations; the generator now bills credits and independently checks reported versus actual capture-wide overpayment.
+
 - E8-T12 round 2 (E103): shared checkout rows use one serialized refund allowance per Stripe payment intent, with consistent allocation of local and dashboard reservations and settlements. External repayments of expired captures reconcile against their original late-refund operation; N-55 reports only the remainder after settled and pending repayments and closes the balance at zero. Regressions cover both settlement orders, concurrent rows, shared cancellation credits, and generated shared-checkout and late-repayment sequences.
 - E8-T12 round 2: `main` compiles and tests again (CI of `32e9cda` and `05d0dd5` failed at test compilation). Three E11-T06 tests are aligned with the current payment code and test isolation: `PaymentRefundsSurvivorsTest` (removed `refundCompensation`, enabled refund provider, intent-wide allowance), `BillingRunServiceSurvivorsTest` (the kept skipped entry is the month incident's) and `SecurityInventoryIT` (shared club fixture saved once).
   Clean verification now passes 4,468 unit and 1,846 integration tests. Evidence includes every changed test class and checks the Maven exit; interrupted evidence runs stop their child processes.

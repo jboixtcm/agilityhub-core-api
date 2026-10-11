@@ -1,0 +1,11 @@
+surefire: tests=4468, failures=0, errors=0, skipped=0
+failsafe: tests=1851, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=67, failures=0, errors=0, skipped=0
+T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[1]: passed
+T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[2]: passed
+T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[3]: passed
+T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[4]: passed
+T_12_17_e8t12_round3_point2_sharedSequencesBillCreditsAndReportActualOverpayment: passed
+E8-T12 shared generator, billed credits false: 32 seeds x 24 steps; [accepted, cancel, dashboard, execute, recover, redeliver, refused, webhook]
+E8-T12 shared generator, billed credits true: 32 seeds x 24 steps; [accepted, actual-overpayment, bill, cancel, credit-billed, dashboard, execute, pending-with-credit, recover, redeliver, refused, webhook]
+Verification exit: 0

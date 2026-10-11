@@ -181,7 +181,7 @@ public class PaymentRefunds {
      * credit shrinks by the overshoot (voided at zero, keeping its negative amount so it never reads as a consumption charge);
      * a billed one cannot, and the admin learns how much of this refund the member received twice.
      */
-    private void absorb(UpfrontPayment payment, long refunded, long part) {
+    private void absorb(UpfrontPayment payment, long refunded) {
         if (payment.bookingId() == null) { return; }
         var credit = charges.forBooking(payment.bookingId()).filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
         if (credit == null) { return; }
@@ -191,13 +191,23 @@ public class PaymentRefunds {
         long settledExcess = refunded - current - upfront.captured(payment.id()).orElse(payment.amountPaid()).amountMinor();
         long overshoot = settledExcess + reserved;
         if (overshoot <= 0) { return; }
-        boolean absorbed = current + overshoot < 0 ? charges.credit(credit.id(), current, current + overshoot)
-                : credit.invoiceId() == null && charges.voided(credit.id(), clock.instant());
-        if (absorbed) { return; }
-        // A billed credit cannot shrink. Report only money already overpaid, not reservations that may still fail.
-        if (settledExcess <= 0 || part <= 0) { return; }
-        if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
-        reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(Math.min(part, settledExcess), payment.amountPaid().currency()));
+        if (current + overshoot < 0) { charges.credit(credit.id(), current, current + overshoot); }
+        else if (credit.invoiceId() == null) { charges.voided(credit.id(), clock.instant()); }
+    }
+    /** E104: row placement only allocates money; actual overpayment excludes every pending reservation. */
+    private long overpaid(List<UpfrontPayment> payments) {
+        return Math.max(0, payments.stream().mapToLong(p -> refunded(p) + credited(p) - captured(p)).sum());
+    }
+    private void reportOverpayment(String intent, long previous) {
+        var payments = upfront.forIntent(intent);
+        long increment = overpaid(payments) - previous;
+        if (increment <= 0) { return; }
+        // All settlements and unbilled credit reductions are visible before choosing the billed credit's audit subject.
+        var billed = credits(payments, true);
+        payments.stream().filter(p -> billed.containsKey(p.id())).findFirst().ifPresent(payment -> {
+            if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+            reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(increment, payment.amountPaid().currency()));
+        });
     }
     private void reconsiderCompensation(String intent) {
         refundStates.lockIntent(intent);
@@ -206,7 +216,7 @@ public class PaymentRefunds {
             upfront.lock(payment.id());
             var current = upfront.findById(payment.id()).orElseThrow();
             long refunded = current.refunds() == null ? 0 : current.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
-            absorb(current, refunded, 0);
+            absorb(current, refunded);
             compensateRemaining(current);
         }
     }
@@ -490,6 +500,7 @@ public class PaymentRefunds {
             if (refunds.stream().anyMatch(r -> r.providerRef().equals(refundId))) { return false; }
         }
         var parts = settlementParts(intent, amount.amountMinor(), operation);
+        long previousOverpaid = overpaid(payments);
         for (var payment : payments) {
             long paid = payment.amountPaid().amountMinor();
             long refunded = payment.refunds() == null ? 0 : payment.refunds().stream().mapToLong(r -> r.amount().amountMinor()).sum();
@@ -497,10 +508,11 @@ public class PaymentRefunds {
             if (part > 0) {
                 upfront.refund(payment.id(), new UpfrontPayment.Refund(new Money(part, amount.currency()), refundId, at, reason, actor), part + refunded == paid);
                 audit.refunded("UpfrontPayment", payment.id(), new Money(part, amount.currency()), refundId, reason);
-                absorb(payment, refunded + part, part);
                 changed = true;
             }
         }
+        for (var payment : upfront.forIntent(intent)) { absorb(payment, refunded(payment)); }
+        reportOverpayment(intent, previousOverpaid);
         return changed;
     }
     private PaymentOperation lateOperation(String intent) {
