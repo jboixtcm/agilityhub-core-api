@@ -71,6 +71,7 @@ public class AttachmentsController {
         else if (!anyRole("ADMIN", "MEMBER")) { throw new ApiException(FORBIDDEN); }
         // E6-T03 round 5 (INC-47): a new grant each time, but the first grant of a database creates the grants' collection,
         // and a second transaction doing the same meets a write conflict: retried, never a 500.
+        if ("CLUB_LOGO".equals(request.purpose())) { throw new ApiException(FORBIDDEN); }
         return transactions.keyed(201, () -> attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes()),
                 KeyedAnswers.json(mapper));
     }

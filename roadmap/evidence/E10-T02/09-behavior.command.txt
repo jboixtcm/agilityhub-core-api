@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=PlatformConsoleIT,E10ContractIT,StripePaymentProviderTest,EventCatalogContractTest -Dsurefire.excludes= test

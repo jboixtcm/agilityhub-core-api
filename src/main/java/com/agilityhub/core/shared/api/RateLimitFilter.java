@@ -87,6 +87,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
 
     private Route route(String method, String path, boolean authenticated) {
         if (method.equals("OPTIONS") || path.equals("/api/v1/health")) { return null; }
+        if (path.startsWith("/api/v1/platform/")) { return authenticated ? Route.ME : Route.ANONYMOUS; }
         if (path.startsWith("/webhooks/stripe/")) { return Route.STRIPE_WEBHOOK; }
         if (method.equals("GET") && path.matches("/api/v1/checkout-sessions/[^/]+")) { return Route.CHECKOUT_STATUS; }
         if (path.startsWith("/webhooks/")) { return Route.WEBHOOK; }

@@ -20,6 +20,8 @@ import static com.agilityhub.core.platform.api.AuditContracts.*;
 /** Tenant audit reads; RGPD and platform operations retain their later-vertical contracts. */
 @RestController
 public class AuditController {
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.PlatformAuditQueries platformQueries;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final com.agilityhub.core.platform.application.audit.AuditReadService audits;
     public AuditController(com.agilityhub.core.platform.application.audit.AuditReadService audits) { this.audits = audits; }
 
@@ -116,9 +118,11 @@ public class AuditController {
             columns = {"clubId", "at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*"}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform audit entries",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+            description = "S17 R-17-12. Global platform view. Only configuration audit entries and aggregate-safe security metadata; member audit is excluded regardless of filters.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<AuditEntryListItem>"))
-    public ListPage<AuditEntryListItem> platformAuditEntries() { throw new UnsupportedOperationException(); }
+    public ListPage<AuditEntryListItem> platformAuditEntries(@io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
+        var result=platformQueries.audit(params);return new ListPage<>(result.items().stream().map(row->mapper.convertValue(row,AuditEntryListItem.class)).toList(),result.page(),result.size(),result.totalItems(),result.totalPages(),result.appliedFilters());
+    }
 
     @GetMapping("/api/v1/platform/erasure-requests")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
@@ -136,8 +140,10 @@ public class AuditController {
             columns = {"at*", "type*", "accountId", "clubId", "route"}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform security events",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+            description = "S17 R-17-12. Global platform security events. Only type, account ID, club ID, route and timestamp; no IP, credentials or request body.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<SecurityEventView>"))
-    public ListPage<SecurityEventView> platformSecurityEvents() { throw new UnsupportedOperationException(); }
+    public ListPage<SecurityEventView> platformSecurityEvents(@io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
+        var result=platformQueries.security(params);return new ListPage<>(result.items().stream().map(row->mapper.convertValue(row,SecurityEventView.class)).toList(),result.page(),result.size(),result.totalItems(),result.totalPages(),result.appliedFilters());
+    }
 
 }

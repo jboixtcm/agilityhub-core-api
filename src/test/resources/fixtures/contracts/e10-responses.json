@@ -181,7 +181,8 @@
     "page": 0,
     "size": 50,
     "totalItems": 1,
-    "totalPages": 1
+    "totalPages": 1,
+    "appliedFilters": []
   },
   "PlatformClubCreated": {
     "club": {

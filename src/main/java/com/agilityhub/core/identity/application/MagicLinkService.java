@@ -46,6 +46,27 @@ public class MagicLinkService {
         this.settings = settings; this.events = events; this.notifications = notifications; this.clients = clients;
         this.hosts = hosts; this.executor = executor; this.clock = clock; this.issuer = URI.create(issuer);
     }
+    /** S17: invitations use AgilityHub ID before a new club has a verified domain. Only the token hash is persisted. */
+    public void sendAdminInvitation(String deliveryId,String accountId,String clubName,String inviterName) {
+        if(notifications.completed(deliveryId)) return;
+        String clubId=TenantContext.require();
+        var account=accounts.findById(accountId).filter(a->a.status()==Account.Status.ACTIVE).orElse(null);
+        if(account==null||memberships.findByAccountId(accountId).filter(m->m.status()==Membership.Status.ACTIVE&&m.roles().contains(com.agilityhub.core.identity.domain.Role.ADMIN)).isEmpty()) return;
+        String value=TokenService.opaque();
+        TenantContext.clear();
+        try {
+            transactions.run(()->{
+                accounts.touchSessions(accountId);
+                var token=new MagicLinkToken(UUID.randomUUID().toString(),TokenService.digest(value),accountId,null,"id-web",MagicLinkToken.Purpose.WELCOME,
+                        null,clock.instant(),clock.instant().plus(Duration.ofDays(settings.integer("auth.welcomeLinkDays"))),null,null,null);
+                tokens.insert(token);tokens.trim(accountId,MagicLinkToken.Purpose.WELCOME,clock.instant(),token.id());return null;
+            });
+        } finally { TenantContext.open(clubId); }
+        notifications.sendOnce(deliveryId,"N-53",accountId,Map.of("club_name",clubName,"inviter_name",inviterName,
+                "link",issuer.resolve("/magic-link").toString()+"?t="+value));
+        if(!notifications.sent(deliveryId)) throw new IllegalStateException("Administrator invitation delivery deferred");
+    }
+
     /** Identical request path for known/unknown emails; lookup, persistence and delivery run after enqueueing. */
     public void request(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent) {
         String normalized = Email.normalize(email);

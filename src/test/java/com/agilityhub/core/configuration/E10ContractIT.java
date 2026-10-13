@@ -23,7 +23,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/** Contract half of S17; no DNS, provider calls or provisioning is implemented in E10-T01. */
+/** S17 contract guards remain stable as E10-T02 implements the first cut. */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E10ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, int success, JsonNode body, boolean key, Map<String,String> params, Map<String,List<String>> errors) { }
@@ -55,6 +55,8 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .authorities(new SimpleGrantedAuthority("ROLE_"+role)));
         return request;
     }
+    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
+    void success(MockHttpServletRequestBuilder request) throws Exception { mvc.perform(request).andExpect(status().isOk()); }
     void error(MockHttpServletRequestBuilder request,int status,String code) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();
         assertThat(response.getStatus()).as(request.buildRequest(new org.springframework.mock.web.MockServletContext()).getRequestURI()+" "+response.getContentAsString()).isEqualTo(status);
@@ -71,12 +73,13 @@ class E10ContractIT extends AbstractIntegrationTest {
         return result;
     }
     @ParameterizedTest @MethodSource("routes")
-    void T_17_10_R_17_12_globalPlatformRoleChecksPrecedeNoWriteStubs(Route route) throws Exception {
+    void T_17_10_R_17_12_globalPlatformRoleChecksPrecedeWrites(Route route) throws Exception {
         var before=state();
-        for(String role:List.of("ANON","MEMBER","INSTRUCTOR","ADMIN","AGILITYHUB_ADMIN")) {
+        for(String role:List.of("ANON","MEMBER","INSTRUCTOR","ADMIN")) {
             error(call(route,role),role.equals("ANON")?401:role.equals("AGILITYHUB_ADMIN")?501:403,
                     role.equals("ANON")?"UNAUTHENTICATED":role.equals("AGILITYHUB_ADMIN")?"NOT_IMPLEMENTED":"FORBIDDEN");
         }
+        if(deferred(route)) error(call(route,"AGILITYHUB_ADMIN"),501,"NOT_IMPLEMENTED");
         assertThat(state()).isEqualTo(before);
         assertThat(TenantContext.current()).isNull();
     }
@@ -86,9 +89,10 @@ class E10ContractIT extends AbstractIntegrationTest {
             var op=api.path("paths").path(r.path()).path(r.method().toLowerCase());
             assertThat(op.isMissingNode()).as(r.method()+" "+r.path()).isFalse();
             assertThat(op.path("responses").has(Integer.toString(r.success()))).isTrue();
-            assertThat(op.path("responses").path("501").path("description").asText()).contains("NOT_IMPLEMENTED");
+            if(deferred(r)) assertThat(op.path("responses").path("501").path("description").asText()).contains("NOT_IMPLEMENTED");
+            else assertThat(op.path("responses").path("501").path("description").asText()).as(r.path()).doesNotContain("NOT_IMPLEMENTED");
             for(var error:r.errors().entrySet()) for(String code:error.getValue())
-                assertThat(op.path("responses").path(error.getKey()).path("description").asText()).contains(code);
+                if(!code.equals("NOT_IMPLEMENTED")||deferred(r)) assertThat(op.path("responses").path(error.getKey()).path("description").asText()).contains(code);
             if(r.key()) assertThat(op.path("parameters").findValuesAsText("name")).contains("Idempotency-Key");
             if(r.body()!=null&&!r.body().isNull()) assertThat(op.path("requestBody").path("content").path("application/json").path("schema").toString()).contains("$ref");
         }
@@ -107,25 +111,25 @@ class E10ContractIT extends AbstractIntegrationTest {
     Route route(String method,String suffix) throws Exception {
         return routes().filter(r->r.method().equals(method)&&r.path().equals("/api/v1/platform"+suffix)).findFirst().orElseThrow();
     }
-    @Test void T_17_02_R_17_02_definitionRejectsInvalidShapeAndPlaintextSecretsBefore501() throws Exception {
+    @Test void T_17_02_R_17_02_definitionRejectsInvalidShapeAndPlaintextSecretsBeforeWrites() throws Exception {
         var route=route("POST","/clubs");
         error(call(route,"AGILITYHUB_ADMIN").content("{}"),400,"VALIDATION_ERROR");
         var body=(com.fasterxml.jackson.databind.node.ObjectNode)route.body().deepCopy();
         body.putObject("paymentProviders").putObject("STRIPE").put("enabled",true).put("secretKey","fictional-inline-secret");
         error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
         ((com.fasterxml.jackson.databind.node.ObjectNode)body.path("paymentProviders").path("STRIPE")).putObject("secretKey").put("env","EXAMPLE_STRIPE_KEY");
-        error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+        error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),422,"PROVIDER_CONFIG_INVALID");
         body.putArray("accounts").addObject().put("email","example@example.test").put("password","fictional-password");
         error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
         body.remove("accounts"); body.put("preset","COMPLET"); body.remove("modules");
         body.putObject("catalogs").put("fromTemplate","example-template");
-        error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+        error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),404,"TEMPLATE_CLUB_NOT_FOUND");
     }
     @Test void T_17_04_R_17_04_modulesRequireOneSelectionAndVersion() throws Exception {
         var route=route("PUT","/clubs/{id}/modules");
         for(String body:List.of("{}","{\"version\":0}","{\"version\":0,\"modules\":[],\"preset\":\"MINIM\"}","{\"version\":-1,\"modules\":[]}"))
             error(call(route,"AGILITYHUB_ADMIN").content(body),400,"VALIDATION_ERROR");
-        error(call(route,"AGILITYHUB_ADMIN").content("{\"version\":0,\"modules\":[]}"),501,"NOT_IMPLEMENTED");
+        success(call(route,"AGILITYHUB_ADMIN").content("{\"version\":0,\"modules\":[]}"));
     }
     @Test void T_17_05_R_17_05_providerSpecificInputsAndVersionAreChecked() throws Exception {
         var route=route("PUT","/clubs/{id}/payment-providers/{provider}");
@@ -136,13 +140,13 @@ class E10ContractIT extends AbstractIntegrationTest {
         }
         error(call(route("DELETE","/clubs/{id}/payment-providers/{provider}"),"AGILITYHUB_ADMIN").with(r->{r.setParameter("version","-1");return r;}),400,"VALIDATION_ERROR");
         error(call(route,"AGILITYHUB_ADMIN").with(r->{r.setRequestURI(r.getRequestURI().replace("STRIPE","SEPA_XML"));return r;})
-                .content("{\"version\":0,\"creditorName\":\"Example\",\"creditorId\":\"fictional\",\"iban\":\"fictional\",\"suffix\":\"000\"}"),501,"NOT_IMPLEMENTED");
-        error(call(route,"AGILITYHUB_ADMIN").with(r->{r.setRequestURI(r.getRequestURI().replace("STRIPE","MANUAL"));return r;})
-                .content("{\"version\":0,\"instructions\":{\"ca\":\"Example\"}}"),501,"NOT_IMPLEMENTED");
+                .content("{\"version\":0,\"creditorName\":\"Example\",\"creditorId\":\"fictional\",\"iban\":\"fictional\",\"suffix\":\"000\"}"),422,"PROVIDER_CONFIG_INVALID");
+        success(call(route,"AGILITYHUB_ADMIN").with(r->{r.setRequestURI(r.getRequestURI().replace("STRIPE","MANUAL"));return r;})
+                .content("{\"version\":0,\"instructions\":{\"ca\":\"Example\"}}"));
     }
     @Test void T_17_06_T_17_13_R_17_07_suspensionRequiresReasonAndEditsRequireVersion() throws Exception {
         error(call(route("PUT","/clubs/{id}/status"),"AGILITYHUB_ADMIN").content("{\"status\":\"SUSPENDED\"}"),400,"VALIDATION_ERROR");
-        error(call(route("PUT","/clubs/{id}/status"),"AGILITYHUB_ADMIN").content("{\"status\":\"ACTIVE\"}"),501,"NOT_IMPLEMENTED");
+        success(call(route("PUT","/clubs/{id}/status"),"AGILITYHUB_ADMIN").content("{\"status\":\"ACTIVE\"}"));
         error(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"name\":\"Example\"}"),400,"VALIDATION_ERROR");
         error(call(route("PUT","/clubs/{id}/theme"),"AGILITYHUB_ADMIN").content("{\"version\":0}"),400,"VALIDATION_ERROR");
     }
@@ -167,7 +171,7 @@ class E10ContractIT extends AbstractIntegrationTest {
         error(call(route,"AGILITYHUB_ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key","invalid");return r;}),400,"VALIDATION_ERROR");
         assertThat(state()).isEqualTo(before);
     }
-    @Test void T_17_10_R_17_12_unknownResourcesAndInvalidListQueriesFailBefore501() throws Exception {
+    @Test void T_17_10_R_17_12_unknownResourcesAndInvalidListQueriesFailBeforeWrites() throws Exception {
         for(var route:routes().filter(r->r.path().contains("{id}")).toList())
             error(call(route,"AGILITYHUB_ADMIN").with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
         error(call(route("POST","/clubs/{id}/domains/{host}/verification"),"AGILITYHUB_ADMIN")
@@ -176,18 +180,18 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("levels.enabled","missing.key"));return r;}),400,"UNKNOWN_PARAMETER");
         for(var param:Map.of("filter","email:eq:example@example.test","fields","secretKey","page","-1","size","17","sort","secretKey,asc").entrySet())
             error(call(route("GET","/clubs"),"AGILITYHUB_ADMIN").param(param.getKey(),param.getValue()),400,"INVALID_FILTER");
-        error(call(route("GET","/clubs"),"AGILITYHUB_ADMIN").param("filter","template:eq:true").param("fields","name,usage"),501,"NOT_IMPLEMENTED");
+        success(call(route("GET","/clubs"),"AGILITYHUB_ADMIN").param("filter","template:eq:true").param("fields","name,usage"));
         error(call(route("GET","/clubs/{id}/usage"),"AGILITYHUB_ADMIN").with(r->{r.setParameter("month","2026-13");return r;}),400,"VALIDATION_ERROR");
     }
     @Test void T_17_14_R_17_13_localizationUsesOnlySupportedLocales() throws Exception {
         error(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"version\":0,\"locales\":[\"zz\"]}"),400,"VALIDATION_ERROR");
-        error(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"version\":0,\"legal\":{\"privacyPolicyUrl\":\"https://example.test/privacy\",\"imageConsentText\":{\"ca\":\"Text\"},\"legalTextsVersion\":\"v1\"}}"),501,"NOT_IMPLEMENTED");
+        success(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"version\":0,\"legal\":{\"privacyPolicyUrl\":\"https://example.test/privacy\",\"imageConsentText\":{\"ca\":\"Text\"},\"legalTextsVersion\":\"v1\"}}"));
         for(String locale:List.of("ca","es","en"))
-            error(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"version\":0,\"locales\":[\""+locale+"\"],\"defaultLocale\":\""+locale+"\"}"),501,"NOT_IMPLEMENTED");
+            success(call(route("PATCH","/clubs/{id}"),"AGILITYHUB_ADMIN").content("{\"version\":"+clubs.findById("e10-target").orElseThrow().version()+",\"locales\":[\""+locale+"\"],\"defaultLocale\":\""+locale+"\"}"));
     }
 
-    @Test void T_17_02_R_17_02_yamlExportStillUsesTheCanonicalJsonStubError() throws Exception {
-        error(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml"),501,"NOT_IMPLEMENTED");
+    @Test void T_17_02_R_17_02_yamlExportUsesCanonicalJsonForErrors() throws Exception {
+        success(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml"));
         error(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml")
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
     }

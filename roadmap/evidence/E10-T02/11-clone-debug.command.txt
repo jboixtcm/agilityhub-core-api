@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=PlatformConsoleIT#T_17_07_R_17_08_cloneCopiesCurrentPricesLocalizedTextAndStripsGeometry' -Dsurefire.excludes= test

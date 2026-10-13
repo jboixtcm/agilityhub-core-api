@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ClubRepository extends GlobalRepository<Club> {
     public ClubRepository(MongoTemplate mongo) { super(mongo, Club.class); }
+    public java.util.List<Club> findAll() { return mongo.findAll(Club.class); }
     public Optional<Club> findByHost(String host) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("domains").elemMatch(
                 Criteria.where("host").is(host).and("status").is(Club.DomainStatus.VERIFIED))), Club.class));
@@ -97,6 +98,18 @@ public class ClubRepository extends GlobalRepository<Club> {
     /** A series is user text (`billing.invoiceSeriesPattern`): `.` and `$` would split the field path. */
     public static String counterKey(String key) { return key.replace('.', '_').replace('$', '_'); }
     private static String counterField(String key) { return "billing.counters." + counterKey(key); }
+    /** Versioned partial writes preserve operational counters and unrelated configuration. */
+    public Club updateVersioned(String id, long version, java.util.Map<String, Object> changes, java.time.Instant now) {
+        var update = new org.springframework.data.mongodb.core.query.Update().inc("version", 1L).set("updatedAt", now);
+        changes.forEach(update::set);
+        Club result;
+        try {
+            result = mongo.findAndModify(Query.query(Criteria.where("_id").is(id).and("version").is(version)), update,
+                    org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true), Club.class);
+        } catch (org.springframework.dao.DataAccessException failure) { throw SettingsWriteConflict.translate(failure); }
+        if (result == null) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
+        return result;
+    }
     public void ensureIndexes() {
         mongo.indexOps(Club.class).ensureIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));
         mongo.indexOps(Club.class).ensureIndex(new Index().on("domains.host", Direction.ASC).unique().sparse().named("club_host"));

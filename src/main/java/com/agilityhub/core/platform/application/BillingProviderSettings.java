@@ -24,6 +24,7 @@ public class BillingProviderSettings {
                 && (suffix == null || suffix.length() == 3 && !suffix.isBlank() && com.agilityhub.core.shared.domain.SepaCharacters.containsOnly(suffix)); }
         @Override public String toString() { return "SepaCreditor[name=" + name + ", id=" + id + ", configured=" + configured() + "]"; }
     }
+    @org.springframework.beans.factory.annotation.Autowired private ConsolePaymentAccess vault;
     private final ClubRepository clubs;
     public BillingProviderSettings(ClubRepository clubs) { this.clubs = clubs; }
 
@@ -35,7 +36,7 @@ public class BillingProviderSettings {
     /** `SEPA_XML` enabled, with or without its creditor data; empty when the club does not collect by direct debit. */
     public Optional<SepaCreditor> sepaCreditor() {
         if (!(providers().get("SEPA_XML") instanceof Map<?, ?> sepa) || !PaymentProviderFlags.enabled(sepa)) { return Optional.empty(); }
-        return Optional.of(new SepaCreditor(text(sepa.get("creditorName")), text(sepa.get("creditorId")), text(sepa.get("iban")), text(sepa.get("bic")),
+        return Optional.of(new SepaCreditor(text(sepa.get("creditorName")), text(sepa.get("creditorId")), sepa.get("ibanEnc") instanceof String encrypted ? vault.decrypt(encrypted, TenantContext.require(), "SEPA_XML", "ibanEnc") : text(sepa.get("iban")), text(sepa.get("bic")),
                 sepa.get("suffix") == null ? null : sepa.get("suffix").toString()));
     }
     private Map<String, Object> providers() {

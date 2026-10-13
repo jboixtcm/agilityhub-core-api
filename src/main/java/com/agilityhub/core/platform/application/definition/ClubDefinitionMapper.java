@@ -82,7 +82,7 @@ public class ClubDefinitionMapper {
                 previous == null ? Map.of() : previous.usage(), previous == null ? null : previous.version(),
                 previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash(),
                 // E8-T01: the receipt numbering is operational state, never part of a definition; club:apply keeps it.
-                previous == null ? null : previous.billing());
+                previous == null ? null : previous.billing(), previous == null ? null : previous.notes());
     }
     /**
      * The declared providers, in the declared order, each keeping the configuration stored outside the file (S17 R-17-05).

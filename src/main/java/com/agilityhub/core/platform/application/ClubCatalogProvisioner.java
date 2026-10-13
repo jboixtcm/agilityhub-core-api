@@ -10,4 +10,6 @@ public interface ClubCatalogProvisioner {
     List<Change> plan(JsonNode catalogs);
     void provision(List<Change> changes);
     Map<String, Object> export();
+    /** Include dormant prices so copying and empty-destination checks never silently drop them. */
+    default Map<String,Object> cloneSource() { return export(); }
 }

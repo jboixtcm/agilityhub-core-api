@@ -166,4 +166,16 @@ class RateLimitIT extends IdentityIntegrationSupport {
             assertThat(event.type().name()).isEqualTo("RATE_LIMITED");
         });
     }
+    @Test void T_17_10_R_17_12_platformQuotaIsPerAccountAndRecordsSafeTelemetry() throws Exception {
+        var authority=new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN");
+        for(int index=0;index<600;index++) mvc.perform(get("/api/v1/platform/club-templates").with(jwt().jwt(j->j.subject("console-rate"))
+                .authorities(authority))).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/platform/club-templates").with(jwt().jwt(j->j.subject("console-rate")).authorities(authority)))
+                .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        mvc.perform(get("/api/v1/platform/security-events").with(jwt().jwt(j->j.subject("another-platform")).authorities(authority)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].type").value("RATE_LIMITED"))
+                .andExpect(jsonPath("$.items[0].ip").doesNotExist());
+        assertThat(mongo.findAll(SecurityEvent.class)).anySatisfy(e->{assertThat(e.accountId()).isEqualTo("console-rate");assertThat(e.route()).isEqualTo("/api/v1/platform/**");});
+    }
+
 }

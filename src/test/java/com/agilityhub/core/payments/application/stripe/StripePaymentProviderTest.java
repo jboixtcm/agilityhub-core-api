@@ -197,4 +197,17 @@ class StripePaymentProviderTest {
         }
     }
 
+    @Test void T_17_05_R_17_05_pingUsesTheConfiguredAccountAndPropagatesRejection() throws Exception {
+        configure("test","sk_test_example");doReturn(client).when(provider).newClient("sk_test_example");
+        var account=new com.stripe.model.Account();account.setId("acct_example");
+        var profile=new com.stripe.model.Account.BusinessProfile();profile.setName("Example Association");account.setBusinessProfile(profile);
+        when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenReturn(account);
+        try(var scope=TenantContext.open("club-a")) {
+            assertThat(provider.ping()).isEqualTo(new PaymentProvider.Connection(true,"Example Association","test"));
+            account.setBusinessProfile(null);assertThat(provider.ping().accountName()).isEqualTo("acct_example");
+            when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenThrow(new com.stripe.exception.AuthenticationException("Rejected",null,null,401));
+            assertThatThrownBy(provider::ping).isInstanceOf(ApiException.class);
+        }
+    }
+
 }

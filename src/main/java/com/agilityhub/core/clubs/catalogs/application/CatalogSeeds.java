@@ -106,6 +106,14 @@ public class CatalogSeeds implements ClubCatalogProvisioner {
         values.values().removeIf(Objects::isNull);
         for (Object value : values.values()) { if (value instanceof Map<?, ?> nested) { removeNulls(nested); } }
     }
+    @org.springframework.beans.factory.annotation.Autowired private PriceRepository priceRows;
+    @Override public Map<String,Object> cloneSource() {
+        var result=export();var all=new ArrayList<Map<String,Object>>();
+        for(var plan:plans.list(true)) for(var price:priceRows.forPlan(plan.id())) {
+            var data=fields(price);data.remove("planId");data.put("planCode",plan.code());all.add(data);
+        }
+        result.put("prices",all);return result;
+    }
     @Override public Map<String, Object> export() {
         var result = new LinkedHashMap<String, Object>();
         for (String section : List.of("levels", "rings", "faq")) {

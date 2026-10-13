@@ -62,7 +62,7 @@ public final class PlatformClubContracts {
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastAdminAccessAt,
             @Schema(requiredMode=NOT_REQUIRED) PlatformClubUsage usage,
             @Schema(requiredMode=NOT_REQUIRED) OnboardingChecklist onboardingChecklist) { }
-    public record PlatformClubPage(List<PlatformClubListItem> items, int page, int size, long totalItems, int totalPages) { }
+    public record PlatformClubPage(List<PlatformClubListItem> items, int page, int size, long totalItems, int totalPages, List<com.agilityhub.core.shared.application.contract.ApiContracts.Filter> appliedFilters) { }
     public record PlatformClubCreated(PlatformClub club, OnboardingChecklist checklist) { }
     public record PlatformClubPatch(@NotNull @PositiveOrZero Long version,
             @Schema(requiredMode=NOT_REQUIRED) @Size(min=1) String name,

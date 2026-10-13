@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class StripeWebhooks {
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ClubPaymentProviders clubSettings;
     private final StripeInbox inbox; private final BillingTransactions tx; private final CardPayments cards; private final PaymentRefunds refunds;
     private final CheckoutService checkouts; private final SignupCheckoutRepository sessions; private final UpfrontPaymentRepository upfront;
     private final BillingCensusAccess census; private final BillingEvents events; private final Clock clock; private final ObjectMapper mapper;
@@ -44,6 +45,7 @@ public class StripeWebhooks {
         }
     }
     public void process(String id) {
+        if (clubSettings.suspended(TenantContext.require())) return;
         try {
             var row = inbox.findById(id).orElseThrow();
             if (row.processedAt() != null) { return; }
@@ -55,6 +57,7 @@ public class StripeWebhooks {
                     ? provider.cardDetails(object) : null;
             try (var audit = com.agilityhub.core.platform.application.audit.WebhookAuditContext.open(id)) {
                 tx.run(() -> {
+                    if (clubSettings.suspended(TenantContext.require())) return null;
                     inbox.lock(id);
                     if (inbox.findById(id).orElseThrow().processedAt() != null) { return null; }
                     boolean unpaid = "checkout.session.completed".equals(row.type()) && !"paid".equals(text(object, "payment_status"));

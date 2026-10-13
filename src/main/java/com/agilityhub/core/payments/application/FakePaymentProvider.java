@@ -54,6 +54,7 @@ public class FakePaymentProvider extends FakeCheckoutGateway {
             var result = create.get(); moneyCreatedAt.put(key, clock.instant()); return result;
         });
     }
+    @Override public Connection ping() { return new Connection(true,"Fictional Stripe account","test"); }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public String createCheckoutSession(Request request) {
         String url = super.createCheckoutSession(request);

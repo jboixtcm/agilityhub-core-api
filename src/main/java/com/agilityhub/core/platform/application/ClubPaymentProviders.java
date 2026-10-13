@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 public class ClubPaymentProviders {
     private final ClubRepository clubs;
     public ClubPaymentProviders(ClubRepository clubs) { this.clubs = clubs; }
+    public boolean suspended(String clubId) {
+        return clubs.findById(clubId).map(c -> c.status() == com.agilityhub.core.platform.persistence.Club.Status.SUSPENDED).orElse(false);
+    }
     /** The club's Stripe settings; empty when no club has that id (an absent provider is an empty, disabled one). */
     public Optional<StripeProviderSettings> stripe(String clubId) {
         return clubs.findById(clubId).map(club -> StripeProviderSettings.of(club.paymentProviders()));

@@ -48,6 +48,12 @@ public class StripePaymentProvider implements PaymentProvider {
     // Reserve more than that whole budget from callTimeout(), with no SDK retries on top.
     private int connectTimeout() { return Math.toIntExact(callTimeout().toMillis() / 30); }
     private int readTimeout() { return Math.toIntExact(callTimeout().toMillis() / 10); }
+    @Override public Connection ping() {
+        var client=client(false);
+        var account=calls.call(()->client.v1().accounts().retrieveCurrent(options(null)));
+        String name=account.getBusinessProfile()==null?null:account.getBusinessProfile().getName();
+        return new Connection(true,name==null?account.getId():name,settings.stripe(TenantContext.require()).orElseThrow().mode());
+    }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public Duration callTimeout() { return MAX_CALL_TIMEOUT; }
     @Override public String createCheckoutSession(Request request) {

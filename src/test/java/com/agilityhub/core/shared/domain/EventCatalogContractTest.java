@@ -112,6 +112,9 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.class,
                 () -> new com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.Kind.LeaveRequested,
                         "club-a", "request-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("requestId", "request-a", "memberId", "member-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.platform.application.ConsoleEvent.class,
+                () -> new com.agilityhub.core.platform.application.ConsoleEvent("ClubCreated", "club-a", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("clubId", "club-a", "diff", Map.of()), "account-a"));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -178,6 +181,10 @@ class EventCatalogContractTest {
                 assertThat(notification.payload()).containsEntry("notificationId", "notification-a").containsEntry("channel", "EMAIL");
                 assertThat(notification.actorAccountId()).isNull(); assertThat(notification.impersonatedMemberId()).isNull();
                 assertThat(notification.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
+            }
+            if (event instanceof com.agilityhub.core.platform.application.ConsoleEvent) {
+                assertThat(catalog).contains("ClubCreated","ClubUpdated","ClubModulesChanged","ClubStatusChanged");
+                assertThat(event.aggregateType()).isEqualTo("Club");assertThat(event.payload()).containsKeys("clubId","diff");return;
             }
             if (event instanceof com.agilityhub.core.identity.domain.IdentityEvent identity) {
                 for (var kind : com.agilityhub.core.identity.domain.IdentityEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }

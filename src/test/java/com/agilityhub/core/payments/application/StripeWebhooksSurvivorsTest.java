@@ -48,6 +48,7 @@ class StripeWebhooksSurvivorsTest {
     final BillingEvents events = mock(BillingEvents.class);
     final PaymentRetryPolicy retries = mock(PaymentRetryPolicy.class);
     final ObjectMapper mapper = new ObjectMapper();
+    final com.agilityhub.core.platform.application.ClubPaymentProviders clubSettings=mock(com.agilityhub.core.platform.application.ClubPaymentProviders.class);
     StripeWebhooks webhooks;
 
     @BeforeEach void wire() {
@@ -55,6 +56,7 @@ class StripeWebhooksSurvivorsTest {
         webhooks = new StripeWebhooks(inbox, tx, cards, refunds, mock(CheckoutService.class), mock(SignupCheckoutRepository.class),
                 mock(UpfrontPaymentRepository.class), census, events, Clock.fixed(NOW, ZoneOffset.UTC), mapper, mock(PaymentProviderRegistry.class));
         ReflectionTestUtils.setField(webhooks, "retries", retries);
+        ReflectionTestUtils.setField(webhooks,"clubSettings",clubSettings);
     }
 
     @Test void T_12_15_theReceiptKeepsTheBodysHashAndOnlyTheWhitelistedFields() throws Exception {
@@ -185,4 +187,10 @@ class StripeWebhooksSurvivorsTest {
                 .append("metadata", new Document("clubId", CLUB).append("invoiceId", "invoice-1").append("collectionId", "collection-1"))
                 .append("last_payment_error", new Document("code", "card_declined").append("decline_code", declineCode));
     }
+    @Test void T_17_13_R_17_07_suspendedClubLeavesItsStripeInboxUntouched() {
+        when(clubSettings.suspended(CLUB)).thenReturn(true);
+        try(var scope=TenantContext.open(CLUB)) {webhooks.process(ID);}
+        verifyNoInteractions(inbox,cards,refunds);
+    }
+
 }

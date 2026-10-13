@@ -45,6 +45,29 @@ public class MessageTemplateSeeds implements ClubTemplateProvisioner {
         for (String code : codes) { templates.insert(provider.seed(NotificationCatalog.byCode(code).orElseThrow(), locales, defaultLocale)); }
     }
 
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private java.time.Clock clock;
+    @Override public List<Map<String,Object>> cloneSource() {
+        return templates.findAll().stream().map(t->mapper.convertValue(t,new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>(){})).toList();
+    }
+    @Override public void cloneInto(List<Map<String,Object>> source,String locale) {
+        if(!templates.findAll().isEmpty()) throw new ApiException(ErrorCode.CATALOG_NOT_EMPTY,Map.of("part","MESSAGE_TEMPLATES"));
+        for(var row:source) {
+            var old=mapper.convertValue(row,com.agilityhub.core.clubs.messaging.persistence.MessageTemplate.class);
+            templates.insert(new com.agilityhub.core.clubs.messaging.persistence.MessageTemplate(java.util.UUID.randomUUID().toString(),
+                    com.agilityhub.core.shared.application.TenantContext.require(),old.code(),old.kind(),old.category(),
+                    old.title().withDefaultLocale(locale),old.body().withDefaultLocale(locale),old.smsBody()==null?null:old.smsBody().withDefaultLocale(locale),
+                    old.icon(),old.color(),old.matrix(),old.enabled(),old.mandatory(),old.customized(),old.status(),null,
+                    clock.instant(),null,clock.instant(),null));
+        }
+    }
+
+    @Override public boolean complete(String locale) {
+        var stored=templates.findAll();
+        return MessageTemplateSeed.eligible().stream().allMatch(spec->stored.stream().anyMatch(t->spec.code().equals(t.code())
+                && t.title().values().containsKey(locale) && t.body().values().containsKey(locale)));
+    }
+
     @Override public List<Map<String, Object>> export() {
         var order = NotificationCatalog.codes();
         var entries = new ArrayList<Map<String, Object>>();

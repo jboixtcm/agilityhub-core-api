@@ -96,6 +96,7 @@ public class SecurityBaselineConfiguration {
             String route = switch (path) {
                 case "/oauth2/token", "/api/v1/branding" -> path;
                 default -> path.equals("/api/v1/me") || path.startsWith("/api/v1/me/") ? "/api/v1/me/**"
+                        : path.startsWith("/api/v1/platform/") ? "/api/v1/platform/**"
                         : path.equals("/api/v1/public") || path.startsWith("/api/v1/public/") ? "/api/v1/public/**" : "other";
             };
             // Tomcat processes forwarding only from explicitly configured trusted proxies.

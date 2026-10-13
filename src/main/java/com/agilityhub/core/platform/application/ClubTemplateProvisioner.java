@@ -17,4 +17,7 @@ public interface ClubTemplateProvisioner {
     void provision(List<String> codes, List<String> locales, String defaultLocale);
     /** The club's catalog templates as definition entries, in the catalog's order (round-trips through `club:apply`). */
     List<Map<String, Object>> export();
+    boolean complete(String defaultLocale);
+    List<Map<String,Object>> cloneSource();
+    void cloneInto(List<Map<String,Object>> source,String defaultLocale);
 }

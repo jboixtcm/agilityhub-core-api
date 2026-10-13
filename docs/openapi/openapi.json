@@ -17713,6 +17713,12 @@
       },
       "PlatformClubPage" : {
         "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
           "items" : {
             "items" : {
               "$ref" : "#/components/schemas/PlatformClubListItem"
@@ -17736,7 +17742,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "items", "page", "size", "totalItems", "totalPages" ],
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
         "type" : "object"
       },
       "PlatformClubPatch" : {
@@ -17946,6 +17952,24 @@
           }
         },
         "required" : [ "clubs" ],
+        "type" : "object"
+      },
+      "PlatformLogoUploadRequest" : {
+        "properties" : {
+          "fileName" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "mimeType" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "sizeBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "fileName", "mimeType", "sizeBytes" ],
         "type" : "object"
       },
       "PlatformModules" : {
@@ -71949,7 +71973,7 @@
     },
     "/api/v1/platform/audit-entries" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+        "description" : "S17 R-17-12. Global platform view. Only configuration audit entries and aggregate-safe security metadata; member audit is excluded regardless of filters.",
         "operationId" : "platformAuditEntries",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -72171,7 +72195,7 @@
     },
     "/api/v1/platform/club-templates" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "listClubTemplates",
         "responses" : {
           "200" : {
@@ -72294,7 +72318,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -72313,7 +72337,7 @@
     },
     "/api/v1/platform/clubs" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Default sort name,asc; usage contains aggregates only.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Default sort name,asc; usage contains aggregates only.",
         "operationId" : "listPlatformClubs",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -72492,7 +72516,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -72545,7 +72569,7 @@
         "x-sortable" : [ "name", "slug" ]
       },
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. ClubDefinition uses the published WP-A layout; credentials are env references only.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ClubDefinition uses the published WP-A layout; credentials are env references only.",
         "operationId" : "createPlatformClub",
         "parameters" : [ {
           "in" : "header",
@@ -72683,7 +72707,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -72857,7 +72881,7 @@
     },
     "/api/v1/platform/clubs/{id}" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. No member data, credentials or key hashes.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. No member data, credentials or key hashes.",
         "operationId" : "getPlatformClub",
         "parameters" : [ {
           "in" : "path",
@@ -72985,7 +73009,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73002,7 +73026,7 @@
         "tags" : [ "platform" ]
       },
       "patch" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "patchPlatformClub",
         "parameters" : [ {
           "in" : "path",
@@ -73140,7 +73164,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73159,7 +73183,7 @@
     },
     "/api/v1/platform/clubs/{id}/admins" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "listPlatformAdmins",
         "parameters" : [ {
           "in" : "path",
@@ -73290,7 +73314,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73307,7 +73331,7 @@
         "tags" : [ "platform" ]
       },
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "invitePlatformAdmin",
         "parameters" : [ {
           "in" : "path",
@@ -73452,7 +73476,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73471,7 +73495,7 @@
     },
     "/api/v1/platform/clubs/{id}/admins/{accountId}" : {
       "delete" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "deletePlatformAdmin",
         "parameters" : [ {
           "in" : "path",
@@ -73606,7 +73630,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73625,7 +73649,7 @@
     },
     "/api/v1/platform/clubs/{id}/catalog-clone" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Empty destination parts only; warnings describe locale fallback.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Empty destination parts only; warnings describe locale fallback.",
         "operationId" : "clonePlatformCatalog",
         "parameters" : [ {
           "in" : "path",
@@ -73770,7 +73794,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73789,7 +73813,7 @@
     },
     "/api/v1/platform/clubs/{id}/checklist" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Seven model fields; sepa means at least one configured provider when BILLING is enabled.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Seven model fields; sepa means at least one configured provider when BILLING is enabled.",
         "operationId" : "getPlatformChecklist",
         "parameters" : [ {
           "in" : "path",
@@ -73917,7 +73941,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -73936,7 +73960,7 @@
     },
     "/api/v1/platform/clubs/{id}/definition" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "exportPlatformClub",
         "parameters" : [ {
           "in" : "path",
@@ -74064,7 +74088,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74562,7 +74586,7 @@
     },
     "/api/v1/platform/clubs/{id}/modules" : {
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "updatePlatformModules",
         "parameters" : [ {
           "in" : "path",
@@ -74700,7 +74724,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74719,7 +74743,7 @@
     },
     "/api/v1/platform/clubs/{id}/parameters/{key}" : {
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "updatePlatformParameter",
         "parameters" : [ {
           "in" : "path",
@@ -74864,7 +74888,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74883,7 +74907,7 @@
     },
     "/api/v1/platform/clubs/{id}/payment-providers/stripe/test" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "testPlatformStripe",
         "parameters" : [ {
           "in" : "path",
@@ -75011,7 +75035,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75030,7 +75054,7 @@
     },
     "/api/v1/platform/clubs/{id}/payment-providers/{provider}" : {
       "delete" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Version is the current club version; returns the unconfigured provider summary.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Version is the current club version; returns the unconfigured provider summary.",
         "operationId" : "deletePlatformProvider",
         "parameters" : [ {
           "in" : "path",
@@ -75175,7 +75199,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75192,7 +75216,7 @@
         "tags" : [ "platform" ]
       },
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Provider selects the configuration variant. Secrets and IBAN are write-only; existing secrets are preserved when omitted.",
         "operationId" : "updatePlatformProvider",
         "parameters" : [ {
           "in" : "path",
@@ -75338,7 +75362,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75511,7 +75535,7 @@
     },
     "/api/v1/platform/clubs/{id}/status" : {
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "updatePlatformStatus",
         "parameters" : [ {
           "in" : "path",
@@ -75656,7 +75680,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75839,7 +75863,7 @@
     },
     "/api/v1/platform/clubs/{id}/theme" : {
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. Logos use uploaded file keys; the result contains display URLs.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Logos use uploaded file keys; the result contains display URLs.",
         "operationId" : "updatePlatformTheme",
         "parameters" : [ {
           "in" : "path",
@@ -75977,7 +76001,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75994,9 +76018,173 @@
         "tags" : [ "platform" ]
       }
     },
+    "/api/v1/platform/clubs/{id}/theme/upload-url" : {
+      "post" : {
+        "description" : "S17 R-17-02. AGILITYHUB_ADMIN only. An image upload bound to the target club and caller. Publish its fileKey with the versioned theme update.",
+        "operationId" : "uploadPlatformLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformLogoUploadRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Upload"
+                }
+              }
+            },
+            "description" : "Signed upload URL and opaque file key"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "uploadPlatformLogo",
+        "tags" : [ "platform" ]
+      }
+    },
     "/api/v1/platform/clubs/{id}/usage" : {
       "get" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
         "operationId" : "getPlatformUsage",
         "parameters" : [ {
           "in" : "path",
@@ -76132,7 +76320,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -77234,7 +77422,7 @@
     },
     "/api/v1/platform/security-events" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+        "description" : "S17 R-17-12. Global platform security events. Only type, account ID, club ID, route and timestamp; no IP, credentials or request body.",
         "operationId" : "platformSecurityEvents",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -78976,6 +79164,154 @@
         "x-filter-operators" : { },
         "x-filterable" : [ ],
         "x-sortable" : [ "order" ]
+      }
+    },
+    "/api/v1/public/{clubSlug}/theme/{fileKey}" : {
+      "get" : {
+        "description" : "Public branding image. Only a logo currently published by this club is accessible; unrelated uploads always return 404.",
+        "operationId" : "publicClubLogo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "clubSlug",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "fileKey",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "302" : {
+            "description" : "Short-lived download URL"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "publicClubLogo",
+        "tags" : [ "platform" ]
       }
     },
     "/api/v1/push-subscriptions" : {

@@ -84,6 +84,18 @@ public class ParameterSettingsService {
 
     @Transactional
     @Audited(action = AuditAction.PARAMETER_CHANGED, entityType = "'Parameter'", entity = "#result.id",
+            before = "view(#key, #scopeRef)", reason = "#reason")
+    public View updatePlatform(String key,Object value,String scopeRef,Long version,String reason) {
+        var definition=catalog.get(key);checkScope(definition,scopeRef);var club=club();
+        if(!club.modules().containsAll(definition.modules())) throw new ApiException(ErrorCode.MODULE_DISABLED);
+        validator.validate(definition,value,club.defaultLocale(),club.currency());
+        var old=parameters.findByKey(key,scopeRef).orElse(null);
+        if(version==null||version!=(old==null?0:old.version())) throw new ApiException(ErrorCode.STALE_VERSION);
+        return write(definition,old,value,scopeRef,reason);
+    }
+
+    @Transactional
+    @Audited(action = AuditAction.PARAMETER_CHANGED, entityType = "'Parameter'", entity = "#result.id",
             before = "view(#key, #scopeRef)")
     public View reset(String key, String scopeRef) {
         var definition = editable(key, scopeRef);
