@@ -1,0 +1,6 @@
+Organizer verification and task instructions: unchanged
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E9-T01/final-checks.py", line 25, in <module>
+    assert not unexpected, f"Unexpected changed files: {sorted(unexpected)}"
+           ^^^^^^^^^^^^^^
+AssertionError: Unexpected changed files: ['docs/DECISIONS_PENDENTS.md', 'roadmap/tasks/E8-T12.md']

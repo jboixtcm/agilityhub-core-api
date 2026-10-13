@@ -1,0 +1,5 @@
+{
+  "command": "env HEAVY_WAIT_MIN=25 /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/openapi-snapshot",
+  "exit_code": 0,
+  "seconds": 1525.9
+}

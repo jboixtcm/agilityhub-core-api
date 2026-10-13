@@ -1,0 +1,5 @@
+{
+  "command": "git diff --exit-code e5b98c1 -- src pom.xml bin .mvn mvnw mvnw.cmd docs/openapi/openapi.json",
+  "exit_code": 0,
+  "seconds": 0.02
+}
