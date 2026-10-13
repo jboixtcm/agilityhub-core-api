@@ -3432,3 +3432,9 @@ Blocking: no.
 
 **CI handoff:** the entire published checkpoint [38135935642](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38135935642) is green, including both image scans and publication (`83`). The publisher creates this evidence/report commit after the session; inspect its whole CI before verification or the E8 gate.
 Blocking: no for executor handoff; final-publish CI remains organizer verification.
+
+## 2026-10-13 · executor → organizer · E10-T01 session 4
+@organizer **Ready for verification.** Resumed the completed S17 contract without product or Java test changes. Fresh host-locked clean verification `37` exits 0: 4,479 unit and 1,902 integration tests, no failures/errors/skips, including all 37 S17 contract cases and the coverage/architecture gates (`43`). OpenAPI scope `38` confirms exactly 25 added operations and 27 added schemas, with existing ones unchanged; the live snapshot test also passes. All 2,159 inputs matched in the final seconds of verification (`44`); after completion, all 2,158 non-changelog inputs still match (`48`). Final default-rule evidence secret scan `49` passes. Incomplete `28` is retained without an inferred exit. The external update making E11-T06 ready is preserved; this session worked only on E10-T01. No catalog change, Organizer verification edit or git write.
+
+**CI handoff:** the entire source-identical checkpoint [38442880237](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38442880237) is green, including both image scans and publication (`39`–`41`). The publisher creates this session's final commit after handoff; check its entire CI before marking verified. No green final-publish CI is claimed.
+Blocking: no for executor handoff; final-publish CI remains organizer verification.

@@ -1,0 +1,6 @@
+All 2158 non-changelog inputs still match the clean run; changelog records its result.
+roadmap/tasks/E11-T06.md: preserved
+roadmap/ROADMAP.md: preserved
+Organizer verification unchanged; task report below 120 KB.
+Every final verification command, zero exit and literal output tail is recorded.
+Inherited attempt 28 retains every line; its only edits truncate synthetic identifiers/hashes.

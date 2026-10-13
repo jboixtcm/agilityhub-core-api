@@ -1,0 +1,7 @@
+Host lock pid: 53777
+Host lock what: 20:56 agilityhub-core-api: bin/openapi-snapshot
+Inherited test PID 38056: lsof exit=1; no cwd listed
+Attempt 28 log: lsof exit=1; no holder listed
+Attempt 28 has no recorded exit and remains incomplete; no pass inferred.
+ps inspection was denied by the sandbox; used read-only lsof and the lock files.
+Current input manifest: 2159 files; only CHANGELOG.md differs from manifest 19.

@@ -1,0 +1,8 @@
+Clean verification exit: 0
+surefire totals: tests=4479 failures=0 errors=0 skipped=0
+  E10ResponseContractTest: tests=3 failures=0 errors=0 skipped=0
+  E5BackOfficeContractTest: tests=6 failures=0 errors=0 skipped=0
+failsafe totals: tests=1902 failures=0 errors=0 skipped=0
+  E10ContractIT: tests=37 failures=0 errors=0 skipped=0
+  ListFieldsContractIT: tests=4 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
