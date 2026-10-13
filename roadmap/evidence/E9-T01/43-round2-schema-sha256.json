@@ -1,0 +1,5 @@
+{
+  "command": "sha256sum src/main/resources/schemas/build-session-export.v1.schema.json src/main/resources/schemas/course-data.v1.schema.json",
+  "exit_code": 0,
+  "seconds": 0.01
+}

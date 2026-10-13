@@ -1,0 +1,5 @@
+{
+  "command": "python3 roadmap/evidence/E9-T01/test-summary.py roadmap/evidence/E9-T01/42-round2-clean-verify.json",
+  "exit_code": 0,
+  "seconds": 0.24
+}

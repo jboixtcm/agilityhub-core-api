@@ -1,0 +1,5 @@
+{
+  "command": "rg '^(mongosh --quiet|build_sessions \\[|calibration_logs \\[|courses \\[|obstacle_inventories \\[|placements \\[|ring_setups \\[|venues \\[)' roadmap/evidence/E9-T01/42-round2-clean-verify.log",
+  "exit_code": 0,
+  "seconds": 0.02
+}

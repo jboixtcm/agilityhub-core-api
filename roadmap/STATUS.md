@@ -175,7 +175,7 @@ Rendered: 2026-10-13 · Tasks: 129 · — 1 not_open · ☐ 5 ready · ▶ 2 in_
 
 | ID | Title | Thread | Status | Depends on | Branch / PR | Updated | Next action |
 |---|---|---|---|---|---|---|---|
-| [E9-T01](tasks/E9-T01.md) | Contract S16 (courses and the AgilityHub library, ring geometry, marker sheets, calibrations, placements, ring setups, build sessions with join and export, obstacle inventories, `/challenges` reserved) — OpenAPI forms, Mongo documents + indexes, JSON-Schema validation of `normalizedJson`, error status audit, E77's catalog rows and audit actions, 501 stubs | B | ▶ `in_progress` | E2-T03, E4-T03, E5-T04, E8-T01, external:web:E9-W01 | — | 2026-10-11 | executor: resume + report |
+| [E9-T01](tasks/E9-T01.md) | Contract S16 (courses and the AgilityHub library, ring geometry, marker sheets, calibrations, placements, ring setups, build sessions with join and export, obstacle inventories, `/challenges` reserved) — OpenAPI forms, Mongo documents + indexes, JSON-Schema validation of `normalizedJson`, error status audit, E77's catalog rows and audit actions, 501 stubs | B | ▶ `in_progress` | E2-T03, E4-T03, E5-T04, E8-T01, external:web:E9-W01 | — | 2026-10-13 | executor: resume + report |
 | [E9-T02](tasks/E9-T02.md) | Courses library and ring geometry — S16 R-16-01…04, 12, 14, 16, 17 | B | ☐ `ready` | E9-T01 | — | 2026-10-11 | executor: start |
 | [E9-T03](tasks/E9-T03.md) | Placements, ring setups and their integrations — S16 R-16-05…09, 13, 15 | B | ☐ `ready` | E9-T02, E8-T06 | — | 2026-10-11 | executor: start |
 | [E9-T04](tasks/E9-T04.md) | Live build sessions — SSE, join code, BuildSessionExportV1 (S16 R-16-11) | B | ☐ `ready` | E9-T03 | — | 2026-10-11 | executor: start |
