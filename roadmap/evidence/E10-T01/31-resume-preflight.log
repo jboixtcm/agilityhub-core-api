@@ -1,0 +1,7 @@
+Inherited PID 64729: absent
+Inherited PID 65739: absent
+Inherited PID 90416: absent
+Attempt 20 open-log inspection: lsof exit=1; holders=none listed
+Attempt 20 recorded exit exists: False
+Attempt 20 temporary snapshot exists: False
+Attempt 20 remains incomplete evidence; no exit inferred and no earlier log overwritten.

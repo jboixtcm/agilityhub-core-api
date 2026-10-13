@@ -184,7 +184,7 @@ Rendered: 2026-10-13 · Tasks: 129 · — 1 not_open · ☐ 5 ready · ▶ 2 in_
 
 | ID | Title | Thread | Status | Depends on | Branch / PR | Updated | Next action |
 |---|---|---|---|---|---|---|---|
-| [E10-T01](tasks/E10-T01.md) | Contract S17 WP-B — the platform API contract | D | ▶ `in_progress` | E1-T13, E2-T12, E8-T04 | — | 2026-10-11 | executor: resume + report |
+| [E10-T01](tasks/E10-T01.md) | Contract S17 WP-B — the platform API contract | D | ▶ `in_progress` | E1-T13, E2-T12, E8-T04 | — | 2026-10-13 | executor: resume + report |
 | [E10-T02](tasks/E10-T02.md) | Platform API — S17 R-17-02…13 (cut #1: without domains, support access and the public key) | D | ☐ `ready` | E10-T01 | — | 2026-10-11 | executor: start |
 
 ## E11

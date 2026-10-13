@@ -1,0 +1,1528 @@
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 29 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  * Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  * Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 30 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 30 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 31 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 32 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 32 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+* Scan image (arm64) (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  * Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 33 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 33 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 34 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  * Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 34 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  ✓ Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 35 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  ✓ Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 35 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Scan image (amd64) (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  ✓ Compose startup, HTTPS headers, CORS, logs, health and branding
+  * Prove the compose smoke rejects an image that cannot start
+  * Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  * Push the exact scanned image
+  * Post Build the image that will be scanned and pushed
+  * Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  * Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  * Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* main CI · 38442880237
+Triggered via push about 36 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Scan image (amd64) in 6m31s (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  ✓ Compose startup, HTTPS headers, CORS, logs, health and branding
+  ✓ Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+* Publish API image (ID 115470558068)
+  * Set up job
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (amd64): .github#1
+
+✓ main CI · 38442880237
+Triggered via push about 36 minutes ago
+
+JOBS
+✓ Dependency vulnerability audit in 1m2s (ID 115453696498)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Resolve and package the actual runtime dependencies
+  ✓ Prove the scan policy and audit packaged dependencies
+  ✓ Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Secret scan in 13s (ID 115453696871)
+  ✓ Set up job
+  ✓ Check out full history
+  ✓ Scan for secrets
+  ✓ Prove evidence exceptions cannot hide credentials
+  ✓ Post Check out full history
+  ✓ Complete job
+✓ Build and tests in 29m36s (ID 115453696897)
+  ✓ Set up job
+  ✓ Check out source
+  ✓ Set up Java 21
+  ✓ Check Docker for Testcontainers
+  ✓ Build, test, and enforce coverage
+  ✓ Upload JaCoCo HTML report
+  ✓ Regenerate OpenAPI snapshot
+  ✓ Check OpenAPI snapshot diff
+  ✓ Post Set up Java 21
+  ✓ Post Check out source
+  ✓ Complete job
+✓ Scan image (arm64) in 3m6s (ID 115467472314)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  - Compose startup, HTTPS headers, CORS, logs, health and branding
+  - Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Scan image (amd64) in 6m31s (ID 115467473438)
+  ✓ Set up job
+  ✓ Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Build the image that will be scanned and pushed
+  ✓ Scan image secrets and fixable CRITICAL vulnerabilities
+  ✓ Compose startup, HTTPS headers, CORS, logs, health and branding
+  ✓ Prove the compose smoke rejects an image that cannot start
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Push the exact scanned image
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Build the image that will be scanned and pushed
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Post Run docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a
+  ✓ Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+  ✓ Complete job
+✓ Publish API image in 18s (ID 115470558068)
+  ✓ Set up job
+  ✓ Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Publish only the two scanned image digests
+  ✓ Post Run docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+  ✓ Post Run docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+  ✓ Complete job
+
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Dependency vulnerability audit: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Secret scan: .github#1
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#52
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#49
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java#31
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#19
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#18
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#17
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java#15
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#16
+
+! ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+Build and tests: src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java#15
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Build and tests: .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (arm64): .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Scan image (amd64): .github#1
+
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Publish API image: .github#1
+
