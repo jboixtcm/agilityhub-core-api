@@ -66,6 +66,18 @@ class PaymentIntentLedgerTest {
         }
     }
 
+    @Test void T_12_17_e8t12_round5_point1_excludingOwnInterventionPreservesOtherClaims() {
+        var ledger = new PaymentIntentLedger(List.of(new Row("A", 1200, 0, 0, false),
+                new Row("B", 1200, 500, 1200, true), new Row("C", 1200, 0, 0, false)),
+                List.of(new Reservation("A", "A", 700), new Reservation("C", "C", 1200)));
+        assertThat(ledger.balance().free()).isZero();
+        assertThat(ledger.withoutReservation("A").freeFor("A")).isEqualTo(700);
+        assertThat(ledger.withoutReservation("C").freeFor("C")).isEqualTo(1200);
+        assertThat(ledger.withoutReservation("missing")).isEqualTo(ledger);
+        assertThat(ledger.reservations()).hasSize(2);
+        assertThat(ledger.overpaid()).isZero();
+    }
+
     @Test void T_12_17_e8t12_round4_point1_settlementCannotCreateCapture() {
         var ledger = new PaymentIntentLedger(List.of(new Row("A", 1200, 500, 0, false)), List.of());
         assertThatThrownBy(() -> ledger.settlementShares(701, null, null)).isInstanceOf(ApiException.class).hasMessage("REFUND_EXCEEDS_PAID");

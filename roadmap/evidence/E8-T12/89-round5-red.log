@@ -1,0 +1,207 @@
+21:32:07.688 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT]: CapturedPaymentInvariantsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:32:07.864 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+21:32:07.974 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+21:32:07.976 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+21:32:07.982 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+21:32:08.199 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+21:32:08.458 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+21:32:08.459 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+21:32:08.475 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+21:32:08.898 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+21:32:09.011 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+21:32:09.210 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 7c2b4456d7897fbf946bf712154aec18c85ace621ea423c4e8e3ffb225b1152a
+21:32:09.476 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.578321S
+21:32:09.485 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+21:32:09.485 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+21:32:09.486 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+21:32:09.487 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:32:09.554 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: d04afe3664f7116d8766a3aebbd9bca00c9edb88841907e34c49788329fac663
+21:32:10.247 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.76082S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-13T21:32:11.220+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Starting CapturedPaymentInvariantsIT using Java [redacted] with PID 65840 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-13T21:32:11.222+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-13T21:32:12.926+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-13T21:32:12.990+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 58 ms. Found 0 MongoDB repository interfaces.
+2026-10-13T21:32:13.620+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2effd300], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3cac6165, com.mongodb.Jep395RecordCodecProvider@1cc3d12, com.mongodb.KotlinCodecProvider@6a3adca8]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52307], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3a8d653c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-13T21:32:13.628+02:00 INFO  [cluster-ClusterId{value='6ace873d3f481b0ea37ed794', description='null'}-localhost:52307] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52307, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=16619125, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=d04afe3664f7:27017, hosts=[d04afe3664f7:27017], passives=[], arbiters=[], primary='d04afe3664f7:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ace87393c6d81b176125c06, counter=6}, lastWriteDate=Tue Oct 13 21:32:10 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-13T21:32:17.757+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-13T21:32:17.757+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-13T21:32:17.758+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-13T21:32:17.793+02:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Started CapturedPaymentInvariantsIT in 6.897 seconds (process running for 10.951)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-13T21:32:19.025+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/checkout-sessions' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-13T21:32:19.615+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e3a3ae25-fdd4-4b77-a9db-ab09e5e27b4a clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_706d51be-d6ab-438e-a20e-772ed230ef8b traceId=e3a3ae25-fdd4-4b77-a9db-ab09e5e27b4a
+2026-10-13T21:32:19.649+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=e3a3ae25-fdd4-4b77-a9db-ab09e5e27b4a clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=e3a3ae25-fdd4-4b77-a9db-ab09e5e27b4a
+2026-10-13T21:32:19.711+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cd9a4ba3-8d4c-4747-9d50-bb1fa83fc95c clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5a4f78e7-59d6-4b0b-b96b-4543146ad2cc traceId=cd9a4ba3-8d4c-4747-9d50-bb1fa83fc95c
+2026-10-13T21:32:19.746+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=cd9a4ba3-8d4c-4747-9d50-bb1fa83fc95c clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=cd9a4ba3-8d4c-4747-9d50-bb1fa83fc95c
+2026-10-13T21:32:20.350+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1fa147f2-d43b-4960-97fb-72eb33a49349 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1e0ca22c-592f-4090-8390-0bec0a88389e traceId=1fa147f2-d43b-4960-97fb-72eb33a49349
+2026-10-13T21:32:20.379+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=1fa147f2-d43b-4960-97fb-72eb33a49349 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=1fa147f2-d43b-4960-97fb-72eb33a49349
+2026-10-13T21:32:20.433+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4062ce54-dd87-4f65-839b-26d52b91ca17 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_57046142-df8a-44bc-8067-9125c55d1489 traceId=4062ce54-[redacted]
+2026-10-13T21:32:20.468+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=4062ce54-dd87-4f65-839b-26d52b91ca17 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=4062ce54-[redacted]
+2026-10-13T21:32:21.013+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5da2f7bf-0406-42ae-97a6-c7dba8f394bb clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_218bbb31-64d9-4246-a932-1ea65ad4deda traceId=5da2f7bf-0406-42ae-97a6-c7dba8f394bb
+2026-10-13T21:32:21.039+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=5da2f7bf-0406-42ae-97a6-c7dba8f394bb clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=5da2f7bf-0406-42ae-97a6-c7dba8f394bb
+2026-10-13T21:32:21.095+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6bbc5a5c-fa67-4cb1-b7c0-e68368e2bfb8 clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_81738c9c-ece5-4f3a-b78b-edb5af496748 traceId=6bbc5a5c-[redacted]
+2026-10-13T21:32:21.121+02:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=6bbc5a5c-fa67-4cb1-b7c0-e68368e2bfb8 clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=6bbc5a5c-[redacted]
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 13.53 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions -- Time elapsed: 1.668 s <<< FAILURE!
+java.lang.AssertionError: shared seed 1 after [intervention prefix 586]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:880)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions(CapturedPaymentInvariantsIT.java:758)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.AssertionError: [current interventions share the whole intent remainder] 
+Expecting actual:
+  2400L
+to be between:
+  [0L, 1814L]
+
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionInvariant(CapturedPaymentInvariantsIT.java:1089)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInvariants(CapturedPaymentInvariantsIT.java:1097)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionPrefix(CapturedPaymentInvariantsIT.java:782)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:825)
+	... 4 more
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[1] -- Time elapsed: 0.706 s <<< FAILURE!
+java.lang.AssertionError: 
+[current interventions share the whole intent remainder] 
+Expecting actual:
+  2400L
+to be between:
+  [0L, 1900L]
+
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionInvariant(CapturedPaymentInvariantsIT.java:1089)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInvariants(CapturedPaymentInvariantsIT.java:1097)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionPrefix(CapturedPaymentInvariantsIT.java:782)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(CapturedPaymentInvariantsIT.java:723)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[2] -- Time elapsed: 0.649 s <<< FAILURE!
+java.lang.AssertionError: 
+[current interventions share the whole intent remainder] 
+Expecting actual:
+  2400L
+to be between:
+  [0L, 1900L]
+
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionInvariant(CapturedPaymentInvariantsIT.java:1089)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInvariants(CapturedPaymentInvariantsIT.java:1097)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedInterventionPrefix(CapturedPaymentInvariantsIT.java:782)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(CapturedPaymentInvariantsIT.java:723)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture:723->sharedInterventionPrefix:782->sharedInvariants:1097->sharedInterventionInvariant:1089 [current interventions share the whole intent remainder] 
+Expecting actual:
+  2400L
+to be between:
+  [0L, 1900L]
+
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture:723->sharedInterventionPrefix:782->sharedInvariants:1097->sharedInterventionInvariant:1089 [current interventions share the whole intent remainder] 
+Expecting actual:
+  2400L
+to be between:
+  [0L, 1900L]
+
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions:758->sharedSequences:880 shared seed 1 after [intervention prefix 586]
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

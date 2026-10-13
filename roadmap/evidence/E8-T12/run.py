@@ -10,7 +10,9 @@ import sys
 stem = Path(__file__).resolve().parent / sys.argv[1]
 args = sys.argv[2:]
 assert args and not any(stem.with_suffix(ext).exists() for ext in ('.log', '.command', '.exit')), 'Attempt already exists'
-stem.with_suffix('.command').write_text(shlex.join(args) + ' > ' + str(stem.relative_to(Path.cwd()).with_suffix('.log')) + ' 2>&1\n')
+log_path = stem.relative_to(Path.cwd()).with_suffix('.log') if stem.is_relative_to(Path.cwd()) else stem.with_suffix('.log')
+directory = '' if stem.is_relative_to(Path.cwd()) else '# Working directory: ' + str(Path.cwd()) + '\n'
+stem.with_suffix('.command').write_text(directory + shlex.join(args) + ' > ' + str(log_path) + ' 2>&1\n')
 with stem.with_suffix('.log').open('w') as log:
     process = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     try:

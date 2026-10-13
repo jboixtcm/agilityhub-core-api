@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  * E105: one immutable view of a captured intent, loaded under its transaction fence. The rows are projections of the
- * capture and settled refunds; reservations include local commands and unlinked dashboard refunds exactly once.
+ * capture and settled refunds; reservations include local commands, unlinked dashboard refunds and current interventions.
  * Every decision uses this same view. In particular, a row's historical refund placement cannot protect its neighbour's
  * unbilled credit from absorption. Rebuild the view after persisting a decision, before deciding anything else.
  */
@@ -48,6 +48,11 @@ public record PaymentIntentLedger(List<Row> rows, List<Reservation> reservations
 
     /** A row cannot spend another row's share, or manufacture an allowance larger than the intent's. */
     public long freeFor(String id) { return Math.min(share(id).free(), balance().free()); }
+
+    /** Replacing a manual reservation must still respect every other row's claim on the intent. */
+    public PaymentIntentLedger withoutReservation(String id) {
+        return new PaymentIntentLedger(rows, reservations.stream().filter(reservation -> !reservation.id().equals(id)).toList());
+    }
 
     public Map<String, Long> settlementShares(long amount, String targetId, String operationId) {
         var capacity = capacity();

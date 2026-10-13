@@ -82,7 +82,7 @@ public class PaymentRefunds {
         long remaining = paid.amountMinor() - refunded - pending;
         if ("REFUND_UPFRONT".equals(kind)) {
             var payment = upfront.findById(target).orElseThrow();
-            remaining = intentLedger(reference).freeFor(payment.id());
+            remaining = intentLedger(reference).withoutReservation(payment.id()).freeFor(payment.id());
         }
         Money amount = requested == null ? new Money(remaining, paid.currency()) : requested;
         if (!amount.currency().equals(paid.currency())) { throw new ApiException(ErrorCode.CURRENCY_MISMATCH); }
@@ -110,7 +110,8 @@ public class PaymentRefunds {
             String chosen = beforeConfirmation ? "REFUND" : policy;
             if (consumption(payment) || !Set.of("REFUND", "CREDIT").contains(chosen)) { return null; }
             upfront.compensation(paymentId, chosen, beforeConfirmation ? "LATE_COMPLETION" : "BOOKING_CANCELLED");
-            compensateRemaining(payment);
+            if (payment.stripe() == null) { compensateRemaining(payment); }
+            else { reconsiderCompensation(payment.stripe().paymentIntentId()); }
             return null;
         });
     }
@@ -125,7 +126,7 @@ public class PaymentRefunds {
                 .or(() -> operations.byKey(key).map(op -> new UpfrontPaymentRepository.Compensation("REFUND", op.reason(), null)));
         if (obligation.isEmpty() || consumption(payment)) { return; }
         long due = payment.stripe() == null ? ledger(payment).due()
-                : Math.max(0, intentLedger(payment.stripe().paymentIntentId()).freeFor(payment.id()));
+                : Math.max(0, intentLedger(payment.stripe().paymentIntentId()).withoutReservation(payment.id()).freeFor(payment.id()));
         if (obligation.get().interventionAt() != null) { intervene(payment, due); return; }
         if (due <= 0) { return; }
         if ("CREDIT".equals(obligation.get().policy())) { credit(payment, due); return; }
@@ -178,6 +179,13 @@ public class PaymentRefunds {
     }
     /** E105: absorption is a decision of the whole intent; rows only persist the resulting credit reductions. */
     private void absorb(String intent) {
+        // A provider repayment replaces manual work before an obsolete claim can consume another row's credit.
+        for (var payment : upfront.forIntent(intent)) {
+            if (upfront.compensation(payment.id()).filter(obligation -> obligation.interventionAt() != null).isPresent()) {
+                upfront.lock(payment.id());
+                compensateRemaining(payment);
+            }
+        }
         var ledger = intentLedger(intent);
         for (var reduction : ledger.creditReductions().entrySet()) {
             var payment = upfront.findById(reduction.getKey()).orElseThrow();
@@ -255,6 +263,10 @@ public class PaymentRefunds {
             if (!linked.contains(refundStates.refundId(state))) {
                 reservations.add(new PaymentIntentLedger.Reservation(state.id(), null, state.amount().amountMinor()));
             }
+        }
+        for (var payment : payments) {
+            long owed = upfront.interventionOwed(payment.id());
+            if (owed > 0) { reservations.add(new PaymentIntentLedger.Reservation(payment.id(), payment.id(), owed)); }
         }
         return new PaymentIntentLedger(rows, reservations);
     }

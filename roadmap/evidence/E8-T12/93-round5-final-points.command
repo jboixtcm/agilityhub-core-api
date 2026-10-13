@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=PaymentIntentLedgerTest,PaymentRefundsSurvivorsTest '-Dit.test=CapturedPaymentInvariantsIT#T_12_17_e8t12_round5*' test failsafe:integration-test failsafe:verify > roadmap/evidence/E8-T12/93-round5-final-points.log 2>&1

@@ -1,0 +1,1 @@
+/private/tmp/e8-t12-round5-gitleaks/gitleaks dir --no-banner --redact --config .gitleaks.toml --report-format json --report-path /private/tmp/e8-t12-round5-preflight.json roadmap/evidence/E8-T12 > roadmap/evidence/E8-T12/101-round5-evidence-preflight.log 2>&1
