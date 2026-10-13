@@ -7,6 +7,7 @@ import com.agilityhub.core.payments.persistence.StripeEvent;
 import com.agilityhub.core.payments.persistence.StripeInbox;
 import com.agilityhub.core.payments.persistence.UpfrontPaymentRepository;
 import com.agilityhub.core.shared.application.BillingCensusAccess;
+import com.agilityhub.core.shared.application.TenantContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

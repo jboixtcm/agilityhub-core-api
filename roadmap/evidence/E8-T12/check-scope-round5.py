@@ -12,6 +12,7 @@ allowed = {'CHANGELOG.md', 'roadmap/STATUS.md', 'roadmap/MESSAGES.md', 'roadmap/
     'src/main/java/com/agilityhub/core/payments/domain/PaymentIntentLedger.java',
     'src/test/java/com/agilityhub/core/payments/domain/PaymentIntentLedgerTest.java',
     'src/main/java/com/agilityhub/core/payments/persistence/UpfrontPaymentRepository.java',
+    'src/test/java/com/agilityhub/core/payments/application/StripeWebhooksSurvivorsTest.java',
     'src/test/java/com/agilityhub/core/payments/api/CapturedPaymentInvariantsIT.java'}
 unexpected = {path for path in paths if path not in allowed and not path.startswith('roadmap/evidence/E8-T12/')}
 assert not unexpected, unexpected

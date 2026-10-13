@@ -1,0 +1,14 @@
+Full clean run / surefire: tests=4484, failures=1, errors=6, skipped=0
+Full clean run / failsafe: not reached after surefire failure (0 executed).
+com.agilityhub.core.payments.domain.PaymentIntentLedgerTest: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest: tests=27, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.BillingRunServiceSurvivorsTest: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest: tests=9, failures=0, errors=6, skipped=0
+failure: com.agilityhub.core.arch.ArchitectureTest.E0_T01_crossContextAccessUsesApplication
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_16_aDetachedMethodNoMemberUsesIsIgnored
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_16_anExpiredCardDeclineThatSettlesInvalidatesTheCardUnderTheRowsLock
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_15_aCheckoutPaymentIntentIsLeftToCheckoutAndAnOffSessionChargeIsSettledByTheCardLedger
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_15_aFailedRetryWithAttemptsLeftNeitherWarnsNorPublishesFailedTwice
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_15_onlyAnExpiredCardDeclineThatChangedTheLedgerInvalidatesTheCard
+error: com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest.T_12_15_aFailedProcessingWarnsWhenItsAttemptsRunOutAndPublishesFailed
+Maven exit: 1

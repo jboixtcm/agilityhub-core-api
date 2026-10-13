@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E8-T12/summarize-resume.py focused /private/tmp/e8-t12-round5-resume-final-20261013 114-round5-resume-payment-regressions > roadmap/evidence/E8-T12/118-round5-resume-focused-summary.log 2>&1

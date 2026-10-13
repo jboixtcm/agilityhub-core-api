@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E8-T12/summarize-resume.py full /private/tmp/e8-t12-round5-resume-final-20261013 110-round5-resume-clean-verify > roadmap/evidence/E8-T12/115-round5-resume-full-summary.log 2>&1

@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E8-T12/verification-tree.py check /private/tmp/e8-t12-round5-resume-final-20261013 round5-resume-final-verification-inputs.json > roadmap/evidence/E8-T12/111-round5-resume-input-check.log 2>&1

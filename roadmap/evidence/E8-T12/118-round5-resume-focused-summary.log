@@ -1,0 +1,8 @@
+Focused com.agilityhub.core.payments.domain.PaymentIntentLedgerTest: tests=5, failures=0, errors=0, skipped=0
+T_12_17_e8t12_round5_point1_excludingOwnInterventionPreservesOtherClaims: passed
+Focused com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests=74, failures=0, errors=0, skipped=0
+T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions: passed
+T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[1]: passed
+T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[2]: passed
+T_12_17_e8t12_round5_point1_repaymentRefreshesClaimsBeforeAbsorbingCredit: passed
+Maven exit: 0

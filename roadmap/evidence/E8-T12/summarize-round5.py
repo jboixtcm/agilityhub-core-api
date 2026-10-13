@@ -19,6 +19,7 @@ for lane, name in (
     ('surefire', 'com.agilityhub.core.payments.domain.PaymentIntentLedgerTest'),
     ('surefire', 'com.agilityhub.core.payments.application.PaymentRefundsSurvivorsTest'),
     ('surefire', 'com.agilityhub.core.payments.application.BillingRunServiceSurvivorsTest'),
+    ('surefire', 'com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest'),
     ('failsafe', 'com.agilityhub.core.configuration.SecurityInventoryIT'),
 ):
     suite = ET.parse(root / f'target/{lane}-reports/TEST-{name}.xml').getroot()
