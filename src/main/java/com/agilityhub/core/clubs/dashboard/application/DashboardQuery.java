@@ -56,8 +56,10 @@ public class DashboardQuery {
         return counters.get(new CounterKey(club, user.accountId()), key -> {
             var config = configs.get(key.clubId()); var pending = requests.counts(key.clubId());
             // R-14-08 / S14 §9 (E3-T10): without TASKS there is no D14, so the follow-up counter is 0 and the port is not asked.
-            return new Counters(repository.pendingCount(), pending.leaves() + (config.modules().contains(Module.INACTIVITY) ? pending.inactivity() : 0),
-                    config.modules().contains(Module.TASKS) ? followUp.count(key.clubId(), key.accountId()) : 0);
+            int inactivity = config.modules().contains(Module.INACTIVITY) ? pending.inactivity() : 0;
+            return new Counters(repository.pendingCount(), pending.leaves() + inactivity,
+                    config.modules().contains(Module.TASKS) ? followUp.count(key.clubId(), key.accountId()) : 0,
+                    inactivity, pending.leaves());
         });
     }
     private static void guard() {

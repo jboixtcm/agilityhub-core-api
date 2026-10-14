@@ -23,7 +23,7 @@ public class SavedViewsController {
     private final com.agilityhub.core.clubs.common.application.SavedViewService views;
     public SavedViewsController(com.agilityhub.core.clubs.common.application.SavedViewService views) { this.views = views; }
     private SavedView response(com.agilityhub.core.clubs.common.application.SavedViewData view) {
-        return new SavedView(view.id(), view.ownerAccountId(), view.listKey(), view.name(), view.columns(), view.filters(), view.sort(), view.shared(), view.version());
+        return new SavedView(view.id(), view.ownerAccountId(), view.listKey(), view.name(), view.columns(), view.filters(), view.sort(), view.shared(), view.system(), view.version());
     }
     @GetMapping("/api/v1/saved-views")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")

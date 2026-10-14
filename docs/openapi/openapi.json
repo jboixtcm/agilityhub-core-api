@@ -7918,6 +7918,16 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "pendingInactivityRequests" : {
+            "description" : "S13 §2: REQUESTED inactivity periods; zero when INACTIVITY is disabled.",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "pendingLeaveRequests" : {
+            "description" : "S13 §2: PENDING leave requests awaiting a decision.",
+            "format" : "int32",
+            "type" : "integer"
+          },
           "pendingRequests" : {
             "format" : "int32",
             "type" : "integer"
@@ -7927,7 +7937,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "followUpUnread", "pendingRequests", "pendingSignups" ],
+        "required" : [ "followUpUnread", "pendingInactivityRequests", "pendingLeaveRequests", "pendingRequests", "pendingSignups" ],
         "type" : "object"
       },
       "DashboardKpis" : {
@@ -20595,12 +20605,17 @@
             },
             "type" : "array"
           },
+          "system" : {
+            "description" : "R-13-17: shared system view; cannot be edited or deleted.",
+            "readOnly" : true,
+            "type" : "boolean"
+          },
           "version" : {
             "format" : "int64",
             "type" : "integer"
           }
         },
-        "required" : [ "columns", "filters", "id", "listKey", "name", "ownerAccountId", "shared", "sort", "version" ],
+        "required" : [ "columns", "filters", "id", "listKey", "name", "ownerAccountId", "shared", "sort", "system", "version" ],
         "type" : "object"
       },
       "SavedViewCreate" : {

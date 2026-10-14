@@ -11,7 +11,8 @@ public final class DashboardData {
     public record Snapshot(Instant generatedAt, LocalDate today, Week week, Kpis kpis,
             RiskReview riskReview, PendingSignups pendingSignups, DogsByLevel dogsByLevel) { }
     public record Week(LocalDate start, LocalDate end) { }
-    public record Counters(int pendingSignups, int pendingRequests, int followUpUnread) { }
+    public record Counters(int pendingSignups, int pendingRequests, int followUpUnread,
+            int pendingInactivityRequests, int pendingLeaveRequests) { }
     public record Kpis(ActiveMembers activeMembers, Occupancy classOccupancy, Training trainingBookings, PendingKpi pendingSignups) { }
     public record ActiveMembers(int value, int deltaThisMonth) { }
     /** R-14-03: `percent` is an integer (HALF_UP), null without capacity; `waitingTotal` is null without WAITLIST (S14 §9). */

@@ -47,6 +47,8 @@ public final class CommonContracts {
             @Schema(requiredMode = REQUIRED) List<Filter> filters,
             @Schema(requiredMode = REQUIRED) List<String> sort,
             @Schema(requiredMode = REQUIRED) boolean shared,
+            @Schema(requiredMode = REQUIRED, accessMode = Schema.AccessMode.READ_ONLY,
+                    description = "R-13-17: shared system view; cannot be edited or deleted.") boolean system,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record SavedViewCreate(
             @Schema(requiredMode = REQUIRED) @NotBlank String listKey,

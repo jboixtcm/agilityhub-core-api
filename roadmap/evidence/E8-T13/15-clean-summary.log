@@ -1,0 +1,11 @@
+surefire: 362 classes; tests=4484, failures=1, errors=6, skipped=0
+com.agilityhub.core.arch.ArchitectureTest: tests=22, failures=1, errors=0, skipped=0
+  E0_T01_crossContextAccessUsesApplication: java.lang.AssertionError
+com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest: tests=9, failures=0, errors=6, skipped=0
+  T_12_16_aDetachedMethodNoMemberUsesIsIgnored: com.agilityhub.core.shared.domain.ApiException
+  T_12_16_anExpiredCardDeclineThatSettlesInvalidatesTheCardUnderTheRowsLock: com.agilityhub.core.shared.domain.ApiException
+  T_12_15_aCheckoutPaymentIntentIsLeftToCheckoutAndAnOffSessionChargeIsSettledByTheCardLedger: com.agilityhub.core.shared.domain.ApiException
+  T_12_15_aFailedRetryWithAttemptsLeftNeitherWarnsNorPublishesFailedTwice: com.agilityhub.core.shared.domain.ApiException
+  T_12_15_onlyAnExpiredCardDeclineThatChangedTheLedgerInvalidatesTheCard: com.agilityhub.core.shared.domain.ApiException
+  T_12_15_aFailedProcessingWarnsWhenItsAttemptsRunOutAndPublishesFailed: com.agilityhub.core.shared.domain.ApiException
+failsafe: 0 classes; tests=0, failures=0, errors=0, skipped=0

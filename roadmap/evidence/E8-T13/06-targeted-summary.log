@@ -1,0 +1,9 @@
+surefire: 4 classes; tests=34, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.bookings.api.LifecycleMenuIT: tests=5, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E3ContractIT: tests=17, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=1, failures=0, errors=0, skipped=0
+failsafe: 3 classes; tests=38, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E3ContractIT: tests=17, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10, failures=0, errors=0, skipped=0

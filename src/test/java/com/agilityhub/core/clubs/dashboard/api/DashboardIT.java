@@ -263,7 +263,7 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(first.at("/kpis/classOccupancy/percent").isInt()).isTrue(); assertThat(first.at("/kpis/classOccupancy/percent").asInt()).isEqualTo(100);
         assertThat(first.at("/pendingSignups/items/0").has("paymentMethodType")).isFalse();
         assertThat(first.at("/pendingSignups/items/0").has("warnings")).isFalse();
-        assertThat(counters()).isEqualTo(mapper.valueToTree(new Counters(1, 2, 0)));
+        assertThat(counters()).isEqualTo(mapper.valueToTree(new Counters(1, 2, 0, 0, 2)));
         verifyNoInteractions(training, bookings, unread);
         when(requests.counts(club)).thenReturn(new PendingRequestsQuery.Counts(3, 4));
         clock.setInstant(clock.instant().plusSeconds(29)); assertThat(counters().path("pendingRequests").asInt()).isEqualTo(2);

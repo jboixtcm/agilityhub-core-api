@@ -35,7 +35,7 @@ public class SavedViewService {
         return view;
     }
     private void writable(SavedView view) {
-        if ("SYSTEM".equals(view.data().ownerAccountId())) { throw new ApiException(ErrorCode.FORBIDDEN); }
+        if (view.data().system()) { throw new ApiException(ErrorCode.FORBIDDEN); }
         if (!view.data().ownerAccountId().equals(ListAccess.account()) && !ListAccess.admin()) { throw new ApiException(ErrorCode.FORBIDDEN); }
     }
     @Transactional

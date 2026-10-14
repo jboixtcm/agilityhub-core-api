@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.census.application;
 
 import com.agilityhub.core.clubs.census.domain.*;
+import com.agilityhub.core.clubs.dashboard.application.DashboardQuery;
 import com.agilityhub.core.clubs.census.inactivity.domain.InactivityCalendar;
 import com.agilityhub.core.clubs.census.persistence.inactivity.*;
 import com.agilityhub.core.clubs.census.persistence.LifecycleParts.*;
@@ -17,10 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InactivityPeriodService {
     private static final Set<InactivityState> LIVE = Set.of(InactivityState.REQUESTED, InactivityState.APPROVED, InactivityState.ACTIVE);
+    private final DashboardQuery dashboard;
     private final InactivityPeriodRepository periods; private final CensusAccess census; private final InactivityFeeService fees;
     private final LifecycleBookings bookings; private final CensusEvents events; private final Clock clock; private final ClubClock local;
     public InactivityPeriodService(InactivityPeriodRepository periods, CensusAccess census, InactivityFeeService fees,
-            LifecycleBookings bookings, CensusEvents events, Clock clock, ClubClock local) {
+            LifecycleBookings bookings, CensusEvents events, Clock clock, ClubClock local, DashboardQuery dashboard) {
+        this.dashboard = dashboard;
         this.periods = periods; this.census = census; this.fees = fees; this.bookings = bookings; this.events = events; this.clock = clock; this.local = local;
     }
     public YearMonth earliest() { return InactivityCalendar.earliest(local.today(TenantContext.require()), census.config().get("inactivity.requestDeadlineDay", Integer.class)); }
@@ -59,7 +62,7 @@ public class InactivityPeriodService {
         e.requestedAt = clock.instant(); e.requestedBy = requester(); e.createdAt = clock.instant(); e.updatedAt = clock.instant();
         e.cancelledBookings = List.of(); e.history = List.of();
         if (admin) { approve(e, null, override); }
-        var result = periods.insert(e.snapshot());
+        var result = changed(periods.insert(e.snapshot()));
         emit(admin ? "InactivityResolved" : "InactivityRequested", result, admin ? Map.of("decision", "APPROVED") : Map.of());
         if (result.state() == InactivityState.ACTIVE) { emit("InactivityStarted", result, Map.of()); }
         return result;
@@ -167,7 +170,11 @@ public class InactivityPeriodService {
     void cancelled(InactivityEdit e, LifecycleCanceller by, InactivityCancelReason reason) {
         e.state = InactivityState.CANCELLED; e.cancelledAt = clock.instant(); e.cancelledBy = by; e.cancelReason = reason;
     }
-    InactivityPeriod save(InactivityEdit e, Long expected) { e.version = expected + 1; e.updatedAt = clock.instant(); return periods.save(e.snapshot(), expected); }
+    private InactivityPeriod changed(InactivityPeriod saved) {
+        dashboard.invalidateCountersAfterCommit(saved.clubId());
+        return saved;
+    }
+    InactivityPeriod save(InactivityEdit e, Long expected) { e.version = expected + 1; e.updatedAt = clock.instant(); return changed(periods.save(e.snapshot(), expected)); }
     static String actor() { var user = CurrentUser.current(); return user == null ? null : user.impersonation() == null ? user.accountId() : user.impersonation().actorAccountId(); }
     static Requester requester() { var u = CurrentUser.current(); return new Requester(actor(), u == null || u.impersonation() == null ? null : u.impersonation().memberId()); }
     void emit(String type, InactivityPeriod p, Map<String, Object> extra) {

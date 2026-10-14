@@ -1,0 +1,1 @@
+gh run view 38460699729 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs: [.jobs[] | {name,status,conclusion,steps: [.steps[] | select(.conclusion == "failure") | {name,conclusion}]}]}'

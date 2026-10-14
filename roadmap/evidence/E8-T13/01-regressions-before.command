@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=LifecycleMenuIT,OpenApiSnapshotTest#T_13_22_T_14_29_lifecycleMenuFieldsHaveReadOnlyBooleanAndInt32Contracts' test

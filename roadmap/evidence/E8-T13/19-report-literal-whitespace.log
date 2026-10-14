@@ -1,0 +1,56 @@
+roadmap/tasks/E8-T13.md:100: trailing whitespace.
++Command: `./mvnw -q '-Dtest=LifecycleMenuIT,DashboardIT,E3ContractIT,OpenApiSnapshotTest#T_13_22_T_14_29_lifecycleMenuFieldsHaveReadOnlyBooleanAndInt32Contracts' test`  
+roadmap/tasks/E8-T13.md:101: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:149: trailing whitespace.
++Command: `python3 roadmap/evidence/E8-T13/test-summary.py --selected-only`  
+roadmap/tasks/E8-T13.md:150: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:163: trailing whitespace.
++Command: `bin/openapi-snapshot`  
+roadmap/tasks/E8-T13.md:164: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:212: trailing whitespace.
++Command: `python3 roadmap/evidence/E8-T13/openapi-scope.py`  
+roadmap/tasks/E8-T13.md:213: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:261: trailing whitespace.
++Command: `/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify`  
+roadmap/tasks/E8-T13.md:262: trailing whitespace.
++Exit code: `1`  
+roadmap/tasks/E8-T13.md:266: trailing whitespace.
++java.lang.AssertionError: 
+roadmap/tasks/E8-T13.md:281: trailing whitespace.
++[ERROR] Failures: 
+roadmap/tasks/E8-T13.md:287: trailing whitespace.
++[ERROR] Errors: 
+roadmap/tasks/E8-T13.md:296: trailing whitespace.
++[ERROR] 
+roadmap/tasks/E8-T13.md:300: trailing whitespace.
++[ERROR] 
+roadmap/tasks/E8-T13.md:303: trailing whitespace.
++[ERROR] 
+roadmap/tasks/E8-T13.md:310: trailing whitespace.
++Command: `python3 roadmap/evidence/E8-T13/test-summary.py`  
+roadmap/tasks/E8-T13.md:311: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:330: trailing whitespace.
++Command: `gh run list --branch main --limit 1 --json databaseId,headSha,status,conclusion,url --jq '.[] | {databaseId, commit: (.headSha[0:7] + " [truncated]"), status, conclusion, url}'`  
+roadmap/tasks/E8-T13.md:331: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:340: trailing whitespace.
++Command: `gh run view 38460699729 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs: [.jobs[] | {name,status,conclusion,steps: [.steps[] | select(.conclusion == "failure") | {name,conclusion}]}]}'`  
+roadmap/tasks/E8-T13.md:341: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:350: trailing whitespace.
++Command: `python3 roadmap/evidence/E8-T13/source-state.py`  
+roadmap/tasks/E8-T13.md:351: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:361: trailing whitespace.
++Command: `git diff --check`  
+roadmap/tasks/E8-T13.md:362: trailing whitespace.
++Exit code: `0`  
+roadmap/tasks/E8-T13.md:371: trailing whitespace.
++Command: `/private/tmp/e8-t12-round5-gitleaks/gitleaks dir roadmap/evidence/E8-T13 --config /private/tmp/e8-t13-gitleaks-default.toml --gitleaks-ignore-path /dev/null --ignore-gitleaks-allow --redact=100 --no-banner --report-format json --report-path /private/tmp/e8-t13-final-secret-locations.json`  
+roadmap/tasks/E8-T13.md:372: trailing whitespace.
++Exit code: `0`  

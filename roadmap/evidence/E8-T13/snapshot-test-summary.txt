@@ -1,0 +1,2 @@
+After 07-openapi-snapshot (exit 0):
+com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0

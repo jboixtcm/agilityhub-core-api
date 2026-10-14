@@ -246,7 +246,7 @@ class E3ContractIT extends AbstractIntegrationTest {
         var schemas = api.at("/components/schemas");
         Map<String, String> fields = Map.ofEntries(
                 Map.entry("Dashboard", "generatedAt,today,week,kpis,riskReview,pendingSignups,dogsByLevel"),
-                Map.entry("DashboardWeek", "start,end"), Map.entry("DashboardCounters", "pendingSignups,pendingRequests,followUpUnread"),
+                Map.entry("DashboardWeek", "start,end"), Map.entry("DashboardCounters", "pendingSignups,pendingRequests,followUpUnread,pendingInactivityRequests,pendingLeaveRequests"),
                 Map.entry("DashboardKpis", "activeMembers,classOccupancy,trainingBookings,pendingSignups"),
                 Map.entry("ActiveMembersKpi", "value,deltaThisMonth"), Map.entry("ClassOccupancyKpi", "percent,booked,capacity,waitingTotal"),
                 Map.entry("TrainingBookingsKpi", "value,distinctMembers"), Map.entry("PendingSignupsKpi", "value,olderThanWarn,warnDays"),

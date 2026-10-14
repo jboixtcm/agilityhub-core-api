@@ -1272,6 +1272,7 @@
       "lastName,asc"
     ],
     "shared": false,
+    "system": false,
     "version": 1
   },
   "shared.application.contract.ApiContracts$ListPage": {
@@ -1398,7 +1399,9 @@
   "clubs.common.api.DashboardContracts$DashboardCounters": {
     "pendingSignups": 1,
     "pendingRequests": 0,
-    "followUpUnread": 0
+    "followUpUnread": 0,
+    "pendingInactivityRequests": 0,
+    "pendingLeaveRequests": 0
   },
   "clubs.common.api.DashboardContracts$Dashboard": {
     "generatedAt": "2026-09-06T10:00:00Z",

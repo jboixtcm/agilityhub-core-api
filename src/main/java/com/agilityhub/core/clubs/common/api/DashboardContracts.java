@@ -29,7 +29,9 @@ public final class DashboardContracts {
     public record DashboardCounters(
             @Schema(requiredMode = REQUIRED) int pendingSignups,
             @Schema(requiredMode = REQUIRED) int pendingRequests,
-            @Schema(requiredMode = REQUIRED) int followUpUnread) { }
+            @Schema(requiredMode = REQUIRED) int followUpUnread,
+            @Schema(requiredMode = REQUIRED, description = "S13 §2: REQUESTED inactivity periods; zero when INACTIVITY is disabled.") int pendingInactivityRequests,
+            @Schema(requiredMode = REQUIRED, description = "S13 §2: PENDING leave requests awaiting a decision.") int pendingLeaveRequests) { }
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record DashboardKpis(
             @Schema(requiredMode = REQUIRED, types = {"object", "null"}) ActiveMembersKpi activeMembers,

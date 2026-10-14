@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.census.application;
 
 import com.agilityhub.core.clubs.census.domain.*;
+import com.agilityhub.core.clubs.dashboard.application.DashboardQuery;
 import com.agilityhub.core.clubs.census.persistence.Member;
 import com.agilityhub.core.clubs.census.persistence.LifecycleParts.*;
 import com.agilityhub.core.clubs.census.persistence.leave.*;
@@ -19,11 +20,13 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class LeaveRequestService {
     @org.springframework.beans.factory.annotation.Autowired private DogService dogs;
+    private final DashboardQuery dashboard;
     private final LeaveRequestRepository requests; private final InactivityPeriodRepository periods; private final CensusAccess census;
     private final LifecycleBookings bookings; private final InactivityPeriodService inactivity; private final CensusEvents events;
     private final MemberStatusService statuses; private final Clock clock; private final ClubClock local;
     public LeaveRequestService(LeaveRequestRepository requests, InactivityPeriodRepository periods, CensusAccess census, LifecycleBookings bookings,
-            InactivityPeriodService inactivity, CensusEvents events, MemberStatusService statuses, Clock clock, ClubClock local) {
+            InactivityPeriodService inactivity, CensusEvents events, MemberStatusService statuses, Clock clock, ClubClock local, DashboardQuery dashboard) {
+        this.dashboard = dashboard;
         this.requests = requests; this.periods = periods; this.census = census; this.bookings = bookings; this.inactivity = inactivity;
         this.events = events; this.statuses = statuses; this.clock = clock; this.local = local;
     }
@@ -58,7 +61,7 @@ public class LeaveRequestService {
         date(requestedDate); reason(reasonKey, false);
         if (nps != null && !census.config().get("leave.npsEnabled", Boolean.class)) { throw new ApiException(ErrorCode.READ_ONLY); }
         var e = draft(memberId, requestedDate, reasonKey, LeaveSource.MEMBER); e.nps = nps; e.comment = comment;
-        var result = requests.insert(e.snapshot()); emit("LeaveRequested", result, Map.of()); return result;
+        var result = changed(requests.insert(e.snapshot())); emit("LeaveRequested", result, Map.of()); return result;
     }
     @Transactional
     @Audited(action = AuditAction.LEAVE_RESOLVED, entityType = "'LeaveRequest'", entity = "#id")
@@ -79,7 +82,7 @@ public class LeaveRequestService {
             if (pending.state() == LeaveRequestState.PENDING) { cancelRequest(pending, LifecycleCanceller.ADMIN, LeaveCancelReason.ADMIN); }
         }
         var e = draft(memberId, effectiveDate, reasonKey, LeaveSource.ADMIN); approve(e, member, effectiveDate, note);
-        var result = requests.insert(e.snapshot()); emit("LeaveResolved", result, Map.of("decision", LifecycleDecision.APPROVED)); return result;
+        var result = changed(requests.insert(e.snapshot())); emit("LeaveResolved", result, Map.of("decision", LifecycleDecision.APPROVED)); return result;
     }
     private void approve(LeaveEdit e, Member member, LocalDate effective, String note) {
         e.state = LeaveRequestState.APPROVED; e.decision = new LeaveRequest.Decision(clock.instant(), InactivityPeriodService.actor(), LifecycleDecision.APPROVED, effective.toString(), note);
@@ -150,7 +153,7 @@ public class LeaveRequestService {
                 || requests.ofMember(memberId).stream().anyMatch(r -> packId.equals(r.packBalanceId()))) { return null; }
         var effective = LocalDate.parse(pack.get("expiresOn").toString()).plusDays(census.config().get("leave.packExpiryGraceDays", Integer.class));
         var e = draft(memberId, effective, "PACK_EXPIRED", LeaveSource.PACK_EXPIRED); e.packBalanceId = packId;
-        approve(e, member, effective, null); var result = requests.insert(e.snapshot());
+        approve(e, member, effective, null); var result = changed(requests.insert(e.snapshot()));
         emit("LeaveResolved", result, Map.of("decision", LifecycleDecision.APPROVED)); return result;
     }
     @Transactional
@@ -168,7 +171,11 @@ public class LeaveRequestService {
         closePeriods(memberId, m.leaveDate == null ? today() : m.leaveDate, true);
         for (var r : requests.ofMember(memberId)) { if (r.state() == LeaveRequestState.PENDING) { cancelRequest(r, LifecycleCanceller.SYSTEM, LeaveCancelReason.ADMIN); } }
     }
-    LeaveRequest save(LeaveEdit e, Long expected) { e.version = expected + 1; e.updatedAt = clock.instant(); return requests.save(e.snapshot(), expected); }
+    private LeaveRequest changed(LeaveRequest saved) {
+        dashboard.invalidateCountersAfterCommit(saved.clubId());
+        return saved;
+    }
+    LeaveRequest save(LeaveEdit e, Long expected) { e.version = expected + 1; e.updatedAt = clock.instant(); return changed(requests.save(e.snapshot(), expected)); }
     void emit(String type, LeaveRequest r, Map<String, Object> extra) {
         var payload = object("requestId", r.id(), "memberId", r.memberId(), "origin", r.origin(), "source", r.source(), "requestedDate", r.requestedDate(),
                 "reasonKey", r.reasonKey(), "effectiveDate", r.decision() == null ? null : r.decision().effectiveDate(), "cancelledBookings", r.cancelledBookings(),

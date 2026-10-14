@@ -36,6 +36,22 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
     @Autowired ObjectMapper mapper;
     @Autowired MockMvc mvc;
 
+    @Test void T_13_22_T_14_29_lifecycleMenuFieldsHaveReadOnlyBooleanAndInt32Contracts() throws Exception {
+        var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var schemas = document.at("/components/schemas");
+        assertThat(schemas.at("/SavedView/properties/system/type").asText()).isEqualTo("boolean");
+        assertThat(schemas.at("/SavedView/properties/system/readOnly").asBoolean()).isTrue();
+        assertThat(strings(schemas.at("/SavedView/required"))).contains("system");
+        for (String input : List.of("SavedViewCreate", "SavedViewUpdate")) {
+            assertThat(schemas.path(input).path("properties").has("system")).isFalse();
+        }
+        for (String field : List.of("pendingInactivityRequests", "pendingLeaveRequests")) {
+            assertThat(schemas.at("/DashboardCounters/properties/" + field + "/type").asText()).isEqualTo("integer");
+            assertThat(schemas.at("/DashboardCounters/properties/" + field + "/format").asText()).isEqualTo("int32");
+            assertThat(strings(schemas.at("/DashboardCounters/required"))).contains(field);
+        }
+    }
+
     @Test void T_05_CP_01_clubPagesPublishTypedVersionedContracts() throws Exception {
         var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         var schema = document.at("/components/schemas/ClubPage");
