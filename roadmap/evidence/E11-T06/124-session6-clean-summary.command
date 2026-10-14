@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/test-summary.py --verify-exit roadmap/evidence/E11-T06/116-session6-clean-verify.exit ArchitectureTest SentryCaptureTest LogPrivacyTest RateLimitIT AnonymousRateLimitsTest SecurityInventoryIT E8ContractIT HealthControllerTest CapturedPaymentInvariantsIT

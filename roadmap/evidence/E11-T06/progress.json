@@ -40,5 +40,14 @@
     "evidence": "110 fresh process/lock/incomplete-report inspection; 111 whitespace; 112 initial scope; 113 self-reference rejection after embedding its command; 114 final anchored scope check.",
     "remaining": "Complete host process cleanup, then resume fresh current-source PIT and the remaining session-3 verification; enforce a one-hour deadline for every PIT run.",
     "changes": "Documentation and read-only evidence only; no product/test/build changes, process control or git writes."
+  },
+  "session6": {
+    "date": "2026-10-14",
+    "baseline": "79a99e4f",
+    "status": "in_progress",
+    "inherited_process": "115 confirms inherited process tree and lock are absent",
+    "completed": "117 deployment static tests (15), 118 mutation policy tests (6), 119 current-merge guards (4), 120 ShellCheck; 121/122 freeze/check 1994 verification inputs; 116/124 clean verify exit 0: 4485 unit + 1944 integration, zero failures/errors/skips, coverage and architecture gates passed; 125 counterfactual succeeds for all 12 regression groups; 126 confirms all 1994 verification inputs restored",
+    "running": "127 fresh full payments PIT, no history; exec session 56104; runner deadline one hour",
+    "remaining": "Capture clean summary; counterfactual and fresh PIT via session6-pit.py with no history; inventory; current image/rehearsal; triage/gate and complete handoff. Do not reuse historical mutation outcomes for changed code."
   }
 }

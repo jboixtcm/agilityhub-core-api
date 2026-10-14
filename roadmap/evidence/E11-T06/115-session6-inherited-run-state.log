@@ -1,0 +1,8 @@
+2026-10-14T06:17:25.593380+00:00
+Host lock pid: absent
+Host lock what: absent
+Command: lsof -n -a -p 64729,65739 -d cwd,1,2
+lsof exit: 1
+Current mutation report: target/pit-reports-session3-payments/mutations.xml
+Checkout evidence 100-pit-payments-integration.log: inode=53675139, bytes=15396
+Checkout evidence 100-pit-payments-integration.exit: absent
