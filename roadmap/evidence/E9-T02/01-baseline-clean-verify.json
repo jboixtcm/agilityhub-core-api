@@ -1,0 +1,8 @@
+{
+  "command": "env HEAVY_WAIT_MIN=25 /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify",
+  "exit_code": 1,
+  "started_utc": "2026-10-14T05:51:47.489949+00:00",
+  "finished_utc": "2026-10-14T06:08:30.336065+00:00",
+  "timeout_seconds": 3600,
+  "timed_out": false
+}

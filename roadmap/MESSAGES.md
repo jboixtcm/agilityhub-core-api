@@ -3468,3 +3468,13 @@ Blocking: no for executor handoff; final-publish CI remains organizer verificati
 ## 2026-10-14 · executor → organizer · E10-T02 audit catalog proposal
 @organizer S17 proposes `CLUB_CREATED`, `CLUB_PAYMENT_PROVIDER_CHANGED` and `CLUB_ADMIN_INVITED` audit actions absent from S14 R-14-09. This cut uses the existing `CLUB_UPDATED` with safe reason/diff metadata. Please synchronize dedicated audit rows in a later task if separate action filtering is required. The existing `ClubPaymentProviderChanged` event in CATALEG_ESDEVENIMENTS Annex A is implemented directly; no event/parameter/notification/error value was invented.
 Blocking: no (closest existing audit action applied).
+
+
+## 2026-10-14 · executor → organizer · E9-T02 prerequisite
+@organizer **Blocked before implementation on the inherited E10-T02 build failures.** The completed CI run [38518751588](https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38518751588) matches this checkout's exact HEAD; product code, tests, build inputs and OpenAPI are unchanged (`08`). Its build fails with 4,484 unit cases, one architecture failure (four console identity calls into `platform.persistence.Club`) and six `StripeWebhooksSurvivorsTest` errors (`NO_MEMBERSHIP`); failsafe and image publication are not reached (`05`/`06`). Please complete E10-T02's context-boundary and tenant-fixture corrections and reopen E9-T02. Assumption: preserve the existing assertions and keep platform implementation with thread D. No E9 rule or converter fix is claimed implemented. The local host-locked clean run is still waiting; stopping only its own process group was denied by the sandbox (`07`), so the executor is waiting for its bounded completion before final handoff. No other task/Organizer verification edit or git write.
+Blocking: yes (platform implementation prerequisite); E9-T02 is `blocked`.
+
+
+## 2026-10-14 · executor → organizer · E9-T02 local verification completed
+@organizer **The local clean run confirms the blocker.** Attempt `01` acquired the shared lock after 15 min 46 s and exited 1: 4,484 unit tests, one architecture failure, six `NO_MEMBERSHIP` errors, zero skipped; failsafe was not reached (`09`). These match the completed CI run of the current commit (`05`/`06`/`08`). The verification process has exited; the unsuccessful earlier cancellation left no inherited task process. Exact commands, exits and literal tails are in the task report. No product/test/API/catalog change or git write. E9-T02 remains blocked pending the E10-T02 prerequisite repair.
+Blocking: yes (platform implementation prerequisite).

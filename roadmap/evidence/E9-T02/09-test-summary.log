@@ -1,0 +1,6 @@
+Verification exit code: 1
+surefire-reports: classes=362, tests=4484, failures=1, errors=6, skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=22, failures=1, errors=0, skipped=0
+  com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest: tests=9, failures=0, errors=6, skipped=0
+failsafe-reports: NOT REACHED (no test reports from the clean run)
+No product or test classes added or changed in this task session.

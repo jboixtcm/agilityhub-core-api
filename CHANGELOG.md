@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E9-T02 prerequisite check: the current published commit still fails the E10-T02 context-boundary and Stripe webhook fixture checks. Courses implementation is blocked pending that repair; this session records evidence without product changes.
+
 ### Changed
 
 - E8-T12 round 5 verification resume: the 5 ledger unit and 74 payment invariant tests pass on current source. A missing test import is fixed; full verification is blocked by inherited platform context-boundary violations and webhook tenant-fixture errors, recorded with exact evidence for the organizer.

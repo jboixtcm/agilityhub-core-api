@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import os, signal; from pathlib import Path; assert os.getpgid(96507) == 96507; assert Path("/tmp/agilityhub-heavy.lock/pid").read_text().strip() != "96507"; os.killpg(96507, signal.SIGTERM); print("Stopped only E9-T02 process group 96507 while it waited for the host lock; the other lane retains its lock.")
+                                                                                                                                                                  ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted

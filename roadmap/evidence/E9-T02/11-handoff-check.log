@@ -1,0 +1,10 @@
+01-baseline-clean-verify: command, exit 1 and literal final tail present
+05-baseline-ci-status: command, exit 0 and literal final tail present
+06-baseline-ci-failure: command, exit 0 and literal final tail present
+08-ci-baseline-match: command, exit 0 and literal final tail present
+09-test-summary: command, exit 0 and literal final tail present
+10-diff-summary: command, exit 0 and literal final tail present
+Scope: E9-T02 evidence/report, generated status, append-only messages and changelog only.
+Organizer verification and other task files: unchanged.
+Task size: 21276 bytes; below 120000.
+Final task status: blocked.

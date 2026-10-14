@@ -1,0 +1,8 @@
+{
+  "command": "gh run view 38518751588 --json status,conclusion,url,jobs --jq '{status,conclusion,url,jobs:[.jobs[]|{name,status,conclusion,url}]}'",
+  "exit_code": 0,
+  "started_utc": "2026-10-14T05:55:36.845272+00:00",
+  "finished_utc": "2026-10-14T05:55:38.044855+00:00",
+  "timeout_seconds": 3600,
+  "timed_out": false
+}

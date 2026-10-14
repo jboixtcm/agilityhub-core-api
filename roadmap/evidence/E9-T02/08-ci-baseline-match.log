@@ -1,0 +1,8 @@
+Current HEAD 07f16ab matches CI run 38518751588.
+Product source, tests, build inputs and OpenAPI have no working-tree changes.
+Whole run: completed, failure; https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38518751588
+Secret scan: completed, success
+Dependency vulnerability audit: completed, success
+Build and tests: completed, failure
+Scan image (${{ matrix.arch }}): completed, skipped
+Publish API image: completed, skipped
