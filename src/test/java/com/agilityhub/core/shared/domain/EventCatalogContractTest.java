@@ -15,6 +15,12 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class EventCatalogContractTest {
+    @Test void T_17_02_R_17_02_consoleRejectsUncataloguedEventNames() {
+        assertThatThrownBy(() -> new com.agilityhub.core.platform.domain.events.ConsoleEvent(
+                "UnsupportedConsoleAction", "club-a", Instant.EPOCH, Map.of(), "account-a"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     @Test void E0_T04_everyEventImplementationEmitsACatalogName() throws Exception {
         Set<String> catalog = new HashSet<>();
         var pattern = Pattern.compile("`([A-Z][a-zA-Z]+)(?:[ `{])");
@@ -112,9 +118,12 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.class,
                 () -> new com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent(com.agilityhub.core.clubs.census.domain.CensusLifecycleEvent.Kind.LeaveRequested,
                         "club-a", "request-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("requestId", "request-a", "memberId", "member-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
-        samples.put(com.agilityhub.core.platform.application.ConsoleEvent.class,
-                () -> new com.agilityhub.core.platform.application.ConsoleEvent("ClubCreated", "club-a", Instant.parse("2030-01-01T00:00:00Z"),
+        samples.put(com.agilityhub.core.platform.domain.events.ConsoleEvent.class,
+                () -> new com.agilityhub.core.platform.domain.events.ConsoleEvent("ClubCreated", "club-a", Instant.parse("2030-01-01T00:00:00Z"),
                         Map.of("clubId", "club-a", "diff", Map.of()), "account-a"));
+        samples.put(com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged.class,
+                () -> new com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged("club-a", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("clubId", "club-a", "provider", "MANUAL", "configured", true), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -182,7 +191,12 @@ class EventCatalogContractTest {
                 assertThat(notification.actorAccountId()).isNull(); assertThat(notification.impersonatedMemberId()).isNull();
                 assertThat(notification.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
             }
-            if (event instanceof com.agilityhub.core.platform.application.ConsoleEvent) {
+            if (event instanceof com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged) {
+                assertThat(catalog).contains("ClubPaymentProviderChanged");
+                assertThat(event.aggregateType()).isEqualTo("Club");
+                assertThat(event.payload()).containsOnlyKeys("clubId", "provider", "configured"); return;
+            }
+            if (event instanceof com.agilityhub.core.platform.domain.events.ConsoleEvent) {
                 assertThat(catalog).contains("ClubCreated","ClubUpdated","ClubModulesChanged","ClubStatusChanged");
                 assertThat(event.aggregateType()).isEqualTo("Club");assertThat(event.payload()).containsKeys("clubId","diff");return;
             }

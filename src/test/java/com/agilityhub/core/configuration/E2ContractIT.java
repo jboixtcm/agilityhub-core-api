@@ -106,6 +106,8 @@ class E2ContractIT extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "{0}") @MethodSource("pendingRoutes")
     void T_03_33_T_14_22_everyE2ContractEnforcesRolesTenantAndPendingResponse(Route route) throws Exception {
+        boolean consoleRead = Set.of("/api/v1/platform/audit-entries", "/api/v1/platform/security-events").contains(route.path());
+        int authorizedStatus = consoleRead ? 200 : 501;
         var anonymous = mvc.perform(call(route));
         if (route.roles().isEmpty()) {
             anonymous.andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
@@ -117,22 +119,30 @@ class E2ContractIT extends AbstractIntegrationTest {
         anonymous.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN")) {
             boolean allowed = route.roles().contains(role);
-            mvc.perform(call(route).with(jwt().jwt(j -> j.subject(route.method() + route.path() + role).claim("clubId", "e2-club-a"))
+            var result = mvc.perform(call(route).with(jwt().jwt(j -> j.subject(route.method() + route.path() + role).claim("clubId", "e2-club-a"))
                             .authorities(new SimpleGrantedAuthority("ROLE_" + role))))
-                    .andExpect(status().is(allowed ? 501 : 403))
-                    .andExpect(jsonPath("$.code").value(allowed ? "NOT_IMPLEMENTED" : "FORBIDDEN"))
+                    .andExpect(status().is(allowed ? authorizedStatus : 403));
+            if (allowed && consoleRead) {
+                result.andExpect(jsonPath("$.items").isArray())
+                        .andExpect(jsonPath("$.totalItems").isNumber())
+                        .andExpect(jsonPath("$.appliedFilters").isArray())
+                        .andExpect(jsonPath("$.code").doesNotExist());
+            } else {
+                result.andExpect(jsonPath("$.code").value(allowed ? "NOT_IMPLEMENTED" : "FORBIDDEN"))
                     .andExpect(jsonPath("$.length()").value(4))
                     .andExpect(jsonPath("$.traceId").isNotEmpty())
                     .andExpect(jsonPath("$.message").isNotEmpty());
+            }
         }
         var authority = new SimpleGrantedAuthority("ROLE_" + route.roles().getFirst());
-        mvc.perform(call(route, "e2-b.example.test")
+        var otherHost = mvc.perform(call(route, "e2-b.example.test")
                         .with(jwt().jwt(j -> j.claim("clubId", "e2-club-a")).authorities(authority)))
-                .andExpect(status().is(route.global() ? 501 : 403))
-                .andExpect(jsonPath("$.code").value(route.global() ? "NOT_IMPLEMENTED" : "TENANT_MISMATCH"));
+                .andExpect(status().is(route.global() ? authorizedStatus : 403));
+        if (!consoleRead) otherHost.andExpect(jsonPath("$.code").value(route.global() ? "NOT_IMPLEMENTED" : "TENANT_MISMATCH"));
+        else otherHost.andExpect(jsonPath("$.items").isArray());
         mvc.perform(call(route, "id.example.test")
                         .with(jwt().authorities(authority)))
-                .andExpect(status().is(route.global() ? 501 : 403));
+                .andExpect(status().is(route.global() ? authorizedStatus : 403));
         if (route.rejectImpersonation()) {
             // A synthetic imp claim has no persisted grant; real grant role rejection is covered by T-01-11.
             mvc.perform(call(route).with(jwt().jwt(j -> j.claim("clubId", "e2-club-a").claim("imp", true)).authorities(authority)))

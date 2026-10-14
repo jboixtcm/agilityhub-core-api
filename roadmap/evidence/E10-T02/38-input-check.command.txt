@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E10-T02/inputs.py check roadmap/evidence/E10-T02/34-input-manifest.json

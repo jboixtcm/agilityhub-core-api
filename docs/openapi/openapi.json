@@ -73432,7 +73432,7 @@
                 }
               }
             },
-            "description" : "LAST_ADMIN, MEMBERSHIP_EXISTS"
+            "description" : "LAST_ADMIN, MEMBERSHIP_EXISTS, INVALID_STATE"
           },
           "422" : {
             "content" : {

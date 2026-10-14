@@ -243,7 +243,7 @@ public class PlatformClubsController {
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/admins")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, LAST_ADMIN, MEMBERSHIP_EXISTS})
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, LAST_ADMIN, MEMBERSHIP_EXISTS, INVALID_STATE})
     @Operation(summary="invitePlatformAdmin", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
             responses=@ApiResponse(responseCode="201", description="PlatformAdmin", useReturnTypeSchema=true))
     @ResponseStatus(org.springframework.http.HttpStatus.CREATED)

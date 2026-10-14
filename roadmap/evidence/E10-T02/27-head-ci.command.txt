@@ -1,0 +1,1 @@
+gh run list --workflow CI --commit ca85dc2b4e1ce90b9571870890ea39d70df164cd --limit 5 --json databaseId,status,conclusion,url

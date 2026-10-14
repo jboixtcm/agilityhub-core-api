@@ -23,30 +23,33 @@ public class ConsoleAdministrators implements com.agilityhub.core.platform.appli
             .map(this::view).sorted(Comparator.comparing(Admin::email)).toList(); }
     private Admin view(Membership m) { var a=accountRows.findById(m.accountId()).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
         return new Admin(a.id(),a.name(),a.email(),m.status().name(),m.lastAccessAt()); }
-    public Change snapshot() { return new Change(clubs.club().id(),list().stream().map(a->Map.of("accountId",a.accountId(),"status",a.membershipStatus())).toList(),null); }
+    public Change snapshot() { return new Change(clubs.administration().id(),list().stream().map(a->Map.of("accountId",a.accountId(),"status",a.membershipStatus())).toList(),null); }
     @Transactional
     @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Administrator invitation'")
     public Change invite(String email,String name) {
-        var club=clubs.club();
+        var club=clubs.administration();
         var account=accounts.getOrCreate(email,name,club.defaultLocale(),Account.Source.CONSOLE);accounts.active(account.id());
         if(memberships.findByAccountId(account.id()).filter(m->m.roles().contains(Role.ADMIN)&&m.status()==Membership.Status.ACTIVE).isPresent())
             throw new ApiException(ErrorCode.MEMBERSHIP_EXISTS);
         var before=memberships.findByAccountId(account.id()).orElse(null);
+        // MODEL_DADES_PLATAFORMA Annex B: only onboarding permits a new administrator without a member record.
+        if(!club.onboarding()&&(before==null||before.memberId()==null))
+            throw new ApiException(ErrorCode.INVALID_STATE,Map.of("field","memberId"));
         var roles=EnumSet.noneOf(Role.class);if(before!=null) roles.addAll(before.roles());roles.add(Role.ADMIN);
         var member=membershipService.setRoles(account.id(),roles);
         if(member.status()==Membership.Status.SUSPENDED) member=membershipService.resume(account.id());
         // The club version serializes simultaneous invitations/removals and protects the last administrator.
-        clubs.write(club,Map.of(),"ClubUpdated",Map.of("adminInvitation",account.id()));
+        clubs.administratorChange(club,Map.of("adminInvitation",account.id()));
         return new Change(club.id(),snapshot().admins(),view(member));
     }
     @Transactional
     @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Administrator removed'")
     public Change remove(String accountId) {
-        var club=clubs.club();var membership=memberships.findByAccountId(accountId).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
+        var club=clubs.administration();var membership=memberships.findByAccountId(accountId).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
         if(!membership.roles().contains(Role.ADMIN)) throw new ApiException(ErrorCode.NOT_FOUND);
         if(membership.status()==Membership.Status.ACTIVE) {
             if(memberships.activeAdmins()<=1) throw new ApiException(ErrorCode.LAST_ADMIN);
-            clubs.write(club,Map.of(),"ClubUpdated",Map.of("adminRemoved",accountId));membershipService.suspend(accountId);
+            clubs.administratorChange(club,Map.of("adminRemoved",accountId));membershipService.suspend(accountId);
         }
         return snapshot();
     }

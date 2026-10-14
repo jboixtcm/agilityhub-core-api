@@ -1,0 +1,6 @@
+Only E10-T02 roadmap files, generated STATUS and append-only MESSAGES are changed.
+Organizer verification is unchanged; MESSAGES retains its original prefix.
+All 41 attempt logs are publishable; only inherited attempt 15 has no exit.
+Final verification commands and literal last-40-line excerpts match their retained logs.
+Source, snapshot, handoff documentation and evidence scripts pass git diff --check.
+Task report: 40731 bytes (limit 120000).

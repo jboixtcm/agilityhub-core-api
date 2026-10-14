@@ -1,6 +1,6 @@
 import json,subprocess
 from pathlib import Path
-old=json.loads(subprocess.check_output(["git","show","HEAD:docs/openapi/openapi.json"]))
+old=json.loads(subprocess.check_output(["git","show","b272803d^:docs/openapi/openapi.json"]))
 new=json.loads(Path("docs/openapi/openapi.json").read_text())
 methods={"get","post","put","patch","delete","head","options"}
 def operations(api):return {(path,method):op for path,value in api["paths"].items() for method,op in value.items() if method in methods}

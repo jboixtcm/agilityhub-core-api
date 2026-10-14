@@ -1,0 +1,1 @@
+gh run view 38450671891 --json status,conclusion,jobs,url,headSha --jq '.url, ("Commit: " + .headSha[0:8] + " [truncated]"), ("Run: " + .status + " / " + .conclusion), (.jobs[] | .name + ": " + .status + " / " + .conclusion)'

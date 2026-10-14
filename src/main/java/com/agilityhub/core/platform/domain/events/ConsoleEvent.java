@@ -1,4 +1,4 @@
-package com.agilityhub.core.platform.application;
+package com.agilityhub.core.platform.domain.events;
 
 import com.agilityhub.core.shared.domain.DomainEvent;
 import java.time.Instant;

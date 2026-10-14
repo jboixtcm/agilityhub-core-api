@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=PlatformConsoleIT#T_17_02_R_17_02_creationProvisionsTheConsoleDefinitionAtomically' test

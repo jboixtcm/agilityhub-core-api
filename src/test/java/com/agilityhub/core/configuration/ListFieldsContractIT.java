@@ -77,8 +77,8 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
      * The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves
      * invoices, E8-T03 remittances).
      */
-    static final Set<String> STUBS = Set.of("/api/v1/courses", "/api/v1/platform/courses", "/api/v1/platform/clubs");
-    /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
+    static final Set<String> STUBS = Set.of("/api/v1/courses", "/api/v1/platform/courses");
+    /** Console lists with fixed response fields, including the implemented audit/security projections. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
     @Autowired MockMvc mvc;

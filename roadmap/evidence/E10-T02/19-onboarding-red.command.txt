@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=PlatformConsoleIT#T_17_08_R_17_09_memberlessInvitationsAreLimitedToOnboarding+T_17_08_R_17_09_existingMemberCanBecomeAdminInAnActiveClub,StripeWebhooksSurvivorsTest' test

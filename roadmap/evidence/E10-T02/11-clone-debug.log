@@ -355,7 +355,7 @@ com.agilityhub.core.shared.domain.ApiException: TENANT_MISMATCH
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.51 s <<< FAILURE! -- in com.agilityhub.core.platform.api.PlatformConsoleIT
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_07_R_17_08_cloneCopiesCurrentPricesLocalizedTextAndStripsGeometry -- Time elapsed: 1.154 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"TENANT_MISMATCH","message":"La petició no correspon al club del compte.","details":{},"traceId":"97786b1f-c575-4bf1-b8e5-78b779ad076c"}] 
+[{"code":"TENANT_MISMATCH","message":"La petició no correspon al club del compte.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 403
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:40)
@@ -365,7 +365,7 @@ expected: 200
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] Failures: 
-[ERROR]   PlatformConsoleIT.T_17_07_R_17_08_cloneCopiesCurrentPricesLocalizedTextAndStripsGeometry:252->call:40 [{"code":"TENANT_MISMATCH","message":"La petició no correspon al club del compte.","details":{},"traceId":"97786b1f-c575-4bf1-b8e5-78b779ad076c"}] 
+[ERROR]   PlatformConsoleIT.T_17_07_R_17_08_cloneCopiesCurrentPricesLocalizedTextAndStripsGeometry:252->call:40 [{"code":"TENANT_MISMATCH","message":"La petició no correspon al club del compte.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 403
 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0

@@ -51,7 +51,7 @@ WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicA
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 2026-10-13T21:41:49.028+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs/console-target/payment-providers/STRIPE' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
-2026-10-13T21:41:49.175+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=87e59cb6-7326-46d3-8a0c-9be072f61396 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=d12fbb81-0d4c-4a40-b8f4-5700f254d382; the outbox delivery retries it
+2026-10-13T21:41:49.175+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=d12fbb81-0d4c-4a40-b8f4-5700f254d382; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -664,7 +664,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:49.300+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=54dc24f6-bf65-45b9-b877-32a0210a63c2 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=[redacted]; the outbox delivery retries it
+2026-10-13T21:41:49.300+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=[redacted]; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -1277,7 +1277,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:49.629+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=06b27a9d-b398-4f23-b33a-e47e1bf6ccd6 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=96cc6f33-3061-4635-9b34-4fedbb64fba6; the outbox delivery retries it
+2026-10-13T21:41:49.629+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=96cc6f33-3061-4635-9b34-4fedbb64fba6; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -1796,7 +1796,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:49.711+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=3906d38a-508f-49cb-9217-131714f24de8 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=36c8430d-[redacted]; the outbox delivery retries it
+2026-10-13T21:41:49.711+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=36c8430d-[redacted]; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -2315,7 +2315,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:49.782+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=b97fe62b-c8b1-416f-b26c-bafc1de3173b clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=8e4d88ee-b90f-42a7-86b6-72f85431887a; the outbox delivery retries it
+2026-10-13T21:41:49.782+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=8e4d88ee-b90f-42a7-86b6-72f85431887a; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -2834,7 +2834,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:49.866+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=a8bc5425-5d83-41ac-8d1c-01da65e2d065 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=b58b9d1b-42b4-4185-92ab-996f1a241259; the outbox delivery retries it
+2026-10-13T21:41:49.866+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=b58b9d1b-42b4-4185-92ab-996f1a241259; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -3353,7 +3353,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:50.143+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=93e87467-f1b2-4086-9b7a-d5080f304db5 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubCreated eventId=9be65df1-5a2d-40bd-8d80-6ab72b5c1fd8; the outbox delivery retries it
+2026-10-13T21:41:50.143+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubCreated eventId=9be65df1-5a2d-40bd-8d80-6ab72b5c1fd8; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -3872,7 +3872,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:50.384+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=5ca08e8e-fca9-4a4b-abfb-78a1e896aaf3 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=0692e28c-e5d3-4ecd-9ca5-86e7e1a81d75; the outbox delivery retries it
+2026-10-13T21:41:50.384+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=0692e28c-e5d3-4ecd-9ca5-86e7e1a81d75; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -4391,7 +4391,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:50.477+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=191e8da0-3566-433d-a986-2141445e0121 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=040b7ab5-35c5-45e8-9a35-a2ccd38a1cc5; the outbox delivery retries it
+2026-10-13T21:41:50.477+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=040b7ab5-35c5-45e8-9a35-a2ccd38a1cc5; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -4910,7 +4910,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:51.027+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=4c18a06a-4130-4497-9f6f-0ba9f0d58391 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubModulesChanged eventId=e89da926-dbe2-4499-a175-8e737c2fe090; the outbox delivery retries it
+2026-10-13T21:41:51.027+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubModulesChanged eventId=e89da926-dbe2-4499-a175-8e737c2fe090; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -5523,7 +5523,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:51.370+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=f4b15ae4-5f7e-4fe1-a292-15ef05b7730b clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=5f704455-c905-4ee0-9db4-d845bf283b5b; the outbox delivery retries it
+2026-10-13T21:41:51.370+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=5f704455-c905-4ee0-9db4-d845bf283b5b; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -6042,7 +6042,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:51.534+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=dae0b3b5-a6c8-4baa-84ba-8970a85bae5f clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=50cc2a90-0973-45e3-82a8-a4380cccdecc; the outbox delivery retries it
+2026-10-13T21:41:51.534+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=50cc2a90-0973-45e3-82a8-a4380cccdecc; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -6655,7 +6655,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:51.774+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=a3e6f453-6dd8-4ab2-a21c-c4deba2bc069 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=4ae101ad-c5bd-446f-a55a-e540a0964176; the outbox delivery retries it
+2026-10-13T21:41:51.774+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=4ae101ad-c5bd-446f-a55a-e540a0964176; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -7268,7 +7268,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:51.842+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=00f64e87-b456-4af9-a142-f44520d5894e clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=f210824e-3f98-4a4d-8f66-b255a9ab1994; the outbox delivery retries it
+2026-10-13T21:41:51.842+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=f210824e-3f98-4a4d-8f66-b255a9ab1994; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -7881,7 +7881,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:52.038+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=9ac880db-edb0-464f-84cd-6c2dc091c0a7 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=5330e03f-c930-4609-a710-833058f72eb2; the outbox delivery retries it
+2026-10-13T21:41:52.038+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=5330e03f-c930-4609-a710-833058f72eb2; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -8490,7 +8490,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:52.251+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=8e35a24e-9b19-4766-984e-f547f0605e76 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=9e807880-503e-469d-9781-0d3b47a2a902; the outbox delivery retries it
+2026-10-13T21:41:52.251+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=9e807880-503e-469d-9781-0d3b47a2a902; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -9009,7 +9009,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:52.901+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=c49986a0-1033-4e97-845c-d605d729bb17 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=c384a837-ade6-4efc-bc5a-d6d2ade5d65b; the outbox delivery retries it
+2026-10-13T21:41:52.901+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=c384a837-ade6-4efc-bc5a-d6d2ade5d65b; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -9528,7 +9528,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.034+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=29b274b5-399c-47f0-b10d-c6e9b6d49f52 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=eaa80a1f-705a-4774-8530-beba68bda468; the outbox delivery retries it
+2026-10-13T21:41:53.034+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubStatusChanged eventId=eaa80a1f-705a-4774-8530-beba68bda468; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -10047,7 +10047,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.343+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=7bcf81be-47d1-4586-af63-3dbf20914bfe clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=3b6243dc-7440-4095-a5d1-362a38c574cc; the outbox delivery retries it
+2026-10-13T21:41:53.343+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=3b6243dc-7440-4095-a5d1-362a38c574cc; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -10660,7 +10660,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.399+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=42500058-1574-4973-9095-8d1d20ba015a clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=[redacted]; the outbox delivery retries it
+2026-10-13T21:41:53.399+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=[redacted]; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -11281,7 +11281,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.594+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=ee0c6bae-9760-436c-86e3-21a6a66f86fc clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=83a31d25-adce-4d1b-[redacted]; the outbox delivery retries it
+2026-10-13T21:41:53.594+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=83a31d25-adce-4d1b-[redacted]; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -11890,7 +11890,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.652+02:00 ERROR [main] c.a.core.shared.api.ApiExceptionHandler traceId=d33f7547-554c-4d20-96de-ba6d0ac10bfb clubId=- accountId=console-actor : Unhandled request exception traceId=d33f7547-554c-4d20-96de-ba6d0ac10bfb
+2026-10-13T21:41:53.652+02:00 ERROR [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=console-actor : Unhandled request exception traceId=[truncated]
 org.springframework.data.mongodb.InvalidMongoDbApiUsageException
 	at org.springframework.data.mongodb.core.query.Query.addCriteria(Query.java:137)
 	at com.agilityhub.core.platform.persistence.PlatformConsoleProjection.telemetry(PlatformConsoleProjection.java:42)
@@ -12177,7 +12177,7 @@ org.springframework.data.mongodb.InvalidMongoDbApiUsageException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.802+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=788dfd58-da02-4428-9684-4754c50526cc clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=b39b073d-7fda-458e-[redacted]; the outbox delivery retries it
+2026-10-13T21:41:53.802+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=b39b073d-7fda-458e-[redacted]; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -12790,7 +12790,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:53.877+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=9da594b0-cceb-4445-a6d9-c0378e8a387d clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=8e3acdaa-97ed-4136-be1a-b532350f083c; the outbox delivery retries it
+2026-10-13T21:41:53.877+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=8e3acdaa-97ed-4136-be1a-b532350f083c; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -13403,7 +13403,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:54.047+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=d5aaafb0-76bb-40de-81ff-1ab53833dc2b clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubModulesChanged eventId=f31cb693-71e5-4a1b-b007-1ff16a478501; the outbox delivery retries it
+2026-10-13T21:41:54.047+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubModulesChanged eventId=f31cb693-71e5-4a1b-b007-1ff16a478501; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -14016,7 +14016,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:54.237+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=9238f780-1c2f-430c-9adb-e351e01cc866 clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=19912ef7-4f59-45ca-89c7-cf25ebd659db; the outbox delivery retries it
+2026-10-13T21:41:54.237+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=19912ef7-4f59-45ca-89c7-cf25ebd659db; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -14535,7 +14535,7 @@ Caused by: java.lang.NullPointerException
 	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
-2026-10-13T21:41:54.417+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=ac71df0b-4855-45f5-8cf1-5d9fa375ef1a clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=580eefa6-3e78-4393-9498-3be0ab621cd8; the outbox delivery retries it
+2026-10-13T21:41:54.417+02:00 WARN  [main] c.a.c.s.persistence.MongoEventPublisher traceId=[truncated] clubId=- accountId=console-actor : After-commit cache eviction failed type=ClubUpdated eventId=580eefa6-3e78-4393-9498-3be0ab621cd8; the outbox delivery retries it
 com.fasterxml.jackson.databind.exc.ValueInstantiationException
 	at com.fasterxml.jackson.databind.exc.ValueInstantiationException.from(ValueInstantiationException.java:46)
 	at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:2062)
@@ -15151,7 +15151,7 @@ Caused by: java.lang.NullPointerException
 [ERROR] Tests run: 20, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 15.56 s <<< FAILURE! -- in com.agilityhub.core.platform.api.PlatformConsoleIT
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_10_R_17_12_platformAuditExcludesMemberChangesEvenWhenFiltered -- Time elapsed: 0.200 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi d33f7547-554c-4d20-96de-ba6d0ac10bfb al club.","details":{},"traceId":"d33f7547-554c-4d20-96de-ba6d0ac10bfb"}] 
+[{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi d33f7547-554c-4d20-96de-ba6d0ac10bfb al club.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 500
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -15162,7 +15162,7 @@ expected: 200
 
 2026-10-13T21:41:54.531+02:00 INFO  [main] com.tngtech.archunit.core.PluginLoader traceId= clubId= accountId= : Detected Java version [redacted]
 [ERROR] Failures: 
-[ERROR]   PlatformConsoleIT.T_17_10_R_17_12_platformAuditExcludesMemberChangesEvenWhenFiltered:211->call:39 [{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi d33f7547-554c-4d20-96de-ba6d0ac10bfb al club.","details":{},"traceId":"d33f7547-554c-4d20-96de-ba6d0ac10bfb"}] 
+[ERROR]   PlatformConsoleIT.T_17_10_R_17_12_platformAuditExcludesMemberChangesEvenWhenFiltered:211->call:39 [{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi d33f7547-554c-4d20-96de-ba6d0ac10bfb al club.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 500
 [ERROR] Tests run: 22, Failures: 1, Errors: 0, Skipped: 0

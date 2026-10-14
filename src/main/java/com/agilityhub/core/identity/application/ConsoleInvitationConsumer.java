@@ -21,7 +21,7 @@ public class ConsoleInvitationConsumer implements DomainEventHandler<ClubConfigC
         if(!(event.payload().get("diff") instanceof Map<?,?> diff)||!(diff.get("adminInvitation") instanceof String accountId)) return;
         try(var scope=TenantContext.open(event.clubId())) {
             String inviter=event.actorAccountId()==null?"AgilityHub":accounts.findById(event.actorAccountId()).map(a->a.name()).orElse("AgilityHub");
-            links.sendAdminInvitation(eventId,accountId,clubs.get(event.clubId()).name(),inviter);
+            links.sendAdminInvitation(eventId,accountId,clubs.name(event.clubId()),inviter);
         }
     }
 }

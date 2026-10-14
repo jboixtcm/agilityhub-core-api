@@ -1,0 +1,9 @@
+https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38450671891
+Commit: 0b481a3e [truncated]
+Run: completed / success
+Dependency vulnerability audit: completed / success
+Secret scan: completed / success
+Build and tests: completed / success
+Scan image (amd64): completed / success
+Scan image (arm64): completed / success
+Publish API image: completed / success

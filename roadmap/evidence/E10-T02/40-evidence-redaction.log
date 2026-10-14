@@ -1,0 +1,4 @@
+25-clean-verify.log: identifiers/contact data redacted; every output line retained.
+30-event-and-contracts.log: identifiers/contact data redacted; every output line retained.
+32-resume-regressions.log: identifiers/contact data redacted; every output line retained.
+35-clean-verify.log: identifiers/contact data redacted; every output line retained.

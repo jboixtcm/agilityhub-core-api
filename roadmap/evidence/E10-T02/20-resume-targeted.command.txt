@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=PlatformConsoleIT,StripeWebhooksSurvivorsTest,ArchitectureTest test

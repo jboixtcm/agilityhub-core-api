@@ -1,0 +1,13 @@
+surefire-reports: tests=4485, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.ConsolePaymentValidationTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.StripeWebhooksSurvivorsTest: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.payments.application.stripe.StripePaymentProviderTest: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.platform.domain.ConsoleThemeRulesTest: tests=1, failures=0, errors=0, skipped=0
+com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=3, failures=0, errors=0, skipped=0
+failsafe-reports: tests=1938, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E10ContractIT: tests=37, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+com.agilityhub.core.configuration.ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+com.agilityhub.core.identity.api.RateLimitIT: tests=9, failures=0, errors=0, skipped=0
+com.agilityhub.core.platform.api.PlatformConsoleIT: tests=31, failures=0, errors=0, skipped=0
+All clean-run test reports have zero failures, errors and skipped tests; every changed test class is present.

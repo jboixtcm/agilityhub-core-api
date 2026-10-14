@@ -1,0 +1,13 @@
+01-console-red.log: identifiers/contact data redacted; every output line retained.
+03-console.log: identifiers/contact data redacted; every output line retained.
+04-console.log: identifiers/contact data redacted; every output line retained.
+05-expanded.log: identifiers/contact data redacted; every output line retained.
+06-expanded.log: identifiers/contact data redacted; every output line retained.
+09-behavior.log: identifiers/contact data redacted; every output line retained.
+10-expanded.log: identifiers/contact data redacted; every output line retained.
+11-clone-debug.log: identifiers/contact data redacted; every output line retained.
+12-targeted.log: identifiers/contact data redacted; every output line retained.
+14-openapi.log: identifiers/contact data redacted; every output line retained.
+18-clean-verify.log: identifiers/contact data redacted; every output line retained.
+19-onboarding-red.log: identifiers/contact data redacted; every output line retained.
+21-openapi.log: identifiers/contact data redacted; every output line retained.

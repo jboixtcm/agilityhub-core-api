@@ -81,6 +81,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(result.path("copied").path("RINGS").asInt(-1)).isZero();
     }
     @Test void T_17_08_R_17_09_invitationCreatesMembershipAndProtectsLastAdmin() throws Exception {
+        onboarding("console-target");
         var result=call(post(BASE+"/console-target/admins").header("Idempotency-Key",UUID.randomUUID()),Map.of("email","invited@example.test","name","Fictional Admin"),201);
         assertThat(result.path("membershipStatus").asText()).isEqualTo("ACTIVE");
         assertThat(call(delete(BASE+"/console-target/admins/"+result.path("accountId").asText()).header("Idempotency-Key",UUID.randomUUID()),null,409).path("code").asText()).isEqualTo("LAST_ADMIN");
@@ -109,6 +110,11 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.identity.application.PasswordHasher passwords;
     void raw(String collection,org.bson.Document value) { mongo.insert(value,collection); }
     org.bson.Document row(String id,String club) {return new org.bson.Document("_id",id).append("clubId",club);}
+    void onboarding(String id) {
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(id)),
+                new org.springframework.data.mongodb.core.query.Update().set("status","ONBOARDING"),Club.class);
+        configs.invalidate(id);
+    }
     @Test void T_17_04_R_17_04_disablePreservesBookingsAndImmediateBrandingUsesNewModules() throws Exception {
         configs.get("console-target");hosts.invalidate();
         raw("training_bookings",row("existing-training","console-target").append("status","CONFIRMED"));
@@ -187,6 +193,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(mongo.findById("evt_console_paused",org.bson.Document.class,"stripe_events").get("processedAt")).isNotNull();
     }
     @Test void T_17_08_R_17_09_invitationDeliversN53OnceAndDoesNotCreateAMember() throws Exception {
+        onboarding("console-target");
         String key=UUID.randomUUID().toString();var input=Map.of("email","invited@example.test","name","Fictional Admin");
         var one=call(post(BASE+"/console-target/admins").header("Idempotency-Key",key),input,201);
         var two=call(post(BASE+"/console-target/admins").header("Idempotency-Key",key),input,201);assertThat(two).isEqualTo(one);
@@ -200,6 +207,7 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(call(post(BASE+"/console-target/admins").header("Idempotency-Key",UUID.randomUUID()),input,409).path("code").asText()).isEqualTo("MEMBERSHIP_EXISTS");
     }
     @Test void T_17_08_R_17_09_removalSuspendsOnlyTheTargetClub() throws Exception {
+        onboarding("console-target");onboarding("console-source");
         var one=call(post(BASE+"/console-target/admins").header("Idempotency-Key",UUID.randomUUID()),Map.of("email","one@example.test","name","First"),201);
         call(post(BASE+"/console-target/admins").header("Idempotency-Key",UUID.randomUUID()),Map.of("email","two@example.test","name","Second"),201);
         call(post(BASE+"/console-source/admins").header("Idempotency-Key",UUID.randomUUID()),Map.of("email","one@example.test","name","First"),201);
@@ -317,6 +325,66 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(call(post(BASE),body,409).path("code").asText()).isEqualTo("HOST_ALREADY_USED");
         ((ObjectNode)body.path("domains").get(0)).put("host","core.agilitydoghub.com");
         assertThat(call(post(BASE),body,422).path("code").asText()).isEqualTo("HOST_RESERVED");
+    }
+
+    @Test void T_17_08_R_17_09_memberlessInvitationsAreLimitedToOnboarding() throws Exception {
+        long count=mongo.count(new org.springframework.data.mongodb.core.query.Query(),"accounts");
+        var error=call(post(BASE+"/console-target/admins"),Map.of("email","new@example.test","name","Example Admin"),409);
+        assertThat(error.path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(error.path("details").path("field").asText()).isEqualTo("memberId");
+        assertThat(mongo.count(new org.springframework.data.mongodb.core.query.Query(),"accounts")).isEqualTo(count);
+        assertThat(mongo.count(new org.springframework.data.mongodb.core.query.Query(),"memberships")).isZero();
+        assertThat(mongo.count(new org.springframework.data.mongodb.core.query.Query(),"domain_events")).isZero();
+    }
+
+    @Test void T_17_08_R_17_09_existingMemberCanBecomeAdminInAnActiveClub() throws Exception {
+        String accountId;
+        try(var scope=com.agilityhub.core.shared.application.TenantContext.open("console-target")) {
+            var account=accounts.getOrCreate("member@example.test","Example Member","ca",com.agilityhub.core.identity.persistence.Account.Source.CONSOLE);
+            accountId=account.id();memberships.setRoles(accountId,Set.of(com.agilityhub.core.identity.domain.Role.MEMBER));
+        }
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is("console-target").and("accountId").is(accountId)),
+                new org.springframework.data.mongodb.core.query.Update().set("memberId","existing-member"),"memberships");
+        var invited=call(post(BASE+"/console-target/admins"),Map.of("email","member@example.test","name","Example Member"),201);
+        assertThat(invited.path("accountId").asText()).isEqualTo(accountId);
+        var membership=mongo.findOne(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("accountId").is(accountId)),org.bson.Document.class,"memberships");
+        assertThat(membership.getString("memberId")).isEqualTo("existing-member");
+        assertThat(membership.getList("roles",String.class)).containsExactlyInAnyOrder("MEMBER","ADMIN");
+    }
+
+    @Test void T_17_05_R_17_05_providerChangesPublishTheCatalogEventWithoutValues() throws Exception {
+        call(put(BASE+"/console-target/payment-providers/MANUAL"),Map.of("version",version(),"enabled",true,"instructions",Map.of("ca","Private instructions")),200);
+        call(delete(BASE+"/console-target/payment-providers/MANUAL").param("version",Long.toString(version())),null,200);
+        var events=mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("type").is("ClubPaymentProviderChanged")),org.bson.Document.class,"domain_events");
+        assertThat(events).hasSize(2);
+        assertThat(events).allSatisfy(event->assertThat(event.get("payload",org.bson.Document.class)).containsEntry("clubId","console-target").containsEntry("provider","MANUAL"));
+        assertThat(events).extracting(event->event.get("payload",org.bson.Document.class).getBoolean("configured")).containsExactlyInAnyOrder(true,false);
+        assertThat(events.toString()).doesNotContain("Private instructions");
+    }
+
+    @Test void T_17_02_R_17_02_creationProvisionsTheConsoleDefinitionAtomically() throws Exception {
+        var routes=mapper.readTree(java.nio.file.Path.of("src/test/resources/fixtures/contracts/e10-routes.json").toFile());
+        var body=(ObjectNode)routes.get(1).path("body").deepCopy();
+        body.remove("modules");body.put("preset","COMPLET");
+        body.putObject("paymentProviders").putObject("MANUAL").put("enabled",true).putObject("instructions").put("ca","Pay on arrival");
+        body.putObject("parameters").put("auth.sessionDays",45);
+        body.putArray("admins").addObject().put("email","provisioned@example.test").put("name","Example Administrator").put("locale","ca");
+        body.putObject("catalogs").putArray("levels").addObject().put("code","BEGINNER").put("order",10)
+                .put("active",true).put("color","#123456").put("capacity",6).put("grantsFreeTraining",false).putObject("name").put("ca","Iniciació");
+        body.putArray("messageTemplates").addObject().put("code","N-01");
+        var created=call(post(BASE).header("Idempotency-Key",UUID.randomUUID()),body,201).path("club");
+        String id=created.path("id").asText();
+        assertThat(created.path("status").asText()).isEqualTo("ONBOARDING");
+        assertThat(created.path("paymentProviders").path("MANUAL").path("configured").asBoolean()).isTrue();
+        assertThat(configs.get(id).get("auth.sessionDays",Integer.class)).isEqualTo(45);
+        assertThat(call(get(BASE+"/"+id+"/admins"),null,200).get(0).path("email").asText()).isEqualTo("provisioned@example.test");
+        assertThat(mongo.count(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is(id)),"levels")).isEqualTo(1);
+        var events=mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is(id)),org.bson.Document.class,"domain_events");
+        assertThat(events).extracting(e->e.getString("type")).contains("ClubCreated","ClubPaymentProviderChanged","ParameterChanged","MembershipChanged");
+        outbox.dispatch();outbox.dispatch();
+        var notices=mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is(id).and("code").is("N-53")),org.bson.Document.class,"notifications");
+        assertThat(notices).hasSize(1);
+        assertThat(notices.getFirst().getString("status")).isIn("SENT","DELIVERED");
     }
 
 }

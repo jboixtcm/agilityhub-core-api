@@ -73,14 +73,14 @@ public class PlatformProviders {
             default -> invalid();
         }
         if(!enabled&&PaymentProviderFlags.enabled(old.paymentProviders().get(name))) requireUnused(old,name);
-        providers.put(name,settings);changes.write(old,Map.of("paymentProviders",providers),"ClubUpdated",Map.of("provider",name,"configured",true));return snapshot();
+        providers.put(name,settings);changes.write(old,Map.of("paymentProviders",providers),"ClubPaymentProviderChanged",Map.of("provider",name,"configured",true));return snapshot();
     }
     @Transactional
     @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider removed'")
     public Change remove(String name,long version) {
         var old=changes.club();PlatformClubChanges.requireVersion(old,version);requireUnused(old,name);
         var providers=new LinkedHashMap<>(old.paymentProviders());providers.remove(name);
-        changes.write(old,Map.of("paymentProviders",providers),"ClubUpdated",Map.of("provider",name,"configured",false));return snapshot();
+        changes.write(old,Map.of("paymentProviders",providers),"ClubPaymentProviderChanged",Map.of("provider",name,"configured",false));return snapshot();
     }
     private void requireUnused(Club club,String name) {
         long count=projection.providerUsers(club.id(),PaymentProviderFlags.method(name));

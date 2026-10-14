@@ -1,0 +1,26 @@
+changed GET /api/v1/platform/audit-entries
+changed GET /api/v1/platform/club-templates
+changed GET /api/v1/platform/clubs
+changed POST /api/v1/platform/clubs
+changed GET /api/v1/platform/clubs/{id}
+changed PATCH /api/v1/platform/clubs/{id}
+changed GET /api/v1/platform/clubs/{id}/admins
+changed POST /api/v1/platform/clubs/{id}/admins
+changed DELETE /api/v1/platform/clubs/{id}/admins/{accountId}
+changed POST /api/v1/platform/clubs/{id}/catalog-clone
+changed GET /api/v1/platform/clubs/{id}/checklist
+changed GET /api/v1/platform/clubs/{id}/definition
+changed PUT /api/v1/platform/clubs/{id}/modules
+changed PUT /api/v1/platform/clubs/{id}/parameters/{key}
+changed POST /api/v1/platform/clubs/{id}/payment-providers/stripe/test
+changed DELETE /api/v1/platform/clubs/{id}/payment-providers/{provider}
+changed PUT /api/v1/platform/clubs/{id}/payment-providers/{provider}
+changed PUT /api/v1/platform/clubs/{id}/status
+changed PUT /api/v1/platform/clubs/{id}/theme
+added POST /api/v1/platform/clubs/{id}/theme/upload-url
+changed GET /api/v1/platform/clubs/{id}/usage
+changed GET /api/v1/platform/security-events
+added GET /api/v1/public/{clubSlug}/theme/{fileKey}
+changed schema PlatformClubPage
+added schema PlatformLogoUploadRequest
+OpenAPI diff is confined to S17 console behavior, logo upload/public display, and appliedFilters.

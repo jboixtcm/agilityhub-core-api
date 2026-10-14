@@ -54,7 +54,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 [ERROR] Tests run: 9, Failures: 9, Errors: 0, Skipped: 0, Time elapsed: 12.29 s <<< FAILURE! -- in com.agilityhub.core.platform.api.PlatformConsoleIT
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_02_R_17_02_createIsUniqueAndAlwaysStartsOnboarding -- Time elapsed: 0.766 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"923958c0-2a6c-4f47-898c-ce138dee65e0"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 201
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -65,7 +65,7 @@ expected: 201
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_13_R_17_07_statusTransitionIsManualAndAudited -- Time elapsed: 0.286 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6ee186fe-6fc2-43e3-9283-0ada2c76dd96"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -76,7 +76,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_04_R_17_04_modulesValidateDependenciesAndInvalidateAfterCommit -- Time elapsed: 0.191 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"5fbe39c9-2227-4eba-b8bd-f2adeca44168"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -87,7 +87,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_06_R_17_06_checklistUsesCurrentConfiguration -- Time elapsed: 0.164 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"24a80f4d-aa9e-4418-bfa8-ce3493b27f5a"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -98,7 +98,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_07_R_17_08_cloneEmptyPartsWithoutCopyingOperationalData -- Time elapsed: 0.172 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"b47a03a2-a616-4f8f-afd8-be1b6c006a56"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -109,7 +109,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_05_R_17_05_providerSecretsAreEncryptedAndNeverReturned -- Time elapsed: 0.140 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"a1207b26-4f4f-4da6-8193-7b32cb171731"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -120,7 +120,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_14_R_17_13_targetLocaleAndOptimisticVersionAreEnforced -- Time elapsed: 0.151 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"4860d6ed-c4ae-4f8e-ad7e-0043015c58a4"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -131,7 +131,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_10_R_17_12_listContainsConfigurationAndAggregatesOnly -- Time elapsed: 0.131 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"799513d5-97f0-4878-8e31-bb5f69c047c9"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -142,7 +142,7 @@ expected: 200
 
 [ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_08_R_17_09_invitationCreatesMembershipAndProtectsLastAdmin -- Time elapsed: 0.148 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6ffad4b9-9df5-48e0-91eb-d53b00fd8036"}] 
+[{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 201
  but was: 501
 	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
@@ -152,31 +152,31 @@ expected: 201
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] Failures: 
-[ERROR]   PlatformConsoleIT.T_17_02_R_17_02_createIsUniqueAndAlwaysStartsOnboarding:48->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"923958c0-2a6c-4f47-898c-ce138dee65e0"}] 
+[ERROR]   PlatformConsoleIT.T_17_02_R_17_02_createIsUniqueAndAlwaysStartsOnboarding:48->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 201
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_04_R_17_04_modulesValidateDependenciesAndInvalidateAfterCommit:53->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"5fbe39c9-2227-4eba-b8bd-f2adeca44168"}] 
+[ERROR]   PlatformConsoleIT.T_17_04_R_17_04_modulesValidateDependenciesAndInvalidateAfterCommit:53->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_05_R_17_05_providerSecretsAreEncryptedAndNeverReturned:59->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"a1207b26-4f4f-4da6-8193-7b32cb171731"}] 
+[ERROR]   PlatformConsoleIT.T_17_05_R_17_05_providerSecretsAreEncryptedAndNeverReturned:59->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_06_R_17_06_checklistUsesCurrentConfiguration:67->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"24a80f4d-aa9e-4418-bfa8-ce3493b27f5a"}] 
+[ERROR]   PlatformConsoleIT.T_17_06_R_17_06_checklistUsesCurrentConfiguration:67->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_07_R_17_08_cloneEmptyPartsWithoutCopyingOperationalData:79->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"b47a03a2-a616-4f8f-afd8-be1b6c006a56"}] 
+[ERROR]   PlatformConsoleIT.T_17_07_R_17_08_cloneEmptyPartsWithoutCopyingOperationalData:79->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_08_R_17_09_invitationCreatesMembershipAndProtectsLastAdmin:83->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6ffad4b9-9df5-48e0-91eb-d53b00fd8036"}] 
+[ERROR]   PlatformConsoleIT.T_17_08_R_17_09_invitationCreatesMembershipAndProtectsLastAdmin:83->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 201
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_10_R_17_12_listContainsConfigurationAndAggregatesOnly:88->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"799513d5-97f0-4878-8e31-bb5f69c047c9"}] 
+[ERROR]   PlatformConsoleIT.T_17_10_R_17_12_listContainsConfigurationAndAggregatesOnly:88->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_13_R_17_07_statusTransitionIsManualAndAudited:73->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"6ee186fe-6fc2-43e3-9283-0ada2c76dd96"}] 
+[ERROR]   PlatformConsoleIT.T_17_13_R_17_07_statusTransitionIsManualAndAudited:73->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
-[ERROR]   PlatformConsoleIT.T_17_14_R_17_13_targetLocaleAndOptimisticVersionAreEnforced:94->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"4860d6ed-c4ae-4f8e-ad7e-0043015c58a4"}] 
+[ERROR]   PlatformConsoleIT.T_17_14_R_17_13_targetLocaleAndOptimisticVersionAreEnforced:94->call:39 [{"code":"NOT_IMPLEMENTED","message":"Aquesta funció encara no està disponible.","details":{},"traceId":"[truncated]"}] 
 expected: 200
  but was: 501
 [ERROR] Tests run: 9, Failures: 9, Errors: 0, Skipped: 0

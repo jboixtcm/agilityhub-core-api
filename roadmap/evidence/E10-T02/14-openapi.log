@@ -65,9 +65,9 @@ WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicA
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 2026-10-13T21:51:21.765+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/openapi.json' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
-2026-10-13T21:51:24.306+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=23d3c237-8d23-452e-b017-9141980b21e5 clubId=- accountId=user : Init duration for springdoc-openapi is: 2484 ms
+2026-10-13T21:51:24.306+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=user : Init duration for springdoc-openapi is: 2484 ms
 2026-10-13T21:51:25.053+02:00 INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
 2026-10-13T21:51:25.053+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
 2026-10-13T21:51:25.054+02:00 INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
-2026-10-13T21:51:26.711+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=71ddafb7-5fad-4165-b181-6f47c2acd226 clubId=- accountId=- : Init duration for springdoc-openapi is: 1578 ms
+2026-10-13T21:51:26.711+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=- : Init duration for springdoc-openapi is: 1578 ms
 Updated docs/openapi/openapi.json

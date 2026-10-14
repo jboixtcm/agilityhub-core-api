@@ -21,6 +21,7 @@ public class PlatformConsoleQueries {
     }
     @org.springframework.beans.factory.annotation.Autowired private PlatformProviders providers;
     public Club get(String id) { return clubs.findById(id).orElseThrow(()->new ApiException(ErrorCode.CLUB_NOT_FOUND)); }
+    public String name(String id) { return get(id).name(); }
     public Page list(MultiValueMap<String,String> params) {
         var q=ListQuery.parse(PlatformClubContractGuards.CLUBS,params);return new Page(projection.page(q,PlatformClubContractGuards.CLUBS),q,projection.count(q,PlatformClubContractGuards.CLUBS));
     }

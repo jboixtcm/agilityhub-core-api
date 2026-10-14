@@ -2,6 +2,8 @@ package com.agilityhub.core.platform.application;
 
 import com.agilityhub.core.platform.application.audit.*;
 import com.agilityhub.core.platform.domain.*;
+import com.agilityhub.core.platform.domain.events.ConsoleEvent;
+import com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged;
 import com.agilityhub.core.platform.persistence.*;
 import com.agilityhub.core.shared.application.*;
 import com.agilityhub.core.shared.domain.*;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PlatformClubChanges {
     public record Change(String id, Club club, @AuditField Map<String,Object> settings) { }
+    public record Administration(String id, String defaultLocale, boolean onboarding, long version) { }
     @org.springframework.beans.factory.annotation.Autowired private PlatformThemeFiles themeFiles;
     private final ClubRepository clubs;
     private final ClubConfigService configs;
@@ -32,6 +35,14 @@ public class PlatformClubChanges {
         this.events=events;this.actors=actors;this.mapper=mapper;this.clock=clock;
     }
     public Club club() { return clubs.findById(TenantContext.require()).orElseThrow(()->new ApiException(ErrorCode.CLUB_NOT_FOUND)); }
+    public Administration administration() {
+        var club=club();
+        return new Administration(club.id(),club.defaultLocale(),club.status()==Club.Status.ONBOARDING,club.version());
+    }
+    public void administratorChange(Administration before,Map<String,Object> diff) {
+        var current=club();requireVersion(current,before.version());
+        write(current,Map.of(),"ClubUpdated",diff);
+    }
     public Change snapshot() {
         var c=club();var fields=new LinkedHashMap<String,Object>();
         for(String key:List.of("name","legalName","taxId","address","displayCity","contactEmail","contactPhone","websiteUrl",
@@ -106,6 +117,12 @@ public class PlatformClubChanges {
         publish(type,old.id(),diff);configs.invalidateAfterCommit(old.id());return next;
     }
     public void publish(String type,String id,Map<String,Object> diff) {
+        if(type.equals("ClubPaymentProviderChanged")) {
+            events.publish(new ClubPaymentProviderChanged(id,clock.instant(),
+                    Map.of("clubId",id,"provider",diff.get("provider"),"configured",diff.get("configured")),
+                    actors.current().accountId(),null,DomainEvent.Origin.BACKOFFICE));
+            return;
+        }
         events.publish(new ConsoleEvent(type,id,clock.instant(),Map.of("clubId",id,"diff",diff),actors.current().accountId()));
     }
     public static void requireVersion(Club club,Object version) {

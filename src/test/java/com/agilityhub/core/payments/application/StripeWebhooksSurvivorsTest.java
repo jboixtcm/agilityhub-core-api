@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -53,12 +54,15 @@ class StripeWebhooksSurvivorsTest {
     StripeWebhooks webhooks;
 
     @BeforeEach void wire() {
+        TenantContext.open(CLUB);
         doAnswer(call -> call.<Supplier<?>>getArgument(0).get()).when(tx).run(any());
         webhooks = new StripeWebhooks(inbox, tx, cards, refunds, mock(CheckoutService.class), mock(SignupCheckoutRepository.class),
                 mock(UpfrontPaymentRepository.class), census, events, Clock.fixed(NOW, ZoneOffset.UTC), mapper, mock(PaymentProviderRegistry.class));
         ReflectionTestUtils.setField(webhooks, "retries", retries);
         ReflectionTestUtils.setField(webhooks,"clubSettings",clubSettings);
     }
+
+    @AfterEach void clearTenant() { TenantContext.clear(); }
 
     @Test void T_12_15_theReceiptKeepsTheBodysHashAndOnlyTheWhitelistedFields() throws Exception {
         byte[] body = ("{\"id\":\"" + ID + "\",\"type\":\"payment_intent.payment_failed\",\"created\":" + CREATED + ",\"data\":{\"object\":{"
