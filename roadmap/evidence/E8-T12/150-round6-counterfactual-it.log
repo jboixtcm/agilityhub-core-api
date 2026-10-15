@@ -1,0 +1,4 @@
+maven exit on HEAD production code: 1
+restored src/main/java/com/agilityhub/core/payments/application/PaymentRefunds.java: identical to the fix: True
+restored src/main/java/com/agilityhub/core/payments/domain/PaymentIntentLedger.java: identical to the fix: True
+restored src/main/java/com/agilityhub/core/payments/persistence/UpfrontPaymentRepository.java: identical to the fix: True

@@ -1,0 +1,68 @@
+target/surefire-reports: tests 4495, failures 0, errors 0, skipped 0
+  com.agilityhub.core.payments.domain.PaymentIntentLedgerTest: tests 8, failures 0, errors 0, skipped 0
+    passed: T_12_17_e8t12_round5_point1_excludingOwnInterventionPreservesOtherClaims
+    passed: T_12_17_e8t12_round4_point1_settlementCannotCreateCapture
+    passed: T_12_17_e8t12_round4_point1_absorptionUsesAllCreditsRegardlessOfSettlementPlacement
+    passed: T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue
+    passed: T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder
+    passed: T_12_17_e8t12_round4_point1_pendingReservationsDoNotBecomeSettledOverpayment
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst
+    passed: T_12_17_e8t12_round4_point2_generatedLedgersConserveMoneyAcrossThreeRows
+target/failsafe-reports: tests 1961, failures 0, errors 0, skipped 0
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests 83, failures 0, errors 0, skipped 0
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[1]
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[2]
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[3]
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[4]
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[5]
+    passed: T_12_17_e8t12_round2_point1_dashboardUsesUncreditedCaptureBeforeReportingOverpayment(long, boolean)[6]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[1]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[2]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[3]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[4]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[5]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[6]
+    passed: T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[7]
+    passed: T_12_17_e8t12_point1_pendingDashboardReducesNewAdminReservations
+    passed: T_12_17_e8t12_point2_expiredCheckoutFailureNotifiesTheAdmin(String, boolean, CapturedOutput)[1]
+    passed: T_12_17_e8t12_point2_expiredCheckoutFailureNotifiesTheAdmin(String, boolean, CapturedOutput)[2]
+    passed: T_12_17_e8t12_point2_expiredCheckoutFailureNotifiesTheAdmin(String, boolean, CapturedOutput)[3]
+    passed: T_12_17_e8t12_point2_expiredCheckoutFailureNotifiesTheAdmin(String, boolean, CapturedOutput)[4]
+    passed: T_12_17_e8t12_point2_expiredCheckoutFailureNotifiesTheAdmin(String, boolean, CapturedOutput)[5]
+    passed: T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[1]
+    passed: T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[2]
+    passed: T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[3]
+    passed: T_12_17_e8t12_round3_point1_overpaymentIgnoresReservationPlacement(String, boolean)[4]
+    passed: T_12_17_e8t12_round2_point1_sharedSequencesConserveTheIntent
+    passed: T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions
+    passed: T_12_17_e8t12_round2_point2_generatedLateRepaymentsKeepTheBalanceCurrent
+    passed: T_12_17_e8t12_round2_point1_sharedCreditsAbsorbBeforeABilledCreditNeedsIntervention
+    passed: T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit
+    passed: T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[1]
+    passed: T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[2]
+    passed: T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent
+    passed: T_12_17_e8t12_round4_point1_sharedCreditAbsorbsAcrossSettledRows(boolean)[1]
+    passed: T_12_17_e8t12_round4_point1_sharedCreditAbsorbsAcrossSettledRows(boolean)[2]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[1]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[2]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[3]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[4]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[5]
+    passed: T_12_17_e8t12_round2_point2_lateInterventionSubtractsDashboardRepayments(long, String, boolean)[6]
+    passed: T_12_17_e8t12_round2_point2_lateRepaymentDoesNotSpendAnotherCapture
+    passed: T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[1]
+    passed: T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[2]
+    passed: T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[3]
+    passed: T_12_17_e8t12_round2_point1_sharedCaptureHasOneAllowance(String, boolean)[4]
+    passed: T_12_17_e8t12_round3_point2_sharedSequencesBillCreditsAndReportActualOverpayment
+    passed: T_12_17_e8t12_round5_point1_repaymentRefreshesClaimsBeforeAbsorbingCredit
+    passed: T_12_17_e8t12_point1_linkedPendingRefundReservesOnlyOnce(boolean)[1]
+    passed: T_12_17_e8t12_point1_linkedPendingRefundReservesOnlyOnce(boolean)[2]
+    passed: T_12_17_e8t12_point2_generatedExpiredCheckoutSequences
+    passed: T_12_17_e8t12_point1_pendingDashboardRefundIsReservedBeforeBilling(String, boolean)[1]
+    passed: T_12_17_e8t12_point1_pendingDashboardRefundIsReservedBeforeBilling(String, boolean)[2]
+    passed: T_12_17_e8t12_point1_pendingDashboardRefundIsReservedBeforeBilling(String, boolean)[3]
+    passed: T_12_17_e8t12_point1_pendingDashboardRefundIsReservedBeforeBilling(String, boolean)[4]
+    passed: T_12_17_e8t12_point1_pendingDashboardRefundIsReservedBeforeBilling(String, boolean)[5]
+    passed: T_12_17_e8t12_round4_point2_sharedSequencesAbsorbCreditsBeforeReporting
+    passed: T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments

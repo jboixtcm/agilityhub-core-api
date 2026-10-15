@@ -727,7 +727,9 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         assertThat(interventionOwed(paymentId)).isEqualTo(failSecondFirst ? 700 : 1200);
         assertThat(interventionOwed("inv-payment-c")).isEqualTo(failSecondFirst ? 1200 : 700);
         try (var otherTenant = TenantContext.open(OTHER)) {
-            assertThat(paymentRepository.interventionOwed(paymentId)).isZero();
+            // E111: claims are recomputed from the tenant's own rows; another club sees neither the row nor its obligation.
+            assertThat(paymentRepository.compensation(paymentId)).isEmpty();
+            assertThat(paymentRepository.forIntent(PI)).isEmpty();
         }
         // E101 re-notifies the first intervention when the second failure releases its remaining EUR 5.
         var initialNotices = events("UpfrontRefundIntervention");
@@ -785,7 +787,11 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 new Update().set("voidedAt", clock.instant()), "pending_charges");
         tenant(() -> refunds.compensate("inv-payment-c", "CREDIT", false));
         sharedInvariants(true);
-        assertThat(interventionOwed(paymentId)).isEqualTo(1200);
+        // E111: the EUR 5 repaid A itself, so A owes at most its remaining 7; the freed EUR 12 becomes C's claim, and the
+        // lower bound in sharedInvariants proves that A's claim was recomputed in the same event.
+        assertThat(refundRows(intentRow(paymentId))).singleElement().satisfies(refund -> assertThat(amount(refund)).isEqualTo(500));
+        assertThat(interventionOwed(paymentId)).isEqualTo(700);
+        assertThat(interventionOwed("inv-payment-c")).isEqualTo(1200);
         assertThat(currentInterventions() + allRefunded() + allCredited()).isEqualTo(intentCaptured);
     }
 

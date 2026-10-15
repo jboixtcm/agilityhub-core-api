@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E8-T12 round 6 (E111): a Stripe dashboard refund with no operation of ours now repays the rows in intervention first, both while pending and when it settles. Before, a direct `succeeded` refund could land on a row with an active booking and leave the intervention's N-55 balance stale. Intervention claims are recomputed from the intent ledger in the order the compensations failed, then row order; they never take part in credit absorption, and they are refreshed once per event, so one event sends at most one N-55 per payment. The invariant oracle now also checks a lower bound: every current claim equals its recomputed due after every generated action.
 - E9-T02 prerequisite check: the current published commit still fails the E10-T02 context-boundary and Stripe webhook fixture checks. Courses implementation is blocked pending that repair; this session records evidence without product changes.
 
 ### Changed

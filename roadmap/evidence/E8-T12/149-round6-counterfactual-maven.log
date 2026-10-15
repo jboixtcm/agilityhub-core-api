@@ -1,0 +1,69 @@
+[ERROR] Tests run: 8, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.132 s <<< FAILURE! -- in com.agilityhub.core.payments.domain.PaymentIntentLedgerTest
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue -- Time elapsed: 0.010 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[sample 0, row B: PaymentIntentLedger[rows=[Row[id=A, captured=1200, refunded=604, credited=0, billed=false], Row[id=B, captured=1200, refunded=1116, credited=0, billed=false], Row[id=C, captured=1200, refunded=595, credited=354, billed=false]], reservations=[], interventions=[B]]] 
+expected: 84L
+ but was: 0L
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue(PaymentIntentLedgerTest.java:146)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"A"=500L, "B"=100L, "C"=0L}
+to contain entries:
+  ["C"=600L]
+but the following map entries had different values:
+  ["C"=0L (expected: 600L)]
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder(PaymentIntentLedgerTest.java:111)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+[owing A] 
+Expecting map:
+  {"A"=0L, "B"=1200L}
+to contain entries:
+  ["A"=1200L]
+but the following map entries had different values:
+  ["A"=0L (expected: 1200L)]
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst(PaymentIntentLedgerTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst:87 [owing A] 
+Expecting map:
+  {"A"=0L, "B"=1200L}
+to contain entries:
+  ["A"=1200L]
+but the following map entries had different values:
+  ["A"=0L (expected: 1200L)]
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue:146 [sample 0, row B: PaymentIntentLedger[rows=[Row[id=A, captured=1200, refunded=604, credited=0, billed=false], Row[id=B, captured=1200, refunded=1116, credited=0, billed=false], Row[id=C, captured=1200, refunded=595, credited=354, billed=false]], reservations=[], interventions=[B]]] 
+expected: 84L
+ but was: 0L
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder:111 
+Expecting map:
+  {"A"=500L, "B"=100L, "C"=0L}
+to contain entries:
+  ["C"=600L]
+but the following map entries had different values:
+  ["C"=0L (expected: 600L)]
+[ERROR] Tests run: 8, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

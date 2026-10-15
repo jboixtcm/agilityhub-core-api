@@ -155,6 +155,11 @@ public class PaymentRefunds {
     }
     /** E101: keep the outstanding balance current; only a changed positive total emits another audit and admin notification. */
     private void intervene(UpfrontPayment payment, long owed) {
+        if (owed > 0 && payment.stripe() != null && upfront.compensation(payment.id()).map(UpfrontPaymentRepository.Compensation::interventionAt).isEmpty()) {
+            if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+            // E111: the row now takes its place in the split, and unlinked pending refunds repay it first: owe what that view says.
+            owed = intentLedger(payment.stripe().paymentIntentId()).claims().getOrDefault(payment.id(), 0L);
+        }
         var amount = new Money(owed, payment.amountPaid().currency());
         if (!upfront.interventionOwed(payment.id(), amount) || owed <= 0) { return; }
         if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
@@ -177,15 +182,11 @@ public class PaymentRefunds {
     private static boolean outage(PaymentOperation op, RuntimeException failure) {
         return (compensation(op) || "REFUND_LATE".equals(op.kind())) && failure instanceof PaymentNotSubmitted rejected && !rejected.definitive();
     }
-    /** E105: absorption is a decision of the whole intent; rows only persist the resulting credit reductions. */
+    /**
+     * E105: absorption is a decision of the whole intent; rows only persist the resulting credit reductions. Intervention claims
+     * never take part in it (they only get what is left), so they are refreshed once, afterwards, by {@link #reconsiderCompensation}.
+     */
     private void absorb(String intent) {
-        // A provider repayment replaces manual work before an obsolete claim can consume another row's credit.
-        for (var payment : upfront.forIntent(intent)) {
-            if (upfront.compensation(payment.id()).filter(obligation -> obligation.interventionAt() != null).isPresent()) {
-                upfront.lock(payment.id());
-                compensateRemaining(payment);
-            }
-        }
         var ledger = intentLedger(intent);
         for (var reduction : ledger.creditReductions().entrySet()) {
             var payment = upfront.findById(reduction.getKey()).orElseThrow();
@@ -208,6 +209,11 @@ public class PaymentRefunds {
             reportIntervention(payment, "REFUND_OVER_CREDIT", "overpaid", new Money(increment, payment.amountPaid().currency()));
         });
     }
+    /**
+     * Refreshes every obligation of the intent once per event, after absorption and the credit reductions, so one event sends at
+     * most one N-55 per payment (E111). The interventions share what is left in the order in which the compensations failed
+     * ({@code compensationInterventionAt}), then row order: an earlier failure keeps its claim, a later one gets the rest.
+     */
     private void reconsiderCompensation(String intent) {
         refundStates.lockIntent(intent);
         for (var late : operations.refundsForIntent(intent).stream().filter(op -> "REFUND_LATE".equals(op.kind())).toList()) { reconsiderLate(late); }
@@ -239,12 +245,16 @@ public class PaymentRefunds {
      * The one money view for an intent, always read within its transaction fence. Settled refund shares are persisted in the
      * same transaction as provider checkpoints. Local operations and unlinked pending checkpoints reserve each refund once,
      * including a webhook that closed a lost provider response. Row allocation never supplies the absorption/reporting totals.
+     * The interventions' claims are recomputed from this view (E111), never read back from the rows that persist them.
      */
     private PaymentIntentLedger intentLedger(String intent) {
         var payments = upfront.forIntent(intent);
         var rows = new ArrayList<PaymentIntentLedger.Row>();
         var settled = new HashSet<String>();
+        var failedAt = new LinkedHashMap<String, Instant>();
         for (var payment : payments) {
+            upfront.compensation(payment.id()).map(UpfrontPaymentRepository.Compensation::interventionAt)
+                    .ifPresent(at -> failedAt.put(payment.id(), at));
             var credit = payment.bookingId() == null ? null : charges.forBooking(payment.bookingId())
                     .filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
             rows.add(new PaymentIntentLedger.Row(payment.id(), captured(payment), refunded(payment),
@@ -264,11 +274,10 @@ public class PaymentRefunds {
                 reservations.add(new PaymentIntentLedger.Reservation(state.id(), null, state.amount().amountMinor()));
             }
         }
-        for (var payment : payments) {
-            long owed = upfront.interventionOwed(payment.id());
-            if (owed > 0) { reservations.add(new PaymentIntentLedger.Reservation(payment.id(), payment.id(), owed)); }
-        }
-        return new PaymentIntentLedger(rows, reservations);
+        // Stable sort: rows that failed at the same instant keep their row order.
+        var interventions = failedAt.keySet().stream().sorted(Comparator.comparing(failedAt::get)).toList();
+        var ledger = new PaymentIntentLedger(rows, reservations, interventions);
+        return ledger.withClaims(ledger.claims());
     }
     private boolean compensated(UpfrontPayment payment) {
         return operations.byKey("refund:" + payment.id()).isPresent()

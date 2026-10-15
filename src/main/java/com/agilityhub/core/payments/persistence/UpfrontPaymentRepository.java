@@ -59,13 +59,6 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionOwed").ne(amount)),
                 new Update().set("compensationInterventionOwed", amount), UpfrontPayment.class).getModifiedCount() == 1;
     }
-    /** Only a current intervention reserves money; a warning about overpayment alone does not. */
-    public long interventionOwed(String id) {
-        var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("compensationInterventionAt").ne(null)),
-                org.bson.Document.class, "upfront_payments");
-        if (row == null || !(row.get("compensationInterventionOwed") instanceof org.bson.Document money)) { return 0; }
-        return Math.max(0, ((Number) money.get("amountMinor")).longValue());
-    }
     public List<UpfrontPayment> forIntent(String intent) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("stripe.paymentIntentId").is(intent)).with(org.springframework.data.domain.Sort.by("_id")), UpfrontPayment.class);
     }
