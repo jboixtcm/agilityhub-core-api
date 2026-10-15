@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Bean;
 /**
  * S09 adapters. Ordered before the S06 and S14 null objects, so the real `TrainingOccupancyPort`,
  * `TrainingConflictPort` and `TrainingBookingsQuery` replace them (E5-T04); every bean backs off when an application
- * or test bean is registered. `RingSetupPort` stays a null object until S16 (courses) supplies the real one.
+ * or test bean is registered. `RingSetupPort`'s null object backs off for S16's real one (`CourseIntegrationConfiguration`, E9-T03).
  */
 @AutoConfiguration(before = {SchedulingPortDefaults.class, DashboardPortDefaults.class})
 public class TrainingAutoConfiguration {

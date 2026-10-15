@@ -129,4 +129,60 @@ abstract class CourseItSupport extends AbstractIntegrationTest {
         body.set("normalizedJson", model); body.putArray("levelIds"); body.putArray("tags");
         return body;
     }
+
+    /** S16 R-16-04's example: a 40 × 22 m ring, door N at 3 m (2 m wide, entrance), a 3 × 3 «bassa», four corner markers. */
+    ObjectNode geometry(long version) {
+        var body = mapper.createObjectNode().put("lengthM", 40).put("widthM", 22).put("borderClearanceM", 1).put("version", version);
+        body.putNull("orientationDeg"); body.put("surface", "GRASS"); body.putNull("notes");
+        body.putArray("doors").addObject().put("id", "door-n").put("label", "N").put("side", "NORTH").put("startM", 3).put("endM", 5).put("flow", "IN")
+                .put("clearanceM", 1.5).put("isActive", true).putNull("notes").putArray("polygonPointsM");
+        var zone = body.putArray("noGoZones").addObject().put("id", "bassa").put("label", "Bassa").put("warningMarginM", 0.5);
+        var points = zone.putArray("polygonPointsM");
+        for (double[] p : new double[][] {{10, 10}, {13, 10}, {13, 13}, {10, 13}}) { points.addObject().put("x", p[0]).put("y", p[1]); }
+        var markers = body.putArray("markers");
+        String[] labels = {"A", "B", "C", "D"}; double[][] corners = {{0, 0}, {40, 0}, {40, 22}, {0, 22}};
+        for (int i = 0; i < 4; i++) {
+            markers.addObject().put("id", "marker-" + i).put("label", labels[i]).put("markerUid", "uid-" + i).put("role", "ANCHOR").put("xM", corners[i][0])
+                    .put("yM", corners[i][1]).put("zM", 0).put("rotationYDeg", 0).put("physicalWidthM", 0.2).put("physicalHeightM", 0.2)
+                    .put("isFixed", true).put("isActive", true).put("aprilTagId", i).putNull("notes");
+        }
+        return body;
+    }
+
+    // ---- E9-T03: placements and ring setups ----
+
+    /** A club course created through the api (version 0), its id. */
+    String createCourse(String name) throws Exception { return ok(as(json(post("/api/v1/courses"), course(name, model(3, false))), CLUB, "INSTRUCTOR"), 201).path("id").asText(); }
+    /** The ring gets R-16-04's example geometry through the api. */
+    void drawRing(String ringId) throws Exception { ok(as(json(put("/api/v1/rings/" + ringId + "/geometry"), geometry(0)), CLUB, "ADMIN"), 200); }
+    /** One of course-core's warnings, as the client sends it. */
+    ObjectNode warning(String id, String ruleId, String severity) {
+        var warning = mapper.createObjectNode().put("id", id).put("ruleId", ruleId).put("severity", severity).put("message", "Example " + ruleId);
+        for (String key : List.of("obstacleSourceId", "courseNoGoZoneId", "ringNoGoZoneId", "doorId", "distanceMeters", "thresholdMeters")) { warning.putNull(key); }
+        return warning;
+    }
+    /**
+     * A placement request for {@code courseId} on {@code ringId}; R-16-05's example: obstacle (12, 3) moved by `dx = 2, dy = 1`, rotation 0
+     * → (14, 4), as course-core resolves it on the client.
+     */
+    ObjectNode placementBody(String courseId, String ringId, ObjectNode... warnings) {
+        var body = mapper.createObjectNode().put("courseId", courseId).put("courseVersion", 0).put("ringId", ringId).put("placementMode", "PRESERVE_METERS");
+        body.putObject("transform").put("offsetXM", 2).put("offsetYM", 1).put("rotationDeg", 0).put("flipX", false).put("flipY", false);
+        body.putArray("resolvedObstacles").addObject().put("obstacleId", "obstacle-0").put("type", "Jump").put("x", 14).put("y", 4).put("rotationDeg", 0)
+                .putArray("numbers").add(4);
+        var list = body.putArray("warnings"); for (var warning : warnings) { list.add(warning); }
+        return body;
+    }
+    JsonNode createPlacement(String role, ObjectNode body, int status) throws Exception {
+        return ok(as(json(post("/api/v1/placements"), body), CLUB, role).header("Idempotency-Key", UUID.randomUUID().toString()), status);
+    }
+    ObjectNode setupBody(String ringId, String kind) {
+        var body = mapper.createObjectNode().put("ringId", ringId).put("kind", kind); body.putArray("levelIds");
+        return body;
+    }
+    JsonNode registerSetup(String club, String role, ObjectNode body, int status) throws Exception {
+        return ok(as(json(post("/api/v1/ring-setups"), body), club, role).header("Idempotency-Key", UUID.randomUUID().toString()), status);
+    }
+    Document ringDocument(String ringId) { return mongo.findOne(Query.query(Criteria.where("_id").is(ringId)), Document.class, "rings"); }
+    Document setupDocument(String id) { return mongo.findOne(Query.query(Criteria.where("_id").is(id)), Document.class, "ring_setups"); }
 }

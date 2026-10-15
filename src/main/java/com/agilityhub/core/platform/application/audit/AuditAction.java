@@ -43,5 +43,10 @@ public enum AuditAction {
     /** S12 R-12-24 and S13 lifecycle actions (E8-T05), already in S14 R-14-09's closed list. */
     PACK_ADJUSTED, MEMBER_PLAN_CHANGED, INACTIVITY_RESOLVED, LEAVE_RESOLVED, LEAVE_CANCELLED,
     /** S16 R-16-04 (E9-T02): a ring geometry saved or removed (`entityType = RingGeometry`, `entityId` = the ring). */
-    RING_GEOMETRY_CHANGED
+    RING_GEOMETRY_CHANGED,
+    /**
+     * S16 (E9-T03): a placement stored with a `critical` warning through `force` (R-16-05, `entityType = Placement`, `details.warningIds`)
+     * and a ring setup registered (R-16-07, `entityType = RingSetup`, the replaced one in `details.replacedSetupId`).
+     */
+    COURSE_FORCED_PLACEMENT, RING_SETUP_REGISTERED
 }

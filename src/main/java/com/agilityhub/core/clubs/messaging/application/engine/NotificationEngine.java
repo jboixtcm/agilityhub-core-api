@@ -9,6 +9,7 @@ import com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger
 import com.agilityhub.core.clubs.messaging.domain.ChannelResolver;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
 import com.agilityhub.core.clubs.messaging.domain.DogNameArticle;
+import com.agilityhub.core.clubs.messaging.domain.NotificationActionType;
 import com.agilityhub.core.clubs.messaging.domain.NotificationAudience;
 import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
 import com.agilityhub.core.clubs.messaging.domain.NotificationCategory;
@@ -259,7 +260,7 @@ public class NotificationEngine {
                     recipient.audience() == NotificationAudience.APPLICANT ? recipient.email() : null,
                     recipient.contact() == null ? (recipient.applicant() == null ? null : recipient.applicant().displayName()) : recipient.contact().displayName());
             built.add(notification(spec, trigger, template, dedupKey, recipient.audience(), notificationRecipient, locale, recipient.subject(),
-                    rendered.title(), rendered.body(), rendered.sms() == null ? null : rendered.sms().text(), action(spec, recipient), deliveries, stored, now));
+                    rendered.title(), rendered.body(), rendered.sms() == null ? null : rendered.sms().text(), action(spec, recipient, trigger), deliveries, stored, now));
         }
         return built;
     }
@@ -276,11 +277,15 @@ public class NotificationEngine {
                 null, null, null, null, null, null, null, null, variables);
     }
 
-    /** R-11-11: the native action fixed by the code for the audience, with the subject's ids as parameters. */
-    static Notification.Action action(NotificationSpec spec, RecipientResolver.Recipient recipient) {
+    /**
+     * R-11-11: the native action fixed by the code for the audience, with the subject's ids as parameters. `OPEN_SETUP` (N-31) opens
+     * the viewer of the ring's setup, `/recorreguts/muntat/{ringId}`, so it carries the event's `ringId` (ruling E81).
+     */
+    static Notification.Action action(NotificationSpec spec, RecipientResolver.Recipient recipient, NotificationTrigger trigger) {
         var type = spec.action(recipient.audience());
         if (type == null) { return null; }
         var params = new LinkedHashMap<String, String>();
+        if (type == NotificationActionType.OPEN_SETUP && trigger.text("ringId") != null) { params.put("ringId", trigger.text("ringId")); }
         var s = recipient.subject();
         if (s.dogId() != null) { params.put("dogId", s.dogId()); }
         if (s.classSessionId() != null) { params.put("classSessionId", s.classSessionId()); }

@@ -37,7 +37,11 @@ public final class SchedulingRequests {
     public record TemplateClassCreateRequest(@NotBlank String bandId, @NotNull DayOfWeek dayOfWeek,
             @NotEmpty List<String> instructorIds, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,
             @NotNull List<String> levelIds, @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PLACEMENT) String placementId) { }
+    /** S16 R-16-13 (E9-T03): «Recorregut previst», the placement a class plans. */
+    static final String PLACEMENT = "Only with COURSES (else VALIDATION_ERROR fieldErrors[{placementId, MODULE_DISABLED}]): a placement of the club (NOT_FOUND) "
+            + "on the class's own ring (PLACEMENT_RING_MISMATCH, also for a class without a ring); null = none.";
     public static final class TemplateClassPatchRequest {
         @Schema(requiredMode = NOT_REQUIRED) public String bandId;
         @Schema(requiredMode = NOT_REQUIRED) public DayOfWeek dayOfWeek;
@@ -46,11 +50,13 @@ public final class SchedulingRequests {
         @Schema(requiredMode = NOT_REQUIRED) public List<String> levelIds;
         @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive public Integer capacity;
         @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) public String description;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PLACEMENT) public String placementId;
         @NotNull @PositiveOrZero public Long version;
         @com.fasterxml.jackson.annotation.JsonIgnore private final java.util.Set<String> present = new java.util.HashSet<>();
         @com.fasterxml.jackson.annotation.JsonSetter("ringId") public void setRingId(String value) { ringId = value; present.add("ringId"); }
         @com.fasterxml.jackson.annotation.JsonSetter("capacity") public void setCapacity(Integer value) { capacity = value; present.add("capacity"); }
         @com.fasterxml.jackson.annotation.JsonSetter("description") public void setDescription(String value) { description = value; present.add("description"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("placementId") public void setPlacementId(String value) { placementId = value; present.add("placementId"); }
         public java.util.Map<String, Object> patch() {
             var values = new java.util.LinkedHashMap<String, Object>();
             if (bandId != null) { values.put("bandId", bandId); }
@@ -60,6 +66,7 @@ public final class SchedulingRequests {
             if (present.contains("ringId")) { values.put("ringId", ringId); }
             if (present.contains("capacity")) { values.put("capacity", capacity); }
             if (present.contains("description")) { values.put("description", description); }
+            if (present.contains("placementId")) { values.put("placementId", placementId); }
             return values;
         }
         @JsonAnySetter public void rejectUnknown(String name, Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -73,7 +80,8 @@ public final class SchedulingRequests {
             @NotNull List<String> levelIds, @NotEmpty List<String> instructorIds,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description,
-            @Schema(requiredMode = NOT_REQUIRED) Boolean cancelBookings) { }
+            @Schema(requiredMode = NOT_REQUIRED) Boolean cancelBookings,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PLACEMENT) String placementId) { }
     public static final class ClassSessionPatchRequest {
         @Schema(requiredMode = NOT_REQUIRED, nullable = true) public String ringId;
         @Schema(requiredMode = NOT_REQUIRED) public List<String> levelIds;
@@ -85,16 +93,19 @@ public final class SchedulingRequests {
         @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) public String notes;
         @Schema(requiredMode = NOT_REQUIRED) public Boolean riskExempt;
         @Schema(requiredMode = NOT_REQUIRED) public Boolean cancelBookings;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PLACEMENT) public String placementId;
         @NotNull @PositiveOrZero public Long version;
         @com.fasterxml.jackson.annotation.JsonIgnore private final java.util.Set<String> present = new java.util.HashSet<>();
         @com.fasterxml.jackson.annotation.JsonSetter("ringId") public void setRingId(String value) { ringId=value; present.add("ringId"); }
         @com.fasterxml.jackson.annotation.JsonSetter("capacity") public void setCapacity(Integer value) { capacity=value; present.add("capacity"); }
         @com.fasterxml.jackson.annotation.JsonSetter("description") public void setDescription(String value) { description=value; present.add("description"); }
         @com.fasterxml.jackson.annotation.JsonSetter("notes") public void setNotes(String value) { notes=value; present.add("notes"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("placementId") public void setPlacementId(String value) { placementId=value; present.add("placementId"); }
         public java.util.Map<String,Object> patch() {
             var p=new java.util.LinkedHashMap<String,Object>();
             if(present.contains("ringId")) p.put("ringId",ringId); if(present.contains("capacity")) p.put("capacity",capacity);
             if(present.contains("description")) p.put("description",description); if(present.contains("notes")) p.put("notes",notes);
+            if(present.contains("placementId")) p.put("placementId",placementId);
             if(levelIds!=null) p.put("levelIds",levelIds); if(instructorIds!=null) p.put("instructorIds",instructorIds);
             if(startTime!=null) p.put("startTime",startTime); if(endTime!=null) p.put("endTime",endTime); if(riskExempt!=null) p.put("riskExempt",riskExempt);
             return p;

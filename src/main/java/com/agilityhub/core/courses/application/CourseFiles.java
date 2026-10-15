@@ -43,6 +43,8 @@ public class CourseFiles {
         return store.upload(purpose.name(), type, size);
     }
     /** A key the course stores for the first time: the current club's upload of that purpose, bound to the course (T-16-21). */
-    public void claim(String fileKey, UploadPurpose purpose, String courseId) { store.claim(fileKey, purpose.name(), "Course:" + courseId); }
+    public void claim(String fileKey, UploadPurpose purpose, String courseId) { claim(fileKey, purpose, "Course", courseId); }
+    /** The same for another S16 entity (a ring setup's photo, E9-T03). */
+    public void claim(String fileKey, UploadPurpose purpose, String entityType, String id) { store.claim(fileKey, purpose.name(), entityType + ":" + id); }
     public String url(String fileKey) { return fileKey == null ? null : store.downloadUrl(fileKey); }
 }

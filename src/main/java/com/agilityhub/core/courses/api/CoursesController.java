@@ -55,7 +55,7 @@ public class CoursesController {
     @PreAuthorize("hasAnyRole('MEMBER', 'INSTRUCTOR', 'ADMIN')")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, COURSE_NOT_VISIBLE})
-    @Operation(summary = "getCourse", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility (R-16-03) still applies: another club's or a deleted course is NOT_FOUND, one the caller cannot read COURSE_NOT_VISIBLE. name is resolved in the request's language with the club's default as fallback (R-16-17); nameI18n is sent only to a caller who can edit the course.",
+    @Operation(summary = "getCourse", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. R-16-03: another club's or a deleted course is NOT_FOUND. INSTRUCTOR and ADMIN read their club's CLUB courses (a PRIVATE one only its author), PUBLIC courses and their own account courses. A MEMBER reads a PUBLIC course and, R-16-16, any course (a CLUB one included) that an ACTIVE setup of the club shows, directly (courseId) or through its placement; any other course is COURSE_NOT_VISIBLE. name is resolved in the request's language with the club's default as fallback (R-16-17); nameI18n is sent only to a caller who can edit the course.",
             responses = @ApiResponse(responseCode = "200", description = "S16 Course", useReturnTypeSchema = true))
     public Course getCourse(@PathVariable String id) {
         return CourseViews.course(library.get(id));

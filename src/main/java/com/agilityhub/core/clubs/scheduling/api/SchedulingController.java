@@ -111,17 +111,17 @@ public class SchedulingController {
     @PostMapping("/api/v1/week-templates/{id}/classes")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED})
-    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH})
+    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate createTemplateClass(@PathVariable String id, @Valid @RequestBody TemplateClassCreateRequest request) {
         access.tenant();
-        return view(templateWrites.addClass(id, request.bandId(), request.dayOfWeek(), request.instructorIds(), request.ringId(), request.levelIds(), request.capacity(), request.description()), WeekTemplate.class);
+        return view(templateWrites.addClass(id, request.bandId(), request.dayOfWeek(), request.instructorIds(), request.ringId(), request.levelIds(), request.capacity(), request.description(), request.placementId()), WeekTemplate.class);
     }
 
     @PatchMapping("/api/v1/week-templates/{id}/classes/{classId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED})
-    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH})
+    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate patchTemplateClass(@PathVariable String id, @PathVariable String classId, @Valid @RequestBody TemplateClassPatchRequest request) {
         access.tenant();
         return view(templateWrites.patchClass(id, classId, request.version, request.patch()), WeekTemplate.class);
@@ -234,13 +234,14 @@ public class SchedulingController {
     @PostMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED})
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED, PLACEMENT_RING_MISMATCH})
     @Operation(summary = "createClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. "
             + "In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent "
-            + "validation of the week runs again and validates it too (T-06-23, E5-T28).", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
+            + "validation of the week runs again and validates it too (T-06-23, E5-T28). placementId (S16 R-16-13): the planned placement, with COURSES, "
+            + "of the class's ring.", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession createClass(@Valid @RequestBody ClassSessionCreateRequest request) {
         access.tenant();
-        return view(projections.session(sessions.create(request.date(),request.startTime(),request.endTime(),request.ringId(),request.levelIds(),request.instructorIds(),request.capacity(),request.description(),Boolean.TRUE.equals(request.cancelBookings())),false,java.util.List.of()),ClassSession.class);
+        return view(projections.session(sessions.create(request.date(),request.startTime(),request.endTime(),request.ringId(),request.levelIds(),request.instructorIds(),request.capacity(),request.description(),Boolean.TRUE.equals(request.cancelBookings()),request.placementId()),false,java.util.List.of()),ClassSession.class);
     }
 
     @GetMapping("/api/v1/class-sessions/{id}")
@@ -256,8 +257,8 @@ public class SchedulingController {
 
     @PatchMapping("/api/v1/class-sessions/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, INVALID_STATE, CAPACITY_BELOW_BOOKINGS, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED})
-    @Operation(summary = "patchClass", description = "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, INVALID_STATE, CAPACITY_BELOW_BOOKINGS, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED, PLACEMENT_RING_MISMATCH})
+    @Operation(summary = "patchClass", description = "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession patchClass(@PathVariable String id, @Valid @RequestBody ClassSessionPatchRequest request) {
         access.tenant();
         access.classSession(id);

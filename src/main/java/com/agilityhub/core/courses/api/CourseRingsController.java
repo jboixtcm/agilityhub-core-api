@@ -2,6 +2,7 @@ package com.agilityhub.core.courses.api;
 
 import com.agilityhub.core.courses.application.CourseContractGuards;
 import com.agilityhub.core.courses.application.RingGeometryService;
+import com.agilityhub.core.courses.application.RingSetupService;
 import com.agilityhub.core.courses.domain.CourseParts.*;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
@@ -18,13 +19,16 @@ import static com.agilityhub.core.courses.api.CourseContracts.*;
 import static com.agilityhub.core.courses.api.CourseRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
-/** S16 ring geometry and calibrations (E9-T02: R-16-04, §14.2). The marker sheet and the setup history are still contract stubs. */
+/** S16 ring geometry and calibrations (E9-T02: R-16-04, §14.2) and the setup history (E9-T03: R-16-08). The marker sheet is still a contract stub. */
 @RestController
 @RequiresModule(Module.COURSES)
 public class CourseRingsController {
     private final CourseContractGuards guards;
     private final RingGeometryService geometries;
-    public CourseRingsController(CourseContractGuards guards, RingGeometryService geometries) { this.guards = guards; this.geometries = geometries; }
+    private final RingSetupService setups;
+    public CourseRingsController(CourseContractGuards guards, RingGeometryService geometries, RingSetupService setups) {
+        this.guards = guards; this.geometries = geometries; this.setups = setups;
+    }
 
     @GetMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -75,12 +79,12 @@ public class CourseRingsController {
     @GetMapping(value = "/api/v1/rings/{id}/setups")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "ringSetupHistory", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "ringSetupHistory", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: every setup of the ring (ACTIVE, EXPIRED and "
+            + "DISMANTLED), newest builtAt first; page from 0.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingSetupPage", useReturnTypeSchema = true))
     public RingSetupPage ringSetupHistory(@PathVariable String id,
             @RequestParam(defaultValue = "0") @jakarta.validation.constraints.Min(0) int page, @RequestParam(defaultValue = "50") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(1000) int size) {
-        guards.ring(id, false);
-        throw new UnsupportedOperationException("S16 contract");
+        return CourseViews.history(setups.history(id, page, size));
     }
 
     @PostMapping(value = "/api/v1/rings/{id}/calibrations")

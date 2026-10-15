@@ -20,7 +20,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
@@ -55,15 +54,16 @@ public class CourseLibrary {
     private final PlacementRepository placements;
     private final RingSetupRepository setups;
     private final PlanningCatalogAccess catalogs;
+    private final LevelLabels labels;
     private final ClubConfigService configs;
     private final IcuMessageSource messages;
     private final EventPublisher events;
     private final Clock clock;
     public CourseLibrary(CourseRepository courses, GlobalCourseRepository global, GlobalCourseWriter globalWriter, CourseAccess access,
             CourseFiles files, CourseSchemas schemas, PlacementRepository placements, RingSetupRepository setups, PlanningCatalogAccess catalogs,
-            ClubConfigService configs, IcuMessageSource messages, EventPublisher events, Clock clock) {
+            LevelLabels labels, ClubConfigService configs, IcuMessageSource messages, EventPublisher events, Clock clock) {
         this.courses = courses; this.global = global; this.globalWriter = globalWriter; this.access = access; this.files = files;
-        this.schemas = schemas; this.placements = placements; this.setups = setups; this.catalogs = catalogs; this.configs = configs;
+        this.schemas = schemas; this.placements = placements; this.setups = setups; this.catalogs = catalogs; this.labels = labels; this.configs = configs;
         this.messages = messages; this.events = events; this.clock = clock;
     }
 
@@ -113,21 +113,11 @@ public class CourseLibrary {
     private CourseView view(Course course, Map<String, List<ActiveRing>> rings, Map<String, String> levelCodes) {
         String name = name(course);
         boolean editable = TenantContext.current() == null ? course.ownerType() == OwnerType.AGILITYHUB : CourseAccess.writable(course);
-        String level = levelCodes.entrySet().stream().filter(entry -> course.levelIds().contains(entry.getKey())).map(Map.Entry::getValue)
-                .collect(Collectors.joining("–"));
         return new CourseView(course, name, editable ? course.name().values() : null, files.url(course.imageFileKey()), files.url(course.thumbnailFileKey()),
-                !level.isEmpty() ? level : course.agilityhubLevel() == null ? null : course.agilityhubLevel().name(), rings.getOrDefault(course.id(), List.of()));
+                LevelLabels.label(levelCodes, course.levelIds(), course.agilityhubLevel()), rings.getOrDefault(course.id(), List.of()));
     }
     /** The club's level codes in catalog order (the list's «C–D» label), or none outside a club. */
-    private Map<String, String> levels() {
-        if (TenantContext.current() == null) { return Map.of(); }
-        var order = new HashMap<String, Integer>();
-        catalogs.snapshot().levels().forEach(level -> order.put(level.id(), level.order()));
-        var codes = new LinkedHashMap<String, String>();
-        catalogs.levelRefs().values().stream().sorted(Comparator.comparing(ref -> order.getOrDefault(ref.id(), Integer.MAX_VALUE)))
-                .forEach(ref -> codes.put(ref.id(), ref.code()));
-        return codes;
-    }
+    private Map<String, String> levels() { return labels.codes(); }
     /** The rings whose active setup shows each course, directly or through one of its placements (§6 `activeOnRings`). */
     private Map<String, List<ActiveRing>> activeRings(Collection<String> courseIds) {
         if (TenantContext.current() == null || courseIds.isEmpty()) { return Map.of(); }

@@ -3562,3 +3562,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · E115: E10-T02 verified, three points for E10-T04, E10-T03 written
 @executor Ruling E115. **E10-T02 is verified** (its own CI run was cancelled; the whole run is green on `2a2f972`). Three of its review's minors go to **E10-T04** (organizer note there). **E10-T03** (E10 integration) is written and follows E10-T04 in thread D.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · the pass of 15-10 evening (E113): E8-T12 verified, E8 closed in the API
+@executor Ruling E113. **E8-T12 is verified**: no money defect, and the whole CI run of `1f30c72` is green; its review's minors go to INC-58. With E8-T13, **E8 is closed in the API**. Thread B continues with E9-T03; E9-T02 waits for its CI run.
+Blocking: no.

@@ -15,11 +15,12 @@ import org.springframework.stereotype.Service;
 public class ClassSessionService {
     private final ClassSessionRepository classes; private final WeekRepository weeks; private final RingBlockRepository blocks;
     private final PlanningContext context; private final SchedulingTransactions transactions; private final SchedulingEvents events;
-    private final SchedulingAudit audit; private final TrainingConflictPort training; private final Clock clock;
+    private final SchedulingAudit audit; private final TrainingConflictPort training; private final Clock clock; private final ClassPlacements placements;
     public ClassSessionService(ClassSessionRepository classes, WeekRepository weeks, RingBlockRepository blocks, PlanningContext context,
-            SchedulingTransactions transactions, SchedulingEvents events, SchedulingAudit audit, TrainingConflictPort training, Clock clock) {
+            SchedulingTransactions transactions, SchedulingEvents events, SchedulingAudit audit, TrainingConflictPort training, Clock clock,
+            ClassPlacements placements) {
         this.classes = classes; this.weeks = weeks; this.blocks = blocks; this.context = context; this.transactions = transactions;
-        this.events = events; this.audit = audit; this.training = training; this.clock = clock;
+        this.events = events; this.audit = audit; this.training = training; this.clock = clock; this.placements = placements;
     }
     public ClassSession require(String id) { return classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     /** Whether the week still has DRAFT classes (validation answers NOTHING_TO_VALIDATE otherwise). */
@@ -36,7 +37,14 @@ public class ClassSessionService {
     @PreAuthorize("hasRole('ADMIN')")
     public ClassSession create(LocalDate date, String start, String end, String ring, List<String> levels, List<String> instructors,
             Integer capacity, String description, boolean cancelBookings) {
+        return create(date, start, end, ring, levels, instructors, capacity, description, cancelBookings, null);
+    }
+    /** With the placement the class plans (S16 R-16-13, {@link ClassPlacements}). */
+    @PreAuthorize("hasRole('ADMIN')")
+    public ClassSession create(LocalDate date, String start, String end, String ring, List<String> levels, List<String> instructors,
+            Integer capacity, String description, boolean cancelBookings, String placementId) {
         return transactions.write(() -> {
+            placements.check(placementId, ring);
             var now = clock.instant(); var actor = events.actor(); var monday = WeekCalendarRules.monday(date);
             var week = weeks.forStart(monday).orElseGet(() -> weeks.getOrCreate(new Week(UUID.randomUUID().toString(), TenantContext.require(),
                     WeekCalendarRules.isoYear(monday), WeekCalendarRules.isoWeek(monday), monday, monday.plusDays(6), WeekState.PENDING,
@@ -45,7 +53,7 @@ public class ClassSessionService {
                     capacity == null ? 0 : capacity, capacity == null ? CapacityMode.AUTO : CapacityMode.MANUAL, description,
                     week.state() == WeekState.VALIDATED ? ClassState.ACTIVE : ClassState.DRAFT, new ClassSession.Counters(0, 0),
                     new ClassSession.Risk(false, List.of(), null, null), null, null, null, null, -1L, now, actor, now, actor);
-            var edit = new SessionEdit(draft); validate(edit, cancelBookings, true);
+            var edit = new SessionEdit(draft); edit.placementId = placementId; validate(edit, cancelBookings, true);
             // T-06-23 (A4-01): never a DRAFT class in a VALIDATED week. A DRAFT writes its week, so a concurrent validation conflicts.
             if (week.state() != WeekState.VALIDATED) { weeks.touch(week); }
             var saved = classes.insert(edit.snapshot(now, actor));
@@ -67,7 +75,10 @@ public class ClassSessionService {
             if (patch.containsKey("description")) { edit.description = (String) patch.get("description"); }
             if (patch.containsKey("notes")) { edit.notes = (String) patch.get("notes"); }
             if (patch.containsKey("riskExempt")) { requireActive(before); edit.risk = risk(before, (Boolean) patch.get("riskExempt")); }
-            if (!Set.of("notes").containsAll(patch.keySet())) {
+            if (patch.containsKey("placementId")) { edit.placementId = (String) patch.get("placementId"); }
+            // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
+            if (patch.containsKey("placementId") || !Objects.equals(before.ringId(), edit.ringId)) { placements.check(edit.placementId, edit.ringId); }
+            if (!Set.of("notes", "placementId").containsAll(patch.keySet())) {
                 validate(edit, cancelBookings, !Objects.equals(before.ringId(), edit.ringId) || !before.startTime().equals(edit.startTime) || !before.endTime().equals(edit.endTime));
             }
             var after = classes.update(edit.snapshot(clock.instant(), events.actor()), version);
@@ -84,6 +95,7 @@ public class ClassSessionService {
             case "ringId" -> c.ringId(); case "levelIds" -> c.levelIds(); case "instructorIds" -> c.instructorIds();
             case "capacity" -> c.capacityMode() == CapacityMode.AUTO ? null : c.capacity(); case "startTime" -> c.startTime();
             case "endTime" -> c.endTime(); case "description" -> c.description(); case "notes" -> c.notes(); case "riskExempt" -> c.risk().exempt();
+            case "placementId" -> c.placementId();
             default -> throw new ApiException(ErrorCode.VALIDATION_ERROR);
         };
     }

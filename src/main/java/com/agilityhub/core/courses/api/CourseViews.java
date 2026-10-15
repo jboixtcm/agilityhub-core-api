@@ -1,7 +1,9 @@
 package com.agilityhub.core.courses.api;
 
 import com.agilityhub.core.courses.application.CourseLibrary;
+import com.agilityhub.core.courses.application.PlacementService;
 import com.agilityhub.core.courses.application.RingGeometryService;
+import com.agilityhub.core.courses.application.RingSetupService;
 import com.agilityhub.core.courses.persistence.ObstacleInventory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,5 +67,48 @@ final class CourseViews {
     }
     static CourseContracts.ObstacleInventory inventory(ObstacleInventory i) {
         return new CourseContracts.ObstacleInventory(i.scope(), i.ringId(), i.items(), i.updatedAt());
+    }
+
+    // ---- E9-T03: placements and ring setups ----
+
+    static PlacementService.PlacementInput placement(PlacementRequest r) {
+        return new PlacementService.PlacementInput(r.courseId(), r.courseVersion(), r.ringId(), r.transform(), r.placementMode(), r.warningThresholdM(),
+                r.resolvedObstacles(), r.warnings(), r.activityId(), r.name(), Boolean.TRUE.equals(r.force()), r.status(), r.mode(), r.scheduledAt(), r.grades(),
+                r.sizes(), r.displayName());
+    }
+    static PlacementService.PlacementInput placement(PlacementUpdateRequest r) {
+        return new PlacementService.PlacementInput(r.courseId(), r.courseVersion(), r.ringId(), r.transform(), r.placementMode(), r.warningThresholdM(),
+                r.resolvedObstacles(), r.warnings(), r.activityId(), r.name(), Boolean.TRUE.equals(r.force()), r.status(), r.mode(), r.scheduledAt(), r.grades(),
+                r.sizes(), r.displayName());
+    }
+    static Placement placement(PlacementService.PlacementView view) {
+        var p = view.placement();
+        return new Placement(p.id(), p.courseId(), p.courseVersion(), p.ringId(), p.transform(), p.placementMode(), p.warningThresholdM(), p.resolvedObstacles(),
+                p.warningsJson(), p.stale(), p.status(), p.mode(), p.scheduledAt(), p.grades(), p.sizes(), p.displayName(), p.name(), p.activityId(),
+                view.classSessionIds(), p.buildSheetFileKey(), p.createdByAccountId(), p.createdAt(), p.updatedAt(), p.version());
+    }
+    static RingSetupService.SetupInput setup(RingSetupRequest r) {
+        return new RingSetupService.SetupInput(r.ringId(), r.kind(), r.placementId(), r.courseId(), r.imageFileKey(), r.agilityhubLevel(), r.levelIds(),
+                r.expectedUntil(), r.notes());
+    }
+    static RingSetup setup(RingSetupService.SetupView view) {
+        var s = view.setup();
+        return new RingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(), s.levelIds(),
+                s.builtAt(), s.builtByAccountId(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.dismantledByAccountId(), s.notes(), s.createdAt());
+    }
+    /** R-16-09: a member never sees who built or dismantled the setup, nor its notes. */
+    static MemberRingSetup memberSetup(RingSetupService.SetupView view) {
+        var s = view.setup();
+        return new MemberRingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(), s.levelIds(),
+                s.builtAt(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.createdAt());
+    }
+    static RingSetupPage history(RingSetupService.SetupPage page) {
+        return new RingSetupPage(page.items().stream().map(CourseViews::setup).toList(), page.page(), page.size(), page.total(),
+                (int) ((page.total() + page.size() - 1) / page.size()));
+    }
+    static MeRingSetup mine(RingSetupService.RingSummary ring) {
+        var s = ring.setup();
+        return new MeRingSetup(ring.ringId(), s == null ? null
+                : new MeRingSetupSummary(s.id(), s.kind(), s.levelLabel(), s.builtAt(), s.expectedUntil(), s.thumbnailUrl(), s.hasViewer()));
     }
 }

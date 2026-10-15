@@ -1,8 +1,12 @@
 package com.agilityhub.core.courses.persistence;
 
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -34,5 +38,22 @@ public class PlacementRepository extends CourseTenantRepository<Placement> {
         var query = tenantQuery().addCriteria(Criteria.where("_id").in(ids));
         mongo.find(query, Placement.class).forEach(placement -> result.put(placement.id(), placement.courseId()));
         return result;
+    }
+    /** S16 §6 `GET /placements`: the club's placements, filtered by each given reference, most recently updated first. */
+    public List<Placement> find(String ringId, String courseId, String activityId) {
+        var query = tenantQuery();
+        if (ringId != null) { query.addCriteria(Criteria.where("ringId").is(ringId)); }
+        if (courseId != null) { query.addCriteria(Criteria.where("courseId").is(courseId)); }
+        if (activityId != null) { query.addCriteria(Criteria.where("activityId").is(activityId)); }
+        return mongo.find(query.with(Sort.by(DESC, "updatedAt").and(Sort.by(ASC, "_id"))), Placement.class);
+    }
+    /** The ids of the club's placements of a course (R-16-16: a course a visible setup shows through its placement). */
+    public List<String> ofCourse(String courseId) {
+        return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("courseId").is(courseId)), "_id", Placement.class, String.class);
+    }
+    /** Optimistic replacement at the stored version; another version is `409 STALE_VERSION`. */
+    public void update(Placement next, long expectedVersion) {
+        var query = tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion));
+        if (mongo.findAndReplace(query, next) == null) { throw new ApiException(ErrorCode.STALE_VERSION); }
     }
 }

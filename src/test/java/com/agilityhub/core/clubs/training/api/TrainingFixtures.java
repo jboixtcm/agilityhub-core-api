@@ -54,8 +54,8 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     static Instant local(String dateTime) { return LocalDateTime.parse(dateTime).atZone(MADRID).toInstant(); }
 
     @TestConfiguration(proxyBeanMethods = false)
-    static class Ports { @Bean TestRingSetups trainingTestRingSetups() { return new TestRingSetups(); } }
-    /** S16 stand-in: the mounted setups the grid shows with COURSES (R-09-15). */
+    static class Ports { @Bean @org.springframework.context.annotation.Primary TestRingSetups trainingTestRingSetups() { return new TestRingSetups(); } }
+    /** S16 stand-in: the mounted setups the grid shows with COURSES (R-09-15); primary over S16's real adapter (E9-T03), which RingSetupsIT covers. */
     static class TestRingSetups implements RingSetupPort {
         final Map<String, Setup> setups = new ConcurrentHashMap<>();
         @Override public Optional<Setup> active(String setupId, Locale locale) { return Optional.ofNullable(setups.get(setupId)); }

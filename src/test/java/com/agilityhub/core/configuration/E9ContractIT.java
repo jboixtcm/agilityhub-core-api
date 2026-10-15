@@ -199,11 +199,13 @@ class E9ContractIT extends AbstractIntegrationTest {
                 } else { served(call(route,route.roles().getFirst()).content(body.toString())); }
             }
         }
+        // E9-T03 (S16 §3): a setup other than EMPTY needs a source; the member list without ringIds lists the club's active rings.
         var setups=routes().filter(r->r.path().equals("/api/v1/ring-setups")).findFirst().orElseThrow();
         var body=((ObjectNode)setups.body()).deepCopy();body.remove(List.of("placementId","courseId"));
-        error(call(setups,"ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+        error(call(setups,"ADMIN").content(body.toString()),422,"SETUP_SOURCE_REQUIRED");
         var mine=routes().filter(r->r.path().equals("/api/v1/me/ring-setups")).findFirst().orElseThrow();
-        error(call(mine,"MEMBER").with(req->{req.removeParameter("ringIds");return req;}),501,"NOT_IMPLEMENTED");
+        mvc.perform(call(mine,"MEMBER").with(req->{req.removeParameter("ringIds");return req;})).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].ringId").value("e9-ring-a")).andExpect(jsonPath("$.length()").value(1));
     }
     @Test void T_16_14_courseUploadUrlsCheckThePurposeTypeAndSize() throws Exception {
         var upload=routes().filter(r->r.path().equals("/api/v1/courses/upload-urls")).findFirst().orElseThrow();
@@ -228,13 +230,13 @@ class E9ContractIT extends AbstractIntegrationTest {
     @Test void T_16_07_T_16_09_T_16_21_conditionalPermissionsApplyBefore501() throws Exception {
         for(var route:routes().filter(r->r.method().equals("POST")&&r.path().equals("/api/v1/placements")||r.method().equals("PUT")&&r.path().equals("/api/v1/placements/{id}")).toList()) {
             var forced=((ObjectNode)route.body()).deepCopy().put("force",true);
-            error(call(route,"INSTRUCTOR").content(forced.toString()),403,"FORBIDDEN");error(call(route,"ADMIN").content(forced.toString()),501,"NOT_IMPLEMENTED");
+            error(call(route,"INSTRUCTOR").content(forced.toString()),403,"FORBIDDEN");served(call(route,"ADMIN").content(forced.toString()));
         }
         parameter("courses.allowInstructorPublish",false);var publish=routes().filter(r->r.path().equals("/api/v1/ring-setups")).findFirst().orElseThrow();
-        error(call(publish,"INSTRUCTOR"),403,"FORBIDDEN");error(call(publish,"ADMIN"),501,"NOT_IMPLEMENTED");
+        error(call(publish,"INSTRUCTOR"),403,"FORBIDDEN");served(call(publish,"ADMIN"));
         parameter("courses.showSetupToMembers",false);
         for(var route:routes().filter(r->r.path().equals("/api/v1/ring-setups/{id}")&&r.method().equals("GET")).toList()) {
-            error(call(route,"MEMBER"),404,"NOT_FOUND");error(call(route,"INSTRUCTOR"),501,"NOT_IMPLEMENTED");
+            error(call(route,"MEMBER"),404,"NOT_FOUND");served(call(route,"INSTRUCTOR"));
         }
         for(var route:routes().filter(r->r.platform()&&r.body()!=null&&r.body().isObject()).toList()) {
             // R-16-14: the level is required when the library course is created; a PATCH that omits it keeps the stored one.
@@ -314,7 +316,10 @@ class E9ContractIT extends AbstractIntegrationTest {
         var get=routes().filter(r->r.path().equals("/api/v1/courses/{id}")&&r.method().equals("GET")).findFirst().orElseThrow();
         var patch=routes().filter(r->r.path().equals("/api/v1/courses/{id}")&&r.method().equals("PATCH")).findFirst().orElseThrow();
         var id=Query.query(Criteria.where("_id").is("e9-course-a"));
+        // R-16-16 (E9-T03): with the fixture's active setup the member reads the course it shows; without it, R-16-03 alone.
         mongo.updateFirst(id,new Update().set("visibility","CLUB"),Course.class);
+        mvc.perform(call(get,"MEMBER")).andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e9-course-a"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("e9-setup-a")),new Update().set("status","DISMANTLED"),RingSetup.class);
         error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");mvc.perform(call(get,"INSTRUCTOR")).andExpect(status().isOk());
         mongo.updateFirst(id,new Update().set("visibility","PRIVATE").set("ownerType","ACCOUNT").set("ownerAccountId","e9-INSTRUCTOR").unset("clubId"),Course.class);
         error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");mvc.perform(call(get,"INSTRUCTOR")).andExpect(status().isOk());
@@ -364,13 +369,16 @@ class E9ContractIT extends AbstractIntegrationTest {
     }
     @AfterEach void removeParameters() { mongo.remove(Query.query(Criteria.where("_id").regex("^e9-param-")),"parameters");configs.invalidate(CLUB); }
 
-    @Test void T_16_09_hiddenSetupsKeepTheMemberListAccessibleBeforeTheStub() throws Exception {
+    @Test void T_16_09_hiddenSetupsKeepTheMemberListAccessibleWithoutSetups() throws Exception {
         parameter("courses.showSetupToMembers",false);
         var mine=routes().filter(r->r.path().equals("/api/v1/me/ring-setups")).findFirst().orElseThrow();
         var before=state();
         for(String role:List.of("MEMBER","INSTRUCTOR")) {
-            error(call(mine,role),501,"NOT_IMPLEMENTED");
-            error(call(mine,role).with(req->{req.removeParameter("ringIds");return req;}),501,"NOT_IMPLEMENTED");
+            // R-16-09 (E9-T03): the member's rings answer setup = null; the instructor's projection keeps the active setup.
+            var list=mvc.perform(call(mine,role)).andExpect(status().isOk()).andExpect(jsonPath("$[0].ringId").value("e9-ring-a"));
+            if(role.equals("MEMBER")) list.andExpect(jsonPath("$[0].setup").value(org.hamcrest.Matchers.nullValue()));
+            else list.andExpect(jsonPath("$[0].setup.id").value("e9-setup-a"));
+            mvc.perform(call(mine,role).with(req->{req.removeParameter("ringIds");return req;})).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
             for(String id:List.of("e9-ring-other","e9-ring-missing")) {
                 error(call(mine,role).with(req->{req.setParameter("ringIds",id);return req;}),404,"NOT_FOUND");
             }
@@ -416,6 +424,8 @@ class E9ContractIT extends AbstractIntegrationTest {
         var get=routes().filter(r->r.method().equals("GET")&&r.path().equals("/api/v1/courses/{id}")).findFirst().orElseThrow();
         var patch=routes().filter(r->r.method().equals("PATCH")&&r.path().equals("/api/v1/courses/{id}")).findFirst().orElseThrow();
         var id=Query.query(Criteria.where("_id").is("e9-course-a"));
+        // No active setup shows the course (R-16-16 would grant the member a read, E9-T03).
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("e9-setup-a")),new Update().set("status","DISMANTLED"),RingSetup.class);
         // Deliberate corrupt persisted state: it must never grant PUBLIC access to a club-owned course.
         mongo.updateFirst(id,new Update().set("visibility","PUBLIC"),Course.class);
         for(String role:List.of("MEMBER","INSTRUCTOR","ADMIN")) error(call(get,role),404,"COURSE_NOT_VISIBLE");

@@ -24,11 +24,7 @@ public class CensusExpirationSteps {
     @Bean ExpirationStep documentReminderStep(CensusExpirations census) {
         return new Step('e', null, Set.of("REMIND_DOCUMENT"), Set.of("documentReminders"), census::documents, census::apply);
     }
-    /** S16 is not implemented yet; register its explicit zero counter (E8-T06 step 1f). */
-    @Bean ExpirationStep ringSetupExpirationStep() {
-        return new Step('f', Module.COURSES, Set.of("EXPIRE_SETUP"), Set.of("expiredSetups"), context -> List.of(),
-                (context, item) -> ExpirationsJob.NOT_IN_SCOPE);
-    }
+    // Step f (the ring setups, S16) is {@link RingSetupExpiryStep} (E9-T03).
     record Step(char letter, Module module, Set<String> actions, Set<String> counters,
             Function<JobContext, List<JobItem>> planner, BiFunction<JobContext, JobItem, JobEffect> writer) implements ExpirationStep {
         @Override public List<JobItem> plan(JobContext context) { return planner.apply(context); }

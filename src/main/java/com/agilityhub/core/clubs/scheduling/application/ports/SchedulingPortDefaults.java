@@ -24,4 +24,6 @@ public class SchedulingPortDefaults {
     TrainingOccupancyPort trainingOccupancy() { return (from, to, rings, role) -> List.of(); }
     @Bean @ConditionalOnMissingBean(ActivityTitlePort.class)
     ActivityTitlePort activityTitles() { return (ids, locale) -> Map.of(); }
+    @Bean @ConditionalOnMissingBean(CoursePlacementPort.class)
+    CoursePlacementPort coursePlacements() { return placementId -> Optional.empty(); }
 }

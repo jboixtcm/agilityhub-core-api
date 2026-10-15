@@ -16,15 +16,19 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * `PRIVATE` one by its author only), a `PUBLIC` library or account course by anyone, a `PRIVATE` account course by its author.
  * Write: a club course by its club's staff (its author when `PRIVATE`), an account course by its author, never the AgilityHub
  * library from a club (`403`). Another club's course, a missing or a deleted one is `404 NOT_FOUND`; a course the caller cannot see
- * is `404 COURSE_NOT_VISIBLE`. A MEMBER also needs `courses.showSetupToMembers` (E9-T01).
+ * is `404 COURSE_NOT_VISIBLE`. A MEMBER also needs `courses.showSetupToMembers` (E9-T01), and also reads, through R-16-16, a course
+ * that an `ACTIVE` setup of their club shows, directly or through its placement (E9-T03).
  */
 @Component
 public class CourseAccess {
     private final CourseRepository courses;
     private final GlobalCourseRepository global;
     private final ClubConfigService configs;
-    public CourseAccess(CourseRepository courses, GlobalCourseRepository global, ClubConfigService configs) {
-        this.courses = courses; this.global = global; this.configs = configs;
+    private final RingSetupRepository setups;
+    private final PlacementRepository placements;
+    public CourseAccess(CourseRepository courses, GlobalCourseRepository global, ClubConfigService configs, RingSetupRepository setups,
+            PlacementRepository placements) {
+        this.courses = courses; this.global = global; this.configs = configs; this.setups = setups; this.placements = placements;
     }
     public static boolean role(String role) {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
@@ -37,9 +41,13 @@ public class CourseAccess {
     public Course course(String id, boolean write) {
         memberVisibility();
         Course course = courses.findById(id).filter(c -> c.deletedAt() == null).or(() -> global.findById(id)).orElseThrow(() -> new ApiException(NOT_FOUND));
-        if (!readable(course)) { throw new ApiException(COURSE_NOT_VISIBLE); }
+        if (!readable(course) && (write || staff() || !shownBySetup(course))) { throw new ApiException(COURSE_NOT_VISIBLE); }
         if (write && !writable(course)) { throw new ApiException(FORBIDDEN); }
         return course;
+    }
+    /** R-16-16: an `ACTIVE` setup of the caller's club shows the course, directly or through one of its placements. */
+    private boolean shownBySetup(Course course) {
+        return TenantContext.current() != null && setups.showsCourse(course.id(), placements.ofCourse(course.id()));
     }
     public static boolean readable(Course course) {
         String me = accountId();

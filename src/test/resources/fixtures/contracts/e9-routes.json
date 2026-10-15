@@ -421,7 +421,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -476,7 +476,7 @@
       "activityId": "e9-activity-a"
     },
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -491,7 +491,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -521,7 +521,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "PUT",
@@ -552,7 +552,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -606,7 +606,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -622,7 +622,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -637,7 +637,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -652,7 +652,7 @@
     "body": {},
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -669,7 +669,7 @@
       "ringIds": "e9-ring-a"
     },
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",

@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
-/** S16 owns only rings.geometry. The S05 ring version and every catalog field are untouched. */
+/** S16 owns only rings.geometry and rings.activeSetupId. The S05 ring version and every catalog field are untouched. */
 @Repository
 public class RingGeometryRepository extends TenantRepository<RingGeometryRepository.GeometryRecord> {
     @org.springframework.data.mongodb.core.mapping.Document("rings")
@@ -31,6 +31,14 @@ public class RingGeometryRepository extends TenantRepository<RingGeometryReposit
         if (mongo.updateFirst(query, new Update().unset("geometry"), GeometryRecord.class).getMatchedCount() != 1) {
             throw new ApiException(ErrorCode.STALE_VERSION);
         }
+    }
+    /** R-16-07: `Ring.activeSetupId` (S16's other ring field) points to the ring's new active setup. */
+    public void pointActiveSetup(String id, String setupId) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("activeSetupId", setupId), GeometryRecord.class);
+    }
+    /** R-16-08: `Ring.activeSetupId = null`, only while it still points to {@code setupId}. */
+    public void releaseActiveSetup(String id, String setupId) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("activeSetupId").is(setupId)), new Update().set("activeSetupId", null), GeometryRecord.class);
     }
     @Override public GeometryRecord insert(GeometryRecord value) { throw new UnsupportedOperationException("S05 creates rings"); }
     @Override public GeometryRecord replace(GeometryRecord value) { throw new UnsupportedOperationException("Use the geometry field update"); }

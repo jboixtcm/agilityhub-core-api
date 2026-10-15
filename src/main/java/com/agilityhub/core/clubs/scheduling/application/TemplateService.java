@@ -25,9 +25,11 @@ public class TemplateService {
     private final AuditActorProvider actors;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final ClassPlacements placements;
     public TemplateService(WeekTemplateRepository templates, TemplateQuery query, PlanningContext context,
-            EventPublisher events, AuditActorProvider actors, ObjectMapper mapper, Clock clock) {
+            EventPublisher events, AuditActorProvider actors, ObjectMapper mapper, Clock clock, ClassPlacements placements) {
         this.templates = templates; this.query = query; this.context = context; this.events = events; this.actors = actors; this.mapper = mapper; this.clock = clock;
+        this.placements = placements;
     }
     @Transactional
     public PlanningViews.WeekTemplate create(String name, TemplateKind kind, String copyFromId) {
@@ -84,9 +86,16 @@ public class TemplateService {
     @Transactional
     public PlanningViews.WeekTemplate addClass(String id, String bandId, DayOfWeek day, List<String> instructors, String ringId,
             List<String> levels, Integer capacity, String description) {
+        return addClass(id, bandId, day, instructors, ringId, levels, capacity, description, null);
+    }
+    /** With the placement the class plans (S16 R-16-13, {@link ClassPlacements}). */
+    @Transactional
+    public PlanningViews.WeekTemplate addClass(String id, String bandId, DayOfWeek day, List<String> instructors, String ringId,
+            List<String> levels, Integer capacity, String description, String placementId) {
         return write(() -> {
             context.lockReferences(); var before = query.require(id);
-            var next = buildClass(before, id(), bandId, day, instructors, ringId, levels, capacity, description, null);
+            var next = buildClass(before, id(), bandId, day, instructors, ringId, levels, capacity, description, placementId);
+            placements.check(placementId, ringId);
             var classes = new ArrayList<>(before.classes()); classes.add(next);
             return save(before, changed(before, before.timeBands(), classes));
         });
@@ -97,9 +106,12 @@ public class TemplateService {
         return write(() -> {
             context.lockReferences(); var before = current(id, version); var old = templateClass(before, classId);
             Integer capacity = patch.containsKey("capacity") ? (Integer) patch.get("capacity") : old.capacityMode() == CapacityMode.MANUAL ? old.capacity() : null;
+            String placementId = (String) patch.getOrDefault("placementId", old.placementId());
             var next = buildClass(before, classId, (String) patch.getOrDefault("bandId", old.bandId()), (DayOfWeek) patch.getOrDefault("dayOfWeek", old.dayOfWeek()),
                     (List<String>) patch.getOrDefault("instructorIds", old.instructorIds()), (String) patch.getOrDefault("ringId", old.ringId()),
-                    (List<String>) patch.getOrDefault("levelIds", old.levelIds()), capacity, (String) patch.getOrDefault("description", old.description()), old.placementId());
+                    (List<String>) patch.getOrDefault("levelIds", old.levelIds()), capacity, (String) patch.getOrDefault("description", old.description()), placementId);
+            // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
+            if (patch.containsKey("placementId") || !Objects.equals(old.ringId(), next.ringId())) { placements.check(placementId, next.ringId()); }
             return save(before, changed(before, before.timeBands(), before.classes().stream().map(c -> c.id().equals(classId) ? next : c).toList()));
         });
     }
