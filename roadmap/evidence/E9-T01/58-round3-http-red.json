@@ -1,0 +1,5 @@
+{
+  "command": "./mvnw -q '-Dtest=E9ContractIT#T_16_05_T_16_09_memberCourseDetailRequiresSetupVisibilityIncludingImpersonation+T_16_09_setupFixturesValidateAgainstTheLiveEndpointSchema' test",
+  "exit_code": 1,
+  "seconds": 23.67
+}

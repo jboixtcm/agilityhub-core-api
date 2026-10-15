@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-15 · E9-T01 round 3 · S16 projection and visibility corrections
+
+**0 operations or schemas added or removed.**
+
+- `GET /ring-setups/{id}`: the `oneOf` now discriminates on required `view`, with `RingSetup.view = "STAFF"` and `MemberRingSetup.view = "MEMBER"` published as `const`. Both fixtures validate against the actual response schema and only their own branch. The read-only value is emitted by the response DTO; staff setup responses nested in creation and history use the same shape.
+- `GET /courses/{id}`: MEMBER reads, including impersonation, require `courses.showSetupToMembers`; disabled visibility returns `404 NOT_FOUND` before the contract stub. INSTRUCTOR/ADMIN access and existing course visibility checks remain in force.
+
 ## 2026-10-11 · E9-T01 round 2 · S16 corrections
 
 **0 operations added or removed (401 total); `AnyJson` replaces `JsonNode`.**

@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E9-T01 round 3: ring-setup responses publish required `view` constants (`STAFF` / `MEMBER`) and an explicit discriminator, so each projection validates against exactly one response branch. Member course-detail reads, including impersonated members, honor `courses.showSetupToMembers` with `404 NOT_FOUND` when disabled.
+
 - E8-T13: saved views publish the read-only `system` flag, including the protected shared planned-leave view. Dashboard counters publish pending inactivity and leave requests separately while preserving `pendingRequests`; lifecycle writes refresh the counters after commit, including expired requests, without exposing rolled-back changes.
 
 - E8-T12 round 5 (E107): current manual refund interventions reserve the shared payment intent, so multiple cancelled rows cannot demand the same remaining money. Repayments replace their own claim, and refund or credit changes refresh the claims under the intent lock before credit absorption. Three-row generated sequences now check the combined outstanding balance after every action.

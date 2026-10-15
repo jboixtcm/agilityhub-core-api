@@ -36,6 +36,7 @@ public class CourseContractGuards {
     }
     private boolean staff() { return role("ADMIN") || role("INSTRUCTOR"); }
     public Course course(String id, boolean write) {
+        memberVisibility();
         Course course = courses.findById(id).filter(c -> c.deletedAt() == null).or(() -> global.findById(id)).orElseThrow(() -> new ApiException(NOT_FOUND));
         boolean author = java.util.Objects.equals(course.ownerAccountId(), CurrentUser.current().accountId());
         boolean visible = course.visibility() == Visibility.PUBLIC && course.ownerType() != OwnerType.CLUB

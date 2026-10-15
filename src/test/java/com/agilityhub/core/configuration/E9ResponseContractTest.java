@@ -11,6 +11,8 @@ import java.nio.file.*;
 import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import static org.assertj.core.api.Assertions.*;
 
@@ -28,6 +30,44 @@ class E9ResponseContractTest {
             ((com.fasterxml.jackson.databind.node.ObjectNode)node).set("required",mapper.valueToTree(names));
         }
         node.forEach(this::canonicalRequired);
+    }
+    @ParameterizedTest
+    @ValueSource(strings = {"RingSetup", "MemberRingSetup"})
+    void T_16_09_setupFixturesMatchExactlyOnePublishedResponseBranch(String name) throws Exception {
+        assertSetupResponse(mapper.readTree(Path.of("docs/openapi/openapi.json").toFile()), name);
+    }
+
+    static void assertSetupResponse(JsonNode api, String name) throws Exception {
+        var response = api.at("/paths/~1api~1v1~1ring-setups~1{id}/get/responses/200/content/application~1json/schema");
+        assertThat(response.isObject()).as("Actual GET /ring-setups/{id} response schema").isTrue();
+        var fixture = E9Fixtures.response(name);
+        var validator = responseValidator(api, response);
+        assertThat(validator.validate(fixture)).as(name + " validates against the endpoint oneOf").isEmpty();
+        String expectedView = name.equals("RingSetup") ? "STAFF" : "MEMBER";
+        assertThat(fixture.path("view").asText()).isEqualTo(expectedView);
+        assertThat(response.at("/discriminator/propertyName").asText()).isEqualTo("view");
+        assertThat(response.path("discriminator").path("mapping").path(expectedView).asText())
+                .isEqualTo("#/components/schemas/" + name);
+        assertThat(response.path("oneOf")).hasSize(2);
+        for (var branch : response.path("oneOf")) {
+            String reference = branch.path("$ref").asText();
+            boolean expected = reference.equals("#/components/schemas/" + name);
+            assertThat(responseValidator(api, branch).validate(fixture).isEmpty()).as(reference).isEqualTo(expected);
+        }
+        var shape = api.at("/components/schemas").path(name);
+        assertThat(strings(shape.path("required"))).contains("view");
+        assertThat(shape.at("/properties/view/const").asText()).isEqualTo(expectedView);
+        var missing = fixture.deepCopy(); missing.remove("view");
+        assertThat(validator.validate(missing)).as("view is required").isNotEmpty();
+        assertThat(validator.validate(fixture.deepCopy().put("view", "UNKNOWN"))).isNotEmpty();
+        assertThat(validator.validate(fixture.deepCopy().putNull("view"))).isNotEmpty();
+    }
+
+    private static com.networknt.schema.JsonSchema responseValidator(JsonNode api, JsonNode response) {
+        var root = (com.fasterxml.jackson.databind.node.ObjectNode) response.deepCopy();
+        root.set("components", api.path("components"));
+        return com.networknt.schema.JsonSchemaFactory.getInstance(com.networknt.schema.SpecVersion.VersionFlag.V202012)
+                .getSchema(root);
     }
     @Test void T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields() throws Exception {
         int forms=0;

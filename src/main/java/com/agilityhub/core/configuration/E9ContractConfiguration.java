@@ -72,6 +72,12 @@ public class E9ContractConfiguration implements WebMvcConfigurer {
                 for (Class<?> nested : owner.getDeclaredClasses()) { owned.add(nested.getSimpleName()); }
             }
             new NullableReferences(owned).customise(api);
+            // The anonymous oneOf response needs its discriminator on the operation's schema.
+            api.getPaths().get("/api/v1/ring-setups/{id}").getGet().getResponses().get("200")
+                    .getContent().get("application/json").getSchema().setDiscriminator(
+                            new io.swagger.v3.oas.models.media.Discriminator().propertyName("view")
+                                    .mapping("STAFF", "#/components/schemas/RingSetup")
+                                    .mapping("MEMBER", "#/components/schemas/MemberRingSetup"));
         };
     }
     private static Schema<?> schema(String name) {

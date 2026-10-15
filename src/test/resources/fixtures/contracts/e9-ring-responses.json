@@ -243,7 +243,8 @@
     "dismantledAt": null,
     "dismantledByAccountId": null,
     "notes": null,
-    "createdAt": "2026-10-08T08:00:00Z"
+    "createdAt": "2026-10-08T08:00:00Z",
+    "view": "STAFF"
   },
   "MemberRingSetup": {
     "id": "e9-item-a",
@@ -260,7 +261,8 @@
     "expiresAt": "2026-10-08T08:00:00Z",
     "status": "ACTIVE",
     "dismantledAt": null,
-    "createdAt": "2026-10-08T08:00:00Z"
+    "createdAt": "2026-10-08T08:00:00Z",
+    "view": "MEMBER"
   },
   "RingSetupCreated": {
     "setup": {
@@ -281,7 +283,8 @@
       "dismantledAt": null,
       "dismantledByAccountId": null,
       "notes": null,
-      "createdAt": "2026-10-08T08:00:00Z"
+      "createdAt": "2026-10-08T08:00:00Z",
+      "view": "STAFF"
     },
     "replacedSetupId": null
   },
@@ -305,7 +308,8 @@
         "dismantledAt": null,
         "dismantledByAccountId": null,
         "notes": null,
-        "createdAt": "2026-10-08T08:00:00Z"
+        "createdAt": "2026-10-08T08:00:00Z",
+        "view": "STAFF"
       }
     ],
     "page": 1,

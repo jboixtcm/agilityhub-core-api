@@ -14739,9 +14739,14 @@
           "status" : {
             "enum" : [ "ACTIVE", "EXPIRED", "DISMANTLED" ],
             "type" : "string"
+          },
+          "view" : {
+            "const" : "MEMBER",
+            "readOnly" : true,
+            "type" : "string"
           }
         },
-        "required" : [ "builtAt", "createdAt", "expiresAt", "id", "kind", "levelIds", "ringId", "status" ],
+        "required" : [ "builtAt", "createdAt", "expiresAt", "id", "kind", "levelIds", "ringId", "status", "view" ],
         "type" : "object"
       },
       "MemberSignupView" : {
@@ -20170,9 +20175,14 @@
           "status" : {
             "enum" : [ "ACTIVE", "EXPIRED", "DISMANTLED" ],
             "type" : "string"
+          },
+          "view" : {
+            "const" : "STAFF",
+            "readOnly" : true,
+            "type" : "string"
           }
         },
-        "required" : [ "builtAt", "builtByAccountId", "createdAt", "expiresAt", "id", "kind", "levelIds", "ringId", "status" ],
+        "required" : [ "builtAt", "builtByAccountId", "createdAt", "expiresAt", "id", "kind", "levelIds", "ringId", "status", "view" ],
         "type" : "object"
       },
       "RingSetupCreated" : {
@@ -39961,7 +39971,7 @@
         "tags" : [ "courses" ]
       },
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility still applies. E9 contract; guards then NOT_IMPLEMENTED.",
         "operationId" : "getCourse",
         "parameters" : [ {
           "in" : "path",
@@ -81463,6 +81473,13 @@
             "content" : {
               "application/json" : {
                 "schema" : {
+                  "discriminator" : {
+                    "mapping" : {
+                      "MEMBER" : "#/components/schemas/MemberRingSetup",
+                      "STAFF" : "#/components/schemas/RingSetup"
+                    },
+                    "propertyName" : "view"
+                  },
                   "oneOf" : [ {
                     "$ref" : "#/components/schemas/RingSetup"
                   }, {
@@ -81471,7 +81488,7 @@
                 }
               }
             },
-            "description" : "S16 Object"
+            "description" : "S16 setup projected by view: STAFF or MEMBER"
           },
           "400" : {
             "content" : {

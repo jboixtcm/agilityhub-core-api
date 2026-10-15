@@ -57,7 +57,7 @@ public class CoursesController {
     @PreAuthorize("hasAnyRole('MEMBER', 'INSTRUCTOR', 'ADMIN')")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, COURSE_NOT_VISIBLE})
-    @Operation(summary = "getCourse", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "getCourse", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility still applies. E9 contract; guards then NOT_IMPLEMENTED.",
             responses = @ApiResponse(responseCode = "200", description = "S16 Course", useReturnTypeSchema = true))
     public Course getCourse(@PathVariable String id) {
         guards.course(id, false);

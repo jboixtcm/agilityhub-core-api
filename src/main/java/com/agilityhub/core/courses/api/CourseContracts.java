@@ -3,6 +3,7 @@ package com.agilityhub.core.courses.api;
 import com.agilityhub.core.courses.domain.*;
 import com.agilityhub.core.courses.domain.CourseTypes.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -133,7 +134,11 @@ public final class CourseContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant dismantledAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dismantledByAccountId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String notes,
-            Instant createdAt) { }
+            Instant createdAt) {
+        @JsonProperty(value = "view", access = JsonProperty.Access.READ_ONLY)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, _const = "STAFF")
+        public String view() { return "STAFF"; }
+    }
 
     public record RingSetupCreated(RingSetup setup,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String replacedSetupId) { }
@@ -220,6 +225,10 @@ public final class CourseContracts {
             Instant expiresAt,
             SetupStatus status,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant dismantledAt,
-            Instant createdAt) { }
+            Instant createdAt) {
+        @JsonProperty(value = "view", access = JsonProperty.Access.READ_ONLY)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, _const = "MEMBER")
+        public String view() { return "MEMBER"; }
+    }
 
 }

@@ -40,7 +40,8 @@ public class RingSetupsController {
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
     @Operation(summary = "getRingSetup", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
-            responses = @ApiResponse(responseCode = "200", description = "S16 Object", content = @Content(schema = @Schema(oneOf = {RingSetup.class, MemberRingSetup.class}))))
+            responses = @ApiResponse(responseCode = "200", description = "S16 setup projected by view: STAFF or MEMBER",
+                    content = @Content(schema = @Schema(oneOf = {RingSetup.class, MemberRingSetup.class}))))
     public Object getRingSetup(@PathVariable String id) {
         guards.setup(id);
         throw new UnsupportedOperationException("S16 contract");

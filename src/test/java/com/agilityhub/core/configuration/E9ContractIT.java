@@ -222,18 +222,7 @@ class E9ContractIT extends AbstractIntegrationTest {
         error(call(patch,"ADMIN").with(req->{req.setRequestURI("/api/v1/courses/e9-public");return req;}),403,"FORBIDDEN");
     }
     @Test void T_16_05_onlyTheFiveMemberRoutesAcceptRealImpersonationTokens() throws Exception {
-        for(String kind:List.of("admin","member")) {
-            String id="e9-imp-"+kind;
-            var role=kind.equals("admin")?com.agilityhub.core.identity.domain.Role.ADMIN:com.agilityhub.core.identity.domain.Role.MEMBER;
-            mongo.save(new com.agilityhub.core.identity.persistence.Account(id,id+"@example.test","Example "+kind,"en",null,Set.of(),
-                    com.agilityhub.core.identity.persistence.Account.Status.ACTIVE,null,Map.of(),false,clock.instant()));
-            mongo.save(new com.agilityhub.core.identity.persistence.Membership(id,id,CLUB,"e9-member",Set.of(role),
-                    com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE,role));
-        }
-        mongo.save(new Document("_id","e9-member").append("clubId",CLUB).append("accountId","e9-imp-member").append("status","ACTIVE")
-                .append("firstName","Example").append("lastName1","Member").append("memberNumber",9001).append("version",0L),"members");
-        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
-        try(var scope=TenantContext.open(CLUB)) { issued=impersonations.create("e9-imp-admin","e9-member","Contract test"); }
+        var issued = memberImpersonation();
         int allowed=0;
         for(var route:routes().toList()) {
             var request=call(route,"MEMBER").with(jwt().jwt(issued.token()).authorities(()->"ROLE_MEMBER"));
@@ -244,6 +233,47 @@ class E9ContractIT extends AbstractIntegrationTest {
             if(route.impersonation()) allowed++;
         }
         assertThat(allowed).isEqualTo(5);
+    }
+
+    private com.agilityhub.core.identity.application.ImpersonationService.Issued memberImpersonation() {
+        for(String kind:List.of("admin","member")) {
+            String id="e9-imp-"+kind;
+            var role=kind.equals("admin")?com.agilityhub.core.identity.domain.Role.ADMIN:com.agilityhub.core.identity.domain.Role.MEMBER;
+            mongo.save(new com.agilityhub.core.identity.persistence.Account(id,id+"@example.test","Example "+kind,"en",null,Set.of(),
+                    com.agilityhub.core.identity.persistence.Account.Status.ACTIVE,null,Map.of(),false,clock.instant()));
+            mongo.save(new com.agilityhub.core.identity.persistence.Membership(id,id,CLUB,"e9-member",Set.of(role),
+                    com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE,role));
+        }
+        mongo.save(new Document("_id","e9-member").append("clubId",CLUB).append("accountId","e9-imp-member").append("status","ACTIVE")
+                .append("firstName","Example").append("lastName1","Member").append("memberNumber",9001).append("version",0L),"members");
+        try(var scope=TenantContext.open(CLUB)) { return impersonations.create("e9-imp-admin","e9-member","Contract test"); }
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void T_16_05_T_16_09_memberCourseDetailRequiresSetupVisibilityIncludingImpersonation(boolean impersonated) throws Exception {
+        var route = routes().filter(r -> r.method().equals("GET") && r.path().equals("/api/v1/courses/{id}")).findFirst().orElseThrow();
+        var issued = impersonated ? memberImpersonation() : null;
+        var before = state();
+        for (boolean visible : List.of(true, false, true)) {
+            mongo.remove(Query.query(Criteria.where("_id").is("e9-param-courses.showSetupToMembers")), "parameters");
+            parameter("courses.showSetupToMembers", visible);
+            var request = call(route, "MEMBER").with(req -> { req.setRequestURI("/api/v1/courses/e9-public"); return req; });
+            if (issued != null) request.with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
+            error(request, visible ? 501 : 404, visible ? "NOT_IMPLEMENTED" : "NOT_FOUND")
+                    .andExpect(jsonPath("$.details").isMap()).andExpect(jsonPath("$.details").isEmpty());
+            for (String role : List.of("INSTRUCTOR", "ADMIN")) {
+                error(call(route, role), 501, "NOT_IMPLEMENTED");
+                error(call(route, role).with(req -> { req.setRequestURI("/api/v1/courses/e9-course-other"); return req; }), 404, "NOT_FOUND");
+            }
+        }
+        assertThat(state()).isEqualTo(before);
+    }
+
+    @Test void T_16_09_setupFixturesValidateAgainstTheLiveEndpointSchema() throws Exception {
+        var result = mvc.perform(get("/api/v1/openapi.json").with(jwt())).andExpect(status().isOk()).andReturn();
+        var api = mapper.readTree(result.getResponse().getContentAsString());
+        for (String name : List.of("RingSetup", "MemberRingSetup")) E9ResponseContractTest.assertSetupResponse(api, name);
     }
     @Test void T_16_05_privatePublicDeletedAndAccountCourseWritesRespectVisibility() throws Exception {
         var get=routes().filter(r->r.path().equals("/api/v1/courses/{id}")&&r.method().equals("GET")).findFirst().orElseThrow();

@@ -1,0 +1,5 @@
+{
+  "command": "cmp /private/tmp/e9-t01-round3-first-openapi.json docs/openapi/openapi.json",
+  "exit_code": 0,
+  "seconds": 0.01
+}

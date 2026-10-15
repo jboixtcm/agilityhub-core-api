@@ -1,0 +1,11 @@
+Snapshot: 428 operations, 835 schemas; 0 added or removed
+Only GET course detail, GET setup detail, RingSetup and MemberRingSetup changed
+Both setup schemas have a required, read-only view constant; existing fields are unchanged
+All 1989 tested inputs are unchanged since clean verification started
+Concurrent organizer edit preserved: docs/DECISIONS_PENDENTS.md
+Concurrent organizer edit preserved: docs/specs/S14-tauler-auditoria-exportacions-rgpd.md
+Concurrent organizer edit preserved: roadmap/tasks/E10-T02.md
+Changed-file scope is limited to E9-T01 and the preserved organizer edits
+Task instructions and Organizer verification unchanged; Round 1 report archived verbatim
+Task report: 114498 bytes, below 120000
+Every final required verification command, exit and literal last 40 lines is in the Round 3 report

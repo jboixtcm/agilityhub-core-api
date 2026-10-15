@@ -1,0 +1,5 @@
+{
+  "command": "./mvnw -q '-Dtest=E9ResponseContractTest#T_16_09_setupFixturesMatchExactlyOnePublishedResponseBranch' test",
+  "exit_code": 1,
+  "seconds": 15.39
+}
