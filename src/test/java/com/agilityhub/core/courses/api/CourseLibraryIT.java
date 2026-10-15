@@ -244,15 +244,6 @@ class CourseLibraryIT extends CourseItSupport {
         error(as(json(patch("/api/v1/platform/courses/" + club), Map.of("version", 0)), null, "AGILITYHUB_ADMIN"), 404, "NOT_FOUND");
     }
 
-    /** A signed upload of {@code purpose}: its URL, PUT without a bearer, answers {@code expected}. */
-    String upload(String club, String purpose, String type, byte[] bytes, int expected, Duration delay) throws Exception {
-        var grant = ok(as(json(post("/api/v1/courses/upload-urls"), Map.of("purpose", purpose, "contentType", type, "size", bytes.length)), club, "INSTRUCTOR"), 201);
-        clock.advance(delay);
-        var put = put(java.net.URI.create(grant.path("uploadUrl").asText())).contentType(type).header("If-None-Match", "*").content(bytes);
-        assertThat(mvc.perform(put).andReturn().getResponse().getStatus()).isEqualTo(expected);
-        return grant.path("fileKey").asText();
-    }
-
     @Test void T_16_14_T_16_21_courseFilesAreTheClubsOwnSignedUploadsUnderItsPrefix() throws Exception {
         byte[] png = "fictional png".getBytes(java.nio.charset.StandardCharsets.UTF_8);
         String image = upload(CLUB, "COURSE_IMAGE", "image/png", png, 204, Duration.ZERO);

@@ -95,16 +95,16 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
     static final String DUNA = "par-d-duna", ROCK = "par-d-rock", KIRA = "par-d-kira";
     static final String CLASS = "par-class", CLASS2 = "par-class-2", PAST = "par-class-past", BOOKING = "par-b-1", PAST_BOOKING = "par-b-0";
     static final String FIFO_ENTRY = "par-w-fifo", TAKEN_ENTRY = "par-w-taken", ATTENDANCE = "par-a-1", TRAINING = "par-t-1", TRAINING_CANCELLED = "par-t-2";
+    static final String SETUP = "par-setup";
     static final String ACTIVITY = "par-activity", TASK = "par-task", WEEK = "par-week-42", PLAN = "par-plan", LEVEL_C = "par-lv-c", LEVEL_D = "par-lv-d";
     static final List<String> DATA = List.of("members", "dogs", "accounts", "memberships", "instructors", "levels", "rings", "plans", "parameters", "class_sessions",
             "bookings", "waitlist_entries", "attendances", "training_bookings", "activities", "activity_registrations", "tasks", "weeks", "message_templates",
-            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements", "invoices", "upfront_payments");
+            "notifications", "domain_events", "signup_notification_admissions", "seat_locks", "announcements", "invoices", "upfront_payments", "ring_setups");
     /**
      * The templated codes whose events no owner of this repository explains yet: their facts are the event's payload until
      * their stage writes the owner (and adds the code's case to this test).
      */
     static final Map<String, String> LATER = new TreeMap<>(Map.of(
-            "N-31", "RingSetupChanged: course setups, S16 (later stage)",
             "N-50", "no event: the S14 export worker triggers it directly (not produced yet)"));
 
     @Autowired MongoTemplate mongo; @Autowired ObjectMapper mapper; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
@@ -190,6 +190,11 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         mongo.insert(new com.agilityhub.core.payments.persistence.UpfrontPayment("par-upfront", CLUB, LAURA, DUNA, "ENTRY_FEE", "ENTRY_FEE",
                 fee, fee, "PAID", "STRIPE", "par-checkout", NOW, NOW, null, "par-submission", null, null, null,
                 new com.agilityhub.core.payments.persistence.UpfrontPayment.StripeRefs("pi_parity", null), null, null, List.of(), null));
+        // Courses (E9-T03, S16 §8): an AGILITY setup of levels C and D mounted on Central, and N-31 switched on.
+        parameter("messaging.notifyNewRingSetup", true);
+        mongo.insert(new Document("_id", SETUP).append("clubId", CLUB).append("ringId", "par-ring").append("kind", "AGILITY").append("levelIds", List.of(LEVEL_C, LEVEL_D))
+                .append("builtAt", java.util.Date.from(NOW)).append("builtByAccountId", "par-marta").append("expiresAt", java.util.Date.from(NOW.plusSeconds(7 * 86_400)))
+                .append("status", "ACTIVE").append("notes", "Private staff note").append("createdAt", java.util.Date.from(NOW)), "ring_setups");
         ((FakeEmailSender) email).clear();
         logs.list.clear(); logs.start(); ((Logger) LoggerFactory.getLogger(TemplateRenderer.class)).addAppender(logs);
     }
@@ -281,6 +286,8 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         cases.add(new Case("N-30", "UpfrontPaymentSucceeded", "par-upfront", Map.of("paymentId", "par-upfront", "memberId", LAURA,
                 "concept", "ENTRY_FEE", "provider", "STRIPE", "amountPaid", Map.of("amountMinor", 6000, "currency", "EUR")),
                 Map.of("invoice_number", "an upfront payment has no issued invoice")));
+        // E9-T03: S16's RingSetupChanged{ACTIVE} of a setup that is not EMPTY (T-16-13).
+        cases.add(new Case("N-31", "RingSetupChanged", SETUP, n31("ACTIVE", "AGILITY"), Map.of()));
         cases.add(new Case("N-32a", "ActivityPublished", Map.of("activityId", ACTIVITY, "notifyEmail", true)));
         cases.add(new Case("N-32b", "ActivityRegistrationChanged", Map.of("activityId", ACTIVITY, "memberId", LAURA, "state", "ACTIVE", "origin", "APP")));
         cases.add(new Case("N-32c", "ActivityCancelled", Map.of("activityId", ACTIVITY, "adminText", "Suspès per la pluja.", "affected", List.of(Map.of("memberId", LAURA)))));
@@ -312,6 +319,13 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
                     "admin_text", "Decision note", "cancelledBookings", List.of(Map.of("type", "CLASS", "id", BOOKING, "sessionDate", "2026-11-03")))));
         }
         return cases;
+    }
+    /** S16 §7's `RingSetupChanged` payload of {@link #SETUP} on Central (`replacedSetupId` is null: nothing was mounted before). */
+    static Map<String, Object> n31(String status, String kind) {
+        var payload = new LinkedHashMap<String, Object>();
+        payload.put("ringId", "par-ring"); payload.put("setupId", SETUP); payload.put("status", status); payload.put("replacedSetupId", null);
+        payload.put("kind", kind); payload.put("byAccountId", "par-marta");
+        return payload;
     }
     static Map<String, Object> with(Map<String, Object> base, Object... pairs) {
         var map = new LinkedHashMap<>(base);
@@ -400,6 +414,32 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
             assertThat(owners).as(code + " gained an owner: add its case").noneMatch(owner -> !Collections.disjoint(owner.eventTypes(), spec.eventTypes()));
         }
         System.out.println("E7-T06 parity: " + covered.size() + " code × audience pairs over " + cases().size() + " events; waiting for their owner: " + LATER);
+    }
+
+    /**
+     * T-16-13 (S16 §8, E9-T03): N-31 «Recorregut nou a la pista» goes out for `RingSetupChanged{ACTIVE}` only while
+     * `messaging.notifyNewRingSetup` is on and the setup is not `EMPTY`, to the members with a training right
+     * (`TrainingEligibilityService.membersWithRight()`: Laura, whose dogs are of level C; not Núria, an applicant, nor Marta or
+     * the administrator, who have no dog), in the app, with `OPEN_SETUP {ringId}` (E81). `level` is in the member's language;
+     * an ended setup (`EXPIRED`, `DISMANTLED`) sends nothing (S15 R-15-15 f: «N-31 no aplica»).
+     */
+    @Test void T_16_13_n31ReachesTheMembersWithATrainingRightOnlyWhenSwitchedOnAndNotEmpty() {
+        install("N-31", List.of("ring_name", "setup_kind", "level"));
+        var sent = notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "AGILITY")));
+        assertThat(sent).extracting(n -> n.recipient().memberId()).containsExactly(LAURA);
+        var notice = sent.getFirst();
+        assertThat(notice.audience()).isEqualTo(NotificationAudience.MEMBER);
+        assertThat(notice.body()).isEqualTo("Values: ring_name=Central | setup_kind=AGILITY | level=Nivell C–Nivell D |");
+        assertThat(notice.action().type()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.NotificationActionType.OPEN_SETUP);
+        assertThat(notice.action().params()).containsEntry("ringId", "par-ring");
+        assertThat(notice.deliveries()).extracting(d -> d.channel().name()).containsExactly("APP");
+        assertThat(notice.body()).doesNotContain("Private staff note", "par-marta");
+        // An EMPTY setup says the ring is empty: no notice. An ended setup neither.
+        assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "EMPTY")))).isEmpty();
+        for (String ended : List.of("EXPIRED", "DISMANTLED")) { assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31(ended, "AGILITY")))).isEmpty(); }
+        // Off (the product default) → nothing.
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("key").is("messaging.notifyNewRingSetup")), "parameters"); configs.invalidate(CLUB);
+        assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "AGILITY")))).isEmpty();
     }
 
     /**

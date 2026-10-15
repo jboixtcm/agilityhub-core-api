@@ -26,13 +26,13 @@ public class RingSetupsController {
 
     @PostMapping(value = "/api/v1/ring-setups")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, RING_WITHOUT_GEOMETRY, PLACEMENT_RING_MISMATCH, SETUP_SOURCE_REQUIRED, COURSE_NOT_VISIBLE, STALE_VERSION})
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, RING_WITHOUT_GEOMETRY, PLACEMENT_RING_MISMATCH, SETUP_SOURCE_REQUIRED, COURSE_NOT_VISIBLE, STALE_VERSION, LEVELS_DISABLED})
     @Operation(summary = "createRingSetup", description = "Roles: INSTRUCTOR (while courses.allowInstructorPublish, else FORBIDDEN), ADMIN. Module: COURSES. "
             + "R-16-07: registers what is set up on the ring. A kind other than EMPTY needs a source — placementId, courseId or imageFileKey (SETUP_SOURCE_REQUIRED); "
-            + "EMPTY (the ring is empty) names none (VALIDATION_ERROR). placementId: a placement of the same ring (PLACEMENT_RING_MISMATCH) on a ring with a geometry "
-            + "(RING_WITHOUT_GEOMETRY); with a courseId too, it must be the placement's course (VALIDATION_ERROR). courseId: a course the caller can read. "
-            + "imageFileKey: this club's COURSE_IMAGE upload (else NOT_FOUND). levelIds: this club's levels (NOT_FOUND), none while levels.enabled = false "
-            + "(VALIDATION_ERROR fieldErrors[{levelIds, LEVELS_DISABLED}]). expectedUntil: the last club-local day the setup is shown, today or later "
+            + "EMPTY (the ring is empty) names none (VALIDATION_ERROR). placementId: only on a ring with a geometry (RING_WITHOUT_GEOMETRY), a placement of that "
+            + "ring (PLACEMENT_RING_MISMATCH); with a courseId too, it must be the placement's course (VALIDATION_ERROR). courseId: a course the caller can read. "
+            + "imageFileKey: this club's COURSE_IMAGE upload (else NOT_FOUND). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this "
+            + "club's levels (NOT_FOUND). expectedUntil: the last club-local day the setup is shown, today or later "
             + "(VALIDATION_ERROR). expiresAt = the earlier of the start of the day after expectedUntil and the start of the day courses.setupAutoExpireDays "
             + "after today, in the club's time zone. The ring's active setup, if any, becomes DISMANTLED (replacedSetupId) in the same transaction and "
             + "Ring.activeSetupId names the new one; a concurrent registration on the ring → STALE_VERSION. Publishes RingSetupChanged{ACTIVE} (N-31 when "

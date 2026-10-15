@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.0 · 05-10-2026** (v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.2 · 15-10-2026** (v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -66,6 +66,10 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-54 | 01-10 | api (comunicacions, menors) | Menors d'E7-T07: `bin/e7-smoke-test.py` a la CI, la resposta de la llista permesa enregistrada d'una execució real, els canals comparats sense ordre, noms de proves, i els formats en anglès de `ClubFormats` (R-11-05) | Baixa | oberta — E11-T02 |
 | INC-55 | 01-10 | web (preferències, mocks) | Menors de la ronda 2 d'E7-W07: una negativa de l'api ha de treure només la preferència que nomena, i una tria que ja ha rebut el seu `2xx` ha de sortir de la safata; un sol magatzem de reserves per als mons del mock | Baixa | oberta — E11-W02 |
 | INC-56 | 05-10 | web (e2e del nucli, rigor) | Menors de la ronda 2 d'E7-W03: l'asserció del correu N-13 (`SKIPPED_BY_PREFERENCE` exacte), la sonda `TEMPLATE_MANDATORY` incondicional, la restauració de la plantilla dins d'un `finally`, i les captures de notificacions preses després de l'edició de la plantilla | Baixa | oberta — E11-W02 |
+| INC-57 | 15-10 | api (tauler, menors) | Menors de la revisió d'E8-T13: una sola constant per al propietari `SYSTEM` de les vistes desades, les escriptures de baixes de `CensusMigrationService` sense el ganxo `changed(...)` (i l'informe que diu «totes»), `LifecycleMenuIT` sota `bookings.api` | Baixa | oberta — passada de correccions |
+| INC-58 | 15-10 | api (pagaments, proves) | Menors de la ronda 6 d'E8-T12: un oracle independent per a la cota inferior de les intervencions, l'avís d'intervenció quan el deute recalculat ja és 0, lectures de més a `intentLedger()`, un cas de la matriu | Mitjana | oberta — passada de correccions |
+| INC-59 | 15-10 | web (facturació, proves) | Menors de la ronda 2 d'E8-W07: la prova vermella de D6 encara depèn de l'ordre d'execució, l'espia de `setTimeout` sense `clearTimeout`, un literal inventat per confirmar | Baixa | oberta — passada de correccions |
+| INC-60 | 15-10 | web (recorreguts) | Menors de la ronda 2 d'E9-W02: el transport per defecte dels esdeveniments de muntatge (per a E9-W04), noms de proves, set etiquetes inventades per confirmar, petits | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -185,6 +189,68 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 4. **Les captures de notificacions (ca/es)** s'han de prendre després de l'edició de la plantilla, perquè mostrin el text editat.
 
 **On mirar**: l'informe de la ronda 2 d'E7-W03 i la seva revisió.
+
+---
+
+## INC-57 · Menors de la revisió d'E8-T13 (api, tauler)
+
+**Gravetat**: baixa.
+
+**Origen**: `roadmap/reviews/E8-T13-20261015-1316-claude.md` (api), troballes #2, #3 i #5; verificació de l'organitzador del 15-10 (decisió E112).
+
+**Llista**:
+- **El propietari `SYSTEM`, dues vegades.** El literal `"SYSTEM"` és a `SavedViewData` i a `SavedViewService`, i el seeder i el predicat es poden separar. Proposta: una sola constant (`SavedViewData.SYSTEM_OWNER`).
+- **Escriptures de baixes sense invalidació.** `CensusMigrationService` desa `LeaveRequest` amb `leaves.save`/`leaves.insert` sense passar pel ganxo `changed(...)`, de manera que l'informe d'E8-T13 («totes les escriptures») diu massa. L'efecte és petit: les sol·licituds migrades no són `PENDING` i la cache dura 30 s (T-14-29 demana menys de 60 s). Proposta: passar-les pel mateix ganxo.
+- **`LifecycleMenuIT` al paquet de reserves.** Prova cens, vistes desades i tauler, però viu a `bookings.api` per heretar `BookingFixtures`. Proposta: moure-la al costat de `DashboardIT` o a `census.api`.
+
+**On mirar**: `SavedViewData.java:8`, `SavedViewService.java:26`, `CensusMigrationService.java:37,44`, `LifecycleMenuIT.java`.
+
+---
+
+## INC-58 · Menors de la ronda 6 d'E8-T12 (api, pagaments)
+
+**Gravetat**: mitjana (proves de diners).
+
+**Origen**: `roadmap/reviews/E8-T12-20261015-1740-claude.md` (api), troballes #2–#5; verificació de l'organitzador del 15-10 (decisió E113).
+
+**Llista**:
+- **Un oracle independent per a la cota inferior.** `sharedInterventionLowerBound` i `…round6_point2_generatedClaimsEqualTheirRecomputedDue` recalculen el deute amb la mateixa `PaymentIntentLedger.withoutReservation(id).freeFor(id)` que la ronda 6 va canviar, i conserven les reclamacions de les altres files. Proven que les reclamacions són un punt fix de l'assignació, no que l'assignació sigui correcta, i no veuen un error d'ordre. Proposta: que l'oracle ordeni ell mateix les reclamacions (per `compensationInterventionAt`) i les resti una a una.
+- **L'avís quan el deute ja és 0.** A la primera entrada d'`intervene`, `upfront.intervention(...)` i `warnIntervention(...)` van abans de recalcular la reclamació: si un reemborsament pendent del tauler ja cobreix la fila, el registre demana un admin per a un pagament que no deu res. Proposta: avisar només si el deute recalculat és més gran que 0, i comentar l'obligació que només ve del camí de reserva (`operations.byKey("refund:"+id)`).
+- **Lectures de més.** `intentLedger()` fa un `findOne` d'`upfront.compensation(id)` per fila quan `forIntent` ja ha carregat els documents, i corre diverses vegades per esdeveniment.
+- **Un cas de la matriu.** Falta `1200,a,pending`.
+
+**On mirar**: `CapturedPaymentInvariantsIT.java:803-804,1262-1299`, `PaymentIntentLedgerTest`, `PaymentRefunds.java:126,158-162,255-257,320`.
+
+---
+
+## INC-59 · Menors de la ronda 2 d'E8-W07 (web, facturació)
+
+**Gravetat**: baixa.
+
+**Origen**: `roadmap/reviews/E8-W07-20261015-1743-claude.md` (web), troballes #1–#3; verificació de l'organitzador del 15-10 (decisió E113).
+
+**Llista**:
+- **La prova vermella de D6 encara depèn de l'ordre d'execució.** L'asserció `periodReads === 2` s'executa abans que el component hagi aplicat la lectura 3; el codi antic només falla perquè el seu bucle passa de llarg abans que `waitFor` el mostregi. Proposta: esperar que la lectura 3 s'hagi aplicat (un marcador que la UI pinti i `findBy…`, o retenir-la darrere una tercera promesa) abans de l'asserció.
+- **L'espia de `setTimeout`** retorna l'id constant `5_000` i no substitueix `clearTimeout`, que pot cancel·lar un temporitzador real amb aquest id. Proposta: espiar també `clearTimeout` o retornar un id únic.
+- **Literal inventat, per confirmar per Jordi**: l'etiqueta i l'ajuda de `courses.defaultWarningThresholdM` («Llindar d'avís de col·locació», «Distància mínima… genera un avís») no surten de cap maqueta ni de l'especificació.
+
+**On mirar**: `apps/clubs-admin/src/billing/BillingPage.test.tsx:1489-1504,1550-1556`, `packages/i18n/src/locales/{ca,es,en}/admin-settings.json:395`.
+
+---
+
+## INC-60 · Menors de la ronda 2 d'E9-W02 (web, recorreguts)
+
+**Gravetat**: baixa.
+
+**Origen**: `roadmap/reviews/E9-W02-20261015-1942-claude.md` (web), troballes #1 i #3–#9; verificació de l'organitzador del 15-10 (decisió E113). La #2 (escriptures de marcadors que es trepitgen) és a E9-W03.
+
+**Llista**:
+- **Esdeveniments de muntatge sense transport per defecte** (per a E9-W04): `subscribeBuildObstacleStatuses` llança `CORE_API_BUILD_EVENTS_NOT_CONFIGURED` si l'app no injecta `subscribeBuildEvents`; falta l'enquesta de `GET /build-sessions/{id}` acordada. Proposta: enquestar `listBuildObstacleStatuses` a interval, emetre només els canvis i aturar-la en netejar, amb una prova amb temporitzadors falsos.
+- **Noms de proves**: les de la ronda 2 es diuen `#N R-16-xx …` i han de portar el `T-16-nn` corresponent (`force` → T-16-07, `finish` → T-16-10, `STALE_VERSION` de geometria → T-16-06, noms de regles i format local → T-16-22).
+- **Literals inventats, per confirmar per Jordi**: les set etiquetes `courseWarningRule.*` d'`enums.json`. A més, `CourseWarningRule` es defineix a mà a `course-texts.ts` en lloc de derivar-se de `WarningRuleId` de course-core.
+- **Petits**: `#courseUploads` no es buida mai; la variant `danger` del botó fa servir `text-primary-fg`; [Desa] queda actiu després d'un `409 STALE_VERSION` a `RingDoorEditor`; l'arnès e2e escriu PNG a `roadmap/evidence/E9-W02` a cada `pnpm e2e`; tres detalls de la captura fosca.
+
+**On mirar**: `packages/api-client/src/core-api-store.ts:283,406,683-691`, `packages/api-client/src/core-api-store.payloads.test.ts`, `packages/course-ui/tests/*.tsx`, `packages/i18n/src/locales/{ca,es,en}/enums.json:360`, `packages/i18n/src/course-texts.ts:5`, `packages/course-ui/src/components/ui/Button.tsx:18`, `packages/course-ui/src/components/RingDoorEditor.tsx:446-480`, `packages/course-ui/e2e/harness.spec.ts`.
 
 ---
 

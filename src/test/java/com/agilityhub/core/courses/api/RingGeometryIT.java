@@ -18,24 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class RingGeometryIT extends CourseItSupport {
     static final String RING = "e9t2-ring-a1";
 
-    /** S16 R-16-04's example: a 40 × 22 m ring, door N at 3 m (2 m wide, entrance), a 3 × 3 «bassa», four corner markers. */
-    ObjectNode geometry(long version) {
-        var body = mapper.createObjectNode().put("lengthM", 40).put("widthM", 22).put("borderClearanceM", 1).put("version", version);
-        body.putNull("orientationDeg"); body.put("surface", "GRASS"); body.putNull("notes");
-        body.putArray("doors").addObject().put("id", "door-n").put("label", "N").put("side", "NORTH").put("startM", 3).put("endM", 5).put("flow", "IN")
-                .put("clearanceM", 1.5).put("isActive", true).putNull("notes").putArray("polygonPointsM");
-        var zone = body.putArray("noGoZones").addObject().put("id", "bassa").put("label", "Bassa").put("warningMarginM", 0.5);
-        var points = zone.putArray("polygonPointsM");
-        for (double[] p : new double[][] {{10, 10}, {13, 10}, {13, 13}, {10, 13}}) { points.addObject().put("x", p[0]).put("y", p[1]); }
-        var markers = body.putArray("markers");
-        String[] labels = {"A", "B", "C", "D"}; double[][] corners = {{0, 0}, {40, 0}, {40, 22}, {0, 22}};
-        for (int i = 0; i < 4; i++) {
-            markers.addObject().put("id", "marker-" + i).put("label", labels[i]).put("markerUid", "uid-" + i).put("role", "ANCHOR").put("xM", corners[i][0])
-                    .put("yM", corners[i][1]).put("zM", 0).put("rotationYDeg", 0).put("physicalWidthM", 0.2).put("physicalHeightM", 0.2)
-                    .put("isFixed", true).put("isActive", true).put("aprilTagId", i).putNull("notes");
-        }
-        return body;
-    }
     JsonNode putGeometry(String club, ObjectNode body, int status) throws Exception { return ok(as(json(put("/api/v1/rings/" + RING + "/geometry"), body), club, "ADMIN"), status); }
     Document ring() { return mongo.findOne(Query.query(Criteria.where("_id").is(RING)), Document.class, "rings"); }
     void placement(String id, String ring, String status) {

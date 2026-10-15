@@ -25,13 +25,16 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
-/** Two fictional clubs with rings and levels for the E9-T02 behaviour tests (S16 R-16-01…04, 12, 14, 16, 17). */
+/** Two fictional clubs with rings and levels for the E9-T02/T03 behaviour tests (S16 R-16-01…09, 12…17). */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 abstract class CourseItSupport extends AbstractIntegrationTest {
     static final String CLUB = "e9t2-club-a", OTHER = "e9t2-club-b", HOST = "e9t2-a.example.test", OTHER_HOST = "e9t2-b.example.test";
     static final List<String> DATA = List.of("courses", "placements", "ring_setups", "obstacle_inventories", "calibration_logs", "venues", "rings", "levels",
-            "domain_events", "audit_entries", "attachment_uploads", "idempotency_records");
+            "domain_events", "audit_entries", "attachment_uploads", "idempotency_records",
+            // E9-T03: the activities and classes a placement names, and P5's bookkeeping (S15 R-15-15 f).
+            "activities", "class_sessions", "notifications", "job_runs", "job_locks", "job_action_marks");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired MongoTemplate mongo;
@@ -128,6 +131,15 @@ abstract class CourseItSupport extends AbstractIntegrationTest {
         body.put("discipline", "AGILITY").put("source", "SMARTER").put("visibility", "CLUB").put("schemaVersion", 1);
         body.set("normalizedJson", model); body.putArray("levelIds"); body.putArray("tags");
         return body;
+    }
+
+    /** A signed upload of {@code purpose}: its URL, PUT without a bearer, answers {@code expected}. */
+    String upload(String club, String purpose, String type, byte[] bytes, int expected, java.time.Duration delay) throws Exception {
+        var grant = ok(as(json(post("/api/v1/courses/upload-urls"), Map.of("purpose", purpose, "contentType", type, "size", bytes.length)), club, "INSTRUCTOR"), 201);
+        clock.advance(delay);
+        var put = put(java.net.URI.create(grant.path("uploadUrl").asText())).contentType(type).header("If-None-Match", "*").content(bytes);
+        assertThat(mvc.perform(put).andReturn().getResponse().getStatus()).isEqualTo(expected);
+        return grant.path("fileKey").asText();
     }
 
     /** S16 R-16-04's example: a 40 × 22 m ring, door N at 3 m (2 m wide, entrance), a 3 × 3 «bassa», four corner markers. */

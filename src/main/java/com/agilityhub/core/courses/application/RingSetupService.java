@@ -74,9 +74,9 @@ public class RingSetupService {
         String clubId = TenantContext.require();
         // The references first (`404`, `COURSE_NOT_VISIBLE`), then the request's own checks (`400`), then R-16-07's (`422`).
         var ring = ring(in.ringId());
-        var levelIds = levels(in.levelIds());
         if (in.courseId() != null) { access.course(in.courseId(), false); }
         var placement = in.placementId() == null ? null : placements.findById(in.placementId()).orElseThrow(() -> new ApiException(NOT_FOUND));
+        var levelIds = levels(in.levelIds());
         var check = RingSetupRules.check(in.kind(), RingSetupRules.sources(in.placementId(), in.courseId(), in.imageFileKey()));
         if (!check.unexpected().isEmpty()) { throw PlacementService.invalid(field(check.unexpected().getFirst()), "VALIDATION_ERROR"); }
         if (placement != null && in.courseId() != null && !in.courseId().equals(placement.courseId())) { throw PlacementService.invalid("courseId", "VALIDATION_ERROR"); }
@@ -84,8 +84,9 @@ public class RingSetupService {
         if (!RingSetupRules.expectedUntilValid(in.expectedUntil(), now.toLocalDate())) { throw PlacementService.invalid("expectedUntil", "VALIDATION_ERROR"); }
         if (check.missing()) { throw new ApiException(SETUP_SOURCE_REQUIRED); }
         if (placement != null) {
-            if (!placement.ringId().equals(ring.id())) { throw new ApiException(PLACEMENT_RING_MISMATCH); }
+            // «Sense geometria: placementId prohibit» first: no placement of another ring can fit a ring that has no geometry.
             if (ring.geometry() == null) { throw new ApiException(RING_WITHOUT_GEOMETRY); }
+            if (!placement.ringId().equals(ring.id())) { throw new ApiException(PLACEMENT_RING_MISMATCH); }
         }
         String id = UUID.randomUUID().toString(), actor = CourseAccess.accountId();
         // R-16-16: «Foto o plànol» is the club's own `COURSE_IMAGE` upload, bound to this setup (another club's key is `404`).
@@ -96,9 +97,12 @@ public class RingSetupService {
                 instant, actor, in.expectedUntil(), expiresAt, SetupStatus.ACTIVE, null, null, in.notes(), instant, actor, instant, actor);
         String replaced = null;
         try {
+            // R-16-07: the ring's pointer is written first, so two registrations of one ring meet on the ring document (a write
+            // conflict) before either touches a setup; the partial unique index `active_setup` is the last guard.
+            rings.pointActiveSetup(ring.id(), id);
             var previous = setups.activeOn(ring.id()).orElse(null);
             if (previous != null) {
-                // R-16-07: the active setup is replaced (`DISMANTLED`) in the same transaction; a concurrent end makes this one retry.
+                // The active setup is replaced (`DISMANTLED`) in the same transaction; one ended meanwhile is a conflict too.
                 if (!setups.replaceActive(ended(previous, SetupStatus.DISMANTLED, instant, actor))) { throw new ApiException(STALE_VERSION); }
                 replaced = previous.id();
             }
@@ -107,7 +111,6 @@ public class RingSetupService {
             if (TransactionRetries.conflict(conflict)) { throw new ApiException(STALE_VERSION); }
             throw conflict;
         }
-        rings.pointActiveSetup(ring.id(), id);
         publish(setup, SetupStatus.ACTIVE, replaced, actor, DomainEvent.Origin.BACKOFFICE, instant);
         var after = new LinkedHashMap<String, Object>();
         after.put("ringId", setup.ringId()); after.put("kind", setup.kind().name()); after.put("placementId", setup.placementId());
@@ -233,11 +236,14 @@ public class RingSetupService {
     private RingSetup setup(String id) { return setups.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
     private RingGeometryRepository.GeometryRecord ring(String id) { return rings.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
     private int autoExpireDays() { return configs.get(TenantContext.require()).get("courses.setupAutoExpireDays", Integer.class); }
-    /** The club's levels only (`404`), none while `levels.enabled = false` (R-16-15: `VALIDATION_ERROR {levelIds: LEVELS_DISABLED}`). */
+    /**
+     * R-16-15: none while `levels.enabled = false` (`422 LEVELS_DISABLED`, CATALEG_ERRORS §1, as S03 and S06 throw it; only
+     * `agilityhubLevel` is left), else the club's levels only (`404`).
+     */
     private List<String> levels(List<String> ids) {
         if (ids == null || ids.isEmpty()) { return List.of(); }
+        if (!access.enabled("levels.enabled")) { throw new ApiException(LEVELS_DISABLED); }
         if (!catalogs.levelRefs().keySet().containsAll(ids)) { throw new ApiException(NOT_FOUND); }
-        if (!access.enabled("levels.enabled")) { throw PlacementService.invalid("levelIds", "LEVELS_DISABLED"); }
         return ids.stream().distinct().toList();
     }
     private static String field(RingSetupRules.Source source) {

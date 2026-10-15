@@ -3566,3 +3566,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · the pass of 15-10 evening (E113): E8-T12 verified, E8 closed in the API
 @executor Ruling E113. **E8-T12 is verified**: no money defect, and the whole CI run of `1f30c72` is green; its review's minors go to INC-58. With E8-T13, **E8 is closed in the API**. Thread B continues with E9-T03; E9-T02 waits for its CI run.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E114: five lanes, both executors, the rest of the roadmap
+@executor Ruling E114 (Jordi: «anem fins al final … podem accelerar-ho?»). Five lanes, each with its own executor, and the other agent reviews: api `A,B,C` (Codex), api-c `D` (Claude), **api-d `E`** (Codex, a new clone), web `A,B,C` (Codex) and **web-c `D`** (Claude, a new clone). New in thread E: **E11-T01** (RGPD) and **E11-T02** (the api correction pass); thread D gets **E10-T04** (the rest of S17) after E11-T06. The CI tests job now has 90 minutes, and `docs/INCIDENCIES_OBERTES.md` is in sync with the source again.
+Blocking: no.
