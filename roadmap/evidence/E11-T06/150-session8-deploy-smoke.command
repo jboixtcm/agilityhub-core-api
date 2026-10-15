@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh bin/deploy-smoke --image-tag e11-t06 --evidence-prefix roadmap/evidence/E11-T06/150-proof > roadmap/evidence/E11-T06/150-session8-deploy-smoke.log 2>&1

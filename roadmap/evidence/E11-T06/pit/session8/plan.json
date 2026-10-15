@@ -1,0 +1,403 @@
+{
+  "limit": 160,
+  "packages": {
+    "bookings": [
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.api.BookingsController",
+          "com.agilityhub.core.clubs.bookings.api.InstructorController",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceCaller",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceCallers",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceConsumers",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceContractAccess",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceListQuery",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceSheetQuery",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceSheetService",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceStates",
+          "com.agilityhub.core.clubs.bookings.application.AttendanceStatusCalculator",
+          "com.agilityhub.core.clubs.bookings.application.BookableClassesCache"
+        ],
+        "notKilledByUnit": 148
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.application.BookableClassesQuery",
+          "com.agilityhub.core.clubs.bookings.application.BookingActivityAdapter",
+          "com.agilityhub.core.clubs.bookings.application.BookingActor",
+          "com.agilityhub.core.clubs.bookings.application.BookingActors",
+          "com.agilityhub.core.clubs.bookings.application.BookingAudit",
+          "com.agilityhub.core.clubs.bookings.application.BookingCalendarTokens",
+          "com.agilityhub.core.clubs.bookings.application.BookingCancellationService",
+          "com.agilityhub.core.clubs.bookings.application.BookingChecks",
+          "com.agilityhub.core.clubs.bookings.application.BookingConfirmationService",
+          "com.agilityhub.core.clubs.bookings.application.BookingConsumers"
+        ],
+        "notKilledByUnit": 150
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.application.BookingContext",
+          "com.agilityhub.core.clubs.bookings.application.BookingContractAccess",
+          "com.agilityhub.core.clubs.bookings.application.BookingCounters",
+          "com.agilityhub.core.clubs.bookings.application.BookingEvents",
+          "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+          "com.agilityhub.core.clubs.bookings.application.BookingOwners",
+          "com.agilityhub.core.clubs.bookings.application.BookingQueryService",
+          "com.agilityhub.core.clubs.bookings.application.BookingTransactions",
+          "com.agilityhub.core.clubs.bookings.application.BookingViews",
+          "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfiguration",
+          "com.agilityhub.core.clubs.bookings.application.CensusBookingCancellations"
+        ],
+        "notKilledByUnit": 160
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.application.CensusInactivityAdapter",
+          "com.agilityhub.core.clubs.bookings.application.ClaimNoShowCommand",
+          "com.agilityhub.core.clubs.bookings.application.ClassBookingsAdapter",
+          "com.agilityhub.core.clubs.bookings.application.ClassReminders",
+          "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+          "com.agilityhub.core.clubs.bookings.application.DemoBillingBookingsSeeder",
+          "com.agilityhub.core.clubs.bookings.application.DemoBookingSeeder",
+          "com.agilityhub.core.clubs.bookings.application.DemoMembers",
+          "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeeder",
+          "com.agilityhub.core.clubs.bookings.application.HistoryQuery",
+          "com.agilityhub.core.clubs.bookings.application.InstructorCardQuery",
+          "com.agilityhub.core.clubs.bookings.application.InstructorDayQuery",
+          "com.agilityhub.core.clubs.bookings.application.MemberDogs",
+          "com.agilityhub.core.clubs.bookings.application.MemberHomeQuery",
+          "com.agilityhub.core.clubs.bookings.application.NoShowNoticeClaims",
+          "com.agilityhub.core.clubs.bookings.application.PaymentTimeoutsJob"
+        ],
+        "notKilledByUnit": 159
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.application.PaymentsPackBalanceAdapter",
+          "com.agilityhub.core.clubs.bookings.application.PendingChargeConsumers",
+          "com.agilityhub.core.clubs.bookings.application.SeatHoldService",
+          "com.agilityhub.core.clubs.bookings.application.SingleClassCharges",
+          "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers",
+          "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob",
+          "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+          "com.agilityhub.core.clubs.bookings.application.WaitlistTransitions",
+          "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+          "com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery",
+          "com.agilityhub.core.clubs.bookings.application.jobs.ClassFinishingJob",
+          "com.agilityhub.core.clubs.bookings.application.jobs.NoShowNoticesJob",
+          "com.agilityhub.core.clubs.bookings.application.ports.AttendanceStatePort",
+          "com.agilityhub.core.clubs.bookings.application.ports.DogFollowupPort",
+          "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort",
+          "com.agilityhub.core.clubs.bookings.domain.AttendanceEvent",
+          "com.agilityhub.core.clubs.bookings.domain.AttendanceMetrics",
+          "com.agilityhub.core.clubs.bookings.domain.AttendanceTransitions",
+          "com.agilityhub.core.clubs.bookings.domain.AttendanceWindow",
+          "com.agilityhub.core.clubs.bookings.domain.BookableRow",
+          "com.agilityhub.core.clubs.bookings.domain.BookingCalendar",
+          "com.agilityhub.core.clubs.bookings.domain.BookingDisplay",
+          "com.agilityhub.core.clubs.bookings.domain.BookingEligibility",
+          "com.agilityhub.core.clubs.bookings.domain.BookingEvent",
+          "com.agilityhub.core.clubs.bookings.domain.BookingLimits",
+          "com.agilityhub.core.clubs.bookings.domain.BookingWeeks",
+          "com.agilityhub.core.clubs.bookings.domain.CancellationPolicy",
+          "com.agilityhub.core.clubs.bookings.domain.HistoryRules",
+          "com.agilityhub.core.clubs.bookings.domain.InstructorVisibility",
+          "com.agilityhub.core.clubs.bookings.domain.PackCard",
+          "com.agilityhub.core.clubs.bookings.domain.WaitlistRules",
+          "com.agilityhub.core.clubs.bookings.persistence.AttendanceRepository"
+        ],
+        "notKilledByUnit": 159
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.clubs.bookings.persistence.Booking",
+          "com.agilityhub.core.clubs.bookings.persistence.BookingRepository",
+          "com.agilityhub.core.clubs.bookings.persistence.ClassDateConverter",
+          "com.agilityhub.core.clubs.bookings.persistence.SeatHoldRepository",
+          "com.agilityhub.core.clubs.bookings.persistence.WaitlistEntryRepository"
+        ],
+        "notKilledByUnit": 49
+      }
+    ],
+    "identity": [
+      {
+        "classes": [
+          "com.agilityhub.core.identity.api.AccountAdministrationController",
+          "com.agilityhub.core.identity.api.AuthController",
+          "com.agilityhub.core.identity.api.CurrentUserFilter",
+          "com.agilityhub.core.identity.api.MeController",
+          "com.agilityhub.core.identity.api.OAuthController",
+          "com.agilityhub.core.identity.api.PasswordGrantAuthenticationToken",
+          "com.agilityhub.core.identity.api.PasswordGrantConverter",
+          "com.agilityhub.core.identity.api.PasswordGrantProvider",
+          "com.agilityhub.core.identity.api.RefreshCookies",
+          "com.agilityhub.core.identity.application.AccountEmailService",
+          "com.agilityhub.core.identity.application.AccountErasureHandler",
+          "com.agilityhub.core.identity.application.AccountService",
+          "com.agilityhub.core.identity.application.AuthSettings",
+          "com.agilityhub.core.identity.application.CensusIdentityService",
+          "com.agilityhub.core.identity.application.ClubAccountService",
+          "com.agilityhub.core.identity.application.ClubAdminService"
+        ],
+        "notKilledByUnit": 160
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.identity.application.CompromisedPasswords",
+          "com.agilityhub.core.identity.application.ConsoleAdministrators",
+          "com.agilityhub.core.identity.application.ConsoleInvitationConsumer",
+          "com.agilityhub.core.identity.application.DemoIdentityService",
+          "com.agilityhub.core.identity.application.GrantPlatformAdminCommand",
+          "com.agilityhub.core.identity.application.HandoffService",
+          "com.agilityhub.core.identity.application.IdentityEvents",
+          "com.agilityhub.core.identity.application.IdentityService",
+          "com.agilityhub.core.identity.application.IdentityTransactions",
+          "com.agilityhub.core.identity.application.ImpersonationService",
+          "com.agilityhub.core.identity.application.ImportLearnCommand",
+          "com.agilityhub.core.identity.application.LearnCsv",
+          "com.agilityhub.core.identity.application.LearnImportReport"
+        ],
+        "notKilledByUnit": 142
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.identity.application.LearnImportService",
+          "com.agilityhub.core.identity.application.MagicLinkService",
+          "com.agilityhub.core.identity.application.MembershipService",
+          "com.agilityhub.core.identity.application.MigrationIdentityService",
+          "com.agilityhub.core.identity.application.OidcService",
+          "com.agilityhub.core.identity.application.OnboardingService",
+          "com.agilityhub.core.identity.application.PasswordHasher",
+          "com.agilityhub.core.identity.application.PasswordService",
+          "com.agilityhub.core.identity.application.PlatformRoleService",
+          "com.agilityhub.core.identity.application.RotateKeysCommand",
+          "com.agilityhub.core.identity.application.SeedPasswordPolicy",
+          "com.agilityhub.core.identity.application.SeedTestAccountsCommand",
+          "com.agilityhub.core.identity.application.SigningKeys",
+          "com.agilityhub.core.identity.application.SignupIdentityService",
+          "com.agilityhub.core.identity.application.SignupLinks",
+          "com.agilityhub.core.identity.application.TeamMembershipService",
+          "com.agilityhub.core.identity.application.TokenDelivery"
+        ],
+        "notKilledByUnit": 158
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.identity.application.TokenService",
+          "com.agilityhub.core.identity.domain.Email",
+          "com.agilityhub.core.identity.domain.IdentityEvent",
+          "com.agilityhub.core.identity.domain.ImpersonationEvent",
+          "com.agilityhub.core.identity.domain.LoginLockout",
+          "com.agilityhub.core.identity.domain.TeamMembershipChanged",
+          "com.agilityhub.core.identity.persistence.Account",
+          "com.agilityhub.core.identity.persistence.AccountMembershipRepository",
+          "com.agilityhub.core.identity.persistence.AccountRepository",
+          "com.agilityhub.core.identity.persistence.AccountSessionRepository",
+          "com.agilityhub.core.identity.persistence.HandoffCode",
+          "com.agilityhub.core.identity.persistence.HandoffCodeRepository",
+          "com.agilityhub.core.identity.persistence.ImpersonationGrantRepository",
+          "com.agilityhub.core.identity.persistence.MagicLinkToken",
+          "com.agilityhub.core.identity.persistence.MagicLinkTokenRepository",
+          "com.agilityhub.core.identity.persistence.Membership",
+          "com.agilityhub.core.identity.persistence.MembershipRepository",
+          "com.agilityhub.core.identity.persistence.OidcState",
+          "com.agilityhub.core.identity.persistence.OidcStateRepository",
+          "com.agilityhub.core.identity.persistence.RefreshToken",
+          "com.agilityhub.core.identity.persistence.RefreshTokenRepository",
+          "com.agilityhub.core.identity.persistence.SigningKeyRepository",
+          "com.agilityhub.core.identity.persistence.SigningKeyRing"
+        ],
+        "notKilledByUnit": 73
+      }
+    ],
+    "payments": [
+      {
+        "classes": [
+          "com.agilityhub.core.payments.api.BillingController",
+          "com.agilityhub.core.payments.api.BillingViews",
+          "com.agilityhub.core.payments.api.CheckoutContracts",
+          "com.agilityhub.core.payments.api.CheckoutController",
+          "com.agilityhub.core.payments.api.InvoicesController",
+          "com.agilityhub.core.payments.api.MemberBillingController",
+          "com.agilityhub.core.payments.api.MemberPlanChangeController",
+          "com.agilityhub.core.payments.api.MyBillingController",
+          "com.agilityhub.core.payments.api.PackBalancesController",
+          "com.agilityhub.core.payments.api.RemittanceFilesController",
+          "com.agilityhub.core.payments.api.RemittancesController",
+          "com.agilityhub.core.payments.api.StripeWebhookController",
+          "com.agilityhub.core.payments.api.UpfrontPaymentsController",
+          "com.agilityhub.core.payments.application.AccountingLists",
+          "com.agilityhub.core.payments.application.AesGcmCipher",
+          "com.agilityhub.core.payments.application.BankAccountVault",
+          "com.agilityhub.core.payments.application.BillingContractAccess",
+          "com.agilityhub.core.payments.application.BillingEvents"
+        ],
+        "notKilledByUnit": 149
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.application.BillingExpirations",
+          "com.agilityhub.core.payments.application.BillingMigrationAccess",
+          "com.agilityhub.core.payments.application.BillingQueries",
+          "com.agilityhub.core.payments.application.BillingReminderJob",
+          "com.agilityhub.core.payments.application.BillingRunService",
+          "com.agilityhub.core.payments.application.BillingSimulationService",
+          "com.agilityhub.core.payments.application.BillingTexts",
+          "com.agilityhub.core.payments.application.BillingTransactions"
+        ],
+        "notKilledByUnit": 154
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.application.CardPayments",
+          "com.agilityhub.core.payments.application.CheckoutService",
+          "com.agilityhub.core.payments.application.ConsolePaymentAdapter",
+          "com.agilityhub.core.payments.application.ConsolePaymentValidation",
+          "com.agilityhub.core.payments.application.FakeCheckoutGateway",
+          "com.agilityhub.core.payments.application.FakePaymentProvider"
+        ],
+        "notKilledByUnit": 157
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.application.FakeProviderCommand",
+          "com.agilityhub.core.payments.application.FakeWebhookCommand",
+          "com.agilityhub.core.payments.application.InvoiceActions",
+          "com.agilityhub.core.payments.application.InvoiceLists",
+          "com.agilityhub.core.payments.application.InvoiceNumbers",
+          "com.agilityhub.core.payments.application.InvoicingService",
+          "com.agilityhub.core.payments.application.ManualUpfrontPayments",
+          "com.agilityhub.core.payments.application.MemberPlanChangeService",
+          "com.agilityhub.core.payments.application.PackAuditLoader",
+          "com.agilityhub.core.payments.application.PackBalanceService",
+          "com.agilityhub.core.payments.application.PackViews",
+          "com.agilityhub.core.payments.application.PaymentAudits",
+          "com.agilityhub.core.payments.application.PaymentBookingCancellations",
+          "com.agilityhub.core.payments.application.PaymentCheckouts",
+          "com.agilityhub.core.payments.application.PaymentNotSubmitted",
+          "com.agilityhub.core.payments.application.PaymentNotificationFacts",
+          "com.agilityhub.core.payments.application.PaymentPrivacy",
+          "com.agilityhub.core.payments.application.PaymentProvider",
+          "com.agilityhub.core.payments.application.PaymentProviderRegistry",
+          "com.agilityhub.core.payments.application.PaymentProviderTimeouts",
+          "com.agilityhub.core.payments.application.PaymentRecovery"
+        ],
+        "notKilledByUnit": 118
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.application.PaymentRefunds"
+        ],
+        "notKilledByUnit": 203
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.application.PaymentRetryPolicy",
+          "com.agilityhub.core.payments.application.PaymentWebhookParser",
+          "com.agilityhub.core.payments.application.PendingChargeService",
+          "com.agilityhub.core.payments.application.ProviderSecretVault",
+          "com.agilityhub.core.payments.application.ReceiptPdf",
+          "com.agilityhub.core.payments.application.RemittanceLists",
+          "com.agilityhub.core.payments.application.RemittanceService",
+          "com.agilityhub.core.payments.application.StripeWebhookSignatures",
+          "com.agilityhub.core.payments.application.StripeWebhooks",
+          "com.agilityhub.core.payments.application.UpfrontPayments",
+          "com.agilityhub.core.payments.application.ports.BillingPortDefaults",
+          "com.agilityhub.core.payments.application.sepa.Pain008Document",
+          "com.agilityhub.core.payments.application.sepa.SepaRemittanceWriter",
+          "com.agilityhub.core.payments.application.stripe.StripeCalls",
+          "com.agilityhub.core.payments.application.stripe.StripePaymentProvider",
+          "com.agilityhub.core.payments.domain.BillingEvent",
+          "com.agilityhub.core.payments.domain.CapturedPaymentLedger",
+          "com.agilityhub.core.payments.domain.CollectionDates",
+          "com.agilityhub.core.payments.domain.InvoiceAmounts",
+          "com.agilityhub.core.payments.domain.InvoiceNumbering",
+          "com.agilityhub.core.payments.domain.InvoicingRules",
+          "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+          "com.agilityhub.core.payments.domain.PendingChargeRules",
+          "com.agilityhub.core.payments.domain.SepaDirectDebits",
+          "com.agilityhub.core.payments.domain.SepaText",
+          "com.agilityhub.core.payments.domain.SignupPaymentEvent"
+        ],
+        "notKilledByUnit": 148
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.persistence.BillingDocuments",
+          "com.agilityhub.core.payments.persistence.BillingLock",
+          "com.agilityhub.core.payments.persistence.Collection",
+          "com.agilityhub.core.payments.persistence.PaymentOperationRepository",
+          "com.agilityhub.core.payments.persistence.PaymentRetryState",
+          "com.agilityhub.core.payments.persistence.SignupCheckoutRepository",
+          "com.agilityhub.core.payments.persistence.StripeInbox",
+          "com.agilityhub.core.payments.persistence.StripeRefundRepository",
+          "com.agilityhub.core.payments.persistence.UpfrontPaymentRepository",
+          "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPA",
+          "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPAMandate",
+          "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyAndAmountSEPA",
+          "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyCodeEUR",
+          "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD",
+          "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA2"
+        ],
+        "notKilledByUnit": 160
+      },
+      {
+        "classes": [
+          "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA3",
+          "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA1",
+          "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA2",
+          "com.agilityhub.core.payments.sepa.generated.CashAccountSEPAMandate",
+          "com.agilityhub.core.payments.sepa.generated.CategoryPurposeSEPA",
+          "com.agilityhub.core.payments.sepa.generated.ChargeBearerTypeSEPACode",
+          "com.agilityhub.core.payments.sepa.generated.CreditorReferenceInformationSEPA1",
+          "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeCodeSEPA",
+          "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeSEPA",
+          "com.agilityhub.core.payments.sepa.generated.CustomerDirectDebitInitiationV02",
+          "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth",
+          "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+          "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionSDD",
+          "com.agilityhub.core.payments.sepa.generated.Document",
+          "com.agilityhub.core.payments.sepa.generated.DocumentType3CodeSEPA",
+          "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA2",
+          "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA3",
+          "com.agilityhub.core.payments.sepa.generated.GenericAccountIdentificationSEPA",
+          "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1",
+          "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1",
+          "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+          "com.agilityhub.core.payments.sepa.generated.IdentificationSchemeNameSEPA",
+          "com.agilityhub.core.payments.sepa.generated.LocalInstrumentSEPA",
+          "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+          "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+          "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSEPAChoice",
+          "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSchemeName1Choice",
+          "com.agilityhub.core.payments.sepa.generated.OthrIdentification",
+          "com.agilityhub.core.payments.sepa.generated.OthrIdentificationCode",
+          "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA1",
+          "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2",
+          "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA3",
+          "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA4",
+          "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA5",
+          "com.agilityhub.core.payments.sepa.generated.PartySEPA2",
+          "com.agilityhub.core.payments.sepa.generated.PartySEPAChoice",
+          "com.agilityhub.core.payments.sepa.generated.PaymentIdentificationSEPA",
+          "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+          "com.agilityhub.core.payments.sepa.generated.PaymentMethod2Code",
+          "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD",
+          "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA1Choice",
+          "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA2",
+          "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSchemeName1Choice",
+          "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA",
+          "com.agilityhub.core.payments.sepa.generated.PurposeSEPA",
+          "com.agilityhub.core.payments.sepa.generated.RemittanceInformationSEPA1Choice",
+          "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSEPA",
+          "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSchemeNameSEPA",
+          "com.agilityhub.core.payments.sepa.generated.RestrictedSMNDACode",
+          "com.agilityhub.core.payments.sepa.generated.SequenceType1Code",
+          "com.agilityhub.core.payments.sepa.generated.ServiceLevel",
+          "com.agilityhub.core.payments.sepa.generated.StructuredRemittanceInformationSEPA1"
+        ],
+        "notKilledByUnit": 139
+      }
+    ]
+  }
+}

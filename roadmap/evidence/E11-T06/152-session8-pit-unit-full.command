@@ -1,0 +1,1 @@
+/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q -Pmutation '-DtargetTests=com.agilityhub.core.*Test' -DmutationUnitSize=50 -DreportsDirectory=target/pit-reports/session8-unit -DhistoryOutputFile=.local/pitest/session8-unit.bin test-compile org.pitest:pitest-maven:mutationCoverage
