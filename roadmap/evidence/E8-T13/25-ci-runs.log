@@ -1,0 +1,4 @@
+{"commit":"d3e81420","conclusion":"","databaseId":38721427328,"displayTitle":"executor: E8-T12 awaiting_verification · claude:claude-opus-5-5","status":"in_progress"}
+{"commit":"7e6d9499","conclusion":"success","databaseId":38716739864,"displayTitle":"docs: sync 2026-10-15 — DECISIONS E110","status":"completed"}
+{"commit":"46c3cf1c","conclusion":"success","databaseId":38706321589,"displayTitle":"executor: executor session (no task status change) · codex:gpt-6-astra","status":"completed"}
+{"commit":"eb0cfeb4","conclusion":"success","databaseId":38706178862,"displayTitle":"executor: E8-T12 blocked · codex:gpt-6-astra","status":"completed"}

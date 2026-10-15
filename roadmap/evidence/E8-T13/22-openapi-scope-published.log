@@ -1,0 +1,50 @@
+PASS: 07f16ab6^ -> 07f16ab6 adds exactly SavedView.system (read-only boolean), DashboardCounters.pendingInactivityRequests and pendingLeaveRequests (int32), all required.
+PASS: HEAD docs/openapi/openapi.json keeps SavedView and DashboardCounters identical to the published commit.
+--- 07f16ab6^
++++ 07f16ab6
+@@ -11026,6 +11026,16 @@
+             "format": "int32",
+             "type": "integer"
+           },
++          "pendingInactivityRequests": {
++            "description": "S13 \u00a72: REQUESTED inactivity periods; zero when INACTIVITY is disabled.",
++            "format": "int32",
++            "type": "integer"
++          },
++          "pendingLeaveRequests": {
++            "description": "S13 \u00a72: PENDING leave requests awaiting a decision.",
++            "format": "int32",
++            "type": "integer"
++          },
+           "pendingRequests": {
+             "format": "int32",
+             "type": "integer"
+@@ -11037,6 +11047,8 @@
+         },
+         "required": [
+           "followUpUnread",
++          "pendingInactivityRequests",
++          "pendingLeaveRequests",
+           "pendingRequests",
+           "pendingSignups"
+         ],
+@@ -27948,6 +27960,11 @@
+             },
+             "type": "array"
+           },
++          "system": {
++            "description": "R-13-17: shared system view; cannot be edited or deleted.",
++            "readOnly": true,
++            "type": "boolean"
++          },
+           "version": {
+             "format": "int64",
+             "type": "integer"
+@@ -27962,6 +27979,7 @@
+           "ownerAccountId",
+           "shared",
+           "sort",
++          "system",
+           "version"
+         ],
+         "type": "object"

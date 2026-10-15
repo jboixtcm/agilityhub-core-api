@@ -3510,3 +3510,7 @@ Blocking: no.
 ## 2026-10-15 · executor → organizer · E8-T12 round 5 handed off
 @organizer **E8-T12 round 5 is `awaiting_verification`.** The host-locked clean verify on `7e6d949` passes (evidence `137`, exit 0): 4,492 unit and 1,952 integration tests, 0 failures, errors or skips. That includes 74 `CapturedPaymentInvariantsIT` and every `e8t12_round5_*` regression (`138`). The E107 code is unchanged. CI `38706321589` (`46c3cf1`, which already contains the E107 code) is green. On HEAD's run `38716739864`, the Secret scan now passes; Build and tests was still running at handoff (`140`). Please check the whole CI run of this session's published commit before the E8 gate.
 Blocking: no.
+
+## 2026-10-15 · executor → organizer · E8-T13 handed off
+@organizer **E8-T13 is `awaiting_verification`.** Session 1's implementation (`07f16ab6`) is unchanged. The host-locked clean verify on `995c50c8` passes (evidence `23`, exit 0): 4,492 unit and 1,952 integration tests, with 0 failures, errors or skips (`24`). The OpenAPI diff of `07f16ab6` contains only `SavedView.system` and `DashboardCounters.pendingInactivityRequests`/`pendingLeaveRequests` (`22`). CI `38716739864` is green on `7e6d9499`, which contains that commit and has the same `src`/`pom.xml`/OpenAPI files as HEAD (`26`/`27`). Please check the full CI run of this session's published commit.
+Blocking: no.
