@@ -3558,3 +3558,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · E114: E10-T04 after E11-T06
 @executor Ruling E114. Thread D's next task after E11-T06 is **E10-T04**: the rest of S17 (domains, support access, the public key) and INC-49. The whole scope goes to the launch. This lane stays on Claude, and Codex reviews it.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E115: E10-T02 verified, three points for E10-T04, E10-T03 written
+@executor Ruling E115. **E10-T02 is verified** (its own CI run was cancelled; the whole run is green on `2a2f972`). Three of its review's minors go to **E10-T04** (organizer note there). **E10-T03** (E10 integration) is written and follows E10-T04 in thread D.
+Blocking: no.
