@@ -1,6 +1,5 @@
 package com.agilityhub.core.courses.api;
 
-import com.agilityhub.core.courses.application.CourseContractGuards;
 import com.agilityhub.core.courses.application.RingGeometryService;
 import com.agilityhub.core.courses.application.RingSetupService;
 import com.agilityhub.core.courses.domain.CourseParts.*;
@@ -9,7 +8,6 @@ import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.contract.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -19,16 +17,16 @@ import static com.agilityhub.core.courses.api.CourseContracts.*;
 import static com.agilityhub.core.courses.api.CourseRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
-/** S16 ring geometry and calibrations (E9-T02: R-16-04, §14.2) and the setup history (E9-T03: R-16-08). The marker sheet is still a contract stub. */
+/**
+ * S16 ring geometry and calibrations (E9-T02: R-16-04, §14.2) and the setup history (E9-T03: R-16-08). The QR marker sheet is the
+ * client's PDF (A8b, E115): the api has no route for it.
+ */
 @RestController
 @RequiresModule(Module.COURSES)
 public class CourseRingsController {
-    private final CourseContractGuards guards;
     private final RingGeometryService geometries;
     private final RingSetupService setups;
-    public CourseRingsController(CourseContractGuards guards, RingGeometryService geometries, RingSetupService setups) {
-        this.guards = guards; this.geometries = geometries; this.setups = setups;
-    }
+    public CourseRingsController(RingGeometryService geometries, RingSetupService setups) { this.geometries = geometries; this.setups = setups; }
 
     @GetMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -64,16 +62,6 @@ public class CourseRingsController {
     public void deleteRingGeometry(@PathVariable String id,
             @RequestParam @jakarta.validation.constraints.PositiveOrZero long version) {
         geometries.delete(id, version);
-    }
-
-    @GetMapping(value = "/api/v1/rings/{id}/marker-sheet", produces = "application/pdf")
-    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "markerSheet", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
-            responses = @ApiResponse(responseCode = "200", description = "S16 byte[]", content = @Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary"))))
-    public byte[] markerSheet(@PathVariable String id) {
-        guards.ring(id, true);
-        throw new UnsupportedOperationException("S16 contract");
     }
 
     @GetMapping(value = "/api/v1/rings/{id}/setups")

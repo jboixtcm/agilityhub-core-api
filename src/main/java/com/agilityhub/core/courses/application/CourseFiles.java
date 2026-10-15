@@ -15,7 +15,8 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * R-16-16 (and R-16-02 for the Smarter source): course files are uploaded by signed URL under `{clubId}/courses/`. The type must be
  * in the club's `files.allowedTypes` (a `type/*` entry matches its family) and fit the purpose — `text/plain` only for
  * `SMARTER_SOURCE` (§9), images for `COURSE_IMAGE` and `THUMBNAIL`, a PDF for `BUILD_SHEET` — else `FILE_TYPE_NOT_ALLOWED`. The size
- * is 1 byte to `files.maxSizeMb`, and at most 512 KB for a Smarter export (R-16-02), else `FILE_TOO_LARGE {maxSizeBytes}`.
+ * is 1 byte to `files.maxSizeMb`, and at most 512 KB for a Smarter export (R-16-02), else `FILE_TOO_LARGE {maxSizeMb}` (0.5 for the
+ * Smarter export; E115, the same detail as every other upload route).
  */
 @Service
 public class CourseFiles {
@@ -39,7 +40,7 @@ public class CourseFiles {
         if (!club || !fits) { throw new ApiException(FILE_TYPE_NOT_ALLOWED); }
         long max = config.get("files.maxSizeMb", Integer.class) * 1024L * 1024;
         if (purpose == UploadPurpose.SMARTER_SOURCE) { max = Math.min(max, SMARTER_MAX_BYTES); }
-        if (size <= 0 || size > max) { throw new ApiException(FILE_TOO_LARGE, Map.of("maxSizeBytes", max)); }
+        if (size <= 0 || size > max) { throw new ApiException(FILE_TOO_LARGE, Map.of("maxSizeMb", max / (1024.0 * 1024))); }
         return store.upload(purpose.name(), type, size);
     }
     /** A key the course stores for the first time: the current club's upload of that purpose, bound to the course (T-16-21). */

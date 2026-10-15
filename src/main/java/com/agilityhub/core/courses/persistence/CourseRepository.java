@@ -25,6 +25,16 @@ public class CourseRepository extends CourseTenantRepository<Course> {
         query.fields().exclude(HEAVY);
         return mongo.find(query, Course.class);
     }
+    /**
+     * E115 (write skew): a placement or setup that names the live club course at {@code version} writes it too (`$inc references`),
+     * so a concurrent edit or deletion of the course conflicts with it; another version or a deleted course is `409 STALE_VERSION`.
+     */
+    public void reference(String id, long version) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("version").is(version).and("deletedAt").is(null));
+        if (mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().inc("references", 1), Course.class).getMatchedCount() != 1) {
+            throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+    }
     /** Optimistic replacement of a live club course: another version, tenant or a deleted course is `409 STALE_VERSION`. */
     public void update(Course next, long expectedVersion) {
         var query = tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion).and("deletedAt").is(null));

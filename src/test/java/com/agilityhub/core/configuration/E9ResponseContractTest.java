@@ -154,8 +154,10 @@ class E9ResponseContractTest {
                 422,"GEOMETRY_INVALID,PLACEMENT_BLOCKED,RING_WITHOUT_GEOMETRY,PLACEMENT_RING_MISMATCH,SETUP_SOURCE_REQUIRED,INVENTORY_INVALID,BUILD_SESSION_FINISHED",501,"NOT_IMPLEMENTED");
         codes.forEach((status,names)->{for(String name:names.split(",")) assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);});
     }
-    @Test void T_16_03_T_16_21_allFortyTwoOperationsPublishTypedFormsHeadersAndCanonicalErrors() throws Exception {
-        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());var routes=E9Fixtures.read("contracts/e9-routes");assertThat(routes).hasSize(42);
+    /** E9-T01's 42 operations, less `GET /rings/{id}/marker-sheet` (E115: the client makes the QR marker sheet, A8b). */
+    @Test void T_16_03_T_16_21_allFortyOneOperationsPublishTypedFormsHeadersAndCanonicalErrors() throws Exception {
+        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());var routes=E9Fixtures.read("contracts/e9-routes");assertThat(routes).hasSize(41);
+        assertThat(api.path("paths").has("/api/v1/rings/{id}/marker-sheet")).isFalse();
         for(var route:routes) {
             var operation=api.path("paths").path(route.path("path").asText()).path(route.path("method").asText().toLowerCase());
             assertThat(operation.isMissingNode()).as(route.path("path").asText()).isFalse();

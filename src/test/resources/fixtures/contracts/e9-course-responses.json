@@ -210,6 +210,6 @@
     "message": "Example"
   },
   "CourseFileTooLargeDetails": {
-    "maxSizeBytes": 524288
+    "maxSizeMb": 0.5
   }
 }

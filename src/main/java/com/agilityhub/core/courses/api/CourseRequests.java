@@ -32,7 +32,11 @@ public final class CourseRequests {
             @NotNull @Valid List<String> tags,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String notes,
             @NotNull Visibility visibility,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) SizeCategory sizeCategory) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) SizeCategory sizeCategory,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PATH_LENGTH) @PositiveOrZero Double pathLengthM) { }
+    /** S16 R-16-01 and E115: the back never computes a path; course-core's summary reports it with the model. */
+    static final String PATH_LENGTH = "course-core's path length of the model sent with it (stats.pathLengthM; the back computes no geometry, R-16-01). "
+            + "Only with a model (else VALIDATION_ERROR); a new model without it stores 0, and null or absent keeps the stored value otherwise.";
 
     public record CoursePatchRequest(@Schema(requiredMode = NOT_REQUIRED) @Size(min = 1) Map<String,@NotBlank String> name,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Discipline discipline,
@@ -51,6 +55,7 @@ public final class CourseRequests {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String notes,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Visibility visibility,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) SizeCategory sizeCategory,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = PATH_LENGTH) @PositiveOrZero Double pathLengthM,
             @NotNull @PositiveOrZero Long version) { }
 
     public record CourseCopyRequest(@Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(min = 1) Map<String,@NotBlank String> name) { }

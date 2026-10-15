@@ -37,7 +37,8 @@ public class CourseLibrary {
     /** A course write: §6's body with §3/§14.2's additions. On a `PATCH` a null keeps the stored value. */
     public record CourseInput(Map<String, String> name, Discipline discipline, CourseSource source, JsonNode normalizedJson, Integer schemaVersion,
             String imageFileKey, String sourceFileKey, String thumbnailFileKey, String designerName, LocalDate designedOn, String eventName,
-            AgilityHubLevel agilityhubLevel, List<String> levelIds, List<String> tags, String notes, Visibility visibility, SizeCategory sizeCategory) { }
+            AgilityHubLevel agilityhubLevel, List<String> levelIds, List<String> tags, String notes, Visibility visibility, SizeCategory sizeCategory,
+            Double pathLengthM) { }
     /** A course as its reader sees it: the name in the request's language (R-16-17), signed URLs, the level label and its rings. */
     public record CourseView(Course course, String name, Map<String, String> nameI18n, String imageUrl, String thumbnailUrl, String level,
             List<ActiveRing> activeOnRings) { }
@@ -147,6 +148,7 @@ public class CourseLibrary {
     public CourseView create(CourseInput input) {
         var draft = Draft.create(UUID.randomUUID().toString(), OwnerType.CLUB, TenantContext.require(), null, clock.instant(), CourseAccess.accountId());
         apply(draft, input, null);
+        draft.claimFiles();
         var created = draft.build();
         courses.insert(created);
         publishCreated(created, draft.facts);
@@ -200,6 +202,7 @@ public class CourseLibrary {
     public CourseView createLibrary(CourseInput input) {
         var draft = Draft.create(UUID.randomUUID().toString(), OwnerType.AGILITYHUB, null, null, clock.instant(), CourseAccess.accountId());
         apply(draft, input, null);
+        draft.claimFiles();
         var created = draft.build();
         globalWriter.insert(created);
         publishCreated(created, draft.facts);
@@ -216,7 +219,9 @@ public class CourseLibrary {
     private CourseView patch(Course before, CourseInput input, long version) {
         var draft = Draft.of(before);
         apply(draft, input, before);
+        // E115 (E9-T02 review #6): new file keys are claimed only once the write is known to apply, its version included.
         if (before.version() != version) { throw new ApiException(STALE_VERSION); }
+        draft.claimFiles();
         var diff = diff(before, draft);
         if (diff.isEmpty()) { return view(before, activeRings(List.of(before.id())), levels()); }
         if (draft.modelChanged && before.normalizedJson() != null && !before.normalizedJson().isNull()) {
@@ -233,8 +238,9 @@ public class CourseLibrary {
     private void touch(Draft draft, Course before) {
         draft.version = before.version() + 1; draft.updatedAt = clock.instant(); draft.updatedByAccountId = CourseAccess.accountId();
     }
+    /** E115: a placement or setup that references the course meanwhile conflicts with the write (`409 STALE_VERSION`). */
     private void write(Course next, long expectedVersion) {
-        if (next.ownerType() == OwnerType.CLUB) { courses.update(next, expectedVersion); } else { globalWriter.update(next, expectedVersion); }
+        WriteConflicts.guard(() -> { if (next.ownerType() == OwnerType.CLUB) { courses.update(next, expectedVersion); } else { globalWriter.update(next, expectedVersion); } });
     }
     private void insert(Course course) { if (course.ownerType() == OwnerType.CLUB) { courses.insert(course); } else { globalWriter.insert(course); } }
     private Draft copy(Course source, Map<String, String> name, OwnerType owner, String clubId, String ownerAccountId) {
@@ -261,6 +267,8 @@ public class CourseLibrary {
             draft.modelChanged = before == null || !in.normalizedJson().equals(before.normalizedJson());
             draft.normalizedJson = in.normalizedJson(); draft.schemaVersion = 1;
         }
+        // R-16-01 (E115): the path length is course-core's summary of the model it comes with; a new model without one reports none.
+        if (in.pathLengthM() != null) { draft.pathLengthM = in.pathLengthM(); } else if (draft.modelChanged) { draft.pathLengthM = null; }
         if (in.designerName() != null) { draft.designerName = in.designerName(); }
         if (in.designedOn() != null) { draft.designedOn = in.designedOn(); }
         if (in.eventName() != null) { draft.eventName = in.eventName(); }
@@ -282,7 +290,8 @@ public class CourseLibrary {
         }
         if (draft.source == CourseSource.IMAGE && draft.imageFileKey == null) { throw invalid("imageFileKey", "REQUIRED"); }
         if (draft.ownerType == OwnerType.AGILITYHUB && draft.agilityhubLevel == null) { throw invalid("agilityhubLevel", "REQUIRED"); }
-        draft.facts = CourseModelFacts.of(draft.normalizedJson);
+        if (in.pathLengthM() != null && (draft.normalizedJson == null || draft.normalizedJson.isNull())) { throw invalid("pathLengthM", "VALIDATION_ERROR"); }
+        draft.facts = CourseModelFacts.of(draft.normalizedJson, draft.pathLengthM);
     }
     /** S16 §3: `PUBLIC` only for the library and account courses; the library is always `PUBLIC`; a club course is `CLUB` or `PRIVATE`. */
     private static void visibility(OwnerType owner, Visibility visibility) {
@@ -293,18 +302,25 @@ public class CourseLibrary {
         };
         if (!allowed) { throw invalid("visibility", "VALIDATION_ERROR"); }
     }
-    /** Club levels of the caller's club only (`404` otherwise), and none while `levels.enabled = false` (R-16-15). A tenantless library course names none. */
+    /**
+     * None while `levels.enabled = false` (R-16-15: `422 LEVELS_DISABLED`, CATALEG_ERRORS §1, as every other context throws it;
+     * E115), else club levels of the caller's club only (`404` otherwise). A tenantless library course names none.
+     */
     private List<String> levelIds(List<String> ids, boolean club) {
         if (ids.isEmpty()) { return List.of(); }
-        if (!club || !catalogs.levelRefs().keySet().containsAll(ids)) { throw new ApiException(NOT_FOUND); }
-        if (!access.enabled("levels.enabled")) { throw invalid("levelIds", "LEVELS_DISABLED"); }
+        if (!club) { throw new ApiException(NOT_FOUND); }
+        if (!access.enabled("levels.enabled")) { throw new ApiException(LEVELS_DISABLED); }
+        if (!catalogs.levelRefs().keySet().containsAll(ids)) { throw new ApiException(NOT_FOUND); }
         return ids.stream().distinct().toList();
     }
-    /** A new file key must be this club's upload of that purpose (R-16-16, T-16-21); an unchanged key is kept as it is. */
+    /**
+     * A new file key must be this club's upload of that purpose (R-16-16, T-16-21); an unchanged key is kept as it is. The claim (a
+     * write) waits for {@link Draft#claimFiles()}, after every check of the write.
+     */
     private String file(Draft draft, String stored, String requested, UploadPurpose purpose, boolean club) {
         if (requested == null || requested.equals(stored)) { return stored; }
         if (!club) { throw new ApiException(NOT_FOUND); }
-        files.claim(requested, purpose, draft.id);
+        draft.claims.add(() -> files.claim(requested, purpose, draft.id));
         return requested;
     }
     /** R-16-17: a club course names enabled locales of its club; a library course the api's languages. The fallback is the club's default. */
@@ -344,6 +360,7 @@ public class CourseLibrary {
         change(diff, "imageFileKey", before.imageFileKey(), after.imageFileKey);
         change(diff, "thumbnailFileKey", before.thumbnailFileKey(), after.thumbnailFileKey);
         if (after.modelChanged) { change(diff, "normalizedJson", before.version(), before.version() + 1); }
+        change(diff, "pathLengthM", before.stats() == null ? 0.0 : before.stats().pathLengthM(), after.pathLengthM == null ? 0.0 : after.pathLengthM);
         return diff;
     }
     private static void change(Map<String, Object> diff, String field, Object before, Object after) {
@@ -376,7 +393,8 @@ public class CourseLibrary {
         List<String> tags = List.of(); String notes; CourseSource source; String sourceCourseId; String sourceFileKey; String imageFileKey;
         String thumbnailFileKey; JsonNode normalizedJson; Integer schemaVersion; SizeCategory sizeCategory; long version; Instant createdAt;
         String createdByAccountId; Instant updatedAt; List<CourseHistory> history = List.of(); Instant deletedAt; String updatedByAccountId;
-        CourseModelFacts facts; boolean modelChanged;
+        CourseModelFacts facts; boolean modelChanged; Double pathLengthM; final List<Runnable> claims = new ArrayList<>();
+        void claimFiles() { claims.forEach(Runnable::run); claims.clear(); }
         static Draft create(String id, OwnerType owner, String clubId, String ownerAccountId, Instant now, String actor) {
             var draft = new Draft();
             draft.id = id; draft.ownerType = owner; draft.clubId = clubId; draft.ownerAccountId = ownerAccountId;
@@ -391,11 +409,12 @@ public class CourseLibrary {
             d.sourceCourseId = c.sourceCourseId(); d.sourceFileKey = c.sourceFileKey(); d.imageFileKey = c.imageFileKey(); d.thumbnailFileKey = c.thumbnailFileKey();
             d.normalizedJson = c.normalizedJson(); d.schemaVersion = c.schemaVersion(); d.sizeCategory = c.sizeCategory(); d.version = c.version();
             d.createdAt = c.createdAt(); d.createdByAccountId = c.createdByAccountId(); d.updatedAt = c.updatedAt(); d.history = c.history() == null ? List.of() : c.history();
-            d.deletedAt = c.deletedAt(); d.updatedByAccountId = c.updatedByAccountId(); d.facts = CourseModelFacts.of(c.normalizedJson());
+            d.deletedAt = c.deletedAt(); d.updatedByAccountId = c.updatedByAccountId(); d.pathLengthM = c.stats() == null ? null : c.stats().pathLengthM();
+            d.facts = CourseModelFacts.of(c.normalizedJson(), d.pathLengthM);
             return d;
         }
         Course build() {
-            var f = facts == null ? CourseModelFacts.of(normalizedJson) : facts;
+            var f = facts == null ? CourseModelFacts.of(normalizedJson, pathLengthM) : facts;
             return new Course(id, ownerType, clubId, ownerAccountId, visibility, name, discipline, designerName, designedOn, eventName, agilityhubLevel,
                     List.copyOf(levelIds), List.copyOf(tags), notes, source, sourceCourseId, sourceFileKey, imageFileKey, thumbnailFileKey, normalizedJson,
                     schemaVersion, f.designLengthM(), f.designWidthM(), f.canvasWidth(), f.canvasHeight(), f.origin(), f.courseGrade(), f.courseType(),

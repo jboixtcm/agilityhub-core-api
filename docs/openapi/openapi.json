@@ -5125,6 +5125,10 @@
             },
             "type" : "array"
           },
+          "placementId" : {
+            "description" : "Only with COURSES (else VALIDATION_ERROR fieldErrors[{placementId, MODULE_DISABLED}]): a placement of the club (NOT_FOUND) on the class's own ring (PLACEMENT_RING_MISMATCH, also for a class without a ring); null = none.",
+            "type" : [ "string", "null" ]
+          },
           "ringId" : {
             "type" : [ "string", "null" ]
           },
@@ -5330,6 +5334,10 @@
           "notes" : {
             "maxLength" : 500,
             "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "placementId" : {
+            "description" : "Only with COURSES (else VALIDATION_ERROR fieldErrors[{placementId, MODULE_DISABLED}]): a placement of the club (NOT_FOUND) on the class's own ring (PLACEMENT_RING_MISMATCH, also for a class without a ring); null = none.",
             "type" : [ "string", "null" ]
           },
           "ringId" : {
@@ -7472,12 +7480,13 @@
       },
       "CourseFileTooLargeDetails" : {
         "properties" : {
-          "maxSizeBytes" : {
-            "format" : "int64",
-            "type" : "integer"
+          "maxSizeMb" : {
+            "description" : "files.maxSizeMb, or 0.5 (512 KB) for SMARTER_SOURCE",
+            "format" : "double",
+            "type" : "number"
           }
         },
-        "required" : [ "maxSizeBytes" ],
+        "required" : [ "maxSizeMb" ],
         "type" : "object"
       },
       "CourseListItem" : {
@@ -7613,6 +7622,11 @@
           "notes" : {
             "type" : [ "string", "null" ]
           },
+          "pathLengthM" : {
+            "description" : "course-core's path length of the model sent with it (stats.pathLengthM; the back computes no geometry, R-16-01). Only with a model (else VALIDATION_ERROR); a new model without it stores 0, and null or absent keeps the stored value otherwise.",
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
           "schemaVersion" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -7694,6 +7708,11 @@
           },
           "notes" : {
             "type" : [ "string", "null" ]
+          },
+          "pathLengthM" : {
+            "description" : "course-core's path length of the model sent with it (stats.pathLengthM; the back computes no geometry, R-16-01). Only with a model (else VALIDATION_ERROR); a new model without it stores 0, and null or absent keeps the stored value otherwise.",
+            "format" : "double",
+            "type" : [ "number", "null" ]
           },
           "schemaVersion" : {
             "format" : "int32",
@@ -22859,6 +22878,10 @@
             },
             "type" : "array"
           },
+          "placementId" : {
+            "description" : "Only with COURSES (else VALIDATION_ERROR fieldErrors[{placementId, MODULE_DISABLED}]): a placement of the club (NOT_FOUND) on the class's own ring (PLACEMENT_RING_MISMATCH, also for a class without a ring); null = none.",
+            "type" : [ "string", "null" ]
+          },
           "ringId" : {
             "type" : [ "string", "null" ]
           }
@@ -22895,6 +22918,10 @@
               "type" : "string"
             },
             "type" : "array"
+          },
+          "placementId" : {
+            "description" : "Only with COURSES (else VALIDATION_ERROR fieldErrors[{placementId, MODULE_DISABLED}]): a placement of the club (NOT_FOUND) on the class's own ring (PLACEMENT_RING_MISMATCH, also for a class without a ring); null = none.",
+            "type" : [ "string", "null" ]
           },
           "ringId" : {
             "type" : [ "string", "null" ]
@@ -35916,7 +35943,7 @@
         "x-sortable" : [ "startsAt", "date" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent validation of the week runs again and validates it too (T-06-23, E5-T28).",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent validation of the week runs again and validates it too (T-06-23, E5-T28). placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.",
         "operationId" : "createClass",
         "requestBody" : {
           "content" : {
@@ -35997,7 +36024,7 @@
                 }
               }
             },
-            "description" : "OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED"
+            "description" : "OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED, PLACEMENT_RING_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -36214,7 +36241,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.",
         "operationId" : "patchClass",
         "parameters" : [ {
           "in" : "path",
@@ -36303,7 +36330,7 @@
                 }
               }
             },
-            "description" : "CAPACITY_BELOW_BOOKINGS, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED"
+            "description" : "CAPACITY_BELOW_BOOKINGS, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED, PLACEMENT_RING_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -39600,7 +39627,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: this club's levels (NOT_FOUND), none while levels.enabled = false (LEVELS_DISABLED). Publishes CourseImported (SMARTER) or CourseCreated.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this club's levels (NOT_FOUND). Publishes CourseImported (SMARTER) or CourseCreated.",
         "operationId" : "createCourse",
         "parameters" : [ {
           "in" : "header",
@@ -39689,7 +39716,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "LEVELS_DISABLED"
           },
           "429" : {
             "content" : {
@@ -39757,7 +39784,7 @@
     },
     "/api/v1/courses/upload-urls" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-16: contentType ∈ files.allowedTypes and fit for the purpose (SMARTER_SOURCE text/plain only; COURSE_IMAGE and THUMBNAIL image/*; BUILD_SHEET application/pdf) → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb, and ≤ 512 KB for SMARTER_SOURCE (R-16-02) → else FILE_TOO_LARGE (CourseFileTooLargeDetails {maxSizeBytes}). fileKey = {clubId}/courses/{uuid}; the uploadUrl is signed and expires after 5 minutes (PUT with the same Content-Type).",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-16: contentType ∈ files.allowedTypes and fit for the purpose (SMARTER_SOURCE text/plain only; COURSE_IMAGE and THUMBNAIL image/*; BUILD_SHEET application/pdf) → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb, and ≤ 512 KB for SMARTER_SOURCE (R-16-02) → else FILE_TOO_LARGE (CourseFileTooLargeDetails {maxSizeMb}: 0.5 for SMARTER_SOURCE). fileKey = {clubId}/courses/{uuid}; the uploadUrl is signed and expires after 5 minutes (PUT with the same Content-Type).",
         "operationId" : "courseUploadUrl",
         "requestBody" : {
           "content" : {
@@ -40053,7 +40080,7 @@
         "tags" : [ "courses" ]
       },
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility (R-16-03) still applies: another club's or a deleted course is NOT_FOUND, one the caller cannot read COURSE_NOT_VISIBLE. name is resolved in the request's language with the club's default as fallback (R-16-17); nameI18n is sent only to a caller who can edit the course.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. R-16-03: another club's or a deleted course is NOT_FOUND. INSTRUCTOR and ADMIN read their club's CLUB courses (a PRIVATE one only its author), PUBLIC courses and their own account courses. A MEMBER reads a PUBLIC course and, R-16-16, any course (a CLUB one included) that an ACTIVE setup of the club shows, directly (courseId) or through its placement; any other course is COURSE_NOT_VISIBLE. name is resolved in the request's language with the club's default as fallback (R-16-17); nameI18n is sent only to a caller who can edit the course.",
         "operationId" : "getCourse",
         "parameters" : [ {
           "in" : "path",
@@ -40287,7 +40314,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "LEVELS_DISABLED"
           },
           "429" : {
             "content" : {
@@ -60270,7 +60297,7 @@
     },
     "/api/v1/me/ring-setups" : {
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR. Module: COURSES. R-16-09: when courses.showSetupToMembers is false, the MEMBER list remains accessible with setup = null for every ring; the INSTRUCTOR projection is unchanged. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: MEMBER, INSTRUCTOR. Module: COURSES. R-16-09: one item per ring — the given ringIds (each a ring of the club, else NOT_FOUND), in that order, else the club's active rings in catalog order — with its ACTIVE setup's summary, or setup = null («Sense recorregut registrat»). levelLabel: the club levels' codes joined by an en dash, else the agilityhubLevel; thumbnailUrl: the setup's photo, else the shown course's thumbnail (signed); hasViewer: a placement or a course with a model to draw. No builtBy, notes nor inventory. When courses.showSetupToMembers is false, the MEMBER list remains accessible with setup = null for every ring; the INSTRUCTOR projection is unchanged.",
         "operationId" : "myRingSetups",
         "parameters" : [ {
           "in" : "query",
@@ -69803,7 +69830,7 @@
     },
     "/api/v1/placements" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. The club's placements, filtered by every given ringId, courseId and activityId (each must be the club's, a course the caller can read), most recently updated first. stale = the ring's geometry changed after the placement was resolved (R-16-06); classSessionIds = the S06 classes that plan it.",
         "operationId" : "listPlacements",
         "parameters" : [ {
           "in" : "query",
@@ -69965,7 +69992,7 @@
         "tags" : [ "courses" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-05: courseId names a course the caller can read (COURSE_NOT_VISIBLE) with a model (else VALIDATION_ERROR fieldErrors[{courseId, COURSE_MODEL_INVALID}]) at its current version (courseVersion, else STALE_VERSION); ringId a ring of the club with a geometry (RING_WITHOUT_GEOMETRY); activityId an activity of the club and only with ACTIVITIES (else VALIDATION_ERROR fieldErrors[{activityId, MODULE_DISABLED}]). resolvedObstacles and warnings are course-core's, stored as sent (the core never recalculates the geometry). With a critical warning the placement needs force = true by an ADMIN (an INSTRUCTOR with force → FORBIDDEN), else PLACEMENT_BLOCKED (PlacementBlockedDetails: the critical warnings); a forced one audits COURSE_FORCED_PLACEMENT. warningThresholdM defaults to courses.defaultWarningThresholdM; status defaults to DRAFT and mode to TRAINING. Publishes PlacementCreated{placementId, ringId, courseId, warnings[]}.",
         "operationId" : "createPlacement",
         "parameters" : [ {
           "in" : "header",
@@ -70044,7 +70071,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -70122,7 +70149,7 @@
     },
     "/api/v1/placements/{id}" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. The placement with its resolvedObstacles in the ring's frame (metres, what the AR app reads) and stale (R-16-06: the client recalculates a stale placement and PUTs it).",
         "operationId" : "getPlacement",
         "parameters" : [ {
           "in" : "path",
@@ -70267,7 +70294,7 @@
         "tags" : [ "courses" ]
       },
       "put" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Replaces the placement at its stored version (STALE_VERSION). It keeps its ring (another ringId → PLACEMENT_RING_MISMATCH) and its course (another courseId → VALIDATION_ERROR). R-16-05: courseId names a course the caller can read (COURSE_NOT_VISIBLE) with a model (else VALIDATION_ERROR fieldErrors[{courseId, COURSE_MODEL_INVALID}]) at its current version (courseVersion, else STALE_VERSION); ringId a ring of the club with a geometry (RING_WITHOUT_GEOMETRY); activityId an activity of the club and only with ACTIVITIES (else VALIDATION_ERROR fieldErrors[{activityId, MODULE_DISABLED}]). resolvedObstacles and warnings are course-core's, stored as sent (the core never recalculates the geometry). With a critical warning the placement needs force = true by an ADMIN (an INSTRUCTOR with force → FORBIDDEN), else PLACEMENT_BLOCKED (PlacementBlockedDetails: the critical warnings); a forced one audits COURSE_FORCED_PLACEMENT. warningThresholdM defaults to courses.defaultWarningThresholdM; status defaults to DRAFT and mode to TRAINING. The stored placement is no longer stale (R-16-06); publishes PlacementUpdated{placementId, stale: false}.",
         "operationId" : "putPlacement",
         "parameters" : [ {
           "in" : "path",
@@ -81383,7 +81410,7 @@
     },
     "/api/v1/ring-setups" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR (while courses.allowInstructorPublish, else FORBIDDEN), ADMIN. Module: COURSES. R-16-07: registers what is set up on the ring. A kind other than EMPTY needs a source — placementId, courseId or imageFileKey (SETUP_SOURCE_REQUIRED); EMPTY (the ring is empty) names none (VALIDATION_ERROR). placementId: only on a ring with a geometry (RING_WITHOUT_GEOMETRY), a placement of that ring (PLACEMENT_RING_MISMATCH); with a courseId too, it must be the placement's course (VALIDATION_ERROR). courseId: a course the caller can read. imageFileKey: this club's COURSE_IMAGE upload (else NOT_FOUND). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this club's levels (NOT_FOUND). expectedUntil: the last club-local day the setup is shown, today or later (VALIDATION_ERROR). expiresAt = the earlier of the start of the day after expectedUntil and the start of the day courses.setupAutoExpireDays after today, in the club's time zone. The ring's active setup, if any, becomes DISMANTLED (replacedSetupId) in the same transaction and Ring.activeSetupId names the new one; a concurrent registration on the ring → STALE_VERSION. Publishes RingSetupChanged{ACTIVE} (N-31 when messaging.notifyNewRingSetup and kind ≠ EMPTY) and audits RING_SETUP_REGISTERED.",
         "operationId" : "createRingSetup",
         "parameters" : [ {
           "in" : "header",
@@ -81462,7 +81489,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -81472,7 +81499,7 @@
                 }
               }
             },
-            "description" : "RING_WITHOUT_GEOMETRY, PLACEMENT_RING_MISMATCH, SETUP_SOURCE_REQUIRED"
+            "description" : "RING_WITHOUT_GEOMETRY, PLACEMENT_RING_MISMATCH, SETUP_SOURCE_REQUIRED, LEVELS_DISABLED"
           },
           "429" : {
             "content" : {
@@ -81540,7 +81567,7 @@
     },
     "/api/v1/ring-setups/{id}" : {
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. R-16-09: INSTRUCTOR and ADMIN read any setup of the club (view STAFF); a MEMBER (impersonation included) reads only an ACTIVE one while courses.showSetupToMembers (else NOT_FOUND), without builtByAccountId, dismantledByAccountId or notes (view MEMBER). imageUrl is a short-lived signed URL of imageFileKey.",
         "operationId" : "getRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -81698,7 +81725,7 @@
     },
     "/api/v1/ring-setups/{id}/dismantle" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup becomes DISMANTLED (dismantledAt, dismantledByAccountId), Ring.activeSetupId = null, and RingSetupChanged{DISMANTLED} is published; any other status → INVALID_STATE.",
         "operationId" : "dismantleRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -81852,7 +81879,7 @@
     },
     "/api/v1/ring-setups/{id}/renewal" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup (else INVALID_STATE) gets a new expiresAt counted from today, as registering does, with the given expectedUntil (null = none; an earlier day than today → VALIDATION_ERROR). It stays ACTIVE: no event.",
         "operationId" : "renewRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -83673,157 +83700,9 @@
         "tags" : [ "courses" ]
       }
     },
-    "/api/v1/rings/{id}/marker-sheet" : {
-      "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
-        "operationId" : "markerSheet",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/pdf" : {
-                "schema" : {
-                  "format" : "binary",
-                  "type" : "string"
-                }
-              }
-            },
-            "description" : "S16 byte[]"
-          },
-          "400" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "VALIDATION_ERROR"
-          },
-          "401" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unauthorized"
-          },
-          "403" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
-          },
-          "404" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
-          },
-          "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
-          },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
-          "429" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Too Many Requests",
-            "headers" : {
-              "Retry-After" : {
-                "description" : "Seconds before retrying",
-                "schema" : {
-                  "format" : "int32",
-                  "type" : "integer"
-                }
-              }
-            }
-          },
-          "4XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Client error"
-          },
-          "500" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Internal Server Error"
-          },
-          "501" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "NOT_IMPLEMENTED"
-          },
-          "5XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Server error"
-          }
-        },
-        "summary" : "markerSheet",
-        "tags" : [ "courses" ]
-      }
-    },
     "/api/v1/rings/{id}/setups" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: every setup of the ring (ACTIVE, EXPIRED and DISMANTLED), newest builtAt first; page from 0.",
         "operationId" : "ringSetupHistory",
         "parameters" : [ {
           "in" : "path",
@@ -90714,7 +90593,7 @@
     },
     "/api/v1/week-templates/{id}/classes" : {
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.",
         "operationId" : "createTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -90803,7 +90682,7 @@
                 }
               }
             },
-            "description" : "TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED"
+            "description" : "TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -91016,7 +90895,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.",
         "operationId" : "patchTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -91112,7 +90991,7 @@
                 }
               }
             },
-            "description" : "TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED"
+            "description" : "TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH"
           },
           "429" : {
             "content" : {

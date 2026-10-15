@@ -395,21 +395,6 @@
   },
   {
     "method": "GET",
-    "path": "/api/v1/rings/{id}/marker-sheet",
-    "success": 200,
-    "idempotency": false,
-    "impersonation": false,
-    "roles": [
-      "INSTRUCTOR",
-      "ADMIN"
-    ],
-    "body": null,
-    "params": {},
-    "platform": false,
-    "served": false
-  },
-  {
-    "method": "GET",
     "path": "/api/v1/rings/{id}/setups",
     "success": 200,
     "idempotency": false,

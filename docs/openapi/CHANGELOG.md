@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E9-T03 · S16 placements and ring setups served, S06 `placementId` writable, E115 corrections
+
+**1 operation removed (`GET /rings/{id}/marker-sheet`; S16 now publishes 41); 0 added; 0 schemas added or removed; 6 request properties added (4 S06 `placementId`, 2 `pathLengthM`); `CourseFileTooLargeDetails.maxSizeBytes` → `maxSizeMb`.**
+
+- E115 (E9-T02's review): `GET /rings/{id}/marker-sheet` is removed: the client generates the QR marker sheet (A8b; S16 §6 and CONVENCIONS §3 updated in the same commit). `CourseRequest` and `CoursePatchRequest` gain the optional `pathLengthM` (course-core's path length, `≥ 0`, only with a model; the back no longer computes it, R-16-01). `POST /courses/upload-urls`: `400 FILE_TOO_LARGE` carries `{maxSizeMb}` (a number: 0.5 for the Smarter source's 512 KB), like every other upload route. `POST`/`PATCH /courses` publish `422 LEVELS_DISABLED` (a top-level code, no longer a `fieldErrors` entry).
+
+- Served behind their unchanged guards: `GET/POST /placements`, `GET/PUT /placements/{id}`, `POST /ring-setups`, `GET /ring-setups/{id}`, `POST /ring-setups/{id}/dismantle`, `POST /ring-setups/{id}/renewal`, `GET /me/ring-setups`, `GET /rings/{id}/setups`. Their descriptions now state R-16-05…09 and R-16-13; `PUT /placements/{id}` and `POST /ring-setups` name `409 STALE_VERSION` (was the generic «Conflict»), and `POST /ring-setups` adds `422 LEVELS_DISABLED` (R-16-15, CATALEG_ERRORS §1). The build sheet, build sessions, the marker sheet and `/challenges*` stay guarded 501 stubs.
+- `GET /courses/{id}`: the description states R-16-16 (a MEMBER reads any course, a `CLUB` one included, that an `ACTIVE` setup of the club shows), replacing «Course visibility still applies» (organizer note, E9-T01's second review).
+- S06 (R-16-13, «Recorregut previst» of D3/D4): `TemplateClassCreateRequest`, `TemplateClassPatchRequest`, `ClassSessionCreateRequest` and `ClassSessionPatchRequest` gain the optional, nullable `placementId`; `POST/PATCH /class-sessions` and `POST/PATCH /week-templates/{id}/classes` add `422 PLACEMENT_RING_MISMATCH`. Without `COURSES` the field is `400 VALIDATION_ERROR {fieldErrors[{placementId, MODULE_DISABLED}]}`.
+
 ## 2026-10-15 · E10-T02 round 2 · S17 console corrections
 
 **1 operation and 1 schema removed; 0 added.**

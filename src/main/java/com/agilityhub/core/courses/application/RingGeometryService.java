@@ -70,8 +70,8 @@ public class RingGeometryService {
         var now = clock.instant();
         var geometry = new RingGeometry(in.lengthM(), in.widthM(), in.borderClearanceM(), in.orientationDeg(), in.surface(), in.notes(),
                 List.copyOf(in.doors()), List.copyOf(in.noGoZones()), List.copyOf(in.markers()), current + 1, now);
-        rings.write(id, geometry, current);
-        placements.markStale(id);
+        // E115: a placement or setup that references this geometry meanwhile conflicts with the write (`409 STALE_VERSION`).
+        WriteConflicts.guard(() -> { rings.write(id, geometry, current); placements.markStale(id); });
         ensureVenue();
         events.publish(new CourseEvent(CourseEvent.Kind.RingGeometryChanged, TenantContext.require(), id, now,
                 Map.of("ringId", id, "version", geometry.version()), CourseAccess.accountId(), null, DomainEvent.Origin.BACKOFFICE));
@@ -84,7 +84,7 @@ public class RingGeometryService {
         var geometry = get(id);
         if (geometry.version() != version) { throw new ApiException(STALE_VERSION); }
         if (placements.usesRing(id) || setups.activeWithPlacement(id)) { throw new ApiException(RING_GEOMETRY_IN_USE); }
-        rings.clear(id, version);
+        WriteConflicts.guard(() -> rings.clear(id, version));
     }
 
     /**

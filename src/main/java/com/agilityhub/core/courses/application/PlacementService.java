@@ -30,7 +30,9 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * A placement names a course the caller can read at its current `version` (the model the client placed) and a ring of the club
  * with a geometry (`422 RING_WITHOUT_GEOMETRY`); `activityId` needs `ACTIVITIES`. A `PUT` keeps the course and the ring (a class
  * or a setup of the ring plans it: `422 PLACEMENT_RING_MISMATCH` for another ring). Each write publishes its §7 event, and a
- * forced `critical` warning writes `COURSE_FORCED_PLACEMENT`, in the same transaction.
+ * forced `critical` warning writes `COURSE_FORCED_PLACEMENT`, in the same transaction. Each write also references the ring's
+ * geometry and the course at the versions it read (E115): a concurrent change or removal of either is `409 STALE_VERSION` for one
+ * of the two writes, never a placement left on a geometry or a course that is gone.
  */
 @Service
 public class PlacementService {
@@ -70,7 +72,7 @@ public class PlacementService {
         var checked = check(in);
         var now = clock.instant(); String actor = CourseAccess.accountId();
         var placement = build(UUID.randomUUID().toString(), in, checked, now, actor, now, 0, null);
-        placements.insert(placement);
+        WriteConflicts.guard(() -> { reference(checked); placements.insert(placement); });
         var payload = new LinkedHashMap<String, Object>();
         payload.put("placementId", placement.id()); payload.put("ringId", placement.ringId()); payload.put("courseId", placement.courseId());
         payload.put("warnings", wire(placement.warningsJson()));
@@ -89,7 +91,7 @@ public class PlacementService {
         if (before.version() != version) { throw new ApiException(STALE_VERSION); }
         // R-16-06: the client recalculated the placement against the current geometry, so it is no longer stale.
         var stored = build(before.id(), in, checked, before.createdAt(), before.createdByAccountId(), clock.instant(), before.version() + 1, before.buildSheetFileKey());
-        placements.update(stored, version);
+        WriteConflicts.guard(() -> { reference(checked); placements.update(stored, version); });
         var payload = new LinkedHashMap<String, Object>(); payload.put("placementId", stored.id()); payload.put("stale", false);
         publish(CourseEvent.Kind.PlacementUpdated, stored, payload);
         forced(checked, stored);
@@ -97,7 +99,13 @@ public class PlacementService {
     }
 
     /** What a write checked: the policy's outcome over the client's warnings and the threshold it stores. */
-    private record Checked(PlacementRules.Outcome outcome, List<PlacementWarning> critical, double threshold) { }
+    private record Checked(PlacementRules.Outcome outcome, List<PlacementWarning> critical, double threshold, Course course,
+            RingGeometryRepository.GeometryRecord ring) { }
+    /** E115: the geometry and the course this write relied on, written at the versions it read (write skew). */
+    private void reference(Checked checked) {
+        rings.reference(checked.ring().id(), checked.ring().geometry().version());
+        access.reference(checked.course());
+    }
     /** The references first (`404`, `COURSE_NOT_VISIBLE`), then the request's own checks (`400`, `409`), then R-16-05's (`422`). */
     private Checked check(PlacementInput in) {
         if (in.force() && !CourseAccess.role("ADMIN")) { throw new ApiException(FORBIDDEN); }
@@ -116,7 +124,7 @@ public class PlacementService {
         if (outcome == PlacementRules.Outcome.BLOCKED) { throw new ApiException(PLACEMENT_BLOCKED, Map.of("warnings", wire(critical))); }
         double threshold = in.warningThresholdM() != null ? in.warningThresholdM()
                 : config.get("courses.defaultWarningThresholdM", Number.class).doubleValue();
-        return new Checked(outcome, critical, threshold);
+        return new Checked(outcome, critical, threshold, course, ring);
     }
     /** The stored placement (never `stale`: it was just resolved); `classSessionIds` is read from S06, never stored. */
     private Placement build(String id, PlacementInput in, Checked checked, Instant createdAt, String createdBy, Instant now, long version, String buildSheetFileKey) {

@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class PlacementsIT extends CourseItSupport {
     static final String A1 = "e9t2-ring-a1", A2 = "e9t2-ring-a2", B1 = "e9t2-ring-b1";
     @Autowired ActivityRepository activities;
+    @Autowired com.mongodb.client.MongoClient client;
 
     JsonNode placementError(String role, ObjectNode body, int status, String code) throws Exception {
         return error(as(json(post("/api/v1/placements"), body), CLUB, role).header("Idempotency-Key", UUID.randomUUID().toString()), status, code);
@@ -132,6 +133,52 @@ class PlacementsIT extends CourseItSupport {
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.COURSES).toList());
         placementError("ADMIN", placementBody(course, A1), 404, "MODULE_DISABLED");
         error(as(get("/api/v1/placements/" + planned.path("id").asText()), CLUB, "ADMIN"), 404, "MODULE_DISABLED");
+    }
+
+    /**
+     * Another request's transaction that wrote {@code update} on the document {@code id} of {@code collection} and is still open
+     * while {@code during} runs (it is then rolled back): the two meet on that document as a Mongo write conflict.
+     */
+    void whileOpen(String collection, String id, org.bson.conversions.Bson update, org.junit.jupiter.api.function.Executable during) throws Throwable {
+        try (var session = client.startSession()) {
+            session.startTransaction();
+            var database = client.getDatabase(mongo.getDb().getName());
+            assertThat(database.getCollection(collection).updateOne(session, com.mongodb.client.model.Filters.eq("_id", id), update).getModifiedCount()).isEqualTo(1);
+            try { during.execute(); } finally { session.abortTransaction(); }
+        }
+    }
+
+    /**
+     * E115 (E9-T02 review #7, write skew): a placement written while the removal of its ring's geometry or of its course is in
+     * flight would be left on something gone, since each side checks the other's documents. The placement writes the ring and the
+     * course at the versions it read, so the two meet: the placement is `409 STALE_VERSION` and nothing is stored. The other way
+     * round, a geometry or course removal that meets a placement in flight is `409 STALE_VERSION` too, never a `500`.
+     */
+    @Test void T_16_07_aPlacementRacingTheRemovalOfItsGeometryOrCourseIsStale() throws Throwable {
+        String course = createCourse("Jumping 7");
+        drawRing(A1);
+        // A removal in flight (DELETE /rings/{id}/geometry, DELETE /courses/{id}): the placement loses.
+        whileOpen("rings", A1, com.mongodb.client.model.Updates.unset("geometry"),
+                () -> placementError("INSTRUCTOR", placementBody(course, A1), 409, "STALE_VERSION"));
+        whileOpen("courses", course, com.mongodb.client.model.Updates.set("deletedAt", java.util.Date.from(clock.instant())),
+                () -> placementError("INSTRUCTOR", placementBody(course, A1), 409, "STALE_VERSION"));
+        assertThat(count("placements", Query.query(Criteria.where("clubId").is(CLUB)))).isZero();
+        // A placement in flight (its references): the removal loses, with a 409 instead of a 500.
+        whileOpen("rings", A1, com.mongodb.client.model.Updates.inc("geometryReferences", 1),
+                () -> error(as(delete("/api/v1/rings/" + A1 + "/geometry").param("version", "1"), CLUB, "ADMIN"), 409, "STALE_VERSION"));
+        whileOpen("courses", course, com.mongodb.client.model.Updates.inc("references", 1),
+                () -> error(as(delete("/api/v1/courses/" + course).param("version", "0"), CLUB, "ADMIN"), 409, "STALE_VERSION"));
+        // Once the other side is gone, the placement goes through and writes its references.
+        String id = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        assertThat(ringDocument(A1).get("geometryReferences", Number.class).intValue()).isEqualTo(1);
+        assertThat(mongo.findOne(Query.query(Criteria.where("_id").is(course)), Document.class, "courses").get("references", Number.class).intValue()).isEqualTo(1);
+        replace("INSTRUCTOR", id, placementBody(course, A1).put("version", 0), 200);
+        assertThat(ringDocument(A1).get("geometryReferences", Number.class).intValue()).isEqualTo(2);
+        // A placement keeps the geometry in use and the course deletable only by R-16-03's rule (no active setup shows it).
+        error(as(delete("/api/v1/rings/" + A1 + "/geometry").param("version", "1"), CLUB, "ADMIN"), 409, "RING_GEOMETRY_IN_USE");
+        // The references never touch S05's lock nor the course's version.
+        assertThat(ringDocument(A1).get("version", Number.class).longValue()).isEqualTo(3);
+        assertThat(ok(as(get("/api/v1/courses/" + course), CLUB, "INSTRUCTOR"), 200).path("version").asLong()).isZero();
     }
 
     /**

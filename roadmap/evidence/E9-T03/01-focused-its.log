@@ -1,0 +1,176 @@
+00:46:12.869 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E9ContractIT]: E9ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+00:46:13.031 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E9ContractIT
+00:46:13.125 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+00:46:13.127 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+00:46:13.132 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+00:46:13.323 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+00:46:13.499 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+00:46:13.500 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+00:46:13.514 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+00:46:13.861 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+00:46:13.898 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+00:46:13.965 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 320cb2906f661a7bab93f575eda14fcf6398cfec68e9df94dc6df2fa10495c85
+00:46:14.129 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.267984S
+00:46:14.134 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+00:46:14.134 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+00:46:14.135 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+00:46:14.135 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+00:46:14.168 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: dec82f8a3f4d527a1cd5542eea0a4da75a0895d54e89efd466cee9f73b3d70fe
+00:46:14.614 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.479388S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-16T00:46:15.414+03:00 INFO  [main] c.a.core.configuration.E9ContractIT traceId= clubId= accountId= : Starting E9ContractIT using Java [redacted] with PID 39826 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-16T00:46:15.417+03:00 INFO  [main] c.a.core.configuration.E9ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-16T00:46:17.208+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-16T00:46:17.264+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 52 ms. Found 0 MongoDB repository interfaces.
+2026-10-16T00:46:17.769+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5a595cad], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@66d87874, com.mongodb.Jep395RecordCodecProvider@1bfcf859, com.mongodb.KotlinCodecProvider@28de06bf]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55347], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@38729b3d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-16T00:46:17.776+03:00 INFO  [cluster-ClusterId{value='6ad149a99d2e776cc3b88a9f', description='null'}-localhost:55347] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55347, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12869875, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=dec82f8a3f4d:27017, hosts=[dec82f8a3f4d:27017], passives=[], arbiters=[], primary='dec82f8a3f4d:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad149a6031a20cad844d4c3, counter=6}, lastWriteDate=Fri Oct 16 00:46:14 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-16T00:46:22.015+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-16T00:46:22.015+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-16T00:46:22.016+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-16T00:46:22.054+03:00 INFO  [main] c.a.core.configuration.E9ContractIT traceId= clubId= accountId= : Started E9ContractIT in 6.925 seconds (process running for 9.904)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-16T00:46:23.280+03:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/courses/e9-course-a' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-16T00:46:24.447+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d6367563-9654-4534-be20-ed520a2e73ce clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=d6367563-9654-4534-[redacted]
+2026-10-16T00:46:24.484+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=0016e7e5-b02d-4be2-9ae4-907e83f58f53 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=0016e7e5-b02d-4be2-9ae4-907e83f58f53
+2026-10-16T00:46:38.924+03:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=bd47be67-79ba-4f9f-986b-42991df67ebf clubId=- accountId=user : Init duration for springdoc-openapi is: 2125 ms
+2026-10-16T00:46:39.020+03:00 WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword discriminator - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-16T00:46:39.021+03:00 WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-16T00:46:41.873+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6266f9b2-90b9-4426-9a75-e1dfe6d07d17 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=6266f9b2-90b9-4426-9a75-e1dfe6d07d17
+2026-10-16T00:46:42.053+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=981b6cab-0ae2-4022-b63b-6599fcfc5959 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=981b6cab-0ae2-4022-b63b-6599fcfc5959
+2026-10-16T00:46:42.244+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=030eb63a-ec71-4255-ab19-a95d068890ad clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=030eb63a-[redacted]
+2026-10-16T00:46:42.415+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=99ebb3a7-6238-4dd3-be7d-4e98390ba294 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=99ebb3a7-6238-4dd3-be7d-4e98390ba294
+2026-10-16T00:46:42.563+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=dfa31a6a-5ef0-4094-a4af-7566ef7e71ac clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=dfa31a6a-5ef0-4094-a4af-7566ef7e71ac
+2026-10-16T00:46:42.703+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=aa4b0e8f-fc97-452f-94fa-0fbc2c838598 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=aa4b0e8f-[redacted]
+2026-10-16T00:46:42.861+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=65f37dd9-a13e-4875-a80a-c86df69f16af clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=65f37dd9-a13e-4875-a80a-c86df69f16af
+2026-10-16T00:46:43.002+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=012a26e6-6135-41f9-a876-6f3bd178fb67 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=012a26e6-6135-41f9-a876-6f3bd178fb67
+2026-10-16T00:46:43.672+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT]: TemplateVariableParityIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-16T00:46:43.710+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-16T00:46:43.737+03:00 INFO  [main] c.a.c.c.m.a.e.TemplateVariableParityIT traceId= clubId= accountId= : Starting TemplateVariableParityIT using Java [redacted] with PID 39826 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-16T00:46:43.737+03:00 INFO  [main] c.a.c.c.m.a.e.TemplateVariableParityIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-16T00:46:44.052+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-16T00:46:44.090+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 37 ms. Found 0 MongoDB repository interfaces.
+2026-10-16T00:46:44.171+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@88a3a72], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@66d87874, com.mongodb.Jep395RecordCodecProvider@1bfcf859, com.mongodb.KotlinCodecProvider@28de06bf]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55347], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6a6e6172], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-16T00:46:44.172+03:00 INFO  [cluster-ClusterId{value='6ad149c49d2e776cc3b88aa0', description='null'}-localhost:55347] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55347, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1251084, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=dec82f8a3f4d:27017, hosts=[dec82f8a3f4d:27017], passives=[], arbiters=[], primary='dec82f8a3f4d:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad149a6031a20cad844d4c3, counter=6}, lastWriteDate=Fri Oct 16 00:46:43 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-16T00:46:45.113+03:00 INFO  [main] c.a.c.c.m.a.e.TemplateVariableParityIT traceId= clubId= accountId= : Started TemplateVariableParityIT in 1.401 seconds (process running for 32.962)
+E7-T06 step 2 N-01 SignupSubmitted → Núria Vidal Mas. Cognoms: Vidal Mas.
+E7-T06 step 2 N-03 SignupRejected → Núria Vidal Mas. Cognoms: Vidal Mas.
+E7-T06 round 2 N-01 SignupSubmitted readmission [lastName2, gender, locale, email, firstName, lastName1] → Núria Vidal Mas. Cognoms: Vidal Mas.
+E7-T06 round 2 N-01 SignupSubmitted readmission [gender, locale, email, firstName, lastName1] → Núria Vidal. Cognoms: Vidal.
+E7-T06 round 2 N-03 SignupRejected readmission [lastName2, gender, locale, email, firstName, lastName1] → Núria Vidal Mas. Cognoms: Vidal Mas.
+E7-T06 round 2 N-03 SignupRejected readmission [gender, locale, email, firstName, lastName1] → Núria Vidal. Cognoms: Vidal.
+E7-T06 parity N-01 SignupSubmitted APPLICANT: Values: member_name=Núria Vidal Mas | dogs=Kira | plan_name=Quota mensual | club_name=Club Agility Paritat | upfront_total=45,00 € | payment_instructions=Paga a la recepció del club. | pay_link= | member_last_names=Vidal Mas |
+E7-T06 parity N-02 MemberValidated MEMBER: Values: member_first_name=Laura | gender=female | club_name=Club Agility Paritat |
+E7-T06 parity N-03 SignupRejected APPLICANT: Values: member_name=Núria Vidal Mas | reason=Documentació incompleta | club_name=Club Agility Paritat | member_last_names=Vidal Mas |
+E7-T06 parity N-04 BookingCreated MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | class_description=B+C | ring_name=Central | calendar_links=https://parity.example.test/api/v1/bookings/par-b-1/calendar.ics?token=…[truncated] | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-05 BookingCancelled MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | late=true | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-06 TrainingBooked MEMBER: Values: dog_name=Duna | date=dv 9 | time=8:00–8:30 | ring_name=Central | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-07 TrainingCancelled MEMBER: Values: dog_name=Duna | date=dv 9 | time=8:00–8:30 | ring_name=Central | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-08a ClassCancelledByClub MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | class_description=B+C | admin_text=Plou massa: la classe queda anul·lada. | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-08b ClassSessionUpdated MEMBER: Values: dog_name=Duna | class_date=demà | changes=Hora: 18:50 → 19:00 | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-09 DogLevelChanged MEMBER: Values: dog_name=Duna | level_name=Nivell C | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-13 ReminderDue MEMBER: Values: dog_name=Duna | date=demà | time=18:50 | ring_name=Central | kind=CLASS | class_description=B+C | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-13 ReminderDue MEMBER: Values: dog_name=Duna | date=dv 9 | time=8:00–8:30 | ring_name=Central | kind=TRAINING | class_description= | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-15 WaitlistNotified MEMBER: Values: dog_name=Rock | class_date=demà | class_time=18:50 | confirm_by=12:00 | mode=FIFO | entityId=par-w-fifo | class_description=B+C | dog_name_article=en Rock | club_name=Club Agility Paritat |
+E7-T06 parity N-16 ClassAtRisk MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | review_time=7:30 | review_day=demà | audience=MEMBER | class_description=B+C | auto_cancel=true | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-19 NoShowNoticeDue MEMBER: Values: dog_name=Duna | class_date=dimarts, 6 d’octubre de 2026 | class_description=B+C | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-20 TaskCreated MEMBER: Values: dog_name=Duna | instructor_name=Marta Roca | task_excerpt=Treballar el contacte a la zona de salts | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-23 DocumentReminderDue MEMBER: Values: dog_name=Duna | document_type=Cartilla de vacunes | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-23 DogDocumentPending MEMBER: Values: dog_name=Duna | document_type=Cartilla de vacunes | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-24 AnnouncementSent MEMBER: Values: member_name=Laura Serra Puig | member_first_name=Laura | member_last_names=Serra Puig | gender=female | dog_name=Duna i Rock | club_name=Club Agility Paritat | dog_name_article=Duna i Rock |
+E7-T06 parity N-29 BookingBlockChanged MEMBER: Values: reason=Quota pendent | club_name=Club Agility Paritat |
+E7-T06 parity N-30 InvoicePaid MEMBER: Values: amount=60,00 € | concept=Quota mensual — Setembre 2026 | invoice_number=2026-0913 | club_name=Club Agility Paritat |
+E7-T06 parity N-30 UpfrontPaymentSucceeded MEMBER: Values: amount=60,00 € | concept=ENTRY_FEE | invoice_number= | club_name=Club Agility Paritat |
+E7-T06 parity N-31 RingSetupChanged MEMBER: Values: ring_name=Central | setup_kind=AGILITY | level=Nivell C–Nivell D | club_name=Club Agility Paritat |
+E7-T06 parity N-32a ActivityPublished MEMBER: Values: activity_title=Seminari de salts | date=ds 17 | club_name=Club Agility Paritat |
+E7-T06 parity N-32b ActivityRegistrationChanged MEMBER: Values: activity_title=Seminari de salts | date=ds 17 | state=ACTIVE | club_name=Club Agility Paritat |
+E7-T06 parity N-32c ActivityCancelled MEMBER: Values: activity_title=Seminari de salts | date=ds 17 | admin_text=Suspès per la pluja. | club_name=Club Agility Paritat |
+E7-T06 parity N-32d ActivityUpdated MEMBER: Values: activity_title=Seminari de salts | changes=Hora d’inici: 10:00 | club_name=Club Agility Paritat |
+E7-T06 parity N-33 WeekOpened MEMBER: Values: week_start=12 d’octubre de 2026 | club_name=Club Agility Paritat |
+E7-T06 parity N-35 InvoiceFailed MEMBER: Values: amount=60,00 € | reason=La targeta ha estat rebutjada | retry_link=/me/card-setup | club_name=Club Agility Paritat |
+E7-T06 parity N-36 BookingCreated MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | actor=el club | change=BOOKED | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-36 BookingCancelled MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | actor=el club | change=CANCELLED | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-37 DogRegistered MEMBER: Values: dog_name=Duna | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-37 DogDeactivated MEMBER: Values: dog_name=Duna | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-38 MemberPaymentMethodChanged MEMBER: Values: masked_account=···· 2231 | club_name=Club Agility Paritat |
+E7-T06 parity N-40 BookingCancelled MEMBER: Values: dog_name=Duna | class_date=demà | class_time=18:50 | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-46 WaitlistConsolidated MEMBER: Values: dog_name=Rock | class_date=divendres 9 | class_time=19:30 | dog_name_article=en Rock | club_name=Club Agility Paritat |
+E7-T06 parity N-47 TrainingCancelled MEMBER: Values: dog_name=Duna | date=dv 9 | time=8:00–8:30 | ring_name=Central | admin_text=El ring és en obres. | change=CANCELLED | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-11a PackLowBalance MEMBER: Values: dog_name=Duna | pack_remaining=1 | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-11b PackExpiring MEMBER: Values: dog_name=Duna | pack_expiry=11/11/26 | pack_remaining=1 | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-11b PackExpired MEMBER: Values: dog_name=Duna | pack_expiry=11/11/26 | pack_remaining=1 | dog_name_article=la Duna | club_name=Club Agility Paritat |
+E7-T06 parity N-18b InactivityResolved MEMBER: Values: from_month=novembre del 2026 | to_month=desembre del 2026 | decision=APPROVED | fee=Quota d’inactivitat: 20,00 € el primer mes i 10,00 € cada mes següent. | admin_text=Approved period | cancelled_count=1 | club_name=Club Agility Paritat |
+E7-T06 parity N-18c InactivityEnded MEMBER: Values: club_name=Club Agility Paritat |
+E7-T06 parity N-28 LeaveResolved MEMBER: Values: effective_date=31 d’octubre de 2026 | admin_text=Decision note | cancelled_count=1 | decision=APPROVED | source=MEMBER | member_first_name=Laura | dog_name=Duna, Rock | dog_name_article=Duna, Rock | club_name=Club Agility Paritat |
+E7-T06 parity N-28 LeaveCancelled MEMBER: Values: effective_date=31 d’octubre de 2026 | admin_text=Decision note | cancelled_count=1 | decision=CANCELLED | source=MEMBER | member_first_name=Laura | dog_name=Duna, Rock | dog_name_article=Duna, Rock | club_name=Club Agility Paritat |
+E7-T06 parity: 37 code × audience pairs over 46 events; waiting for their owner: {N-50=no event: the S14 export worker triggers it directly (not produced yet)}
+2026-10-16T00:46:48.260+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.PlacementsIT]: PlacementsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-16T00:46:48.288+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.courses.api.PlacementsIT
+E5-T07 outbox backlog discarded before PlacementsIT: 141 PENDING records (more than one dispatch() batch)
+2026-10-16T00:46:49.355+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.RingSetupsIT]: RingSetupsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-16T00:46:49.356+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.courses.api.RingSetupsIT
+[ERROR] Tests run: 10, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.484 s <<< FAILURE! -- in com.agilityhub.core.courses.api.RingSetupsIT
+[ERROR] com.agilityhub.core.courses.api.RingSetupsIT.T_16_08_deactivatingARingDismantlesItsActiveSetup -- Time elapsed: 0.265 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"byAccountId"="e9t2-INSTRUCTOR", "kind"="AGILITY", "replacedSetupId"=null, "ringId"="e9t2-ring-a1", "setupId"="d1bc3fb4-3aea-4ec1-a812-1491a8089421", "status"="ACTIVE"}
+to contain entries:
+  ["status"="DISMANTLED"]
+but the following map entries had different values:
+  ["status"="ACTIVE" (expected: "DISMANTLED")]
+	at com.agilityhub.core.courses.api.RingSetupsIT.T_16_08_deactivatingARingDismantlesItsActiveSetup(RingSetupsIT.java:445)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   RingSetupsIT.T_16_08_deactivatingARingDismantlesItsActiveSetup:445 
+Expecting map:
+  {"byAccountId"="e9t2-INSTRUCTOR", "kind"="AGILITY", "replacedSetupId"=null, "ringId"="e9t2-ring-a1", "setupId"="d1bc3fb4-3aea-4ec1-a812-1491a8089421", "status"="ACTIVE"}
+to contain entries:
+  ["status"="DISMANTLED"]
+but the following map entries had different values:
+  ["status"="ACTIVE" (expected: "DISMANTLED")]
+[ERROR] Tests run: 83, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

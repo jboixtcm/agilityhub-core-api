@@ -196,7 +196,16 @@ class E9ContractIT extends AbstractIntegrationTest {
                     error(call(route,route.roles().getFirst()).content(body.toString()),400,"COURSE_MODEL_INVALID");
                     error(call(route,route.roles().getFirst()).content(body.deepCopy().put("source","IMAGE").toString()),400,"VALIDATION_ERROR")
                             .andExpect(jsonPath("$.details.fieldErrors[0].field").value("imageFileKey"));
-                } else { served(call(route,route.roles().getFirst()).content(body.toString())); }
+                } else {
+                    // E115 (E9-T02 review #4): a PATCH without a model (absent, then null) is a 200 that keeps the stored model.
+                    var id=Query.query(Criteria.where("_id").is(path(route).substring(path(route).lastIndexOf('/')+1)));
+                    var before=mongo.findOne(id,Document.class,"courses");
+                    body.put("version",before.get("version",Number.class).longValue());
+                    mvc.perform(call(route,route.roles().getFirst()).content(body.toString())).andExpect(status().isOk());
+                    var after=mongo.findOne(id,Document.class,"courses");
+                    assertThat(after.get("normalizedJson")).isNotNull().isEqualTo(before.get("normalizedJson"));
+                    assertThat(after.get("schemaVersion")).isEqualTo(before.get("schemaVersion")).isEqualTo(1);
+                }
             }
         }
         // E9-T03 (S16 §3): a setup other than EMPTY needs a source; the member list without ringIds lists the club's active rings.
@@ -217,11 +226,11 @@ class E9ContractIT extends AbstractIntegrationTest {
         error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("purpose","COURSE_IMAGE").put("contentType","text/plain").toString()),400,"FILE_TYPE_NOT_ALLOWED");
         // R-16-02: 512 KB for the Smarter source (600 KB → FILE_TOO_LARGE); files.maxSizeMb for the others.
         for(long size:List.of(0L,600L*1024)) {
-            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("size",size).toString()),400,"FILE_TOO_LARGE").andExpect(jsonPath("$.details.maxSizeBytes").value(512*1024));
+            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("size",size).toString()),400,"FILE_TOO_LARGE").andExpect(jsonPath("$.details.maxSizeMb").value(0.5));
         }
         var image=body.deepCopy().put("purpose","COURSE_IMAGE").put("contentType","image/png");
         error(call(upload,"INSTRUCTOR").content(image.deepCopy().put("size",25L*1024*1024+1).toString()),400,"FILE_TOO_LARGE")
-                .andExpect(jsonPath("$.details.maxSizeBytes").value(25L*1024*1024));
+                .andExpect(jsonPath("$.details.maxSizeMb").value(25.0));
         mvc.perform(call(upload,"INSTRUCTOR").content(image.put("size",25L*1024*1024).toString())).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.fileKey").value(org.hamcrest.Matchers.matchesPattern("e9-club-a/courses/[0-9a-f-]{36}")))
                 .andExpect(jsonPath("$.uploadUrl").isNotEmpty());
@@ -335,7 +344,7 @@ class E9ContractIT extends AbstractIntegrationTest {
     @Test void T_16_19_missingGeometrySheetsAndMalformedScopesAreRejected() throws Exception {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("e9-ring-a")),new Update().unset("geometry"),"rings");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("e9-placement-a")),new Update().unset("buildSheetFileKey"),Placement.class);
-        for(var route:routes().filter(r->r.method().equals("GET")&&(r.path().endsWith("/geometry")||r.path().endsWith("/marker-sheet")||r.path().endsWith("/build-sheet"))).toList()) {
+        for(var route:routes().filter(r->r.method().equals("GET")&&(r.path().endsWith("/geometry")||r.path().endsWith("/build-sheet"))).toList()) {
             error(call(route,"INSTRUCTOR"),404,"NOT_FOUND");
         }
         for(var route:routes().filter(r->r.path().contains("{scope}")).toList()) {

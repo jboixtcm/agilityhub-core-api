@@ -26,9 +26,23 @@ public class CourseAccess {
     private final ClubConfigService configs;
     private final RingSetupRepository setups;
     private final PlacementRepository placements;
+    private final GlobalCourseWriter globalWriter;
     public CourseAccess(CourseRepository courses, GlobalCourseRepository global, ClubConfigService configs, RingSetupRepository setups,
-            PlacementRepository placements) {
+            PlacementRepository placements, GlobalCourseWriter globalWriter) {
         this.courses = courses; this.global = global; this.configs = configs; this.setups = setups; this.placements = placements;
+        this.globalWriter = globalWriter;
+    }
+    /**
+     * E115 (write skew): a placement or setup that names {@code course} writes the course too, at the version it read, so a concurrent
+     * edit or deletion conflicts with it (`409 STALE_VERSION`). The AgilityHub library is never deleted and is shared by every club:
+     * it is not written.
+     */
+    public void reference(Course course) {
+        switch (course.ownerType()) {
+            case CLUB -> courses.reference(course.id(), course.version());
+            case ACCOUNT -> globalWriter.reference(course.id(), course.version());
+            case AGILITYHUB -> { }
+        }
     }
     public static boolean role(String role) {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));

@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.2 · 15-10-2026** (v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.3 · 15-10-2026** (v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -70,6 +70,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-58 | 15-10 | api (pagaments, proves) | Menors de la ronda 6 d'E8-T12: un oracle independent per a la cota inferior de les intervencions, l'avís d'intervenció quan el deute recalculat ja és 0, lectures de més a `intentLedger()`, un cas de la matriu | Mitjana | oberta — passada de correccions |
 | INC-59 | 15-10 | web (facturació, proves) | Menors de la ronda 2 d'E8-W07: la prova vermella de D6 encara depèn de l'ordre d'execució, l'espia de `setTimeout` sense `clearTimeout`, un literal inventat per confirmar | Baixa | oberta — passada de correccions |
 | INC-60 | 15-10 | web (recorreguts) | Menors de la ronda 2 d'E9-W02: el transport per defecte dels esdeveniments de muntatge (per a E9-W04), noms de proves, set etiquetes inventades per confirmar, petits | Baixa | oberta — passada de correccions |
+| INC-61 | 15-10 | api (recorreguts, menors) | Menors d'E9-T02: el llistat de `GET /courses` es fa en memòria (límit conegut a R1), el `slug` del recinte pot xocar i donar un 500 (i A4 hauria de venir del perfil de país), noms de proves | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -251,6 +252,21 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 - **Petits**: `#courseUploads` no es buida mai; la variant `danger` del botó fa servir `text-primary-fg`; [Desa] queda actiu després d'un `409 STALE_VERSION` a `RingDoorEditor`; l'arnès e2e escriu PNG a `roadmap/evidence/E9-W02` a cada `pnpm e2e`; tres detalls de la captura fosca.
 
 **On mirar**: `packages/api-client/src/core-api-store.ts:283,406,683-691`, `packages/api-client/src/core-api-store.payloads.test.ts`, `packages/course-ui/tests/*.tsx`, `packages/i18n/src/locales/{ca,es,en}/enums.json:360`, `packages/i18n/src/course-texts.ts:5`, `packages/course-ui/src/components/ui/Button.tsx:18`, `packages/course-ui/src/components/RingDoorEditor.tsx:446-480`, `packages/course-ui/e2e/harness.spec.ts`.
+
+---
+
+## INC-61 · Menors d'E9-T02 (api, recorreguts)
+
+**Gravetat**: baixa.
+
+**Origen**: `roadmap/reviews/E9-T02-20261015-2131-claude.md` (api), troballes #5, #8 i #9; verificació de l'organitzador del 15-10 (decisió E115).
+
+**Llista**:
+- **El llistat en memòria.** Cada `GET /courses` carrega tots els recorreguts del club, tots els `PUBLIC` de la biblioteca i de tots els comptes, i totes les muntades actives, i després filtra, ordena i pagina en memòria (`CourseListing`). A R1 va bé; creix amb la biblioteca global. Proposta: baixar `owner`, `discipline` i `updatedAt` a Mongo.
+- **El recinte del primer ring.** En desar la primera geometria, el recinte es crea amb el `slug` del club sota l'índex únic global `venue_slug`: si ja existeix (un recinte de soci, per exemple), surt un `DuplicateKeyException` (500) que desfà una geometria vàlida; dues primeres desades alhora poden xocar a `venue_club`. A més, `PaperSize.A4` hauria de venir del perfil de país.
+- **Noms de proves** que no són de l'id de l'especificació (`T_16_06_calibrations…`, `T_16_03_editsAreInPlace…`, `T_16_03_aCourseShownByAnActiveSetup…`).
+
+**On mirar**: `CourseLibrary.java:89-95`, `GlobalCourseRepository.java:22-29`, `RingGeometryService.java:119-124`.
 
 ---
 

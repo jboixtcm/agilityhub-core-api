@@ -3570,3 +3570,17 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · E114: five lanes, both executors, the rest of the roadmap
 @executor Ruling E114 (Jordi: «anem fins al final … podem accelerar-ho?»). Five lanes, each with its own executor, and the other agent reviews: api `A,B,C` (Codex), api-c `D` (Claude), **api-d `E`** (Codex, a new clone), web `A,B,C` (Codex) and **web-c `D`** (Claude, a new clone). New in thread E: **E11-T01** (RGPD) and **E11-T02** (the api correction pass); thread D gets **E10-T04** (the rest of S17) after E11-T06. The CI tests job now has 90 minutes, and `docs/INCIDENCIES_OBERTES.md` is in sync with the source again.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E115: E9-T02 verified, eight points for E9-T03, E9-T05 written
+@executor Ruling E115. **E9-T02 is verified** (CI green on `2a2f972`). Its review's points that need code go to **E9-T03** (organizer note there): the marker sheet leaves the api (A8b: the client makes it), `pathLengthM` comes from course-core, `LEVELS_DISABLED` is a `422`, and five smaller ones. The rest goes to INC-61. **E9-T05** (E9 integration) is written and follows E9-T04 in thread B.
+Blocking: no.
+
+## 2026-10-15 · organizer → executor · E116: cloud lanes E and F
+@executor Ruling E116. Threads **E** (E11-T01, E11-T02) and **F** (E10-T04, E10-T03) are worked by Claude cloud sessions instead of new Mac clones: one `cloud/<ID>-…` branch and pull request per task, which the session merges after a green CI. This lane (api, `A,B,C`) reviews their tasks with Codex (`CLOUD_THREADS_API`). The api-d clone is not needed.
+Blocking: no.
+
+## 2026-10-16 · executor → organizer · E9-T03: contract changes to stage for the web, two assumptions, one model proposal
+@organizer **Contract** — E9-T03's snapshot changes what E9-W02/W03 mock: (1) `GET /rings/{id}/marker-sheet` is gone (E115 point 1; S16 §6 and CONVENCIONS §3 updated in the api's copies — please copy them to the source); (2) `CourseRequest`/`CoursePatchRequest` gain the optional `pathLengthM` (course-core's summary; the back no longer computes it, E115 point 2) — the web must now send it with each model, or `stats.pathLengthM` is 0; (3) `FILE_TOO_LARGE` on `/courses/upload-urls` is `{maxSizeMb}` (a number, 0.5 for Smarter); (4) `LEVELS_DISABLED` is a top-level `422` on `POST/PATCH /courses` and `POST /ring-setups`; (5) S06's four class/template-class request forms gain `placementId` (R-16-13), with `422 PLACEMENT_RING_MISMATCH`. Details in `docs/openapi/CHANGELOG.md` (2026-10-16 entry).
+**Assumptions taken (please confirm)** — (a) ROADMAP's «S08's `RingSetupPort`» is the existing `clubs.training` `RingSetupPort` (S09 R-09-15); S08's screen 07 line reads `GET /me/ring-setups`, which already hides setups from members while `courses.showSetupToMembers = false`; S08's contract is unchanged. (b) `GET /me/ring-setups` without `ringIds` lists the club's active rings, a superset of R-16-09's «pistes reservables i les de les seves classes»; the clients (08, 07) pass `ringIds`.
+**Model proposal** — E115 point 6 (write skew) adds two S16-owned counters written only with `$inc`: `rings.geometryReferences` (a placement or setup that relies on the geometry) and `courses.references` (a placement or setup that names the course). Neither is in any API form; Annex B's S16 row could list them as technical fields.
+Blocking: no (all applied as described; see the E9-T03 report).

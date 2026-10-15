@@ -17,11 +17,13 @@ final class CourseViews {
 
     static CourseLibrary.CourseInput input(CourseRequest r) {
         return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(),
-                r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory());
+                r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory(),
+                r.pathLengthM());
     }
     static CourseLibrary.CourseInput input(CoursePatchRequest r) {
         return new CourseLibrary.CourseInput(r.name(), r.discipline(), r.source(), r.normalizedJson(), r.schemaVersion(), r.imageFileKey(), r.sourceFileKey(),
-                r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory());
+                r.thumbnailFileKey(), r.designerName(), r.designedOn(), r.eventName(), r.agilityhubLevel(), r.levelIds(), r.tags(), r.notes(), r.visibility(), r.sizeCategory(),
+                r.pathLengthM());
     }
     static Course course(CourseLibrary.CourseView view) {
         var c = view.course();

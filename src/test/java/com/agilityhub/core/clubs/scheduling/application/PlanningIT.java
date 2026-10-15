@@ -45,7 +45,7 @@ class PlanningIT extends AbstractIntegrationTest {
     @Autowired InstructorUsageCounter instructorUsage;
     @BeforeEach void prepare() {
         clock.setInstant(Instant.parse("2026-08-24T04:00:00Z"));
-        for (String collection : List.of("parameters", "levels", "rings", "instructors", "week_templates", "weeks", "class_sessions", "members", "dogs", "idempotency_records", "audit_entries", "domain_events")) {
+        for (String collection : List.of("parameters", "levels", "rings", "instructors", "week_templates", "weeks", "class_sessions", "members", "dogs", "idempotency_records", "audit_entries", "domain_events", "placements")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         mongo.remove(Query.query(Criteria.where("_id").in(CLUB, OTHER)), Club.class);
@@ -140,6 +140,67 @@ class PlanningIT extends AbstractIntegrationTest {
         }
         assertThat(mapper.convertValue(SnapshotSchemas.schema("TemplateClass").at("/properties/placementId/type"), List.class)).containsExactly("string", "null");
     }
+    /**
+     * T-16-20 (S16 R-16-13, R-16-15; E9-T03): a class and a template class plan a placement («Recorregut previst», D3/D4) only
+     * with COURSES (else `400 VALIDATION_ERROR {placementId: MODULE_DISABLED}`), a placement of the club (`404`) and of the class's
+     * own ring (`422 PLACEMENT_RING_MISMATCH`, also for a class without a ring); a new ring is checked against the kept placement.
+     * The port is S16's real adapter (`CourseIntegrationConfiguration`), reading `placements` across the module boundary.
+     */
+    @Test void T_16_20_aClassPlansOnlyAPlacementOfItsOwnRing() throws Exception {
+        mongo.insert(new Ring("plan-ring-2", CLUB, "Second", "S2", "#112233", false, null, 1, true, 0, clock.instant(), clock.instant(), "admin", "admin"));
+        placement("plan-placement", CLUB, "plan-ring"); placement("plan-placement-2", CLUB, "plan-ring-2"); placement("plan-placement-other", OTHER, "plan-ring");
+        var body = new LinkedHashMap<String, Object>(Map.of("date", "2026-08-25", "startTime", "18:00", "endTime", "19:00", "ringId", "plan-ring",
+                "instructorIds", List.of("plan-instructor"), "levelIds", List.of("plan-level-D"), "placementId", "plan-placement"));
+        // COURSES off (the fixture's modules): the field is refused, nothing is written.
+        mvc.perform(call("POST", "/class-sessions", body)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details.fieldErrors[0].field").value("placementId")).andExpect(jsonPath("$.details.fieldErrors[0].code").value("MODULE_DISABLED"));
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "class_sessions")).isZero();
+        mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules",
+                Arrays.stream(com.agilityhub.core.platform.application.Module.values()).map(Enum::name).toList())));
+        configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
+        error("POST", "/class-sessions", with(body, "placementId", "plan-placement-2"), ErrorCode.PLACEMENT_RING_MISMATCH);
+        error("POST", "/class-sessions", with(body, "placementId", "plan-placement-other"), ErrorCode.NOT_FOUND);
+        error("POST", "/class-sessions", with(body, "placementId", "plan-missing"), ErrorCode.NOT_FOUND);
+        error("POST", "/class-sessions", with(with(body, "ringId", null), "startTime", "20:00"), ErrorCode.PLACEMENT_RING_MISMATCH);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "class_sessions")).isZero();
+        var created = ok("POST", "/class-sessions", body);
+        assertThat(created.path("placementId").asText()).isEqualTo("plan-placement");
+        String id = created.path("id").asText(); long version = created.path("version").asLong();
+        // A new ring must still be the planned placement's; both together move; null removes it.
+        error("PATCH", "/class-sessions/" + id, Map.of("version", version, "ringId", "plan-ring-2"), ErrorCode.PLACEMENT_RING_MISMATCH);
+        var moved = ok("PATCH", "/class-sessions/" + id, Map.of("version", version, "ringId", "plan-ring-2", "placementId", "plan-placement-2"));
+        assertThat(moved.path("placementId").asText()).isEqualTo("plan-placement-2"); assertThat(moved.path("ringId").asText()).isEqualTo("plan-ring-2");
+        var cleared = ok("PATCH", "/class-sessions/" + id, with(Map.of("version", moved.path("version").asLong()), "placementId", null));
+        assertThat(cleared.hasNonNull("placementId")).isFalse();
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(sessions.findById(id).orElseThrow().placementId()).isNull(); }
+        // The same rules on a template class (D3), which week generation copies to its classes.
+        String template = template("Courses", "WEEKDAYS"); String band = band(template).at("/bands/0/id").asText();
+        error("POST", "/week-templates/" + template + "/classes", with(classBody(band), "placementId", "plan-placement-2"), ErrorCode.PLACEMENT_RING_MISMATCH);
+        var view = ok("POST", "/week-templates/" + template + "/classes", with(classBody(band), "placementId", "plan-placement"));
+        assertThat(view.at("/classes/0/placementId").asText()).isEqualTo("plan-placement");
+        String classId = view.at("/classes/0/id").asText();
+        error("PATCH", "/week-templates/" + template + "/classes/" + classId, Map.of("version", view.path("version").asLong(), "ringId", "plan-ring-2"), ErrorCode.PLACEMENT_RING_MISMATCH);
+        error("PATCH", "/week-templates/" + template + "/classes/" + classId, Map.of("version", view.path("version").asLong(), "placementId", "plan-placement-other"), ErrorCode.NOT_FOUND);
+        view = patchClass(template, classId, view.path("version").asLong(), "placementId", null);
+        assertThat(view.at("/classes/0/placementId").isNull()).isTrue();
+        // T-16-12 (R-16-15): with COURSES off, S06 omits the planned placement of the class and of the template class.
+        patchClass(template, classId, view.path("version").asLong(), "placementId", "plan-placement");
+        ok("PATCH", "/class-sessions/" + id, Map.of("version", cleared.path("version").asLong(), "placementId", "plan-placement-2"));
+        mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules", List.of())));
+        configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
+        assertThat(ok("GET", "/class-sessions/" + id, null).has("placementId")).isFalse();
+        var planned = ok("GET", "/week-templates/" + template, null).at("/classes/0/placementId");
+        assertThat(planned.isMissingNode() || planned.isNull()).as(planned.toString()).isTrue();
+    }
+    void placement(String id, String club, String ring) {
+        var now = clock.instant();
+        mongo.insert(new com.agilityhub.core.courses.persistence.Placement(id, club, "plan-course", 0, ring,
+                new com.agilityhub.core.courses.domain.CourseParts.PlacementTransform(0.0, 0.0, 0.0, false, false),
+                com.agilityhub.core.courses.domain.CourseTypes.PlacementMode.PRESERVE_METERS, 1.5, List.of(), List.of(), false,
+                com.agilityhub.core.courses.domain.CourseTypes.PlacementStatus.DRAFT, com.agilityhub.core.courses.domain.CourseTypes.PlacementUse.TRAINING,
+                null, List.of(), List.of(), null, null, null, List.of(), null, "admin", now, now, 0, "admin"));
+    }
+    static Map<String, Object> with(Map<String, Object> base, String key, Object value) { var copy = new LinkedHashMap<>(base); copy.put(key, value); return copy; }
     @Test void T_06_09_T_06_19_validationVariantsAndLocalizedLiveCatalog() throws Exception {
         String id = template("Variants", "WEEKDAYS"), path = "/week-templates/" + id; var view = band(id); String band = view.at("/bands/0/id").asText();
         var body = classBody("foreign"); error("POST", path + "/classes", body, ErrorCode.VALIDATION_ERROR);

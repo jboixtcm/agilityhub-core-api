@@ -40,6 +40,7 @@ class RingSetupsIT extends CourseItSupport {
     @Autowired JobRunner jobs;
     @Autowired OutboxDispatcher outbox;
     @Autowired RingSetupPort trainingPort;
+    @Autowired com.mongodb.client.MongoClient client;
 
     static Instant local(String dateTime) { return LocalDateTime.parse(dateTime).atZone(MADRID).toInstant(); }
     String id(JsonNode created) { return created.at("/setup/id").asText(); }
@@ -434,6 +435,8 @@ class RingSetupsIT extends CourseItSupport {
         ok(as(json(patch("/api/v1/rings/" + A1), Map.of("version", 3, "name", "Ring A1 nou")), CLUB, "ADMIN"), 200);
         outbox.dispatch();
         assertThat(setupDocument(mounted).getString("status")).isEqualTo("ACTIVE");
+        // A later instant, so the events read in order (`occurredAt`, then a random `_id`).
+        clock.advance(Duration.ofMinutes(1));
         ok(as(json(patch("/api/v1/rings/" + A1), Map.of("version", 4, "active", false)), CLUB, "ADMIN"), 200);
         outbox.dispatch(); outbox.dispatch();
         var ended = setupDocument(mounted);
@@ -447,5 +450,65 @@ class RingSetupsIT extends CourseItSupport {
         // Redelivery changes nothing more.
         outbox.dispatch();
         assertThat(changes()).hasSize(events.size());
+    }
+
+    /**
+     * E115 (write skew): a setup that shows a course whose deletion is in flight (`DELETE /courses/{id}` checks that no active setup
+     * shows it, then writes the course) writes the course too, so the two meet: the registration is `409 STALE_VERSION` and the
+     * ring keeps no setup. The same through a placement of the course.
+     */
+    @Test void T_16_08_aSetupRacingTheDeletionOfItsCourseIsStale() throws Throwable {
+        clock.setInstant(MONDAY);
+        String course = createCourse("Agility L");
+        drawRing(A1);
+        String placement = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        for (var body : List.of(course(A1, "AGILITY", course), setupBody(A1, "AGILITY").put("placementId", placement))) {
+            try (var session = client.startSession()) {
+                session.startTransaction();
+                client.getDatabase(mongo.getDb().getName()).getCollection("courses")
+                        .updateOne(session, com.mongodb.client.model.Filters.eq("_id", course), com.mongodb.client.model.Updates.set("deletedAt", java.util.Date.from(MONDAY)));
+                try { registerError(CLUB, "INSTRUCTOR", body, 409, "STALE_VERSION"); } finally { session.abortTransaction(); }
+            }
+        }
+        assertThat(count("ring_setups", Query.query(Criteria.where("clubId").is(CLUB)))).isZero();
+        assertThat(ringDocument(A1).get("activeSetupId")).isNull();
+        register("INSTRUCTOR", course(A1, "AGILITY", course));
+        error(as(delete("/api/v1/courses/" + course).param("version", "0"), CLUB, "ADMIN"), 409, "COURSE_IN_USE");
+    }
+
+    /**
+     * R-16-07 with §6's `Idempotency-Key`: a retried registration (same key, same body) answers the first one's `201` again and
+     * never replaces the setup it created; a new key is a new registration.
+     */
+    @Test void T_16_08_aRetriedRegistrationIsReplayedNotRepeated() throws Exception {
+        clock.setInstant(MONDAY);
+        String course = createCourse("Agility K"), key = UUID.randomUUID().toString();
+        var first = ok(as(json(post("/api/v1/ring-setups"), course(A1, "AGILITY", course)), CLUB, "INSTRUCTOR").header("Idempotency-Key", key), 201);
+        var replay = ok(as(json(post("/api/v1/ring-setups"), course(A1, "AGILITY", course)), CLUB, "INSTRUCTOR").header("Idempotency-Key", key), 201);
+        assertThat(replay).isEqualTo(first);
+        assertThat(active(A1)).extracting(d -> d.getString("_id")).containsExactly(id(first));
+        assertThat(count("ring_setups", Query.query(Criteria.where("clubId").is(CLUB)))).isEqualTo(1);
+        assertThat(changes()).hasSize(1);
+        assertThat(register("INSTRUCTOR", course(A1, "AGILITY", course)).path("replacedSetupId").asText()).isEqualTo(id(first));
+    }
+
+    /**
+     * S06 §2 (10/23: the course icon on the ring's column) across the module boundary: the day grid's `activeSetupId` is the
+     * pointer R-16-07 writes and R-16-08 clears; with `COURSES` off the column omits it (R-16-15).
+     */
+    @Test void T_16_08_theDayGridColumnNamesTheRingsActiveSetup() throws Exception {
+        clock.setInstant(MONDAY);
+        String course = createCourse("Agility J");
+        String mounted = id(register("INSTRUCTOR", course(A1, "AGILITY", course)));
+        var columns = ok(as(get("/api/v1/day-grid").param("date", "2026-10-05").param("view", "instructor"), CLUB, "INSTRUCTOR"), 200).path("columns");
+        assertThat(columns).filteredOn(c -> c.path("ringId").asText().equals(A1)).singleElement().satisfies(c -> assertThat(c.path("activeSetupId").asText()).isEqualTo(mounted));
+        assertThat(columns).filteredOn(c -> c.path("ringId").asText().equals(A2)).singleElement().satisfies(c -> assertThat(c.hasNonNull("activeSetupId")).isFalse());
+        act("INSTRUCTOR", mounted, "dismantle", null, 200);
+        columns = ok(as(get("/api/v1/day-grid").param("date", "2026-10-05").param("view", "instructor"), CLUB, "INSTRUCTOR"), 200).path("columns");
+        assertThat(columns).filteredOn(c -> c.path("ringId").asText().equals(A1)).singleElement().satisfies(c -> assertThat(c.hasNonNull("activeSetupId")).isFalse());
+        id(register("INSTRUCTOR", course(A1, "AGILITY", course)));
+        modules(Arrays.stream(Module.values()).filter(m -> m != Module.COURSES).toList());
+        columns = ok(as(get("/api/v1/day-grid").param("date", "2026-10-05").param("view", "instructor"), CLUB, "INSTRUCTOR"), 200).path("columns");
+        assertThat(columns).isNotEmpty().allSatisfy(c -> assertThat(c.has("activeSetupId")).isFalse());
     }
 }

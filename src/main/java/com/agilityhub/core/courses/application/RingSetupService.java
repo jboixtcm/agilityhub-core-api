@@ -74,7 +74,7 @@ public class RingSetupService {
         String clubId = TenantContext.require();
         // The references first (`404`, `COURSE_NOT_VISIBLE`), then the request's own checks (`400`), then R-16-07's (`422`).
         var ring = ring(in.ringId());
-        if (in.courseId() != null) { access.course(in.courseId(), false); }
+        var course = in.courseId() == null ? null : access.course(in.courseId(), false);
         var placement = in.placementId() == null ? null : placements.findById(in.placementId()).orElseThrow(() -> new ApiException(NOT_FOUND));
         var levelIds = levels(in.levelIds());
         var check = RingSetupRules.check(in.kind(), RingSetupRules.sources(in.placementId(), in.courseId(), in.imageFileKey()));
@@ -100,6 +100,11 @@ public class RingSetupService {
             // R-16-07: the ring's pointer is written first, so two registrations of one ring meet on the ring document (a write
             // conflict) before either touches a setup; the partial unique index `active_setup` is the last guard.
             rings.pointActiveSetup(ring.id(), id);
+            // E115 (write skew): the geometry a placement needs and the course the setup shows are written at the versions read,
+            // so a concurrent removal of either (which `RING_GEOMETRY_IN_USE` / `COURSE_IN_USE` would refuse) conflicts instead.
+            if (placement != null) { rings.reference(ring.id(), ring.geometry().version()); }
+            var shown = course != null ? course : placement == null ? null : live(placement.courseId());
+            if (shown != null) { access.reference(shown); }
             var previous = setups.activeOn(ring.id()).orElse(null);
             if (previous != null) {
                 // The active setup is replaced (`DISMANTLED`) in the same transaction; one ended meanwhile is a conflict too.
@@ -108,7 +113,7 @@ public class RingSetupService {
             }
             setups.insert(setup);
         } catch (RuntimeException conflict) {
-            if (TransactionRetries.conflict(conflict)) { throw new ApiException(STALE_VERSION); }
+            if (!(conflict instanceof ApiException) && TransactionRetries.conflict(conflict)) { throw new ApiException(STALE_VERSION); }
             throw conflict;
         }
         publish(setup, SetupStatus.ACTIVE, replaced, actor, DomainEvent.Origin.BACKOFFICE, instant);
@@ -166,7 +171,9 @@ public class RingSetupService {
     }
     /** The course a setup shows: its placement's, else its own; a deleted or missing one is none. */
     private Course shownCourse(RingSetup setup) {
-        String courseId = setup.placementId() != null ? placements.findById(setup.placementId()).map(Placement::courseId).orElse(setup.courseId()) : setup.courseId();
+        return live(setup.placementId() != null ? placements.findById(setup.placementId()).map(Placement::courseId).orElse(setup.courseId()) : setup.courseId());
+    }
+    private Course live(String courseId) {
         if (courseId == null) { return null; }
         return courses.findById(courseId).or(() -> global.findById(courseId)).filter(course -> course.deletedAt() == null).orElse(null);
     }

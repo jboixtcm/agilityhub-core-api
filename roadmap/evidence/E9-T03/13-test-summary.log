@@ -1,0 +1,15 @@
+Read right after the host-locked `./mvnw -q clean verify` (exit 0), from target/surefire-reports and target/failsafe-reports.
+surefire: 370 classes; tests=4520, failures=0, errors=0, skipped=0
+  CourseModelFactsTest: tests=2, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=12, failures=0, errors=0, skipped=0
+  PlacementRulesTest: tests=1, failures=0, errors=0, skipped=0
+  RingSetupLabelsTest: tests=2, failures=0, errors=0, skipped=0
+  RingSetupRulesTest: tests=5, failures=0, errors=0, skipped=0
+failsafe: 148 classes; tests=2008, failures=0, errors=0, skipped=0
+  CourseLibraryIT: tests=14, failures=0, errors=0, skipped=0
+  E9ContractIT: tests=65, failures=0, errors=0, skipped=0
+  PlacementsIT: tests=5, failures=0, errors=0, skipped=0
+  PlanningIT: tests=12, failures=0, errors=0, skipped=0
+  RingGeometryIT: tests=5, failures=0, errors=0, skipped=0
+  RingSetupsIT: tests=13, failures=0, errors=0, skipped=0
+  TemplateVariableParityIT: tests=3, failures=0, errors=0, skipped=0

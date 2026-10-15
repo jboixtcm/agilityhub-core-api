@@ -211,8 +211,11 @@ public final class CourseContracts {
 
     public record PlacementBlockedDetails(List<PlacementWarning> warnings) { }
 
-    /** E9-T02 (R-16-02/16): the effective size limit of a course upload, in bytes (512 KB for a Smarter source). */
-    public record CourseFileTooLargeDetails(long maxSizeBytes) { }
+    /**
+     * E9-T02 (R-16-02/16) and E115: the effective size limit of a course upload in MB, as every other upload route names it
+     * (`files.maxSizeMb`); a number, because a Smarter source's 512 KB is 0.5.
+     */
+    public record CourseFileTooLargeDetails(@Schema(description = "files.maxSizeMb, or 0.5 (512 KB) for SMARTER_SOURCE") double maxSizeMb) { }
 
     /** R-16-04 (E9-T02): one failed geometry check, by request path. */
     public record GeometryViolation(String path,

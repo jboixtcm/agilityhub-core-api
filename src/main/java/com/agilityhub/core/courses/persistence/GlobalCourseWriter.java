@@ -27,6 +27,14 @@ public class GlobalCourseWriter extends GlobalRepository<Course> {
                 .and("version").is(expectedVersion).and("deletedAt").is(null));
         if (mongo.findAndReplace(query, next) == null) { throw new ApiException(ErrorCode.STALE_VERSION); }
     }
+    /** E115 (write skew): {@link CourseRepository#reference} for a live account course (its author can delete it). */
+    public void reference(String id, long version) {
+        var query = Query.query(Criteria.where("_id").is(id).and("clubId").is(null).and("ownerType").is(OwnerType.ACCOUNT.name())
+                .and("version").is(version).and("deletedAt").is(null));
+        if (mongo.updateFirst(query, new org.springframework.data.mongodb.core.query.Update().inc("references", 1), Course.class).getMatchedCount() != 1) {
+            throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+    }
     @Override public java.util.Optional<Course> findById(String id) { throw new UnsupportedOperationException("Read through GlobalCourseRepository"); }
     @Override public Course save(Course course) { throw new UnsupportedOperationException("Use insert or update"); }
 }

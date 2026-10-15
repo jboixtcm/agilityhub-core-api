@@ -42,8 +42,8 @@ public class CoursesController {
 
     @PostMapping(value = "/api/v1/courses")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED})
-    @Operation(summary = "createCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: this club's levels (NOT_FOUND), none while levels.enabled = false (LEVELS_DISABLED). Publishes CourseImported (SMARTER) or CourseCreated.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED, LEVELS_DISABLED})
+    @Operation(summary = "createCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: none while levels.enabled = false (LEVELS_DISABLED), else this club's levels (NOT_FOUND). Publishes CourseImported (SMARTER) or CourseCreated.",
             responses = @ApiResponse(responseCode = "201", description = "S16 Course", useReturnTypeSchema = true))
     @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public Course createCourse(@Valid @RequestBody CourseRequest request,
@@ -63,7 +63,7 @@ public class CoursesController {
 
     @PatchMapping(value = "/api/v1/courses/{id}")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, STALE_VERSION, COURSE_NOT_VISIBLE, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED})
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, STALE_VERSION, COURSE_NOT_VISIBLE, COURSE_MODEL_INVALID, SCHEMA_VERSION_UNSUPPORTED, LEVELS_DISABLED})
     @Operation(summary = "patchCourse", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: PUBLIC visibility is allowed for an ACCOUNT author, never a CLUB owner (VALIDATION_ERROR). A null or absent field keeps its value; the AgilityHub library is never editable from a club (FORBIDDEN). Edits are in place: a new model keeps the previous one in history (the last 10). version must be the stored one (STALE_VERSION). Publishes CourseUpdated{courseId, diff} when something changes.",
             responses = @ApiResponse(responseCode = "200", description = "S16 Course", useReturnTypeSchema = true))
     public Course patchCourse(@PathVariable String id,
@@ -109,7 +109,7 @@ public class CoursesController {
     @PostMapping(value = "/api/v1/courses/upload-urls")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE})
-    @Operation(summary = "courseUploadUrl", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-16: contentType ∈ files.allowedTypes and fit for the purpose (SMARTER_SOURCE text/plain only; COURSE_IMAGE and THUMBNAIL image/*; BUILD_SHEET application/pdf) → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb, and ≤ 512 KB for SMARTER_SOURCE (R-16-02) → else FILE_TOO_LARGE (CourseFileTooLargeDetails {maxSizeBytes}). fileKey = {clubId}/courses/{uuid}; the uploadUrl is signed and expires after 5 minutes (PUT with the same Content-Type).",
+    @Operation(summary = "courseUploadUrl", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-16: contentType ∈ files.allowedTypes and fit for the purpose (SMARTER_SOURCE text/plain only; COURSE_IMAGE and THUMBNAIL image/*; BUILD_SHEET application/pdf) → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb, and ≤ 512 KB for SMARTER_SOURCE (R-16-02) → else FILE_TOO_LARGE (CourseFileTooLargeDetails {maxSizeMb}: 0.5 for SMARTER_SOURCE). fileKey = {clubId}/courses/{uuid}; the uploadUrl is signed and expires after 5 minutes (PUT with the same Content-Type).",
             responses = @ApiResponse(responseCode = "201", description = "S16 UploadUrl", useReturnTypeSchema = true))
     @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public UploadUrl courseUploadUrl(@Valid @RequestBody UploadUrlRequest request) {

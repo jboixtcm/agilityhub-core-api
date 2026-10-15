@@ -222,9 +222,65 @@ class CourseLibraryIT extends CourseItSupport {
         error(as(json(post("/api/v1/courses"), body), CLUB, "ADMIN"), 404, "NOT_FOUND");
         parameter("levels.enabled", false, "bool");
         body.putArray("levelIds").add("e9t2-level-aA");
-        assertThat(error(as(json(post("/api/v1/courses"), body), CLUB, "ADMIN"), 400, "VALIDATION_ERROR").at("/fieldErrors/0/code").asText()).isEqualTo("LEVELS_DISABLED");
+        // E115 (E9-T02 review #3): a top-level 422, as CATALEG_ERRORS §1 and every other context have it; checked before the level's club.
+        error(as(json(post("/api/v1/courses"), body), CLUB, "ADMIN"), 422, "LEVELS_DISABLED");
+        body.putArray("levelIds").add("e9t2-level-bA");
+        error(as(json(post("/api/v1/courses"), body), CLUB, "ADMIN"), 422, "LEVELS_DISABLED");
         body.putArray("levelIds");
-        create(CLUB, "ADMIN", body);
+        String id = create(CLUB, "ADMIN", body).path("id").asText();
+        error(as(json(patch("/api/v1/courses/" + id), Map.of("version", 0, "levelIds", List.of("e9t2-level-aA"))), CLUB, "ADMIN"), 422, "LEVELS_DISABLED");
+    }
+
+    /**
+     * R-16-01 (E115, E9-T02 review #2): the back computes no geometry, so `stats.pathLengthM` is the length course-core's summary
+     * reports with the model (`pathLengthM`), never a polyline drawn in Java through the model's `numbers`. A new model without it
+     * stores 0; a PATCH that names neither keeps it; a course without a model takes none.
+     */
+    @Test void T_16_03_thePathLengthIsCourseCoresAndTravelsWithItsModel() throws Exception {
+        var created = create(CLUB, "INSTRUCTOR", course("Amb recorregut", model(3, false)).put("pathLengthM", 27.5));
+        String id = created.path("id").asText();
+        assertThat(created.at("/stats/pathLengthM").asDouble()).isEqualTo(27.5);
+        assertThat(stored(id).get("stats", Document.class).getDouble("pathLengthM")).isEqualTo(27.5);
+        assertThat(create(CLUB, "INSTRUCTOR", course("Sense longitud", model(3, false))).at("/stats/pathLengthM").asDouble()).isZero();
+        error(as(json(post("/api/v1/courses"), course("Negativa", model(1, false)).put("pathLengthM", -1)), CLUB, "ADMIN"), 400, "VALIDATION_ERROR");
+        // A PATCH that names neither keeps it; one that names it changes it (CourseUpdated.diff); a new model without it reports none.
+        var kept = ok(as(json(patch("/api/v1/courses/" + id), Map.of("version", 0, "notes", "Nota")), CLUB, "INSTRUCTOR"), 200);
+        assertThat(kept.at("/stats/pathLengthM").asDouble()).isEqualTo(27.5);
+        var longer = ok(as(json(patch("/api/v1/courses/" + id), Map.of("version", 1, "pathLengthM", 31.25)), CLUB, "INSTRUCTOR"), 200);
+        assertThat(longer.at("/stats/pathLengthM").asDouble()).isEqualTo(31.25);
+        assertThat(events("CourseUpdated", id).stream().map(e -> e.get("payload", Document.class).get("diff", Document.class))
+                .filter(diff -> diff.containsKey("pathLengthM")).toList()).singleElement()
+                .satisfies(diff -> assertThat(diff.get("pathLengthM", Document.class)).containsEntry("before", 27.5).containsEntry("after", 31.25));
+        var remodelled = ok(as(json(patch("/api/v1/courses/" + id), Map.of("version", 2, "normalizedJson", model(4, false), "schemaVersion", 1)), CLUB, "INSTRUCTOR"), 200);
+        assertThat(remodelled.at("/stats/pathLengthM").asDouble()).isZero();
+        assertThat(remodelled.at("/stats/obstacleCount").asInt()).isEqualTo(4);
+        // A photo has no model to measure.
+        byte[] png = "fictional png".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var photo = course("Foto", null); photo.remove(List.of("normalizedJson", "schemaVersion")); photo.put("source", "IMAGE");
+        photo.put("imageFileKey", upload(CLUB, "COURSE_IMAGE", "image/png", png, 204, Duration.ZERO));
+        assertThat(error(as(json(post("/api/v1/courses"), photo.deepCopy().put("pathLengthM", 10)), CLUB, "ADMIN"), 400, "VALIDATION_ERROR")
+                .at("/fieldErrors/0/field").asText()).isEqualTo("pathLengthM");
+        assertThat(create(CLUB, "ADMIN", photo).at("/stats/pathLengthM").asDouble()).isZero();
+    }
+
+    /**
+     * E115 (E9-T02 review #6): a new file key is claimed only once the write is known to apply. A stale PATCH naming a new, foreign
+     * or bound key answers `409 STALE_VERSION` and binds nothing; a create refused by a later check answers that check, not `404`.
+     */
+    @Test void T_16_21_aRefusedWriteClaimsNoFileAndAnswersItsOwnError() throws Exception {
+        byte[] png = "fictional png".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String id = create(CLUB, "ADMIN", course("Amb miniatura", model(1, false))).path("id").asText();
+        String thumbnail = upload(CLUB, "THUMBNAIL", "image/png", png, 204, Duration.ZERO);
+        String foreign = upload(OTHER, "THUMBNAIL", "image/png", png, 204, Duration.ZERO);
+        for (String key : List.of(thumbnail, foreign, CLUB + "/courses/not-a-key")) {
+            error(as(json(patch("/api/v1/courses/" + id), Map.of("version", 7, "thumbnailFileKey", key)), CLUB, "ADMIN"), 409, "STALE_VERSION");
+        }
+        assertThat(ok(as(json(patch("/api/v1/courses/" + id), Map.of("version", 0, "thumbnailFileKey", thumbnail)), CLUB, "ADMIN"), 200)
+                .path("thumbnailFileKey").asText()).isEqualTo(thumbnail);
+        // A create with a foreign key and a club course made PUBLIC: the visibility answers, not the file.
+        var refused = course("Pública", model(1, false)).put("visibility", "PUBLIC").put("thumbnailFileKey", foreign);
+        assertThat(error(as(json(post("/api/v1/courses"), refused), CLUB, "ADMIN"), 400, "VALIDATION_ERROR").at("/fieldErrors/0/field").asText())
+                .isEqualTo("visibility");
     }
 
     @Test void T_16_21_theAgilityHubLibraryIsGlobalPublicAndVersioned() throws Exception {
