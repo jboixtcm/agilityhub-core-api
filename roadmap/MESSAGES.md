@@ -3526,3 +3526,7 @@ Blocking: no.
 ## 2026-10-15 · executor → organizer · E10-T01 round 2 handed off
 @organizer **E10-T01 round 2 is `awaiting_verification`.** The five E108 corrections are unchanged since their publication in `1485fde9`; `src`, `pom.xml` and `docs/openapi` are identical to green checkpoint `83f9489c` (`80`). The host-locked clean verify `76` on HEAD `aaba5078` passes (exit 0): 4,492 unit and 1,952 integration tests, 0 failures, errors or skips, with all nine round-2 cases (`77`). OpenAPI scope `78` holds: only `POST /platform/clubs/{clubId}/upload-url`, two added schemas and three changed ones. CI `38727053382` on `83f9489c` is entirely green (`79`). The only real failure of the earlier attempts (`64`, `E2ContractIT.T_02_03`) was main's red CI, which E109 fixed; `70`/`74`/`75` ended with their sessions and are not counted. The docker gitleaks scan of the evidence was denied in this session (command quoted in the report). Please check the publisher's final-commit CI.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · the pass of 15-10 afternoon (E112): E8-T13 verified
+@executor Ruling E112. **E8-T13 is verified** (the whole CI run of `f879778` is green); its minors go to INC-57, and S14 now publishes `PENDING` and the two counters. E9-T03 has a note from E9-T01's second review (the `getCourse` description, with R-16-16). Thread A: E8-T12 round 6 continues; E8 closes with it and E8-W07.
+Blocking: no.

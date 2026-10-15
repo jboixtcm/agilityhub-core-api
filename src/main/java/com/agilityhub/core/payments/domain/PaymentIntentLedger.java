@@ -10,13 +10,33 @@ import java.util.*;
  * Every decision uses this same view. In particular, a row's historical refund placement cannot protect its neighbour's
  * unbilled credit from absorption. Rebuild the view after persisting a decision, before deciding anything else.
  */
-public record PaymentIntentLedger(List<Row> rows, List<Reservation> reservations) {
+public record PaymentIntentLedger(List<Row> rows, List<Reservation> reservations, List<String> interventions) {
     public record Row(String id, long captured, long refunded, long credited, boolean billed) { }
-    public record Reservation(String id, String targetId, long amount) { }
+    public record Reservation(String id, String targetId, long amount, boolean claim) {
+        public Reservation(String id, String targetId, long amount) { this(id, targetId, amount, false); }
+        public static Reservation intervention(String rowId, long owed) { return new Reservation(rowId, rowId, owed, true); }
+    }
 
     public PaymentIntentLedger {
         rows = List.copyOf(rows);
         reservations = List.copyOf(reservations);
+        interventions = List.copyOf(interventions);
+    }
+
+    public PaymentIntentLedger(List<Row> rows, List<Reservation> reservations) { this(rows, reservations, List.of()); }
+
+    public Map<String, Long> claims() {
+        var claims = new LinkedHashMap<String, Long>();
+        for (var id : interventions) {
+            claims.put(id, reservations.stream().filter(r -> r.claim() && r.id().equals(id)).mapToLong(Reservation::amount).sum());
+        }
+        return claims;
+    }
+
+    public PaymentIntentLedger withClaims(Map<String, Long> claims) {
+        var replaced = new ArrayList<>(reservations.stream().filter(r -> !(r.claim() && claims.containsKey(r.id()))).toList());
+        claims.forEach((id, owed) -> { if (owed > 0) { replaced.add(Reservation.intervention(id, owed)); } });
+        return new PaymentIntentLedger(rows, replaced, interventions);
     }
 
     public CapturedPaymentLedger balance() {
@@ -51,7 +71,7 @@ public record PaymentIntentLedger(List<Row> rows, List<Reservation> reservations
 
     /** Replacing a manual reservation must still respect every other row's claim on the intent. */
     public PaymentIntentLedger withoutReservation(String id) {
-        return new PaymentIntentLedger(rows, reservations.stream().filter(reservation -> !reservation.id().equals(id)).toList());
+        return new PaymentIntentLedger(rows, reservations.stream().filter(reservation -> !reservation.id().equals(id)).toList(), interventions);
     }
 
     public Map<String, Long> settlementShares(long amount, String targetId, String operationId) {

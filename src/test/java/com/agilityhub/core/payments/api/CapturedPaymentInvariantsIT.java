@@ -2,6 +2,7 @@ package com.agilityhub.core.payments.api;
 
 import com.agilityhub.core.payments.application.*;
 import com.agilityhub.core.payments.domain.CapturedPaymentLedger;
+import com.agilityhub.core.payments.domain.PaymentIntentLedger;
 import com.agilityhub.core.payments.persistence.*;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.TenantContext;
@@ -792,6 +793,75 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         sharedSequences(true, false, true);
     }
 
+    @ParameterizedTest(name = "dashboard refund {0} for row {1}, first {2}")
+    @org.junit.jupiter.params.provider.CsvSource({"1200,a,succeeded", "500,a,succeeded", "1200,b,succeeded", "500,b,succeeded",
+            "1200,b,pending", "500,b,pending", "500,a,pending"})
+    void T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long amount, String row, String first) throws Exception {
+        sharedCapture();
+        notificationRecipients("ca");
+        String owing = "a".equals(row) ? paymentId : "inv-payment-b", other = "a".equals(row) ? "inv-payment-b" : paymentId;
+        tenant(() -> refunds.compensate(owing, "REFUND", false));
+        String command = pendingCommands().getFirst().getString("_id");
+        execute(command, "pending");
+        terminate(stripe.get(operation(command).getString("resultId")), "failed", "evt_round6_compensation_failed");
+        sharedInvariants(true);
+        assertThat(interventionOwed(owing)).isEqualTo(CAPTURED);
+        // Following N-55, the admin repays from Stripe's dashboard; card refunds often arrive directly as succeeded.
+        var repayment = dashboardRefund(amount, first);
+        sharedInvariants(true);
+        assertThat(interventionOwed(owing)).as("the dashboard refund repays the intervention").isEqualTo(CAPTURED - amount);
+        if ("pending".equals(first)) {
+            terminate(repayment, "succeeded", "evt_round6_repaid");
+            sharedInvariants(true);
+            assertThat(interventionOwed(owing)).isEqualTo(CAPTURED - amount);
+        }
+        assertThat(intentRow(other).getString("status")).as("the row without an obligation keeps its booking's payment").isEqualTo("PAID");
+        assertThat(refundRows(intentRow(other))).isEmpty();
+        assertThat(refundRows(intentRow(owing))).singleElement().satisfies(refund -> {
+            assertThat(refund.getString("providerRef")).isEqualTo(repayment.id());
+            assertThat(amount(refund)).isEqualTo(amount);
+        });
+        assertThat(intentRow(owing).getString("status")).isEqualTo(amount == CAPTURED ? "REFUNDED" : "PAID");
+        // E101: the 12 EUR notice, then one more only for a changed positive total (7 EUR after a partial repayment).
+        var totals = amount == CAPTURED ? List.of(CAPTURED) : List.of(CAPTURED, CAPTURED - amount);
+        assertThat(events("UpfrontRefundIntervention")).extracting(event -> amount(event.get("payload", Document.class), "amount"))
+                .containsExactlyInAnyOrderElementsOf(totals);
+        deliverInterventions(totals.size(), "ca", amount == CAPTURED ? new String[] {"12"} : new String[] {"12", "7"});
+        recovery.recover();
+        tenant(() -> refunds.compensate(owing, "REFUND", false));
+        assertThat(events("UpfrontRefundIntervention")).hasSize(totals.size());
+        sharedInvariants(true);
+    }
+
+    @Test void T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments() throws Exception {
+        sharedSequences(true, false, true, true);
+    }
+
+    @Test void T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent() throws Exception {
+        sharedCapture(3);
+        notificationRecipients("ca");
+        // C's compensation fails first: C holds 12 EUR and A the 7 EUR left (point 4's split order).
+        sharedInterventionPrefix(500, true);
+        assertThat(interventionOwed("inv-payment-c")).isEqualTo(1200);
+        assertThat(interventionOwed(paymentId)).isEqualTo(700);
+        var seen = noticeIds();
+        // A 6 EUR dashboard refund repays C first; A keeps its 7 EUR, with no transient total and no second notice.
+        dashboardRefund(600, "succeeded");
+        sharedInvariants(true);
+        assertThat(newNotices(seen)).containsExactly(entry("inv-payment-c", 600L));
+        assertThat(interventionOwed(paymentId)).isEqualTo(700);
+        // Billing voids B's billed credit (the persisted billing seam): the freed money completes A's claim, and B's own CREDIT
+        // obligation, which can no longer credit, becomes an intervention. One notice each, with its final total.
+        seen = noticeIds();
+        mongo.updateFirst(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is("inv-booking-b")),
+                new Update().set("voidedAt", clock.instant()), "pending_charges");
+        tenant(() -> refunds.compensate("inv-payment-b", "CREDIT", false));
+        sharedInvariants(true);
+        assertThat(newNotices(seen)).containsExactlyInAnyOrder(entry(paymentId, 1200L), entry("inv-payment-b", 700L));
+        assertThat(currentInterventions() + allRefunded() + allCredited()).isEqualTo(intentCaptured);
+        deliverInterventions(events("UpfrontRefundIntervention").size(), "ca", "6", "12", "7");
+    }
+
     void sharedInterventionPrefix(long dashboardAmount, boolean failSecondFirst) throws Exception {
         tenant(() -> refunds.compensate("inv-payment-b", "CREDIT", false));
         sharedInvariants(true);
@@ -812,6 +882,8 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         var second = stripe.values().stream().filter(r -> r.operationId() != null
                 && operation(r.operationId()).getString("targetId").equals("inv-payment-c")).findFirst().orElseThrow();
         for (var refund : failSecondFirst ? List.of(second, first) : List.of(first, second)) {
+            // Two webhooks are never processed at the same instant: the intervention times record the failure order (E111).
+            clock.setInstant(clock.instant().plusSeconds(1));
             terminate(refund, "failed", "evt_round5_failed_" + refund.id());
             sharedInvariants(true);
             terminate(refund, "failed", "evt_round5_duplicate_" + refund.id());
@@ -848,6 +920,10 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
     void sharedSequences(boolean billCredits) throws Exception { sharedSequences(billCredits, false); }
     void sharedSequences(boolean billCredits, boolean absorptionPrefixes) throws Exception { sharedSequences(billCredits, absorptionPrefixes, false); }
     void sharedSequences(boolean billCredits, boolean absorptionPrefixes, boolean interventionPrefixes) throws Exception {
+        sharedSequences(billCredits, absorptionPrefixes, interventionPrefixes, false);
+    }
+    /** {@code repayments} adds E111's direct succeeded dashboard refunds while rows are in intervention; other choices are unchanged. */
+    void sharedSequences(boolean billCredits, boolean absorptionPrefixes, boolean interventionPrefixes, boolean repayments) throws Exception {
         var reach = new TreeSet<String>();
         for (int seed = 1; seed <= 32; seed++) {
             reset(); sharedCapture(interventionPrefixes ? 3 : 2);
@@ -872,7 +948,8 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 }
                 for (int step = 0; step < STEPS; step++) {
                     clock.setInstant(clock.instant().plusSeconds(360));
-                    int choice = random.nextInt(billCredits ? 8 : 7);
+                    var notices = noticesPerPayment();
+                    int choice = random.nextInt(billCredits ? (repayments ? 9 : 8) : 7);
                     if (choice == 0 || stripe.isEmpty() && pendingCommands().isEmpty()) {
                         String target = pick(random, targets);
                         long requested = 1 + random.nextInt(1200);
@@ -895,6 +972,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                         if (free > 0) { dashboardRefund(1 + random.nextInt((int) free), random.nextBoolean() ? "pending" : "succeeded"); }
                         trace.add("dashboard");
                     } else if (choice == 3) { trace.add(webhook(random, !billCredits)); }
+                    else if (choice == 8) { trace.add(repayInterventions(random)); }
                     else if (choice == 7) {
                         String booking = pick(random, bookings);
                         if (bill(booking)) { reach.add("credit-billed"); }
@@ -908,6 +986,9 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                         trace.add("cancel " + policy);
                     }
                     reach.add(trace.getLast().split(" ")[0]);
+                    if (trace.getLast().startsWith("repaid")) { reach.add(trace.getLast().replace(' ', '-')); }
+                    // A recovery pass runs several events; every other action is one event, with at most one N-55 per payment.
+                    if (!"recover".equals(trace.getLast())) { oneNoticePerPayment(notices); }
                     sharedInvariants(billCredits);
                     if (billCredits && overpaid() > 0) { reach.add("actual-overpayment"); }
                     if (billCredits && allReserved() > 0 && allCredited() > 0 && overpaid() == 0) { reach.add("pending-with-credit"); }
@@ -918,6 +999,7 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         }
         if (interventionPrefixes) {
             assertThat(reach).contains("three-rows-with-interventions", "cancel", "dashboard", "webhook", "recover");
+            if (repayments) { assertThat(reach).contains("repaid", "repaid-partly", "repaid-fully"); }
         } else if (absorptionPrefixes) {
             assertThat(reach).contains("prefix-failed", "prefix-canceled", "prefix-succeeded", "cancel", "dashboard", "webhook", "recover");
         } else {
@@ -925,7 +1007,44 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
             if (billCredits) { assertThat(reach).contains("bill", "credit-billed", "actual-overpayment", "pending-with-credit"); }
         }
         System.out.println("E8-T12 shared generator, billed credits " + billCredits + ", absorption prefixes " + absorptionPrefixes
-                + ", intervention prefixes " + interventionPrefixes + ": 32 seeds x " + STEPS + " steps; " + reach);
+                + ", intervention prefixes " + interventionPrefixes + ", repayments " + repayments + ": 32 seeds x " + STEPS + " steps; " + reach);
+    }
+
+    /**
+     * E111: Stripe settles a dashboard refund directly (no pending first) while rows are in intervention. It repays the claims first:
+     * their total drops by exactly what it repays, and no row without an intervention receives any of it.
+     */
+    String repayInterventions(Random random) throws Exception {
+        long owed = currentInterventions(), possible = Math.min(owed, available());
+        if (possible <= 0) { return "repay nothing"; }
+        long amount = random.nextBoolean() ? possible : 1 + random.nextInt((int) possible);
+        var untouched = new HashMap<String, Integer>();
+        for (var row : intentRows()) {
+            if (row.get("compensationInterventionAt") == null) { untouched.put(row.getString("_id"), refundRows(row).size()); }
+        }
+        dashboardRefund(amount, "succeeded");
+        assertThat(currentInterventions()).as("claims after a direct %s repayment of %s", amount, owed).isEqualTo(owed - amount);
+        for (var row : intentRows()) {
+            if (untouched.containsKey(row.getString("_id"))) {
+                assertThat(refundRows(row)).as("refunds of %s, which has no intervention", row.getString("_id")).hasSize(untouched.get(row.getString("_id")));
+            }
+        }
+        return "repaid " + (amount == owed ? "fully" : "partly");
+    }
+    Map<String, Long> noticesPerPayment() {
+        var counts = new HashMap<String, Long>();
+        events("UpfrontRefundIntervention").forEach(event -> counts.merge(event.get("payload", Document.class).getString("paymentId"), 1L, Long::sum));
+        return counts;
+    }
+    /** E111 point 3: one event never sends two UpfrontRefundIntervention notices for the same payment. */
+    void oneNoticePerPayment(Map<String, Long> before) {
+        noticesPerPayment().forEach((payment, count) -> assertThat(count - before.getOrDefault(payment, 0L))
+                .as("UpfrontRefundIntervention notices for %s in one event", payment).isLessThanOrEqualTo(1));
+    }
+    Set<Object> noticeIds() { return new HashSet<>(events("UpfrontRefundIntervention").stream().map(event -> event.get("_id")).toList()); }
+    List<Map.Entry<String, Long>> newNotices(Set<Object> seen) {
+        return events("UpfrontRefundIntervention").stream().filter(event -> !seen.contains(event.get("_id"))).map(event -> event.get("payload", Document.class))
+                .map(payload -> Map.entry(payload.getString("paymentId"), amount(payload, "amount"))).toList();
     }
 
     @Test void T_12_17_e8t12_round2_point1_concurrentRowsRecheckTheCaptureAfterCommit() throws Exception {
@@ -1113,9 +1232,8 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 + mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI).and("status").is("pending")), Document.class, "stripe_refunds")
                 .stream().filter(row -> !linked.contains(row.getString("_id").substring(CLUB.length() + 1))).mapToLong(this::amount).sum();
     }
-    long interventionOwed(String id) {
-        return interventionOwed(intentRows().stream().filter(r -> r.getString("_id").equals(id)).findFirst().orElseThrow());
-    }
+    Document intentRow(String id) { return intentRows().stream().filter(r -> r.getString("_id").equals(id)).findFirst().orElseThrow(); }
+    long interventionOwed(String id) { return interventionOwed(intentRow(id)); }
     long interventionOwed(Document row) {
         return row.get("compensationInterventionAt") != null && row.get("compensationInterventionOwed") != null
                 ? amount(row, "compensationInterventionOwed") : 0;
@@ -1131,9 +1249,53 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                     .isLessThanOrEqualTo(intentCaptured);
         }
     }
+    /**
+     * E111's lower bound: every current claim equals its due recomputed from the stored documents through the intent ledger
+     * (built here, not by {@code PaymentRefunds}), with the other rows' claims kept. A stale claim fails as well as an excessive one.
+     */
+    void sharedInterventionLowerBound() {
+        var rows = intentRows().stream().sorted(Comparator.comparing((Document row) -> row.getString("_id"))).toList();
+        var settled = rows.stream().flatMap(row -> refundRows(row).stream()).map(row -> row.getString("providerRef")).toList();
+        var ledgerRows = new ArrayList<PaymentIntentLedger.Row>();
+        var reservations = new ArrayList<PaymentIntentLedger.Reservation>();
+        var claims = new ArrayList<PaymentIntentLedger.Reservation>();
+        var intervening = new ArrayList<Document>();
+        for (var row : rows) {
+            var charge = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(row.getString("bookingId"))), Document.class, "pending_charges");
+            boolean credit = charge != null && charge.get("voidedAt") == null && amount(charge) < 0;
+            long captured = row.get("stripeCapturedAmount") instanceof Document ? amount(row, "stripeCapturedAmount") : amount(row, "amountPaid");
+            ledgerRows.add(new PaymentIntentLedger.Row(row.getString("_id"), captured, refundRows(row).stream().mapToLong(this::amount).sum(),
+                    credit ? -amount(charge) : 0, credit && charge.getString("invoiceId") != null));
+            if (interventionOwed(row) > 0) { claims.add(PaymentIntentLedger.Reservation.intervention(row.getString("_id"), interventionOwed(row))); }
+            boolean obligation = row.getString("refundCompensationReason") != null || row.getString("creditCompensationReason") != null;
+            if (row.get("compensationInterventionAt") != null && obligation) { intervening.add(row); }
+        }
+        var commands = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("providerRef").is(PI).and("kind").regex("^REFUND")), Document.class, "payment_operations");
+        var linked = commands.stream().map(op -> op.getString("resultId")).filter(Objects::nonNull).toList();
+        for (var op : commands) {
+            if (!failed(op) && !settled.contains(op.getString("resultId"))) {
+                reservations.add(new PaymentIntentLedger.Reservation(op.getString("_id"), op.getString("targetId"), amount(op)));
+            }
+        }
+        for (var pending : mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("intent").is(PI).and("status").is("pending")), Document.class, "stripe_refunds")) {
+            if (!linked.contains(pending.getString("_id").substring(CLUB.length() + 1))) {
+                reservations.add(new PaymentIntentLedger.Reservation(pending.getString("_id"), null, amount(pending)));
+            }
+        }
+        reservations.addAll(claims);
+        // Point 4's split order: the order in which the compensations failed, then row order.
+        intervening.sort(Comparator.comparing((Document row) -> row.getDate("compensationInterventionAt")).thenComparing(row -> row.getString("_id")));
+        var ledger = new PaymentIntentLedger(ledgerRows, reservations, intervening.stream().map(row -> row.getString("_id")).toList());
+        for (var row : intervening) {
+            String id = row.getString("_id");
+            assertThat(interventionOwed(row)).as("current claim of %s, recomputed from the intent ledger %s", id, ledger)
+                    .isEqualTo(Math.max(0, ledger.withoutReservation(id).freeFor(id)));
+        }
+    }
     void sharedInvariants() { sharedInvariants(false); }
     void sharedInvariants(boolean billedCredits) {
         sharedInterventionInvariant();
+        sharedInterventionLowerBound();
         if (!billedCredits) {
             assertThat(allRefunded() + allReserved() + allCredited()).as("one capture allowance, including credits").isLessThanOrEqualTo(intentCaptured);
         } else {
