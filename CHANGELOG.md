@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E8-T12 round 5 verified on the current `main` after E110: the host-locked clean verify passes 4,492 unit and 1,952 integration tests, including all 74 payment invariants and the coverage and architecture gates. No product changes were made on resume.
+
 - E8-T12 round 5 verification is blocked by the published CI secret scan on E9-T01's unchanged source manifest (88 findings, confirmed on resume). Product and regression inputs remain unchanged; the incomplete inherited clean run is not counted as a pass. Exact scanner metadata and the repair request are recorded for the organizer.
 
 - E10-T02 implements the first S17 console cut: club provisioning and settings, modules, encrypted provider configuration, onboarding checks, status changes, empty-target catalog cloning, administrator invitations, and configuration-only audit/usage views. Logo uploads use tenant-bound object keys. Suspended clubs retain queued Stripe events. Domains, support access and public-key rotation retain their guarded contracts.

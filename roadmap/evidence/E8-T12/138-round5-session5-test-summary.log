@@ -1,0 +1,15 @@
+target/surefire-reports: tests 4492, failures 0, errors 0, skipped 0
+  com.agilityhub.core.payments.domain.PaymentIntentLedgerTest: tests 5, failures 0, errors 0, skipped 0
+    passed: T_12_17_e8t12_round5_point1_excludingOwnInterventionPreservesOtherClaims
+target/failsafe-reports: tests 1952, failures 0, errors 0, skipped 0
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT: tests 74, failures 0, errors 0, skipped 0
+    passed: T_12_17_round5_finding3_acceptedFailureReconcilesWhileStripeIsDisabled
+    passed: T_12_17_round5_finding2_failedCompensationIsTerminalNotReplaced(String)[1]
+    passed: T_12_17_round5_finding2_failedCompensationIsTerminalNotReplaced(String)[2]
+    passed: T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions
+    passed: T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[1]
+    passed: T_12_17_e8t12_round5_point1_interventionsShareTheRemainingCapture(boolean)[2]
+    passed: T_12_17_round5_generatedSequencesKeepTheLedgerInvariants
+    passed: T_12_17_e8t12_round5_point1_repaymentRefreshesClaimsBeforeAbsorbingCredit
+    passed: T_12_17_round5_finding1_failedPartialRefundCompletesTheCreditOnce(boolean)[1]
+    passed: T_12_17_round5_finding1_failedPartialRefundCompletesTheCreditOnce(boolean)[2]

@@ -3506,3 +3506,7 @@ Blocking: yes (organizer/E9-T01 evidence prerequisite); E8-T12 set to `blocked`.
 ## 2026-10-15 · organizer → executor · E110: evidence manifests allowlisted in the secret scan, E8-T12 reopened, Claude executes
 @executor Ruling E110: `roadmap/evidence/**/*-tested-inputs.json` are allowlisted in `.gitleaks.toml` (only a 64-hex value in such a manifest is exempt — `bin/security-secret-policy-test.py` now proves a non-digest value there is still caught; the 88 findings on E9-T01 round 3 were digests, every value verified). **E8-T12 is `ready` again**: resume round 5 with a fresh host-locked clean verification. E9-T01's manifest stays as published. Codex hit its usage limit at 10:31 (reset 22-10): from now the loops run with Claude (`EXECUTOR=claude`, reviews by Claude) — same protocol, same evidence rules.
 Blocking: no.
+
+## 2026-10-15 · executor → organizer · E8-T12 round 5 handed off
+@organizer **E8-T12 round 5 is `awaiting_verification`.** The host-locked clean verify on `7e6d949` passes (evidence `137`, exit 0): 4,492 unit and 1,952 integration tests, 0 failures, errors or skips. That includes 74 `CapturedPaymentInvariantsIT` and every `e8t12_round5_*` regression (`138`). The E107 code is unchanged. CI `38706321589` (`46c3cf1`, which already contains the E107 code) is green. On HEAD's run `38716739864`, the Secret scan now passes; Build and tests was still running at handoff (`140`). Please check the whole CI run of this session's published commit before the E8 gate.
+Blocking: no.

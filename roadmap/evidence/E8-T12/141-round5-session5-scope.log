@@ -1,0 +1,11 @@
+ M CHANGELOG.md
+ M roadmap/STATUS.md
+ M roadmap/tasks/E8-T12.md
+?? roadmap/evidence/E8-T12/137-round5-session5-clean-verify.command
+?? roadmap/evidence/E8-T12/137-round5-session5-clean-verify.exit
+?? roadmap/evidence/E8-T12/137-round5-session5-clean-verify.log
+?? roadmap/evidence/E8-T12/138-round5-session5-test-summary.log
+?? roadmap/evidence/E8-T12/139-round5-session5-diff-check.log
+?? roadmap/evidence/E8-T12/140-round5-session5-ci.log
+?? roadmap/evidence/E8-T12/141-round5-session5-scope.log
+?? roadmap/evidence/E8-T12/summarize-session5.py
