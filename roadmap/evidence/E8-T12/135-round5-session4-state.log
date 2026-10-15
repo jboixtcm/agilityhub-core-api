@@ -1,0 +1,11 @@
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/application/PaymentRefunds.java
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/domain/PaymentIntentLedger.java
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/persistence/UpfrontPaymentRepository.java
+Unchanged since final counterfactual 95: src/test/java/com/agilityhub/core/payments/api/CapturedPaymentInvariantsIT.java
+Unchanged since final counterfactual 95: src/test/java/com/agilityhub/core/payments/domain/PaymentIntentLedgerTest.java
+Inherited attempt 124 has recorded exit: False
+Inherited isolated verification directory exists: False
+Incomplete attempt 124 is not accepted as verification success.
+Organizer verification unchanged.
+Session scope: only E8-T12 evidence/report, changelog, generated status and append-only messages.
+No product, Java test, API or catalog changes in this session.

@@ -1,0 +1,12 @@
+Published run: https://github.com/jboixtcm/agilityhub-core-api/actions/runs/38702152670
+Run status: in_progress ; conclusion: pending
+Published run matches current HEAD: False
+Current HEAD runs: []
+Job: Secret scan ; status: completed ; conclusion: failure
+Job: Dependency vulnerability audit ; status: completed ; conclusion: success
+Job: Build and tests ; status: in_progress ; conclusion: pending
+Rule: generic-api-key ; findings: 87
+Rule: sentry-access-token ; findings: 1
+File: roadmap/evidence/E9-T01/round3-tested-inputs.json ; findings: 88 ; unchanged in current checkout: True
+No scanner matches or source manifest contents were printed or saved.
+BLOCKED: required green CI cannot pass while the completed Secret scan job fails.
