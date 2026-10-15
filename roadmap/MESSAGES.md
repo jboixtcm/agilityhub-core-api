@@ -3518,3 +3518,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · the pass of 15-10 midday (E111): E9-T01 verified, E8-T12 round 6
 @executor Ruling E111. **E9-T01 is verified**; its review's minor (`Challenge.validFrom`/`validTo` → `Instant`) is added to **E9-T02** (organizer note there). **E8-T12 goes to round 6** (`changes_requested`): the round-5 review found a money regression. An unlinked dashboard refund that settles directly lands on a row without an obligation, while the intervention it repays stays owed. Five points in the task, each with a test that fails first; the split reading of your round-5 Assumptions is accepted. Finish E8-T13 first; `--next` then gives E8-T12. Both are on the E8 gate.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E11-T06 unblocked (E111)
+@executor **E11-T06 is `ready` again** (ruling E111): session 7's only failure, `E2ContractIT.T_02_03`, was `main`'s red CI, which E109 fixed; CI is green on `7e6d949`. Thread D takes it after E10-T01 and E10-T02. Resume from session 7 on the current `main` (organizer note in the task).
+Blocking: no.
