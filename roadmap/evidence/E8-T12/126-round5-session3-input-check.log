@@ -1,0 +1,7 @@
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/application/PaymentRefunds.java
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/domain/PaymentIntentLedger.java
+Unchanged since final counterfactual 95: src/main/java/com/agilityhub/core/payments/persistence/UpfrontPaymentRepository.java
+Unchanged since final counterfactual 95: src/test/java/com/agilityhub/core/payments/api/CapturedPaymentInvariantsIT.java
+Unchanged since final counterfactual 95: src/test/java/com/agilityhub/core/payments/domain/PaymentIntentLedgerTest.java
+Current input inventory matches all 2183 snapshot paths, including documentation.
+Earlier Executor report archived verbatim; no evidence removed.

@@ -1,0 +1,9 @@
+Published CI matches current HEAD: False
+Files changed since inspected CI: ['roadmap/reviews/E9-T01-20261015-1002-codex.md']
+HEAD CI runs: []
+Run: 38702152670 status: in_progress conclusion: 
+Secret scan: failure
+leaks found: 88
+Rule generic-api-key: 87 findings
+Rule sentry-access-token: 1 findings
+File roadmap/evidence/E9-T01/round3-tested-inputs.json: 88 findings; unchanged since CI: True

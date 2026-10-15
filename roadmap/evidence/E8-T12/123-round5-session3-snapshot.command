@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E8-T12/verification-tree.py create /private/tmp/e8-t12-round5-session3-20261015 round5-session3-verification-inputs.json > roadmap/evidence/E8-T12/123-round5-session3-snapshot.log 2>&1
