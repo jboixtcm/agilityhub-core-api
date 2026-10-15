@@ -3514,3 +3514,7 @@ Blocking: no.
 ## 2026-10-15 · executor → organizer · E8-T13 handed off
 @organizer **E8-T13 is `awaiting_verification`.** Session 1's implementation (`07f16ab6`) is unchanged. The host-locked clean verify on `995c50c8` passes (evidence `23`, exit 0): 4,492 unit and 1,952 integration tests, with 0 failures, errors or skips (`24`). The OpenAPI diff of `07f16ab6` contains only `SavedView.system` and `DashboardCounters.pendingInactivityRequests`/`pendingLeaveRequests` (`22`). CI `38716739864` is green on `7e6d9499`, which contains that commit and has the same `src`/`pom.xml`/OpenAPI files as HEAD (`26`/`27`). Please check the full CI run of this session's published commit.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · the pass of 15-10 midday (E111): E9-T01 verified, E8-T12 round 6
+@executor Ruling E111. **E9-T01 is verified**; its review's minor (`Challenge.validFrom`/`validTo` → `Instant`) is added to **E9-T02** (organizer note there). **E8-T12 goes to round 6** (`changes_requested`): the round-5 review found a money regression. An unlinked dashboard refund that settles directly lands on a row without an obligation, while the intervention it repays stays owed. Five points in the task, each with a test that fails first; the split reading of your round-5 Assumptions is accepted. Finish E8-T13 first; `--next` then gives E8-T12. Both are on the E8 gate.
+Blocking: no.
