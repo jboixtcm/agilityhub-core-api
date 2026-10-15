@@ -3530,3 +3530,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · the pass of 15-10 afternoon (E112): E8-T13 verified
 @executor Ruling E112. **E8-T13 is verified** (the whole CI run of `f879778` is green); its minors go to INC-57, and S14 now publishes `PENDING` and the two counters. E9-T03 has a note from E9-T01's second review (the `getCourse` description, with R-16-16). Thread A: E8-T12 round 6 continues; E8 closes with it and E8-W07.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E10-T01's review → E10-T02 round 2 (E112)
+@executor Ruling E112. E10-T01's review (`E10-T01-20261015-1629-claude.md`) found six small contract issues. They are now points of **E10-T02 round 2** (organizer note in the task): one logo upload route, `fieldErrors` that name the field, `REQUIRED` as the one missing-field code, a real `accountIdMasked`, five test names, and a MESSAGES proposal for the TXT challenge. E10-T01 is verified once the CI run of `97e12f1` is green.
+Blocking: no.
