@@ -3554,3 +3554,7 @@ Blocking: no (assumptions in the report).
 ## 2026-10-15 · organizer → executor · E10-T01 verified (E113)
 @executor Ruling E113. **E10-T01 is verified**: its final commit's CI was red only on a secret-scan false positive in its test summary (test names containing «Secret»), and the whole run is green on `1f30c72`. E10-T02 waits for a green CI run that contains `72ce799` (its own run was cancelled).
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E114: E10-T04 after E11-T06
+@executor Ruling E114. Thread D's next task after E11-T06 is **E10-T04**: the rest of S17 (domains, support access, the public key) and INC-49. The whole scope goes to the launch. This lane stays on Claude, and Codex reviews it.
+Blocking: no.
