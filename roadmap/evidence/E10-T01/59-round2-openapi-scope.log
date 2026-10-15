@@ -1,0 +1,5 @@
+Added: POST /api/v1/platform/clubs/{clubId}/upload-url
+Changed description only: POST /api/v1/platform/clubs
+Added schemas: DomainVerificationChallenge, PlatformThemeUploadRequest
+Changed schemas: PlatformDomain, PlatformProviderSummary, PlatformThemeRequest
+All other operations and schemas unchanged; PlatformClubPage.appliedFilters already existed at session start.

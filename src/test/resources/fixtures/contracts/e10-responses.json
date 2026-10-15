@@ -2,9 +2,13 @@
   "PlatformDomain": {
     "host": "club.example.test",
     "app": "clubs",
-    "status": "BROKEN",
+    "status": "PENDING",
     "verifiedAt": null,
-    "primary": true
+    "primary": true,
+    "verification": {
+      "recordName": "_agilityhub-verify.club.example.test",
+      "recordValue": "agh-verify-fictional"
+    }
   },
   "OnboardingChecklist": {
     "dns": false,
@@ -27,7 +31,13 @@
     "masked": null,
     "last4": null,
     "mode": null,
-    "lastTestAt": null
+    "lastTestAt": null,
+    "creditorName": null,
+    "creditorId": null,
+    "suffix": null,
+    "ibanMasked": null,
+    "instructions": null,
+    "accountIdMasked": null
   },
   "PlatformClub": {
     "id": "club-example",
@@ -55,7 +65,8 @@
         "app": "clubs",
         "status": "BROKEN",
         "verifiedAt": null,
-        "primary": true
+        "primary": true,
+        "verification": null
       }
     ],
     "theme": {
@@ -89,7 +100,45 @@
         "masked": null,
         "last4": null,
         "mode": null,
-        "lastTestAt": null
+        "lastTestAt": null,
+        "creditorName": null,
+        "creditorId": null,
+        "suffix": null,
+        "ibanMasked": null,
+        "instructions": null,
+        "accountIdMasked": null
+      },
+      "SEPA_XML": {
+        "enabled": true,
+        "configured": true,
+        "masked": "****1332",
+        "last4": null,
+        "mode": null,
+        "lastTestAt": null,
+        "creditorName": "Example Club",
+        "creditorId": "ES00000X0000000X",
+        "suffix": "000",
+        "ibanMasked": "****1332",
+        "instructions": null,
+        "accountIdMasked": null
+      },
+      "MANUAL": {
+        "enabled": true,
+        "configured": true,
+        "masked": null,
+        "last4": null,
+        "mode": null,
+        "lastTestAt": null,
+        "creditorName": null,
+        "creditorId": null,
+        "suffix": null,
+        "ibanMasked": null,
+        "instructions": {
+          "ca": "Paga a recepció",
+          "es": "Paga en recepción",
+          "en": "Pay at reception"
+        },
+        "accountIdMasked": null
       }
     },
     "legal": {
@@ -211,7 +260,8 @@
           "app": "clubs",
           "status": "BROKEN",
           "verifiedAt": null,
-          "primary": true
+          "primary": true,
+          "verification": null
         }
       ],
       "theme": {
@@ -245,7 +295,45 @@
           "masked": null,
           "last4": null,
           "mode": null,
-          "lastTestAt": null
+          "lastTestAt": null,
+          "creditorName": null,
+          "creditorId": null,
+          "suffix": null,
+          "ibanMasked": null,
+          "instructions": null,
+          "accountIdMasked": null
+        },
+        "SEPA_XML": {
+          "enabled": true,
+          "configured": true,
+          "masked": "****1332",
+          "last4": null,
+          "mode": null,
+          "lastTestAt": null,
+          "creditorName": "Example Club",
+          "creditorId": "ES00000X0000000X",
+          "suffix": "000",
+          "ibanMasked": "****1332",
+          "instructions": null,
+          "accountIdMasked": null
+        },
+        "MANUAL": {
+          "enabled": true,
+          "configured": true,
+          "masked": null,
+          "last4": null,
+          "mode": null,
+          "lastTestAt": null,
+          "creditorName": null,
+          "creditorId": null,
+          "suffix": null,
+          "ibanMasked": null,
+          "instructions": {
+            "ca": "Paga a recepció",
+            "es": "Paga en recepción",
+            "en": "Pay at reception"
+          },
+          "accountIdMasked": null
         }
       },
       "legal": {
@@ -341,5 +429,9 @@
       "en": "Text EN"
     },
     "legalTextsVersion": "v1"
+  },
+  "DomainVerificationChallenge": {
+    "recordName": "_agilityhub-verify.club.example.test",
+    "recordValue": "agh-verify-fictional"
   }
 }

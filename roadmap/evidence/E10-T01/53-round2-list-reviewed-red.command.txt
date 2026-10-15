@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=E10ResponseContractTest#T_17_10_R_17_12_clubPagePublishesAppliedFiltersLikeListPage' -De10.contract=/tmp/e10-t01-reviewed-openapi.json test

@@ -23,8 +23,11 @@ public final class PlatformClubContracts {
     public enum StripeMode { @com.fasterxml.jackson.annotation.JsonProperty("test") TEST, @com.fasterxml.jackson.annotation.JsonProperty("live") LIVE }
     public enum CatalogPart { LEVELS, RINGS, PLANS, FAQ, MESSAGE_TEMPLATES }
     public enum VerificationMethod { CNAME, TXT }
+    @Schema(description="S17 §2 DNS instructions: CNAME to the product host, or TXT _agilityhub-verify.{host} = agh-verify-{token}. The token is generated when the domain is added and remains stable until verified; DNS lookup is deferred.")
+    public record DomainVerificationChallenge(String recordName, String recordValue) { }
     public record PlatformDomain(String host, DomainApp app, DomainStatus status,
-            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant verifiedAt, boolean primary) { }
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant verifiedAt, boolean primary,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="TXT challenge for a newly added domain; null for legacy domains without a challenge.") DomainVerificationChallenge verification) { }
     public record OnboardingChecklist(boolean dns,
             @Schema(description="At least one configured payment provider when BILLING is enabled; legacy model key.") boolean sepa,
             boolean branding, boolean templates, boolean faq, boolean legal, boolean firstAdmin) { }
@@ -34,7 +37,13 @@ public final class PlatformClubContracts {
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) String masked,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="Last four characters of the publishable key only.") String last4,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) StripeMode mode,
-            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastTestAt) { }
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastTestAt,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="SEPA_XML creditor name; null for other providers.") String creditorName,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="SEPA_XML creditor identifier; null for other providers.") String creditorId,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="SEPA_XML creditor suffix; null for other providers.") String suffix,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="SEPA_XML masked IBAN only; never a full IBAN.") String ibanMasked,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="MANUAL instructions in the target club's locales; null for other providers.") Map<String,String> instructions,
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="STRIPE masked account identifier only; null when unavailable or for other providers.") String accountIdMasked) { }
     public record PlatformClub(String id, String slug, String name,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) String legalName,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) String taxId,
@@ -83,12 +92,15 @@ public final class PlatformClubContracts {
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) String notes) { }
     public record PlatformDomainRequest(@NotBlank @Pattern(regexp="[A-Za-z0-9.-]+") String host, @NotNull DomainApp app) { }
     public record DomainVerification(DomainStatus status, Instant checkedAt, VerificationMethod method) { }
+    public enum ThemeUploadPurpose { LOGO, LOGO_DARK, MARK }
+    public record PlatformThemeUploadRequest(@NotNull ThemeUploadPurpose purpose, @NotBlank String fileName,
+            @NotBlank String mimeType, @NotNull @Positive Long sizeBytes) { }
     public record PlatformThemeRequest(@NotNull @PositiveOrZero Long version,
             @NotNull @Valid Theme.Colors colors, @NotBlank String fontFamily, @NotBlank String radius,
             @NotNull List<String> ringPalette, @NotNull Theme.Mode mode,
-            @Schema(requiredMode=NOT_REQUIRED, description="Uploaded object key; never a local path.") String logoFileKey,
-            @Schema(requiredMode=NOT_REQUIRED) String logoDarkFileKey,
-            @Schema(requiredMode=NOT_REQUIRED) String markFileKey) { }
+            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO; never a local path.") String logoFileKey,
+            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO_DARK.") String logoDarkFileKey,
+            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose MARK.") String markFileKey) { }
     public record PlatformModulesRequest(@NotNull @PositiveOrZero Long version,
             @Schema(requiredMode=NOT_REQUIRED) Set<@NotNull Module> modules,
             @Schema(requiredMode=NOT_REQUIRED) ModulePreset preset) {

@@ -1,0 +1,1 @@
+./mvnw -q '-Dtest=E10ContractIT#T_17_05_R_17_05_providerReadsAndWritesProjectOnlyNonSecretSettings' test

@@ -30,7 +30,7 @@ public class CurrentUserFilter extends OncePerRequestFilter {
             String path = request.getRequestURI();
             boolean console = path.equals("/api/v1/platform/club-templates")
                     || path.matches("/api/v1/platform/clubs(?:/[^/]+)?")
-                    || path.matches("/api/v1/platform/clubs/[^/]+/(?:definition|domains|theme|modules|payment-providers|parameters|catalog-clone|admins|status|support-access|public-api-key|usage|checklist)(?:/.*)?");
+                    || path.matches("/api/v1/platform/clubs/[^/]+/(?:definition|domains|theme|upload-url|modules|payment-providers|parameters|catalog-clone|admins|status|support-access|public-api-key|usage|checklist)(?:/.*)?");
             if (console || path.matches("/api/v1/platform/courses(?:/[^/]+)?")) {
                 throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
             }

@@ -57,7 +57,7 @@ public class PlatformClubsController {
     @PostMapping(value="/api/v1/platform/clubs")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, SLUG_TAKEN, HOST_ALREADY_USED, MODULE_DEPENDENCY, HOST_RESERVED})
-    @Operation(summary="createPlatformClub", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ClubDefinition uses the published WP-A layout; credentials are env references only.",
+    @Operation(summary="createPlatformClub", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ClubDefinition uses the published WP-A layout; credentials are env references only. Schema violations return 400 VALIDATION_ERROR with details.fieldErrors[{field, code}]; nested fields use paths such as modules[2] or paymentProviders.SEPA_XML.creditorId, and codes MISSING_REQUIRED or INVALID_VALUE.",
             responses=@ApiResponse(responseCode="201", description="PlatformClubCreated", useReturnTypeSchema=true))
     @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public PlatformClubCreated createPlatformClub(@io.swagger.v3.oas.annotations.parameters.RequestBody(content=@Content(schema=@Schema(ref="#/components/schemas/ClubDefinition"))) @RequestBody Map<String,Object> request,
@@ -150,6 +150,19 @@ public class PlatformClubsController {
         throw new UnsupportedOperationException("S17 contract");
     }
 
+    @PostMapping(value="/api/v1/platform/clubs/{clubId}/upload-url")
+    @PreAuthorize(PlatformJobsController.PLATFORM)
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE})
+    @Operation(summary="createPlatformThemeUploadUrl", description="S17 §2. Roles: AGILITYHUB_ADMIN, without a tenant or club membership. LOGO, LOGO_DARK or MARK. Same signed-upload response and five-minute expiry as attachments; mimeType must be an image allowed by the target club's files.allowedTypes and sizeBytes must not exceed files.maxSizeMb. FILE_TOO_LARGE includes maxSizeMb. Upload with the returned headers. Guards then 501 NOT_IMPLEMENTED.",
+            responses=@ApiResponse(responseCode="201", description="Upload URL, opaque file key, required headers and expiry", useReturnTypeSchema=true))
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public com.agilityhub.core.platform.application.ConsoleThemeFileAccess.Upload createPlatformThemeUploadUrl(
+            @PathVariable String clubId, @Valid @RequestBody PlatformThemeUploadRequest request) {
+        guards.club(clubId);
+        guards.themeUpload(clubId,request.mimeType(),request.sizeBytes());
+        throw new UnsupportedOperationException("S17 contract");
+    }
+
     @PutMapping(value="/api/v1/platform/clubs/{id}/theme")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION, THEME_CONTRAST})
@@ -184,7 +197,10 @@ public class PlatformClubsController {
             @Valid @RequestBody PlatformProviderRequest request) {
         Map<String,Object> input=mapper.convertValue(request,new com.fasterxml.jackson.core.type.TypeReference<>(){});
         input.put("secretKey",request.secretKey());input.put("webhookSecret",request.webhookSecret());input.put("iban",request.iban());
-        return scoped(id,()->views.provider(providers.update(provider.name(),input).providers().get(provider.name())));
+        return scoped(id,()->{
+            providers.update(provider.name(),input);
+            return views.provider(provider.name(),queries.get(id).paymentProviders().get(provider.name()));
+        });
     }
 
     @DeleteMapping(value="/api/v1/platform/clubs/{id}/payment-providers/{provider}")
@@ -195,7 +211,7 @@ public class PlatformClubsController {
     public PlatformProviderSummary deletePlatformProvider(@PathVariable String id,
             @PathVariable Provider provider,
             @RequestParam @PositiveOrZero Long version) {
-        return scoped(id,()->{providers.remove(provider.name(),version);return views.provider(providers.summary(provider.name(),null));});
+        return scoped(id,()->{providers.remove(provider.name(),version);return views.provider(provider.name(),null);});
     }
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/payment-providers/stripe/test")

@@ -13,13 +13,26 @@ public class PlatformClubMapper {
     public PlatformClubMapper(PlatformConsoleQueries queries,PlatformProviders providers,ObjectMapper mapper) {this.queries=queries;this.providers=providers;this.mapper=mapper;}
     public OnboardingChecklist checklist(Club c) {return mapper.convertValue(queries.checklist(c),OnboardingChecklist.class);}
     public PlatformClubUsage usage(Club c,String month) {return mapper.convertValue(queries.usage(c,month),PlatformClubUsage.class);}
-    public PlatformProviderSummary provider(PlatformProviders.Summary s) {return mapper.convertValue(s,PlatformProviderSummary.class);}
+    /** The read projection is separate from the value-free provider audit snapshot. */
+    public PlatformProviderSummary provider(String name,Object entry) {
+        var summary=providers.summary(name,entry);
+        Map<?,?> config=entry instanceof Map<?,?> value?value:Map.of();
+        boolean sepa="SEPA_XML".equals(name);
+        String account="STRIPE".equals(name)?PlatformProviders.text(config,"accountId"):null;
+        Map<String,String> instructions="MANUAL".equals(name)?mapper.convertValue(config.get("instructions"),
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String,String>>(){}):null;
+        return new PlatformProviderSummary(summary.enabled(),summary.configured(),summary.masked(),summary.last4(),
+                summary.mode()==null?null:StripeMode.valueOf(summary.mode().toUpperCase(Locale.ROOT)),summary.lastTestAt(),
+                sepa?PlatformProviders.text(config,"creditorName"):null,sepa?PlatformProviders.text(config,"creditorId"):null,
+                sepa?PlatformProviders.text(config,"suffix"):null,sepa?summary.masked():null,instructions,
+                account==null?null:"****"+account.substring(Math.max(0,account.length()-4)));
+    }
     public PlatformClub club(Club c) {
-        var configured=new LinkedHashMap<Provider,PlatformProviderSummary>();providers.summaries(c).forEach((k,v)->configured.put(Provider.valueOf(k),provider(v)));
+        var configured=new LinkedHashMap<Provider,PlatformProviderSummary>();c.paymentProviders().forEach((k,v)->configured.put(Provider.valueOf(k),provider(k,v)));
         return new PlatformClub(c.id(),c.slug(),c.name(),c.legalName(),c.taxId(),mapper.convertValue(c.address(),SettingsContracts.ClubAddress.class),
                 c.displayCity(),c.contactEmail(),c.contactPhone(),c.websiteUrl(),c.locales(),c.defaultLocale(),c.timeZone(),c.currency(),c.countryProfile(),
                 c.domains().stream().map(d->new PlatformDomain(d.host(),d.app().equals("clubs-admin")?DomainApp.CLUBS_ADMIN:DomainApp.CLUBS,
-                        DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary())).toList(),c.theme(),c.modules(),configured,
+                        DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary(),null)).toList(),c.theme(),c.modules(),configured,
                 mapper.convertValue(c.legal(),PlatformClubLegal.class),ClubStatus.valueOf(c.status().name()),c.template(),c.notes(),checklist(c),usage(c,null),c.version(),c.createdAt(),c.updatedAt());
     }
     public Map<String,Object> row(Club c,List<String> fields) {

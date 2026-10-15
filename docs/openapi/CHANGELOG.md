@@ -9,6 +9,14 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `GET /ring-setups/{id}`: the `oneOf` now discriminates on required `view`, with `RingSetup.view = "STAFF"` and `MemberRingSetup.view = "MEMBER"` published as `const`. Both fixtures validate against the actual response schema and only their own branch. The read-only value is emitted by the response DTO; staff setup responses nested in creation and history use the same shape.
 - `GET /courses/{id}`: MEMBER reads, including impersonation, require `courses.showSetupToMembers`; disabled visibility returns `404 NOT_FOUND` before the contract stub. INSTRUCTOR/ADMIN access and existing course visibility checks remain in force.
 
+## 2026-10-15 · E10-T01 round 2 · S17 contract corrections
+
+- `POST /platform/clubs/{clubId}/upload-url`: guarded `501 NOT_IMPLEMENTED`, platform role only without club membership, purposes `LOGO`, `LOGO_DARK`, `MARK`; reuses the attachment `Upload` response (URL, key, headers, expiry), target-club image types and size limits. The existing `/theme/upload-url` implementation remains unchanged for E10-T02 to reconcile.
+- Domain creation/detail projections: `PlatformDomain.verification {recordName, recordValue}` documents the stable TXT challenge generated on domain creation. Legacy domains return null; domain creation and DNS lookup remain deferred.
+- Club detail and provider writes: `PlatformProviderSummary` adds `creditorName`, `creditorId`, `suffix`, `ibanMasked` (SEPA_XML), `instructions` (MANUAL), and `accountIdMasked` (STRIPE). Other-provider/unavailable values are null; secrets and full IBAN/account identifiers remain excluded. Provider audit snapshots remain value-free.
+- `GET /platform/clubs`: retain and assert `PlatformClubPage.appliedFilters`, already adopted by E10-T02, including the actual boolean/array filter values.
+- `POST /platform/clubs`: definition schema failures return `400 VALIDATION_ERROR` with `details.fieldErrors[{field, code}]`, nested dot/bracket paths, and `MISSING_REQUIRED`/`INVALID_VALUE`; no submitted values are echoed.
+
 ## 2026-10-11 · E9-T01 round 2 · S16 corrections
 
 **0 operations added or removed (401 total); `AnyJson` replaces `JsonNode`.**

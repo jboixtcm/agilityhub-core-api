@@ -367,5 +367,35 @@
     "key": false,
     "params": {},
     "errors": {}
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/platform/clubs/{clubId}/upload-url",
+    "success": 201,
+    "body": {
+      "purpose": "LOGO",
+      "fileName": "logo.png",
+      "mimeType": "image/png",
+      "sizeBytes": 3
+    },
+    "key": false,
+    "params": {},
+    "errors": {
+      "400": [
+        "FILE_TYPE_NOT_ALLOWED",
+        "FILE_TOO_LARGE",
+        "VALIDATION_ERROR"
+      ],
+      "403": [
+        "FORBIDDEN",
+        "IMPERSONATION_DENIED"
+      ],
+      "404": [
+        "CLUB_NOT_FOUND"
+      ],
+      "501": [
+        "NOT_IMPLEMENTED"
+      ]
+    }
   }
 ]

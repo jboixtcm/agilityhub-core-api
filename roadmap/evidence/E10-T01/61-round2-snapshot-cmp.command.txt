@@ -1,0 +1,1 @@
+cmp /tmp/e10-t01-round2-first.json docs/openapi/openapi.json

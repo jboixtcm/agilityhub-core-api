@@ -45,7 +45,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 com.agilityhub.core.platform.persistence.Club.class);
     }
     MockHttpServletRequestBuilder call(Route route,String role) throws Exception {
-        String path=route.path().replace("{id}","e10-target").replace("{host}","e10-target.example.test")
+        String path=route.path().replace("{id}","e10-target").replace("{clubId}","e10-target").replace("{host}","e10-target.example.test")
                 .replace("{provider}","STRIPE").replace("{key}","levels.enabled").replace("{accountId}","e10-admin");
         var request=request(HttpMethod.valueOf(route.method()),path).header("Host","unknown.example.test");
         if(route.body()!=null&&!route.body().isNull()) request.contentType("application/json").content(mapper.writeValueAsString(route.body()));
@@ -55,7 +55,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .authorities(new SimpleGrantedAuthority("ROLE_"+role)));
         return request;
     }
-    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
+    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/upload-url")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
     void success(MockHttpServletRequestBuilder request) throws Exception { mvc.perform(request).andExpect(status().isOk()); }
     void error(MockHttpServletRequestBuilder request,int status,String code) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();
@@ -68,7 +68,7 @@ class E10ContractIT extends AbstractIntegrationTest {
     }
     Map<String,List<org.bson.Document>> state() {
         var result=new TreeMap<String,List<org.bson.Document>>();
-        for(String collection:List.of("clubs","parameters","memberships","accounts","domain_events","audit_entries","idempotency_records"))
+        for(String collection:List.of("clubs","parameters","memberships","accounts","domain_events","audit_entries","idempotency_records","attachment_uploads"))
             result.put(collection,mongo.findAll(org.bson.Document.class,collection));
         return result;
     }
@@ -172,7 +172,7 @@ class E10ContractIT extends AbstractIntegrationTest {
         assertThat(state()).isEqualTo(before);
     }
     @Test void T_17_10_R_17_12_unknownResourcesAndInvalidListQueriesFailBeforeWrites() throws Exception {
-        for(var route:routes().filter(r->r.path().contains("{id}")).toList())
+        for(var route:routes().filter(r->r.path().contains("{id}")||r.path().contains("{clubId}")).toList())
             error(call(route,"AGILITYHUB_ADMIN").with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
         error(call(route("POST","/clubs/{id}/domains/{host}/verification"),"AGILITYHUB_ADMIN")
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target.example.test","missing.example.test"));return r;}),404,"NOT_FOUND");
@@ -194,6 +194,77 @@ class E10ContractIT extends AbstractIntegrationTest {
         success(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml"));
         error(call(route("GET","/clubs/{id}/definition"),"AGILITYHUB_ADMIN").accept("application/yaml")
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
+    }
+
+    @Test void T_17_12_R_17_12_platformLogoUploadValidatesBeforeNoWriteStub() throws Exception {
+        var route=route("POST","/clubs/{clubId}/upload-url");
+        var before=state();
+        for(String purpose:List.of("LOGO","LOGO_DARK","MARK"))
+            error(call(route,"AGILITYHUB_ADMIN").content(mapper.writeValueAsString(Map.of(
+                    "purpose",purpose,"fileName","logo.png","mimeType","image/png","sizeBytes",3))),501,"NOT_IMPLEMENTED");
+        error(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"DOG_PHOTO\",\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":3}"),400,"VALIDATION_ERROR");
+        error(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"LOGO\",\"fileName\":\"logo.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":3}"),400,"FILE_TYPE_NOT_ALLOWED");
+        mvc.perform(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"LOGO\",\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":26214401}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"))
+                .andExpect(jsonPath("$.details.maxSizeMb").value(25));
+        error(call(route,"AGILITYHUB_ADMIN").content("{}"),400,"VALIDATION_ERROR");
+        assertThat(state()).isEqualTo(before);
+        assertThat(TenantContext.current()).isNull();
+    }
+
+    @Test void T_17_10_R_17_12_clubPageReturnsTheAppliedUniversalFilters() throws Exception {
+        var result=mvc.perform(call(route("GET","/clubs"),"AGILITYHUB_ADMIN")
+                .param("filter","template:eq:false","module:in:FAQ,WAITLIST").param("fields","name"))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        assertThat(mapper.readTree(result.getContentAsString()).path("appliedFilters"))
+                .isEqualTo(mapper.readTree("[{\"field\":\"template\",\"op\":\"eq\",\"value\":false},{\"field\":\"module\",\"op\":\"in\",\"value\":[\"FAQ\",\"WAITLIST\"]}]"));
+    }
+
+    @Test void T_17_02_R_17_02_definitionErrorsNameNestedFieldsWithoutInputValues() throws Exception {
+        var route=route("POST","/clubs");
+        var body=(com.fasterxml.jackson.databind.node.ObjectNode)route.body().deepCopy();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)body.path("club")).remove("name");
+        body.putArray("modules").add("FAQ").add("WAITLIST").add("fictional-invalid-module");
+        body.putObject("paymentProviders").putObject("SEPA_XML").put("enabled",true).put("creditorId",42);
+        var before=state();
+        var result=mvc.perform(call(route,"AGILITYHUB_ADMIN").content(body.toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details.fields").doesNotExist()).andReturn().getResponse();
+        var details=mapper.readTree(result.getContentAsString()).path("details");
+        assertThat(details.path("fieldErrors")).contains(
+                mapper.valueToTree(Map.of("field","club.name","code","MISSING_REQUIRED")),
+                mapper.valueToTree(Map.of("field","modules[2]","code","INVALID_VALUE")),
+                mapper.valueToTree(Map.of("field","paymentProviders.SEPA_XML.creditorId","code","INVALID_VALUE")));
+        assertThat(details.toString()).doesNotContain("fictional-invalid-module", "\"42\"");
+        assertThat(state()).isEqualTo(before);
+    }
+
+    @Test void T_17_05_R_17_05_providerReadsAndWritesProjectOnlyNonSecretSettings() throws Exception {
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(
+                org.springframework.data.mongodb.core.query.Criteria.where("_id").is("e10-target")),
+                org.springframework.data.mongodb.core.query.Update.update("paymentProviders",Map.of(
+                        "SEPA_XML",Map.of("enabled",true,"creditorName","Example Club","creditorId","ES00000X0000000X","suffix","000","ibanLast4","1332","ibanEnc","fictional-ciphertext"),
+                        "STRIPE",Map.of("enabled",true,"publishableKey","pk_test_fictional1234","accountId","acct_fictional5678","secretKeyEnc","fictional-ciphertext","webhookSecretEnc","fictional-ciphertext","mode","test"),
+                        "MANUAL",Map.of("enabled",true,"instructions",Map.of("ca","Pay at reception")))),
+                com.agilityhub.core.platform.persistence.Club.class);
+        var response=mvc.perform(call(route("GET","/clubs/{id}"),"AGILITYHUB_ADMIN"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var providers=mapper.readTree(response).path("paymentProviders");
+        assertThat(providers.path("SEPA_XML").path("creditorName").asText()).isEqualTo("Example Club");
+        assertThat(providers.path("SEPA_XML").path("creditorId").asText()).isEqualTo("ES00000X0000000X");
+        assertThat(providers.path("SEPA_XML").path("suffix").asText()).isEqualTo("000");
+        assertThat(providers.path("SEPA_XML").path("ibanMasked").asText()).isEqualTo("****1332");
+        assertThat(providers.path("MANUAL").path("instructions").path("ca").asText()).isEqualTo("Pay at reception");
+        assertThat(providers.path("STRIPE").path("accountIdMasked").asText()).isEqualTo("****5678");
+        assertThat(providers.path("STRIPE").path("creditorName").isNull()).isTrue();
+        assertThat(providers.path("SEPA_XML").path("instructions").isNull()).isTrue();
+        assertThat(response).doesNotContain("fictional-ciphertext","pk_test_fictional1234","acct_fictional5678","\"iban\"","secretKey","webhookSecret");
+        mvc.perform(call(route("PUT","/clubs/{id}/payment-providers/{provider}"),"AGILITYHUB_ADMIN")
+                .with(r->{r.setRequestURI(r.getRequestURI().replace("STRIPE","MANUAL"));return r;})
+                .content("{\"version\":"+mapper.readTree(response).path("version").asLong()+",\"instructions\":{\"ca\":\"Updated instructions\"}}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.instructions.ca").value("Updated instructions"));
+        var audit=mongo.findAll(org.bson.Document.class,"audit_entries").toString();
+        assertThat(audit).doesNotContain("Updated instructions","Pay at reception","ES00000X0000000X","fictional-ciphertext");
     }
 
 }

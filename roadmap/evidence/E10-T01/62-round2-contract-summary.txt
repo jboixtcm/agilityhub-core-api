@@ -1,0 +1,4 @@
+Focused verification exit: 0
+E10ContractIT: tests=42 failures=0 errors=0 skipped=0
+E10ResponseContractTest: tests=7 failures=0 errors=0 skipped=0
+PlatformClubContractGuardsTest: tests=1 failures=0 errors=0 skipped=0

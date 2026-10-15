@@ -63,7 +63,20 @@ public class PlatformDefinitionSchema {
     public JsonNode document() { return document.deepCopy(); }
     public void validate(Map<String,Object> request) {
         var errors=validator.validate(mapper.valueToTree(request));
-        if(!errors.isEmpty()) throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("fields",
-                errors.stream().map(error->error.getInstanceLocation()+": "+error.getType()).sorted().toList()));
+        if(!errors.isEmpty()) throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("fieldErrors",
+                errors.stream().map(error->Map.of("field",field(error),"code",
+                        "required".equals(error.getType())?"MISSING_REQUIRED":"INVALID_VALUE"))
+                        .distinct().sorted(java.util.Comparator.comparing(value->value.get("field"))).toList()));
+    }
+    private String field(ValidationMessage error) {
+        var path=error.getInstanceLocation();
+        if("required".equals(error.getType())) path=path.append(error.getProperty());
+        var field=new StringBuilder();
+        for(int i=0;i<path.getNameCount();i++) {
+            Object part=path.getElement(i);
+            if(part instanceof Number) field.append('[').append(part).append(']');
+            else { if(!field.isEmpty()) field.append('.'); field.append(part); }
+        }
+        return field.toString();
     }
 }
