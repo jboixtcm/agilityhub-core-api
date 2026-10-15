@@ -1,0 +1,172 @@
+16:55:20.942 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:55:20.944 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:55:20.949 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+16:55:21.100 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:55:21.265 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:55:21.266 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:55:21.278 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:55:21.623 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+16:55:21.694 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:55:21.775 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 51996b08bb62b7e418ffc08568ac008cfdb097ceecb2838cd66ddc0ef72c3dbb
+16:55:21.948 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.325156S
+16:55:21.952 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:55:21.952 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:55:21.953 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:55:21.953 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:55:21.986 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: cef51bba7e71100241261d60ec6fdc16fb85bfc47ffb427af8fd0fe90b814f14
+16:55:22.422 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.469352S
+Integration JVM availableProcessors=18
+16:55:22.970 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E2ContractIT]: E2ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:55:23.120 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E2ContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-15T16:55:23.493+02:00 INFO  [main] c.a.core.configuration.E2ContractIT traceId= clubId= accountId= : Starting E2ContractIT using Java [redacted] with PID 84429 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-15T16:55:23.495+02:00 INFO  [main] c.a.core.configuration.E2ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-15T16:55:25.040+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-15T16:55:25.103+02:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 58 ms. Found 0 MongoDB repository interfaces.
+2026-10-15T16:55:25.742+02:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2f47ebc7], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3700d4c1, com.mongodb.Jep395RecordCodecProvider@581e0883, com.mongodb.KotlinCodecProvider@cae1f58]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:56514], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1c27d4d9], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-15T16:55:25.753+02:00 INFO  [cluster-ClusterId{value='6ad0e95d952613f6b05201f2', description='null'}-localhost:56514] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:56514, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=19247667, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cef51bba7e71:27017, hosts=[cef51bba7e71:27017], passives=[], arbiters=[], primary='cef51bba7e71:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad0e95ad130ce02a4c8a8ca, counter=6}, lastWriteDate=Thu Oct 15 16:55:22 CEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-15T16:55:30.315+02:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-15T16:55:30.315+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-15T16:55:30.316+02:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-15T16:55:30.353+02:00 INFO  [main] c.a.core.configuration.E2ContractIT traceId= clubId= accountId= : Started E2ContractIT in 7.147 seconds (process running for 10.178)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-15T16:55:34.325+02:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=[truncated] clubId=- accountId=- : Init duration for springdoc-openapi is: 2995 ms
+2026-10-15T16:55:34.538+02:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/members/fixture-id/erasure' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-15T16:55:35.391+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E10ContractIT]: E10ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-15T16:55:35.393+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E10ContractIT
+2026-10-15T16:55:35.608+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=6e91ed7d-[redacted]
+2026-10-15T16:55:35.704+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=03632f1c-d355-45e9-[redacted]
+2026-10-15T16:55:36.325+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=400 code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.365+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.393+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected status=400 code=VALIDATION_ERROR traceId=d835081b-7bf7-47b0-[redacted]
+2026-10-15T16:55:36.478+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.661+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.664+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.667+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:36.670+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:38.558+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:38.657+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:38.747+02:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=[truncated] clubId=- accountId=e10-actor : Framework request rejected code=VALIDATION_ERROR traceId=[truncated]
+2026-10-15T16:55:38.803+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.ConsoleProviderLockIT]: ConsoleProviderLockIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-15T16:55:38.838+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.ConsoleProviderLockIT
+2026-10-15T16:55:45.915+02:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.PlatformConsoleIT]: PlatformConsoleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-15T16:55:46.012+02:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.PlatformConsoleIT
+[ERROR] Tests run: 38, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 19.55 s <<< FAILURE! -- in com.agilityhub.core.platform.api.PlatformConsoleIT
+[ERROR] com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_05_R_17_05_sepaInvoiceSeriesBecomesTheBillingParameterAndRoundTrips -- Time elapsed: 0.307 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"[truncated]"}] 
+expected: 201
+ but was: 404
+	at com.agilityhub.core.platform.api.PlatformConsoleIT.call(PlatformConsoleIT.java:39)
+	at com.agilityhub.core.platform.api.PlatformConsoleIT.T_17_05_R_17_05_sepaInvoiceSeriesBecomesTheBillingParameterAndRoundTrips(PlatformConsoleIT.java:512)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+Audit coverage: ACTIVITY_PUBLISHED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_CANCELLED -> ActivityIT.T_07_13_cancellationNotifiesActiveAndWaitingAndZeroesCounters
+Audit coverage: ACTIVITY_UPDATED -> ActivityIT.T_07_10_publicationCreatesFiveBlocksAndTitleCellsWithAtomicReplay
+Audit coverage: ACTIVITY_REGISTERED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB -> ActivityIT.T_07_23_impersonationRecordsBothActorsAndClubChangeChannels
+Audit coverage: WEEK_VALIDATED -> CalendarIT.T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation
+Audit coverage: CLASS_CANCELLED -> CalendarIT.T_06_14_T_06_15_T_06_34_cancellationRollsBackAndDeliversEveryDogInRecipientLocaleOnce
+Audit coverage: CLASS_UPDATED_WITH_BOOKINGS -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: CLASS_RISK_EXEMPTION_CHANGED -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: RING_BLOCK_CREATED -> CalendarIT.R_14_09_anInstructorsAuditedActionIsStoredBackofficeAndItsEventKeepsInstructor, CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: RING_BLOCK_CANCELLED -> CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: TEMPLATE_CLASS_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: TEMPLATE_BAND_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: MEMBER_VALIDATED -> SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: SIGNUP_REJECTED -> SignupIT.T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat
+Audit coverage: SIGNUP_SUBMITTED -> SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers, SignupSecurityFixesIT.T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, NotificationPreferencesIT.T_11_20_theD10SaveIsAuditedWithTheActorAndPublishesTheChange
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, SignupIT.T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: BOOKING_CREATED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_BY_CLUB -> BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: BOOKING_CANCELLED_LATE -> BookingsIT.T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert, BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+Audit coverage: TRAINING_BOOKED_BY_CLUB -> TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: TRAINING_CANCELLED_BY_CLUB -> TrainingIT.T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+Audit coverage: ATTENDANCE_OVERRIDDEN -> AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval, FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken, FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings, SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> AccountingExportIT.T_12_19_csvContainsEveryInvoiceLineAndLocalizedAmountsWithBom, ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, DemoSeedsIT.T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites, MessageTemplatesIT.T_11_16_aCustomTemplateIsCreatedSavedWithItsVersionAndArchived, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: ANNOUNCEMENT_SENT -> AnnouncementsIT.T_11_18_n24ToTheMembersOfTheListFiltersWithTheirOwnPreferencesAuditedAndReplayedByItsKey
+Audit coverage: MIGRATION_APPLIED -> PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists, SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_03_R_02_04_theD11BlocksFollowTheCatalogAndOnlyTheClubKeysAreEditable, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.R_02_02_R_02_06_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+Audit coverage: CLUB_CREATED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: CLUB_PAYMENT_PROVIDER_CHANGED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: CLUB_ADMIN_INVITED -> PlatformConsoleIT.T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions
+Audit coverage: JOB_TRIGGERED -> JobFrameworkIT.T_15_08_manualTriggerIsAuditedAndRefusedWhileRunning, JobsApiIT.T_15_08_manualTriggerRunsTheProcessEvenSwitchedOffIsAuditedAndGuarded
+Audit coverage: INVOICE_MARKED_PAID -> InvoiceActionsIT.T_12_14_fourCashInvoicesPaidInBulkAllOrNone
+Audit coverage: INVOICE_MARKED_FAILED -> InvoiceActionsIT.T_12_14_T_12_30_aBankReturnFailsACollectingInvoiceAndAPaidOneWithItsSepaCollectionAndNotifiesTheAdmins
+Audit coverage: INVOICE_CANCELLED -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: INVOICE_CREATED_MANUAL -> InvoiceActionsIT.T_12_18_aManualAdjustmentIsNumberedInSequenceAndOnlyPendingOrFailedInvoicesAreCancelled
+Audit coverage: REMITTANCE_GENERATED -> BillingCycleIT.T_12_09_T_12_29_theRunNumbersTheInvoicesAdvancesOnlyTheIncludedMembersAndAuditsOnce, BillingCycleIT.T_12_18_R_12_19_aManualSepaReceiptWithIncludeInNextRunJoinsTheNextRemittanceAndARollbackReturnsIt
+Audit coverage: REMITTANCE_ROLLED_BACK -> BillingCycleIT.T_12_13_R_12_14_aRollbackReissuesItsWholeBlockAlsoAfterTheAdminCancelledOneOfItsReceipts, BillingCycleIT.T_12_13_aRollbackGivesBackNumbersDatesAndChargesAndASecondRunReproducesTheNumbers
+Audit coverage: REMITTANCE_SUBMITTED -> RemittancesIT.T_12_30_aSubmittedRemittanceEndsTheRollbackAndTheSubmissionIsAuditedOnce
+Audit coverage: PAYMENT_REFUNDED -> CardPaymentsIT.T_12_17_partialAndTotalRefundKeepInvoicePaidAndRejectOverRefund
+Audit coverage: PAYMENT_REFUND_INTERVENTION -> CapturedPaymentInvariantsIT.T_12_17_e8t11_round2_point2_adminReceivesAppAndEmailOnce
+Audit coverage: CARD_CHARGES_STARTED -> CardPaymentsIT.T_12_15_runDuplicateAndOutOfOrderEventsKeepOnePayment
+Audit coverage: UPFRONT_PAYMENT_RECORDED -> CardPaymentsIT.T_12_16_manualAuditAndExpiredSignupStillRecordsCapturedRemainder, LifecycleIT.T_12_07_manualPaymentOpensOnlyWhenFullyPaidAndRecordsTheWholeMovementCycle
+Audit coverage: PACK_ADJUSTED -> LifecycleIT.T_12_07_adjustWritesTheBalanceAndItsAuditInOneTransaction
+Audit coverage: MEMBER_PLAN_CHANGED -> LifecycleIT.T_13_20_packToMonthlyWritesDiscountedDueEntryAndAuditsWithoutMovingInvoiceDate
+Audit coverage: INACTIVITY_RESOLVED -> LifecycleIT.T_13_08_requestUsesDeadlineAndReplaysTheSameKey
+Audit coverage: LEAVE_RESOLVED -> LifecycleIT.T_13_15_onePendingRequestAndDisabledNps
+Audit coverage: LEAVE_CANCELLED -> LifecycleIT.T_13_18_T_13_19_directLeaveSupersedesPendingAndCancellationClearsTheDate
+2026-10-15T16:56:06.307+02:00 INFO  [main] com.tngtech.archunit.core.PluginLoader traceId= clubId= accountId= : Detected Java version [redacted]
+[ERROR] Failures: 
+[ERROR]   PlatformConsoleIT.T_17_05_R_17_05_sepaInvoiceSeriesBecomesTheBillingParameterAndRoundTrips:512->call:39 [{"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"[truncated]"}] 
+expected: 201
+ but was: 404
+[ERROR] Tests run: 128, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -41,7 +41,8 @@ public class PlatformConsoleProjection extends GlobalRepository<Club> {
         Query query=query(input,definition);String collection=security?"security_events":"audit_entries";
         if(!security) { var privacy=new Criteria().andOperator(Criteria.where("memberId").is(null),Criteria.where("impersonatedMemberId").is(null),
                 new Criteria().orOperator(
-                    new Criteria().andOperator(Criteria.where("entityType").is("Club"),Criteria.where("action").in("CLUB_UPDATED","CLUB_MODULES_CHANGED","CLUB_STATUS_CHANGED")),
+                    new Criteria().andOperator(Criteria.where("entityType").is("Club"),Criteria.where("action").in("CLUB_UPDATED","CLUB_MODULES_CHANGED","CLUB_STATUS_CHANGED",
+                            "CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Parameter"),Criteria.where("action").is("PARAMETER_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Account"),Criteria.where("action").is("PLATFORM_ROLES_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").in("Level","Ring","Plan","Price","FaqEntry","MessageTemplate"),Criteria.where("action").is("CATALOG_CHANGED"))));
@@ -73,6 +74,16 @@ public class PlatformConsoleProjection extends GlobalRepository<Club> {
     }
     public long activeMembers(String club) { return mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")),"members"); }
     public long providerUsers(String club,String method) { return mongo.count(Query.query(Criteria.where("clubId").is(club).and("paymentMethod.type").is(method).and("status").ne("ERASED")),"members"); }
+    /**
+     * S17 §2/§6 usage: the bytes of the club's stored files, from the upload records whose object was checked and claimed
+     * (`attachment_uploads.boundEntity`); a removed record stops counting. Tenant-scoped by `clubId`, an aggregate only.
+     */
+    public long storageBytes(String club) {
+        var rows=mongo.aggregate(org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+                org.springframework.data.mongodb.core.aggregation.Aggregation.match(Criteria.where("clubId").is(club).and("boundEntity").ne(null)),
+                org.springframework.data.mongodb.core.aggregation.Aggregation.group().sum("sizeBytes").as("total")),"attachment_uploads",Document.class).getMappedResults();
+        return rows.isEmpty()||!(rows.getFirst().get("total") instanceof Number total)?0L:total.longValue();
+    }
     public long count(String club,String collection) { return mongo.count(Query.query(Criteria.where("clubId").is(club)),collection); }
     public Instant lastAdminAccess(String club) {
         var row=mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("roles").is("ADMIN").and("status").is("ACTIVE"))

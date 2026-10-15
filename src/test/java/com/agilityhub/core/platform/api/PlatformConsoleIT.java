@@ -387,4 +387,176 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(notices.getFirst().getString("status")).isIn("SENT","DELIVERED");
     }
 
+    // Round 2 (E108, E112): each test below fails on the round-1 implementation.
+    @Autowired com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService team;
+    @Autowired com.agilityhub.core.platform.application.ConsoleAdministratorAccess consoleAdmins;
+    @Autowired com.agilityhub.core.identity.persistence.MembershipRepository membershipRows;
+    JsonNode creationBody() throws Exception {
+        return mapper.readTree(java.nio.file.Path.of("src/test/resources/fixtures/contracts/e10-routes.json").toFile()).get(1).path("body").deepCopy();
+    }
+    long version(String id) { return clubs.findById(id).orElseThrow().version(); }
+    org.springframework.data.mongodb.core.query.Query byId(String id) {
+        return org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(id));
+    }
+    String export(String id) throws Exception {
+        var response=mvc.perform(actor(get(BASE+"/"+id+"/definition").accept("application/yaml"))).andReturn().getResponse();
+        assertThat(response.getStatus()).isEqualTo(200);return response.getContentAsString();
+    }
+
+    @Test void T_17_02_R_17_02_legalCannotBeNulledAndAClubWithoutLegalStillReads() throws Exception {
+        var body=new LinkedHashMap<String,Object>();body.put("version",version());body.put("legal",null);
+        var error=call(patch(BASE+"/console-target"),body,400);
+        assertThat(error.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(error.path("details").path("field").asText()).isEqualTo("legal");
+        assertThat(clubs.findById("console-target").orElseThrow().legal()).isNotNull();
+        // A document stored without `legal` (before the rule): configuration reads answer «no policy yet», never a failure.
+        mongo.updateFirst(byId("console-target"),new org.springframework.data.mongodb.core.query.Update().unset("legal"),"clubs");
+        configs.invalidate("console-target");hosts.invalidate();
+        assertThat(configs.get("console-target").club().privacyPolicyUrl()).isNull();
+        assertThat(configs.privacyPolicy("console-target").url()).isNull();
+        var club=call(get(BASE+"/console-target"),null,200);
+        assertThat(club.path("legal").isNull()).isTrue();
+        assertThat(club.path("onboardingChecklist").path("legal").asBoolean()).isFalse();
+        assertThat(mvc.perform(get("/api/v1/branding").header("Host","console.example.test")).andReturn().getResponse().getStatus()).isEqualTo(200);
+    }
+
+    void teamAdmin(String id) {
+        mongo.insert(new com.agilityhub.core.identity.persistence.Account(id+"-account",id+"@example.test","Example "+id,"ca",null,Set.of(),
+                com.agilityhub.core.identity.persistence.Account.Status.ACTIVE,new com.agilityhub.core.identity.persistence.Account.Security(0,null,null,0),Map.of(),false,clock.instant()));
+        mongo.insert(new com.agilityhub.core.identity.persistence.Membership(id+"-membership",id+"-account","console-target",id,
+                Set.of(com.agilityhub.core.identity.domain.Role.MEMBER,com.agilityhub.core.identity.domain.Role.ADMIN),
+                com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE,com.agilityhub.core.identity.domain.Role.MEMBER));
+        raw("members",row(id,"console-target").append("accountId",id+"-account").append("status","ACTIVE").append("firstName","Example"));
+    }
+    long activeAdmins() {
+        try(var tenant=com.agilityhub.core.shared.application.TenantContext.open("console-target")) { return membershipRows.activeAdmins(); }
+    }
+    static <T> T within(java.util.concurrent.Future<T> future,long seconds) throws Exception {
+        try { return future.get(seconds,java.util.concurrent.TimeUnit.SECONDS); } catch(java.util.concurrent.TimeoutException waiting) { return null; }
+    }
+    static void await(java.util.concurrent.CountDownLatch latch) {
+        try { latch.await(30,java.util.concurrent.TimeUnit.SECONDS); } catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+    }
+    @Test void T_17_08_R_17_09_clubDemotionWaitsForAnUncommittedConsoleRemoval() throws Exception {
+        teamAdmin("one");teamAdmin("two");
+        var inside=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var console=pool.submit(()->{
+                try(var tenant=com.agilityhub.core.shared.application.TenantContext.open("console-target")) {
+                    return transactions.execute(tx->{consoleAdmins.remove("one-account");inside.countDown();await(release);return "OK";});
+                } catch(com.agilityhub.core.shared.domain.ApiException failure) { inside.countDown();return failure.getMessage(); }
+            });
+            assertThat(inside.await(20,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            var club=pool.submit(()->{
+                try(var tenant=com.agilityhub.core.shared.application.TenantContext.open("console-target")) { team.setRoles("two",Set.of("MEMBER"));return "OK"; }
+                catch(com.agilityhub.core.shared.domain.ApiException failure) { return failure.getMessage(); }
+            });
+            // Without one lock the club writer counts two administrators and commits while the console transaction is open.
+            String early=within(club,2);
+            release.countDown();
+            assertThat(console.get(30,java.util.concurrent.TimeUnit.SECONDS)).isEqualTo("OK");
+            assertThat(early!=null?early:club.get(30,java.util.concurrent.TimeUnit.SECONDS)).isEqualTo("LAST_ADMIN");
+        }
+        assertThat(activeAdmins()).isEqualTo(1);
+    }
+    @Test void T_17_08_R_17_09_consoleRemovalWaitsForAnUncommittedClubDemotion() throws Exception {
+        teamAdmin("one");teamAdmin("two");
+        var inside=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var club=pool.submit(()->{
+                try(var tenant=com.agilityhub.core.shared.application.TenantContext.open("console-target")) {
+                    return transactions.execute(tx->{team.setRoles("two",Set.of("MEMBER"));inside.countDown();await(release);return "OK";});
+                } catch(com.agilityhub.core.shared.domain.ApiException failure) { inside.countDown();return failure.getMessage(); }
+            });
+            assertThat(inside.await(20,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            var console=pool.submit(()->mvc.perform(actor(delete(BASE+"/console-target/admins/one-account"))).andReturn().getResponse());
+            // Without one lock the console counts two administrators and commits while the club transaction is open.
+            var early=within(console,2);
+            release.countDown();
+            assertThat(club.get(30,java.util.concurrent.TimeUnit.SECONDS)).isEqualTo("OK");
+            var response=early!=null?early:console.get(30,java.util.concurrent.TimeUnit.SECONDS);
+            assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(409);
+            assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).isEqualTo("LAST_ADMIN");
+        }
+        assertThat(activeAdmins()).isEqualTo(1);
+    }
+
+    @Test void T_17_07_R_17_08_fromTemplateResolvesTheTemplateSlugBeforeTheId() throws Exception {
+        String templateId="5c0f6a52-0000-4000-8000-00000000e10a";
+        var template=(ObjectNode)mapper.valueToTree(PlatformFixtures.club("console-template","template.example.test"));
+        template.put("id",templateId);template.put("slug","club-template-default");template.put("template",true);template.putArray("domains");
+        clubs.save(mapper.treeToValue(template,Club.class));
+        var levels=mapper.readTree("{\"levels\":[{\"code\":\"BEGINNER\",\"name\":{\"ca\":\"Iniciació\",\"es\":\"Inicio\"},\"order\":10}]}");
+        try(var scope=com.agilityhub.core.shared.application.TenantContext.open(templateId)) {
+            transactions.executeWithoutResult(tx->catalogs.provision(catalogs.plan(levels)));
+        }
+        var body=(ObjectNode)creationBody();body.withObject("catalogs").put("fromTemplate","club-template-default");
+        String created=call(post(BASE),body,201).path("club").path("id").asText();
+        assertThat(mongo.count(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is(created)),"levels")).isEqualTo(1);
+        body.withObject("club").put("slug","example-console-by-id");body.withObject("catalogs").put("fromTemplate",templateId);
+        call(post(BASE),body,201);
+        // The separate clone endpoint keeps id semantics.
+        assertThat(call(post(BASE+"/console-target/catalog-clone"),Map.of("fromClubId","club-template-default","parts",List.of("LEVELS")),404).path("code").asText())
+                .isEqualTo("TEMPLATE_CLUB_NOT_FOUND");
+    }
+
+    @Test void T_17_05_R_17_05_sepaInvoiceSeriesBecomesTheBillingParameterAndRoundTrips() throws Exception {
+        var body=(ObjectNode)creationBody();body.putArray("modules").add("BILLING");
+        body.putObject("paymentProviders").putObject("SEPA_XML").put("enabled",true).put("invoiceSeriesPattern","AH-{YYYY}");
+        body.putObject("parameters").put("billing.invoiceSeriesPattern","OTHER-{YYYY}");
+        var conflict=call(post(BASE),body,400);
+        assertThat(conflict.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(conflict.path("details").path("field").asText()).isEqualTo("paymentProviders.SEPA_XML.invoiceSeriesPattern");
+        assertThat(clubs.findBySlug("example-console")).isEmpty();
+        body.remove("parameters");
+        String id=call(post(BASE),body,201).path("club").path("id").asText();
+        assertThat(configs.get(id).get("billing.invoiceSeriesPattern",String.class)).isEqualTo("AH-{YYYY}");
+        var exported=new com.fasterxml.jackson.databind.ObjectMapper(new com.fasterxml.jackson.dataformat.yaml.YAMLFactory()).readTree(export(id));
+        assertThat(exported.path("parameters").path("billing.invoiceSeriesPattern").asText()).isEqualTo("AH-{YYYY}");
+        assertThat(exported.path("paymentProviders").path("SEPA_XML").has("invoiceSeriesPattern")).isFalse();
+        // The exported definition creates an equivalent club; the same value in both places is accepted.
+        var again=(ObjectNode)exported;again.withObject("club").put("slug","example-console-copy");again.remove("domains");
+        again.withObject("paymentProviders").withObject("SEPA_XML").put("invoiceSeriesPattern","AH-{YYYY}");
+        String copy=call(post(BASE),again,201).path("club").path("id").asText();
+        assertThat(configs.get(copy).get("billing.invoiceSeriesPattern",String.class)).isEqualTo("AH-{YYYY}");
+    }
+
+    @Test void T_17_10_R_17_12_storageUsageSumsOnlyTheTargetClubsStoredFiles() throws Exception {
+        raw("attachment_uploads",row("stored-one","console-target").append("sizeBytes",100L).append("boundEntity","dog-one"));
+        raw("attachment_uploads",row("stored-two","console-target").append("sizeBytes",50L).append("boundEntity","task-one"));
+        raw("attachment_uploads",row("never-claimed","console-target").append("sizeBytes",1000L).append("boundEntity",null));
+        raw("attachment_uploads",row("other-club","console-source").append("sizeBytes",7L).append("boundEntity","dog-two"));
+        assertThat(call(get(BASE+"/console-target/usage"),null,200).path("storageBytes").asLong()).isEqualTo(150);
+        assertThat(call(get(BASE+"/console-source/usage"),null,200).path("storageBytes").asLong()).isEqualTo(7);
+        // A completed upload counts once it is published; the list rows use the same aggregate.
+        var uploaded=call(post(BASE+"/console-target/theme/upload-url"),Map.of("fileName","logo.png","mimeType","image/png","sizeBytes",3),201);
+        storage.put(uploaded.path("fileKey").asText(),"image/png",3,new java.io.ByteArrayInputStream(new byte[]{1,2,3}));
+        assertThat(call(get(BASE+"/console-target/usage"),null,200).path("storageBytes").asLong()).isEqualTo(150);
+        Map<String,Object> theme=mapper.convertValue(clubs.findById("console-target").orElseThrow().theme(),new com.fasterxml.jackson.core.type.TypeReference<>(){});
+        theme.keySet().removeAll(Set.of("logoUrl","logoDarkUrl","markUrl"));theme.put("version",version());theme.put("logoFileKey",uploaded.path("fileKey").asText());
+        call(put(BASE+"/console-target/theme"),theme,200);
+        assertThat(call(get(BASE+"/console-target/usage"),null,200).path("storageBytes").asLong()).isEqualTo(153);
+        var rows=call(get(BASE).param("fields","usage").param("sort","slug,asc"),null,200).path("items");
+        assertThat(rows.findValuesAsText("storageBytes")).containsExactly("7","153");
+        mongo.remove(byId("stored-one"),"attachment_uploads");
+        assertThat(call(get(BASE+"/console-target/usage"),null,200).path("storageBytes").asLong()).isEqualTo(53);
+    }
+
+    @Test @com.agilityhub.core.support.AuditCovers({com.agilityhub.core.platform.application.audit.AuditAction.CLUB_CREATED,
+            com.agilityhub.core.platform.application.audit.AuditAction.CLUB_PAYMENT_PROVIDER_CHANGED,
+            com.agilityhub.core.platform.application.audit.AuditAction.CLUB_ADMIN_INVITED})
+    void T_17_10_R_17_12_consoleMutationsWriteTheirDedicatedAuditActions() throws Exception {
+        String id=call(post(BASE),creationBody(),201).path("club").path("id").asText();
+        call(put(BASE+"/"+id+"/payment-providers/MANUAL"),Map.of("version",version(id),"enabled",true,"instructions",Map.of("ca","Recepció privada")),200);
+        call(post(BASE+"/"+id+"/admins"),Map.of("email","audited@example.test","name","Example Admin"),201);
+        call(delete(BASE+"/"+id+"/payment-providers/MANUAL").param("version",Long.toString(version(id))),null,200);
+        var entries=mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("entityType").is("Club").and("entityId").is(id)),
+                org.bson.Document.class,"audit_entries");
+        assertThat(entries).extracting(e->e.getString("action"))
+                .containsExactlyInAnyOrder("CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED","CLUB_PAYMENT_PROVIDER_CHANGED");
+        assertThat(entries.toString()).doesNotContain("Recepció privada","audited@example.test");
+        var listed=call(get("/api/v1/platform/audit-entries").param("filter","clubId:eq:"+id).param("size","50"),null,200);
+        assertThat(listed.path("items").findValuesAsText("action")).contains("CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED");
+        assertThat(call(get("/api/v1/platform/audit-entries").param("filter","action:eq:CLUB_ADMIN_INVITED"),null,200).path("totalItems").asInt()).isEqualTo(1);
+    }
 }

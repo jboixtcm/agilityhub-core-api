@@ -1,0 +1,1 @@
+gh run view 38753360110 --repo jboixtcm/agilityhub-core-api --json jobs --jq '.jobs[] | [.name, .conclusion] | @tsv'

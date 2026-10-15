@@ -1,0 +1,27 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[545,111] cannot find symbol
+  symbol:   variable CLUB_CREATED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[546,71] cannot find symbol
+  symbol:   variable CLUB_PAYMENT_PROVIDER_CHANGED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[547,71] cannot find symbol
+  symbol:   variable CLUB_ADMIN_INVITED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[545,111] cannot find symbol
+[ERROR]   symbol:   variable CLUB_CREATED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[546,71] cannot find symbol
+[ERROR]   symbol:   variable CLUB_PAYMENT_PROVIDER_CHANGED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/src/test/java/com/agilityhub/core/platform/api/PlatformConsoleIT.java:[547,71] cannot find symbol
+[ERROR]   symbol:   variable CLUB_ADMIN_INVITED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

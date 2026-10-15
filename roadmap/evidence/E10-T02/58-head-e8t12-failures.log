@@ -1,0 +1,1066 @@
+19:06:16.634 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT]: CapturedPaymentInvariantsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+19:06:17.007 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+19:06:17.234 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+19:06:17.238 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+19:06:17.249 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+19:06:17.645 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+19:06:18.070 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+19:06:18.072 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+19:06:18.097 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+19:06:18.821 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+19:06:18.971 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+19:06:19.089 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 1340ce0d0b72af8119d4fe6ecf87aa47a4d244aa833f48fdd2d1753aab2c99e8
+19:06:19.449 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.628428S
+19:06:19.465 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+19:06:19.465 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+19:06:19.466 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+19:06:19.467 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+19:06:19.545 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: e92f8dd8f6be45045b2301830a642b9da13b08347996ca0787084ae3f908849f
+19:06:20.538 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT1.070602S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-15T19:06:22.006+03:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Starting CapturedPaymentInvariantsIT using Java [redacted] with PID 6222 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red)
+2026-10-15T19:06:22.011+03:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-15T19:06:25.594+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-15T19:06:25.744+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 138 ms. Found 0 MongoDB repository interfaces.
+2026-10-15T19:06:27.016+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4ddecf15], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@70691683, com.mongodb.Jep395RecordCodecProvider@875cfe4, com.mongodb.KotlinCodecProvider@645494c5]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61388], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5fc9593d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-15T19:06:27.034+03:00 INFO  [cluster-ClusterId{value='6ad0fa02d6c9590dcbdf0a61', description='null'}-localhost:61388] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61388, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=26691208, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=e92f8dd8f6be:27017, hosts=[e92f8dd8f6be:27017], passives=[], arbiters=[], primary='e92f8dd8f6be:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad0f9fb0e05cf0bacf9188a, counter=6}, lastWriteDate=Thu Oct 15 19:06:21 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-15T19:06:35.194+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-15T19:06:35.194+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-15T19:06:35.196+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-15T19:06:35.288+03:00 INFO  [main] c.a.c.p.api.CapturedPaymentInvariantsIT traceId= clubId= accountId= : Started CapturedPaymentInvariantsIT in 13.779 seconds (process running for 19.789)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-15T19:06:37.206+03:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/checkout-sessions' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-15T19:06:39.357+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:06:41.581+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:06:45.687+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f4aa8615-847f-4485-9eb2-6c71e9102586 traceId=[truncated]
+2026-10-15T19:06:45.744+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:06:46.971+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_583ef0a8-e901-4371-85e3-e9534f460bba traceId=[redacted]
+2026-10-15T19:06:47.003+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:06:47.878+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d4c58a98-c81a-432d-93e3-c33ec0c4bca9 traceId=[redacted]
+2026-10-15T19:06:47.908+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[redacted]
+2026-10-15T19:06:48.910+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_aad3340c-1f5c-4329-b1ed-10c09e9a273a traceId=[truncated]
+2026-10-15T19:06:48.953+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:06:50.730+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_59e82696-bb2c-4867-88c5-30b2ac74b177 traceId=[truncated]
+2026-10-15T19:06:50.845+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:06:52.034+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_fbe5dc8e-4b8b-41ff-8eb6-9716fdcf4e6f traceId=[truncated]
+2026-10-15T19:06:52.102+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:06:53.728+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1917b7eb-cd6a-4175-a4bf-4dabed6399c1 traceId=[truncated]
+2026-10-15T19:06:53.802+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:06:56.483+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=3f7dba18-4994-4ef0-b0da-a5442ad85a91 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:06:56.539+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_aedc05b9-3cff-476e-881d-55819c5b7624 traceId=[truncated]
+2026-10-15T19:06:56.564+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=36326328-a620-4e80-[redacted]=57bcba56-52b6-4cd8-b58c-beffa4072c80
+2026-10-15T19:06:57.325+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=7d4c15b9-4ca3-4ac6-abee-a47624b35fe9 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:06:57.386+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_dd8cb985-b3a0-49bb-a31f-426d409ef9c1 traceId=e2c8a5b9-29cf-4593-[redacted]
+2026-10-15T19:06:57.404+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=12453fa8-05bd-4d4f-9ea3-ada89491f870 traceId=e2c8a5b9-29cf-4593-[redacted]
+2026-10-15T19:06:58.139+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=05b52dc6-7046-4de5-b690-70e2c90e0569 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:06:58.246+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=3cd263f4-f53e-4d5a-9263-49749201f494 traceId=[truncated]
+2026-10-15T19:06:58.248+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=72e7d2bd-666a-4de3-93f4-7045f4745ae9 traceId=[truncated]
+2026-10-15T19:06:59.121+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b4094a46-[redacted]=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:06:59.173+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_4d205e86-4fb5-4458-93bd-e2bb80560212 traceId=525b2752-97c9-41d5-[redacted]
+2026-10-15T19:06:59.190+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=33ee0153-[redacted]=525b2752-97c9-41d5-[redacted]
+2026-10-15T19:06:59.883+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:06:59.977+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=549d9e2d-a5fc-41d9-acae-538dc0bf6271 traceId=[truncated]
+2026-10-15T19:06:59.979+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:07:03.150+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d176420a-daca-4f0d-a17d-29c67a6fbeda traceId=[truncated]
+2026-10-15T19:07:03.222+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ec2c1bce-ec6a-4f2a-aea4-118d6fd3e8a8 traceId=[truncated]
+2026-10-15T19:07:03.282+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_45984c0e-d57a-4c37-b885-e3478f60b550 traceId=[truncated]
+2026-10-15T19:07:03.341+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ff5d5b61-004e-4c42-913a-a77b54841784 traceId=[truncated]
+2026-10-15T19:07:05.860+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:06.765+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[redacted]
+2026-10-15T19:07:07.660+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:07:08.671+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:07:09.274+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_78c7d9ef-437b-4ddd-8271-baed4f91733c traceId=[truncated]
+2026-10-15T19:07:09.297+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:09.846+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:09.849+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=267a3a63-c124-40f4-b3a3-8ef4d78f916d traceId=3cc109de-a32b-472f-[redacted]
+2026-10-15T19:07:10.432+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_e3045341-b339-48ab-a648-[redacted]=8653c848-e174-4589-8c81-30ab2c48ba9c
+2026-10-15T19:07:11.171+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_0122c0c8-06cb-44b2-82b7-7e66b6cbc361 traceId=1acc7b3c-[redacted]
+2026-10-15T19:07:11.195+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=1acc7b3c-[redacted]
+2026-10-15T19:07:11.713+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_29782487-19ad-4803-a7d9-676ae4823ff6 traceId=[truncated]
+2026-10-15T19:07:11.738+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:12.401+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_01be3a17-95b1-43fc-9c17-0e4c90a69c2e traceId=[truncated]
+2026-10-15T19:07:12.426+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:13.060+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f63ed84f-63a8-448d-a594-4a3912987f88 traceId=[truncated]
+2026-10-15T19:07:13.078+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:13.711+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_cd137afa-bae6-48a4-a45c-[redacted]=f0e0a8a0-0f61-4a0e-8d76-8ee8b704580f
+2026-10-15T19:07:13.738+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:14.403+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:15.053+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:15.777+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:07:16.865+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_4ab9e595-9bc7-4c83-b8eb-4198ad0ca8b4 traceId=33544475-faa5-4df1-[redacted]
+2026-10-15T19:07:17.869+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:07:18.261+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_b2dc8e36-8962-4b2f-a422-e3bdd35a704f traceId=[truncated]
+2026-10-15T19:07:18.315+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:07:18.384+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_5 traceId=[truncated]
+2026-10-15T19:07:18.467+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_23f7deca-de8d-4aa9-9a59-c8a572d64adf traceId=827a6e62-[redacted]
+2026-10-15T19:07:19.269+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_14 traceId=7e2a9829-[redacted]
+2026-10-15T19:07:20.194+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_57a496c9-def6-46b2-957a-9933d0bd32a5 traceId=[truncated]
+2026-10-15T19:07:20.471+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_391f13cd-71fe-4ab5-a0c6-3a23b15991c0 traceId=[truncated]
+2026-10-15T19:07:20.507+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:23.096+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_108bb2db-92fb-47c4-91db-7d16aba55244 traceId=[truncated]
+2026-10-15T19:07:23.911+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_3e7e3d35-b473-482b-baaf-cd0cccb91e92 traceId=[truncated]
+2026-10-15T19:07:27.500+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_49 traceId=[truncated]
+2026-10-15T19:07:29.667+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_60 traceId=[truncated]
+2026-10-15T19:07:30.363+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=8b0b35a3-c159-4215-9956-cd9a47ce213d traceId=[redacted]
+2026-10-15T19:07:30.750+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_22518388-4676-477f-a77a-9ae969281ef4 traceId=[redacted]
+2026-10-15T19:07:31.969+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_bdc26810-d880-40c8-8bec-aafc826c2793 traceId=[truncated]
+2026-10-15T19:07:33.086+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_72 traceId=[truncated]
+2026-10-15T19:07:33.117+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:34.053+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_38e6594f-[redacted]=[redacted]
+2026-10-15T19:07:34.092+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:07:35.769+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_87 traceId=[truncated]
+2026-10-15T19:07:36.810+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_eec464be-0815-4d67-85c4-09fbab3b4e8f traceId=[truncated]
+2026-10-15T19:07:38.491+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_b845b64b-e346-45bb-800d-4871e96e46e1 traceId=[truncated]
+2026-10-15T19:07:39.240+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_107 traceId=[truncated]
+2026-10-15T19:07:41.296+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_229f5f13-4e3d-4b66-9d7e-e7ea3afdff3a traceId=[redacted]
+2026-10-15T19:07:41.344+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:07:41.399+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c456d394-9c82-47ee-bebe-323aadc3ad4a traceId=[truncated]
+2026-10-15T19:07:42.529+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7ac69cad-649b-4321-[redacted]=2ad1ad4f-c37e-4188-acb4-b13c8921b7bb
+2026-10-15T19:07:43.638+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_126 traceId=5089a127-b52e-4296-[redacted]
+2026-10-15T19:07:43.856+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_c24ad19b-1579-4359-9af9-3b77e5f7c5c1 traceId=[truncated]
+2026-10-15T19:07:43.889+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:07:44.713+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_61807c41-a124-49a1-977c-6ccab6a1472a traceId=[truncated]
+2026-10-15T19:07:44.787+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_19b3e468-0c22-4d1a-beda-1dfdd6f1abef traceId=[truncated]
+2026-10-15T19:07:44.827+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:07:46.790+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c0d10cc5-393e-4e41-855f-c3b393161151 traceId=6e8195dc-[redacted]
+2026-10-15T19:07:48.692+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_633590e7-[redacted]=52d20001-b4e1-4f36-a9bf-2cd7bbc8275d
+2026-10-15T19:07:49.031+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_157 traceId=3613351e-f016-4c5a-[redacted]
+2026-10-15T19:07:49.062+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:07:49.684+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_164 traceId=[truncated]
+2026-10-15T19:07:50.695+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_167 traceId=3eb46058-6c88-481c-[redacted]
+2026-10-15T19:07:50.722+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=3eb46058-6c88-481c-[redacted]
+2026-10-15T19:07:51.820+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_62d167e7-9b01-4c35-98ec-bae61c420ed4 traceId=3c8ed960-59e5-4891-[redacted]
+2026-10-15T19:07:51.878+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=3c8ed960-59e5-4891-[redacted]
+2026-10-15T19:07:52.162+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_6e222220-[redacted]=9499fb57-1128-44e7-b74a-90b8f371e593
+2026-10-15T19:07:53.946+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_8705057f-9f29-4f2f-8a5b-0f3f585b81ec traceId=[truncated]
+2026-10-15T19:07:57.619+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_208 traceId=[redacted]
+2026-10-15T19:07:57.993+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_207 traceId=[truncated]
+2026-10-15T19:08:01.161+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_b8c32b08-0188-4e8f-8077-5fbb81e2baa4 traceId=a241258b-[redacted]
+2026-10-15T19:08:01.371+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_221 traceId=[truncated]
+2026-10-15T19:08:02.154+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_222 traceId=[truncated]
+2026-10-15T19:08:02.265+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:08:09.556+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_246 traceId=[truncated]
+2026-10-15T19:08:15.694+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_256 traceId=[truncated]
+2026-10-15T19:08:21.108+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_263 traceId=3d3d8211-4b4b-4f66-[redacted]
+2026-10-15T19:08:37.517+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_300 traceId=[truncated]
+2026-10-15T19:08:38.466+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_298 traceId=[truncated]
+2026-10-15T19:08:38.960+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_302 traceId=[truncated]
+2026-10-15T19:08:44.077+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_cad96603-571c-4c24-b983-0d399181c4aa traceId=[truncated]
+E8-T12 shared generator, billed credits false, absorption prefixes false, intervention prefixes false, repayments false: 32 seeds x 24 steps; [accepted, cancel, dashboard, execute, recover, redeliver, refused, webhook]
+2026-10-15T19:08:49.905+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:08:52.630+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d744c8c7-752d-42ff-9aca-094f5e948edf traceId=[truncated]
+2026-10-15T19:08:52.756+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:08:53.013+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3bad430f-d16f-4c0f-8579-3a1a8b331841 traceId=[truncated]
+2026-10-15T19:08:53.153+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:08:55.995+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=91e81418-95ba-4480-[redacted]
+2026-10-15T19:08:58.412+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_43423dc8-3d9d-4f77-af1a-2000e17bc388 traceId=[truncated]
+2026-10-15T19:08:58.509+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:08:58.674+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1da64652-8d0f-4663-8a9c-05ac85ccf6fc traceId=[redacted]
+2026-10-15T19:08:58.815+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:09:02.142+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_16 traceId=d2f8f578-[redacted]
+2026-10-15T19:09:03.609+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_34e14aa4-97be-43d3-b56d-abbada9ca0f7 traceId=[truncated]
+2026-10-15T19:09:03.678+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:03.804+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_56d08c43-6628-47a2-98cd-c43c9d7e2290 traceId=[truncated]
+2026-10-15T19:09:03.878+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:06.871+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_001074be-c036-4764-[redacted]=9336d538-b984-4409-89da-72d16a7af7e8
+2026-10-15T19:09:06.919+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:07.000+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5e61da8d-f399-4cdd-b7c1-e7ca2637b2b3 traceId=[truncated]
+2026-10-15T19:09:07.095+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:08.042+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:09:09.830+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_0bd76398-a7a4-4312-b509-f662de05c366 traceId=[truncated]
+2026-10-15T19:09:09.886+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:09.970+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_bfa18416-024c-4a28-84dd-b1358d0e32a5 traceId=[truncated]
+2026-10-15T19:09:10.038+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:10.672+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=47563491-e2fb-4af5-[redacted]=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:10.801+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=a0348acf-822e-4780-a355-318566bfedc9 traceId=[truncated]
+2026-10-15T19:09:10.804+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=3520530e-fe2a-4fc3-850d-45a04ae22763 traceId=[truncated]
+2026-10-15T19:09:10.933+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:09:11.617+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b2e15431-75f9-4ae7-aeda-1009eee36a44 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:11.751+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=34175095-e27c-4793-8a28-d0120a41762c traceId=[truncated]
+2026-10-15T19:09:11.752+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=a3c48072-251f-4701-9752-98a655c5032d traceId=[truncated]
+2026-10-15T19:09:12.138+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_33 traceId=[truncated]
+2026-10-15T19:09:12.235+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_26 traceId=[truncated]
+2026-10-15T19:09:12.538+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_50 traceId=[truncated]
+2026-10-15T19:09:12.904+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=fb2abfd0-e54f-46b4-96c2-7ffcd47044d4 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:13.030+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=4dd57899-0ec4-401c-9e5c-c87b7c102275 traceId=[truncated]
+2026-10-15T19:09:13.054+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_59 traceId=[truncated]
+2026-10-15T19:09:13.071+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=8429c058-4452-4334-9b69-fbdeeb4cbeff traceId=[truncated]
+2026-10-15T19:09:13.443+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_62 traceId=[truncated]
+2026-10-15T19:09:13.732+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_77 traceId=[truncated]
+2026-10-15T19:09:13.997+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=6a142547-d372-4b60-a0df-44c708c51fe9 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:14.158+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=1a374efb-31e0-49a5-af9c-3a848e6490bb traceId=[truncated]
+2026-10-15T19:09:14.161+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=9715c541-5142-4f7e-8a8e-23a94ce21f13 traceId=[truncated]
+2026-10-15T19:09:14.248+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_83 traceId=[truncated]
+2026-10-15T19:09:14.322+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_82 traceId=[truncated]
+2026-10-15T19:09:15.086+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=2ff71072-70c4-4303-9316-7bc510b080dd bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:15.219+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=d0ceea67-449f-4611-bdf7-b5f11136107b traceId=[redacted]
+2026-10-15T19:09:15.221+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=a2f9b64d-1968-4218-b1ba-2f66bcbcaf5b traceId=[truncated]
+2026-10-15T19:09:15.503+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_108 traceId=[truncated]
+2026-10-15T19:09:15.989+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=4935c85a-372b-4780-a19f-19b4fdf94ff6 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:16.107+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:09:16.230+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_130 traceId=[truncated]
+2026-10-15T19:09:16.243+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=3ca895d1-[redacted]=3894b745-46f3-4da5-90cb-c5c48e4b2604
+2026-10-15T19:09:16.345+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_135 traceId=[truncated]
+2026-10-15T19:09:16.793+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_140 traceId=[truncated]
+2026-10-15T19:09:17.156+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=e3e0a136-fc0f-4e2d-ba1f-d5a229461b26 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:17.289+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=4fe4cefd-b93a-44c8-81d9-0e068d45eee2 traceId=[truncated]
+2026-10-15T19:09:17.291+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:09:17.380+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_160 traceId=a326472c-e27f-4354-[redacted]
+2026-10-15T19:09:17.615+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_165 traceId=[truncated]
+2026-10-15T19:09:18.217+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=fe4f7fc7-c60f-4c63-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:18.337+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=1e58a8a6-7883-48b7-86e9-3bdb740eedf7 traceId=[truncated]
+2026-10-15T19:09:18.338+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=9957e516-e1d1-4121-[redacted]=07bef866-4bbc-445f-8aaf-51bb06a2cbc2
+2026-10-15T19:09:18.490+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_dashboard_191 traceId=7ea6b5f4-67cd-42c6-[redacted]
+2026-10-15T19:09:18.785+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_198 traceId=[truncated]
+2026-10-15T19:09:19.250+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=16b9ae56-8853-431e-8d25-a30238f7af9e bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:19.417+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=1673df5b-6afa-4324-a113-c4a70aee291b traceId=[truncated]
+2026-10-15T19:09:19.468+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_214 traceId=[truncated]
+2026-10-15T19:09:19.483+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=e665842b-ba4a-4df0-8a19-3d2598ffbd78 traceId=[truncated]
+2026-10-15T19:09:19.762+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_220 traceId=[truncated]
+2026-10-15T19:09:19.816+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_223 traceId=[truncated]
+2026-10-15T19:09:20.290+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=06061f22-21b5-4620-ba6e-4a5b9b998c5c bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:20.434+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=f480eea8-451a-49db-b71a-050f2d48b313 traceId=[truncated]
+2026-10-15T19:09:20.436+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=6e1195b9-[redacted]=4ed196d4-23af-4e9e-a824-02475fba12c9
+2026-10-15T19:09:20.666+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_242 traceId=[truncated]
+2026-10-15T19:09:20.973+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_245 traceId=[truncated]
+2026-10-15T19:09:21.068+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_256 traceId=[redacted]
+2026-10-15T19:09:21.320+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=cdc642dd-3e08-497a-a101-5779ad81e7c5 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:21.440+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=df0ccff9-8b54-483f-8276-98b176e0033f traceId=[truncated]
+2026-10-15T19:09:21.442+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=f7e8005b-cbde-4103-b01c-ca1d68587324 traceId=[truncated]
+2026-10-15T19:09:21.521+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_270 traceId=dfed452a-22ad-4223-[redacted]
+2026-10-15T19:09:21.798+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_278 traceId=[truncated]
+2026-10-15T19:09:22.001+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_282 traceId=[truncated]
+2026-10-15T19:09:22.350+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=694d9d8b-ba6a-4e22-91da-3df7d6aeecc2 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:22.597+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=32830907-e10e-4d7c-9984-a54c0f094751 traceId=[truncated]
+2026-10-15T19:09:23.140+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_295 traceId=[truncated]
+2026-10-15T19:09:23.156+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=50dbbbaa-2d37-4b3e-b425-6e18e23ec3cb traceId=[truncated]
+2026-10-15T19:09:23.381+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=70fa3809-0d48-46e4-958f-024251baab2a bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:23.516+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=[redacted] traceId=[truncated]
+2026-10-15T19:09:23.518+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=88bbbb65-f1ca-43bd-8487-eaf58bfb9bc0 traceId=76b6ca2c-a84d-44d1-[redacted]
+2026-10-15T19:09:23.769+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_317 traceId=[truncated]
+2026-10-15T19:09:24.039+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_315 traceId=[truncated]
+2026-10-15T19:09:24.174+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_331 traceId=[truncated]
+2026-10-15T19:09:24.365+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_338 traceId=[truncated]
+2026-10-15T19:09:24.546+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_343 traceId=[truncated]
+2026-10-15T19:09:24.725+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:24.843+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=3c2b1150-d5bb-4c0c-aacb-80930e0f4cb9 traceId=[truncated]
+2026-10-15T19:09:24.844+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:09:24.998+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_352 traceId=[truncated]
+2026-10-15T19:09:25.083+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_351 traceId=97754f2d-51d9-4fc8-[redacted]
+2026-10-15T19:09:25.170+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_360 traceId=dafd5120-1d44-4009-[redacted]
+2026-10-15T19:09:25.406+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_370 traceId=[truncated]
+2026-10-15T19:09:25.515+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_373 traceId=[truncated]
+2026-10-15T19:09:25.674+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=f1203a92-54f6-4a38-95f3-a51f47e01778 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:25.790+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=ade5675d-e36e-4868-b167-355c945792eb traceId=[truncated]
+2026-10-15T19:09:25.816+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_376 traceId=[truncated]
+2026-10-15T19:09:25.833+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=a71b186b-7d77-4d1e-[redacted]=5af8eab5-2e41-46cf-b412-cb8cc6fb4335
+2026-10-15T19:09:25.929+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_378 traceId=[truncated]
+2026-10-15T19:09:26.511+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=4f2d92ba-b7bd-4920-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:26.629+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=88fcc592-[redacted]=65b67a6e-a68b-4142-9c82-394507ad51cb
+2026-10-15T19:09:26.632+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=0d658098-2dd5-4743-83f1-840cba6de5ce traceId=[truncated]
+2026-10-15T19:09:26.691+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_398 traceId=[truncated]
+2026-10-15T19:09:27.416+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_399 traceId=[truncated]
+2026-10-15T19:09:28.052+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=f46e25b5-[redacted]=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:28.195+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=c2f2c84f-ab9b-470c-84ab-13fe713e2a35 traceId=[truncated]
+2026-10-15T19:09:28.199+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:09:28.682+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_425 traceId=[truncated]
+2026-10-15T19:09:29.053+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=8e65e17f-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:29.199+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:09:29.351+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_448 traceId=[truncated]
+2026-10-15T19:09:29.375+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=38cac618-63ca-4527-b4cc-4086fcd82c0e traceId=[truncated]
+2026-10-15T19:09:29.589+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_453 traceId=[truncated]
+2026-10-15T19:09:30.018+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_464 traceId=[truncated]
+2026-10-15T19:09:30.093+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_457 traceId=[truncated]
+2026-10-15T19:09:30.407+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=9c4ff7ab-5365-4bdc-[redacted]=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:30.553+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=70d271ac-3149-4776-a5ed-46bdd2397b55 traceId=[truncated]
+2026-10-15T19:09:30.554+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=f18df69c-1c27-4b9f-98aa-319ad8388093 traceId=[truncated]
+2026-10-15T19:09:30.598+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_474 traceId=[truncated]
+2026-10-15T19:09:31.262+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b0bafd7c-7e7b-4001-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:31.385+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=6c3c7bf0-6f00-49ec-92b8-3baac7694578 traceId=[truncated]
+2026-10-15T19:09:31.388+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=ade6ad43-9eab-47f6-ab6f-a7918f66753d traceId=[truncated]
+2026-10-15T19:09:31.458+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_497 traceId=[redacted]
+2026-10-15T19:09:31.803+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_507 traceId=[truncated]
+2026-10-15T19:09:31.859+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_503 traceId=749f50c5-[redacted]
+2026-10-15T19:09:32.275+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=7d8c7818-f9bd-4018-9a2e-9db8a5ec2bf5 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:32.547+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=b83200d0-2e15-4685-9842-4fa0ee8e7b1f traceId=[truncated]
+2026-10-15T19:09:32.681+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_522 traceId=[truncated]
+2026-10-15T19:09:32.698+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=c3ce4bc7-88e3-4463-96e6-7aea38ef049d traceId=[truncated]
+2026-10-15T19:09:33.008+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_527 traceId=[truncated]
+2026-10-15T19:09:33.449+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=3b5c24bc-7fa3-4b00-a9a4-6eaed2743ff0 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:33.573+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=aeb0ef88-a75a-4b06-9045-81d67b910429 traceId=[truncated]
+2026-10-15T19:09:33.575+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=c506dac5-0bda-426a-a497-8814356a6044 traceId=[truncated]
+2026-10-15T19:09:33.593+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_544 traceId=[truncated]
+2026-10-15T19:09:33.668+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_546 traceId=[truncated]
+2026-10-15T19:09:34.326+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:34.484+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=b3dbe2ea-1ebb-4119-99cd-2ae5a8b2bb23 traceId=[truncated]
+2026-10-15T19:09:34.486+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=d052c485-c94c-4dad-b3f1-a30835ab9026 traceId=[truncated]
+2026-10-15T19:09:34.514+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_566 traceId=[truncated]
+2026-10-15T19:09:34.701+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_570 traceId=[truncated]
+2026-10-15T19:09:35.177+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_576 traceId=[truncated]
+2026-10-15T19:09:35.277+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_590 traceId=[truncated]
+2026-10-15T19:09:35.400+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=70df5ad1-9517-45ec-8f04-77c66f934914 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:35.519+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=894fbfc9-1c4a-4d88-be0e-d24bf6797caf traceId=85d4612f-5287-4f49-[redacted]
+2026-10-15T19:09:35.573+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_594 traceId=[truncated]
+2026-10-15T19:09:35.587+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=695d6b0b-4cfd-4099-81e2-290e9b090d93 traceId=[truncated]
+2026-10-15T19:09:35.794+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_599 traceId=[truncated]
+2026-10-15T19:09:36.327+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_603 traceId=[truncated]
+2026-10-15T19:09:36.440+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_619 traceId=[truncated]
+E8-T12 round 2 late repayment generator: 24 seeds x 24 steps; [closed, owed]
+2026-10-15T19:09:36.876+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_112d8583-0614-4d6e-9b1e-e1f91fa3fc93 traceId=[redacted]
+2026-10-15T19:09:36.905+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:09:36.933+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_45a60260-0472-4e80-9e09-b7077af430c5 traceId=[redacted]
+2026-10-15T19:09:40.140+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_6830d047-002d-4363-ae7a-8dd3bc88e197 traceId=[truncated]
+2026-10-15T19:09:40.211+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:40.301+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c2a0ca96-e574-4dd0-b649-68dd9b608499 traceId=[truncated]
+2026-10-15T19:09:40.361+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:41.055+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_2 traceId=[truncated]
+2026-10-15T19:09:42.800+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_2745b509-42c5-4328-9e3a-00d60ea2b0dc traceId=[truncated]
+2026-10-15T19:09:42.852+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:42.929+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5445cbc1-e9a4-4b71-ab6e-0f1096fdc07e traceId=cbf010e7-e6b1-406f-[redacted]
+2026-10-15T19:09:42.995+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=cbf010e7-e6b1-406f-[redacted]
+2026-10-15T19:09:43.752+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_2 traceId=[truncated]
+2026-10-15T19:09:45.508+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c98af547-8086-47d3-8d84-24e36b991b0a traceId=[truncated]
+2026-10-15T19:09:45.556+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:09:45.641+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_2551fdb8-[redacted]=a4080340-5e19-4e83-a125-b9a7680beb74
+2026-10-15T19:09:45.706+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:46.887+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:09:47.292+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_4 traceId=[truncated]
+2026-10-15T19:09:47.317+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:47.958+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:09:48.339+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_4 traceId=[truncated]
+2026-10-15T19:09:48.364+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:09:48.771+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=21f54501-68d1-4dfa-b187-a6460ad442da bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:48.944+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=879a022a-5074-42d4-99f2-62964b9fcfa8 traceId=[truncated]
+2026-10-15T19:09:48.945+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=928700b4-3a46-44ea-bdfc-aca7d8a09f37 traceId=[truncated]
+2026-10-15T19:09:49.785+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=c96abffd-d633-4c0f-af3f-9cc5bf71514a bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:50.034+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=0c2a51e0-26fa-454f-934c-b4ccb05d7d3c traceId=1e03db8d-[redacted]
+2026-10-15T19:09:50.933+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:51.055+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=d4f493a3-37ad-40ff-9193-d70b834f3d8c traceId=[truncated]
+2026-10-15T19:09:51.058+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=b0b49750-6928-4478-8ec3-379acedf7163 traceId=[truncated]
+2026-10-15T19:09:51.664+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=682bf1e0-0092-483d-afca-d0de5e22dbf5 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:51.778+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=4d7d1661-68c7-4cf1-a238-1f1cd1fc706d traceId=[truncated]
+2026-10-15T19:09:52.251+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=fab94b4b-2223-491a-a180-ab6d7e8b8bd8 bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:52.451+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=d9b785ea-5dae-4c90-[redacted]=7b04f4a5-f924-4356-b56c-9e7375b7889c
+2026-10-15T19:09:52.457+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=d4e97105-1494-4567-8d0d-e9b97c09f251 traceId=[truncated]
+2026-10-15T19:09:53.244+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=[redacted] bookingId=null providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:09:53.405+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=e0412303-531e-460a-843f-6a94e9a3a3dc traceId=[truncated]
+2026-10-15T19:09:55.176+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_360a8ef6-0cbc-4309-bef2-cccabcf8f9b9 traceId=[truncated]
+2026-10-15T19:09:55.666+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:56.596+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_04654c81-86b9-415e-9173-88b700038296 traceId=d5dadccf-[redacted]
+2026-10-15T19:09:56.641+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_15 traceId=[truncated]
+2026-10-15T19:09:56.767+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_a9219c1c-5176-4185-b271-bb3af1d217ca traceId=8fa2adca-[redacted]
+2026-10-15T19:09:56.800+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=8fa2adca-[redacted]
+2026-10-15T19:09:57.258+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5100f14e-d1a8-4990-973f-4185c005cf59 traceId=[truncated]
+2026-10-15T19:09:57.283+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:09:58.541+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_30 traceId=[truncated]
+2026-10-15T19:09:58.912+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_93075980-8076-44d0-b4c0-8aa8a384c6ba traceId=[truncated]
+2026-10-15T19:09:58.935+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:01.336+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=a60c2403-e9c7-4fdf-b5e0-1793523677f0 traceId=1ef5303f-7892-49f3-[redacted]
+2026-10-15T19:10:01.442+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_49 traceId=[redacted]
+2026-10-15T19:10:01.611+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=889dacac-86ee-4b5d-91c5-1514cee23bbf traceId=[truncated]
+2026-10-15T19:10:01.763+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:10:01.782+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:03.143+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_57383f83-1972-425e-b74e-f00f035873ea traceId=2597cd82-[redacted]
+2026-10-15T19:10:03.600+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=95d8f85f-7fa6-4a50-98e3-6d930a2ece95 traceId=[truncated]
+2026-10-15T19:10:04.351+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:04.525+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=9c49f556-cb4c-4708-999d-656b98690233 traceId=551d7931-[redacted]
+2026-10-15T19:10:04.929+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=4e880cf3-d40a-4f51-b0b4-e12ada9116f6 traceId=a3a5db68-4ec5-4b88-[redacted]
+2026-10-15T19:10:05.159+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=9a8e38dd-2da8-4dfc-9f53-02c5083cf58b traceId=[truncated]
+2026-10-15T19:10:06.087+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_62586dc9-599f-4ab4-a8d9-b0bb476f70b6 traceId=[truncated]
+2026-10-15T19:10:06.848+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=903d8c01-561a-4ec5-9d90-[redacted]=f1f11648-10fe-4c2e-ab0c-8c8faded7a8c
+2026-10-15T19:10:07.153+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_76003080-59b5-44a7-ba1e-9e0a77e4b51a traceId=[truncated]
+2026-10-15T19:10:07.324+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_09c3b0de-8f12-48a8-b21e-b75c496083f7 traceId=[truncated]
+2026-10-15T19:10:07.347+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:08.211+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3244b1e2-c051-4c71-9356-9c21a7703ed1 traceId=[truncated]
+2026-10-15T19:10:08.236+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:08.761+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_543fee25-607f-48e1-8951-e092d94515a5 traceId=[truncated]
+2026-10-15T19:10:09.284+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1ac3c323-7fee-4c62-864e-d878f28a0aa0 traceId=[truncated]
+2026-10-15T19:10:09.524+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_5320fc21-48af-41b9-8bfd-3e764a4aaec3 traceId=[truncated]
+2026-10-15T19:10:09.547+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:09.731+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_111 traceId=[truncated]
+2026-10-15T19:10:10.142+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_19876db4-[redacted]=55250830-8b14-4048-81c1-e13527aca79c
+2026-10-15T19:10:10.946+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:10:10.969+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:12.186+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_130 traceId=e6131d37-[redacted]
+2026-10-15T19:10:13.022+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_938d9c2c-9e10-4ee9-b853-4760c9d63a42 traceId=[truncated]
+2026-10-15T19:10:13.059+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_05ff2cca-6ad9-44ba-a0c2-19f501b9ed27 traceId=[truncated]
+2026-10-15T19:10:13.608+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_cf1e8c60-4fdf-4fa3-86fd-5fd122cfd2f7 traceId=[truncated]
+2026-10-15T19:10:14.035+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_782d2e25-3220-4515-a073-45d86abeb49d traceId=[redacted]
+2026-10-15T19:10:14.063+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:10:14.536+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=68ef18ad-ad3d-481b-b926-aef6b75373d1 traceId=[truncated]
+2026-10-15T19:10:17.703+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_75d65676-43fe-4589-84d8-6fcef99f63a6 traceId=[truncated]
+2026-10-15T19:10:19.445+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7e45e409-0ecf-4468-889d-0ac6af0fb29f traceId=[truncated]
+2026-10-15T19:10:21.566+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=04b0f4fa-c1d4-4d70-8905-6240e2aa9148 traceId=[truncated]
+2026-10-15T19:10:22.304+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_generated_pending traceId=208b076b-[redacted]
+2026-10-15T19:10:22.352+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=208b076b-[redacted]
+2026-10-15T19:10:23.336+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_189 traceId=[truncated]
+2026-10-15T19:10:24.150+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=e2ce476d-f061-4dfb-9823-9c9b64c3389a traceId=9ffa0486-[redacted]
+2026-10-15T19:10:25.398+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_26bbd5db-157f-4970-b356-af2ceed83264 traceId=[truncated]
+2026-10-15T19:10:26.458+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9d6d9e56-a51a-4b73-98b5-0ed5fcb14fdf traceId=[truncated]
+2026-10-15T19:10:26.484+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:27.426+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_208 traceId=[redacted]
+2026-10-15T19:10:28.617+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_9c57ca6c-758f-4401-8a5f-5dd2df6cc180 traceId=[truncated]
+2026-10-15T19:10:28.654+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:29.733+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_9adb128b-b9e8-49be-934c-7b68d80b9de2 traceId=[truncated]
+2026-10-15T19:10:32.168+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_48a829b0-94e7-4b24-a0fa-885519f85986 traceId=[truncated]
+2026-10-15T19:10:33.006+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=96b528a6-f5f0-461a-a5cd-8380df4eef12 traceId=[truncated]
+2026-10-15T19:10:34.250+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_4e64ae97-69db-414f-8479-ad6a962d1585 traceId=474bcbf3-[redacted]
+2026-10-15T19:10:34.283+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=474bcbf3-[redacted]
+2026-10-15T19:10:35.260+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_8384a40b-322b-4ac4-9be3-e2df28171cfc traceId=[truncated]
+2026-10-15T19:10:37.025+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_21b0599a-a2e4-49be-a552-a5cdaedceccd traceId=[truncated]
+2026-10-15T19:10:37.053+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:37.109+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_249 traceId=[truncated]
+2026-10-15T19:10:38.732+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:10:38.751+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:40.326+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_265 traceId=[truncated]
+2026-10-15T19:10:40.693+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_de141807-e5f4-4844-911e-c4ac43a907f2 traceId=[truncated]
+2026-10-15T19:10:40.725+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:43.279+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_278 traceId=[truncated]
+2026-10-15T19:10:43.314+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:44.608+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_285 traceId=[redacted]
+2026-10-15T19:10:45.033+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3a6f5266-adc6-494b-b5f3-08c9d7bece6e traceId=[truncated]
+2026-10-15T19:10:45.609+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_9b93b314-7e07-4996-[redacted]=b9e6bb71-4f41-47e4-8c8e-72aa0da266ec
+2026-10-15T19:10:46.471+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_300 traceId=[truncated]
+2026-10-15T19:10:47.029+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=340b0ed1-e4da-4410-910c-6b9dbe0357a2 traceId=1d16dc0d-946c-4354-[redacted]
+2026-10-15T19:10:47.064+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=4c6df36a-[redacted]=535aedda-3895-4e72-bdab-93c1bc44b6b0
+2026-10-15T19:10:47.101+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=44df6af3-1443-4fd7-8fa0-2264d7efd6e9 traceId=[truncated]
+2026-10-15T19:10:47.448+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7af264fd-4a16-4528-90cf-0fc956ac17d6 traceId=[truncated]
+2026-10-15T19:10:47.471+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:48.142+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_310 traceId=05e90eac-94ad-442f-[redacted]
+2026-10-15T19:10:48.325+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=c82b8960-487d-4757-9696-25a55b86f0ba traceId=3ed2e29a-f926-4edb-[redacted]
+2026-10-15T19:10:48.370+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:10:48.854+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_7d5aa5ba-7ae7-479a-8071-8f9ac86907cd traceId=[truncated]
+2026-10-15T19:10:48.875+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:49.553+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_184674c4-196f-4547-8c79-a551c045c95c traceId=[truncated]
+2026-10-15T19:10:49.936+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_defad872-94ef-427c-8e1d-b85147e458c3 traceId=a4089e96-8803-488c-[redacted]
+2026-10-15T19:10:49.961+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=a4089e96-8803-488c-[redacted]
+2026-10-15T19:10:50.149+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_bd118614-a786-442c-a83d-d0dc07e5dee3 traceId=a84810a1-[redacted]
+2026-10-15T19:10:50.333+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:10:50.357+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:52.456+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_dashboard_334 traceId=[truncated]
+2026-10-15T19:10:53.272+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=1972a22b-15dc-4589-b84e-71e6aecb6b69 traceId=[truncated]
+2026-10-15T19:10:54.289+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_be86c6d8-113f-4e11-8427-d467c245c78a traceId=[truncated]
+2026-10-15T19:10:54.342+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:10:57.048+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_08d1981e-67ae-481a-af2b-0fb7ea0cf216 traceId=[truncated]
+2026-10-15T19:10:57.206+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_1c396ffc-4100-432c-b597-23d2ae10312a traceId=[truncated]
+2026-10-15T19:10:57.275+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:00.005+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=55a34311-7382-498e-[redacted]=5576d860-[redacted]
+2026-10-15T19:11:01.829+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_376 traceId=[redacted]
+2026-10-15T19:11:02.872+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_0bdb1f15-476e-49ec-[redacted]=cfa4c5f9-d730-4906-84e9-82ddf793e69a
+2026-10-15T19:11:05.343+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_713e4c4c-a0e7-4ad8-9f9c-0e208548ec89 traceId=[truncated]
+2026-10-15T19:11:07.090+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_494bc391-373d-4bd8-9c89-2286600a77b8 traceId=[truncated]
+2026-10-15T19:11:08.828+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:11:08.856+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:09.777+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:10.816+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_421 traceId=[truncated]
+2026-10-15T19:11:11.060+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:11.064+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=408c0d44-2bce-4caf-9262-47602326195f traceId=[truncated]
+2026-10-15T19:11:11.600+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_73e5d57a-8371-41b6-a0f1-9278db531f30 traceId=[truncated]
+2026-10-15T19:11:11.642+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:11.970+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9fcc7df3-8ffb-4630-91ef-2ce2820b0aff traceId=[truncated]
+2026-10-15T19:11:12.635+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_433 traceId=[redacted]
+2026-10-15T19:11:17.579+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=48077078-b489-46bb-9ab1-e9afb513a9cf traceId=[truncated]
+2026-10-15T19:11:18.772+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_438 traceId=[truncated]
+2026-10-15T19:11:19.426+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_b85d02c6-[redacted]=16ca25c2-4902-4d92-985e-dccae6543c7f
+2026-10-15T19:11:20.394+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_446 traceId=[truncated]
+2026-10-15T19:11:20.620+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_3b569553-c8f9-44d8-b60f-356d0c637363 traceId=[truncated]
+2026-10-15T19:11:23.183+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_457 traceId=[redacted]
+2026-10-15T19:11:23.659+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_01996f01-8158-4f6f-b5a0-24d1c111dd2e traceId=[truncated]
+2026-10-15T19:11:23.694+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:25.538+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_468 traceId=[truncated]
+2026-10-15T19:11:29.850+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_472 traceId=[truncated]
+2026-10-15T19:11:32.664+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_2fc145de-60e1-42c8-9499-6eb507cab435 traceId=[truncated]
+2026-10-15T19:11:33.438+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_483 traceId=[truncated]
+2026-10-15T19:11:34.118+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:11:34.139+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:35.676+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_dashboard_501 traceId=[truncated]
+2026-10-15T19:11:37.306+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_88b16a88-7fe1-4e07-a6b2-06ce22041504 traceId=[truncated]
+2026-10-15T19:11:37.934+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_a05aecee-b625-4344-84db-69bfbe3c0702 traceId=f00875e3-[redacted]
+2026-10-15T19:11:37.957+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:39.329+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=f9f56ce7-9956-48aa-897d-37f11c3cdb58 traceId=[truncated]
+2026-10-15T19:11:39.866+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_9b4a56ba-365e-4f1f-9a1b-ed8d073a1422 traceId=[truncated]
+2026-10-15T19:11:39.891+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:40.640+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_dashboard_526 traceId=[truncated]
+2026-10-15T19:11:41.362+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=5ac66aa0-bbfa-417f-8df4-6a89d515f391 traceId=[truncated]
+2026-10-15T19:11:42.257+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_generated_pending traceId=[truncated]
+2026-10-15T19:11:42.274+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:11:43.052+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_dashboard_549 traceId=[truncated]
+E8-T11, 80 seeds x 24 steps reached: {admin refund n=566, bill credit=52, cancel CREDIT=92, cancel CREDIT before confirmation=16, cancel REFUND=87, cancel REFUND before confirmation=22, dashboard nothing=55, dashboard refund pending=35, dashboard refund succeeded=38, disable Stripe=71, enable Stripe=35, execute (lost response)=40, execute (pending)=40, execute (refused)=31, execute (refused, not reached)=12, execute (rejected)=17, execute (rejected, not reached)=6, execute (succeeded)=31, late confirmation=85, n h later, recover=52, recover=174, redeliver canceled=4, redeliver failed=9, redeliver pending=20, redeliver succeeded=22, webhook canceled=33, webhook failed=80, webhook pending=65, webhook succeeded=130, ~ compensation postponed by an outage (E8-T11 point 1)=3, ~ credit absorbed a dashboard refund (E8-T11 point 3)=10, ~ credit grown after a failed refund (finding 1)=2, ~ dashboard refund beyond a billed credit (E8-T11 point 3)=8, ~ obligation CREDIT=21, ~ obligation CREDIT with intervention=13, ~ obligation REFUND=25, ~ obligation REFUND with intervention=21, ~ pending dashboard billed then failed=4, ~ pending dashboard billed then succeeded=4, ~ reconciled while Stripe was disabled=35}
+2026-10-15T19:11:43.509+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b2adcd75-618b-401c-9a58-99712fba0605 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:11:43.635+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=c4c9b204-e6b5-43ce-[redacted]=e92c669d-7695-45ad-b323-fa9617b3fcdf
+2026-10-15T19:11:44.119+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=36bf9b82-[redacted]
+2026-10-15T19:11:46.320+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_d03f886f-cbd1-48cf-b9e6-1101a9c3a57d traceId=[truncated]
+2026-10-15T19:11:46.958+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_26099286-3cba-48b3-885e-ffaaca0f5e62 traceId=[truncated]
+2026-10-15T19:11:47.674+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=d4f0a9ea-12a8-436a-8b4d-93856689917d traceId=[truncated]
+2026-10-15T19:11:50.212+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_9 traceId=[truncated]
+2026-10-15T19:11:53.115+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:11:53.614+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_fa9f18d5-2f91-4152-b5dc-e2c37e31bbd9 traceId=[truncated]
+2026-10-15T19:11:54.380+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_29 traceId=[truncated]
+2026-10-15T19:11:55.783+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=e14487b6-b3f1-4092-880c-3a148c235685 traceId=[truncated]
+2026-10-15T19:11:55.942+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Payment operation recovery exhausted: eventId=[redacted] traceId=[truncated]
+2026-10-15T19:11:58.805+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_51 traceId=[truncated]
+2026-10-15T19:12:01.490+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_57168e8b-dd4a-43b8-9c78-46fb50bfc175 traceId=[truncated]
+2026-10-15T19:12:07.458+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9eeda3cc-cfef-49e9-b993-83d9c0c03aa0 traceId=[truncated]
+2026-10-15T19:12:07.491+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:12:10.716+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:12:11.698+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_9dadcd36-[redacted]=bb9fabe3-a934-4c44-8336-73ed955f6949
+2026-10-15T19:12:12.576+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:12:13.998+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_dc1c68c7-88bc-4fe0-907f-11173763fa3a traceId=6ace46fc-0c15-413f-[redacted]
+2026-10-15T19:12:14.035+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=6ace46fc-0c15-413f-[redacted]
+2026-10-15T19:12:15.369+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_ff064a0b-5334-4105-9dfc-[redacted]=56bc14fa-6bf4-4d72-9ad9-cbf0a797639f
+2026-10-15T19:12:24.775+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=c3e43115-[redacted]
+2026-10-15T19:12:32.452+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_eba942c3-1109-4536-b5eb-90d80bc47df2 traceId=[truncated]
+2026-10-15T19:12:34.390+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_161 traceId=[truncated]
+2026-10-15T19:12:40.376+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:12:43.017+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_183 traceId=[truncated]
+2026-10-15T19:12:44.714+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_cac1764a-0ec1-4fdc-a1d4-1e9e348e2c8b traceId=[truncated]
+2026-10-15T19:12:44.760+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[redacted]
+2026-10-15T19:12:47.237+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_4008f8bb-f66d-4125-bcbd-0989aac68a31 traceId=[truncated]
+2026-10-15T19:12:49.768+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=9a64a424-[redacted]
+2026-10-15T19:12:56.660+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:13:02.345+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_round2_dashboard_231 traceId=[truncated]
+2026-10-15T19:13:03.676+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:13:04.448+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_18dd48fd-4439-476d-8325-761274a3f6a0 traceId=[truncated]
+2026-10-15T19:13:05.690+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+E8-T12 shared generator, billed credits true, absorption prefixes false, intervention prefixes false, repayments false: 32 seeds x 24 steps; [accepted, actual-overpayment, bill, cancel, credit-billed, dashboard, execute, pending-with-credit, recover, redeliver, refused, webhook]
+2026-10-15T19:13:06.386+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_957ed774-8014-43e7-[redacted]=b542ae47-c87d-424d-bc3c-450c4f9bb52e
+2026-10-15T19:13:06.432+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:13:06.633+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:13:08.025+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=72e44911-4a6f-4a56-aafb-27c57e8c932c bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:08.270+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_8764004a-711e-4360-[redacted]=1ae12adc-896b-45a2-8911-582443b08b5f
+2026-10-15T19:13:08.283+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=b63a8683-6311-4466-a18b-c7a3b2f7f872 traceId=[truncated]
+2026-10-15T19:13:08.519+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=2292eca4-2593-402c-8299-6a7969afbab7 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:09.084+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=15a0b043-ebe4-49a1-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:09.266+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_9472f682-c147-499a-9c9a-f34ee8484216 traceId=[truncated]
+2026-10-15T19:13:09.280+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=[redacted] traceId=[truncated]
+2026-10-15T19:13:09.838+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=5becf3df-a633-4d8a-8ae6-e611fc7a3a7a bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:09.997+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_38938a81-1c10-4b2e-a622-95cb077d9948 traceId=[truncated]
+2026-10-15T19:13:10.012+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=ffad2c0b-ecf6-40fa-b4bb-c78fd1027b0e traceId=[truncated]
+2026-10-15T19:13:11.434+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=3e9c8950-1f4a-4cbd-ae7d-b1fce6a16d8e bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:11.888+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_b822d30c-0e0b-4976-8731-5e7f9dfa900f traceId=f5e13340-d0e3-4105-[redacted]
+2026-10-15T19:13:11.935+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=b18028cc-88b7-4f4a-829c-3fc697082100 traceId=f5e13340-d0e3-4105-[redacted]
+2026-10-15T19:13:13.206+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=b9836f2d-20ec-4a7b-8b99-9f4174f7e303 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:13.309+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_13d87d83-6108-4499-[redacted]=dec13757-7180-43d1-83bc-54d546dcf607
+2026-10-15T19:13:13.335+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=[redacted] traceId=[truncated]
+2026-10-15T19:13:14.860+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=d6bab95b-eece-461e-b0c1-b9e200389b68 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:15.589+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_5bfe2e4f-179c-447b-94b1-d84dae166a93 traceId=[truncated]
+2026-10-15T19:13:15.648+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=c9763a25-e25c-47f0-ab1d-6fc4d11acf8c traceId=d9eff5ab-852b-40ac-[redacted]
+2026-10-15T19:13:16.914+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=19b6379a-5061-4f7c-942b-c8fb993da963 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:19.564+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=98a6ee79-9d03-468c-8bf7-b9f8aeb012c5 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:20.817+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c5a22663-6c14-4512-[redacted]=4117ead4-4554-4a84-852d-42cead9a3b55
+2026-10-15T19:13:20.899+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=1d871b3f-7b93-4737-8846-7c089a367049 traceId=[truncated]
+2026-10-15T19:13:21.984+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=900a4efe-ade6-4836-8fe1-e89340b98f6b bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:24.388+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=39ec24fa-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:25.130+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_62f20643-1728-4fe3-[redacted]=17261a66-8244-48a4-8840-487aac62927b
+2026-10-15T19:13:25.170+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=48a98da3-fe3c-4fa8-af5e-67f71a9d9244 traceId=[truncated]
+2026-10-15T19:13:26.310+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=dcdeca8a-6299-4b05-a146-28f90f5deb25 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:28.080+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=81a67b41-684f-4763-9d87-76de060a6f29 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:28.847+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_5054c24b-9cfd-436a-b123-33d2b0f3ec5d traceId=[truncated]
+2026-10-15T19:13:28.878+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=ebf7ee4b-[redacted]=8cc383d7-5e63-4963-a471-ed05fd40fe23
+2026-10-15T19:13:29.598+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=2d9fd342-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:30.803+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=18889e6a-3553-430b-9005-97dfe6274ca5 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:31.002+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5dba5646-c260-4a87-9e4a-17a221693ec4 traceId=[truncated]
+2026-10-15T19:13:31.049+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=1545820e-7d5b-4905-a81b-[redacted]=57c4b20a-63dc-4ead-aac4-0e9689db4f42
+2026-10-15T19:13:32.624+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=4e3d5225-7596-43ac-bcfe-c6a9e54809ec bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:32.733+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c029f73a-72fb-4f25-96c6-d575a6ff9644 traceId=[truncated]
+2026-10-15T19:13:32.750+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=aec0c9f2-5f43-462b-998f-2b7d442d6abe traceId=[truncated]
+2026-10-15T19:13:33.892+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=20ca2b60-9486-4891-9163-b66e9f644da7 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:34.137+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_b5df50e9-abaf-4086-b933-1ba09b4c181e traceId=[redacted]
+2026-10-15T19:13:34.168+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=a33b1ec1-efd4-4ef5-b4c8-8364ad10dfac traceId=[redacted]
+2026-10-15T19:13:35.126+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=35f68ce8-[redacted]=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:36.640+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=deb65725-5bea-422a-9384-7f5eadd4ac52 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:37.241+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_a2512150-d0e1-4d2e-ade9-439d5a8b758e traceId=0dbf8c5a-9341-4a5f-[redacted]
+2026-10-15T19:13:37.270+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=0827c43f-abe5-4ed9-a79f-0aa1c2bc1122 traceId=548aae25-1bfe-4978-[redacted]
+2026-10-15T19:13:37.742+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=ae1ecee6-9a30-476f-9346-30d7c7f449e0 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:37.808+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_fake_2c7cab78-ecfc-4d79-b03e-3de9f3bfdb21 traceId=[truncated]
+2026-10-15T19:13:37.827+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=5d82cc0d-3c29-4047-a648-0715536fa566 traceId=[truncated]
+2026-10-15T19:13:38.714+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=4a5e392b-08ce-4ce5-923b-e8b403b48ac6 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:38.841+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=canceled: eventId=re_fake_a5313ef7-e7c6-46fd-b3e0-[redacted]=6803ea02-7e40-4d96-a76a-78ff18a3948e
+2026-10-15T19:13:38.859+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=6fe7146a-fafe-4f56-a434-d4525c071d25 traceId=[truncated]
+2026-10-15T19:13:39.643+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=062ed77c-8532-4277-9e3f-c7b5879648e2 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:39.720+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_548f8b1b-41cc-4696-bcf2-c7309f892b71 traceId=65bc8054-853c-43f9-[redacted]
+2026-10-15T19:13:39.734+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=69cf6772-2dd3-49e1-9180-9470e8d499af traceId=[truncated]
+2026-10-15T19:13:40.519+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=246e9c2b-a2ba-406a-8146-35e5abdb884c bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+2026-10-15T19:13:40.655+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund reconciliation status=failed: eventId=re_fake_9096fb84-1a74-42d3-a387-eec6ff7049e2 traceId=[truncated]
+2026-10-15T19:13:40.676+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=69e461ee-4786-4950-9aa3-a79657c27b31 traceId=[truncated]
+2026-10-15T19:13:41.290+03:00 WARN  [main] c.a.c.p.application.CheckoutService traceId=[truncated] clubId=- accountId=- : Late provider completion to refund: the checkout expired checkoutSessionId=e6d47124-5b77-4135-9e9b-7e73db05dfd5 bookingId=inv-booking providerPaymentId=pi_invariants clubId=bill-a
+E8-T12 expired checkout generator: 24 seeds x 24 steps; [failed with intervention, succeeded]
+2026-10-15T19:13:42.576+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=8f55fd7d-[redacted]
+2026-10-15T19:13:44.593+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_e8t12_pending traceId=[truncated]
+2026-10-15T19:13:44.617+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:13:45.491+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_e8t12_pending traceId=[truncated]
+2026-10-15T19:13:45.516+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:13:46.174+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_e8t12_pending traceId=[truncated]
+2026-10-15T19:13:47.242+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_e8t12_pending traceId=[truncated]
+2026-10-15T19:13:49.835+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_1 traceId=[truncated]
+2026-10-15T19:13:53.512+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:13:54.739+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_12 traceId=45127e34-[redacted]
+2026-10-15T19:13:58.421+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_19 traceId=[truncated]
+2026-10-15T19:13:58.755+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:13:59.969+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:03.351+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_33 traceId=[truncated]
+2026-10-15T19:14:04.811+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:07.964+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_43 traceId=[truncated]
+2026-10-15T19:14:08.999+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:12.334+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[redacted]
+2026-10-15T19:14:14.366+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_63 traceId=[truncated]
+2026-10-15T19:14:15.065+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_68 traceId=[truncated]
+2026-10-15T19:14:17.712+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_75 traceId=[truncated]
+2026-10-15T19:14:17.899+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:18.538+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_84 traceId=0b367357-b15c-45d2-[redacted]
+2026-10-15T19:14:20.100+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_88 traceId=[truncated]
+2026-10-15T19:14:20.129+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:20.867+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:25.567+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_104 traceId=[truncated]
+2026-10-15T19:14:25.905+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:14:28.157+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_115 traceId=bfef8f47-1218-4f44-[redacted]
+2026-10-15T19:14:28.890+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_124 traceId=[truncated]
+2026-10-15T19:14:29.901+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:32.011+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:14:33.445+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_145 traceId=0af3dba8-[redacted]
+2026-10-15T19:14:35.188+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_156 traceId=[truncated]
+2026-10-15T19:14:38.110+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:39.327+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_170 traceId=0a817abe-65f5-49d5-[redacted]
+2026-10-15T19:14:39.872+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=95ce653d-[redacted]
+2026-10-15T19:14:43.676+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:14:46.848+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_194 traceId=[truncated]
+2026-10-15T19:14:49.469+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:14:50.605+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_208 traceId=[truncated]
+2026-10-15T19:14:51.580+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:14:53.643+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_215 traceId=[truncated]
+2026-10-15T19:14:54.405+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:14:57.032+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_235 traceId=f2d0f2c4-[redacted]
+2026-10-15T19:14:58.680+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=6f5b51f9-[redacted]
+2026-10-15T19:14:59.362+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_249 traceId=[truncated]
+2026-10-15T19:15:00.173+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:01.750+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:03.990+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_272 traceId=[truncated]
+2026-10-15T19:15:04.529+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:06.239+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_286 traceId=[truncated]
+2026-10-15T19:15:07.320+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=d48837f9-[redacted]
+2026-10-15T19:15:08.732+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:11.043+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_308 traceId=[truncated]
+2026-10-15T19:15:11.803+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[redacted]
+2026-10-15T19:15:12.298+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_314 traceId=[truncated]
+2026-10-15T19:15:13.674+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_322 traceId=[truncated]
+2026-10-15T19:15:14.185+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:15.713+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:17.424+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_345 traceId=[truncated]
+2026-10-15T19:15:18.940+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:19.460+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_361 traceId=d95af752-[redacted]
+2026-10-15T19:15:19.872+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:20.987+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:22.557+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_373 traceId=[truncated]
+2026-10-15T19:15:23.164+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_round2_dashboard_384 traceId=[truncated]
+2026-10-15T19:15:24.209+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId= accountId= : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:25.254+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=canceled: eventId=re_round2_dashboard_400 traceId=[truncated]
+2026-10-15T19:15:25.778+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+E8-T12 shared generator, billed credits true, absorption prefixes true, intervention prefixes false, repayments false: 32 seeds x 24 steps; [actual-overpayment, bill, cancel, credit-billed, dashboard, execute, pending-with-credit, prefix-canceled, prefix-failed, prefix-succeeded, recover, redeliver, refused, webhook]
+2026-10-15T19:15:27.735+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_e4c9ed81-a96c-40da-a07b-a23889bac0fc traceId=[truncated]
+2026-10-15T19:15:27.773+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:27.841+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5e517149-97e4-4607-990a-[redacted]=a70123f9-0289-4be1-a87a-edaa1f1706ae
+2026-10-15T19:15:27.892+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:15:30.968+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_8009d5e9-3eee-4da7-bd5b-584b2213ada6 traceId=[truncated]
+2026-10-15T19:15:31.008+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:15:31.076+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_f87359a9-740a-4160-9feb-a756f0bf54e0 traceId=68719ceb-4308-4d1f-[redacted]
+2026-10-15T19:15:31.120+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=68719ceb-4308-4d1f-[redacted]
+2026-10-15T19:15:31.824+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:34.228+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_4531c2c5-8761-4077-8b62-7c54075355ae traceId=[truncated]
+2026-10-15T19:15:34.293+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:34.407+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_8fb848e9-920c-43e3-97d4-8be6d7a80cbf traceId=[truncated]
+2026-10-15T19:15:34.499+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:15:37.189+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:38.038+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_24182113-0c1f-4ceb-bbc9-5b8839a8df8e traceId=[truncated]
+2026-10-15T19:15:38.111+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:15:38.225+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_c928fe10-ad9f-4c47-90cd-6246b89cd63e traceId=[truncated]
+2026-10-15T19:15:38.316+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:40.607+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-b traceId=[truncated]
+2026-10-15T19:15:42.055+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_5f2ca349-b5b6-428b-9ab4-677da0ab0d2e traceId=[truncated]
+2026-10-15T19:15:42.139+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+2026-10-15T19:15:42.279+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_84406908-5456-42b9-baba-da0e45616c4b traceId=[truncated]
+2026-10-15T19:15:42.376+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment-c traceId=[truncated]
+2026-10-15T19:15:43.138+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_0da905d4-8d0e-434b-a599-628082202b49 traceId=[truncated]
+2026-10-15T19:15:43.573+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund reconciliation status=failed: eventId=re_fake_20c7cbc7-b9c6-4327-8327-4a5ab04fc685 traceId=[truncated]
+2026-10-15T19:15:43.591+03:00 WARN  [main] c.a.c.p.application.PaymentRetryPolicy traceId=[truncated] clubId=- accountId=- : Refund compensation needs an admin: paymentId=inv-payment traceId=[truncated]
+[ERROR] Tests run: 83, Failures: 9, Errors: 0, Skipped: 0, Time elapsed: 567.2 s <<< FAILURE! -- in com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[1] -- Time elapsed: 1.053 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[2] -- Time elapsed: 1.069 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[3] -- Time elapsed: 0.872 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[4] -- Time elapsed: 1.128 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[5] -- Time elapsed: 1.943 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[6] -- Time elapsed: 1.229 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(CapturedPaymentInvariantsIT.java:812)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions -- Time elapsed: 20.05 s <<< FAILURE!
+java.lang.AssertionError: shared seed 5 after [intervention prefix 288, execute nothing, accepted inv-payment-c 907]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:998)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:923)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions(CapturedPaymentInvariantsIT.java:793)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.AssertionError: [UpfrontRefundIntervention notices for inv-payment in one event] 
+Expecting actual:
+  2L
+to be less than or equal to:
+  1L 
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.lambda$oneNoticePerPayment$108(CapturedPaymentInvariantsIT.java:1042)
+	at java.base/java.util.HashMap.forEach(HashMap.java:1429)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.oneNoticePerPayment(CapturedPaymentInvariantsIT.java:1041)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:991)
+	... 5 more
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent -- Time elapsed: 1.367 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["inv-payment"=100L]
+to contain exactly (and in same order):
+  ["inv-payment-c"=600L]
+but some elements were not found:
+  ["inv-payment-c"=600L]
+and others were not expected:
+  ["inv-payment"=100L]
+
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent(CapturedPaymentInvariantsIT.java:851)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments -- Time elapsed: 15.97 s <<< FAILURE!
+java.lang.AssertionError: shared seed 5 after [intervention prefix 288, execute nothing]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:998)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments(CapturedPaymentInvariantsIT.java:837)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.AssertionError: [refunds of inv-payment-b, which has no intervention] 
+Expected size: 1 but was: 2 in:
+[{"amount"={"amountMinor"=288L, "currency"="EUR"}, "at"=2026-08-25T21:00:08.000 (java.util.Date), "providerRef"="re_round2_dashboard_50", "reason"="requested_by_customer"},
+    {"amount"={"amountMinor"=912L, "currency"="EUR"}, "at"=2026-08-25T21:12:10.000 (java.util.Date), "providerRef"="re_round2_dashboard_51", "reason"="requested_by_customer"}]
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.repayInterventions(CapturedPaymentInvariantsIT.java:1029)
+	at com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT.sharedSequences(CapturedPaymentInvariantsIT.java:975)
+	... 4 more
+
+[ERROR] Tests run: 8, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.048 s <<< FAILURE! -- in com.agilityhub.core.payments.domain.PaymentIntentLedgerTest
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[sample 0, row B: PaymentIntentLedger[rows=[Row[id=A, captured=1200, refunded=604, credited=0, billed=false], Row[id=B, captured=1200, refunded=1116, credited=0, billed=false], Row[id=C, captured=1200, refunded=595, credited=354, billed=false]], reservations=[], interventions=[B]]] 
+expected: 84L
+ but was: 0L
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue(PaymentIntentLedgerTest.java:146)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"A"=500L, "B"=100L, "C"=0L}
+to contain entries:
+  ["C"=600L]
+but the following map entries had different values:
+  ["C"=0L (expected: 600L)]
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder(PaymentIntentLedgerTest.java:111)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+[owing A] 
+Expecting map:
+  {"A"=0L, "B"=1200L}
+to contain entries:
+  ["A"=1200L]
+but the following map entries had different values:
+  ["A"=0L (expected: 1200L)]
+	at com.agilityhub.core.payments.domain.PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst(PaymentIntentLedgerTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions:793->sharedSequences:923->sharedSequences:998 shared seed 5 after [intervention prefix 288, execute nothing, accepted inv-payment-c 907]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 0L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention:812 [the dashboard refund repays the intervention] 
+expected: 700L
+ but was: 1200L
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments:837->sharedSequences:998 shared seed 5 after [intervention prefix 288, execute nothing]
+[ERROR]   CapturedPaymentInvariantsIT.T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent:851 
+Expecting actual:
+  ["inv-payment"=100L]
+to contain exactly (and in same order):
+  ["inv-payment-c"=600L]
+but some elements were not found:
+  ["inv-payment-c"=600L]
+and others were not expected:
+  ["inv-payment"=100L]
+
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst:87 [owing A] 
+Expecting map:
+  {"A"=0L, "B"=1200L}
+to contain entries:
+  ["A"=1200L]
+but the following map entries had different values:
+  ["A"=0L (expected: 1200L)]
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue:146 [sample 0, row B: PaymentIntentLedger[rows=[Row[id=A, captured=1200, refunded=604, credited=0, billed=false], Row[id=B, captured=1200, refunded=1116, credited=0, billed=false], Row[id=C, captured=1200, refunded=595, credited=354, billed=false]], reservations=[], interventions=[B]]] 
+expected: 84L
+ but was: 0L
+[ERROR]   PaymentIntentLedgerTest.T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder:111 
+Expecting map:
+  {"A"=500L, "B"=100L, "C"=0L}
+to contain entries:
+  ["C"=600L]
+but the following map entries had different values:
+  ["C"=0L (expected: 600L)]
+[ERROR] Tests run: 91, Failures: 12, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/e10t02-red/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -1,0 +1,9 @@
+changed POST /api/v1/platform/clubs
+removed POST /api/v1/platform/clubs/{clubId}/upload-url
+changed POST /api/v1/platform/clubs/{id}/theme/upload-url
+changed schema AuditAction
+changed schema PlatformClubPatch
+changed schema PlatformThemeRequest
+removed schema PlatformThemeUploadRequest
+Outside round 2's scope:
+  changed schema AuditAction

@@ -30,6 +30,7 @@ public class PlatformClubCreation {
     @org.springframework.beans.factory.annotation.Autowired private CountryProfileRegistry countries;
     public ObjectNode prepare(Map<String,Object> input) {
         schema.validate(input);ObjectNode definition=mapper.valueToTree(input);
+        series(definition);
         if("COMPLET".equals(definition.path("preset").asText())) {
             definition.remove("preset");definition.set("modules",mapper.valueToTree(allModules()));
         }
@@ -41,9 +42,23 @@ public class PlatformClubCreation {
         if(definition.path("catalogs").has("fromTemplate")) normalized.withObject("catalogs").set("fromTemplate",definition.path("catalogs").get("fromTemplate"));
         return normalized;
     }
+    static final String SERIES="billing.invoiceSeriesPattern";
+    /**
+     * S17 §3 `SEPA_XML.invoiceSeriesPattern`: the model keeps the series outside SEPA_XML (model Annex B, `billing`), and
+     * billing reads the `billing.invoiceSeriesPattern` parameter, so the value becomes that parameter (validated and exported
+     * like any other). The same value under `parameters` is accepted; a different one is ambiguous.
+     */
+    private static void series(ObjectNode definition) {
+        if(!(definition.path("paymentProviders").path("SEPA_XML") instanceof ObjectNode sepa)||!sepa.has("invoiceSeriesPattern")) return;
+        var value=sepa.remove("invoiceSeriesPattern");
+        var declared=definition.path("parameters").get(SERIES);
+        if(declared!=null&&!declared.equals(value))
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","paymentProviders.SEPA_XML.invoiceSeriesPattern"));
+        definition.withObject("parameters").set(SERIES,value);
+    }
     public static Set<Module> allModules() { var modules=EnumSet.allOf(Module.class);modules.removeAll(Set.of(Module.STATS,Module.SOCIAL_LEAGUE));return modules; }
     @Transactional
-    @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="T(java.util.Map).of()",reason="'source: CONSOLE'")
+    @Audited(action=AuditAction.CLUB_CREATED,entityType="'Club'",entity="#result.id",before="T(java.util.Map).of()",reason="'source: CONSOLE'")
     public Created create(ObjectNode definition,PlatformCatalogClone.Source source) {
         String id=TenantContext.require(),slug=definition.path("club").path("slug").asText();
         if(clubs.findBySlug(slug).isPresent()) throw new ApiException(ErrorCode.SLUG_TAKEN);

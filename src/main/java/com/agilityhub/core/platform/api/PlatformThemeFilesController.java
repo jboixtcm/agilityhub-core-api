@@ -21,8 +21,8 @@ public class PlatformThemeFilesController {
     @PostMapping("/api/v1/platform/clubs/{id}/theme/upload-url")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({ErrorCode.CLUB_NOT_FOUND,ErrorCode.FILE_TOO_LARGE,ErrorCode.FILE_TYPE_NOT_ALLOWED,ErrorCode.IMPERSONATION_DENIED})
-    @Operation(summary="uploadPlatformLogo",description="S17 R-17-02. AGILITYHUB_ADMIN only. An image upload bound to the target club and caller. Publish its fileKey with the versioned theme update.",
+    @ContractErrors({ErrorCode.VALIDATION_ERROR,ErrorCode.FORBIDDEN,ErrorCode.CLUB_NOT_FOUND,ErrorCode.FILE_TOO_LARGE,ErrorCode.FILE_TYPE_NOT_ALLOWED,ErrorCode.IMPERSONATION_DENIED})
+    @Operation(summary="uploadPlatformLogo",description="S17 §2/§6, R-17-02. Roles: AGILITYHUB_ADMIN, without a tenant or club membership. The console's only logo upload (light logo, dark logo or mark): an image upload bound to the target club and caller, with the attachment route's signed-upload response and five-minute expiry. mimeType must be an image allowed by the target club's files.allowedTypes and sizeBytes must not exceed files.maxSizeMb (FILE_TOO_LARGE includes maxSizeMb). Upload with the returned headers, then publish the fileKey with the versioned theme update (logoFileKey, logoDarkFileKey or markFileKey).",
             responses=@ApiResponse(responseCode="201",description="Signed upload URL and opaque file key",useReturnTypeSchema=true))
     public ConsoleThemeFileAccess.Upload uploadPlatformLogo(@PathVariable String id,@Valid @RequestBody PlatformLogoUploadRequest request,
             @RequestHeader(value="Idempotency-Key",required=false) String key) {

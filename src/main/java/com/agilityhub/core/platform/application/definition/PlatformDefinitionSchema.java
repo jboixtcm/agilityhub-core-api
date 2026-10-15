@@ -65,12 +65,16 @@ public class PlatformDefinitionSchema {
         var errors=validator.validate(mapper.valueToTree(request));
         if(!errors.isEmpty()) throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("fieldErrors",
                 errors.stream().map(error->Map.of("field",field(error),"code",
-                        "required".equals(error.getType())?"MISSING_REQUIRED":"INVALID_VALUE"))
+                        MISSING.contains(error.getType())?"REQUIRED":"INVALID_VALUE"))
                         .distinct().sorted(java.util.Comparator.comparing(value->value.get("field"))).toList()));
     }
+    /** A missing field is `REQUIRED`, the codebase's one code for it (CONVENCIONS_API §6). */
+    private static final java.util.Set<String> MISSING=java.util.Set.of("required","dependentRequired");
+    /** Keywords reported at the parent object: the offending property is appended, so the field names it (`accounts`, `club.foo`). */
+    private static final java.util.Set<String> PROPERTY=java.util.Set.of("required","dependentRequired","additionalProperties","unevaluatedProperties");
     private String field(ValidationMessage error) {
         var path=error.getInstanceLocation();
-        if("required".equals(error.getType())) path=path.append(error.getProperty());
+        if(PROPERTY.contains(error.getType())&&error.getProperty()!=null) path=path.append(error.getProperty());
         var field=new StringBuilder();
         for(int i=0;i<path.getNameCount();i++) {
             Object part=path.getElement(i);

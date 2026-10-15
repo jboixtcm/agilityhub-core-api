@@ -17,7 +17,7 @@ import java.util.*;
  * whose process stopped leaves its claim to the retry.
  */
 public interface PaymentProvider {
-    record Connection(boolean ok, String accountName, String mode) { }
+    record Connection(boolean ok, String accountId, String accountName, String mode) { }
     default Connection ping() { throw disabled(); }
     enum Capability { CHECKOUT, OFF_SESSION, REFUND, CARD_SETUP, FORGET_CUSTOMER }
     record OffSessionRequest(Money amount, String customerId, String paymentMethodId, String idempotencyKey, Map<String,String> metadata) { }

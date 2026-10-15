@@ -19,6 +19,14 @@ public class PlatformCatalogClone {
     public PlatformCatalogClone(ClubRepository clubs,PlatformClubChanges changes,ClubCatalogProvisioner catalogs,ClubTemplateProvisioner templates,ObjectMapper mapper,ClubClock clock) {
         this.clubs=clubs;this.changes=changes;this.catalogs=catalogs;this.templates=templates;this.mapper=mapper;this.clock=clock;
     }
+    /**
+     * S17 §3 `catalogs.fromTemplate`: a template club named by its slug (`club-template-default`), else by its id. The resolved
+     * id scopes the read; `POST …/catalog-clone {fromClubId}` keeps id semantics ({@link #source}).
+     */
+    public Source template(String reference) {
+        var club=clubs.findBySlug(reference).or(()->clubs.findById(reference)).orElseThrow(()->new ApiException(ErrorCode.TEMPLATE_CLUB_NOT_FOUND));
+        return source(club.id());
+    }
     public Source source(String id) {
         var club=clubs.findById(id).orElseThrow(()->new ApiException(ErrorCode.TEMPLATE_CLUB_NOT_FOUND));
         try(var scope=TenantContext.open(id)) { return new Source(club,catalogs.cloneSource(),templates.cloneSource(),clock.today(id)); }

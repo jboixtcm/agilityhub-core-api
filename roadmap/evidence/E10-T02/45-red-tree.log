@@ -1,0 +1,30 @@
+restored from HEAD:
+  src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java
+  src/main/java/com/agilityhub/core/clubs/census/application/MemberService.java
+  src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+  src/main/java/com/agilityhub/core/identity/application/ConsoleAdministrators.java
+  src/main/java/com/agilityhub/core/payments/application/ConsolePaymentAdapter.java
+  src/main/java/com/agilityhub/core/payments/application/FakePaymentProvider.java
+  src/main/java/com/agilityhub/core/payments/application/PaymentProvider.java
+  src/main/java/com/agilityhub/core/payments/application/stripe/StripePaymentProvider.java
+  src/main/java/com/agilityhub/core/platform/api/AuditContracts.java
+  src/main/java/com/agilityhub/core/platform/api/PlatformClubContracts.java
+  src/main/java/com/agilityhub/core/platform/api/PlatformClubsController.java
+  src/main/java/com/agilityhub/core/platform/api/PlatformThemeFilesController.java
+  src/main/java/com/agilityhub/core/platform/application/CensusClubSettings.java
+  src/main/java/com/agilityhub/core/platform/application/ClubConfigService.java
+  src/main/java/com/agilityhub/core/platform/application/ConsolePaymentAccess.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformCatalogClone.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformClubChanges.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformClubContractGuards.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformClubCreation.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformConsoleQueries.java
+  src/main/java/com/agilityhub/core/platform/application/PlatformProviders.java
+  src/main/java/com/agilityhub/core/platform/application/audit/AuditAction.java
+  src/main/java/com/agilityhub/core/platform/application/definition/PlatformDefinitionSchema.java
+  src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java
+  src/main/java/com/agilityhub/core/platform/persistence/PlatformConsoleProjection.java
+  src/test/java/com/agilityhub/core/payments/application/stripe/StripePaymentProviderTest.java
+removed (added by round 2):
+  src/main/java/com/agilityhub/core/platform/application/ConsoleTransactions.java
+  src/main/java/com/agilityhub/core/shared/application/TeamWriteLock.java

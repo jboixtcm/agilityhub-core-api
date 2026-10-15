@@ -15,9 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ConsoleAdministrators implements com.agilityhub.core.platform.application.ConsoleAdministratorAccess {
     private final AccountService accounts;private final AccountRepository accountRows;private final MembershipService membershipService;
-    private final MembershipRepository memberships;private final PlatformClubChanges clubs;
-    public ConsoleAdministrators(AccountService accounts,AccountRepository accountRows,MembershipService membershipService,MembershipRepository memberships,PlatformClubChanges clubs) {
-        this.accounts=accounts;this.accountRows=accountRows;this.membershipService=membershipService;this.memberships=memberships;this.clubs=clubs;
+    private final MembershipRepository memberships;private final PlatformClubChanges clubs;private final TeamWriteLock team;
+    public ConsoleAdministrators(AccountService accounts,AccountRepository accountRows,MembershipService membershipService,MembershipRepository memberships,
+            PlatformClubChanges clubs,TeamWriteLock team) {
+        this.accounts=accounts;this.accountRows=accountRows;this.membershipService=membershipService;this.memberships=memberships;this.clubs=clubs;this.team=team;
     }
     public List<Admin> list() { return memberships.findAll().stream().filter(m->m.roles().contains(Role.ADMIN))
             .map(this::view).sorted(Comparator.comparing(Admin::email)).toList(); }
@@ -25,9 +26,9 @@ public class ConsoleAdministrators implements com.agilityhub.core.platform.appli
         return new Admin(a.id(),a.name(),a.email(),m.status().name(),m.lastAccessAt()); }
     public Change snapshot() { return new Change(clubs.administration().id(),list().stream().map(a->Map.of("accountId",a.accountId(),"status",a.membershipStatus())).toList(),null); }
     @Transactional
-    @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Administrator invitation'")
+    @Audited(action=AuditAction.CLUB_ADMIN_INVITED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Administrator invitation'")
     public Change invite(String email,String name) {
-        var club=clubs.administration();
+        team.lock();var club=clubs.administration();
         var account=accounts.getOrCreate(email,name,club.defaultLocale(),Account.Source.CONSOLE);accounts.active(account.id());
         if(memberships.findByAccountId(account.id()).filter(m->m.roles().contains(Role.ADMIN)&&m.status()==Membership.Status.ACTIVE).isPresent())
             throw new ApiException(ErrorCode.MEMBERSHIP_EXISTS);
@@ -38,14 +39,15 @@ public class ConsoleAdministrators implements com.agilityhub.core.platform.appli
         var roles=EnumSet.noneOf(Role.class);if(before!=null) roles.addAll(before.roles());roles.add(Role.ADMIN);
         var member=membershipService.setRoles(account.id(),roles);
         if(member.status()==Membership.Status.SUSPENDED) member=membershipService.resume(account.id());
-        // The club version serializes simultaneous invitations/removals and protects the last administrator.
+        // The team lock taken first serializes this with every other administrator writer; the club version orders console edits.
         clubs.administratorChange(club,Map.of("adminInvitation",account.id()));
         return new Change(club.id(),snapshot().admins(),view(member));
     }
     @Transactional
     @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Administrator removed'")
     public Change remove(String accountId) {
-        var club=clubs.administration();var membership=memberships.findByAccountId(accountId).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
+        // R-17-09: the same tenant lock as the club's own team writers (RoleAssignmentService), so the count below is read under it.
+        team.lock();var club=clubs.administration();var membership=memberships.findByAccountId(accountId).orElseThrow(()->new ApiException(ErrorCode.NOT_FOUND));
         if(!membership.roles().contains(Role.ADMIN)) throw new ApiException(ErrorCode.NOT_FOUND);
         if(membership.status()==Membership.Status.ACTIVE) {
             if(memberships.activeAdmins()<=1) throw new ApiException(ErrorCode.LAST_ADMIN);

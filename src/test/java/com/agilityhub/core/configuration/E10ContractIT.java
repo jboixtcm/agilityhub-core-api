@@ -55,7 +55,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .authorities(new SimpleGrantedAuthority("ROLE_"+role)));
         return request;
     }
-    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/upload-url")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
+    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
     void success(MockHttpServletRequestBuilder request) throws Exception { mvc.perform(request).andExpect(status().isOk()); }
     void error(MockHttpServletRequestBuilder request,int status,String code) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();
@@ -120,7 +120,14 @@ class E10ContractIT extends AbstractIntegrationTest {
         ((com.fasterxml.jackson.databind.node.ObjectNode)body.path("paymentProviders").path("STRIPE")).putObject("secretKey").put("env","EXAMPLE_STRIPE_KEY");
         error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),422,"PROVIDER_CONFIG_INVALID");
         body.putArray("accounts").addObject().put("email","example@example.test").put("password","fictional-password");
-        error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)body.path("club")).put("foo","fictional");
+        var rejected=mvc.perform(call(route,"AGILITYHUB_ADMIN").content(body.toString())).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR")).andReturn().getResponse().getContentAsString();
+        // CONVENCIONS_API §6: an unknown property names itself, never the parent object (E10-T01 review #1).
+        assertThat(mapper.readTree(rejected).path("details").path("fieldErrors")).contains(
+                mapper.valueToTree(Map.of("field","accounts","code","INVALID_VALUE")),mapper.valueToTree(Map.of("field","club.foo","code","INVALID_VALUE")));
+        assertThat(rejected).doesNotContain("fictional-password");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)body.path("club")).remove("foo");
         body.remove("accounts"); body.put("preset","COMPLET"); body.remove("modules");
         body.putObject("catalogs").put("fromTemplate","example-template");
         error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),404,"TEMPLATE_CLUB_NOT_FOUND");
@@ -196,23 +203,28 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("e10-target","e10-missing"));return r;}),404,"CLUB_NOT_FOUND");
     }
 
-    @Test void T_17_12_R_17_12_platformLogoUploadValidatesBeforeNoWriteStub() throws Exception {
-        var route=route("POST","/clubs/{clubId}/upload-url");
+    /** S17 §2/§6 (the wizard's and the Tema tab's logos): the console's one upload route, with the attachment route's shape and limits. */
+    @Test void T_17_02_to_11_platformLogoUploadUsesTheAttachmentShapeAndImageLimits() throws Exception {
+        var route=route("POST","/clubs/{id}/theme/upload-url");
         var before=state();
-        for(String purpose:List.of("LOGO","LOGO_DARK","MARK"))
-            error(call(route,"AGILITYHUB_ADMIN").content(mapper.writeValueAsString(Map.of(
-                    "purpose",purpose,"fileName","logo.png","mimeType","image/png","sizeBytes",3))),501,"NOT_IMPLEMENTED");
-        error(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"DOG_PHOTO\",\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":3}"),400,"VALIDATION_ERROR");
-        error(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"LOGO\",\"fileName\":\"logo.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":3}"),400,"FILE_TYPE_NOT_ALLOWED");
-        mvc.perform(call(route,"AGILITYHUB_ADMIN").content("{\"purpose\":\"LOGO\",\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":26214401}"))
+        error(call(route,"AGILITYHUB_ADMIN").content("{\"fileName\":\"logo.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":3}"),400,"FILE_TYPE_NOT_ALLOWED");
+        mvc.perform(call(route,"AGILITYHUB_ADMIN").content("{\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":26214401}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("FILE_TOO_LARGE"))
                 .andExpect(jsonPath("$.details.maxSizeMb").value(25));
         error(call(route,"AGILITYHUB_ADMIN").content("{}"),400,"VALIDATION_ERROR");
         assertThat(state()).isEqualTo(before);
+        var upload=mapper.readTree(mvc.perform(call(route,"AGILITYHUB_ADMIN").content("{\"fileName\":\"logo.png\",\"mimeType\":\"image/png\",\"sizeBytes\":26214400}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        assertThat(upload.propertyStream().map(Map.Entry::getKey).toList()).containsExactlyInAnyOrder("uploadUrl","fileKey","expiresAt","headers");
+        assertThat(upload.path("headers").path("Content-Type").asText()).isEqualTo("image/png");
+        var grant=mongo.findById(upload.path("fileKey").asText(),org.bson.Document.class,"attachment_uploads");
+        assertThat(grant.getString("clubId")).isEqualTo("e10-target");
+        assertThat(grant.getString("purpose")).isEqualTo("CLUB_LOGO");
+        assertThat(grant.get("boundEntity")).isNull();
         assertThat(TenantContext.current()).isNull();
     }
 
-    @Test void T_17_10_R_17_12_clubPageReturnsTheAppliedUniversalFilters() throws Exception {
+    @Test void CONVENCIONS_API_4_platformClubPageReturnsTheAppliedUniversalFilters() throws Exception {
         var result=mvc.perform(call(route("GET","/clubs"),"AGILITYHUB_ADMIN")
                 .param("filter","template:eq:false","module:in:FAQ,WAITLIST").param("fields","name"))
                 .andExpect(status().isOk()).andReturn().getResponse();
@@ -232,7 +244,7 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.details.fields").doesNotExist()).andReturn().getResponse();
         var details=mapper.readTree(result.getContentAsString()).path("details");
         assertThat(details.path("fieldErrors")).contains(
-                mapper.valueToTree(Map.of("field","club.name","code","MISSING_REQUIRED")),
+                mapper.valueToTree(Map.of("field","club.name","code","REQUIRED")),
                 mapper.valueToTree(Map.of("field","modules[2]","code","INVALID_VALUE")),
                 mapper.valueToTree(Map.of("field","paymentProviders.SEPA_XML.creditorId","code","INVALID_VALUE")));
         assertThat(details.toString()).doesNotContain("fictional-invalid-module", "\"42\"");
@@ -244,9 +256,14 @@ class E10ContractIT extends AbstractIntegrationTest {
                 org.springframework.data.mongodb.core.query.Criteria.where("_id").is("e10-target")),
                 org.springframework.data.mongodb.core.query.Update.update("paymentProviders",Map.of(
                         "SEPA_XML",Map.of("enabled",true,"creditorName","Example Club","creditorId","ES00000X0000000X","suffix","000","ibanLast4","1332","ibanEnc","fictional-ciphertext"),
-                        "STRIPE",Map.of("enabled",true,"publishableKey","pk_test_fictional1234","accountId","acct_fictional5678","secretKeyEnc","fictional-ciphertext","webhookSecretEnc","fictional-ciphertext","mode","test"),
                         "MANUAL",Map.of("enabled",true,"instructions",Map.of("ca","Pay at reception")))),
                 com.agilityhub.core.platform.persistence.Club.class);
+        // E10-T01 review #5: the account id is the one the Stripe probe returned, never a value seeded into Mongo.
+        mvc.perform(call(route("PUT","/clubs/{id}/payment-providers/{provider}"),"AGILITYHUB_ADMIN")
+                .content("{\"version\":"+clubs.findById("e10-target").orElseThrow().version()+",\"enabled\":true,\"secretKey\":\"sk_test_fictional_e10\",\"webhookSecret\":\"whsec_fictional_e10\",\"publishableKey\":\"pk_test_fictional1234\",\"mode\":\"test\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accountIdMasked").value(org.hamcrest.Matchers.nullValue()));
+        mvc.perform(call(route("POST","/clubs/{id}/payment-providers/stripe/test"),"AGILITYHUB_ADMIN")).andExpect(status().isOk());
+        assertThat(((Map<?,?>)clubs.findById("e10-target").orElseThrow().paymentProviders().get("STRIPE")).get("accountId")).isEqualTo("acct_fictional5678");
         var response=mvc.perform(call(route("GET","/clubs/{id}"),"AGILITYHUB_ADMIN"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         var providers=mapper.readTree(response).path("paymentProviders");
@@ -258,7 +275,7 @@ class E10ContractIT extends AbstractIntegrationTest {
         assertThat(providers.path("STRIPE").path("accountIdMasked").asText()).isEqualTo("****5678");
         assertThat(providers.path("STRIPE").path("creditorName").isNull()).isTrue();
         assertThat(providers.path("SEPA_XML").path("instructions").isNull()).isTrue();
-        assertThat(response).doesNotContain("fictional-ciphertext","pk_test_fictional1234","acct_fictional5678","\"iban\"","secretKey","webhookSecret");
+        assertThat(response).doesNotContain("fictional-ciphertext","pk_test_fictional1234","acct_fictional5678","sk_test_fictional_e10","whsec_fictional_e10","\"iban\"","secretKey","webhookSecret");
         mvc.perform(call(route("PUT","/clubs/{id}/payment-providers/{provider}"),"AGILITYHUB_ADMIN")
                 .with(r->{r.setRequestURI(r.getRequestURI().replace("STRIPE","MANUAL"));return r;})
                 .content("{\"version\":"+mapper.readTree(response).path("version").asLong()+",\"instructions\":{\"ca\":\"Updated instructions\"}}"))

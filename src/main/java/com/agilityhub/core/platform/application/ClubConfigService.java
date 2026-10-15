@@ -53,7 +53,7 @@ public class ClubConfigService implements TimeZoneProvider {
     /** Consent writes must check the current version, independently of the branding cache. */
     public PrivacyPolicy privacyPolicy(String clubId) {
         var legal = clubs.findById(clubId).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND)).legal();
-        return new PrivacyPolicy(legal.legalTextsVersion(), legal.privacyPolicyUrl());
+        return legal == null ? new PrivacyPolicy(null, null) : new PrivacyPolicy(legal.legalTextsVersion(), legal.privacyPolicyUrl());
     }
     public record PrivacyPolicy(String version, String url) { }
     @Override public ZoneId timeZone(String clubId) { return ZoneId.of(get(clubId).club().timeZone()); }
@@ -86,7 +86,8 @@ public class ClubConfigService implements TimeZoneProvider {
         }
         var address = club.address(); String office = address == null ? null : text(address.city());
         var view = new ClubConfig.ClubView(club.id(), club.slug(), club.name(), club.locales(), club.defaultLocale(),
-                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal().privacyPolicyUrl(),
+                // A document without `legal` (migrated before S17's rule) reads as «no privacy policy yet», never a failed request.
+                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal() == null ? null : club.legal().privacyPolicyUrl(),
                 text(club.displayCity()) == null ? office : club.displayCity(), club.legalName(), club.taxId(),
                 address == null || text(address.street()) == null || text(address.postalCode()) == null ? null
                         : new ClubConfig.LegalAddress(address.street(), address.postalCode(), office));

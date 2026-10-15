@@ -1,0 +1,29 @@
+surefire-reports: tests=4497, failures=3, errors=0, skipped=0
+  com.agilityhub.core.configuration.E10ResponseContractTest: tests=7, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.application.ConsoleTransactionsTest: tests=3, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.application.stripe.StripePaymentProviderTest: tests=9, failures=0, errors=0, skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+failsafe-reports: tests=1970, failures=9, errors=0, skipped=0
+  com.agilityhub.core.platform.api.PlatformConsoleIT: tests=38, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.api.ConsoleProviderLockIT: tests=2, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E10ContractIT: tests=42, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.catalogs.api.TeamIT: tests=13, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=44, failures=0, errors=0, skipped=0
+failing cases in the clean run: 12
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round5_point2_threeRowSequencesReserveInterventions
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[1]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[2]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[3]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[4]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[5]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long, String, String)[6]
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point1_generatedDirectDashboardRepayments
+  com.agilityhub.core.payments.api.CapturedPaymentInvariantsIT#T_12_17_e8t12_round6_point3_oneNoticePerPaymentPerEvent
+  com.agilityhub.core.payments.domain.PaymentIntentLedgerTest#T_12_17_e8t12_round6_point1_dashboardRefundRepaysInterventionsFirst
+  com.agilityhub.core.payments.domain.PaymentIntentLedgerTest#T_12_17_e8t12_round6_point2_generatedClaimsEqualTheirRecomputedDue
+  com.agilityhub.core.payments.domain.PaymentIntentLedgerTest#T_12_17_e8t12_round6_point3_claimsAreRefreshedOnceInTheSplitOrder
+same classes on HEAD's product code (attempt 58): 12 failing
+every failing case also fails on HEAD's product code (E8-T12 round 6, published in 3bd0180b): True
+every class this round adds or changes passes with no skips: True

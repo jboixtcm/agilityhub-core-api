@@ -16,6 +16,15 @@ public class CensusClubSettings {
     public boolean providerEnabled(String provider) {
         return PaymentProviderFlags.enabled(clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().get(provider));
     }
+    /**
+     * S17 R-17-05: {@link #providerEnabled} read under the club's provider lock, for a writer that assigns the provider's
+     * method to a member. A concurrent console removal or disabling of the provider takes the same lock, so one of them
+     * conflicts and reruns against the other's commit.
+     */
+    public boolean assignableProvider(String provider) {
+        clubs.lockProviders(TenantContext.require());
+        return providerEnabled(provider);
+    }
     public Map<String,Object> signupLegal(String locale) {
         var club = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var legal = club.legal();

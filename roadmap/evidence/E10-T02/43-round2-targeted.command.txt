@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=PlatformConsoleIT,E10ContractIT,ConsoleProviderLockIT,StripePaymentProviderTest,E2ContractIT,AuditContractTest,ArchitectureTest -Dsurefire.failIfNoSpecifiedTests=false test

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlatformClubChanges {
     public record Change(String id, Club club, @AuditField Map<String,Object> settings) { }
     public record Administration(String id, String defaultLocale, boolean onboarding, long version) { }
+    static final List<String> REQUIRED=List.of("name","locales","defaultLocale","timeZone","currency","countryProfile","legal");
     @org.springframework.beans.factory.annotation.Autowired private PlatformThemeFiles themeFiles;
     private final ClubRepository clubs;
     private final ClubConfigService configs;
@@ -56,6 +57,8 @@ public class PlatformClubChanges {
         var old=club();requireVersion(old,changes.get("version"));
         var allowed=new HashSet<>(snapshot().settings().keySet());allowed.removeAll(Set.of("status","modules","theme"));allowed.add("version");
         if(!allowed.containsAll(changes.keySet())) throw new ApiException(ErrorCode.VALIDATION_ERROR);
+        // Omitted means unchanged; an explicit null would erase a value every configuration read depends on (`legal` above all).
+        for(String key:REQUIRED) if(changes.containsKey(key)&&changes.get(key)==null) throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field",key));
         if(changes.containsKey("timeZone")&&!Objects.equals(changes.get("timeZone"),old.timeZone())&&schedule.hasClasses())
             throw new ApiException(ErrorCode.TIMEZONE_CHANGE_BLOCKED);
         var tree=mapper.valueToTree(old);var node=(com.fasterxml.jackson.databind.node.ObjectNode)tree;

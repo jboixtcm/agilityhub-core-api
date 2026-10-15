@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E10-T02 round 2 (E108, E109, E112): `"legal": null` is rejected and configuration reads tolerate a club stored without `legal`; console administrator writers take the club team's `team_write_locks`, and payment-method assignment and console provider removal/disabling share a new `provider_write_locks`, with retried console transactions; `catalogs.fromTemplate` resolves template slugs; `SEPA_XML.invoiceSeriesPattern` becomes `billing.invoiceSeriesPattern`; `usage.storageBytes` sums the club's claimed files; the console writes `CLUB_CREATED`, `CLUB_PAYMENT_PROVIDER_CHANGED` and `CLUB_ADMIN_INVITED`; one logo upload route; definition `fieldErrors` name unknown properties and use `REQUIRED`; the Stripe probe stores the account id behind `accountIdMasked`.
+
 - E8-T12 round 5 verified on the current `main` after E110: the host-locked clean verify passes 4,492 unit and 1,952 integration tests, including all 74 payment invariants and the coverage and architecture gates. No product changes were made on resume.
 
 - E8-T12 round 5 verification is blocked by the published CI secret scan on E9-T01's unchanged source manifest (88 findings, confirmed on resume). Product and regression inputs remain unchanged; the incomplete inherited clean run is not counted as a pass. Exact scanner metadata and the repair request are recorded for the organizer.

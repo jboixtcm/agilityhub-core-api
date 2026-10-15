@@ -26,18 +26,22 @@ class E10ResponseContractTest {
         assertThat(properties.fieldNames()).toIterable().contains("creditorName","creditorId","suffix","ibanMasked","instructions","accountIdMasked")
                 .doesNotContain("iban","secretKey","webhookSecret","accountId");
     }
-    @Test void T_17_10_R_17_12_clubPagePublishesAppliedFiltersLikeListPage() throws Exception {
+    @Test void CONVENCIONS_API_4_platformClubPagePublishesAppliedFiltersLikeListPage() throws Exception {
         var page=published().path("components").path("schemas").path("PlatformClubPage");
         assertThat(page.path("required")).contains(mapper.valueToTree("appliedFilters"));
         assertThat(page.path("properties").path("appliedFilters").path("items").path("$ref").asText()).isEqualTo("#/components/schemas/Filter");
     }
-    @Test void T_17_12_R_17_12_platformLogoUploadReusesAttachmentResponseAndPurposes() throws Exception {
+    /** S17 §2/§6: one logo upload route (E10-T01 review #2), with the attachment route's response; the theme keys point to it. */
+    @Test void T_17_02_to_11_platformLogoUploadIsOneRouteWithTheAttachmentResponse() throws Exception {
         var api=published();
-        var operation=api.path("paths").path("/api/v1/platform/clubs/{clubId}/upload-url").path("post");
+        var operation=api.path("paths").path("/api/v1/platform/clubs/{id}/theme/upload-url").path("post");
         assertThat(operation.path("responses").path("201").path("content").path("application/json").path("schema"))
                 .isEqualTo(api.path("paths").path("/api/v1/attachments/upload-url").path("post").path("responses").path("201").path("content").path("application/json").path("schema"));
-        assertThat(api.path("components").path("schemas").path("PlatformThemeUploadRequest").path("properties").path("purpose").path("enum").toString())
-                .isEqualTo("[\"LOGO\",\"LOGO_DARK\",\"MARK\"]");
+        assertThat(api.path("paths").has("/api/v1/platform/clubs/{clubId}/upload-url")).isFalse();
+        assertThat(api.path("components").path("schemas").has("PlatformThemeUploadRequest")).isFalse();
+        var theme=api.path("components").path("schemas").path("PlatformThemeRequest").path("properties");
+        for(String key:List.of("logoFileKey","logoDarkFileKey","markFileKey"))
+            assertThat(theme.path(key).path("description").asText()).as(key).contains("POST /platform/clubs/{id}/theme/upload-url");
     }
     @Test void T_17_05_R_17_05_responseFixturesRoundTripNullsAndNeverExposeCredentials() throws Exception {
         var fixtures=mapper.readTree(Path.of("src/test/resources/fixtures/contracts/e10-responses.json").toFile());

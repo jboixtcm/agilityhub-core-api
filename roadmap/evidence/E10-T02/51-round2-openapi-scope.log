@@ -1,0 +1,8 @@
+changed POST /api/v1/platform/clubs
+removed POST /api/v1/platform/clubs/{clubId}/upload-url
+changed POST /api/v1/platform/clubs/{id}/theme/upload-url
+changed schema AuditAction
+changed schema PlatformClubPatch
+changed schema PlatformThemeRequest
+removed schema PlatformThemeUploadRequest
+OpenAPI diff is confined to round 2: one logo upload route, definition/patch descriptions and the three audit actions.

@@ -30,6 +30,8 @@ public enum AuditAction {
     CLUB_UPDATED,
     CLUB_MODULES_CHANGED,
     CLUB_STATUS_CHANGED,
+    /** S17 console (E108, written by E10-T02): a club created from a definition, a payment provider changed, an administrator invited. */
+    CLUB_CREATED, CLUB_PAYMENT_PROVIDER_CHANGED, CLUB_ADMIN_INVITED,
     JOB_TRIGGERED,
     /**
      * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)

@@ -110,7 +110,16 @@ public class ClubRepository extends GlobalRepository<Club> {
         if (result == null) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
         return result;
     }
+    /**
+     * S17 R-17-05: the club's payment-provider serialisation boundary (`provider_write_locks`). Assigning a payment method and
+     * removing or disabling a provider both take it first in their transaction, so they conflict instead of committing a member
+     * on a provider that is gone.
+     */
+    public void lockProviders(String clubId) {
+        mongo.upsert(Query.query(Criteria.where("clubId").is(clubId)), new org.springframework.data.mongodb.core.query.Update().inc("sequence", 1L), "provider_write_locks");
+    }
     public void ensureIndexes() {
+        mongo.indexOps("provider_write_locks").ensureIndex(new Index().on("clubId", Direction.ASC).unique());
         mongo.indexOps(Club.class).ensureIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));
         mongo.indexOps(Club.class).ensureIndex(new Index().on("domains.host", Direction.ASC).unique().sparse().named("club_host"));
     }

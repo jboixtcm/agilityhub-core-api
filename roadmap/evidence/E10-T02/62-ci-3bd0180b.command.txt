@@ -1,0 +1,1 @@
+gh run list --repo jboixtcm/agilityhub-core-api --commit 3bd0180bf927ac1970ad8e5c54a140242650e04b --json databaseId,conclusion,status,displayTitle,headSha --limit 5

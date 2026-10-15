@@ -52,7 +52,7 @@ public class StripePaymentProvider implements PaymentProvider {
         var client=client(false);
         var account=calls.call(()->client.v1().accounts().retrieveCurrent(options(null)));
         String name=account.getBusinessProfile()==null?null:account.getBusinessProfile().getName();
-        return new Connection(true,name==null?account.getId():name,settings.stripe(TenantContext.require()).orElseThrow().mode());
+        return new Connection(true,account.getId(),name==null?account.getId():name,settings.stripe(TenantContext.require()).orElseThrow().mode());
     }
     @Override public boolean supports(Capability capability) { return true; }
     @Override public Duration callTimeout() { return MAX_CALL_TIMEOUT; }

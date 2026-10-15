@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-15 · E10-T02 round 2 · S17 console corrections
+
+**1 operation and 1 schema removed; 0 added.**
+
+- `POST /platform/clubs/{clubId}/upload-url` (the 501 stub) and `PlatformThemeUploadRequest` are removed: the console's one logo upload route is `POST /platform/clubs/{id}/theme/upload-url` `{fileName, mimeType, sizeBytes}`, which now also publishes `400 VALIDATION_ERROR`, `403 FORBIDDEN` and the target club's image types and size limit. `PlatformThemeRequest.logoFileKey`, `logoDarkFileKey` and `markFileKey` point to it.
+- `POST /platform/clubs`: `catalogs.fromTemplate` resolves a template club by slug, then by id; `paymentProviders.SEPA_XML.invoiceSeriesPattern` becomes the `billing.invoiceSeriesPattern` parameter (a different value under `parameters` is `400 VALIDATION_ERROR {field}`); definition `fieldErrors` name unknown properties (`accounts`, `club.foo`) and use `REQUIRED` for a missing field (was `MISSING_REQUIRED`).
+- `PlatformClubPatch.legal` is no longer nullable: `"legal": null` is `400 VALIDATION_ERROR {field: legal}`.
+- `AuditAction` gains `CLUB_CREATED`, `CLUB_PAYMENT_PROVIDER_CHANGED` and `CLUB_ADMIN_INVITED` (S14 R-14-09, E108).
+
 ## 2026-10-15 · E9-T01 round 3 · S16 projection and visibility corrections
 
 **0 operations or schemas added or removed.**

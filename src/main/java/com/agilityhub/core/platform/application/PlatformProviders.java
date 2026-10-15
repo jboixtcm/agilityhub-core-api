@@ -15,6 +15,7 @@ public class PlatformProviders {
     public record Summary(boolean enabled,boolean configured,String masked,String last4,String mode,Instant lastTestAt) { }
     public record Change(String id,@AuditField Map<String,Summary> providers) { }
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.transaction.support.TransactionTemplate transactions;
+    @org.springframework.beans.factory.annotation.Autowired private ClubRepository clubs;
     private final PlatformClubChanges changes;private final ConsolePaymentAccess vault;private final PlatformConsoleProjection projection;
     private final ConsolePaymentAccess provider;private final Clock clock;
     public PlatformProviders(PlatformClubChanges changes,ConsolePaymentAccess vault,PlatformConsoleProjection projection,ConsolePaymentAccess provider,Clock clock) {
@@ -38,9 +39,10 @@ public class PlatformProviders {
         return new Summary(PaymentProviderFlags.enabled(v),configured,masked==null?null:"****"+masked,last,text(v,"mode"),tested);
     }
     @Transactional
-    @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider configuration'")
+    @Audited(action=AuditAction.CLUB_PAYMENT_PROVIDER_CHANGED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider configuration'")
     public Change update(String name,Map<String,Object> input) {
-        var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));
+        // R-17-05: the payment-method writers' lock first, so a disabling re-reads the provider's users under it.
+        clubs.lockProviders(TenantContext.require());var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));
         var providers=new LinkedHashMap<>(old.paymentProviders());
         var settings=new LinkedHashMap<String,Object>();if(providers.get(name) instanceof Map<?,?> stored) stored.forEach((k,v)->settings.put(k.toString(),v));
         boolean enabled=input.get("enabled") instanceof Boolean b?b:PaymentProviderFlags.enabled(settings);
@@ -76,9 +78,9 @@ public class PlatformProviders {
         providers.put(name,settings);changes.write(old,Map.of("paymentProviders",providers),"ClubPaymentProviderChanged",Map.of("provider",name,"configured",true));return snapshot();
     }
     @Transactional
-    @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider removed'")
+    @Audited(action=AuditAction.CLUB_PAYMENT_PROVIDER_CHANGED,entityType="'Club'",entity="#result.id",before="snapshot()",reason="'Payment provider removed'")
     public Change remove(String name,long version) {
-        var old=changes.club();PlatformClubChanges.requireVersion(old,version);requireUnused(old,name);
+        clubs.lockProviders(TenantContext.require());var old=changes.club();PlatformClubChanges.requireVersion(old,version);requireUnused(old,name);
         var providers=new LinkedHashMap<>(old.paymentProviders());providers.remove(name);
         changes.write(old,Map.of("paymentProviders",providers),"ClubPaymentProviderChanged",Map.of("provider",name,"configured",false));return snapshot();
     }
@@ -97,7 +99,8 @@ public class PlatformProviders {
             var all=new LinkedHashMap<>(current.paymentProviders());
             if(!(all.get("STRIPE") instanceof Map<?,?> config)) throw new ApiException(ErrorCode.STRIPE_CONNECTION_FAILED);
             var settings=new LinkedHashMap<String,Object>();config.forEach((k,v)->settings.put(k.toString(),v));
-            settings.put("lastTestAt",clock.instant());all.put("STRIPE",settings);
+            // R-17-05: the account the keys reach, shown masked (`accountIdMasked`); a key rotation removes it with lastTestAt.
+            settings.put("lastTestAt",clock.instant());settings.put("accountId",finalResult.accountId());all.put("STRIPE",settings);
             changes.write(current,Map.of("paymentProviders",all),"ClubUpdated",Map.of("provider","STRIPE","connectionTest",finalResult.ok()));
         });
         return result;

@@ -203,7 +203,7 @@ class StripePaymentProviderTest {
         var profile=new com.stripe.model.Account.BusinessProfile();profile.setName("Example Association");account.setBusinessProfile(profile);
         when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenReturn(account);
         try(var scope=TenantContext.open("club-a")) {
-            assertThat(provider.ping()).isEqualTo(new PaymentProvider.Connection(true,"Example Association","test"));
+            assertThat(provider.ping()).isEqualTo(new PaymentProvider.Connection(true,"acct_example","Example Association","test"));
             account.setBusinessProfile(null);assertThat(provider.ping().accountName()).isEqualTo("acct_example");
             when(client.v1().accounts().retrieveCurrent(any(RequestOptions.class))).thenThrow(new com.stripe.exception.AuthenticationException("Rejected",null,null,401));
             assertThatThrownBy(provider::ping).isInstanceOf(ApiException.class);

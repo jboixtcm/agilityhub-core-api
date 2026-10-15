@@ -1748,7 +1748,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -17805,11 +17805,8 @@
             "type" : [ "string", "null" ]
           },
           "legal" : {
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/PlatformClubLegal"
-            }, {
-              "type" : "null"
-            } ]
+            "$ref" : "#/components/schemas/PlatformClubLegal",
+            "description" : "Omit to keep the current texts; null is rejected with 400 VALIDATION_ERROR {field: legal}."
           },
           "legalName" : {
             "type" : [ "string", "null" ]
@@ -18174,15 +18171,15 @@
             "type" : "string"
           },
           "logoDarkFileKey" : {
-            "description" : "Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO_DARK.",
+            "description" : "Dark logo: fileKey from POST /platform/clubs/{id}/theme/upload-url; empty removes it, omitted keeps it.",
             "type" : "string"
           },
           "logoFileKey" : {
-            "description" : "Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO; never a local path.",
+            "description" : "Light logo: fileKey from POST /platform/clubs/{id}/theme/upload-url, uploaded and not yet published elsewhere; empty removes it, omitted keeps it. Never a local path.",
             "type" : "string"
           },
           "markFileKey" : {
-            "description" : "Key from POST /platform/clubs/{clubId}/upload-url with purpose MARK.",
+            "description" : "Mark: fileKey from POST /platform/clubs/{id}/theme/upload-url; empty removes it, omitted keeps it.",
             "type" : "string"
           },
           "mode" : {
@@ -18205,28 +18202,6 @@
           }
         },
         "required" : [ "colors", "fontFamily", "mode", "radius", "ringPalette", "version" ],
-        "type" : "object"
-      },
-      "PlatformThemeUploadRequest" : {
-        "properties" : {
-          "fileName" : {
-            "minLength" : 1,
-            "type" : "string"
-          },
-          "mimeType" : {
-            "minLength" : 1,
-            "type" : "string"
-          },
-          "purpose" : {
-            "enum" : [ "LOGO", "LOGO_DARK", "MARK" ],
-            "type" : "string"
-          },
-          "sizeBytes" : {
-            "format" : "int64",
-            "type" : "integer"
-          }
-        },
-        "required" : [ "fileName", "mimeType", "purpose", "sizeBytes" ],
         "type" : "object"
       },
       "PointM" : {
@@ -72666,7 +72641,7 @@
         "x-sortable" : [ "name", "slug" ]
       },
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ClubDefinition uses the published WP-A layout; credentials are env references only. Schema violations return 400 VALIDATION_ERROR with details.fieldErrors[{field, code}]; nested fields use paths such as modules[2] or paymentProviders.SEPA_XML.creditorId, and codes MISSING_REQUIRED or INVALID_VALUE.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ClubDefinition uses the published WP-A layout; credentials are env references only. catalogs.fromTemplate names a template club by slug (e.g. club-template-default) or id. paymentProviders.SEPA_XML.invoiceSeriesPattern sets the billing.invoiceSeriesPattern parameter; a different value under parameters is 400 VALIDATION_ERROR {field}. Schema violations return 400 VALIDATION_ERROR with details.fieldErrors[{field, code}]; nested fields use paths such as modules[2] or paymentProviders.SEPA_XML.creditorId, an unknown property names itself (e.g. accounts), and codes are REQUIRED or INVALID_VALUE.",
         "operationId" : "createPlatformClub",
         "parameters" : [ {
           "in" : "header",
@@ -72973,163 +72948,6 @@
           }
         },
         "summary" : "platformTriggerJob",
-        "tags" : [ "platform" ]
-      }
-    },
-    "/api/v1/platform/clubs/{clubId}/upload-url" : {
-      "post" : {
-        "description" : "S17 §2. Roles: AGILITYHUB_ADMIN, without a tenant or club membership. LOGO, LOGO_DARK or MARK. Same signed-upload response and five-minute expiry as attachments; mimeType must be an image allowed by the target club's files.allowedTypes and sizeBytes must not exceed files.maxSizeMb. FILE_TOO_LARGE includes maxSizeMb. Upload with the returned headers. Guards then 501 NOT_IMPLEMENTED.",
-        "operationId" : "createPlatformThemeUploadUrl",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "clubId",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/PlatformThemeUploadRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Upload"
-                }
-              }
-            },
-            "description" : "Upload URL, opaque file key, required headers and expiry"
-          },
-          "400" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "VALIDATION_ERROR, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE"
-          },
-          "401" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unauthorized"
-          },
-          "403" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
-          },
-          "404" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "CLUB_NOT_FOUND"
-          },
-          "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
-          },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
-          "429" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Too Many Requests",
-            "headers" : {
-              "Retry-After" : {
-                "description" : "Seconds before retrying",
-                "schema" : {
-                  "format" : "int32",
-                  "type" : "integer"
-                }
-              }
-            }
-          },
-          "4XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Client error"
-          },
-          "500" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Internal Server Error"
-          },
-          "501" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "NOT_IMPLEMENTED"
-          },
-          "5XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Server error"
-          }
-        },
-        "summary" : "createPlatformThemeUploadUrl",
         "tags" : [ "platform" ]
       }
     },
@@ -76274,7 +76092,7 @@
     },
     "/api/v1/platform/clubs/{id}/theme/upload-url" : {
       "post" : {
-        "description" : "S17 R-17-02. AGILITYHUB_ADMIN only. An image upload bound to the target club and caller. Publish its fileKey with the versioned theme update.",
+        "description" : "S17 §2/§6, R-17-02. Roles: AGILITYHUB_ADMIN, without a tenant or club membership. The console's only logo upload (light logo, dark logo or mark): an image upload bound to the target club and caller, with the attachment route's signed-upload response and five-minute expiry. mimeType must be an image allowed by the target club's files.allowedTypes and sizeBytes must not exceed files.maxSizeMb (FILE_TOO_LARGE includes maxSizeMb). Upload with the returned headers, then publish the fileKey with the versioned theme update (logoFileKey, logoDarkFileKey or markFileKey).",
         "operationId" : "uploadPlatformLogo",
         "parameters" : [ {
           "in" : "path",
@@ -76320,7 +76138,7 @@
                 }
               }
             },
-            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
+            "description" : "VALIDATION_ERROR, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
           },
           "401" : {
             "content" : {
@@ -76340,7 +76158,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED"
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
           },
           "404" : {
             "content" : {

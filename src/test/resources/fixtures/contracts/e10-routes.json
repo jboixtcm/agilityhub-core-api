@@ -370,15 +370,14 @@
   },
   {
     "method": "POST",
-    "path": "/api/v1/platform/clubs/{clubId}/upload-url",
+    "path": "/api/v1/platform/clubs/{id}/theme/upload-url",
     "success": 201,
     "body": {
-      "purpose": "LOGO",
       "fileName": "logo.png",
       "mimeType": "image/png",
       "sizeBytes": 3
     },
-    "key": false,
+    "key": true,
     "params": {},
     "errors": {
       "400": [
@@ -392,9 +391,6 @@
       ],
       "404": [
         "CLUB_NOT_FOUND"
-      ],
-      "501": [
-        "NOT_IMPLEMENTED"
       ]
     }
   }

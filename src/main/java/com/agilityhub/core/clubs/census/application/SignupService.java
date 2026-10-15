@@ -377,7 +377,7 @@ public class SignupService implements SignupPaymentAccess {
         if(!billing()) { if(raw.get("iban")!=null) throw invalid("payment.iban","MODULE_DISABLED");return null; }
         String type=string(raw.get("type"));
         String provider=PaymentProviderFlags.provider(type);
-        if(provider==null||!settings.providerEnabled(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
+        if(provider==null||!settings.assignableProvider(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
         var result=object("type",type);
         if(type.equals("SEPA_DD")) {
             String iban=string(raw.get("iban"));if(iban!=null) iban=iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT);

@@ -1,0 +1,5 @@
+Secret scan	success
+Dependency vulnerability audit	success
+Build and tests	failure
+Publish API image	skipped
+Scan image (${{ matrix.arch }})	skipped

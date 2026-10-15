@@ -87,20 +87,17 @@ public final class PlatformClubContracts {
             @Schema(requiredMode=NOT_REQUIRED) @Size(min=1) String timeZone,
             @Schema(requiredMode=NOT_REQUIRED) @Pattern(regexp="[A-Z]{3}") String currency,
             @Schema(requiredMode=NOT_REQUIRED) @Pattern(regexp="ES|GENERIC") String countryProfile,
-            @Schema(requiredMode=NOT_REQUIRED, nullable=true) @Valid PlatformClubLegal legal,
+            @Schema(requiredMode=NOT_REQUIRED, description="Omit to keep the current texts; null is rejected with 400 VALIDATION_ERROR {field: legal}.") @Valid PlatformClubLegal legal,
             @Schema(requiredMode=NOT_REQUIRED) Boolean template,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) String notes) { }
     public record PlatformDomainRequest(@NotBlank @Pattern(regexp="[A-Za-z0-9.-]+") String host, @NotNull DomainApp app) { }
     public record DomainVerification(DomainStatus status, Instant checkedAt, VerificationMethod method) { }
-    public enum ThemeUploadPurpose { LOGO, LOGO_DARK, MARK }
-    public record PlatformThemeUploadRequest(@NotNull ThemeUploadPurpose purpose, @NotBlank String fileName,
-            @NotBlank String mimeType, @NotNull @Positive Long sizeBytes) { }
     public record PlatformThemeRequest(@NotNull @PositiveOrZero Long version,
             @NotNull @Valid Theme.Colors colors, @NotBlank String fontFamily, @NotBlank String radius,
             @NotNull List<String> ringPalette, @NotNull Theme.Mode mode,
-            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO; never a local path.") String logoFileKey,
-            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose LOGO_DARK.") String logoDarkFileKey,
-            @Schema(requiredMode=NOT_REQUIRED, description="Key from POST /platform/clubs/{clubId}/upload-url with purpose MARK.") String markFileKey) { }
+            @Schema(requiredMode=NOT_REQUIRED, description="Light logo: fileKey from POST /platform/clubs/{id}/theme/upload-url, uploaded and not yet published elsewhere; empty removes it, omitted keeps it. Never a local path.") String logoFileKey,
+            @Schema(requiredMode=NOT_REQUIRED, description="Dark logo: fileKey from POST /platform/clubs/{id}/theme/upload-url; empty removes it, omitted keeps it.") String logoDarkFileKey,
+            @Schema(requiredMode=NOT_REQUIRED, description="Mark: fileKey from POST /platform/clubs/{id}/theme/upload-url; empty removes it, omitted keeps it.") String markFileKey) { }
     public record PlatformModulesRequest(@NotNull @PositiveOrZero Long version,
             @Schema(requiredMode=NOT_REQUIRED) Set<@NotNull Module> modules,
             @Schema(requiredMode=NOT_REQUIRED) ModulePreset preset) {

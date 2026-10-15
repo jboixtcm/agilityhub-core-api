@@ -30,7 +30,7 @@ public class PlatformConsoleQueries {
         YearMonth selected;
         try { selected=month==null?YearMonth.from(clock.now(c.id())):YearMonth.parse(month); }
         catch(DateTimeException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","month")); }
-        return new Usage(selected.toString(),projection.activeMembers(c.id()),sms.sent(c.id(),selected),c.usage().getOrDefault("storageBytes",0L));
+        return new Usage(selected.toString(),projection.activeMembers(c.id()),sms.sent(c.id(),selected),projection.storageBytes(c.id()));
     }
     public Instant lastAdminAccess(Club c) { return projection.lastAdminAccess(c.id()); }
     public Checklist checklist(Club c) {

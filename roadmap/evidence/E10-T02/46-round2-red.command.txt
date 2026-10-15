@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=PlatformConsoleIT,ConsoleProviderLockIT,E10ContractIT,E10ResponseContractTest,E2ContractIT,AuditContractTest test
