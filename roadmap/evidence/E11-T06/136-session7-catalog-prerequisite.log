@@ -1,0 +1,6 @@
+Confirmed failure: E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses
+Missing catalogued API audit actions: CLUB_CREATED, CLUB_PAYMENT_PROVIDER_CHANGED, CLUB_ADMIN_INVITED
+Authority: docs/specs/S14-tauler-auditoria-exportacions-rgpd.md R-14-09; E108 assigns these to E10-T02.
+Ownership: roadmap/MESSAGES.md, organizer entry 14-10 morning, E10-T02 round 2.
+PASS inspection: test assertion retained; source, tests, build inputs and synced docs unmodified.
+Verification remains blocked; inspection exit 0 is not a successful build.

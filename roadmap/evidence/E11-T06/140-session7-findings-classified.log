@@ -1,0 +1,13 @@
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:4984; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:4984; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:5022; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:5026; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:5022; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:5026; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:5289; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:5289; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:9218; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:9218; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify-normalized.log:11751; Springdoc correlation field, no credential
+TRACE_UUID roadmap/evidence/E11-T06/131-session7-clean-verify.log:11751; Springdoc correlation field, no credential
+PASS 12 findings classified; no scanner rules or historical logs changed.

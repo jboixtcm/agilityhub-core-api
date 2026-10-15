@@ -1,0 +1,6 @@
+2026-10-15T07:28:39.587559+00:00
+131 clean verification: exit 1
+PASS: no process holds the completed verification log.
+PASS: no Java worker has this checkout as its working directory.
+Host lock PID: 36599
+Attempt 127 still has no exit record; it is not accepted as a completed PIT verification.
