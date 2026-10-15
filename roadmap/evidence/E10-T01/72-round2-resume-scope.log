@@ -1,0 +1,5 @@
+S17 adds only POST /platform/clubs/{clubId}/upload-url and two schemas.
+S17 changes only the create-club description and PlatformDomain, PlatformProviderSummary, PlatformThemeRequest.
+PlatformClubPage.appliedFilters was already present in the implementation baseline.
+Published S16 round-3 deltas (two operations, two schemas) are preserved unchanged.
+The complete current snapshot equals the published resume baseline; no unrelated contract drift.

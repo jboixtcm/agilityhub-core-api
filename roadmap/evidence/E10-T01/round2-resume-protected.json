@@ -1,0 +1,522 @@
+[
+  {
+    "path": "roadmap/ROADMAP.md",
+    "sha256": "5556ce522eda708ced28dd52eaf967213f5b33e50ed61592adf906f90a52b98c"
+  },
+  {
+    "path": "roadmap/tasks/E0-T01.md",
+    "sha256": "3f52097319f2c0d1f78624800b83d1a43995928dc31ad0e91e3ca876c429390a"
+  },
+  {
+    "path": "roadmap/tasks/E0-T02.md",
+    "sha256": "50f71c9ecce189223eddea4ebbffe061be9527c02ac27a6776d007693bcff4f8"
+  },
+  {
+    "path": "roadmap/tasks/E0-T03.md",
+    "sha256": "38618188049660ded518d88f1f2dcdc09624e1330bd856950c891a5ca638444e"
+  },
+  {
+    "path": "roadmap/tasks/E0-T04.md",
+    "sha256": "0beb239fe0c716d0fe70cbe049f3968a2470cef99a30b02d2d27f2cfcd780408"
+  },
+  {
+    "path": "roadmap/tasks/E0-T05.md",
+    "sha256": "9d587ac496e582033ff3b03a387f0c9820e603310acd4e45d73a0f0330b14708"
+  },
+  {
+    "path": "roadmap/tasks/E0-T06.md",
+    "sha256": "1289f767985beb8782c5dfa7084864b80f32bbee6359f30e8a47535ddc901418"
+  },
+  {
+    "path": "roadmap/tasks/E0-T07.md",
+    "sha256": "75f504d033e45e96dce4ee84579f2778641f669c03e4e4427bd4aa3622ba6faa"
+  },
+  {
+    "path": "roadmap/tasks/E0-T08.md",
+    "sha256": "92ba25fc9fe829d9000c52837e24cbe9a031e8177ce4783191621c8097c71768"
+  },
+  {
+    "path": "roadmap/tasks/E0-T09.md",
+    "sha256": "9e97f4400b438f5c6b1465436c0c6dd8b302266969aafa332c5e90882d97a837"
+  },
+  {
+    "path": "roadmap/tasks/E0-T10.md",
+    "sha256": "dcc21a1ee113da4e9c7b09bf4b4acb61bf5a2e3bb81b291197de630e7771b3bf"
+  },
+  {
+    "path": "roadmap/tasks/E0-T11.md",
+    "sha256": "dc0b94cd1e8a1928458f0624c0545a04e4be55352782b98e5a26858ebe45b9b6"
+  },
+  {
+    "path": "roadmap/tasks/E0-T12.md",
+    "sha256": "0485bfabb26a5f55b1aad29ddaa3979961505fb6b232e29ef9103a1c313b89e5"
+  },
+  {
+    "path": "roadmap/tasks/E0-T13.md",
+    "sha256": "e15f098836b36ab0df708388f6e9e344676c31e49a7b80f3ac24e12ac790ef77"
+  },
+  {
+    "path": "roadmap/tasks/E0-T14.md",
+    "sha256": "6f8810b2dec3a0295720953e8a385fc1afb382d83e5b8128e0186fb46147542b"
+  },
+  {
+    "path": "roadmap/tasks/E1-T01.md",
+    "sha256": "379ed3d7c772e081dcd2394281ebe7ecb1904ac3571950769eada854fcaead46"
+  },
+  {
+    "path": "roadmap/tasks/E1-T02.md",
+    "sha256": "c942026cbc67b4be1b57f45b3b38e389048b5f61ff45a1db080d45392cb06841"
+  },
+  {
+    "path": "roadmap/tasks/E1-T03.md",
+    "sha256": "a961a12eab73f12115bc740f007434c53c78d4cd2708a0a5b8a4ea93beb22306"
+  },
+  {
+    "path": "roadmap/tasks/E1-T04.md",
+    "sha256": "0534ce9128d46d1c1883849498755392346cd284be4dfc6f5a87de8b9c86fa3a"
+  },
+  {
+    "path": "roadmap/tasks/E1-T05.md",
+    "sha256": "a9dbb12e2d96f11ba563dfbaca1790a9539ed310388df661b50ff5b0fb4f714e"
+  },
+  {
+    "path": "roadmap/tasks/E1-T06.md",
+    "sha256": "e0c03663213df5487f888db4aa378c81f7a0b5afe29f3c87fb970eabc978ae24"
+  },
+  {
+    "path": "roadmap/tasks/E1-T07.md",
+    "sha256": "d0106cf43f5e2be05e41189035b770c24d1659fd1a4d61f20e4760ddd125e296"
+  },
+  {
+    "path": "roadmap/tasks/E1-T08.md",
+    "sha256": "2c7885ecebe208b83d9a5f4feb58d39561ebc94485c3b3af0cf6842ae40209eb"
+  },
+  {
+    "path": "roadmap/tasks/E1-T09.md",
+    "sha256": "c8be3579a7effa96c137c7411193f7d482a4b82e77b0bf6a9b6896f68bc70990"
+  },
+  {
+    "path": "roadmap/tasks/E1-T10.md",
+    "sha256": "9b8e479b3d90e6fd540adca6c51bed8c9e03770dacfe204a42b79b6cfea03ac6"
+  },
+  {
+    "path": "roadmap/tasks/E1-T11.md",
+    "sha256": "484931cf0ddd3369f7581f07c8a266bcb3bc1fdd55fae4bc04c76d127bf546f8"
+  },
+  {
+    "path": "roadmap/tasks/E1-T13.md",
+    "sha256": "c27ce9b3dcc280a2e6af0032e98874ec16e54ba61ac98606c69cd8c833ebc901"
+  },
+  {
+    "path": "roadmap/tasks/E1-T14.md",
+    "sha256": "276e3f13fb8e04291dca278588bb827539aa08e04a14ac987f89e6ec2611253c"
+  },
+  {
+    "path": "roadmap/tasks/E10-T02.md",
+    "sha256": "5b4601f446d6809beedea6c8433595188e7cdd05603a5fc2dd29fca2178d378f"
+  },
+  {
+    "path": "roadmap/tasks/E11-T03.md",
+    "sha256": "f546047bd43f7a31f5039cf6e82a6006a7724e33a498b3a940d2d34fe54ad621"
+  },
+  {
+    "path": "roadmap/tasks/E11-T04.md",
+    "sha256": "d57073fef92f3d59decbf5de3bf420784a04cdc24e3ec28b180171bc1b45efbc"
+  },
+  {
+    "path": "roadmap/tasks/E11-T06.md",
+    "sha256": "321dcc0512c7e4e623ba3d5ae7382705853b18d602dd031de689d023b536d0db"
+  },
+  {
+    "path": "roadmap/tasks/E2-T01.md",
+    "sha256": "5187e90e926f8e18919d1c70f264d22cbcda5cc450272a7f4f3c4904fe326f02"
+  },
+  {
+    "path": "roadmap/tasks/E2-T02.md",
+    "sha256": "5b058df3e22c4ee2964ab4f2f5736947e69f9bd673eee1eb2f12f93f3f565060"
+  },
+  {
+    "path": "roadmap/tasks/E2-T03.md",
+    "sha256": "ec97d974bffeed9dbb105336d700f7a88f53f445c811021225e1ef863e907ad6"
+  },
+  {
+    "path": "roadmap/tasks/E2-T04.md",
+    "sha256": "5a7b02a4df327bddfc8af3b7cb2d3e50ec7a7de4ded9a1ea863465eb691bd1f5"
+  },
+  {
+    "path": "roadmap/tasks/E2-T05.md",
+    "sha256": "da05b28073261280d778bb8f5ed904fb216c0dd8f2d30bb2ede6f7f2725d9ef3"
+  },
+  {
+    "path": "roadmap/tasks/E2-T06.md",
+    "sha256": "3c12a8e41101c4d8fc000edcc949d469bd413583805ada48c199b4dcb6bec0df"
+  },
+  {
+    "path": "roadmap/tasks/E2-T07.md",
+    "sha256": "d0c3a23e467ebb598d027ac324b91166d0f65aafded91c5aeda793f87b0c1de1"
+  },
+  {
+    "path": "roadmap/tasks/E2-T08.md",
+    "sha256": "f6340dc90a9457ce15c8d31dca4b8e356819a8fef88e64bd73b9fbf29afa0017"
+  },
+  {
+    "path": "roadmap/tasks/E2-T09.md",
+    "sha256": "8b0824ca4cf3114f9f8df0b2461d8125b4eaf1bcb93d83efaee677e76d285250"
+  },
+  {
+    "path": "roadmap/tasks/E2-T10.md",
+    "sha256": "998ed76d9fed93b63f32a563840370220128925652d4ff730284bd445a6c4530"
+  },
+  {
+    "path": "roadmap/tasks/E2-T11.md",
+    "sha256": "9e199b2970ccd8763a1ef89b84b4611e313cbd9a152bd105d424a831aa3de4e8"
+  },
+  {
+    "path": "roadmap/tasks/E2-T12.md",
+    "sha256": "1ef10ace446a330ae66251319f14ea3aba6942e422f995ad033f60e8c67ed75b"
+  },
+  {
+    "path": "roadmap/tasks/E2-T13.md",
+    "sha256": "7fa154bea8391c8099e6dc12ebaec64c743c06985a392a8db72c0f981813ba95"
+  },
+  {
+    "path": "roadmap/tasks/E3-T01.md",
+    "sha256": "526eb843b9f794b4eb8ced2e2f30f9cce8c9c1887362acf593a0fbf91a46b552"
+  },
+  {
+    "path": "roadmap/tasks/E3-T02.md",
+    "sha256": "eccebaaeb15ffb972ddc1b5a2fc08dbe4ca28ff63d7e47409d668d0f93828029"
+  },
+  {
+    "path": "roadmap/tasks/E3-T03.md",
+    "sha256": "9ce0c4873afb53884c0b29d31a5835a92a9ebfd9e5313324f74ed83ac95f4a3c"
+  },
+  {
+    "path": "roadmap/tasks/E3-T04.md",
+    "sha256": "9c63849ad1e1333b85aa8d91622eb9c71434f99e1bdf3e7df49c6b97a4529f68"
+  },
+  {
+    "path": "roadmap/tasks/E3-T05.md",
+    "sha256": "c7d38db5260460163d453c7055445c79bd57a84baaf1eaee6a3e7300c49b80a5"
+  },
+  {
+    "path": "roadmap/tasks/E3-T06.md",
+    "sha256": "aedbf5d2d5be6cd4b878359d82abdaf8f59e19cc8bca5b11bf971eb7c6edd604"
+  },
+  {
+    "path": "roadmap/tasks/E3-T07.md",
+    "sha256": "b829a364887fa570b60d624dc2e208308213f867b6b56f1bc43ee5ad32181674"
+  },
+  {
+    "path": "roadmap/tasks/E3-T08.md",
+    "sha256": "916857f4ece8912dad8caf8ea236d7eb8ea589714854246c1af2075d546948d0"
+  },
+  {
+    "path": "roadmap/tasks/E3-T09.md",
+    "sha256": "7ff8f4300273dc53e8893dd1dcd206d0efe6a2c156a363593fd7262b9b7e826f"
+  },
+  {
+    "path": "roadmap/tasks/E3-T10.md",
+    "sha256": "48101e85d5017de8dbd7a38afabe9c96e0915c3cceb23407cd3a9258e08e4c2a"
+  },
+  {
+    "path": "roadmap/tasks/E3-T11.md",
+    "sha256": "0c38f71873a1d9f01ddb8d6618f3f7ec01367c108fb70b2dc4ca99df07938d1f"
+  },
+  {
+    "path": "roadmap/tasks/E3-T12.md",
+    "sha256": "0dd9765303737d21f2b4e51764ade6d2ceafc251b0b31268cafeafab55d28d3b"
+  },
+  {
+    "path": "roadmap/tasks/E3-T13.md",
+    "sha256": "96742d2ea8c2035ff91e1082d64e6914a7c60a1a8e052a73f78d557b110e1ca4"
+  },
+  {
+    "path": "roadmap/tasks/E3-T14.md",
+    "sha256": "5f41bd7a129fc84ac88f7de72055067b01fc030a4ed7c2821ca46c823e890e8b"
+  },
+  {
+    "path": "roadmap/tasks/E3-T15.md",
+    "sha256": "8ed2d97ef7be8204476ba329b7c439110dd8a403532075c971186299350ce9b3"
+  },
+  {
+    "path": "roadmap/tasks/E3-T16.md",
+    "sha256": "860566588a8806a682bf06b3cb754ee0017dfc65754675f07e07eb6d375b6f59"
+  },
+  {
+    "path": "roadmap/tasks/E3-T17.md",
+    "sha256": "e70d64771c3be20bdf61539a475ad285364eaeee3ac8e2c58fa37537c57e521e"
+  },
+  {
+    "path": "roadmap/tasks/E4-T01.md",
+    "sha256": "be9c2f4423e0c766bfc3d9f6d2f59497ea61cc99d4c4ed0d74692f44d13a4dfb"
+  },
+  {
+    "path": "roadmap/tasks/E4-T02.md",
+    "sha256": "dd6f45da4934cd52f7908d8e212a90c01983514f861b8c0a6cf403d676cacb92"
+  },
+  {
+    "path": "roadmap/tasks/E4-T03.md",
+    "sha256": "bf6cce1668ee2f755a7efac1474b782bef957e2222e5d3669fb86a190636ce50"
+  },
+  {
+    "path": "roadmap/tasks/E4-T04.md",
+    "sha256": "f8a36e10e124e1b6cff1bfdce269939b9169da3fe32830dee994489a7a085091"
+  },
+  {
+    "path": "roadmap/tasks/E4-T05.md",
+    "sha256": "10c38b40d1d0d5a509791588c530c7541f03e05b1c695329a2cc9ec7e7c758fc"
+  },
+  {
+    "path": "roadmap/tasks/E4-T06.md",
+    "sha256": "fc23d00f585c91a4ba433e26ea4684fd4cd05a34da3d7f40d885f0fa105d887c"
+  },
+  {
+    "path": "roadmap/tasks/E5-T01.md",
+    "sha256": "ae6b38ac66b9ad1285c32bf6da356fbc9715296e135df7e0898e1eee9fa44576"
+  },
+  {
+    "path": "roadmap/tasks/E5-T02.md",
+    "sha256": "440e93723963bb98d2d62c2fe17eb684cefa0bc32b50b835ad12539dd104ec7e"
+  },
+  {
+    "path": "roadmap/tasks/E5-T03.md",
+    "sha256": "4d35c2bf25fcf6f04f5c0a89fdf7662ebe6c02dcc12dd7f75b3cf75facc6492b"
+  },
+  {
+    "path": "roadmap/tasks/E5-T04.md",
+    "sha256": "13cc377a4da37a1ee742f802d7305665e63c70486002737de47686ffedbdfab4"
+  },
+  {
+    "path": "roadmap/tasks/E5-T05.md",
+    "sha256": "d37321da91bf64f2e1f6cac4056b522acf9390dae14563aefcccfdabd139c0c3"
+  },
+  {
+    "path": "roadmap/tasks/E5-T06.md",
+    "sha256": "fb81887b540156055e658e7806324b4f2beee9d29dfe109f7b1ad26710a0f9cc"
+  },
+  {
+    "path": "roadmap/tasks/E5-T07.md",
+    "sha256": "1b64d8b7a7e00b46ef9ec984e96a9716ab13133d13e47152e5aebc2693805ef9"
+  },
+  {
+    "path": "roadmap/tasks/E5-T08.md",
+    "sha256": "cd6b1033efdbef22faa498d8879b09356301d9f4d29a871b690a0bd986e8ef66"
+  },
+  {
+    "path": "roadmap/tasks/E5-T09.md",
+    "sha256": "4a878d5e4e426469c019dd90caba1773f3be451b692a42b0af39cf5b54aa90e1"
+  },
+  {
+    "path": "roadmap/tasks/E5-T10.md",
+    "sha256": "4799b102a8af4b8fa38e766c22c1b724d8f36c406a459e35731a81e85406a51a"
+  },
+  {
+    "path": "roadmap/tasks/E5-T11.md",
+    "sha256": "8b922bcddc83b3c616a4c0f9a7314da4d48b863711e7d0ff42bf3220ffce262e"
+  },
+  {
+    "path": "roadmap/tasks/E5-T12.md",
+    "sha256": "1b4333128aabe2157cd3ec7a392e00e4ef33b8f1c768b0cd85472b8beaa3bbad"
+  },
+  {
+    "path": "roadmap/tasks/E5-T13.md",
+    "sha256": "a78fb2a2b57ca38b5f45479e1597f3f10b267a72e8d46a1ce65980e637f77e44"
+  },
+  {
+    "path": "roadmap/tasks/E5-T14.md",
+    "sha256": "6c6be32e064bb829baff1ee05b9edfc8a2bd42f2531f0b65e4678c160170aad3"
+  },
+  {
+    "path": "roadmap/tasks/E5-T15.md",
+    "sha256": "ef75c0b60f1b854d5a1e0007f418df6ea4c13d6013bea9a3ba43baa5be0f4dbe"
+  },
+  {
+    "path": "roadmap/tasks/E5-T16.md",
+    "sha256": "cb064634444af6219fba5262e55b763e093ccb84903d68434966e33c773a1da2"
+  },
+  {
+    "path": "roadmap/tasks/E5-T17.md",
+    "sha256": "c1196d39e9200810cac4cac81e49a994a50c23e851bccf75088adea3f173e24c"
+  },
+  {
+    "path": "roadmap/tasks/E5-T18.md",
+    "sha256": "92d7d304ac2cb353257bfc69896c8556ac5f65f556d17dcb4bc8d73d72cbcd95"
+  },
+  {
+    "path": "roadmap/tasks/E5-T19.md",
+    "sha256": "030267e8c8052afc0f23dfd68fdfdddf218daa00cc4be3f603045de29a9d27d8"
+  },
+  {
+    "path": "roadmap/tasks/E5-T20.md",
+    "sha256": "0c657b8728b764cf9fc8d4edcadb802aa48c51ef0547055cd81b9fba81abe4ce"
+  },
+  {
+    "path": "roadmap/tasks/E5-T21.md",
+    "sha256": "1e9960d959495390e57807ed3d6e15b45a722b87e5bb0527899845e5a50b77aa"
+  },
+  {
+    "path": "roadmap/tasks/E5-T22.md",
+    "sha256": "48096fc41a3028af6c684d608f577d402b1ce99145f0e9c115bfc0d21fbe139a"
+  },
+  {
+    "path": "roadmap/tasks/E5-T23.md",
+    "sha256": "269247850b6eec401e99a4ecf50d7ec656cea8c16158a2c19954cf386d6eab4c"
+  },
+  {
+    "path": "roadmap/tasks/E5-T24.md",
+    "sha256": "8ed6b464700c65f545e45beb7dba252dccac27e1dfa38ee6a46aaca4098d04b6"
+  },
+  {
+    "path": "roadmap/tasks/E5-T25.md",
+    "sha256": "9d7c845c6871182f2af5453436a47b4aa3b5a2b024a71e2736523ac78000cf79"
+  },
+  {
+    "path": "roadmap/tasks/E5-T26.md",
+    "sha256": "90223d68711f2ca49ab71ad8ac25213a4e90950c460874f52fbadaf5136dfa0a"
+  },
+  {
+    "path": "roadmap/tasks/E5-T27.md",
+    "sha256": "da7ecc38275fb713eacd97a4796bfafe9c083255609efccd8dcef95668f5bae2"
+  },
+  {
+    "path": "roadmap/tasks/E5-T28.md",
+    "sha256": "c2fbf1111df0f9a24d86ceddb2a5d542bfb1ca239b693ba1de14ab2973967be3"
+  },
+  {
+    "path": "roadmap/tasks/E5-T29.md",
+    "sha256": "4a0652ca5afdb833c7fb1294c1a213374888357d2160221ec98db175d0d17f9e"
+  },
+  {
+    "path": "roadmap/tasks/E5-T30.md",
+    "sha256": "a4ee9ee2d778d34336c95dae29ace9490dc81dfc7ae7508a4ccbdc0da3a85211"
+  },
+  {
+    "path": "roadmap/tasks/E5-T31.md",
+    "sha256": "bb3d9f355bad496c5cbcd362558ccf1a8ebb7c14e1ec890f912b59c4045c70a8"
+  },
+  {
+    "path": "roadmap/tasks/E6-T01.md",
+    "sha256": "594211756f84fd405a2e3db45de3daf85d826199d015b9e02045e7edb7ace2c5"
+  },
+  {
+    "path": "roadmap/tasks/E6-T02.md",
+    "sha256": "b2aa86c7f58dd114e16f28ba44cc6b5a8b441e4fe971f8c0b45b677dabe296e3"
+  },
+  {
+    "path": "roadmap/tasks/E6-T03.md",
+    "sha256": "2a83c74cd8cf5c4ced133b85aa7b6fdb855baff3d558b2f8af00a18c13538f5a"
+  },
+  {
+    "path": "roadmap/tasks/E6-T04.md",
+    "sha256": "4852a8b34843ffcd9c5e47cfa21ee84092383c7ad1a644ec4506192b394e9e0b"
+  },
+  {
+    "path": "roadmap/tasks/E6-T05.md",
+    "sha256": "19e93b9842f091bcec49309948dd2b9252b19631ea070e4d4c2545792f8bfbdf"
+  },
+  {
+    "path": "roadmap/tasks/E6-T06.md",
+    "sha256": "926f7c1de9798e94a6e34049099d536c1a2015b6b24b599105f8893fe7083606"
+  },
+  {
+    "path": "roadmap/tasks/E7-T01.md",
+    "sha256": "6e1f0f499025328f62d7dcc09e1441043dd51d4b7654d975af6fb550e625e3e1"
+  },
+  {
+    "path": "roadmap/tasks/E7-T02.md",
+    "sha256": "98551ae17868963cbe3f80312b3712956194c896502a58916b22686c48845784"
+  },
+  {
+    "path": "roadmap/tasks/E7-T03.md",
+    "sha256": "4c28045555422622a458b1386e73f398962ad5f59ab6d186f225dad0c032a3d3"
+  },
+  {
+    "path": "roadmap/tasks/E7-T04.md",
+    "sha256": "8fec5cd9284f409ff717d892cbf0340533ab4dba3ddaa1940da56c39503405d8"
+  },
+  {
+    "path": "roadmap/tasks/E7-T05.md",
+    "sha256": "b05f126120cf6394896bc12ee7e719d053180e7776cfee9db26bebc8a15b970a"
+  },
+  {
+    "path": "roadmap/tasks/E7-T06.md",
+    "sha256": "2d7e4f439f8ede98ee46b0dbc5ff039e3f718314f328aac0d874e0133b39dabc"
+  },
+  {
+    "path": "roadmap/tasks/E7-T07.md",
+    "sha256": "67fb772c048d1702b90faffb015a7cd1d31018c180a5e21bf4c8916f99701c88"
+  },
+  {
+    "path": "roadmap/tasks/E8-T01.md",
+    "sha256": "3920c31bad08925ca01d602432a7f3e811c14b9cb23d418b244c961e673437b9"
+  },
+  {
+    "path": "roadmap/tasks/E8-T02.md",
+    "sha256": "18f58ef67d415ac0a0cce5d93cd93f11ff3478ecaf481ba517cf7ece89cc7b16"
+  },
+  {
+    "path": "roadmap/tasks/E8-T03.md",
+    "sha256": "3f57d5d4706355965298489e04b28efef9f6ed80fd8de9952571b34efea894b7"
+  },
+  {
+    "path": "roadmap/tasks/E8-T04.md",
+    "sha256": "e5b1f5cebf0aa179505c46ec192c1a161a8f162134bb00603a40f8464d426d4c"
+  },
+  {
+    "path": "roadmap/tasks/E8-T05.md",
+    "sha256": "4b5991133651adebee2ddc3a63eca87bfbd465d0366e502613cea2163362afba"
+  },
+  {
+    "path": "roadmap/tasks/E8-T06.md",
+    "sha256": "fa4764d353e9ce535f79f361f37dbfd9ec07eaaacc01d5ebc518dd393e2ea0ce"
+  },
+  {
+    "path": "roadmap/tasks/E8-T07.md",
+    "sha256": "f5087ea6febe17baf765517a9f57ca75a92b9dc2e1be7fbbda7659cbfaeb2d1e"
+  },
+  {
+    "path": "roadmap/tasks/E8-T08.md",
+    "sha256": "6b83b84c9045e6dec496f2c69d7c8ddf8fc270565b62914c934504fe008209c0"
+  },
+  {
+    "path": "roadmap/tasks/E8-T09.md",
+    "sha256": "40da9e36377a28ee4330ca8fcd0288927bf726892dfad61f396f0f121895bd13"
+  },
+  {
+    "path": "roadmap/tasks/E8-T10.md",
+    "sha256": "784779320c58941cdd2d8a41dd7a9c5167fb3aaf18a329d82b4390ea87c602fa"
+  },
+  {
+    "path": "roadmap/tasks/E8-T11.md",
+    "sha256": "d017ee30b2a7ec0b24a27bff1b84752c8afdddb7337e26b004e63d8385a9f41d"
+  },
+  {
+    "path": "roadmap/tasks/E8-T12.md",
+    "sha256": "343ea4f0bdcd693b46c90d532e83b759fcb2c712ba012b7b36c4c91d9489f6fb"
+  },
+  {
+    "path": "roadmap/tasks/E8-T13.md",
+    "sha256": "c16bc1cf13097df8d423fd7de85057a835c45bad126b7079bad199fda718f397"
+  },
+  {
+    "path": "roadmap/tasks/E9-T01.md",
+    "sha256": "1fbaf31ddfcc3bdf80ddaceb286f28c565d19ea8eeea55b76ab0c26f1ab5c077"
+  },
+  {
+    "path": "roadmap/tasks/E9-T02.md",
+    "sha256": "1b82e0b5cddd45f2061e7169ca77087f0cd9eb1e23bcf6205c97b1921aabc69c"
+  },
+  {
+    "path": "roadmap/tasks/E9-T03.md",
+    "sha256": "94ff8a5384b2b08e8d1ee3d1fae6930d04c1f64c5de089f6fa311a1d92f545b1"
+  },
+  {
+    "path": "roadmap/tasks/E9-T04.md",
+    "sha256": "869f467ce037839d071dcb5a023b9bfee202b83f9c91f50d527b0b1922da879b"
+  },
+  {
+    "path": "organizer",
+    "sha256": "01e9356839841bfcb7f159b5e305cd23daea6693525b063a755742ab6df8eb9a"
+  }
+]
