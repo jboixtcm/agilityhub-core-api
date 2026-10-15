@@ -1,0 +1,21 @@
+Command: ./mvnw -q clean verify (via heavy.sh), exit 0 (log 14-clean-verify.log)
+surefire-reports: tests=4510, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+  CourseJsonConverterTest: tests=4, failures=0, errors=0, skipped=0
+  CourseListingTest: tests=3, failures=0, errors=0, skipped=0
+  CourseModelFactsTest: tests=2, failures=0, errors=0, skipped=0
+  CourseSchemasTest: tests=3, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=12, failures=0, errors=0, skipped=0
+  RingGeometryRulesTest: tests=6, failures=0, errors=0, skipped=0
+failsafe-reports: tests=1978, failures=0, errors=0, skipped=0
+  CourseLibraryIT: tests=12, failures=0, errors=0, skipped=0
+  E9ContractIT: tests=66, failures=0, errors=0, skipped=0
+  ListFieldsContractIT: tests=4, failures=0, errors=0, skipped=0
+  RingGeometryIT: tests=5, failures=0, errors=0, skipped=0
+JaCoCo (target/site/jacoco/jacoco.csv), courses packages:
+  com.agilityhub.core.courses.api: lines 100.0% (147/147), branches 85.7% (12/14)
+  com.agilityhub.core.courses.application: lines 100.0% (451/451), branches 88.3% (393/445)
+  com.agilityhub.core.courses.application.ports: lines 100.0% (1/1), branches n/a (0/0)
+  com.agilityhub.core.courses.domain: lines 100.0% (185/185), branches 95.8% (136/142)
+  com.agilityhub.core.courses.persistence: lines 96.4% (159/165), branches 80.8% (63/78)

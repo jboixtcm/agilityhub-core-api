@@ -14,4 +14,15 @@ public class VenueRepository extends CourseTenantRepository<Venue> {
         mongo.indexOps(Venue.class).ensureIndex(new Index().on("clubId", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("clubId").type(2))).named("venue_club"));
         mongo.indexOps(Venue.class).ensureIndex(new Index().on("slug", ASC).unique().named("venue_slug"));
     }
+    /** S16 §14.2: the club's own venue (one per club), if it exists yet. */
+    public java.util.Optional<Venue> club() { return java.util.Optional.ofNullable(mongo.findOne(tenantQuery(), Venue.class)); }
+    /** Creates the club's venue once: an upsert on the club that only inserts, so a second call (or a concurrent one) changes nothing. */
+    public void ensure(Venue venue) {
+        tenantQuery(venue.clubId());
+        var document = new org.bson.Document();
+        mongo.getConverter().write(venue, document);
+        var update = new org.springframework.data.mongodb.core.query.Update();
+        document.forEach((key, value) -> { if (!key.equals("clubId") && !key.equals("_class")) { update.setOnInsert(key, value); } });
+        mongo.upsert(tenantQuery(), update, Venue.class);
+    }
 }

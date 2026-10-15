@@ -32,8 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class E9ContractIT extends AbstractIntegrationTest {
     static final String CLUB="e9-club-a", OTHER="e9-club-b", HOST="e9-a.example.test", OTHER_HOST="e9-b.example.test";
     static final List<String> DATA=List.of("courses", "placements", "ring_setups", "build_sessions", "obstacle_inventories", "calibration_logs", "venues", "rings", "levels", "activities", "dogs", "idempotency_records", "domain_events", "audit_entries");
+    /** `served`: E9-T02 serves the route (its guards still run first); every other route still answers 501 after them. */
     record Route(String method, String path, int success, boolean idempotency, boolean impersonation, List<String> roles,
-                 JsonNode body, Map<String,String> params, boolean platform) { String label() { return method+" "+path; } }
+                 JsonNode body, Map<String,String> params, boolean platform, boolean served) { String label() { return method+" "+path; } }
     static Stream<Route> routes() throws Exception { return Arrays.stream(E9Fixtures.MAPPER.treeToValue(E9Fixtures.read("contracts/e9-routes"), Route[].class)); }
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
@@ -44,7 +45,9 @@ class E9ContractIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
     @BeforeEach void prepare() throws Exception {
-        for (String collection : DATA) { mongo.remove(Query.query(new Criteria().orOperator(Criteria.where("clubId").in(CLUB,OTHER), Criteria.where("_id").regex("^e9-"))), collection); }
+        // The library courses the served platform routes create are global: their creator identifies them.
+        for (String collection : DATA) { mongo.remove(Query.query(new Criteria().orOperator(Criteria.where("clubId").in(CLUB,OTHER), Criteria.where("_id").regex("^e9-"),
+                Criteria.where("clubId").is(null).and("createdByAccountId").regex("^e9-"))), collection); }
         for (String c : List.of(CLUB,OTHER)) { club(c, List.of(Module.values())); }
         for (String c : List.of(CLUB,OTHER)) {
             String suffix=c.equals(CLUB)?"a":"other";
@@ -53,6 +56,7 @@ class E9ContractIT extends AbstractIntegrationTest {
                 mongo.insert(E9Fixtures.document(type,"e9-"+kind+"-"+suffix,c));
             }
             mongo.save(new Document("_id","e9-ring-"+suffix).append("clubId",c).append("name","Example ring").append("version",7L)
+                    .append("shortName","R"+suffix).append("color","#123456").append("allowsFreeTraining",false).append("order",0).append("active",true)
                     .append("geometry",Document.parse(E9Fixtures.response("RingGeometry").toString())),"rings");
             mongo.insert(new com.agilityhub.core.clubs.catalogs.persistence.Level("e9-level-"+suffix,c,"A",
                     new com.agilityhub.core.shared.domain.LocalizedText(Map.of("ca","Example level"),"ca"),1,"#123456",6,false,true,true,0L,
@@ -89,6 +93,16 @@ class E9ContractIT extends AbstractIntegrationTest {
                 .as(result.andReturn().getRequest().getMethod()+" "+result.andReturn().getRequest().getRequestURI()).isEqualTo(code);
         return result.andExpect(jsonPath("$.traceId").isNotEmpty()).andExpect(jsonPath("$.message").isNotEmpty());
     }
+    /** A served route past its guards: its success or a business answer, never the guards' 401/403 nor the stub's 501. */
+    void served(MockHttpServletRequestBuilder request) throws Exception {
+        var response=mvc.perform(request).andReturn();
+        assertThat(response.getResponse().getStatus()).as(response.getRequest().getMethod()+" "+response.getRequest().getRequestURI()+" "+response.getResponse().getContentAsString())
+                .isIn(200,201,204,400,404,409,422);
+    }
+    /** The stub's 501, or a served route's answer. */
+    void answer(Route route, MockHttpServletRequestBuilder request) throws Exception {
+        if(route.served()) served(request); else error(request,501,"NOT_IMPLEMENTED");
+    }
     Map<String,List<Document>> state() {
         var result=new TreeMap<String,List<Document>>();
         for(String c:DATA) result.put(c,mongo.findAll(Document.class,c));
@@ -103,30 +117,33 @@ class E9ContractIT extends AbstractIntegrationTest {
             if(role.equals("MEMBER") && route.method().equals("GET") && route.path().equals("/api/v1/courses/{id}")) {
                 request.with(req->{req.setRequestURI("/api/v1/courses/e9-public");return req;});
             }
-            error(request,allowed?501:role.equals("ANON")?401:403,allowed?"NOT_IMPLEMENTED":role.equals("ANON")?"UNAUTHENTICATED":"FORBIDDEN");
+            if(allowed) { answer(route,request); continue; }
+            error(request,role.equals("ANON")?401:403,role.equals("ANON")?"UNAUTHENTICATED":"FORBIDDEN");
         }
         String role=route.roles().getFirst();
         if(!route.platform()) {
             error(call(route,role).with(req->{req.removeHeader("Host");req.addHeader("Host",OTHER_HOST);return req;}),403,"TENANT_MISMATCH");
             error(call(route,role).with(jwt().authorities(new SimpleGrantedAuthority("ROLE_"+role))),403,"NO_MEMBERSHIP");
         }
-        assertThat(state()).as(route.label()+" has no side effects, including idempotency").isEqualTo(before);
+        if(!route.served()) assertThat(state()).as(route.label()+" has no side effects, including idempotency").isEqualTo(before);
         assertThat(TenantContext.current()).isNull();
     }
-    @Test void T_16_21_globalCourseCreationReleasesTheKeyAfter501AndValidatesTheHeader() throws Exception {
+    @Test void T_16_21_globalCourseCreationValidatesTheKeyHeaderAndCreatesALibraryCourse() throws Exception {
         var route=routes().filter(r->r.platform()&&r.method().equals("POST")).findFirst().orElseThrow();
-        String key=UUID.randomUUID().toString();var before=state();
-        for(int i=0;i<2;i++) {
-            error(call(route,"AGILITYHUB_ADMIN").with(req->{req.removeHeader("Idempotency-Key");req.addHeader("Idempotency-Key",key);return req;}),501,"NOT_IMPLEMENTED");
-            assertThat(state()).isEqualTo(before);
-        }
+        var before=state();
         error(call(route,"AGILITYHUB_ADMIN").with(req->{req.removeHeader("Idempotency-Key");req.addHeader("Idempotency-Key","invalid");return req;}),400,"VALIDATION_ERROR");
-        error(call(route,"AGILITYHUB_ADMIN").with(req->{req.removeHeader("Idempotency-Key");return req;}),501,"NOT_IMPLEMENTED");
+        assertThat(state()).isEqualTo(before);
+        // A tenantless platform request has no club for the idempotency scope (new-endpoint playbook): with or without a key it creates.
+        for(var request:List.of(call(route,"AGILITYHUB_ADMIN"),call(route,"AGILITYHUB_ADMIN").with(req->{req.removeHeader("Idempotency-Key");return req;}))) {
+            mvc.perform(request).andExpect(status().isCreated()).andExpect(jsonPath("$.ownerType").value("AGILITYHUB"))
+                    .andExpect(jsonPath("$.clubId").isEmpty()).andExpect(jsonPath("$.visibility").value("PUBLIC"));
+        }
     }
     @Test void T_16_12_everyClubRouteChecksTheModuleBeforeTheStubAndBodyValidation() throws Exception {
         club(CLUB,Arrays.stream(Module.values()).filter(m->m!=Module.COURSES).toList());
         for(var route:routes().toList()) {
-            error(call(route,route.roles().getFirst()),route.platform()?501:404,route.platform()?"NOT_IMPLEMENTED":"MODULE_DISABLED");
+            if(route.platform()) { answer(route,call(route,route.roles().getFirst())); continue; }
+            error(call(route,route.roles().getFirst()),404,"MODULE_DISABLED");
             if(!route.platform()&&route.body()!=null) error(call(route,route.roles().getFirst()).content("{"),404,"MODULE_DISABLED");
         }
     }
@@ -168,12 +185,19 @@ class E9ContractIT extends AbstractIntegrationTest {
             error(call(route,role).content(body.toString()),400,"COURSE_MODEL_INVALID");
         }
     }
-    @Test void T_16_03_optionalModelAndOptionalReferencesDoNotBecomeRequired() throws Exception {
+    @Test void T_16_03_aModelIsRequiredUnlessTheSourceIsAnImageAndAPatchKeepsTheStoredOne() throws Exception {
         for(var route:routes().filter(r->r.body()!=null&&r.body().has("normalizedJson")).toList()) {
             var body=((ObjectNode)route.body()).deepCopy();body.remove(List.of("normalizedJson","schemaVersion","levelIds"));
             if(route.method().equals("POST")) body.putArray("levelIds");
-            error(call(route,route.roles().getFirst()).content(body.toString()),501,"NOT_IMPLEMENTED");
-            body.putNull("normalizedJson");error(call(route,route.roles().getFirst()).content(body.toString()),501,"NOT_IMPLEMENTED");
+            for(int pass=0;pass<2;pass++) {
+                if(pass==1) body.putNull("normalizedJson");
+                if(route.method().equals("POST")) {
+                    // S16 §3: `model?` is required except for an IMAGE course, which needs its image instead.
+                    error(call(route,route.roles().getFirst()).content(body.toString()),400,"COURSE_MODEL_INVALID");
+                    error(call(route,route.roles().getFirst()).content(body.deepCopy().put("source","IMAGE").toString()),400,"VALIDATION_ERROR")
+                            .andExpect(jsonPath("$.details.fieldErrors[0].field").value("imageFileKey"));
+                } else { served(call(route,route.roles().getFirst()).content(body.toString())); }
+            }
         }
         var setups=routes().filter(r->r.path().equals("/api/v1/ring-setups")).findFirst().orElseThrow();
         var body=((ObjectNode)setups.body()).deepCopy();body.remove(List.of("placementId","courseId"));
@@ -181,14 +205,25 @@ class E9ContractIT extends AbstractIntegrationTest {
         var mine=routes().filter(r->r.path().equals("/api/v1/me/ring-setups")).findFirst().orElseThrow();
         error(call(mine,"MEMBER").with(req->{req.removeParameter("ringIds");return req;}),501,"NOT_IMPLEMENTED");
     }
-    @Test void T_16_14_courseUploadUrlsCheckTheClubFileParametersBefore501() throws Exception {
+    @Test void T_16_14_courseUploadUrlsCheckThePurposeTypeAndSize() throws Exception {
         var upload=routes().filter(r->r.path().equals("/api/v1/courses/upload-urls")).findFirst().orElseThrow();
         var body=((ObjectNode)upload.body()).deepCopy();
-        error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("contentType","application/zip").toString()),400,"FILE_TYPE_NOT_ALLOWED");
-        for(long size:List.of(0L,25L*1024*1024+1)) {
-            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("size",size).toString()),400,"FILE_TOO_LARGE").andExpect(jsonPath("$.details.maxSizeMb").value(25));
+        // T-16-14: an .exe as a Smarter source, an image as a Smarter source, a type the club does not allow.
+        for(String type:List.of("application/x-msdownload","image/png","application/zip")) {
+            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("contentType",type).toString()),400,"FILE_TYPE_NOT_ALLOWED");
         }
-        error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("contentType","image/png").put("size",25L*1024*1024).toString()),501,"NOT_IMPLEMENTED");
+        error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("purpose","COURSE_IMAGE").put("contentType","text/plain").toString()),400,"FILE_TYPE_NOT_ALLOWED");
+        // R-16-02: 512 KB for the Smarter source (600 KB → FILE_TOO_LARGE); files.maxSizeMb for the others.
+        for(long size:List.of(0L,600L*1024)) {
+            error(call(upload,"INSTRUCTOR").content(body.deepCopy().put("size",size).toString()),400,"FILE_TOO_LARGE").andExpect(jsonPath("$.details.maxSizeBytes").value(512*1024));
+        }
+        var image=body.deepCopy().put("purpose","COURSE_IMAGE").put("contentType","image/png");
+        error(call(upload,"INSTRUCTOR").content(image.deepCopy().put("size",25L*1024*1024+1).toString()),400,"FILE_TOO_LARGE")
+                .andExpect(jsonPath("$.details.maxSizeBytes").value(25L*1024*1024));
+        mvc.perform(call(upload,"INSTRUCTOR").content(image.put("size",25L*1024*1024).toString())).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.fileKey").value(org.hamcrest.Matchers.matchesPattern("e9-club-a/courses/[0-9a-f-]{36}")))
+                .andExpect(jsonPath("$.uploadUrl").isNotEmpty());
+        mvc.perform(call(upload,"INSTRUCTOR").content(body.put("size",512*1024).toString())).andExpect(status().isCreated());
     }
     @Test void T_16_07_T_16_09_T_16_21_conditionalPermissionsApplyBefore501() throws Exception {
         for(var route:routes().filter(r->r.method().equals("POST")&&r.path().equals("/api/v1/placements")||r.method().equals("PUT")&&r.path().equals("/api/v1/placements/{id}")).toList()) {
@@ -205,7 +240,7 @@ class E9ContractIT extends AbstractIntegrationTest {
             // R-16-14: the level is required when the library course is created; a PATCH that omits it keeps the stored one.
             var body=((ObjectNode)route.body()).deepCopy();body.remove("agilityhubLevel");
             if(route.method().equals("POST")) error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),400,"VALIDATION_ERROR");
-            else error(call(route,"AGILITYHUB_ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+            else served(call(route,"AGILITYHUB_ADMIN").content(body.toString()));
             // R-16-14: a library course is always PUBLIC.
             for(String visibility:List.of("PRIVATE","CLUB")) {
                 body=((ObjectNode)route.body()).deepCopy();body.put("visibility",visibility);
@@ -229,8 +264,8 @@ class E9ContractIT extends AbstractIntegrationTest {
             if(route.method().equals("GET") && route.path().equals("/api/v1/courses/{id}")) {
                 request.with(req->{req.setRequestURI("/api/v1/courses/e9-public");return req;});
             }
-            error(request,route.impersonation()?501:403,route.impersonation()?"NOT_IMPLEMENTED":"IMPERSONATION_DENIED");
-            if(route.impersonation()) allowed++;
+            if(route.impersonation()) { answer(route,request); allowed++; }
+            else error(request,403,"IMPERSONATION_DENIED");
         }
         assertThat(allowed).isEqualTo(5);
     }
@@ -260,10 +295,10 @@ class E9ContractIT extends AbstractIntegrationTest {
             parameter("courses.showSetupToMembers", visible);
             var request = call(route, "MEMBER").with(req -> { req.setRequestURI("/api/v1/courses/e9-public"); return req; });
             if (issued != null) request.with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            error(request, visible ? 501 : 404, visible ? "NOT_IMPLEMENTED" : "NOT_FOUND")
-                    .andExpect(jsonPath("$.details").isMap()).andExpect(jsonPath("$.details").isEmpty());
+            if (visible) mvc.perform(request).andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e9-public")).andExpect(jsonPath("$.nameI18n").isEmpty());
+            else error(request, 404, "NOT_FOUND").andExpect(jsonPath("$.details").isMap()).andExpect(jsonPath("$.details").isEmpty());
             for (String role : List.of("INSTRUCTOR", "ADMIN")) {
-                error(call(route, role), 501, "NOT_IMPLEMENTED");
+                mvc.perform(call(route, role)).andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e9-course-a"));
                 error(call(route, role).with(req -> { req.setRequestURI("/api/v1/courses/e9-course-other"); return req; }), 404, "NOT_FOUND");
             }
         }
@@ -280,16 +315,16 @@ class E9ContractIT extends AbstractIntegrationTest {
         var patch=routes().filter(r->r.path().equals("/api/v1/courses/{id}")&&r.method().equals("PATCH")).findFirst().orElseThrow();
         var id=Query.query(Criteria.where("_id").is("e9-course-a"));
         mongo.updateFirst(id,new Update().set("visibility","CLUB"),Course.class);
-        error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");error(call(get,"INSTRUCTOR"),501,"NOT_IMPLEMENTED");
+        error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");mvc.perform(call(get,"INSTRUCTOR")).andExpect(status().isOk());
         mongo.updateFirst(id,new Update().set("visibility","PRIVATE").set("ownerType","ACCOUNT").set("ownerAccountId","e9-INSTRUCTOR").unset("clubId"),Course.class);
-        error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");error(call(get,"INSTRUCTOR"),501,"NOT_IMPLEMENTED");
-        error(call(patch,"INSTRUCTOR"),501,"NOT_IMPLEMENTED");
+        error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");mvc.perform(call(get,"INSTRUCTOR")).andExpect(status().isOk());
+        mvc.perform(call(patch,"INSTRUCTOR")).andExpect(status().isOk()).andExpect(jsonPath("$.ownerType").value("ACCOUNT"));
         mongo.updateFirst(id,new Update().set("visibility","PUBLIC"),Course.class);
         error(call(patch,"ADMIN"),403,"FORBIDDEN");
         // The global library can be read from either real tenant, but never through a tenant repository write.
-        error(call(get,"MEMBER").with(req->{req.setRequestURI("/api/v1/courses/e9-public");return req;}),501,"NOT_IMPLEMENTED");
-        error(call(get,"MEMBER").with(jwt().jwt(j->j.subject("other-member").claim("clubId",OTHER)).authorities(()->"ROLE_MEMBER"))
-                .with(req->{req.setRequestURI("/api/v1/courses/e9-public");req.removeHeader("Host");req.addHeader("Host",OTHER_HOST);return req;}),501,"NOT_IMPLEMENTED");
+        mvc.perform(call(get,"MEMBER").with(req->{req.setRequestURI("/api/v1/courses/e9-public");return req;})).andExpect(status().isOk());
+        mvc.perform(call(get,"MEMBER").with(jwt().jwt(j->j.subject("other-member").claim("clubId",OTHER)).authorities(()->"ROLE_MEMBER"))
+                .with(req->{req.setRequestURI("/api/v1/courses/e9-public");req.removeHeader("Host");req.addHeader("Host",OTHER_HOST);return req;})).andExpect(status().isOk());
         mongo.updateFirst(id,new Update().set("deletedAt",clock.instant()),Course.class);error(call(get,"INSTRUCTOR"),404,"NOT_FOUND");
     }
     @Test void T_16_19_missingGeometrySheetsAndMalformedScopesAreRejected() throws Exception {
@@ -300,7 +335,7 @@ class E9ContractIT extends AbstractIntegrationTest {
         }
         for(var route:routes().filter(r->r.path().contains("{scope}")).toList()) {
             error(call(route,route.roles().getFirst()).with(req->{req.setRequestURI("/api/v1/obstacle-inventories/invalid");return req;}),400,"VALIDATION_ERROR");
-            error(call(route,route.roles().getFirst()).with(req->{req.setRequestURI("/api/v1/obstacle-inventories/club");return req;}),501,"NOT_IMPLEMENTED");
+            served(call(route,route.roles().getFirst()).with(req->{req.setRequestURI("/api/v1/obstacle-inventories/club");return req;}));
         }
         for(var route:routes().filter(r->r.path().equals("/api/v1/placements")&&r.method().equals("POST")).toList()) {
             var body=((ObjectNode)route.body()).deepCopy();body.set("transform",mapper.createObjectNode());
@@ -322,7 +357,7 @@ class E9ContractIT extends AbstractIntegrationTest {
         var create=routes().filter(r->r.path().equals("/api/v1/courses")&&r.method().equals("POST")).findFirst().orElseThrow();
         body=((ObjectNode)create.body()).deepCopy();body.putArray("levelIds").add("e9-level-other");
         error(call(create,"ADMIN").content(body.toString()),404,"NOT_FOUND");
-        body.putArray("levelIds").add("e9-level-a");error(call(create,"ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+        body.putArray("levelIds").add("e9-level-a");mvc.perform(call(create,"ADMIN").content(body.toString())).andExpect(status().isCreated());
     }
     void parameter(String key,Object value) {
         mongo.insert(new Parameter("e9-param-"+key,CLUB,key,value,"bool","club",null,List.of(),0L,clock.instant())); configs.invalidate(CLUB);
@@ -350,12 +385,17 @@ class E9ContractIT extends AbstractIntegrationTest {
         var route=routes().filter(r->r.method().equals("PUT")&&r.path().endsWith("/geometry")).findFirst().orElseThrow();
         var body=((ObjectNode)route.body()).deepCopy().put(field,value);
         var before=state();
-        // E9-T02 owns GEOMETRY_INVALID. Contract stubs must not pre-empt it with Bean Validation's 400.
-        error(call(route,"ADMIN").content(body.toString()),501,"NOT_IMPLEMENTED");
+        // R-16-04: the bounds are GEOMETRY_INVALID (422), never Bean Validation's 400; a refused geometry writes nothing.
         error(call(route,"INSTRUCTOR").content(body.toString()),403,"FORBIDDEN");
         error(call(route,"ADMIN").content(body.toString()).with(req->{req.setRequestURI("/api/v1/rings/e9-ring-other/geometry");return req;}),404,"NOT_FOUND");
-        error(call(route,"ADMIN").content(body.putNull(field).toString()),400,"VALIDATION_ERROR");
-        assertThat(state()).isEqualTo(before);
+        error(call(route,"ADMIN").content(body.deepCopy().putNull(field).toString()),400,"VALIDATION_ERROR");
+        if(value<10||value>60) {
+            error(call(route,"ADMIN").content(body.toString()),422,"GEOMETRY_INVALID")
+                    .andExpect(jsonPath("$.details.violations[0].path").value(field)).andExpect(jsonPath("$.details.violations[0].rule").value("OUT_OF_RANGE"));
+            assertThat(state()).isEqualTo(before);
+        } else {
+            mvc.perform(call(route,"ADMIN").content(body.toString())).andExpect(status().isOk()).andExpect(jsonPath("$."+field).value(value)).andExpect(jsonPath("$.version").value(2));
+        }
     }
 
     @Test void T_16_05_clubCourseWritesCannotPublishPublicVisibility() throws Exception {
@@ -365,10 +405,11 @@ class E9ContractIT extends AbstractIntegrationTest {
             for(String role:List.of("INSTRUCTOR","ADMIN")) {
                 var body=((ObjectNode)route.body()).deepCopy().put("visibility","PUBLIC");
                 error(call(route,role).content(body.toString()),400,"VALIDATION_ERROR");
-                error(call(route,role).content(body.put("visibility","CLUB").toString()),501,"NOT_IMPLEMENTED");
+                assertThat(state()).isEqualTo(before);
             }
         }
-        assertThat(state()).isEqualTo(before);
+        var create=routes().filter(r->r.method().equals("POST")&&r.path().equals("/api/v1/courses")).findFirst().orElseThrow();
+        mvc.perform(call(create,"ADMIN").content(((ObjectNode)create.body()).deepCopy().put("visibility","CLUB").toString())).andExpect(status().isCreated());
     }
 
     @Test void T_16_05_publicReadsRequireAnEligibleOwnerAndAccountAuthorsCanPublish() throws Exception {
@@ -381,10 +422,10 @@ class E9ContractIT extends AbstractIntegrationTest {
         mongo.updateFirst(id,new Update().set("ownerType","ACCOUNT").set("visibility","PRIVATE")
                 .set("ownerAccountId","e9-INSTRUCTOR").unset("clubId"),Course.class);
         var body=((ObjectNode)patch.body()).deepCopy().put("visibility","PUBLIC");
-        error(call(patch,"INSTRUCTOR").content(body.toString()),501,"NOT_IMPLEMENTED");
         error(call(get,"MEMBER"),404,"COURSE_NOT_VISIBLE");
-        mongo.updateFirst(id,new Update().set("visibility","PUBLIC"),Course.class);
-        error(call(get,"MEMBER"),501,"NOT_IMPLEMENTED");
+        // The author publishes their account course; it is then readable from any club.
+        mvc.perform(call(patch,"INSTRUCTOR").content(body.toString())).andExpect(status().isOk()).andExpect(jsonPath("$.visibility").value("PUBLIC"));
+        mvc.perform(call(get,"MEMBER")).andExpect(status().isOk());
         error(call(patch,"ADMIN").content(body.toString()),403,"FORBIDDEN");
     }
 }

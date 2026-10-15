@@ -36,6 +36,17 @@ public class CourseSchemas {
             throw new ApiException(ErrorCode.COURSE_MODEL_INVALID, Map.of("schemaErrors", List.of(Map.of("path", "$", "message", "Required JSON object, at most 256 KiB"))));
         }
         validate(courseData, normalizedJson);
+        var unstorable = new java.util.ArrayList<Map<String, String>>();
+        numbers(normalizedJson, "$", unstorable);
+        if (!unstorable.isEmpty()) { throw new ApiException(ErrorCode.COURSE_MODEL_INVALID, Map.of("schemaErrors", unstorable)); }
+    }
+    /** E98: a number no double can hold either (`1e400`) cannot be stored (`CourseJsonConverter.decimal`): a client error, never a 500. */
+    private static void numbers(JsonNode node, String path, List<Map<String, String>> errors) {
+        if (node.isNumber() && !com.agilityhub.core.courses.persistence.CourseJsonConverter.storable(node)) {
+            errors.add(Map.of("path", path, "message", "Number outside the storable range"));
+        }
+        if (node.isObject()) { node.properties().forEach(entry -> numbers(entry.getValue(), path + "." + entry.getKey(), errors)); }
+        if (node.isArray()) { for (int i = 0; i < node.size(); i++) { numbers(node.get(i), path + "[" + i + "]", errors); } }
     }
     public void validateExport(JsonNode json) { validate(export, json == null ? mapper.nullNode() : json); }
     private void validate(JsonSchema schema, JsonNode json) {

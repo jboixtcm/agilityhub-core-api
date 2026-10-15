@@ -191,8 +191,8 @@ public final class CourseContracts {
             String description,
             AgilityHubLevel agilityhubLevel,
             JsonNode rules,
-            LocalDate validFrom,
-            LocalDate validTo,
+            Instant validFrom,
+            Instant validTo,
             ChallengeStatus status) { }
 
     public record ChallengeAttempt(String challengeId,
@@ -210,6 +210,15 @@ public final class CourseContracts {
     public record CourseModelInvalidDetails(List<SchemaError> schemaErrors) { }
 
     public record PlacementBlockedDetails(List<PlacementWarning> warnings) { }
+
+    /** E9-T02 (R-16-02/16): the effective size limit of a course upload, in bytes (512 KB for a Smarter source). */
+    public record CourseFileTooLargeDetails(long maxSizeBytes) { }
+
+    /** R-16-04 (E9-T02): one failed geometry check, by request path. */
+    public record GeometryViolation(String path,
+            com.agilityhub.core.courses.domain.RingGeometryRules.Rule rule) { }
+
+    public record GeometryInvalidDetails(List<GeometryViolation> violations) { }
 
     public record MemberRingSetup(String id,
             String ringId,

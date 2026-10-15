@@ -25,6 +25,13 @@ public class RingGeometryRepository extends TenantRepository<RingGeometryReposit
             throw new ApiException(ErrorCode.STALE_VERSION);
         }
     }
+    /** R-16-04 `DELETE`: removes the geometry at the expected version; another version is `409 STALE_VERSION`. */
+    public void clear(String id, long expectedVersion) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id).and("geometry.version").is(expectedVersion));
+        if (mongo.updateFirst(query, new Update().unset("geometry"), GeometryRecord.class).getMatchedCount() != 1) {
+            throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+    }
     @Override public GeometryRecord insert(GeometryRecord value) { throw new UnsupportedOperationException("S05 creates rings"); }
     @Override public GeometryRecord replace(GeometryRecord value) { throw new UnsupportedOperationException("Use the geometry field update"); }
     @Override public boolean deleteById(String id) { throw new UnsupportedOperationException("S05 owns rings"); }

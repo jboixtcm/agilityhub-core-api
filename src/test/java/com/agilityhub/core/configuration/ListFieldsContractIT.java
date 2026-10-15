@@ -75,9 +75,9 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
             Map.entry("/api/v1/platform/clubs", com.agilityhub.core.platform.application.PlatformClubContractGuards.CLUBS.fields()));
     /**
      * The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E8-T02 serves
-     * invoices, E8-T03 remittances).
+     * invoices, E8-T03 remittances, E9-T02 both course lists).
      */
-    static final Set<String> STUBS = Set.of("/api/v1/courses", "/api/v1/platform/courses");
+    static final Set<String> STUBS = Set.of();
     /** Console lists with fixed response fields, including the implemented audit/security projections. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -133,6 +133,9 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
      */
     @Test void CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly() throws Exception {
         String canic = demoClub();
+        // E9-T02 serves both course lists: one club course and one AgilityHub library course to read.
+        mongo.save(E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class, "e9-lists-course", canic));
+        mongo.save(E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class, "e9-lists-library", null));
         var api = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
         var checked = new TreeMap<String, List<String>>(); var problems = new ArrayList<String>();
         for (var entry : (Iterable<Map.Entry<String, JsonNode>>) api.path("paths")::fields) {

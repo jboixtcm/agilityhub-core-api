@@ -164,6 +164,37 @@ public class AttachmentService {
     }
     private UploadGrant grant(String key) { return grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public String url(String key, String name) { return key == null ? null : storage.downloadUrl(key, name, clock.instant().plusSeconds(300)); }
+    private static final java.util.regex.Pattern UUID_PATTERN = java.util.regex.Pattern.compile("[0-9a-f-]{36}");
+    /**
+     * S16 R-16-16 (E9-T02): a file another context keeps under its own key prefix, `{clubId}/{scope}/{uuid}` (the courses' files
+     * under `{clubId}/courses/`). The owner has already checked the purpose, type and size. The grant is the plain uuid, so the local
+     * signed routes serve the file as any attachment (E5-T24), while S3 stores the object under the scoped key itself.
+     */
+    public Upload scopedUpload(String scope, String purpose, String type, long size) {
+        String id = UUID.randomUUID().toString(); Instant expires = clock.instant().plusSeconds(300);
+        grants.insert(new UploadGrant(id, TenantContext.require(), account(), purpose, purpose.toLowerCase(Locale.ROOT), type, size, clock.instant(), expires, null));
+        String key = TenantContext.require() + "/" + scope + "/" + id;
+        return new Upload(storage.uploadUrl(key, type, size, expires), key, expires, Map.of("Content-Type", type, "If-None-Match", "*"));
+    }
+    /**
+     * Binds a scoped file of the current club to {@code entity}. Another club's prefix, an unknown or never uploaded key, another
+     * purpose, a stored object that differs from its grant, or a file already bound to another entity: `404 NOT_FOUND` (T-16-21).
+     * As a D2 document, the file waits for its entity's save, so the URL's five minutes do not apply.
+     */
+    @Transactional
+    public void claimScoped(String scope, String key, String purpose, String entity) {
+        String prefix = TenantContext.require() + "/" + scope + "/";
+        String id = key != null && key.startsWith(prefix) ? key.substring(prefix.length()) : "";
+        var grant = UUID_PATTERN.matcher(id).matches() ? grants.findById(id).orElse(null) : null;
+        if (grant == null || !grant.purpose().equals(purpose) || grant.boundEntity() != null && !grant.boundEntity().equals(entity)) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+        var actual = storage.metadata(key);
+        if (actual.sizeBytes() != grant.sizeBytes() || !Objects.equals(actual.mimeType(), grant.mimeType())) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        grants.bind(id, entity);
+    }
+    /** A short-lived signed download URL of a scoped key (see {@link #scopedUpload}). */
+    public String scopedUrl(String key) { return storage.downloadUrl(key, key.substring(key.lastIndexOf('/') + 1), clock.instant().plusSeconds(300)); }
     /** The local signed upload URL (E5-T24): its signature alone authorises the PUT, for the club of the grant it names. */
     public void putLocal(String id, long expires, String signature, String type, InputStream input) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }

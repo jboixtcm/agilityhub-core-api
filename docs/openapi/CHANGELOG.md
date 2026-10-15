@@ -11,6 +11,16 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `PlatformClubPatch.legal` is no longer nullable: `"legal": null` is `400 VALIDATION_ERROR {field: legal}`.
 - `AuditAction` gains `CLUB_CREATED`, `CLUB_PAYMENT_PROVIDER_CHANGED` and `CLUB_ADMIN_INVITED` (S14 R-14-09, E108).
 
+## 2026-10-15 · E9-T02 · S16 course library, ring geometry and inventories served
+
+**0 operations added or removed; 3 schemas added (`CourseFileTooLargeDetails`, `GeometryInvalidDetails`, `GeometryViolation`).**
+
+- Served behind their unchanged guards: `GET/POST /courses`, `GET/PATCH/DELETE /courses/{id}`, `POST /courses/{id}/duplicate`, `POST /courses/{id}/copy-to-club`, `POST /courses/upload-urls`, `GET/PUT/DELETE /rings/{id}/geometry`, `GET/POST /rings/{id}/calibrations`, `GET/PUT /obstacle-inventories/{scope}`, `GET/POST /platform/courses`, `PATCH /platform/courses/{id}`. Their descriptions now state the R-16-01…04, R-16-12, R-16-14 and R-16-16 rules; the other S16 routes stay guarded 501 stubs.
+- `PUT /rings/{id}/geometry`: `422 GEOMETRY_INVALID` carries `GeometryInvalidDetails {violations[] {path, rule}}`.
+- `POST /courses/upload-urls`: `400 FILE_TOO_LARGE` carries `CourseFileTooLargeDetails {maxSizeBytes}` (the Smarter source's 512 KB, R-16-02, is not a whole number of MB); purpose-specific types.
+- `GET /obstacle-inventories/ring:{ringId}`: answers the ring's effective inventory (its own, else the club's), with `scope` telling which.
+- `Challenge.validFrom` / `validTo`: UTC instants (`format: date-time`) instead of dates (E91, organizer note from E9-T01's review).
+
 ## 2026-10-15 · E9-T01 round 3 · S16 projection and visibility corrections
 
 **0 operations or schemas added or removed.**

@@ -11,7 +11,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "POST",
@@ -99,7 +100,8 @@
       "agilityhubLevel": "EASY"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -114,7 +116,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "PATCH",
@@ -195,7 +198,8 @@
       "agilityhubLevel": "EASY"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "DELETE",
@@ -211,7 +215,8 @@
     "params": {
       "version": "1"
     },
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "POST",
@@ -229,7 +234,8 @@
       }
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "POST",
@@ -247,7 +253,8 @@
       }
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "POST",
@@ -265,7 +272,8 @@
       "size": 100
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -279,7 +287,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "PUT",
@@ -303,7 +312,7 @@
           "label": "A",
           "side": "NORTH",
           "startM": 1.5,
-          "endM": 1.5,
+          "endM": 3.5,
           "flow": "IN",
           "clearanceM": 1.5,
           "polygonPointsM": [],
@@ -332,7 +341,7 @@
         {
           "id": "marker-1",
           "label": "B",
-          "markerUid": "marker-a",
+          "markerUid": "marker-b",
           "role": "ANCHOR",
           "xM": 20,
           "yM": 0,
@@ -348,7 +357,7 @@
         {
           "id": "marker-2",
           "label": "C",
-          "markerUid": "marker-a",
+          "markerUid": "marker-c",
           "role": "ANCHOR",
           "xM": 20,
           "yM": 40,
@@ -365,7 +374,8 @@
       "version": 1
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "DELETE",
@@ -380,7 +390,8 @@
     "params": {
       "version": "1"
     },
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -394,7 +405,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -408,7 +420,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -428,7 +441,8 @@
       "rawMetadata": {}
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -442,7 +456,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -460,7 +475,8 @@
       "courseId": "e9-course-a",
       "activityId": "e9-activity-a"
     },
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -474,7 +490,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -503,7 +520,8 @@
       "force": false
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "PUT",
@@ -533,7 +551,8 @@
       "force": false
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -549,7 +568,8 @@
       "fileKey": "e9-club-a/courses/sheet.pdf"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -563,7 +583,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -584,7 +605,8 @@
       "imageFileKey": null
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -599,7 +621,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -613,7 +636,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -627,7 +651,8 @@
     ],
     "body": {},
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -643,7 +668,8 @@
     "params": {
       "ringIds": "e9-ring-a"
     },
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -660,7 +686,8 @@
       "live": true
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -674,7 +701,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "PATCH",
@@ -690,7 +718,8 @@
       "status": "NOT_PLACED"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -704,7 +733,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -718,7 +748,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -734,7 +765,8 @@
       "code": "DEMO42"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -748,7 +780,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -762,7 +795,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "PUT",
@@ -783,7 +817,8 @@
       ]
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": true
   },
   {
     "method": "GET",
@@ -796,7 +831,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": true
+    "platform": true,
+    "served": true
   },
   {
     "method": "POST",
@@ -883,7 +919,8 @@
       "agilityhubLevel": "EASY"
     },
     "params": {},
-    "platform": true
+    "platform": true,
+    "served": true
   },
   {
     "method": "PATCH",
@@ -963,7 +1000,8 @@
       "agilityhubLevel": "EASY"
     },
     "params": {},
-    "platform": true
+    "platform": true,
+    "served": true
   },
   {
     "method": "GET",
@@ -978,7 +1016,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -993,7 +1032,8 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "POST",
@@ -1011,7 +1051,8 @@
       "ringSetupId": "e9-setup-a"
     },
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   },
   {
     "method": "GET",
@@ -1024,6 +1065,7 @@
     ],
     "body": null,
     "params": {},
-    "platform": false
+    "platform": false,
+    "served": false
   }
 ]

@@ -3,11 +3,9 @@ package com.agilityhub.core.courses.application;
 import com.agilityhub.core.shared.application.lists.ListDefinition;
 import com.agilityhub.core.shared.application.lists.ListDefinition.Field;
 import com.agilityhub.core.shared.application.lists.ListDefinition.Type;
-import com.agilityhub.core.shared.application.lists.ListQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.util.MultiValueMap;
 
 /** S16 §6 query contract shared by the club library and the platform library. */
 public final class CourseListContract {
@@ -21,5 +19,4 @@ public final class CourseListContract {
             List.of("name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings"),
             List.of("name", "discipline", "level", "designerName", "source"), List.of("updatedAt,desc"),
             Set.of("id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings"));
-    public static void validate(MultiValueMap<String, String> query) { ListQuery.parse(COURSES, query); }
 }

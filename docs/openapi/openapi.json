@@ -4522,11 +4522,11 @@
             "type" : "string"
           },
           "validFrom" : {
-            "format" : "date",
+            "format" : "date-time",
             "type" : "string"
           },
           "validTo" : {
-            "format" : "date",
+            "format" : "date-time",
             "type" : "string"
           }
         },
@@ -7470,6 +7470,16 @@
         "title" : "CourseData",
         "type" : "object"
       },
+      "CourseFileTooLargeDetails" : {
+        "properties" : {
+          "maxSizeBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "maxSizeBytes" ],
+        "type" : "object"
+      },
       "CourseListItem" : {
         "properties" : {
           "activeOnRings" : {
@@ -9684,6 +9694,31 @@
           }
         },
         "required" : [ "classCount", "skipped", "weekId" ],
+        "type" : "object"
+      },
+      "GeometryInvalidDetails" : {
+        "properties" : {
+          "violations" : {
+            "items" : {
+              "$ref" : "#/components/schemas/GeometryViolation"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "violations" ],
+        "type" : "object"
+      },
+      "GeometryViolation" : {
+        "properties" : {
+          "path" : {
+            "type" : "string"
+          },
+          "rule" : {
+            "enum" : [ "OUT_OF_RANGE", "NEGATIVE", "NOT_POSITIVE", "DUPLICATE_ID", "DUPLICATE_LABEL", "DUPLICATE_MARKER_UID", "DUPLICATE_APRIL_TAG", "OUTSIDE_PERIMETER", "OUTSIDE_RING", "TOO_FEW_POINTS", "NOT_SIMPLE", "TOO_FEW_MARKERS", "COLLINEAR_MARKERS" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "path", "rule" ],
         "type" : "object"
       },
       "GridOccupancy" : {
@@ -39336,7 +39371,7 @@
     },
     "/api/v1/courses" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED. Default sort: updatedAt,desc. owner: CLUB, AGILITYHUB or MINE.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-03: the club's courses the caller may read (a PRIVATE one only for its author), the AgilityHub library (PUBLIC) and the caller's own account courses; never another club's. Default sort: updatedAt,desc; name sorts by the name in the request's language. owner: CLUB, AGILITYHUB or MINE (the caller's account courses). level: the club levels' codes joined by an en dash, else the agilityhubLevel. activeOnRings: the rings whose active setup shows the course.",
         "operationId" : "listCourses",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -39565,7 +39600,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Creates a CLUB course. S16 §3: club-owned courses cannot use PUBLIC visibility (VALIDATION_ERROR). R-16-01: normalizedJson (required unless source = IMAGE, else COURSE_MODEL_INVALID) is validated against course-data.v1 with schemaVersion 1; the server reads designLengthM, designWidthM, canvas, origin, courseGrade, courseType and stats from it. source = IMAGE requires imageFileKey; AGILITYHUB_COPY only comes from copy-to-club (VALIDATION_ERROR). File keys must be this club's uploads of the matching purpose (sourceFileKey SMARTER_SOURCE, imageFileKey COURSE_IMAGE, thumbnailFileKey THUMBNAIL), else NOT_FOUND. name: enabled club locales (LOCALE_NOT_ENABLED). levelIds: this club's levels (NOT_FOUND), none while levels.enabled = false (LEVELS_DISABLED). Publishes CourseImported (SMARTER) or CourseCreated.",
         "operationId" : "createCourse",
         "parameters" : [ {
           "in" : "header",
@@ -39722,7 +39757,7 @@
     },
     "/api/v1/courses/upload-urls" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. contentType ∈ files.allowedTypes → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb → else FILE_TOO_LARGE (FileTooLargeDetails {maxSizeMb}). E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-16: contentType ∈ files.allowedTypes and fit for the purpose (SMARTER_SOURCE text/plain only; COURSE_IMAGE and THUMBNAIL image/*; BUILD_SHEET application/pdf) → else FILE_TYPE_NOT_ALLOWED; 0 < size ≤ files.maxSizeMb, and ≤ 512 KB for SMARTER_SOURCE (R-16-02) → else FILE_TOO_LARGE (CourseFileTooLargeDetails {maxSizeBytes}). fileKey = {clubId}/courses/{uuid}; the uploadUrl is signed and expires after 5 minutes (PUT with the same Content-Type).",
         "operationId" : "courseUploadUrl",
         "requestBody" : {
           "content" : {
@@ -39871,7 +39906,7 @@
     },
     "/api/v1/courses/{id}" : {
       "delete" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. Soft delete (deletedAt) at the stored version (STALE_VERSION); COURSE_IN_USE while an active setup shows the course, directly or through a placement. Publishes CourseDeleted.",
         "operationId" : "deleteCourse",
         "parameters" : [ {
           "in" : "path",
@@ -40018,7 +40053,7 @@
         "tags" : [ "courses" ]
       },
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility still applies. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. MEMBER reads (including impersonation) require courses.showSetupToMembers; otherwise NOT_FOUND. Course visibility (R-16-03) still applies: another club's or a deleted course is NOT_FOUND, one the caller cannot read COURSE_NOT_VISIBLE. name is resolved in the request's language with the club's default as fallback (R-16-17); nameI18n is sent only to a caller who can edit the course.",
         "operationId" : "getCourse",
         "parameters" : [ {
           "in" : "path",
@@ -40163,7 +40198,7 @@
         "tags" : [ "courses" ]
       },
       "patch" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: PUBLIC visibility is allowed for an ACCOUNT author, never a CLUB owner (VALIDATION_ERROR). E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §3: PUBLIC visibility is allowed for an ACCOUNT author, never a CLUB owner (VALIDATION_ERROR). A null or absent field keeps its value; the AgilityHub library is never editable from a club (FORBIDDEN). Edits are in place: a new model keeps the previous one in history (the last 10). version must be the stored one (STALE_VERSION). Publishes CourseUpdated{courseId, diff} when something changes.",
         "operationId" : "patchCourse",
         "parameters" : [ {
           "in" : "path",
@@ -40320,7 +40355,7 @@
     },
     "/api/v1/courses/{id}/copy-to-club" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-03: a PUBLIC course (else VALIDATION_ERROR) becomes this club's editable CLUB course with source AGILITYHUB_COPY and sourceCourseId; later changes of the original never reach the copy. Club levels are not copied. Publishes CourseCopied.",
         "operationId" : "copyCourseToClub",
         "parameters" : [ {
           "in" : "path",
@@ -40484,7 +40519,7 @@
     },
     "/api/v1/courses/{id}/duplicate" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. A copy with the same owner, visibility and model, version 0; the caller must be able to edit the original (the AgilityHub library is copied with copy-to-club: FORBIDDEN). name defaults to the original's. Publishes CourseCopied.",
         "operationId" : "duplicateCourse",
         "parameters" : [ {
           "in" : "path",
@@ -68175,7 +68210,7 @@
     },
     "/api/v1/obstacle-inventories/{scope}" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. scope = club or ring:{ringId} (else VALIDATION_ERROR). R-16-12: ring:{ringId} answers the ring's effective inventory, its own (scope RING) or else the club's (scope CLUB); without one → NOT_FOUND.",
         "operationId" : "getObstacleInventory",
         "parameters" : [ {
           "in" : "path",
@@ -68320,7 +68355,7 @@
         "tags" : [ "courses" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: ADMIN. Module: COURSES. Replaces the club's (club) or the ring's own (ring:{ringId}) inventory; every count ≥ 0 and one item per type, else INVENTORY_INVALID. Last write wins. Publishes InventoryChanged{scope, ringId}.",
         "operationId" : "putObstacleInventory",
         "parameters" : [ {
           "in" : "path",
@@ -76411,7 +76446,7 @@
     },
     "/api/v1/platform/courses" : {
       "get" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. E9 contract; guards then NOT_IMPLEMENTED. Default sort: updatedAt,desc. owner: CLUB, AGILITYHUB or MINE.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. The AgilityHub library (ownerType AGILITYHUB) with the list contract of /courses. Default sort: updatedAt,desc. owner: CLUB, AGILITYHUB or MINE.",
         "operationId" : "listPlatformCourses",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -76640,7 +76675,7 @@
         "x-sortable" : [ "name", "updatedAt" ]
       },
       "post" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: agilityhubLevel required and visibility PUBLIC, otherwise VALIDATION_ERROR. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: agilityhubLevel required and visibility PUBLIC, otherwise VALIDATION_ERROR; ownerType AGILITYHUB, no club. levelIds and file keys name a club's data and are NOT_FOUND here. The model rules of POST /courses apply. Publishes CourseImported or CourseCreated with clubId null.",
         "operationId" : "createPlatformCourse",
         "parameters" : [ {
           "in" : "header",
@@ -76797,7 +76832,7 @@
     },
     "/api/v1/platform/courses/{id}" : {
       "patch" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: an omitted agilityhubLevel keeps the stored one; a visibility other than PUBLIC is VALIDATION_ERROR. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Global; no tenant or module. R-16-14: an omitted agilityhubLevel keeps the stored one; a visibility other than PUBLIC is VALIDATION_ERROR. Only an AGILITYHUB course (else NOT_FOUND), at its stored version (STALE_VERSION). Publishes CourseUpdated.",
         "operationId" : "patchPlatformCourse",
         "parameters" : [ {
           "in" : "path",
@@ -82886,7 +82921,7 @@
     },
     "/api/v1/rings/{id}/calibrations" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED. Newest first.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. The ring's calibrations, newest first.",
         "operationId" : "listCalibrations",
         "parameters" : [ {
           "in" : "path",
@@ -83034,7 +83069,7 @@
         "tags" : [ "courses" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §14.2: stores one calibration of the ring (per-marker data in rawMetadata).",
         "operationId" : "createCalibration",
         "parameters" : [ {
           "in" : "path",
@@ -83191,7 +83226,7 @@
     },
     "/api/v1/rings/{id}/geometry" : {
       "delete" : {
-        "description" : "Roles: ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: ADMIN. Module: COURSES. R-16-04: removes the geometry at its stored version (STALE_VERSION); RING_GEOMETRY_IN_USE while a placement that is not archived, or an active setup with a placement, uses it. Audits RING_GEOMETRY_CHANGED.",
         "operationId" : "deleteRingGeometry",
         "parameters" : [ {
           "in" : "path",
@@ -83338,7 +83373,7 @@
         "tags" : [ "courses" ]
       },
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. A ring without geometry → NOT_FOUND.",
         "operationId" : "ringGeometry",
         "parameters" : [ {
           "in" : "path",
@@ -83483,7 +83518,7 @@
         "tags" : [ "courses" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM must be within [10, 60]; geometry checks return GEOMETRY_INVALID (422), implemented in E9-T02. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM within [10, 60]; doors on the perimeter (0 ≤ startM < endM ≤ the side: lengthM for NORTH/SOUTH, widthM for EAST/WEST; x runs along lengthM from the bottom-left corner); no-go polygons of at least 3 points, simple and inside the ring; at least 3 active, non-collinear markers; unique ids, marker labels, markerUids and aprilTagIds; non-negative clearances and margins; positive marker sizes. A failed check → GEOMETRY_INVALID (422, GeometryInvalidDetails {violations[] {path, rule}}). version = the geometry's stored version (0 without one), else STALE_VERSION. Saving increments the version, marks every placement of the ring stale (R-16-06), publishes RingGeometryChanged{ringId, version} and audits RING_GEOMETRY_CHANGED; the club's first geometry creates the club's venue.",
         "operationId" : "putRingGeometry",
         "parameters" : [ {
           "in" : "path",

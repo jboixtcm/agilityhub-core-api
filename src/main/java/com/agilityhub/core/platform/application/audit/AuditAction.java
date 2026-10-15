@@ -41,5 +41,7 @@ public enum AuditAction {
     /** S12 R-12-15 (E8-T03): the remittance marked as sent to the bank (`GENERATED → SUBMITTED`, `submittedAt`). */
     REMITTANCE_SUBMITTED, PAYMENT_REFUNDED, PAYMENT_REFUND_INTERVENTION, CARD_CHARGES_STARTED, UPFRONT_PAYMENT_RECORDED,
     /** S12 R-12-24 and S13 lifecycle actions (E8-T05), already in S14 R-14-09's closed list. */
-    PACK_ADJUSTED, MEMBER_PLAN_CHANGED, INACTIVITY_RESOLVED, LEAVE_RESOLVED, LEAVE_CANCELLED
+    PACK_ADJUSTED, MEMBER_PLAN_CHANGED, INACTIVITY_RESOLVED, LEAVE_RESOLVED, LEAVE_CANCELLED,
+    /** S16 R-16-04 (E9-T02): a ring geometry saved or removed (`entityType = RingGeometry`, `entityId` = the ring). */
+    RING_GEOMETRY_CHANGED
 }

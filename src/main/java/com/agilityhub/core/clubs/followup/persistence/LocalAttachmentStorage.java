@@ -24,7 +24,11 @@ public class LocalAttachmentStorage implements AttachmentStorage {
         try { Files.createDirectories(this.root); Files.setPosixFilePermissions(this.root, PosixFilePermissions.fromString("rwx------")); }
         catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
-    private Path path(String id) {
+    /** A scoped key (`{clubId}/{scope}/{uuid}`, {@code AttachmentService.scopedUpload}) is the plain uuid in this store and its routes. */
+    static final java.util.regex.Pattern SCOPED = java.util.regex.Pattern.compile("[^/]+/[a-z-]+/([0-9a-f-]{36})");
+    private static String local(String id) { var scoped = SCOPED.matcher(id); return scoped.matches() ? scoped.group(1) : id; }
+    private Path path(String key) {
+        String id = local(key);
         if (id.startsWith("signup/")) {
             try { return root.resolve(java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(id.getBytes(StandardCharsets.UTF_8)))); }
             catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
@@ -47,7 +51,8 @@ public class LocalAttachmentStorage implements AttachmentStorage {
         return url(id, expires, "uploads", "PUT");
     }
     @Override public String downloadUrl(String id, String name, Instant expires) { return url(id, expires, "files", "GET"); }
-    private String url(String id, Instant expires, String route, String method) {
+    private String url(String key, Instant expires, String route, String method) {
+        String id = local(key);
         if (id.startsWith("signup/")) { return "/api/v1/signup/" + route + "?fileKey=" + java.net.URLEncoder.encode(id,StandardCharsets.UTF_8) + "&expires="+expires.getEpochSecond()+"&signature="+signature(id,expires.getEpochSecond(),method); }
         return "/api/v1/attachments/" + route + "/" + id + "?expires=" + expires.getEpochSecond() + "&signature=" + signature(id, expires.getEpochSecond(), method);
     }

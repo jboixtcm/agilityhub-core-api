@@ -354,5 +354,17 @@
     "type": "Jump",
     "count": 1,
     "notes": null
+  },
+  "GeometryViolation": {
+    "path": "lengthM",
+    "rule": "OUT_OF_RANGE"
+  },
+  "GeometryInvalidDetails": {
+    "violations": [
+      {
+        "path": "lengthM",
+        "rule": "OUT_OF_RANGE"
+      }
+    ]
   }
 }

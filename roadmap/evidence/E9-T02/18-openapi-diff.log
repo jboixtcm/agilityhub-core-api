@@ -1,0 +1,9 @@
+ docs/openapi/openapi.json | 75 ++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 55 insertions(+), 20 deletions(-)
+-            "format" : "date",
++            "format" : "date-time",
+-            "format" : "date",
++            "format" : "date-time",
++      "CourseFileTooLargeDetails" : {
++      "GeometryInvalidDetails" : {
++      "GeometryViolation" : {

@@ -1,6 +1,7 @@
 package com.agilityhub.core.courses.api;
 
 import com.agilityhub.core.courses.application.CourseContractGuards;
+import com.agilityhub.core.courses.application.RingGeometryService;
 import com.agilityhub.core.courses.domain.CourseParts.*;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
@@ -17,43 +18,48 @@ import static com.agilityhub.core.courses.api.CourseContracts.*;
 import static com.agilityhub.core.courses.api.CourseRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
-/** S16 contract. All checks precede the no-write NOT_IMPLEMENTED boundary. */
+/** S16 ring geometry and calibrations (E9-T02: R-16-04, §14.2). The marker sheet and the setup history are still contract stubs. */
 @RestController
 @RequiresModule(Module.COURSES)
 public class CourseRingsController {
     private final CourseContractGuards guards;
-    public CourseRingsController(CourseContractGuards guards) { this.guards = guards; }
+    private final RingGeometryService geometries;
+    public CourseRingsController(CourseContractGuards guards, RingGeometryService geometries) { this.guards = guards; this.geometries = geometries; }
 
     @GetMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "ringGeometry", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "ringGeometry", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. A ring without geometry → NOT_FOUND.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingGeometry", useReturnTypeSchema = true))
     public RingGeometry ringGeometry(@PathVariable String id) {
-        guards.ring(id, true);
-        throw new UnsupportedOperationException("S16 contract");
+        return geometries.get(id);
     }
 
     @PutMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, GEOMETRY_INVALID, STALE_VERSION})
-    @Operation(summary = "putRingGeometry", description = "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM must be within [10, 60]; geometry checks return GEOMETRY_INVALID (422), implemented in E9-T02. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "putRingGeometry", description = "Roles: ADMIN. Module: COURSES. R-16-04: lengthM and widthM within [10, 60]; doors on the perimeter "
+            + "(0 ≤ startM < endM ≤ the side: lengthM for NORTH/SOUTH, widthM for EAST/WEST; x runs along lengthM from the bottom-left corner); no-go polygons "
+            + "of at least 3 points, simple and inside the ring; at least 3 active, non-collinear markers; unique ids, marker labels, markerUids and aprilTagIds; "
+            + "non-negative clearances and margins; positive marker sizes. A failed check → GEOMETRY_INVALID (422, GeometryInvalidDetails {violations[] {path, rule}}). "
+            + "version = the geometry's stored version (0 without one), else STALE_VERSION. Saving increments the version, marks every placement of the ring stale "
+            + "(R-16-06), publishes RingGeometryChanged{ringId, version} and audits RING_GEOMETRY_CHANGED; the club's first geometry creates the club's venue.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingGeometry", useReturnTypeSchema = true))
     public RingGeometry putRingGeometry(@PathVariable String id,
             @Valid @RequestBody RingGeometryRequest request) {
-        guards.ring(id, false);
-        throw new UnsupportedOperationException("S16 contract");
+        return geometries.put(id, CourseViews.geometry(request), request.version());
     }
 
     @DeleteMapping(value = "/api/v1/rings/{id}/geometry")
     @PreAuthorize("hasRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, RING_GEOMETRY_IN_USE, STALE_VERSION})
-    @Operation(summary = "deleteRingGeometry", description = "Roles: ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "deleteRingGeometry", description = "Roles: ADMIN. Module: COURSES. R-16-04: removes the geometry at its stored version (STALE_VERSION); "
+            + "RING_GEOMETRY_IN_USE while a placement that is not archived, or an active setup with a placement, uses it. Audits RING_GEOMETRY_CHANGED.",
             responses = @ApiResponse(responseCode = "204", description = "S16 void", content = @Content))
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
     public void deleteRingGeometry(@PathVariable String id,
             @RequestParam @jakarta.validation.constraints.PositiveOrZero long version) {
-        guards.ring(id, true);
-        throw new UnsupportedOperationException("S16 contract");
+        geometries.delete(id, version);
     }
 
     @GetMapping(value = "/api/v1/rings/{id}/marker-sheet", produces = "application/pdf")
@@ -80,21 +86,20 @@ public class CourseRingsController {
     @PostMapping(value = "/api/v1/rings/{id}/calibrations")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "createCalibration", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "createCalibration", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §14.2: stores one calibration of the ring (per-marker data in rawMetadata).",
             responses = @ApiResponse(responseCode = "201", description = "S16 CalibrationLog", useReturnTypeSchema = true))
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public CalibrationLog createCalibration(@PathVariable String id,
             @Valid @RequestBody CalibrationRequest request) {
-        guards.ring(id, false);
-        throw new UnsupportedOperationException("S16 contract");
+        return CourseViews.calibration(geometries.calibrate(id, CourseViews.calibration(request)));
     }
 
     @GetMapping(value = "/api/v1/rings/{id}/calibrations")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "listCalibrations", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED. Newest first.",
+    @Operation(summary = "listCalibrations", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. The ring's calibrations, newest first.",
             responses = @ApiResponse(responseCode = "200", description = "S16 List<CalibrationLog>", useReturnTypeSchema = true))
     public List<CalibrationLog> listCalibrations(@PathVariable String id) {
-        guards.ring(id, false);
-        throw new UnsupportedOperationException("S16 contract");
+        return geometries.calibrations(id).stream().map(CourseViews::calibration).toList();
     }
 }

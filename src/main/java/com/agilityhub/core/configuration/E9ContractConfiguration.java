@@ -39,7 +39,7 @@ public class E9ContractConfiguration implements WebMvcConfigurer {
         return api -> {
             var schemas = api.getComponents().getSchemas();
             for (Class<?> type : List.of(CourseContracts.CourseModelInvalidDetails.class, CourseContracts.PlacementBlockedDetails.class,
-                    CourseContracts.MemberRingSetup.class)) {
+                    CourseContracts.MemberRingSetup.class, CourseContracts.CourseFileTooLargeDetails.class, CourseContracts.GeometryInvalidDetails.class)) {
                 ModelConverters.getInstance(true).readAll(type).forEach(schemas::putIfAbsent);
             }
             // Inline the exact planner shapes, with their $ids. Neither schema contains a remote reference.
