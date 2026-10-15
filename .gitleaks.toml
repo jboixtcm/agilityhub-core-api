@@ -51,3 +51,11 @@ condition = "AND"
 paths = ['''src/test/java/com/agilityhub/core/clubs/common/application/ExportFileStoreAdapterTest\.java$''']
 regexTarget = "match"
 regexes = ['''^key", "remesa-2026-09\.xml"$''']
+
+[[allowlists]]
+description = "E110 (organizer, 15-10): executor evidence manifests (*-tested-inputs.json) map repository paths to the SHA-256 digests of the tested inputs; a 64-hex digest next to a path containing key/token/secret/sentry is not a credential (88 false positives on E9-T01 round 3, every value verified). Only a 64-hex secret in such a manifest is exempt: any other value there, and everything in code, resources and .log evidence, stays scanned."
+targetRules = ["generic-api-key", "sentry-access-token"]
+condition = "AND"
+paths = ['''roadmap/evidence/.*-tested-inputs\.json$''']
+regexTarget = "secret"
+regexes = ['''^[0-9a-f]{64}$''']

@@ -35,6 +35,12 @@ def main():
         export_fixture.parent.mkdir(parents=True)
         filename_argument = 'downloadUrl("key", "%s");' % 'remesa-2026-09.xml'
         export_fixture.write_text(filename_argument + '\n')
+        # E110 (15-10): an evidence manifest maps repository paths to SHA-256 digests; the digest beside a
+        # path that names a key must be accepted, anything that is not a 64-hex digest there must not.
+        manifest = root / 'roadmap/evidence/E9-T01/fixture-tested-inputs.json'
+        manifest.parent.mkdir(parents=True)
+        manifest_line = '{\n "src/main/java/com/agilityhub/core/SecretKeyHolder.java": "%s"\n}\n'
+        manifest.write_text(manifest_line % ('0123456789abcdef' * 4))
 
         def scan():
             result = subprocess.run([args.gitleaks, 'dir', '--no-banner', '--redact', '--config', str(ROOT / '.gitleaks.toml'),
@@ -49,19 +55,22 @@ def main():
         assert code == 0 and not findings, 'Non-secret identifiers must be accepted'
         print('PASS UUID trace/idempotency identifiers and empty example variables')
         print('PASS the exact fictional export filename argument')
+        print('PASS a SHA-256 digest beside a key-named path in an evidence manifest')
         (evidence / 'fixture.log').write_text(trace + ' api_key="' + fixture_value() + '"\n'
                                             + dedup + ' api_key="' + fixture_value() + '"\n'
                                             + 'Idempotency-Key:"' + fixture_value() + '"\n')
         (root / '.env.example').write_text('ATTACHMENT_S3_ACCESS_KEY=' + fixture_value() + '\n')
         export_fixture.write_text(filename_argument + ' api_key="' + fixture_value() + '"\n'
                                   + 'downloadUrl("key", "' + fixture_value() + '");\n')
+        manifest.write_text(manifest_line % fixture_value())
         code, findings = scan()
         locations = {(Path(f['File']).relative_to(root).as_posix(), f['StartLine'], f['RuleID']) for f in findings}
         expected = {('roadmap/evidence/E11-T03/fixture.log', line, 'generic-api-key') for line in (1, 2, 3)}
         expected.add(('.env.example', 1, 'generic-api-key'))
         expected.update((export_fixture.relative_to(root).as_posix(), line, 'generic-api-key') for line in (1, 2))
-        assert code == 1 and len(findings) == 6 and locations == expected, 'Every injected secret must remain detected'
-        print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, and changed filename all fail')
+        expected.add(('roadmap/evidence/E9-T01/fixture-tested-inputs.json', 2, 'generic-api-key'))
+        assert code == 1 and len(findings) == 7 and locations == expected, 'Every injected secret must remain detected'
+        print('PASS credentials beside trace/dedup/filename, non-UUID key, populated example key, changed filename and a non-digest manifest value all fail')
 
 
 if __name__ == '__main__':
