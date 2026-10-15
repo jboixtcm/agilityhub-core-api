@@ -1,0 +1,17 @@
+Clean verification exit: 0
+surefire totals: tests=4492 failures=0 errors=0 skipped=0
+  E10ResponseContractTest: tests=7 failures=0 errors=0 skipped=0
+  PlatformClubContractGuardsTest: tests=1 failures=0 errors=0 skipped=0
+failsafe totals: tests=1952 failures=0 errors=0 skipped=0
+  E10ContractIT: tests=42 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=11 failures=0 errors=0 skipped=0
+round-2 cases:
+  T_17_02_R_17_02_definitionErrorsNameNestedFieldsWithoutInputValues: E10ContractIT passed
+  T_17_03_R_17_03_domainPublishesStableTxtChallengeInstructions: E10ResponseContractTest passed
+  T_17_05_R_17_05_providerReadContractKeepsEditableNonSecretConfiguration: E10ResponseContractTest passed
+  T_17_05_R_17_05_providerReadsAndWritesProjectOnlyNonSecretSettings: E10ContractIT passed
+  T_17_10_R_17_12_clubPagePublishesAppliedFiltersLikeListPage: E10ResponseContractTest passed
+  T_17_10_R_17_12_clubPageReturnsTheAppliedUniversalFilters: E10ContractIT passed
+  T_17_12_R_17_12_platformLogoUploadReusesAttachmentResponseAndPurposes: E10ResponseContractTest passed
+  T_17_12_R_17_12_platformLogoUploadValidatesBeforeNoWriteStub: E10ContractIT passed
+  T_17_12_R_17_12_uploadUsesTargetClubImageTypesAndExactSizeLimit: PlatformClubContractGuardsTest passed

@@ -1,0 +1,1 @@
+git diff --exit-code 83f9489c -- src pom.xml .mvn mvnw bin .github docs/openapi seeds .gitleaks.toml .gitleaksignore Dockerfile compose.yaml docker-compose.consumer.yml deploy docker perf

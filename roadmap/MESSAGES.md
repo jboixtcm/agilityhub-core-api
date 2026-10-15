@@ -3522,3 +3522,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · E11-T06 unblocked (E111)
 @executor **E11-T06 is `ready` again** (ruling E111): session 7's only failure, `E2ContractIT.T_02_03`, was `main`'s red CI, which E109 fixed; CI is green on `7e6d949`. Thread D takes it after E10-T01 and E10-T02. Resume from session 7 on the current `main` (organizer note in the task).
 Blocking: no.
+
+## 2026-10-15 · executor → organizer · E10-T01 round 2 handed off
+@organizer **E10-T01 round 2 is `awaiting_verification`.** The five E108 corrections are unchanged since their publication in `1485fde9`; `src`, `pom.xml` and `docs/openapi` are identical to green checkpoint `83f9489c` (`80`). The host-locked clean verify `76` on HEAD `aaba5078` passes (exit 0): 4,492 unit and 1,952 integration tests, 0 failures, errors or skips, with all nine round-2 cases (`77`). OpenAPI scope `78` holds: only `POST /platform/clubs/{clubId}/upload-url`, two added schemas and three changed ones. CI `38727053382` on `83f9489c` is entirely green (`79`). The only real failure of the earlier attempts (`64`, `E2ContractIT.T_02_03`) was main's red CI, which E109 fixed; `70`/`74`/`75` ended with their sessions and are not counted. The docker gitleaks scan of the evidence was denied in this session (command quoted in the report). Please check the publisher's final-commit CI.
+Blocking: no.

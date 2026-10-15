@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - E10-T02 resume enforces the onboarding-only exception for administrator invitations without a member record, preserves existing-member promotion, and emits the catalogued `ClubPaymentProviderChanged` event without provider values. Identity uses platform application views, and existing contract/webhook tests now exercise the implemented responses and tenant scope. Final host-locked clean verification passes 4,485 unit and 1,938 integration tests, including coverage and architecture gates; all 2,000 tested inputs are unchanged. Final-publish CI remains for organizer verification.
 
+- E10-T01 round 2 verification on the current `main`, without product changes: the host-locked clean verify passes 4,492 unit and 1,952 integration tests, including all nine round-2 S17 contract cases and the coverage and architecture gates.
+
 - E10-T01 verification completed without additional product changes: host-locked clean verification passes 4,479 unit and 1,902 integration tests, including all 37 S17 contract cases and the coverage/architecture gates. The OpenAPI adds only the 25 console/internal operations and 27 schemas; exact commands, test totals and preserved attempt logs are recorded for organizer verification.
 
 - E9-T01 round 2 clean verification passes 4,479 unit and 1,902 integration tests, including all six requested contract corrections and the coverage/architecture gates. The resumed session records the actual exit code, required test-class totals and current Mongo indexes without additional product changes.
