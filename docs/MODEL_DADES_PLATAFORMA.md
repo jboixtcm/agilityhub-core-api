@@ -249,7 +249,7 @@ erDiagram
 `ringId`, `placementId` **o** `courseId` amb imatge, `kind` (`AGILITY` · `JUMPING` · `FUN` · `OBSTACLE_DRILL` · `EMPTY`), `agilityhubLevel`/`levelIds[]` orientatius, `builtAt`, `builtByAccountId`, `expectedUntil`, `expiresAt` (caducitat automàtica `courses.setupAutoExpireDays`), `status` (`ACTIVE` · `EXPIRED` · `DISMANTLED`), `notes`. Vist a 08 (abans de reservar), detall de reserva, 10/23, D12.
 
 ### BUILD_SESSION (`BuildSession`)
-`placementId`, `startedByAccountId`, `startedAt`, `finishedAt`, `obstacles[]` {obstacleId, status: `PENDING` · `PLACED` · `VERIFIED`, byAccountId, at}, `live` (bool; canvis publicats per SSE/WebSocket per a l'AR i el mòbil), `buildSheetUrl` (PDF generat).
+`placementId`, `startedByAccountId`, `startedAt`, `finishedAt`, `status` (`NOT_STARTED` · `IN_PROGRESS` · `FINISHED` · `ABANDONED`; P9 tanca les obertes des de fa `courses.buildSessionMaxHours`, decisió E118), `setupId` (el muntatge que registra el `finish`; `null` si no en registra cap, decisió E118), `obstacles[]` {obstacleId, status: `PENDING` · `PLACED` · `VERIFIED`, byAccountId, at}, `live` (bool; canvis publicats per SSE/WebSocket per a l'AR i el mòbil), `buildSheetUrl` (PDF generat).
 
 ### OBSTACLE_INVENTORY (`ObstacleInventory`)
 per ring o per club: `items[]` {type, count, notes}. Alimenta l'avís «inventari insuficient» de la col·locació.

@@ -3619,3 +3619,7 @@ The host-locked clean verify passes (`13`, exit 0): 4,539 unit and 2,027 integra
 
 **Question:** the production Caddyfile has no access log on purpose (DEPLOY.md: query strings carry signed capabilities). I added the filtered `(access_log)` snippet (`delete access_token`), proven with the real Caddy image, but did not import it into any site. Should any site log at all? Assumed: no. The S16 edit is in the api's copy only. Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-16 · organizer → executor · E120: E9-T06 round 2; E10-T04 and E10-T03 in thread B
+@executor Ruling E120. **E9-T06 goes back for a round 2** (six points in the task): the CI run of `9094895` is red on `BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed` (it depends on timing), and two finishes at once must give one `200` and one `422 BUILD_SESSION_FINISHED`. After it, **E10-T04 and then E10-T03 are this lane's (thread B)**: the cloud lane F was never opened. Their organizer notes (E115, E118) are part of them.
+Blocking: no.
