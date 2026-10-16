@@ -73,6 +73,8 @@ Col·leccions pròpies (tècniques, amb `clubId`): `job_runs`, `job_locks`. El c
 | `class-finishing` | `CLASS_FINISHING` | cada minut | — | — | E5 | continu |
 | `cleanup` | `CLEANUP` | diari | `jobs.dailyTime` | — | E5 | sense límit |
 | `billing-reminder` | `BILLING_REMINDER` | mensual (dia `billing.remittanceReminderDay`) | `jobs.dailyTime` | `BILLING` | E8 | fins a la fi del mes |
+| `erasures` | `ERASURES` | diari | `jobs.dailyTime` | — (sense interruptor: obligació legal) | E11 (S14 R-14-15, `ErasureExecutor`) | sense límit |
+| `retention-sweep` | `RETENTION_SWEEP` | mensual (dia 1) | `jobs.dailyTime` | — (sense interruptor: obligació legal) | E11 (S14 R-14-16, `RetentionSweep`) | fins a la fi del mes |
 
 Cada procés implementa `Job { plan(ctx): List<Item>; apply(ctx, item): Effect }` (R-15-08) i declara mòdul, cadència, política de catch-up i clau de l'interruptor.
 
@@ -410,4 +412,5 @@ Ordre: A → B ∥ C ∥ D → E. Tres fils en paral·lel després d'A: B (contr
 - 01-10-2026 · verificacions d'E7-T05 i E5-T31 (decisió E81): R-15-15, el pas g desapareix perquè S11 compta els SMS per clau de mes (§13-11 resolt); T-15-23 ja no el prova. Una execució de recuperació de P5 fa servir l'hora de la seva ocurrència (`scheduledFor`), també al pas h.
 - 01-10-2026 · verificació d'E8-T02 (decisió E87): R-15-15, el pas i (les remeses enviades es donen per cobrades el dia de cobrament, amb `BILLING`) i el seu `WOULD_SETTLE`.
 - 16-10-2026 · verificació d'E9-T04 (decisió E118): R-15-19 afegeix les sessions de muntatge obertes des de fa `courses.buildSessionMaxHours` → `ABANDONED` (`ABANDON_BUILD_SESSION`, dry run `WOULD_ABANDON_BUILD_SESSION`, comptador `buildSessionsAbandoned`, amb `COURSES`); no esborra res.
+- 16-10-2026 · E11-T01 (decisió E109): R-15-01 afegeix `erasures` (S14 R-14-15: executa les sol·licituds de supressió vençudes i reintenta les `BLOCKED`) i `retention-sweep` (S14 R-14-16: retenció, purga d'auditoria i esborrat dels XML de remesa). No tenen interruptor (`PUT /jobs/{name}/switch` → `404 JOB_UNKNOWN {reason: NO_SWITCH}`); es poden llançar a mà i en dry run com la resta.
 - 17-10-2026 · E10-T03 (còpia de l'api; S17 R-17-03, «S15 P9 opcional»): R-15-19 afegeix la reverificació dels dominis del club (`platform.domainRecheckDays`, `RECHECK_DOMAIN`, 3 errors seguits → `BROKEN` + N-43, `RESTORED`).

@@ -74,6 +74,8 @@ Totes amb `createdAt`; `clubId` via `TenantRepository` llevat d'on s'indica. Ín
 
 Únic parcial `{memberIds, status ∈ {SCHEDULED, BLOCKED, ERASING}}` (una sol·licitud viva per abonat).
 
+Camps tècnics (E11-T01, proposta al seu informe): `erasedClubIds[]` (clubs ja pseudonimitzats: una transacció per club, R-14-15; el club que completa la sol·licitud també suprimeix el compte), `accountErased`, `live` (`true` mentre l'estat és viu; l'índex únic parcial és `{memberIds}` amb `live: true`, perquè Mongo no admet `$in` en un filtre parcial), `lastAttemptAt` (el reintent diari de les `BLOCKED`) i `version` (bloqueig optimista de T-14-24).
+
 ### `SecurityEvent` · `security_events` — context `identity`, global amb `clubId?` (**proposta**, §13)
 `type` ∈ `LOGIN_FAILED`·`LOGIN_LOCKED`·`MAGIC_LINK_INVALID`·`REFRESH_TOKEN_REUSED`·`RATE_LIMITED`·`IMPERSONATION_DENIED`·`WEBHOOK_SIGNATURE_INVALID` · `accountId?` · `emailHash?` (HMAC) · `clubId?` · `ip` · `userAgent` · `route` · `details` · `at`. Índex TTL sobre `at` = `security.eventRetentionDays` (proposta, 90). **No** és auditoria: no hi ha accés d'ADMIN de club a R1.
 
@@ -311,6 +313,7 @@ Dos fils: **fil 1 (transversal back)** = A → B → C → D (l'auditoria és bl
 ## Canvis
 
 - 17-10-2026 · E10-T04 ronda 2 (decisió E123, còpia de l'api): R-14-09 guanya `SUPPORT_ACCESS_ENDED` (l'ADMIN del club acaba un accés de suport, S17 R-17-10), que la consulta de plataforma també mostra; §3: una acció feta amb un token de suport s'audita amb `actorRole = PLATFORM`.
+- 16-10-2026 · E11-T01 (decisió E109): §3 `ErasureRequest` amb els seus camps tècnics (`erasedClubIds[]`, `accountErased`, `live`, `lastAttemptAt`, `version`); `ErasureExecutor` i `RetentionSweep` són els processos `erasures` (diari, `jobs.dailyTime`) i `retention-sweep` (mensual, dia 1, `jobs.dailyTime`) del catàleg d'S15 R-15-01, sense interruptor. R-14-16 (c): la remesa conserva tot menys `fileKey` i guarda `filePurgedAt`.
 - 16-10-2026 · E10-T04 (decisió E109): R-14-09 guanya `CLUB_DOMAIN_CHANGED`, `SUPPORT_ACCESS_STARTED` i `PUBLIC_API_KEY_ROTATED` (propostes de S17 §13) i §3 `origin` guanya `PLATFORM_SUPPORT` (S17 R-17-10). La consulta de plataforma (`/platform/audit-entries`) les mostra; una acció feta amb el token de suport hi surt només si és de configuració, com qualsevol altra (R-17-12).
 - 14-10-2026 · verificació d'E10-T02 (decisió E108): R-14-09 guanya les tres accions d'auditoria que S17 §13 proposava — `CLUB_CREATED`, `CLUB_PAYMENT_PROVIDER_CHANGED`, `CLUB_ADMIN_INVITED` — perquè la consola pugui filtrar-les per separat; `CLUB_UPDATED` queda per a la resta de canvis de configuració.
 - 03-09-2026 · v0.1 · esborrany inicial a partir de D1/D10/D11 (V7), model v1.6 (PARAMETRE/AUDITORIA, cobertura) + PLATAFORMA (§2, §3, §6, §7), catàlegs transversals i specs S03/S04/S06/S08/S09.

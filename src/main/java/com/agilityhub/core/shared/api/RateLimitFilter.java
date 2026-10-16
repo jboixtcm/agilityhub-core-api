@@ -70,8 +70,9 @@ public final class RateLimitFilter extends OncePerRequestFilter {
                 retryAfter = Math.max(retryAfter, limits.retryAfter(Route.HANDOFF, "account:" + jwt.getName()));
             }
             if (retryAfter > 0) {
-                events.record(SecurityEvents.Type.RATE_LIMITED, jwt == null ? null : jwt.getName(),
-                        clubId);
+                // S14 R-14-17 `RATE_LIMITED{route}`: the limited route; a token attempt's username only as its keyed hash.
+                events.record(SecurityEvents.Type.RATE_LIMITED, jwt == null ? null : jwt.getName(), clubId,
+                        route == Route.TOKEN || route == Route.TOKEN_ACCOUNT ? request.getParameter("username") : null, java.util.Map.of("limit", route.name()));
                 if(route.name().startsWith("SIGNUP_")&&signupCapabilities!=null) org.slf4j.LoggerFactory.getLogger(RateLimitFilter.class)
                         .info("Signup rate limit traceId={} clubId={} ipHash={}",RequestTraceFilter.traceId(request),clubId,signupCapabilities.fingerprint(request.getRemoteAddr()));
                 response.setStatus(ErrorCode.RATE_LIMITED.httpStatus());

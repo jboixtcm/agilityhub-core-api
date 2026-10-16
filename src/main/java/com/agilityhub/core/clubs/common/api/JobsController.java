@@ -28,7 +28,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 @RestController
 public class JobsController {
     static final String ADMIN = "hasRole('ADMIN') and principal.claims['imp'] != true";
-    static final String NAME = "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder";
+    static final String NAME = "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep";
     private final JobContractAccess access; private final JobAdminService jobs; private final RiskReviewQuery risk; private final ObjectMapper mapper;
     public JobsController(JobContractAccess access, JobAdminService jobs, RiskReviewQuery risk, ObjectMapper mapper) {
         this.access = access; this.jobs = jobs; this.risk = risk; this.mapper = mapper;
@@ -82,7 +82,7 @@ public class JobsController {
     @PutMapping("/api/v1/jobs/{name}/switch")
     @PreAuthorize(ADMIN)
     @ContractErrors(value = {VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
-    @Operation(summary = "switchJob", description = "Roles: ADMIN. Writes jobs.<name>.enabled through the parameter service (ParameterChanged, audited PARAMETER_CHANGED). Tenant comes from the JWT.",
+    @Operation(summary = "switchJob", description = "Roles: ADMIN. Writes jobs.<name>.enabled through the parameter service (ParameterChanged, audited PARAMETER_CHANGED). S14's erasures and retention-sweep have no switch (a legal duty): 404 JOB_UNKNOWN {reason: NO_SWITCH}. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobSwitchResponse", useReturnTypeSchema = true))
     public JobSwitchResponse switchJob(@PathVariable @Parameter(description = NAME) String name, @Valid @RequestBody JobSwitchRequest request) {
         access.tenant();

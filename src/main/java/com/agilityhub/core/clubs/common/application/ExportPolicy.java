@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 public class ExportPolicy {
     public static final int SYNC_MAX_ROWS = 5000;
     public static final int MAX_ROWS = 100000;
+    /** S14 R-14-13 / §9: a member's data package lives 7 days (`memberDataRetentionDays`); one per member every 24 hours. */
+    public static final java.time.Duration MEMBER_DATA_RETENTION = java.time.Duration.ofDays(7), MEMBER_DATA_INTERVAL = java.time.Duration.ofHours(24);
     public static String contentType(String format) {
         if (format.equalsIgnoreCase("csv")) { return "text/csv;charset=UTF-8"; }
         return format.equalsIgnoreCase("pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

@@ -35,7 +35,7 @@ public class CensusQuery {
         var member = access.members.require(id);
         var result = object("id", id, "memberNumber", member.memberNumber, "firstName", member.firstName, "lastName1", member.lastName1,
                 "lastName2", member.lastName2, "fullName", fullName(member), "contactEmails", contacts(member), "phones", phones(member),
-                "address", address(member), "status", member.status, "displayStatus", status(member), "version", member.version());
+                "address", member.erasedAt == null ? address(member) : null, "status", member.status, "displayStatus", status(member), "version", member.version());
         if (!admin) {
             result.put("dogs", ownerDogs(id).stream().map(dog -> object("id", dog.id, "name", dog.name, "level", level(dog.levelId))).toList());
             result.put("bookingBlocked", Boolean.TRUE.equals(map(member.bookingBlock).get("active"))); return result;
@@ -48,10 +48,13 @@ public class CensusQuery {
         if (access.enabled(Module.BILLING)) {
             result.putAll(object("paymentMethod", payment(member), "maskedAccount", map(payment(member)).get("maskedAccount"),
                     "planId", member.planId, "priceId", member.priceId, "nextInvoiceDate", member.nextInvoiceDate,
-                    "accountMissing", "SEPA_DD".equals(map(member.paymentMethod).get("type")) && map(payment(member)).get("maskedAccount") == null));
+                    "accountMissing", member.erasedAt == null && "SEPA_DD".equals(map(member.paymentMethod).get("type")) && map(payment(member)).get("maskedAccount") == null));
             var plan = access.references.plan(member.planId);
             if (!plan.isEmpty()) { result.put("plan", object("id", member.planId, "name", localized(plan.get("name")), "type", plan.get("type"), "billingMode", plan.get("billingMode"))); }
         }
+        // INC-53 point 10 (E11-T01): R-14-15 removed the birth date and the address; Member declares both nullable for this case
+        // (the instructor view, where the address is optional, leaves it out).
+        if (member.erasedAt != null) { result.put("birthDate", null); result.put("address", null); }
         return result;
     }
     private List<Map<String,Object>> contacts(Member member) { return rows(member.contactEmails).stream().map(row -> object("email", row.get("email"), "bounced", Boolean.TRUE.equals(row.get("bounced")))).toList(); }

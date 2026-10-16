@@ -18,7 +18,7 @@ public final class JobViews {
     @Schema(name = "JobRun", description = "S15 §3 execution trace; in a dry run effects.items is the plan (actions prefixed WOULD_).")
     public record JobRunView(String runId,
             @Schema(allowableValues = {"WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO",
-                    "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER"}) String job,
+                    "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER", "ERASURES", "RETENTION_SWEEP"}) String job,
             Instant scheduledFor, @Schema(example = "2026-10-05T07:30") String scheduledForLocal, @Schema(example = "Europe/Madrid") String timeZone,
             JobTrigger trigger, boolean dryRun, JobStatus status,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) SkipReason skipReason,
@@ -50,7 +50,7 @@ public final class JobViews {
             JobTrigger trigger, boolean dryRun, Map<String, Long> counters) { }
     public record JobSummary(@Schema(description = "R-15-01 route id", example = "risk-review") String name,
             @Schema(allowableValues = {"WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO",
-                    "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER"}) String jobName,
+                    "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER", "ERASURES", "RETENTION_SWEEP"}) String jobName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Module module, boolean enabled, JobScheduleView schedule,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, example = "2026-10-06T07:30") String nextScheduledForLocal,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) JobLastRun lastRun) { }

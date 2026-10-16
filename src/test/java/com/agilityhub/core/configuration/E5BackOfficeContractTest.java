@@ -91,8 +91,9 @@ class E5BackOfficeContractTest {
                 "GET /api/v1/courses", "GET /api/v1/platform/courses",
                 // S17: the platform club list searches the club name and slug.
                 "GET /api/v1/platform/clubs",
-                // Contract-only routes: their implementation (and search) is deferred.
-                "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/erasure-requests", "GET /api/v1/platform/security-events");
+                // Contract-only routes: their implementation (and search) is deferred. E11-T01's console list of erasure requests
+                // has ids, states and dates only: it does not search.
+                "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/security-events");
         for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",
                 "/notifications", "/notifications/filter-values", "/notifications/export")) {
             assertThat(document.path("paths").has("/api/v1" + without)).as(without).isTrue();

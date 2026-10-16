@@ -320,8 +320,8 @@ class E5ContractIT extends AbstractIntegrationTest {
         assertThat(strings(schemas.at("/BookableClass/required"))).doesNotContain("price", "opensAt", "notBookableReason");
         assertThat(strings(schemas.at("/Booking/required"))).doesNotContain("checkoutUrl", "charge", "pack");
         assertThat(schemas.at("/TrainingBooking/properties").has("seatIndex")).isFalse();
-        assertThat(strings(schemas.at("/JobRun/properties/job/enum"))).hasSize(10).doesNotContain("TEST_NOOP");
-        assertThat(strings(schemas.at("/JobSummary/properties/jobName/enum"))).hasSize(10).doesNotContain("TEST_NOOP");
+        assertThat(strings(schemas.at("/JobRun/properties/job/enum"))).hasSize(12).doesNotContain("TEST_NOOP");
+        assertThat(strings(schemas.at("/JobSummary/properties/jobName/enum"))).hasSize(12).doesNotContain("TEST_NOOP");
         assertThat(schemas.at("/RiskReviewForm/properties").has("minDogs")).isTrue();
         assertThat(schemas.at("/RiskReview/properties").has("count")).as("S14 dashboard card unchanged").isTrue();
         for (String nullable : List.of("MeHome/impersonation", "Booking/cancellation", "BookableClasses/pack", "TrainingRing/setup",

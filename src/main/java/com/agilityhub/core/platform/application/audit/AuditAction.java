@@ -54,5 +54,11 @@ public enum AuditAction {
      * S16 (E9-T03): a placement stored with a `critical` warning through `force` (R-16-05, `entityType = Placement`, `details.warningIds`)
      * and a ring setup registered (R-16-07, `entityType = RingSetup`, the replaced one in `details.replacedSetupId`).
      */
-    COURSE_FORCED_PLACEMENT, RING_SETUP_REGISTERED
+    COURSE_FORCED_PLACEMENT, RING_SETUP_REGISTERED,
+    /**
+     * S14 RGPD (E11-T01): the member's data package ready (R-14-13, `entityType = ExportJob`), an erasure requested or cancelled
+     * (R-14-14, `entityType = ErasureRequest`), and the erasure's per-club `MEMBER_ERASED` and the account's `ACCOUNT_ERASED`
+     * (R-14-15: entries that only carry ids). All «event» actions: no `changes`.
+     */
+    MEMBER_DATA_EXPORTED, ERASURE_REQUESTED, ERASURE_CANCELLED, MEMBER_ERASED, ACCOUNT_ERASED
 }

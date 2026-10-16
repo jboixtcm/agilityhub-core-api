@@ -4,6 +4,8 @@ package com.agilityhub.core.platform.application.jobs;
 public enum JobName {
     WEEK_OPENING, RISK_REVIEW, NO_SHOW_NOTICES, REMINDERS, EXPIRATIONS,
     WAITLIST_FIFO, PAYMENT_TIMEOUTS, CLASS_FINISHING, CLEANUP, BILLING_REMINDER,
+    /** S14 R-14-15 (E11-T01): the daily `ErasureExecutor` run of due requests, and the monthly R-14-16 `RetentionSweep`. */
+    ERASURES, RETENTION_SWEEP,
     /** Fictitious framework job (E5-T01): its bean exists only under the `test` profile and it is never listed. */
     TEST_NOOP
 }

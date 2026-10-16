@@ -100,7 +100,9 @@ public class SecurityBaselineConfiguration {
                         : path.equals("/api/v1/public") || path.startsWith("/api/v1/public/") ? "/api/v1/public/**" : "other";
             };
             // Tomcat processes forwarding only from explicitly configured trusted proxies.
-            return new SecurityRequestProvider.Request(request.getRemoteAddr(), route);
+            String agent = request.getHeader("User-Agent");
+            return new SecurityRequestProvider.Request(request.getRemoteAddr(), route,
+                    agent == null ? null : agent.substring(0, Math.min(agent.length(), SecurityRequestProvider.USER_AGENT_LENGTH)));
         };
     }
 

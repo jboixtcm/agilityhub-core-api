@@ -10,10 +10,11 @@ import static org.mockito.Mockito.*;
 
 /** S15 R-15-01 catalog rows, the S10 contract rows P3/P8 (R-15-13, R-15-18) and the rows still without a `Job` bean. */
 class JobCatalogContractTest {
-    @Test void R_15_01_catalogHasTheTenRowsInTickOrderWithUniqueRouteIds() {
+    /** E11-T01: S14's two processes follow the ten of S15 (R-14-15 `erasures`, R-14-16 `retention-sweep`). */
+    @Test void R_15_01_catalogHasTheTwelveRowsInTickOrderWithUniqueRouteIds() {
         assertThat(JobCatalog.all()).extracting(JobDefinition::name).containsExactly(JobName.WEEK_OPENING, JobName.RISK_REVIEW,
                 JobName.NO_SHOW_NOTICES, JobName.REMINDERS, JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS,
-                JobName.CLASS_FINISHING, JobName.CLEANUP, JobName.BILLING_REMINDER);
+                JobName.CLASS_FINISHING, JobName.CLEANUP, JobName.BILLING_REMINDER, JobName.ERASURES, JobName.RETENTION_SWEEP);
         assertThat(JobCatalog.all()).extracting(JobDefinition::routeId).doesNotHaveDuplicates();
         assertThat(JobCatalog.find(JobName.TEST_NOOP)).isEmpty();
         assertThatThrownBy(() -> JobCatalog.definition(JobName.TEST_NOOP)).isInstanceOf(IllegalArgumentException.class);
@@ -29,6 +30,24 @@ class JobCatalogContractTest {
         assertThat(row.module()).isNull();
         assertThat(row.catchUpWindow()).isEqualTo(CatchUpWindow.UNLIMITED);
         assertThat(row.switchParameter()).isEqualTo("jobs.noShowNotices.enabled");
+    }
+
+    @Test void T_14_19_T_14_20_erasuresRunDailyAndTheRetentionSweepOnTheFirstOfTheMonthWithoutSwitch() {
+        var erasures = JobCatalog.byRoute("erasures");
+        assertThat(erasures.name()).isEqualTo(JobName.ERASURES);
+        assertThat(erasures.cadence()).isEqualTo(Cadence.DAILY);
+        assertThat(erasures.localTimeParameter()).isEqualTo("jobs.dailyTime");
+        assertThat(erasures.catchUpWindow()).isEqualTo(CatchUpWindow.UNLIMITED);
+        assertThat(erasures.switchParameter()).isNull();
+        var sweep = JobCatalog.byRoute("retention-sweep");
+        assertThat(sweep.name()).isEqualTo(JobName.RETENTION_SWEEP);
+        assertThat(sweep.cadence()).isEqualTo(Cadence.MONTHLY);
+        assertThat(sweep.dayParameter()).isNull();
+        assertThat(sweep.catchUpWindow()).isEqualTo(CatchUpWindow.END_OF_LOCAL_MONTH);
+        assertThat(sweep.switchParameter()).isNull();
+        var schedule = JobSchedule.resolve(sweep, key -> "06:00");
+        assertThat(schedule.dayOfMonth()).isEqualTo(1);
+        assertThat(schedule.localTime()).isEqualTo(java.time.LocalTime.of(6, 0));
     }
 
     @Test void T_15_18_classFinishingIsTheContinuousP8RowWithoutParameterOrModule() {

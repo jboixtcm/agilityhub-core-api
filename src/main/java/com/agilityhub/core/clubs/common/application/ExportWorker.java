@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 public class ExportWorker {
     private final ExportWorkRepository work; private final ListExportRepository jobs;
     private final ExportJobCoordinator coordinator; private final ExportJobRenderer renderer; private final ExportStorage storage; private final Clock clock;
+    @org.springframework.beans.factory.annotation.Autowired private MemberDataExports memberData;
     private final AtomicBoolean busy = new AtomicBoolean();
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ExportWorker.class);
     public ExportWorker(ExportWorkRepository work, ListExportRepository jobs, ExportJobCoordinator coordinator, ExportJobRenderer renderer, ExportStorage storage, Clock clock) {
@@ -25,7 +26,8 @@ public class ExportWorker {
                     cleanup();
                     ExportJob job = coordinator.claim();
                     if (job != null) {
-                        try { renderer.render(job, false); }
+                        // S14 R-14-13: a member's data package is a ZIP of its own (E11-T01).
+                        try { if ("MEMBER_DATA".equals(job.kind())) { memberData.render(job); } else { renderer.render(job, false); } }
                         catch (RuntimeException ex) { coordinator.fail(job, ex); LOG.warn("Export attempt failed for job {} (attempt {})", job.id(), job.attempts()); }
                     }
                 } catch (RuntimeException ex) { LOG.warn("Export poll failed for club {}", club); }

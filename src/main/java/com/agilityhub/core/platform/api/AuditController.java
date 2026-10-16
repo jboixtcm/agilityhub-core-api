@@ -17,10 +17,13 @@ import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.platform.api.AuditContracts.*;
 
-/** Tenant audit reads; RGPD and platform operations retain their later-vertical contracts. */
+/** Tenant audit reads, the RGPD erasure and consent routes (S14 R-14-14…R-14-18, E11-T01) and the console's views (S17). */
 @RestController
 public class AuditController {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.PlatformAuditQueries platformQueries;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.privacy.ErasureService erasures;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.privacy.ErasureQueries erasureQueries;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.privacy.MemberConsents consents;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final com.agilityhub.core.platform.application.audit.AuditReadService audits;
     public AuditController(com.agilityhub.core.platform.application.audit.AuditReadService audits) { this.audits = audits; }
@@ -73,44 +76,51 @@ public class AuditController {
     @ListContract(filterable = {}, sortable = {},
             columns = {"type*", "granted*", "version*", "at*", "locale", "source"}, paged = false, exportable = false)
     @Operation(summary = "Member consents",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S14 R-14-18. The member's full consent history (S04's append-only ledger), oldest first; it survives an erasure. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "List<ConsentHistoryEntry>"))
-    public List<ConsentHistoryEntry> memberConsents(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public List<ConsentHistoryEntry> memberConsents(@PathVariable String id) {
+        return consents.history(id).stream().map(entry -> new ConsentHistoryEntry(entry.type(), entry.granted(), entry.version(), entry.at(), entry.locale(),
+                entry.ipHash(), entry.source())).toList();
+    }
 
     @PostMapping("/api/v1/members/{id}/erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED, INVALID_STATE})
+    @ContractErrors({ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED, MEMBER_ERASED})
     @Operation(summary = "Request member erasure",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S14 R-14-14. Checks first (LEFT member, no open invoice or upfront payment, no future booking): any failure is 422 ERASURE_BLOCKED {reasons[]} and nothing is created. SCHEDULED at max(now, leaveDate + rgpd.erasureMinDaysAfterLeave); one live request per member (409 ERASURE_ALREADY_REQUESTED); an erased member is 409 MEMBER_ERASED. Emits AccountErasureRequested (N-52 to the account), audited ERASURE_REQUESTED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "ErasureRequest"))
-    public ErasureRequest requestMemberErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) { throw new UnsupportedOperationException(); }
+    public ErasureRequest requestMemberErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) {
+        return clubView(erasures.requestMember(id, request.reason()), id);
+    }
 
     @GetMapping("/api/v1/members/{id}/erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({NOT_FOUND, INVALID_STATE})
+    @ContractErrors({NOT_FOUND})
     @Operation(summary = "Member erasure",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S14 §6. The member's live request (SCHEDULED, BLOCKED with its blockReasons, or ERASING); none is 404. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "ErasureRequest"))
-    public ErasureRequest memberErasure(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public ErasureRequest memberErasure(@PathVariable String id) { return clubView(erasures.live(id), id); }
 
     @DeleteMapping("/api/v1/members/{id}/erasure")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({NOT_FOUND, INVALID_STATE})
     @Operation(summary = "Cancel member erasure",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S14 R-14-14. SCHEDULED or BLOCKED → CANCELLED, audited ERASURE_CANCELLED; ERASING (or the console's account request) is 409 INVALID_STATE; no live request is 404. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void cancelMemberErasure(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void cancelMemberErasure(@PathVariable String id) { erasures.cancel(id); }
 
     @PostMapping("/api/v1/accounts/{id}/erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED})
+    @ContractErrors({NOT_FOUND, ERASURE_BLOCKED, ERASURE_ALREADY_REQUESTED})
     @Operation(summary = "Request account erasure",
-            description = "S14 §6. Global account erasure request; AGILITYHUB_ADMIN only, no request tenant.",
+            description = "S14 R-14-14. Global account erasure (scope ACCOUNT, every membership); AGILITYHUB_ADMIN only, no request tenant. The checks of every club of the account's members, plus no ACTIVE membership left (OTHER_MEMBERSHIPS_ACTIVE): 422 ERASURE_BLOCKED {reasons[]}. A live request, or an erased account, is 409 ERASURE_ALREADY_REQUESTED; an unknown account 404. An account without members is erased at once (ERASING).",
             responses = @ApiResponse(responseCode = "201", description = "ErasureRequest"))
-    public ErasureRequest requestAccountErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) { throw new UnsupportedOperationException(); }
+    public ErasureRequest requestAccountErasure(@PathVariable String id, @Valid @RequestBody ErasureInput request) {
+        return view(erasures.requestAccount(id, request.reason()));
+    }
 
     @GetMapping("/api/v1/platform/audit-entries")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
@@ -127,12 +137,30 @@ public class AuditController {
     @GetMapping("/api/v1/platform/erasure-requests")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"clubId"}, sortable = {},
-            columns = {"id*", "scope*", "status*", "requestedAt*", "executeAt*", "clubId"}, paged = true, exportable = false, acceptsFields = false)
+            columns = {"id*", "scope*", "status*", "requestedAt*", "executeAt*", "clubId"}, paged = true, exportable = false, acceptsFields = false, searchable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform erasure requests",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+            description = "S14 §6 / S17. Every erasure request, newest first; clubId filters the clubs a request covers, clubId:exists:false the platform's account requests. Ids, states and dates only, so no free-text search (a non-blank q is 400 INVALID_FILTER).",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<ErasureRequest>"))
-    public ListPage<ErasureRequest> platformErasureRequests() { throw new UnsupportedOperationException(); }
+    public ListPage<ErasureRequest> platformErasureRequests(@io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
+        var page = erasureQueries.platform(params);
+        return new ListPage<>(page.items().stream().map(this::view).toList(), page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());
+    }
+
+    private ErasureRequest view(com.agilityhub.core.platform.persistence.privacy.ErasureRequest request) {
+        return new ErasureRequest(request.id(), request.clubId(), ErasureScope.valueOf(request.scope()), request.accountId(), request.memberIds(), request.clubIds(),
+                ErasureSource.valueOf(request.source()), request.requestedByAccountId(), request.requestedAt(), request.reason(),
+                ErasureStatus.valueOf(request.status()), request.executeAt(), request.blockReasons(), request.erasedAt(), request.cancelledAt(),
+                request.cancelledByAccountId(), request.version());
+    }
+    /** A club reads only its own part of a request: an account's request lists the club's member and the club, nothing of other clubs. */
+    private ErasureRequest clubView(com.agilityhub.core.platform.persistence.privacy.ErasureRequest request, String memberId) {
+        var full = view(request);
+        if (!"ACCOUNT".equals(request.scope())) { return full; }
+        String club = com.agilityhub.core.shared.application.TenantContext.require();
+        return new ErasureRequest(full.id(), club, full.scope(), full.accountId(), List.of(memberId), List.of(club), full.source(), null, full.requestedAt(),
+                null, full.status(), full.executeAt(), full.blockReasons(), full.erasedAt(), full.cancelledAt(), null, full.version());
+    }
 
     @GetMapping("/api/v1/platform/security-events")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
