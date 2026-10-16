@@ -91,6 +91,42 @@ public class RingSetupService {
         String id = UUID.randomUUID().toString(), actor = CourseAccess.accountId();
         // R-16-16: «Foto o plànol» is the club's own `COURSE_IMAGE` upload, bound to this setup (another club's key is `404`).
         if (in.imageFileKey() != null) { files.claim(in.imageFileKey(), UploadPurpose.COURSE_IMAGE, ENTITY, id); }
+        return activate(id, ring, placement, course, in, levelIds, now, actor);
+    }
+
+    /**
+     * R-16-11 `finish` of a build session on {@code placement}, inside its transaction: the ring's active setup becomes this
+     * placement's, of the course's discipline (`BuildSessionRules.kind`) and level. When the active setup already shows this
+     * placement it is refreshed instead (built now by {@code actor}, a new `expiresAt` as a renewal; no event: it stays `ACTIVE`);
+     * otherwise a new setup replaces it as `POST /ring-setups` does (`RingSetupChanged{ACTIVE}`, N-31, `RING_SETUP_REGISTERED`).
+     * The caller has checked the publishing permission. Returns the setup's id.
+     */
+    String built(Placement placement, Course course, String actor) {
+        String clubId = TenantContext.require();
+        var ring = ring(placement.ringId());
+        if (ring.geometry() == null) { throw new ApiException(RING_WITHOUT_GEOMETRY); }
+        var now = clocks.now(clubId);
+        var instant = now.toInstant();
+        var current = setups.activeOn(ring.id()).orElse(null);
+        if (current != null && placement.id().equals(current.placementId())) {
+            var expiresAt = RingSetupRules.expiresAt(instant, null, autoExpireDays(), now.getZone());
+            var rebuilt = new RingSetup(current.id(), current.clubId(), current.ringId(), current.kind(), current.placementId(), current.courseId(),
+                    current.imageFileKey(), current.agilityhubLevel(), current.levelIds(), instant, actor, null, expiresAt, current.status(), null, null,
+                    current.notes(), current.createdAt(), current.createdByAccountId(), instant, actor);
+            if (!setups.replaceActive(rebuilt)) { throw new ApiException(STALE_VERSION); }
+            return current.id();
+        }
+        // The course's own levels only while levels are enabled (R-16-15): the setup keeps the course's AgilityHub level anyway.
+        var levelIds = access.enabled("levels.enabled") && course.levelIds() != null ? course.levelIds() : List.<String>of();
+        var in = new SetupInput(ring.id(), com.agilityhub.core.courses.domain.BuildSessionRules.kind(course.discipline()), placement.id(), null, null,
+                course.agilityhubLevel(), levelIds, null, null);
+        return activate(UUID.randomUUID().toString(), ring, placement, null, in, levelIds, now, actor).setup().setup().id();
+    }
+
+    /** R-16-07's effects once every check passed: the new `ACTIVE` setup replaces the ring's, with its event and audit entry. */
+    private Created activate(String id, RingGeometryRepository.GeometryRecord ring, Placement placement, Course course, SetupInput in,
+            List<String> levelIds, java.time.ZonedDateTime now, String actor) {
+        String clubId = TenantContext.require();
         var instant = now.toInstant();
         var expiresAt = RingSetupRules.expiresAt(instant, in.expectedUntil(), autoExpireDays(), now.getZone());
         var setup = new RingSetup(id, clubId, ring.id(), in.kind(), in.placementId(), in.courseId(), in.imageFileKey(), in.agilityhubLevel(), levelIds,
@@ -185,7 +221,10 @@ public class RingSetupService {
         var setup = setup(id);
         if (setup.status() != SetupStatus.ACTIVE) { throw new ApiException(INVALID_STATE); }
         var now = clocks.now(TenantContext.require()).toInstant(); String actor = CourseAccess.accountId();
-        return view(end(setup, SetupStatus.DISMANTLED, now, actor, DomainEvent.Origin.BACKOFFICE).orElseThrow(() -> new ApiException(INVALID_STATE)));
+        // E117: a race with another write of the setup or of its ring's pointer (P5 f, a replacement, a deactivation) is `409
+        // STALE_VERSION`, never a 500. The jobs and consumers that call `end` keep the raw conflict for their own retries.
+        var ended = WriteConflicts.guard(() -> end(setup, SetupStatus.DISMANTLED, now, actor, DomainEvent.Origin.BACKOFFICE));
+        return view(ended.orElseThrow(() -> new ApiException(INVALID_STATE)));
     }
     /** R-16-08: an `ACTIVE` setup gets a new `expiresAt`, counted from today (no event: it stays `ACTIVE`). */
     @Transactional
@@ -198,7 +237,7 @@ public class RingSetupService {
         var renewed = new RingSetup(setup.id(), setup.clubId(), setup.ringId(), setup.kind(), setup.placementId(), setup.courseId(), setup.imageFileKey(),
                 setup.agilityhubLevel(), setup.levelIds(), setup.builtAt(), setup.builtByAccountId(), expectedUntil, expiresAt, setup.status(), null, null,
                 setup.notes(), setup.createdAt(), setup.createdByAccountId(), now.toInstant(), CourseAccess.accountId());
-        if (!setups.replaceActive(renewed)) { throw new ApiException(INVALID_STATE); }
+        if (!WriteConflicts.guard(() -> setups.replaceActive(renewed))) { throw new ApiException(INVALID_STATE); }
         return view(renewed);
     }
     /** S15 R-15-15 step f: the club's active setups whose `expiresAt` is not after {@code now}. */

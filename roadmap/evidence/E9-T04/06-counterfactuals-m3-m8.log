@@ -1,0 +1,12 @@
+== M3 the async dispatch is checked again
+   file: src/main/java/com/agilityhub/core/platform/api/RequiresModuleInterceptor.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=RequiresModuleInterceptorTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED RequiresModuleInterceptorTest.T_16_10_theAsyncDispatchThatEndsAStreamIsNotCheckedAgain [error] NO_MEMBERSHIP
+== M8 a failed export self-check is a 400 again (step 2 undone)
+   file: src/main/java/com/agilityhub/core/courses/application/CourseSchemas.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=CourseSchemasTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError [failure] [GET /api/v1/build-sessions/3f412c3a-afff-477f-a330-a836e9733439/export {"code":"COURSE_MODEL_INVALID","message":"Les dades del recorregut no són vàlides.","details":{"schemaErrors":[{"path":"$.course.normalized_json","m
+   FAILED CourseSchemasTest.T_16_03_aFailedExportSelfCheckIsAServerError [failure] expected: INTERNAL_ERROR
+All mutants reverted: True

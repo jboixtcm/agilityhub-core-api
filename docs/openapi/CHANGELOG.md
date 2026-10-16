@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E9-T04 · S16 live build sessions served (R-16-11), query token on the stream, export self-check
+
+**0 operations or schemas added or removed; 1 security scheme added (`accessTokenQuery`); `STALE_VERSION` added to 3 error lists (join, dismantle, renewal).**
+
+- Served behind their unchanged guards: `POST /build-sessions`, `GET /build-sessions/{id}`, `PATCH /build-sessions/{id}/obstacles/{obstacleId}`, `POST /build-sessions/{id}/finish`, `GET /build-sessions/{id}/events`, `POST /build-sessions/join`, `GET /build-sessions/{id}/export`. Their descriptions now state R-16-11 and S16 §14.2 (join code and QR token, last write wins per obstacle, `finish` registering or refreshing the ring's setup, the 12-hour end, the stream's `obstacle`/`finished` events and 20-second heartbeat comment, the export's planner spellings).
+- `GET /build-sessions/{id}/events`: `security` is `[{bearer}, {accessTokenQuery}]`; the new `accessTokenQuery` scheme (`apiKey` in `query`, `access_token`) is accepted by this operation only (T-16-10).
+- Error lists: `POST /build-sessions` and `POST /build-sessions/{id}/finish` add `404 COURSE_NOT_VISIBLE` and name `409 STALE_VERSION` (was the generic «Conflict»); `GET /build-sessions/{id}/export` adds `404 COURSE_NOT_VISIBLE` and `422 RING_WITHOUT_GEOMETRY`, `GEOMETRY_INVALID` (a ring without the six markers A–F the Unity export requires). A failed export self-check is `500 INTERNAL_ERROR` (E98), never `400 COURSE_MODEL_INVALID`. `POST /build-sessions/join` names `409 STALE_VERSION` (retries of a write conflict exhausted); concurrent taps on one session all apply.
+- E117 (E9-T03's review #1): `POST /ring-setups/{id}/dismantle` and `/renewal` publish `409 STALE_VERSION` beside `INVALID_STATE`: a race with another write of the setup or its ring answers it instead of a `500`.
+
 ## 2026-10-16 · E9-T03 · S16 placements and ring setups served, S06 `placementId` writable, E115 corrections
 
 **1 operation removed (`GET /rings/{id}/marker-sheet`; S16 now publishes 41); 0 added; 0 schemas added or removed; 6 request properties added (4 S06 `placementId`, 2 `pathLengthM`); `CourseFileTooLargeDetails.maxSizeBytes` → `maxSizeMb`.**

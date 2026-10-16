@@ -4,6 +4,8 @@ import com.agilityhub.core.clubs.common.persistence.CleanupRepository;
 import com.agilityhub.core.clubs.common.persistence.ExportJob;
 import com.agilityhub.core.clubs.common.persistence.ListExportRepository;
 import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
+import com.agilityhub.core.clubs.common.application.ports.OutlivedBuildSessionsPort;
+import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.ParameterCatalog;
 import com.agilityhub.core.platform.application.jobs.*;
 import java.time.Duration;
@@ -25,18 +27,26 @@ import org.springframework.stereotype.Component;
  * run of the UTC day claims it ({@link CleanupRepository#claimPlatformCycle}), whatever the club; if that run ends
  * FAILED the claim is released ({@link #failed}, E5-T13). Counters `platformPass`, `platformDomainEventsDeleted`,
  * `platformJobRunsDeleted`: stored in the JobRun, never shown in the club's run views (AGENTS rule 4, {@code JobViews}).
+ * <p>
+ * Build sessions (E9-T04, S16 R-16-11 «Una sessió oberta > 12 h es tanca sola (S15 P9 neteja)»), with `COURSES` only: an open
+ * session started `courses.buildSessionMaxHours` or more before the occurrence becomes `ABANDONED` (item `ABANDON_BUILD_SESSION`,
+ * `WOULD_ABANDON_BUILD_SESSION` in a dry run, counter `buildSessionsAbandoned`). The one item that is not a `DELETE`: the session
+ * is a business document and is kept; it is reached through {@link OutlivedBuildSessionsPort} only.
  */
 @Component
 public class CleanupJob implements Job {
     static final String DELETE = "DELETE";
+    static final String ABANDON = "ABANDON_BUILD_SESSION";
     static final int KEEP_RUNS = 5;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(CleanupJob.class);
     /** The `idempotency_records` TTL (`IdempotencyRepository`, 24 h): older records are only waiting for Mongo's TTL monitor. */
     static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
-    private final AttachmentStorage uploads; private final ParameterCatalog parameters;
-    public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads, ParameterCatalog parameters) {
+    private final AttachmentStorage uploads; private final ParameterCatalog parameters; private final OutlivedBuildSessionsPort buildSessions;
+    public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads, ParameterCatalog parameters,
+            OutlivedBuildSessionsPort buildSessions) {
         this.cleanup = cleanup; this.exports = exports; this.exportFiles = exportFiles; this.uploads = uploads; this.parameters = parameters;
+        this.buildSessions = buildSessions;
     }
     /** Platform rows belong to no club, so their retention is the catalog's product value, never a club's (R-15-19). */
     private record PlatformCutoffs(Instant events, Instant runs) { }
@@ -89,6 +99,11 @@ public class CleanupJob implements Job {
             if (expired > 0) { items.add(new JobItem("JobRuns", job.name(), DELETE, Map.of("count", (long) expired))); runs += expired; }
         }
         totals.put("jobRuns", runs);
+        if (context.config().modules().contains(Module.COURSES)) {
+            // The cut-off is the parameter's, read (and recorded in the run's snapshot) here; the adapter applies the same one.
+            context.parameter("courses.buildSessionMaxHours", Integer.class);
+            buildSessions.outlived(now).forEach(id -> items.add(new JobItem("BuildSession", id, ABANDON)));
+        }
         // A dry run only looks (a real run of this occurrence would still get the pass); a real run claims the cycle.
         boolean platformPass = context.dryRun() ? cleanup.platformCycleOpen(now) : cleanup.claimPlatformCycle(club, now, context.runId());
         recorder.count("platformPass", platformPass ? 1 : 0);
@@ -97,6 +112,7 @@ public class CleanupJob implements Job {
         else {
             for (String key : List.of("orphanUploadsDeleted", "exportsPurged", "domainEventsDeleted", "stripeEventsDeleted", "jobRunsDeleted",
                     "platformDomainEventsDeleted", "platformJobRunsDeleted")) { recorder.count(key, 0); }
+            if (context.config().modules().contains(Module.COURSES)) { recorder.count("buildSessionsAbandoned", 0); }
         }
         return items;
     }
@@ -137,6 +153,10 @@ public class CleanupJob implements Job {
             case "StripeEvents" -> counted(item, "stripeEventsDeleted", cleanup.deleteStripeEvents(club, cut.stripe()));
             case "JobRuns" -> counted(item, "jobRunsDeleted", cleanup.deleteRuns(club, cleanup.expiredRuns(club, item.entityId(), cut.runs(), KEEP_RUNS)));
             case "PlatformDomainEvents" -> counted(item, "platformDomainEventsDeleted", cleanup.deleteProcessedPlatformEvents(platformCutoffs(context).events()));
+            case "BuildSession" -> {
+                long abandoned = buildSessions.abandon(item.entityId(), context.scheduledFor()) ? 1 : 0;
+                yield new JobEffect(ABANDON, Map.of(), Map.of("buildSessionsAbandoned", abandoned));
+            }
             case "PlatformJobRuns" -> counted(item, "platformJobRunsDeleted",
                     cleanup.deletePlatformRuns(cleanup.expiredPlatformRuns(item.entityId(), platformCutoffs(context).runs(), KEEP_RUNS)));
             default -> throw new IllegalArgumentException("Unknown cleanup item " + item.entityType());

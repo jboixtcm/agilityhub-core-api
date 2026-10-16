@@ -21,6 +21,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /** E9-T01: impersonation precedes role checks; JSON schemas are loaded locally, never from their ids. */
 @Configuration(proxyBeanMethods = false)
 public class E9ContractConfiguration implements WebMvcConfigurer {
+    /** The OpenAPI security scheme of the `access_token` query parameter (R-16-11). */
+    public static final String ACCESS_TOKEN_QUERY = "accessTokenQuery";
     @Override public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new org.springframework.web.servlet.HandlerInterceptor() {
             @Override public boolean preHandle(jakarta.servlet.http.HttpServletRequest request,
@@ -72,6 +74,13 @@ public class E9ContractConfiguration implements WebMvcConfigurer {
                 for (Class<?> nested : owner.getDeclaredClasses()) { owned.add(nested.getSimpleName()); }
             }
             new NullableReferences(owned).customise(api);
+            // R-16-11 (E9-T04): the build session stream alone also accepts the token as `?access_token=` (SecurityConfiguration).
+            api.getComponents().addSecuritySchemes(ACCESS_TOKEN_QUERY, new io.swagger.v3.oas.models.security.SecurityScheme()
+                    .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.APIKEY).in(io.swagger.v3.oas.models.security.SecurityScheme.In.QUERY)
+                    .name("access_token").description("The bearer access token as a query parameter; only GET /api/v1/build-sessions/{id}/events accepts it."));
+            api.getPaths().get("/api/v1/build-sessions/{id}/events").getGet().setSecurity(List.of(
+                    new io.swagger.v3.oas.models.security.SecurityRequirement().addList("bearer"),
+                    new io.swagger.v3.oas.models.security.SecurityRequirement().addList(ACCESS_TOKEN_QUERY)));
             // The anonymous oneOf response needs its discriminator on the operation's schema.
             api.getPaths().get("/api/v1/ring-setups/{id}").getGet().getResponses().get("200")
                     .getContent().get("application/json").getSchema().setDiscriminator(

@@ -61,9 +61,10 @@ public class RingSetupsController {
 
     @PostMapping(value = "/api/v1/ring-setups/{id}/dismantle")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, INVALID_STATE})
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, INVALID_STATE, STALE_VERSION})
     @Operation(summary = "dismantleRingSetup", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup becomes DISMANTLED "
-            + "(dismantledAt, dismantledByAccountId), Ring.activeSetupId = null, and RingSetupChanged{DISMANTLED} is published; any other status → INVALID_STATE.",
+            + "(dismantledAt, dismantledByAccountId), Ring.activeSetupId = null, and RingSetupChanged{DISMANTLED} is published; any other status → INVALID_STATE. "
+            + "A concurrent write of the setup or of its ring (an expiry, a replacement) → STALE_VERSION.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingSetup", useReturnTypeSchema = true))
     public RingSetup dismantleRingSetup(@PathVariable String id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
@@ -72,10 +73,10 @@ public class RingSetupsController {
 
     @PostMapping(value = "/api/v1/ring-setups/{id}/renewal")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, INVALID_STATE})
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, INVALID_STATE, STALE_VERSION})
     @Operation(summary = "renewRingSetup", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup (else INVALID_STATE) gets a new "
             + "expiresAt counted from today, as registering does, with the given expectedUntil (null = none; an earlier day than today → VALIDATION_ERROR). "
-            + "It stays ACTIVE: no event.",
+            + "It stays ACTIVE: no event. A concurrent write of the setup → STALE_VERSION.",
             responses = @ApiResponse(responseCode = "200", description = "S16 RingSetup", useReturnTypeSchema = true))
     public RingSetup renewRingSetup(@PathVariable String id,
             @Valid @RequestBody RenewalRequest request,

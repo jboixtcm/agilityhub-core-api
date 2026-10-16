@@ -237,9 +237,10 @@ erDiagram
 | **source** (`SMARTER` · `EDITOR` · `IMAGE` · `AGILITYHUB`), sourceFileUrl (S3), imageUrl (plànol/foto) | `IMAGE` = només plànol, sense geometria (suficient per al «recorregut muntat» bàsic) |
 | **model** (JSON `course-core`, `schemaVersion`): obstacles[] {id, type, x, y, rotation, number, props}, sequence[], dimensions, units | format canònic de tota AgilityHub |
 | createdAt, updatedAt, createdByAccountId | |
+| references (comptador; només `$inc`) | col·locacions i muntatges que nomenen el recorregut; protegeix l'esborrat (decisió E117) |
 
 ### Geometria del RING (embeguda a `Ring.geometry`)
-`width`, `length` (m), `orientationDeg`, `origin`, `gates[]` {x, y, width, flow: `IN`/`OUT`/`BOTH`}, `noGoZones[]` (polígons), `calibrationMarkers[]` {id, x, y, qrPayload}, `surface`, `notes`. Un ring **sense** geometria admet només `RingSetup` d'imatge.
+`width`, `length` (m), `orientationDeg`, `origin`, `gates[]` {x, y, width, flow: `IN`/`OUT`/`BOTH`}, `noGoZones[]` (polígons), `calibrationMarkers[]` {id, x, y, qrPayload}, `surface`, `notes`. Un ring **sense** geometria admet `RingSetup` d'imatge o amb `courseId` (R-16-07, decisió E117). El ring porta també `geometryReferences`, un comptador que només s'escriu amb `$inc`: les col·locacions i els muntatges que depenen de la geometria (decisió E117).
 
 ### PLACEMENT (`Placement`) — recorregut col·locat en un ring
 `courseId`, `ringId`, `transform` {dx, dy, rotationDeg, mirror}, `warnings[]` {code, severity, obstacleId?} (marges, portes, no-go, inventari insuficient — calculats per `course-core`), `resolvedObstacles[]` (posicions absolutes al ring — el que consumeix l'AR), `createdByAccountId`, `createdAt`, `activityId` (opcional).

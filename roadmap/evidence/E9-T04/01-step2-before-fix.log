@@ -1,0 +1,28 @@
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.192 s <<< FAILURE! -- in com.agilityhub.core.courses.application.CourseSchemasTest
+[ERROR] com.agilityhub.core.courses.application.CourseSchemasTest.T_16_03_aFailedExportSelfCheckIsAServerError -- Time elapsed: 0.006 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: INTERNAL_ERROR
+ but was: COURSE_MODEL_INVALID
+	at com.agilityhub.core.courses.application.CourseSchemasTest.lambda$T_16_03_aFailedExportSelfCheckIsAServerError$9(CourseSchemasTest.java:54)
+	at com.agilityhub.core.courses.application.CourseSchemasTest.T_16_03_aFailedExportSelfCheckIsAServerError(CourseSchemasTest.java:53)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   CourseSchemasTest.T_16_03_aFailedExportSelfCheckIsAServerError:53->lambda$T_16_03_aFailedExportSelfCheckIsAServerError$9:54 
+expected: INTERNAL_ERROR
+ but was: COURSE_MODEL_INVALID
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

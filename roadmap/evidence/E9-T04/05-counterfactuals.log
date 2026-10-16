@@ -1,0 +1,60 @@
+== M1 streams never refresh (no event after a change)
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt [failure] No line starting with «event:obstacle» within PT2S
+   FAILED BuildSessionsIT.T_16_10_twoLiveSubscribersSeeEachTapWithinTwoSecondsAndFinishCreatesTheSetup [failure] No line starting with «event:obstacle» within PT2S
+== M2 no query-token resolver on the stream
+   file: src/main/java/com/agilityhub/core/configuration/SecurityConfiguration.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt [failure] No line starting with «:open» within PT2S
+   FAILED BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream [failure] expected: 200
+   FAILED BuildSessionsIT.T_16_10_twoLiveSubscribersSeeEachTapWithinTwoSecondsAndFinishCreatesTheSetup [failure] Expecting actual:
+== M3 the async dispatch is checked again
+   file: src/main/java/com/agilityhub/core/platform/api/RequiresModuleInterceptor.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=RequiresModuleInterceptorTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED RequiresModuleInterceptorTest.T_16_10_theAsyncDispatchThatEndsAStreamIsNotCheckedAgain [error] NO_MEMBERSHIP
+== M4 finish registers no setup
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_finishRegistersOrRefreshesTheRingsSetupUnderThePublishingSwitch [error] Cannot invoke "org.bson.Document.getString(Object)" because the return value of "com.agilityhub.core.courses.api.BuildSessionsIT.setupDocument(String)" is null
+   FAILED BuildSessionsIT.T_16_10_twoLiveSubscribersSeeEachTapWithinTwoSecondsAndFinishCreatesTheSetup [error] Cannot invoke "org.bson.Document.getString(Object)" because "setup" is null
+== M5 an outlived session still takes writes
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt [failure] [PATCH /api/v1/build-sessions/0a9867f0-3bcc-4d52-adc7-ac6bb25efe41/obstacles/obstacle-1 {"id":"0a9867f0-3bcc-4d52-adc7-ac6bb25efe41","placementId":"487e8c7d-da2f-4017-a691-c95a4813aceb","ringId":"e9t2-ring-a1","status":"
+== M6 P9 plans no abandonment
+   file: src/main/java/com/agilityhub/core/clubs/common/application/CleanupJob.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt [failure] Expecting actual:
+== M7 no six-marker check before the export
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError [failure] [GET /api/v1/build-sessions/9a163e53-86b6-40aa-a383-afd4baeb74ff/export {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 54b96319-8bfe-4230-aeab-2580ad
+== M8 a failed export self-check is a 400 again (step 2 undone)
+   file: src/main/java/com/agilityhub/core/courses/application/CourseSchemas.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=CourseSchemasTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED CourseSchemasTest.T_16_03_aFailedExportSelfCheckIsAServerError [failure] expected: INTERNAL_ERROR
+== M9 a QR join is recorded as CODE
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_anotherPhoneJoinsByCodeOrQrOnce [failure] Expecting actual:
+== M10 finish never refreshes the active setup of its placement
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_finishRegistersOrRefreshesTheRingsSetupUnderThePublishingSwitch [failure] expected: "a545b7d5-9038-47dd-9fa7-7d2ed6dfad0b"
+== M11 finish ignores courses.allowInstructorPublish
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 1
+   FAILED BuildSessionsIT.T_16_10_finishRegistersOrRefreshesTheRingsSetupUnderThePublishingSwitch [failure] [POST /api/v1/build-sessions/3fdb9a09-e154-4f32-8504-1ff51a830a2b/finish {"id":"3fdb9a09-e154-4f32-8504-1ff51a830a2b","placementId":"753a7796-c1e1-482c-967d-e8f2150efc6b","ringId":"e9t2-ring-a1","status":"COMPLETED","sel
+All mutants reverted: True

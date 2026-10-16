@@ -17,6 +17,9 @@ public class RequiresModuleInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // E9-T04: the dispatch that ends an async response (an SSE stream) passed this check when it started; it runs without the
+        // request's tenant (OncePerRequestFilter skips it), so checking again could only fail after the response was committed.
+        if (request.getDispatcherType() == jakarta.servlet.DispatcherType.ASYNC) { return true; }
         if (handler instanceof HandlerMethod method) {
             require(AnnotatedElementUtils.findMergedAnnotation(method.getBeanType(), RequiresModule.class));
             require(method.getMethodAnnotation(RequiresModule.class));

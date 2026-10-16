@@ -1,0 +1,6 @@
+== M13 a renewal racing another write is unguarded (E117)
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=RingSetupsIT
+   exit: 0
+   FAILED RingSetupsIT.T_16_08_T_16_18_aDismantleOrRenewalRacingAnotherWriteOfTheSetupIsStale [failure] [POST /api/v1/ring-setups/caae933b-27f7-40cf-90c4-13651f69825d/renewal {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi bb43629b-c852-49c9-b393-3ab9936
+All mutants reverted: True

@@ -24766,6 +24766,12 @@
       }
     },
     "securitySchemes" : {
+      "accessTokenQuery" : {
+        "description" : "The bearer access token as a query parameter; only GET /api/v1/build-sessions/{id}/events accepts it.",
+        "in" : "query",
+        "name" : "access_token",
+        "type" : "apiKey"
+      },
       "bearer" : {
         "bearerFormat" : "JWT",
         "scheme" : "bearer",
@@ -33910,7 +33916,7 @@
     },
     "/api/v1/build-sessions" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11: starts a build session on a placement of the club (NOT_FOUND) whose course the caller can read (COURSE_NOT_VISIBLE): status NOT_STARTED, startedAt now, one obstacle per resolved obstacle of the placement, all NOT_PLACED; selectedStrategy defaults to EQUIPMENT_TYPE. joinCode (six characters, unique among the club's open sessions) is what another phone types and joinToken what its QR carries (POST /build-sessions/join). Publishes BuildSessionStarted.",
         "operationId" : "createBuildSession",
         "parameters" : [ {
           "in" : "header",
@@ -33979,7 +33985,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
             "content" : {
@@ -33989,7 +33995,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -34067,7 +34073,7 @@
     },
     "/api/v1/build-sessions/join" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11 (S16 §14.2): code is an open session's joinCode (case-insensitive; joinedVia CODE) or the joinToken of its QR (joinedVia QR); the caller becomes a participant once (a second join returns the session unchanged). No open session of the club with that code, or one open for courses.buildSessionMaxHours or longer → NOT_FOUND.",
         "operationId" : "joinBuildSession",
         "requestBody" : {
           "content" : {
@@ -34138,7 +34144,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -34216,7 +34222,7 @@
     },
     "/api/v1/build-sessions/{id}" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11: a build session of the club, open or closed. A live client reads it again whenever its event stream reconnects.",
         "operationId" : "getBuildSession",
         "parameters" : [ {
           "in" : "path",
@@ -34363,7 +34369,7 @@
     },
     "/api/v1/build-sessions/{id}/events" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED. Events: obstacle, finished; heartbeat every 20 seconds. Bearer authentication.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11 live mode: a text/event-stream of the session's changes. Event obstacle {sessionId, obstacleId, status, byAccountId, at, version} for each changed obstacle; event finished {sessionId, status, finishedAt, version} when the session closes (COMPLETED or ABANDONED), after which the stream ends (a closed session gets it at once); each event id is the session version. A comment line every 20 seconds is the heartbeat. Authentication: the bearer header, or the access_token query parameter, which only this operation accepts (a browser EventSource sends no header). After a reconnection, read GET /build-sessions/{id} for the state.",
         "operationId" : "buildSessionEvents",
         "parameters" : [ {
           "in" : "path",
@@ -34382,7 +34388,7 @@
                 }
               }
             },
-            "description" : "S16 org.springframework.web.servlet.mvc.method.annotation.SseEmitter"
+            "description" : "S16 build session events"
           },
           "400" : {
             "content" : {
@@ -34504,13 +34510,18 @@
             "description" : "Server error"
           }
         },
+        "security" : [ {
+          "bearer" : [ ]
+        }, {
+          "accessTokenQuery" : [ ]
+        } ],
         "summary" : "buildSessionEvents",
         "tags" : [ "courses" ]
       }
     },
     "/api/v1/build-sessions/{id}/export" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. S16 §14.1 (E77): BuildSessionExportV1, the Unity app's contract, kept byte for byte with the planner's spellings (snake_case keys and values, placement_mode in camelCase, normalized_json and warnings_json as stored). judge_id and event_id are null, venue_id is the club's venue, is_training comes from the placement's mode. The ring needs its geometry (RING_WITHOUT_GEOMETRY) with the six markers A–F the app calibrates with (GEOMETRY_INVALID {violations: [{path: markers, rule: TOO_FEW_MARKERS}]}); a course no longer readable → COURSE_NOT_VISIBLE. The server checks the result against the schema: a failed check is a server error (500 INTERNAL_ERROR).",
         "operationId" : "exportBuildSession",
         "parameters" : [ {
           "in" : "path",
@@ -34569,7 +34580,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
             "content" : {
@@ -34589,7 +34600,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "RING_WITHOUT_GEOMETRY, GEOMETRY_INVALID"
           },
           "429" : {
             "content" : {
@@ -34657,7 +34668,7 @@
     },
     "/api/v1/build-sessions/{id}/finish" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR (while courses.allowInstructorPublish, else FORBIDDEN), ADMIN. Module: COURSES. R-16-11: the session becomes COMPLETED (finishedAt) and the ring's setup is registered as POST /ring-setups does: kind from the course's discipline (AGILITY, JUMPING, else FUN), the placement as its source, the course's levels. When the ring's active setup already shows this placement it is refreshed instead (builtAt, builtByAccountId and a new expiresAt; no event). A closed or outlived session → BUILD_SESSION_FINISHED; a course no longer readable → COURSE_NOT_VISIBLE. Publishes BuildSessionFinished and ends the session's streams with a finished event.",
         "operationId" : "finishBuildSession",
         "parameters" : [ {
           "in" : "path",
@@ -34723,7 +34734,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
+            "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
             "content" : {
@@ -34733,7 +34744,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -34811,7 +34822,7 @@
     },
     "/api/v1/build-sessions/{id}/obstacles/{obstacleId}" : {
       "patch" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11: the obstacle takes the status, with byAccountId and at; the last write wins per obstacle (version is accepted and not compared), and the first change makes the session IN_PROGRESS; taps of several phones at once all apply (a write conflict is retried, STALE_VERSION only when the retries run out). An obstacle the session does not list → NOT_FOUND. A COMPLETED or ABANDONED session, or one open for courses.buildSessionMaxHours or longer → BUILD_SESSION_FINISHED. Publishes BuildSessionProgress and an obstacle event on the session's stream; the response carries the new session version.",
         "operationId" : "patchBuildObstacle",
         "parameters" : [ {
           "in" : "path",
@@ -81725,7 +81736,7 @@
     },
     "/api/v1/ring-setups/{id}/dismantle" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup becomes DISMANTLED (dismantledAt, dismantledByAccountId), Ring.activeSetupId = null, and RingSetupChanged{DISMANTLED} is published; any other status → INVALID_STATE.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup becomes DISMANTLED (dismantledAt, dismantledByAccountId), Ring.activeSetupId = null, and RingSetupChanged{DISMANTLED} is published; any other status → INVALID_STATE. A concurrent write of the setup or of its ring (an expiry, a replacement) → STALE_VERSION.",
         "operationId" : "dismantleRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -81801,7 +81812,7 @@
                 }
               }
             },
-            "description" : "INVALID_STATE"
+            "description" : "INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -81879,7 +81890,7 @@
     },
     "/api/v1/ring-setups/{id}/renewal" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup (else INVALID_STATE) gets a new expiresAt counted from today, as registering does, with the given expectedUntil (null = none; an earlier day than today → VALIDATION_ERROR). It stays ACTIVE: no event.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-08: an ACTIVE setup (else INVALID_STATE) gets a new expiresAt counted from today, as registering does, with the given expectedUntil (null = none; an earlier day than today → VALIDATION_ERROR). It stays ACTIVE: no event. A concurrent write of the setup → STALE_VERSION.",
         "operationId" : "renewRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -81965,7 +81976,7 @@
                 }
               }
             },
-            "description" : "INVALID_STATE"
+            "description" : "INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {

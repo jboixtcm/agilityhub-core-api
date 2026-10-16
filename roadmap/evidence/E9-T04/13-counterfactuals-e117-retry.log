@@ -1,0 +1,20 @@
+== M12 a dismantle racing another write is unguarded (E117)
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=RingSetupsIT
+   exit: 0
+   FAILED RingSetupsIT.T_16_08_T_16_18_aDismantleOrRenewalRacingAnotherWriteOfTheSetupIsStale [failure] [POST /api/v1/ring-setups/a1624a7d-a8a7-49eb-b932-3a1b84e1f1b4/dismantle {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 3e0c56bc-3c60-4ae1-b472-47bd4
+== M13 a renewal racing another write is unguarded (E117)
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=RingSetupsIT
+   exit: 1
+   FAILED [ERROR] COMPILATION ERROR : 
+   FAILED [ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/courses/application/RingSetupService.java:[244,5] illegal start of expression
+   FAILED [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project agilityhub-core-api: Compilation failure
+   FAILED [ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/courses/application/RingSetupService.java:[244,5] illegal start of expression
+   FAILED [ERROR] 
+== M14 build-session writes are not retried on a conflict
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_simultaneousTapsOnOneSessionAllApply [failure] expected: 200
+All mutants reverted: True

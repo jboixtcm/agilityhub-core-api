@@ -477,6 +477,33 @@ class RingSetupsIT extends CourseItSupport {
     }
 
     /**
+     * E117 (E9-T03 review #1): a dismantle or renewal that races another write of the setup (P5 f's `expire`, a replacement, the
+     * ring's deactivation) or of its ring's `activeSetupId` meets it as a Mongo write conflict, answered `409 STALE_VERSION` (the
+     * client reads again), never a `500`; the setup and the ring stay as the other writer leaves them.
+     */
+    @Test void T_16_08_T_16_18_aDismantleOrRenewalRacingAnotherWriteOfTheSetupIsStale() throws Throwable {
+        clock.setInstant(MONDAY);
+        String setup = id(register("INSTRUCTOR", course(A1, "AGILITY", createCourse("Agility M"))));
+        // A renewal at the registration's instant would replace the setup with identical bytes, which Mongo skips (no write, no conflict).
+        clock.advance(Duration.ofHours(1));
+        var database = client.getDatabase(mongo.getDb().getName());
+        String[][] races = {{"ring_setups", setup, "dismantle"}, {"ring_setups", setup, "renewal"}, {"rings", A1, "dismantle"}};
+        for (String[] race : races) {
+            try (var session = client.startSession()) {
+                session.startTransaction();
+                database.getCollection(race[0]).updateOne(session, com.mongodb.client.model.Filters.eq("_id", race[1]),
+                        com.mongodb.client.model.Updates.set("updatedByAccountId", "e9t2-racer"));
+                try { error(as(json(post("/api/v1/ring-setups/" + setup + "/" + race[2]), Map.of()), CLUB, "INSTRUCTOR")
+                        .header("Idempotency-Key", UUID.randomUUID().toString()), 409, "STALE_VERSION"); }
+                finally { session.abortTransaction(); }
+            }
+        }
+        assertThat(setupDocument(setup).getString("status")).isEqualTo("ACTIVE");
+        assertThat(ringDocument(A1).getString("activeSetupId")).isEqualTo(setup);
+        assertThat(act("INSTRUCTOR", setup, "dismantle", null, 200).path("status").asText()).isEqualTo("DISMANTLED");
+    }
+
+    /**
      * R-16-07 with §6's `Idempotency-Key`: a retried registration (same key, same body) answers the first one's `201` again and
      * never replaces the setup it created; a new key is a new registration.
      */

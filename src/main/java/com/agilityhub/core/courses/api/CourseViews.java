@@ -113,4 +113,9 @@ final class CourseViews {
         return new MeRingSetup(ring.ringId(), s == null ? null
                 : new MeRingSetupSummary(s.id(), s.kind(), s.levelLabel(), s.builtAt(), s.expectedUntil(), s.thumbnailUrl(), s.hasViewer()));
     }
+    static BuildSession session(com.agilityhub.core.courses.persistence.BuildSession s) {
+        return new BuildSession(s.id(), s.placementId(), s.ringId(), s.status(), s.selectedStrategy(), s.live(), s.startedByAccountId(), s.startedAt(),
+                s.finishedAt(), s.lastKnownMarkerId(), s.localCacheVersion(), s.progressJson(), s.joinCode(), s.joinToken(), s.joinTokenRotatedAt(),
+                s.obstacles() == null ? List.of() : s.obstacles(), s.participants() == null ? List.of() : s.participants(), s.buildSheetFileKey(), s.version());
+    }
 }

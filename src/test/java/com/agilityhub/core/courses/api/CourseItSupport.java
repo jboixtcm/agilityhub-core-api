@@ -34,7 +34,9 @@ abstract class CourseItSupport extends AbstractIntegrationTest {
     static final List<String> DATA = List.of("courses", "placements", "ring_setups", "obstacle_inventories", "calibration_logs", "venues", "rings", "levels",
             "domain_events", "audit_entries", "attachment_uploads", "idempotency_records",
             // E9-T03: the activities and classes a placement names, and P5's bookkeeping (S15 R-15-15 f).
-            "activities", "class_sessions", "notifications", "job_runs", "job_locks", "job_action_marks");
+            "activities", "class_sessions", "notifications", "job_runs", "job_locks", "job_action_marks",
+            // E9-T04: build sessions, and the fictional accounts whose real tokens open the live streams.
+            "build_sessions", "accounts", "memberships", "refresh_tokens");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired MongoTemplate mongo;

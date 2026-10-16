@@ -188,6 +188,25 @@ class E9ResponseContractTest {
         assertThat(api.at("/paths/~1api~1v1~1build-sessions~1{id}~1events/get/parameters").findValuesAsText("name")).doesNotContain("access_token");
     }
 
+    /**
+     * T-16-10 «token per query només a `/events`» (E9-T04): the stream publishes two alternatives, the bearer header or the
+     * `access_token` query scheme, and no other operation names that scheme.
+     */
+    @Test void T_16_10_onlyTheEventStreamPublishesTheQueryTokenAlternative() throws Exception {
+        var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());
+        var scheme=api.at("/components/securitySchemes/accessTokenQuery");
+        assertThat(scheme.path("type").asText()).isEqualTo("apiKey");
+        assertThat(scheme.path("in").asText()).isEqualTo("query");
+        assertThat(scheme.path("name").asText()).isEqualTo("access_token");
+        assertThat(api.at("/paths/~1api~1v1~1build-sessions~1{id}~1events/get/security").toString())
+                .isEqualTo("[{\"bearer\":[]},{\"accessTokenQuery\":[]}]");
+        var users=new java.util.ArrayList<String>();
+        for(var path:api.path("paths").properties()) for(var operation:path.getValue().properties()) {
+            if(operation.getValue().path("security").toString().contains("accessTokenQuery")) users.add(operation.getKey()+" "+path.getKey());
+        }
+        assertThat(users).containsExactly("get /api/v1/build-sessions/{id}/events");
+    }
+
     @Test void T_16_05_courseFixturesUseVisibilityAllowedForTheirOwner() throws Exception {
         var club=E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class,"course-a","club-a");
         var library=E9Fixtures.document(com.agilityhub.core.courses.persistence.Course.class,"course-public",null);

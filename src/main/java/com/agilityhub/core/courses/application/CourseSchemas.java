@@ -48,10 +48,22 @@ public class CourseSchemas {
         if (node.isObject()) { node.properties().forEach(entry -> numbers(entry.getValue(), path + "." + entry.getKey(), errors)); }
         if (node.isArray()) { for (int i = 0; i < node.size(); i++) { numbers(node.get(i), path + "[" + i + "]", errors); } }
     }
-    public void validateExport(JsonNode json) { validate(export, json == null ? mapper.nullNode() : json); }
+    /**
+     * E9-T04's self-check of `BuildSessionExportV1`. The export is built by the server from stored documents, so a result the schema
+     * refuses is the server's fault (E98): `500 INTERNAL_ERROR`, its schema errors in the logged cause, nothing for the client.
+     */
+    public void validateExport(JsonNode json) {
+        var errors = errors(export, json == null ? mapper.nullNode() : json);
+        if (!errors.isEmpty()) {
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, new IllegalStateException("BuildSessionExportV1 self-check failed: " + errors));
+        }
+    }
     private void validate(JsonSchema schema, JsonNode json) {
-        var errors = schema.validate(json).stream().map(error -> Map.of("path", error.getInstanceLocation().toString(), "message", error.getMessage()))
-                .sorted(java.util.Comparator.comparing(value -> value.get("path") + value.get("message"))).toList();
+        var errors = errors(schema, json);
         if (!errors.isEmpty()) { throw new ApiException(ErrorCode.COURSE_MODEL_INVALID, Map.of("schemaErrors", errors)); }
+    }
+    private static List<Map<String, String>> errors(JsonSchema schema, JsonNode json) {
+        return schema.validate(json).stream().map(error -> Map.of("path", error.getInstanceLocation().toString(), "message", error.getMessage()))
+                .sorted(java.util.Comparator.comparing(value -> value.get("path") + value.get("message"))).toList();
     }
 }

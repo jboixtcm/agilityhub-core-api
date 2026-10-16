@@ -55,7 +55,8 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
                 failures.assertThat(effective(live, live.path("paths").path(path.getKey()).path(method.getKey())))
                         .as(label + " live security").isEqualTo(requirement);
                 boolean requiresBearer = !requirement.isEmpty();
-                for (var alternative : requirement) { requiresBearer &= alternative.has("bearer"); }
+                // E9-T04 (R-16-11): the build session stream's `access_token` query scheme is the same bearer token in another place.
+                for (var alternative : requirement) { requiresBearer &= alternative.has("bearer") || alternative.has(E9ContractConfiguration.ACCESS_TOKEN_QUERY); }
                 var request = request(HttpMethod.valueOf(method.getKey().toUpperCase()), path.getKey().replaceAll("\\{[^}]+}", "inventory-missing"))
                         .header("Host", "inventory.example.test").contentType("application/json");
                 if (path.getKey().equals("/oauth2/token")) {

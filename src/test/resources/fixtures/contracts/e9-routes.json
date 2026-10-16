@@ -672,7 +672,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -687,7 +687,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "PATCH",
@@ -704,7 +704,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -719,7 +719,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -734,7 +734,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",
@@ -751,7 +751,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -766,7 +766,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",

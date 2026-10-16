@@ -41,7 +41,22 @@ class CourseSchemasTest {
         var large = fixture("course-data"); ((ObjectNode) large.path("rawMetadata")).put("large", "à".repeat(140000));
         assertThatThrownBy(() -> schemas.validateCourseData(1, large)).isInstanceOfSatisfying(ApiException.class,
                 ex -> assertThat(ex.code()).isEqualTo(ErrorCode.COURSE_MODEL_INVALID));
-        assertThatThrownBy(() -> schemas.validateExport(fixture("build-session-export").put("schemaVersion", 2))).isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> schemas.validateExport(null)).isInstanceOf(ApiException.class);
+    }
+    /**
+     * E98 (E9-T01 review, E9-T04 step 2): the export is the server's own document, so one the committed schema refuses is a server
+     * error — `500 INTERNAL_ERROR` with the schema errors in its cause (logged), not `400 COURSE_MODEL_INVALID` and no client details.
+     */
+    @Test void T_16_03_aFailedExportSelfCheckIsAServerError() throws Exception {
+        var unknownVersion = fixture("build-session-export").put("schemaVersion", 2);
+        var missingRing = fixture("build-session-export"); missingRing.remove("ring");
+        for (var export : java.util.Arrays.asList(unknownVersion, missingRing, null)) {
+            assertThatThrownBy(() -> schemas.validateExport(export)).isInstanceOfSatisfying(ApiException.class, ex -> {
+                assertThat(ex.code()).isEqualTo(ErrorCode.INTERNAL_ERROR);
+                assertThat(ex.code().httpStatus()).isEqualTo(500);
+                assertThat(ex.details()).isEmpty();
+                assertThat(ex.getCause()).hasMessageContaining("BuildSessionExportV1");
+            });
+        }
+        assertThat(ErrorCode.INTERNAL_ERROR.httpStatus()).isNotEqualTo(ErrorCode.COURSE_MODEL_INVALID.httpStatus());
     }
 }

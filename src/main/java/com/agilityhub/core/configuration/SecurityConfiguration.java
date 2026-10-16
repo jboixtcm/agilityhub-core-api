@@ -96,8 +96,13 @@ public class SecurityConfiguration {
         // E5-T24: the bearer of a signed file URL is never read, so it does no harm (an expired one included). E5-T27 round 3
         // (A7-07): nor the health's, whose probe never reaches the database (decoding reads the persisted key ring).
         var bearers = new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
+        // S16 R-16-11: a browser EventSource sends no header, so the build session stream (and only it) also takes the token as
+        // `?access_token=` on its GET (RFC 6750 §2.3); both at once are refused as two tokens.
+        var streamBearers = new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
+        streamBearers.setAllowUriQueryParameter(true);
         http.oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> com.agilityhub.core.shared.api.SignedFileRequests.matches(request)
-                        || com.agilityhub.core.shared.api.HealthRequests.matches(request) ? null : bearers.resolve(request))
+                        || com.agilityhub.core.shared.api.HealthRequests.matches(request) ? null
+                        : buildSessionStream(request) ? streamBearers.resolve(request) : bearers.resolve(request))
                 .jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));
@@ -112,6 +117,12 @@ public class SecurityConfiguration {
         }
         http.addFilterAfter(new com.agilityhub.core.shared.api.AccountStateFilter(accountAccess, errors, mapper), RateLimitFilter.class);
         return http.build();
+    }
+    private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
+    private static final java.util.regex.Pattern BUILD_SESSION_STREAM = java.util.regex.Pattern.compile("/api/v1/build-sessions/[^/]+/events");
+    /** `GET /api/v1/build-sessions/{id}/events`, matched on the path Spring routes (decoded, without `;` parameters), as the health. */
+    static boolean buildSessionStream(jakarta.servlet.http.HttpServletRequest request) {
+        return "GET".equals(request.getMethod()) && BUILD_SESSION_STREAM.matcher(PATHS.getPathWithinApplication(request)).matches();
     }
     static void writeError(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response,
                            ErrorCode code, ApiExceptionHandler errors, ObjectMapper mapper) throws java.io.IOException {
