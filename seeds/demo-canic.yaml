@@ -309,3 +309,98 @@ billing:
   leave: 152
   leaveDay: '08-31'
   expiredPack: 172
+
+# E9-T05 (S16; WP-16-G: no Supabase import, fictional test data only: the product owner's A6, 30-09): the club's courses, applied once by
+# the demo planning run through the S16 services as the club admin (seeds/README.md). Rings by name, levels by code. Each
+# `geometries` row is a `PUT /rings/{id}/geometry` body with six markers, A–F, which the Unity export needs; each course model
+# is `[type, x, y, rotation]` rows in metres from the bottom-left corner, numbered in order, and `pathLengthM` is course-core's
+# summary. Placements are translations. `expectedInDays` counts from the run date. The build session places every obstacle and
+# finishes, which registers the Central's setup (R-16-11).
+courses:
+  inventory:
+    - {type: Jump, count: 16}
+    - {type: DoubleJump, count: 2}
+    - {type: Tunnel3m, count: 1}
+    - {type: Tunnel4m, count: 2}
+    - {type: Tunnel5m, count: 1}
+    - {type: Tunnel6m, count: 1}
+    - {type: Weave, count: 2}
+    - {type: AFrame, count: 1}
+    - {type: DogWalk, count: 1}
+    - {type: Seesaw, count: 1}
+    - {type: Tire, count: 1}
+  geometries:
+    - ring: Central
+      lengthM: 40
+      widthM: 22
+      borderClearanceM: 1
+      surface: GRASS
+      notes: "Gespa nova a la zona de sortida (nota fictícia)."
+      doors:
+        - {id: door-n, label: N, side: NORTH, startM: 3, endM: 5, flow: IN, clearanceM: 1.5, isActive: true, polygonPointsM: []}
+      noGoZones:
+        - {id: bassa, label: Bassa, warningMarginM: 0.5, polygonPointsM: [{x: 36, y: 17}, {x: 39, y: 17}, {x: 39, y: 21}, {x: 36, y: 21}]}
+      markers:
+        - {id: marker-a, label: A, markerUid: demo-cen-a, role: ANCHOR, xM: 0, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 0}
+        - {id: marker-b, label: B, markerUid: demo-cen-b, role: ANCHOR, xM: 20, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 1}
+        - {id: marker-c, label: C, markerUid: demo-cen-c, role: ANCHOR, xM: 40, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 2}
+        - {id: marker-d, label: D, markerUid: demo-cen-d, role: ANCHOR, xM: 40, yM: 22, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 3}
+        - {id: marker-e, label: E, markerUid: demo-cen-e, role: ANCHOR, xM: 20, yM: 22, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 4}
+        - {id: marker-f, label: F, markerUid: demo-cen-f, role: ANCHOR, xM: 0, yM: 22, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 5}
+    - ring: Carretera
+      lengthM: 30
+      widthM: 20
+      borderClearanceM: 1
+      surface: SAND
+      doors:
+        - {id: door-s, label: S, side: SOUTH, startM: 2, endM: 4, flow: BOTH, clearanceM: 1.5, isActive: true, polygonPointsM: []}
+      noGoZones: []
+      markers:
+        - {id: marker-a, label: A, markerUid: demo-car-a, role: ANCHOR, xM: 0, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 6}
+        - {id: marker-b, label: B, markerUid: demo-car-b, role: ANCHOR, xM: 15, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 7}
+        - {id: marker-c, label: C, markerUid: demo-car-c, role: ANCHOR, xM: 30, yM: 0, zM: 0, rotationYDeg: 0, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 8}
+        - {id: marker-d, label: D, markerUid: demo-car-d, role: ANCHOR, xM: 30, yM: 20, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 9}
+        - {id: marker-e, label: E, markerUid: demo-car-e, role: ANCHOR, xM: 15, yM: 20, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 10}
+        - {id: marker-f, label: F, markerUid: demo-car-f, role: ANCHOR, xM: 0, yM: 20, zM: 0, rotationYDeg: 180, physicalWidthM: 0.2, physicalHeightM: 0.2, isFixed: true, isActive: true, aprilTagId: 11}
+  courses:
+    - key: jumping-cd
+      name: {ca: "Jumping C–D de dimarts", es: "Jumping C–D del martes", en: "Tuesday jumping C–D"}
+      discipline: JUMPING
+      levels: [C, D]
+      agilityhubLevel: MEDIUM
+      designLengthM: 38
+      designWidthM: 20
+      pathLengthM: 64.5
+      designer: "Dissenyadora Fictícia"
+      tags: [jumping, tuesday]
+      obstacles: [[Jump, 4, 4, 0], [Jump, 10, 6, 30], [Tunnel4m, 16, 4, 90], [Jump, 22, 8, 0], [DoubleJump, 28, 5, 45],
+                  [Jump, 33, 10, 90], [Weave, 26, 14, 0], [Jump, 18, 16, 0], [Tire, 10, 14, 0], [Jump, 4, 12, 90]]
+    - key: agility-ab
+      name: {ca: "Agility A–B d'iniciació", es: "Agility A–B de iniciación", en: "Beginners' agility A–B"}
+      discipline: AGILITY
+      levels: [A, B]
+      agilityhubLevel: EASY
+      designLengthM: 28
+      designWidthM: 18
+      pathLengthM: 69.0
+      designer: "Dissenyadora Fictícia"
+      tags: [contacts]
+      obstacles: [[Jump, 3, 3, 0], [AFrame, 9, 4, 0], [Jump, 15, 3, 0], [Tunnel3m, 21, 5, 90], [DogWalk, 22, 12, 0],
+                  [Jump, 16, 15, 0], [Seesaw, 9, 14, 0], [Weave, 4, 10, 90], [Jump, 8, 8, 45], [Jump, 25, 16, 0]]
+    - key: tunnels
+      name: {ca: "Joc de túnels", es: "Juego de túneles", en: "Tunnel game"}
+      discipline: OTHER
+      agilityhubLevel: EASY
+      designLengthM: 30
+      designWidthM: 20
+      pathLengthM: 32.4
+      designer: "Dissenyador Fictici"
+      tags: [fun]
+      obstacles: [[Tunnel5m, 5, 5, 0], [Jump, 12, 8, 0], [Tunnel4m, 18, 5, 90], [Jump, 24, 10, 0], [Tunnel6m, 15, 15, 0]]
+  placements:
+    - {key: jumping-central, course: jumping-cd, ring: Central, offsetXM: 1, offsetYM: 1, name: "Jumping de dimarts a la Central"}
+    - {key: agility-carretera, course: agility-ab, ring: Carretera, offsetXM: 1, offsetYM: 1, name: "Iniciació a la Carretera"}
+  setups:
+    - {ring: Carretera, kind: AGILITY, placement: agility-carretera, levels: [A, B], expectedInDays: 3, notes: "Balancí revisat (nota fictícia)."}
+    - {ring: Muntanya, kind: FUN, course: tunnels, agilityhubLevel: EASY, notes: "Túnels per escalfar (nota fictícia)."}
+  buildSession: {placement: jumping-central}

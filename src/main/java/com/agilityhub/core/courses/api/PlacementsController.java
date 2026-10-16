@@ -1,5 +1,6 @@
 package com.agilityhub.core.courses.api;
 
+import com.agilityhub.core.courses.application.BuildSheetService;
 import com.agilityhub.core.courses.application.CourseContractGuards;
 import com.agilityhub.core.courses.application.PlacementService;
 import com.agilityhub.core.platform.application.Module;
@@ -17,7 +18,7 @@ import static com.agilityhub.core.courses.api.CourseContracts.*;
 import static com.agilityhub.core.courses.api.CourseRequests.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
-/** S16 placements (E9-T03: R-16-05, R-16-06, R-16-13). The build sheet (R-16-10) is still a contract stub. */
+/** S16 placements (E9-T03: R-16-05, R-16-06, R-16-13) and their build sheet (E9-T05: R-16-10). */
 @RestController
 @RequiresModule(Module.COURSES)
 public class PlacementsController {
@@ -30,7 +31,10 @@ public class PlacementsController {
             + "defaults to DRAFT and mode to TRAINING.";
     private final CourseContractGuards guards;
     private final PlacementService placements;
-    public PlacementsController(CourseContractGuards guards, PlacementService placements) { this.guards = guards; this.placements = placements; }
+    private final BuildSheetService sheets;
+    public PlacementsController(CourseContractGuards guards, PlacementService placements, BuildSheetService sheets) {
+        this.guards = guards; this.placements = placements; this.sheets = sheets;
+    }
 
     @GetMapping(value = "/api/v1/placements")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -79,22 +83,26 @@ public class PlacementsController {
 
     @PostMapping(value = "/api/v1/placements/{id}/build-sheet")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "attachBuildSheet", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED, STALE_VERSION})
+    @Operation(summary = "attachBuildSheet", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-10: the client renders the build sheet PDF "
+            + "(course-ui) and uploads it with POST /courses/upload-urls {purpose: BUILD_SHEET}; fileKey binds that upload to the placement and replaces "
+            + "the previous sheet. Another club's key, another purpose or a key bound to another entity → NOT_FOUND (R-16-16). The placement's version "
+            + "does not change; a race with another write of the placement → STALE_VERSION.",
             responses = @ApiResponse(responseCode = "200", description = "S16 Placement", useReturnTypeSchema = true))
     public Placement attachBuildSheet(@PathVariable String id,
             @Valid @RequestBody BuildSheetRequest request) {
         guards.placement(id, false);
-        throw new UnsupportedOperationException("S16 contract");
+        return CourseViews.placement(sheets.attach(id, request.fileKey()));
     }
 
     @GetMapping(value = "/api/v1/placements/{id}/build-sheet", produces = "application/pdf")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
-    @Operation(summary = "getBuildSheet", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+    @Operation(summary = "getBuildSheet", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-10: the placement's build sheet, the PDF the "
+            + "client stored (T-16-19); a placement without one → NOT_FOUND.",
             responses = @ApiResponse(responseCode = "200", description = "S16 byte[]", content = @Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary"))))
     public byte[] getBuildSheet(@PathVariable String id) {
         guards.placement(id, true);
-        throw new UnsupportedOperationException("S16 contract");
+        return sheets.sheet(id);
     }
 }

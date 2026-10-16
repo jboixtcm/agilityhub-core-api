@@ -81,7 +81,7 @@ class TrainingIT extends TrainingFixtures {
         // R-09-15: COURSES on and a mounted setup on Muntanya.
         mongo.updateFirst(Query.query(Criteria.where("_id").is(MUN)), new Update().set("activeSetupId", "s09-setup"), "rings");
         setups.setups.put("s09-setup", new com.agilityhub.core.clubs.training.application.ports.RingSetupPort.Setup("s09-setup", "AGILITY", List.of("D"),
-                Instant.parse("2026-10-04T16:10:00Z"), LocalDate.parse("2026-10-11")));
+                Instant.parse("2026-10-04T16:10:00Z"), LocalDate.parse("2026-10-11"), null));
         assertThat(slots(as("maria"), "2026-10-05", "2026-10-05", null).at("/rings/0/setup/id").asText()).isEqualTo("s09-setup");
         assertThat(slots(as("maria"), "2026-10-05", "2026-10-05", null).at("/rings/0/setup/levelNames/0").asText()).isEqualTo("D");
         parameter("courses.showSetupToMembers", false);

@@ -554,7 +554,7 @@
     },
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "GET",
@@ -569,7 +569,7 @@
     "body": null,
     "params": {},
     "platform": false,
-    "served": false
+    "served": true
   },
   {
     "method": "POST",

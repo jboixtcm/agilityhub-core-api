@@ -75,9 +75,10 @@ public class ClassSessionService {
             if (patch.containsKey("description")) { edit.description = (String) patch.get("description"); }
             if (patch.containsKey("notes")) { edit.notes = (String) patch.get("notes"); }
             if (patch.containsKey("riskExempt")) { requireActive(before); edit.risk = risk(before, (Boolean) patch.get("riskExempt")); }
-            if (patch.containsKey("placementId")) { edit.placementId = (String) patch.get("placementId"); }
+            boolean moved = !patch.containsKey("placementId") && !Objects.equals(before.ringId(), edit.ringId);
+            if (patch.containsKey("placementId")) { edit.placementId = (String) patch.get("placementId"); } else if (moved) { edit.placementId = placements.kept(edit.placementId); }
             // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
-            if (patch.containsKey("placementId") || !Objects.equals(before.ringId(), edit.ringId)) { placements.check(edit.placementId, edit.ringId); }
+            if (patch.containsKey("placementId") || moved) { placements.check(edit.placementId, edit.ringId); }
             if (!Set.of("notes", "placementId").containsAll(patch.keySet())) {
                 validate(edit, cancelBookings, !Objects.equals(before.ringId(), edit.ringId) || !before.startTime().equals(edit.startTime) || !before.endTime().equals(edit.endTime));
             }

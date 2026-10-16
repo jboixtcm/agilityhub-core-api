@@ -40,7 +40,9 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @BeforeEach void clear() {
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "members", "dogs", "family_groups", "dog_documents",
                 "levels", "rings", "plans", "prices", "faq_entries", "instructors", "catalog_seed_references", "demo_seed_runs",
-                "club_pages", "domain_events", "audit_entries", "catalog_write_locks", "census_write_locks", "attachment_uploads", "upfront_payments")) { mongo.remove(new Query(), collection); }
+                "club_pages", "domain_events", "audit_entries", "catalog_write_locks", "census_write_locks", "attachment_uploads", "upfront_payments",
+                // E9-T05: the demo's S16 section (a venue's slug is the club's, unique across clubs).
+                "venues", "courses", "placements", "ring_setups", "build_sessions", "obstacle_inventories")) { mongo.remove(new Query(), collection); }
         hosts.invalidate(); clock.setInstant(java.time.Instant.parse("2026-09-09T10:00:00Z"));
     }
     ObjectNode seed() { return codec.read(Path.of("seeds/club-canic.yaml")); }

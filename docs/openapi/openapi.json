@@ -5278,6 +5278,14 @@
             },
             "type" : "array"
           },
+          "plannedPlacement" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PlannedPlacement"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "S16 R-16-13 «Recorregut previst» (screen 07): only with COURSES and courses.showSetupToMembers; null when the class plans no placement or its course is gone"
+          },
           "ring" : {
             "anyOf" : [ {
               "$ref" : "#/components/schemas/ClassRing"
@@ -17514,6 +17522,19 @@
           }
         },
         "required" : [ "cancellable", "date", "since", "source" ],
+        "type" : "object"
+      },
+      "PlannedPlacement" : {
+        "properties" : {
+          "courseName" : {
+            "description" : "The course's name in the reader's language",
+            "type" : "string"
+          },
+          "placementId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "courseName", "placementId" ],
         "type" : "object"
       },
       "PlatformAccountRequest" : {
@@ -36252,7 +36273,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.",
         "operationId" : "patchClass",
         "parameters" : [ {
           "in" : "path",
@@ -70462,7 +70483,7 @@
     },
     "/api/v1/placements/{id}/build-sheet" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-10: the placement's build sheet, the PDF the client stored (T-16-19); a placement without one → NOT_FOUND.",
         "operationId" : "getBuildSheet",
         "parameters" : [ {
           "in" : "path",
@@ -70608,7 +70629,7 @@
         "tags" : [ "courses" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. E9 contract; guards then NOT_IMPLEMENTED.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-10: the client renders the build sheet PDF (course-ui) and uploads it with POST /courses/upload-urls {purpose: BUILD_SHEET}; fileKey binds that upload to the placement and replaces the previous sheet. Another club's key, another purpose or a key bound to another entity → NOT_FOUND (R-16-16). The placement's version does not change; a race with another write of the placement → STALE_VERSION.",
         "operationId" : "attachBuildSheet",
         "parameters" : [ {
           "in" : "path",
@@ -70687,7 +70708,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -90906,7 +90927,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.",
         "operationId" : "patchTemplateClass",
         "parameters" : [ {
           "in" : "path",

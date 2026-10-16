@@ -10,6 +10,7 @@ import java.util.*;
  * the default resolves nothing, so no `setup` is published even with COURSES on.
  */
 public interface RingSetupPort {
-    record Setup(String id, String kind, List<String> levelNames, Instant builtAt, LocalDate expectedUntil) { }
+    /** `agilityhubLevel`: the setup's AgilityHub level (`EASY` …) or null; the only level a setup names while levels are off (R-16-15). */
+    record Setup(String id, String kind, List<String> levelNames, Instant builtAt, LocalDate expectedUntil, String agilityhubLevel) { }
     Optional<Setup> active(String setupId, Locale locale);
 }

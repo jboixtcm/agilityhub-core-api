@@ -184,13 +184,69 @@ class PlanningIT extends AbstractIntegrationTest {
         view = patchClass(template, classId, view.path("version").asLong(), "placementId", null);
         assertThat(view.at("/classes/0/placementId").isNull()).isTrue();
         // T-16-12 (R-16-15): with COURSES off, S06 omits the planned placement of the class and of the template class.
-        patchClass(template, classId, view.path("version").asLong(), "placementId", "plan-placement");
-        ok("PATCH", "/class-sessions/" + id, Map.of("version", cleared.path("version").asLong(), "placementId", "plan-placement-2"));
+        var replanned = patchClass(template, classId, view.path("version").asLong(), "placementId", "plan-placement");
+        var planned2 = ok("PATCH", "/class-sessions/" + id, Map.of("version", cleared.path("version").asLong(), "placementId", "plan-placement-2"));
         mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules", List.of())));
         configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
         assertThat(ok("GET", "/class-sessions/" + id, null).has("placementId")).isFalse();
         var planned = ok("GET", "/week-templates/" + template, null).at("/classes/0/placementId");
         assertThat(planned.isMissingNode() || planned.isNull()).as(planned.toString()).isTrue();
+        // E117 point 1: with COURSES off, a ring change drops the hidden planned placement (it was the old ring's) instead of refusing it.
+        var movedOff = ok("PATCH", "/class-sessions/" + id, Map.of("version", planned2.path("version").asLong(), "ringId", "plan-ring"));
+        assertThat(movedOff.path("ringId").asText()).isEqualTo("plan-ring"); assertThat(movedOff.has("placementId")).isFalse();
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(sessions.findById(id).orElseThrow().placementId()).isNull(); }
+        var movedTemplate = patchClass(template, classId, replanned.path("version").asLong(), "ringId", "plan-ring-2");
+        assertThat(movedTemplate.at("/classes/0/ringId").asText()).isEqualTo("plan-ring-2");
+        var stored = mongo.findOne(Query.query(Criteria.where("_id").is(template)), Document.class, "week_templates").getList("classes", Document.class).getFirst();
+        assertThat(stored.getString("ringId")).isEqualTo("plan-ring-2"); assertThat(stored.get("placementId")).isNull();
+    }
+    /**
+     * E117 point 3 (R-16-13, ruling E117): with `courses.showSetupToMembers` on, the member projection of a class carries its planned
+     * placement and its course's name in the reader's language («Recorregut previst», screen 07); null when it plans none or the
+     * course is gone; absent with the switch off or without `COURSES`. The staff projection keeps `placementId` only.
+     */
+    @Test void T_16_20_aMemberReadsTheClassesPlannedCourseOnlyWhileSetupsAreShownToMembers() throws Exception {
+        mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules",
+                Arrays.stream(com.agilityhub.core.platform.application.Module.values()).map(Enum::name).toList())));
+        configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
+        mongo.remove(Query.query(Criteria.where("_id").is("plan-course")), "courses");
+        var now = clock.instant();
+        mongo.insert(new com.agilityhub.core.courses.persistence.Course("plan-course", com.agilityhub.core.courses.domain.CourseTypes.OwnerType.CLUB, CLUB, null,
+                com.agilityhub.core.courses.domain.CourseTypes.Visibility.CLUB, new LocalizedText(Map.of("ca", "Jumping de prova", "en", "Practice jumping"), "ca"),
+                com.agilityhub.core.courses.domain.CourseTypes.Discipline.JUMPING, null, null, null, null, List.of(), List.of(), null,
+                com.agilityhub.core.courses.domain.CourseTypes.CourseSource.EDITOR, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                0, now, "admin", now, List.of(), null, "admin"));
+        placement("plan-placement", CLUB, "plan-ring");
+        var body = new LinkedHashMap<String, Object>(Map.of("date", "2026-08-25", "startTime", "18:00", "endTime", "19:00", "ringId", "plan-ring",
+                "instructorIds", List.of("plan-instructor"), "levelIds", List.of("plan-level-D"), "placementId", "plan-placement"));
+        String planned = ok("POST", "/class-sessions", body).path("id").asText();
+        String plain = ok("POST", "/class-sessions", with(with(with(body, "placementId", null), "startTime", "19:00"), "endTime", "20:00")).path("id").asText();
+        // Members read only ACTIVE classes: fixture state, as a validated week leaves them.
+        mongo.updateMulti(Query.query(Criteria.where("_id").in(planned, plain)), new Update().set("state", "ACTIVE"), "class_sessions");
+        var member = member(planned, "en");
+        assertThat(member.path("plannedPlacement").path("placementId").asText()).isEqualTo("plan-placement");
+        assertThat(member.path("plannedPlacement").path("courseName").asText()).isEqualTo("Practice jumping");
+        assertThat(member.has("placementId")).isFalse();
+        assertThat(member(planned, "ca").at("/plannedPlacement/courseName").asText()).isEqualTo("Jumping de prova");
+        var none = member(plain, "ca");
+        assertThat(none.has("plannedPlacement")).isTrue(); assertThat(none.get("plannedPlacement").isNull()).isTrue();
+        assertThat(ok("GET", "/class-sessions/" + planned, null).has("plannedPlacement")).isFalse();
+        // The course deleted: no course to name.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-course")), new Update().set("deletedAt", java.util.Date.from(now)), "courses");
+        assertThat(member(planned, "ca").get("plannedPlacement").isNull()).isTrue();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-course")), new Update().unset("deletedAt"), "courses");
+        parameter("courses.showSetupToMembers", false, "bool");
+        assertThat(member(planned, "ca").has("plannedPlacement")).isFalse();
+        parameter("courses.showSetupToMembers", true, "bool");
+        mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules", List.of())));
+        configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
+        assertThat(member(planned, "ca").has("plannedPlacement")).isFalse();
+        mongo.remove(Query.query(Criteria.where("_id").is("plan-course")), "courses");
+    }
+    JsonNode member(String classId, String language) throws Exception {
+        var request = request(HttpMethod.GET, "/api/v1/class-sessions/" + classId).header("Host", HOST).header("Accept-Language", language)
+                .with(jwt().jwt(j -> j.subject("planning-member").claim("clubId", CLUB).claim("memberId", "planning-member")).authorities(() -> "ROLE_MEMBER"));
+        return mapper.readTree(mvc.perform(request).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray());
     }
     void placement(String id, String club, String ring) {
         var now = clock.instant();

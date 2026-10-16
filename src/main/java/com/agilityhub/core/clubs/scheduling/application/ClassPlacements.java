@@ -27,4 +27,12 @@ public class ClassPlacements {
         String ring = placements.ringOf(placementId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         if (!ring.equals(ringId)) { throw new ApiException(ErrorCode.PLACEMENT_RING_MISMATCH); }
     }
+    /**
+     * The planned placement a class keeps when an edit moves it to another ring without naming one (E117 point 1): unchanged with
+     * `COURSES`, where {@link #check} then holds it to the new ring; dropped without, because it belongs to the old ring and S06 hides
+     * the field (R-16-15), so the client could neither see nor fix the mismatch.
+     */
+    public String kept(String placementId) {
+        return context.config().modules().contains(Module.COURSES) ? placementId : null;
+    }
 }

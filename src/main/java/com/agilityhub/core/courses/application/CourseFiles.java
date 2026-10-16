@@ -48,4 +48,6 @@ public class CourseFiles {
     /** The same for another S16 entity (a ring setup's photo, E9-T03). */
     public void claim(String fileKey, UploadPurpose purpose, String entityType, String id) { store.claim(fileKey, purpose.name(), entityType + ":" + id); }
     public String url(String fileKey) { return fileKey == null ? null : store.downloadUrl(fileKey); }
+    /** The bytes of a stored key of the current club (R-16-10's build sheet). */
+    public byte[] read(String fileKey) { return store.read(fileKey); }
 }

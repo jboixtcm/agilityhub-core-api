@@ -1,0 +1,70 @@
+heavy.sh: 07:24 waiting for the host lock, held by: 07:24 agilityhub-core-api-c: ./mvnw -q -Pmutation -DtargetClasses=com.agilityhub.core.payments.persistence.BillingDocuments,com.agilityhub.core.payments.persistence.BillingDocuments$* -DtargetTests=com.agilityhub.core.*Test,com.agilityhub.core.payments.*,com.agilityhub.core.clubs.bookings.api.BookingsIT,com.agilityhub.core.clubs.bookings.api.LifecycleConcurrencyIT,com.agilityhub.core.clubs.bookings.api.LifecycleIT,com.agilityhub.core.clubs.bookings.api.SingleClassCheckoutIT,com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT,com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT,com.agilityhub.core.clubs.census.api.SignupGateFixesIT,com.agilityhub.core.clubs.census.api.SignupIT,com.agilityhub.core.clubs.census.api.SignupMinorFixesIT,com.agilityhub.core.clubs.dashboard.api.DashboardIT,com.agilityhub.core.clubs.messaging.application.engine.TemplateVariableParityIT,com.agilityhub.core.configuration.E3ContractIT,com.agilityhub.core.configuration.E3ResponseContractTest,com.agilityhub.core.configuration.E5BackOfficeContractTest,com.agilityhub.core.configuration.E8ContractIT,com.agilityhub.core.configuration.E8PersistenceIT,com.agilityhub.core.configuration.E8ResponseContractTest,com.agilityhub.core.configuration.ListFieldsContractIT,com.agilityhub.core.configuration.S04ErrorContractTest,com.agilityhub.core.migration.PlayoffAdapterTest,com.agilityhub.core.migration.PlayoffMigrationIT,com.agilityhub.core.shared.api.AnonymousRateLimitsTest,com.agilityhub.core.platform.api.*IT -DmutationUnitSize=50 -DreportsDirectory=target/pit-reports/session10-169-session10-pit-payments-b6-p1 -DhistoryInputFile=.local/pitest/session8-unit.bin -DhistoryOutputFile=.local/pitest/session10-169-session10-pit-payments-b6-p1.bin test-compile org.pitest:pitest-maven:mutationCoverage
+heavy.sh: 07:47 got the host lock after 23 min 17 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  401 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  0 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-26 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+curl GET /api/v1/courses -> 200
+curl GET /api/v1/placements -> 200
+curl GET /api/v1/me/ring-setups -> 200
+curl GET /api/v1/build-sessions/<id>/export -> 200
+PASS seed:demo E9 section (Cànic): seeded · courses ["Agility A–B d'iniciació", 'Joc de túnels', 'Jumping C–D de dimarts']; geometries Central and Carretera (6 markers, v1); 2 placements; active setups Central JUMPING C–D (from the finished build session), Carretera AGILITY A–B, Muntanya FUN EASY; the session's export: 10 obstacle statuses, 6 markers
+curl POST /api/v1/courses -> 403 FORBIDDEN
+curl POST /api/v1/courses -> 400 COURSE_MODEL_INVALID
+curl POST /api/v1/courses -> 201
+curl GET /api/v1/courses -> 200
+curl GET /api/v1/courses -> 403 FORBIDDEN
+PASS POST /courses (library, instructor): 201 · 6 obstacles, pathLengthM 61.2, AgilityHub level MEDIUM; an unknown obstacle type → 400 COURSE_MODEL_INVALID (1 schema error(s)); a member → 403
+curl PUT /api/v1/rings/<id>/geometry -> 422 GEOMETRY_INVALID
+curl PUT /api/v1/rings/<id>/geometry -> 403 FORBIDDEN
+curl PUT /api/v1/rings/<id>/geometry -> 200
+curl GET /api/v1/rings/<id>/geometry -> 200
+PASS PUT /rings/{Muntanya}/geometry (admin): 200 · 36 × 20 m, 6 markers, version 1; two markers → 422 GEOMETRY_INVALID ['TOO_FEW_MARKERS']; an instructor → 403
+curl POST /api/v1/placements -> 422 PLACEMENT_BLOCKED
+curl POST /api/v1/placements -> 201
+PASS POST /placements (instructor): 201 · 6 resolved obstacles, warning kept (border-clearance); a critical warning → 422 PLACEMENT_BLOCKED (door-clearance)
+curl POST /api/v1/ring-setups -> 201
+curl GET /api/v1/me/ring-setups -> 200
+curl GET /api/v1/ring-setups/<id> -> 200
+curl GET /api/v1/courses/<id> -> 200
+PASS POST /ring-setups (instructor): 201 · AGILITY on Muntanya from the placement, replacing the seeded setup (DISMANTLED); the member's summary «MEDIUM», hasViewer True, no notes nor builder; the course opens (R-16-16)
+curl POST /api/v1/build-sessions -> 201
+curl POST /api/v1/build-sessions/join -> 200
+curl PATCH /api/v1/build-sessions/<id>/obstacles/<obstacle> ×6 -> 200; slowest event 0.235 s
+curl POST /api/v1/build-sessions/<id>/finish -> 200
+curl PATCH /api/v1/build-sessions/<id>/obstacles/obstacle-0 -> 422 BUILD_SESSION_FINISHED
+PASS POST /build-sessions + join + PATCH ×n + finish: 201 · 200 · 200 · 200 · 6 taps, each seen by the live subscriber in < 2 s (slowest 0.235 s); finish → COMPLETED, stream «finished», the ring's setup refreshed; a later tap → 422 BUILD_SESSION_FINISHED
+curl GET /api/v1/build-sessions/<id>/export -> 200
+PASS GET /build-sessions/{id}/export: 200 · BuildSessionExportV1 schemaVersion 1, ring Muntanya with 6 markers ['A', 'B', 'C', 'D', 'E', 'F'], 6 obstacle statuses, course «Recorregut del smoke E9»
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic; x2) · second runs 0 changes · week start 2026-10-26 (8+ days ahead)
+  seed:demo E9 section (Cànic)                              · seeded · courses ["Agility A–B d'iniciació", 'Joc de túnels', 'Jumping C–D de dimarts']; geometries Central and Carretera (6 markers, v1); 2 placements; active setups Central JUMPING C–D (from the finished build session), Carretera AGILITY A–B, Muntanya FUN EASY; the session's export: 10 obstacle statuses, 6 markers
+  POST /courses (library, instructor)                       · 201 · 6 obstacles, pathLengthM 61.2, AgilityHub level MEDIUM; an unknown obstacle type → 400 COURSE_MODEL_INVALID (1 schema error(s)); a member → 403
+  PUT /rings/{Muntanya}/geometry (admin)                    · 200 · 36 × 20 m, 6 markers, version 1; two markers → 422 GEOMETRY_INVALID ['TOO_FEW_MARKERS']; an instructor → 403
+  POST /placements (instructor)                             · 201 · 6 resolved obstacles, warning kept (border-clearance); a critical warning → 422 PLACEMENT_BLOCKED (door-clearance)
+  POST /ring-setups (instructor)                            · 201 · AGILITY on Muntanya from the placement, replacing the seeded setup (DISMANTLED); the member's summary «MEDIUM», hasViewer True, no notes nor builder; the course opens (R-16-16)
+  POST /build-sessions + join + PATCH ×n + finish           · 201 · 200 · 200 · 200 · 6 taps, each seen by the live subscriber in < 2 s (slowest 0.235 s); finish → COMPLETED, stream «finished», the ring's setup refreshed; a later tap → 422 BUILD_SESSION_FINISHED
+  GET /build-sessions/{id}/export                           · 200 · BuildSessionExportV1 schemaVersion 1, ring Muntanya with 6 markers ['A', 'B', 'C', 'D', 'E', 'F'], 6 obstacle statuses, course «Recorregut del smoke E9»
+PASS E9 backend gate: the demo seed twice (0 changes), its courses, geometries, placements, setups and finished build session through the API, and S16's happy path: library → geometry → placement → ring setup → live build session → export
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

@@ -69,7 +69,7 @@ public class PlacementService {
 
     @Transactional
     public PlacementView create(PlacementInput in) {
-        var checked = check(in);
+        var checked = check(in, () -> { });
         var now = clock.instant(); String actor = CourseAccess.accountId();
         var placement = build(UUID.randomUUID().toString(), in, checked, now, actor, now, 0, null);
         WriteConflicts.guard(() -> { reference(checked); placements.insert(placement); });
@@ -87,8 +87,8 @@ public class PlacementService {
         access.course(in.courseId(), false); ring(in.ringId());
         if (!before.ringId().equals(in.ringId())) { throw new ApiException(PLACEMENT_RING_MISMATCH); }
         if (!before.courseId().equals(in.courseId())) { throw invalid("courseId", "VALIDATION_ERROR"); }
-        var checked = check(in);
-        if (before.version() != version) { throw new ApiException(STALE_VERSION); }
+        // E117 point 5: a stale `PUT` is `409 STALE_VERSION` before R-16-05's policy, even when it carries a critical warning.
+        var checked = check(in, () -> { if (before.version() != version) { throw new ApiException(STALE_VERSION); } });
         // R-16-06: the client recalculated the placement against the current geometry, so it is no longer stale.
         var stored = build(before.id(), in, checked, before.createdAt(), before.createdByAccountId(), clock.instant(), before.version() + 1, before.buildSheetFileKey());
         WriteConflicts.guard(() -> { reference(checked); placements.update(stored, version); });
@@ -106,8 +106,11 @@ public class PlacementService {
         rings.reference(checked.ring().id(), checked.ring().geometry().version());
         access.reference(checked.course());
     }
-    /** The references first (`404`, `COURSE_NOT_VISIBLE`), then the request's own checks (`400`, `409`), then R-16-05's (`422`). */
-    private Checked check(PlacementInput in) {
+    /**
+     * The references first (`404`, `COURSE_NOT_VISIBLE`), then the request's own checks (`400`, `409`; {@code versionCheck} is the
+     * placement's own on a `PUT`), then R-16-05's (`422`).
+     */
+    private Checked check(PlacementInput in, Runnable versionCheck) {
         if (in.force() && !CourseAccess.role("ADMIN")) { throw new ApiException(FORBIDDEN); }
         var course = access.course(in.courseId(), false);
         var ring = ring(in.ringId());
@@ -119,6 +122,7 @@ public class PlacementService {
         if (course.normalizedJson() == null || course.normalizedJson().isNull()) { throw invalid("courseId", "COURSE_MODEL_INVALID"); }
         if (course.version() != in.courseVersion()) { throw new ApiException(STALE_VERSION); }
         if (ring.geometry() == null) { throw new ApiException(RING_WITHOUT_GEOMETRY); }
+        versionCheck.run();
         var outcome = PlacementRules.outcome(in.warnings(), in.force());
         var critical = PlacementRules.critical(in.warnings());
         if (outcome == PlacementRules.Outcome.BLOCKED) { throw new ApiException(PLACEMENT_BLOCKED, Map.of("warnings", wire(critical))); }

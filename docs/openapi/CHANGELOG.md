@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E9-T05 · S16 integration: the build sheet served, the member's «Recorregut previst», E117's five points
+
+**0 operations added or removed; 1 schema added (`PlannedPlacement`); 1 response property added (`ClassSessionMemberView.plannedPlacement`); `STALE_VERSION` added to 1 error list; 4 descriptions changed.**
+
+- R-16-10 (T-16-19; the gate found it unassigned and still a 501): `POST /placements/{id}/build-sheet {fileKey}` and `GET /placements/{id}/build-sheet` are served behind their unchanged guards. The client renders the PDF (course-ui) and uploads it with `POST /courses/upload-urls {purpose: BUILD_SHEET}`; the `POST` binds that upload (another club's key, another purpose, an unknown key or one bound to another placement → `404 NOT_FOUND`), leaves the placement's `version` unchanged and answers the `Placement` with `buildSheetFileKey`; it adds `409 STALE_VERSION` (a race with another write of the placement). The `GET` answers the stored PDF as `application/pdf`, as E9-T01 published it (T-16-19's «URL signada» is the upload's), and `404` without one.
+
+- E117 point 3 (R-16-13, ruling E117): `GET /class-sessions/{id}` for a MEMBER (`ClassSessionMemberView`) gains the optional, nullable `plannedPlacement {placementId, courseName}`, the class's planned placement and its course's name in the reader's language, for the informative «Recorregut previst» line of screen 07. Present only with `COURSES` and `courses.showSetupToMembers`; `null` when the class plans no placement or its course is gone. The staff projection is unchanged (`placementId`). T-16-20's «A la pista hi ha muntat» stays `GET /me/ring-setups`.
+- E117 point 1: `PATCH /class-sessions/{id}` and `PATCH /week-templates/{id}/classes/{classId}` describe that, without `COURSES`, a new ring drops the hidden planned placement (it was the old ring's) instead of answering `400 VALIDATION_ERROR {placementId, MODULE_DISABLED}`.
+- Behaviour only, no contract change: `POST /ring-setups` with a placement whose course was deleted is `404 NOT_FOUND` (as `POST /build-sessions`), and `GET /me/ring-setups` reads `hasViewer` from the live course (E117 point 4); a stale `PUT /placements/{id}` is `409 STALE_VERSION` before R-16-05's `422 PLACEMENT_BLOCKED` (point 5); N-31's `level` falls back to the AgilityHub level (point 2).
+
 ## 2026-10-16 · E9-T04 · S16 live build sessions served (R-16-11), query token on the stream, export self-check
 
 **0 operations or schemas added or removed; 1 security scheme added (`accessTokenQuery`); `STALE_VERSION` added to 3 error lists (join, dismantle, renewal).**

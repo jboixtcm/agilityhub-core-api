@@ -219,12 +219,51 @@ class PlacementsIT extends CourseItSupport {
         // The old version is stale now; the same policy applies to a PUT.
         putError("INSTRUCTOR", id, recalculated, 409, "STALE_VERSION");
         putError("INSTRUCTOR", id, placementBody(course, A1, warning("w", "outside-ring", "critical")).put("version", 1), 422, "PLACEMENT_BLOCKED");
+        // E117 point 5: the version is checked before R-16-05's policy, so a stale PUT with a critical warning is 409, not 422.
+        putError("INSTRUCTOR", id, placementBody(course, A1, warning("w", "outside-ring", "critical")).put("version", 0), 409, "STALE_VERSION");
         putError("INSTRUCTOR", id, placementBody(course, A1).put("version", 1).put("force", true), 403, "FORBIDDEN");
         String other = createCourse("Jumping 4");
         putError("INSTRUCTOR", id, placementBody(other, A1).put("version", 1), 400, "VALIDATION_ERROR");
         putError("ADMIN", "e9t2-missing", placementBody(course, A1).put("version", 1), 404, "NOT_FOUND");
         error(as(json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/placements/" + id), placementBody(course, A1).put("version", 1)), OTHER, "ADMIN"),
                 404, "NOT_FOUND");
+    }
+
+    /**
+     * T-16-19 (R-16-10, E9-T05): the client's PDF, uploaded with purpose `BUILD_SHEET`, is bound by `POST /placements/{id}/build-sheet`
+     * and read back by `GET` as `application/pdf`; the placement's version stays and a later `PUT` keeps the sheet. Without one, `GET` is
+     * `404`; another club's key, another purpose's, an unknown one or one bound to another placement is `404` and binds nothing
+     * (R-16-16); a MEMBER is `403`; another club reads nothing of it.
+     */
+    @Test void T_16_19_aBuildSheetIsTheClubsOwnPdfUploadAndReadsBackAsPdf() throws Exception {
+        String course = createCourse("Jumping 9");
+        drawRing(A1);
+        String id = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        String path = "/api/v1/placements/" + id + "/build-sheet";
+        error(as(get(path), CLUB, "INSTRUCTOR"), 404, "NOT_FOUND");
+        byte[] pdf = "%PDF-1.4\n% fictional build sheet\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String sheet = upload(CLUB, "BUILD_SHEET", "application/pdf", pdf, 204, Duration.ZERO);
+        String foreign = upload(OTHER, "BUILD_SHEET", "application/pdf", pdf, 204, Duration.ZERO);
+        String smarter = upload(CLUB, "SMARTER_SOURCE", "text/plain", "+++++++SAD".getBytes(java.nio.charset.StandardCharsets.UTF_8), 204, Duration.ZERO);
+        for (String key : List.of(foreign, smarter, CLUB + "/courses/" + UUID.randomUUID())) {
+            error(as(json(post(path), Map.of("fileKey", key)), CLUB, "INSTRUCTOR"), 404, "NOT_FOUND");
+        }
+        error(as(json(post(path), Map.of("fileKey", sheet)), CLUB, "MEMBER"), 403, "FORBIDDEN");
+        assertThat(placementDocument(id).get("buildSheetFileKey")).isNull();
+
+        var attached = ok(as(json(post(path), Map.of("fileKey", sheet)), CLUB, "INSTRUCTOR"), 200);
+        assertThat(attached.path("buildSheetFileKey").asText()).isEqualTo(sheet);
+        assertThat(attached.path("version").asLong()).isZero();
+        var read = perform(as(get(path), CLUB, "ADMIN"), 200);
+        assertThat(read.getResponse().getContentType()).startsWith("application/pdf");
+        assertThat(read.getResponse().getContentAsByteArray()).isEqualTo(pdf);
+        // The same key again is the same sheet; a PUT of the placement keeps it.
+        ok(as(json(post(path), Map.of("fileKey", sheet)), CLUB, "ADMIN"), 200);
+        assertThat(replace("INSTRUCTOR", id, placementBody(course, A1).put("version", 0), 200).path("buildSheetFileKey").asText()).isEqualTo(sheet);
+        error(as(get(path), OTHER, "ADMIN"), 404, "NOT_FOUND");
+        String second = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        error(as(json(post("/api/v1/placements/" + second + "/build-sheet"), Map.of("fileKey", sheet)), CLUB, "INSTRUCTOR"), 404, "NOT_FOUND");
+        assertThat(placementDocument(second).get("buildSheetFileKey")).isNull();
     }
 
     /**

@@ -13,6 +13,8 @@ public interface CourseFileStore {
      * type and size, and not bound to another entity. Anything else, another club's key included, is `404 NOT_FOUND` (T-16-21).
      */
     void claim(String fileKey, String purpose, String entity);
+    /** The bytes of a stored key of the current club; another club's or a missing one is `404 NOT_FOUND`. */
+    byte[] read(String fileKey);
     /** A short-lived signed download URL of a stored key. */
     String downloadUrl(String fileKey);
 }

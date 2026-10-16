@@ -281,7 +281,11 @@
     "state": "ACTIVE",
     "capacity": 5,
     "freeSeats": 4,
-    "waiting": 0
+    "waiting": 0,
+    "plannedPlacement": {
+      "placementId": "placement-a",
+      "courseName": "Example course"
+    }
   },
   "RingBlockMemberView": {
     "id": "block-a",

@@ -454,6 +454,25 @@ A database seeded before E7-T04 keeps its old planning specification: `seed:demo
 `CLUB_NOT_EMPTY` there and never adds these profiles. Start it again from a fresh database (`docker compose down -v`, then
 `club:apply` and `seed:demo`).
 
+### E9 courses, rings and build sessions (`courses` section, E9-T05)
+
+S16 has no Supabase import (WP-16-G, decision A6 of 30-09): its demo data is this fictional section, applied once by the demo
+planning run, as the club admin and always through the S16 services, and only in a club with `COURSES` (the FIFO club has
+neither the module nor the section). A second `seed:demo` changes nothing.
+
+| What | Rows | What it shows |
+|---|---|---|
+| Obstacle inventory | the club's (`PUT /obstacle-inventories/club`) | R-16-12's effective inventory of every ring |
+| Ring geometry | Central 40 × 22 m (door N, the «Bassa» no-go zone) and Carretera 30 × 20 m (door S), each with six markers A–F | D16's geometry block; the Unity export needs exactly six markers. Muntanya stays without one (R-16-07: a course setup still fits) |
+| Courses | «Jumping C–D de dimarts» (JUMPING, C–D, MEDIUM), «Agility A–B d'iniciació» (AGILITY, A–B, EASY), «Joc de túnels» (OTHER, EASY) | D18's library: fictional Smarter models (`[type, x, y, rotation]` rows written as course-core v1 `CourseData`), `pathLengthM` as course-core sends it, names in the club's languages |
+| Placements | Jumping on Central and Agility on Carretera, offset (1, 1) m, `READY_TO_BUILD` | D7/D18's placements; translations, so their resolved obstacles are the model's plus the offset |
+| Ring setups | Carretera from its placement (A–B, expected until the run date + 3 days), Muntanya from «Joc de túnels» (FUN, EASY) | 08/10/23 «Recorregut muntat» and the mobile viewer |
+| Build session | on Central's placement: every obstacle placed, then finished | R-16-11: `finish` registers Central's setup (JUMPING, C–D); its export is a valid `BuildSessionExportV1` |
+
+The setups expire `courses.setupAutoExpireDays` (7) days after the run (P5 step f). `bin/e9-smoke` checks this state through
+the API, then walks S16's happy path on Muntanya. A database seeded before E9-T05 answers `CLUB_NOT_EMPTY` to `seed:demo`, as
+above.
+
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.
 The generic AgilityHub theme is a neutral blue/light seed preset; all example

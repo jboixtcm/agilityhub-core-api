@@ -1,0 +1,16 @@
+13 first clean verify (exit 1)
+surefire: 373 classes; tests=4533, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  DemoCoursesSeederTest: tests=3, failures=0, errors=0, skipped=0
+  E4ResponseContractTest: tests=4, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=13, failures=0, errors=0, skipped=0
+  RingSetupRulesTest: tests=5, failures=0, errors=0, skipped=0
+failsafe: 150 classes; tests=2020, failures=1, errors=2, skipped=0
+  DemoCoursesSeedIT: tests=1, failures=0, errors=0, skipped=0
+  E9ContractIT: tests=65, failures=0, errors=0, skipped=0
+  OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  PlacementsIT: tests=6, failures=0, errors=0, skipped=0
+  PlanningIT: tests=13, failures=0, errors=0, skipped=0
+  RingSetupsIT: tests=15, failures=0, errors=0, skipped=0
+  TemplateVariableParityIT: tests=3, failures=0, errors=0, skipped=0
+  TrainingIT: tests=26, failures=0, errors=0, skipped=0

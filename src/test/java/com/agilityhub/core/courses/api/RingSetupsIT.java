@@ -477,6 +477,27 @@ class RingSetupsIT extends CourseItSupport {
     }
 
     /**
+     * E117 point 4 (E9-T03 review #7): a setup from a placement whose course was deleted answers `404` (as a build session on it) and
+     * writes nothing; R-16-09's `hasViewer` comes from the live course, so a setup whose placed course is gone has no viewer.
+     */
+    @Test void T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer() throws Exception {
+        clock.setInstant(MONDAY);
+        drawRing(A1);
+        String shown = createCourse("Agility V"), gone = createCourse("Agility W");
+        String placed = createPlacement("INSTRUCTOR", placementBody(shown, A1), 201).path("id").asText();
+        String orphan = createPlacement("INSTRUCTOR", placementBody(gone, A1), 201).path("id").asText();
+        String setup = id(register("INSTRUCTOR", setupBody(A1, "AGILITY").put("placementId", placed)));
+        assertThat(mine("MEMBER", A1).at("/0/setup/hasViewer").asBoolean()).isTrue();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(gone)), new Update().set("deletedAt", java.util.Date.from(MONDAY)), "courses");
+        registerError(CLUB, "INSTRUCTOR", setupBody(A1, "AGILITY").put("placementId", orphan), 404, "NOT_FOUND");
+        assertThat(count("ring_setups", Query.query(Criteria.where("clubId").is(CLUB)))).isEqualTo(1);
+        assertThat(ringDocument(A1).getString("activeSetupId")).isEqualTo(setup);
+        // The active setup's own course deleted behind the api's back: the member's summary no longer offers the viewer.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(shown)), new Update().set("deletedAt", java.util.Date.from(MONDAY)), "courses");
+        assertThat(mine("MEMBER", A1).at("/0/setup/hasViewer").asBoolean()).isFalse();
+    }
+
+    /**
      * E117 (E9-T03 review #1): a dismantle or renewal that races another write of the setup (P5 f's `expire`, a replacement, the
      * ring's deactivation) or of its ring's `activeSetupId` meets it as a Mongo write conflict, answered `409 STALE_VERSION` (the
      * client reads again), never a `500`; the setup and the ring stay as the other writer leaves them.

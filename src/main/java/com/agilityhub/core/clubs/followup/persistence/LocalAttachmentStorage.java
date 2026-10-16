@@ -72,6 +72,10 @@ public class LocalAttachmentStorage implements AttachmentStorage {
         finally { Files.deleteIfExists(temp); }
     }
     public InputStream open(String id) throws IOException { return Files.newInputStream(path(id)); }
+    @Override public byte[] read(String id) throws IOException {
+        if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        return Files.readAllBytes(path(id));
+    }
     @Override public void delete(String id) {
         try { Files.deleteIfExists(path(id)); Files.deleteIfExists(path(id).resolveSibling(path(id).getFileName() + ".mime")); }
         catch (IOException failure) { throw new UncheckedIOException(failure); }

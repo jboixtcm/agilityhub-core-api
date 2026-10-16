@@ -25,13 +25,17 @@ public class CourseIntegrationConfiguration {
     @Bean RingSetupPort ringSetupPort(RingSetupService setups) {
         return new RingSetupPort() {
             @Override public Optional<Setup> active(String setupId, Locale locale) {
-                return setups.active(setupId, locale).map(s -> new Setup(s.id(), s.kind().name(), s.levelNames(), s.builtAt(), s.expectedUntil()));
+                return setups.active(setupId, locale).map(s -> new Setup(s.id(), s.kind().name(), s.levelNames(), s.builtAt(), s.expectedUntil(),
+                        s.agilityhubLevel() == null ? null : s.agilityhubLevel().name()));
             }
         };
     }
     @Bean CoursePlacementPort coursePlacementPort(RingSetupService setups) {
         return new CoursePlacementPort() {
             @Override public Optional<String> ringOf(String placementId) { return setups.placementRing(placementId); }
+            @Override public Optional<Planned> planned(String placementId, Locale locale) {
+                return setups.plannedCourseName(placementId, locale).map(name -> new Planned(placementId, name));
+            }
         };
     }
     @Bean LapsedRingSetupsPort lapsedRingSetupsPort(RingSetupService setups) {

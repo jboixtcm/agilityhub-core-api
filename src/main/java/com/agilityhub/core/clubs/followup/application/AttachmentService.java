@@ -193,6 +193,14 @@ public class AttachmentService {
         if (actual.sizeBytes() != grant.sizeBytes() || !Objects.equals(actual.mimeType(), grant.mimeType())) { throw new ApiException(ErrorCode.NOT_FOUND); }
         grants.bind(id, entity);
     }
+    /**
+     * The bytes of a scoped key of the current club (S16 R-16-10: the API serves the build sheet itself, E9-T05); another club's
+     * prefix or a missing object is `404 NOT_FOUND`.
+     */
+    public byte[] readScoped(String scope, String key) {
+        if (key == null || !key.startsWith(TenantContext.require() + "/" + scope + "/")) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        try { return storage.read(key); } catch (IOException failure) { throw new UncheckedIOException(failure); }
+    }
     /** A short-lived signed download URL of a scoped key (see {@link #scopedUpload}). */
     public String scopedUrl(String key) { return storage.downloadUrl(key, key.substring(key.lastIndexOf('/') + 1), clock.instant().plusSeconds(300)); }
     /** The local signed upload URL (E5-T24): its signature alone authorises the PUT, for the club of the grant it names. */

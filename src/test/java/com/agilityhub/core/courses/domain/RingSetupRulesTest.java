@@ -54,8 +54,11 @@ class RingSetupRulesTest {
     }
 
     @Test void T_16_09_aPlacementOrACourseWithAModelHasAViewer() {
-        assertThat(RingSetupRules.hasViewer("p", false)).isTrue();
-        assertThat(RingSetupRules.hasViewer(null, true)).isTrue();
-        assertThat(RingSetupRules.hasViewer(null, false)).isFalse();
+        assertThat(RingSetupRules.hasViewer("p", true, false)).isTrue();
+        assertThat(RingSetupRules.hasViewer(null, true, true)).isTrue();
+        assertThat(RingSetupRules.hasViewer(null, true, false)).isFalse();
+        // E117 point 4: a deleted course has no viewer, placed or not.
+        assertThat(RingSetupRules.hasViewer("p", false, false)).isFalse();
+        assertThat(RingSetupRules.hasViewer(null, false, true)).isFalse();
     }
 }

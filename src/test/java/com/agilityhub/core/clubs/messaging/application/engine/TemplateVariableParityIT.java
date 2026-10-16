@@ -434,6 +434,14 @@ class TemplateVariableParityIT extends AbstractIntegrationTest {
         assertThat(notice.action().params()).containsEntry("ringId", "par-ring");
         assertThat(notice.deliveries()).extracting(d -> d.channel().name()).containsExactly("APP");
         assertThat(notice.body()).doesNotContain("Private staff note", "par-marta");
+        // E117 point 2 (R-16-09, R-16-15): a setup that names only an AgilityHub level (levels off) says it, as `levelLabel` does.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(SETUP)), new org.springframework.data.mongodb.core.query.Update().set("levelIds", List.of())
+                .set("agilityhubLevel", "MEDIUM"), "ring_setups");
+        assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "AGILITY"))).getFirst().body())
+                .isEqualTo("Values: ring_name=Central | setup_kind=AGILITY | level=MEDIUM |");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(SETUP)), new org.springframework.data.mongodb.core.query.Update().unset("agilityhubLevel"), "ring_setups");
+        assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "AGILITY"))).getFirst().body())
+                .isEqualTo("Values: ring_name=Central | setup_kind=AGILITY | level= |");
         // An EMPTY setup says the ring is empty: no notice. An ended setup neither.
         assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31("ACTIVE", "EMPTY")))).isEmpty();
         for (String ended : List.of("EXPIRED", "DISMANTLED")) { assertThat(notices("N-31", deliver("RingSetupChanged", SETUP, n31(ended, "AGILITY")))).isEmpty(); }

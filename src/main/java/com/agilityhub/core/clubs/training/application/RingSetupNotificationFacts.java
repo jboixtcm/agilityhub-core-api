@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
  * a setup that is not `EMPTY` (T-16-13; the engine checks `messaging.notifyNewRingSetup` and the status, and `COURSES` guards the
  * code) goes to every member with a training right ({@link TrainingEligibilityService#membersWithRight()}), in the app. Variables:
  * `ring_name`, `setup_kind` (the catalog value, `AGILITY` …, for an ICU `select`) and `level` (the setup's club level names in the
- * recipient's language, joined by an en dash, through S16's {@link RingSetupPort}). The action's `ringId` is the engine's (E81).
+ * recipient's language, joined by an en dash, else its AgilityHub level, through S16's {@link RingSetupPort}). The action's `ringId` is the engine's (E81).
  */
 @Service
 public class RingSetupNotificationFacts implements NotificationFactsPort {
@@ -31,9 +31,14 @@ public class RingSetupNotificationFacts implements NotificationFactsPort {
         if (!"N-31".equals(code) || !"ACTIVE".equals(trigger.text("status")) || "EMPTY".equals(trigger.text("kind"))) { return Optional.empty(); }
         String ringId = trigger.text("ringId"), setupId = trigger.text("setupId");
         String ringName = catalogs.rings().stream().filter(ring -> ring.id().equals(ringId)).map(PlanningCatalogAccess.RingView::name).findFirst().orElse("");
-        var level = new NotificationValues.Localized(locale -> setups.active(setupId, locale).map(setup -> String.join("–", setup.levelNames())).orElse(""));
+        var level = new NotificationValues.Localized(locale -> setups.active(setupId, locale).map(RingSetupNotificationFacts::level).orElse(""));
         var builder = NotificationFacts.builder().noMembers().value("ring_name", ringName).value("setup_kind", trigger.text("kind")).value("level", level);
         eligibility.membersWithRight().forEach(memberId -> builder.member(memberId, null));
         return Optional.of(builder.build());
+    }
+    /** The club level names joined by an en dash, else the AgilityHub level, as R-16-09's `levelLabel` (`LevelLabels.label`, E117 point 2). */
+    static String level(RingSetupPort.Setup setup) {
+        String names = String.join("–", setup.levelNames());
+        return !names.isEmpty() ? names : setup.agilityhubLevel() == null ? "" : setup.agilityhubLevel();
     }
 }

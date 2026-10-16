@@ -5,6 +5,7 @@ import com.agilityhub.core.clubs.scheduling.persistence.*;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.clubs.scheduling.application.ports.ActivityTitlePort;
 import com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort;
+import com.agilityhub.core.clubs.scheduling.application.ports.CoursePlacementPort;
 import com.agilityhub.core.identity.application.CensusIdentityService;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.*;
@@ -17,10 +18,11 @@ import org.springframework.stereotype.Service;
 public class SessionProjection {
     private final PlanningContext context; private final PlanningCatalogAccess catalogs; private final IcuMessageSource messages;
     private final ActivityTitlePort activities; private final CensusIdentityService identities; private final Clock clock;
-    private final AttendanceStatusPort attendance;
+    private final AttendanceStatusPort attendance; private final CoursePlacementPort placements;
     public SessionProjection(PlanningContext context,PlanningCatalogAccess catalogs,IcuMessageSource messages,ActivityTitlePort activities,CensusIdentityService identities,Clock clock,
-            AttendanceStatusPort attendance) {
+            AttendanceStatusPort attendance,CoursePlacementPort placements) {
         this.context=context; this.catalogs=catalogs; this.messages=messages; this.activities=activities; this.identities=identities; this.clock=clock; this.attendance=attendance;
+        this.placements=placements;
     }
     /** S10 §7: the S10-owned summary read through the port, which counts each sheet row once (R-10-02). */
     public AttendanceStatusPort.AttendanceStatus attendanceStatus(ClassSession c) {
@@ -67,6 +69,11 @@ public class SessionProjection {
             out.put("ring",ring(c));
             out.put("instructorName",instructorName(c,false)); out.put("freeSeats",Math.max(0,c.capacity()-c.counters().booked()));
             if(enabled(Module.WAITLIST)) out.put("waiting",c.counters().waiting());
+            // R-16-13 (E117 point 3): «Recorregut previst», the informative line of 07, only with COURSES and courses.showSetupToMembers.
+            if(enabled(Module.COURSES) && Boolean.TRUE.equals(context.config().get("courses.showSetupToMembers",Boolean.class))) {
+                out.put("plannedPlacement",c.placementId()==null?null:placements.planned(c.placementId(),LocaleContext.current())
+                        .map(p -> Map.of("placementId",p.placementId(),"courseName",p.courseName())).orElse(null));
+            }
         } else {
             out.put("weekId",c.weekId()); out.put("startsAt",c.startsAt()); out.put("endsAt",c.endsAt()); out.put("ringId",c.ringId()); out.put("instructorIds",c.instructorIds());
             out.put("capacityMode",c.capacityMode()); out.put("description",c.description());

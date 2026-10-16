@@ -10,6 +10,8 @@ public interface AttachmentStorage {
     Metadata metadata(String key);
     /** Trusted migration upload, already checked against the same purpose/type/size rules as interactive uploads. */
     default void put(String key, String mimeType, long size, InputStream input) throws IOException { throw new UnsupportedOperationException(); }
+    /** The bytes of a stored object (S16 R-16-10's build sheet, E9-T05); a missing one is `404 NOT_FOUND`. */
+    default byte[] read(String key) throws IOException { throw new UnsupportedOperationException(); }
     /** S15 P9 cleanup of orphan signup uploads; deleting a missing object is not an error. */
     void delete(String key);
 }

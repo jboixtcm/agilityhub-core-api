@@ -1,0 +1,42 @@
+== M1 (E117 point 1) a ring change keeps the hidden placement with COURSES off
+   file: src/main/java/com/agilityhub/core/clubs/scheduling/application/ClassPlacements.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=PlanningIT
+   exit: 0
+   FAILED PlanningIT.T_16_20_aClassPlansOnlyAPlacementOfItsOwnRing [failure] Range for response status value 400 expected:<SUCCESSFUL> but was:<CLIENT_ERROR>
+== M2 (E117 point 2) N-31's level without the AgilityHub fallback
+   file: src/main/java/com/agilityhub/core/clubs/training/application/RingSetupNotificationFacts.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=TemplateVariableParityIT
+   exit: 0
+   FAILED TemplateVariableParityIT.T_16_13_n31ReachesTheMembersWithATrainingRightOnlyWhenSwitchedOnAndNotEmpty [failure] expected: "Values: ring_name=Central | setup_kind=AGILITY | level=MEDIUM |"
+== M3 (E117 point 3) no plannedPlacement in the member's class
+   file: src/main/java/com/agilityhub/core/clubs/scheduling/application/SessionProjection.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=PlanningIT
+   exit: 0
+   FAILED PlanningIT.T_16_20_aMemberReadsTheClassesPlannedCourseOnlyWhileSetupsAreShownToMembers [failure] expected: "plan-placement"
+== M4 (E117 point 4) a setup from a placement whose course was deleted
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=RingSetupsIT
+   exit: 0
+   FAILED RingSetupsIT.T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer [failure] [POST /api/v1/ring-setups {"setup":{"id":"62565fe8-abbb-416f-92cd-8f235103c23c","ringId":"e9t2-ring-a1","kind":"AGILITY","placementId":"1a735ab7-ea14-47ac-8221-a3b578345723","courseId":null,"imageFileKey":null,"imageUrl"
+== M5 (E117 point 4) hasViewer ignores the live course
+   file: src/main/java/com/agilityhub/core/courses/domain/RingSetupRules.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=RingSetupRulesTest -Dit.test=RingSetupsIT
+   exit: 0
+   FAILED RingSetupRulesTest.T_16_09_aPlacementOrACourseWithAModelHasAViewer [failure] Expecting value to be false but was true
+   FAILED RingSetupsIT.T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer [failure] Expecting value to be false but was true
+== M6 (E117 point 5) the placement's version checked after the policy
+   file: src/main/java/com/agilityhub/core/courses/application/PlacementService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=PlacementsIT
+   exit: 0
+   FAILED PlacementsIT.T_16_17_aGeometryChangeMarksThePlacementStaleUntilTheClientPutsItAgain [failure] [PUT /api/v1/placements/57fccb44-09a1-481f-846a-ace759cd9897 {"code":"PLACEMENT_BLOCKED","message":"La col·locació està bloquejada.","details":{"warnings":[{"id":"w","ruleId":"outside-ring","severity":"critical","message
+== M7 (R-16-10) the build sheet is bound without claiming the upload
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSheetService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=PlacementsIT
+   exit: 0
+   FAILED PlacementsIT.T_16_19_aBuildSheetIsTheClubsOwnPdfUploadAndReadsBackAsPdf [failure] [POST /api/v1/placements/d920522e-7b6e-41a3-a959-e406d7e785ad/build-sheet {"id":"d920522e-7b6e-41a3-a959-e406d7e785ad","courseId":"f99981e8-8fa3-41ac-95a0-59ec6f2c2257","courseVersion":0,"ringId":"e9t2-ring-a1","transfor
+== M8 (step 1) the demo build session is never finished
+   file: src/main/java/com/agilityhub/core/courses/application/DemoCoursesSeeder.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=DemoCoursesSeedIT
+   exit: 0
+   FAILED DemoCoursesSeedIT.T_16_08_T_16_10_theDemoSeedHoldsTheS16HappyPathThroughTheServicesAndRepeatsWithoutWrites [failure] Expecting actual:
+All mutants reverted: True

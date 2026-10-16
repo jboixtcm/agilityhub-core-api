@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+"""Rehearse the E9 backend gate (S16 courses, rings and build sessions) on a disposable local Compose stack.
+
+Seeds the Cànic twice (club:apply + seed:demo; the second run must change nothing), checks the E9-T05 demo state through the API
+(three club courses, two ring geometries with six markers, two placements, three active setups — one registered by a finished
+build session — and that session's Unity export), then walks S16's happy path with curl and exact statuses: the library (an
+instructor imports a fictional Smarter course; a member is refused), the ring geometry (the admin draws Muntanya with six
+markers; two markers are GEOMETRY_INVALID), the placement (a critical warning is PLACEMENT_BLOCKED, then stored) and its build
+sheet (a PDF uploaded by signed URL, bound and read back, R-16-10), the ring setup
+(it replaces the seeded one; the member's view has no staff fields and the course opens from it), a class that plans the
+placement («Recorregut previst» in the member's view of the class, R-16-13), the build session (a second
+phone joins by code, a live subscriber sees a tap within 2 s, finish refreshes the setup, a later tap is BUILD_SESSION_FINISHED)
+and its export (BuildSessionExportV1 with the six markers). Re-runnable: every run builds its own stack and removes it. Never
+prints a token or a join token. Reuses bin/e5-smoke's stack helpers.
+"""
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import os
+from pathlib import Path
+import queue
+import re
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+# seeds/demo-canic.yaml `courses`.
+DEMO_COURSES = {"Jumping C–D de dimarts", "Agility A–B d'iniciació", "Joc de túnels"}
+LIVE = 2.0
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def marker(label, index, x, y):
+    return dict(id="marker-" + label.lower(), label=label, markerUid="smoke-mun-" + label.lower(), role="ANCHOR", xM=x, yM=y, zM=0,
+                rotationYDeg=0 if y == 0 else 180, physicalWidthM=0.2, physicalHeightM=0.2, isFixed=True, isActive=True, aprilTagId=20 + index)
+
+
+def geometry(markers):
+    """Muntanya, 36 × 20 m: one door, no no-go zone, `markers` (A–F at the corners and the middle of the long sides)."""
+    points = [("A", 0, 0), ("B", 18, 0), ("C", 36, 0), ("D", 36, 20), ("E", 18, 20), ("F", 0, 20)][:markers]
+    return dict(lengthM=36, widthM=20, borderClearanceM=1, orientationDeg=None, surface="GRASS", notes=None, version=0,
+                doors=[dict(id="door-w", label="W", side="WEST", startM=8, endM=10, flow="BOTH", clearanceM=1.5, isActive=True, notes=None,
+                            polygonPointsM=[])],
+                noGoZones=[], markers=[marker(label, i, x, y) for i, (label, x, y) in enumerate(points)])
+
+
+def model(title, rows):
+    """A fictional course-core v1 `CourseData` (as the browser parses a Smarter file): `rows` = (type, x, y, rotation), numbered in order."""
+    obstacles, numbers = [], []
+    for i, (kind, x, y, rotation) in enumerate(rows):
+        obstacles.append(dict(id=f"obstacle-{i}", sourceId=str(i + 1), sourceCode=kind.lower(), obstacleType=kind, xMeters=x, yMeters=y,
+                              rotationDegrees=rotation, nominalLengthMeters=None, controlPointsMeters=None, colorKey=None, rawMetadata={}))
+        numbers.append(dict(id=f"number-{i}", text=str(i + 1), sequenceNumber=i + 1, xMeters=x - 1, yMeters=y, linkedObstacleSourceId=str(i + 1),
+                            obstacleConnectionPoint=None, rawMetadata={}))
+    return dict(id="smoke-course", source="smarter-agility", sourceFileName="smoke.txt", title=title, titleRaw=title, units="M",
+                designLengthMeters=34, designWidthMeters=18, canvasWidth=680, canvasHeight=360, origin="LB",
+                metadata=dict(type="", courseType="Agility", grade="", category="", location="", designer="Smoke Fictici", organization="",
+                              date="2026-10-16", exportVersion=None, obstacleSummary=None),
+                obstacles=obstacles, numbers=numbers, noGoZones=[], ignoredLogos=[], rawMetadata={})
+
+
+ROWS = [("Jump", 4, 4, 0), ("Tunnel4m", 12, 6, 90), ("Jump", 20, 4, 0), ("Weave", 28, 9, 90), ("Jump", 20, 14, 0), ("AFrame", 10, 13, 0)]
+
+
+class Stream:
+    """A live SSE subscriber (curl, as a phone's EventSource); the bearer travels in curl's stdin config, never in argv."""
+
+    def __init__(self, smoke, session_id, access):
+        config = "\n".join("header = " + json.dumps(h) for h in ("Host: " + smoke.host, "Authorization: Bearer " + access,
+                                                                 "Accept: text/event-stream"))
+        config += "\nurl = " + json.dumps(smoke.base + f"/api/v1/build-sessions/{session_id}/events")
+        self.process = subprocess.Popen(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--no-buffer", "--include", "--max-time", "120",
+                                         "--config", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        cwd=ROOT, env=smoke.env, text=True)
+        self.process.stdin.write(config)
+        self.process.stdin.close()
+        self.lines = queue.Queue()
+        threading.Thread(target=self.read, daemon=True).start()
+
+    def read(self):
+        for line in self.process.stdout:
+            self.lines.put(line.strip())
+        self.lines.put(None)
+
+    def next(self, prefix, timeout):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            try:
+                line = self.lines.get(timeout=max(0.01, deadline - time.monotonic()))
+            except queue.Empty:
+                break
+            if line is None:
+                raise AssertionError(f"The event stream ended before «{prefix}»")
+            if line.startswith(prefix):
+                return line
+        raise AssertionError(f"No «{prefix}» on the event stream within {timeout} s")
+
+    def event(self, name, timeout):
+        self.next("event:" + name, timeout)
+        return json.loads(self.next("data:", timeout)[len("data:"):])
+
+    def close(self):
+        if self.process.poll() is None:
+            self.process.kill()
+        self.process.wait(timeout=10)
+
+
+class E9:
+    def __init__(self, smoke_module, private, image):
+        self.m = smoke_module
+        self.s = smoke_module.Smoke(private, image)
+        self.s.project = "e9-smoke-" + secrets.token_hex(6)
+        args = self.s.compose_args
+        args[args.index("--project-name") + 1] = self.s.project
+        self.streams = []
+
+    # ---- helpers
+    def require(self, condition, message):
+        self.m.require(condition, message)
+
+    def call(self, *args, **kwargs):
+        return self.s.call(*args, **kwargs)
+
+    def record(self, step, status, values=""):
+        self.s.record(step, status, values)
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def sign_in(self):
+        s = self.s
+        self.admin = s.login("admin@example.test", "clubs-admin")
+        self.instructor = s.login("instructor@example.test", "clubs-app")
+        self.second = s.login("instructor.2@example.test", "clubs-app")
+        self.member = s.login("member@example.test", "clubs-app")
+
+    def rings(self):
+        rows = self.mongo('db.rings.find({clubId:' + json.dumps(self.s.canic) + '},{name:1}).toArray()')
+        return {r["name"]: r["_id"] for r in rows}
+
+    # ---- the gate
+    def scenario(self):
+        self.sign_in()
+        self.ring = self.rings()
+        self.demo_state()
+        course = self.library()
+        self.geometry()
+        placement = self.placement(course)
+        self.build_sheet(placement)
+        setup = self.ring_setup(placement)
+        self.planned_class(placement)
+        session = self.build_session(placement, setup)
+        self.export(session)
+
+    def demo_state(self):
+        s = self.s
+        courses = self.call("GET", "/api/v1/courses?sort=name", access=self.admin)
+        names = {c["name"] for c in courses["items"]}
+        self.require(DEMO_COURSES <= names, f"The demo courses are missing: {sorted(DEMO_COURSES - names)}")
+        placements = self.call("GET", "/api/v1/placements", access=self.admin)
+        self.require(len(placements) == 2 and all(not p["stale"] for p in placements), "The demo has not its two current placements")
+        mine = self.call("GET", "/api/v1/me/ring-setups", access=self.member)
+        shown = {r["ringId"]: r["setup"] for r in mine if r["setup"]}
+        central, carretera, muntanya = self.ring["Central"], self.ring["Carretera"], self.ring["Muntanya"]
+        self.require({central, carretera, muntanya} <= set(shown), f"The member does not see the three demo setups: {sorted(shown)}")
+        self.require(shown[central]["kind"] == "JUMPING" and shown[central]["levelLabel"] == "C–D" and shown[central]["hasViewer"],
+                     f"Central's setup: {shown[central]}")
+        self.require(shown[muntanya]["kind"] == "FUN" and shown[muntanya]["levelLabel"] == "EASY", f"Muntanya's setup: {shown[muntanya]}")
+        for ring in (central, carretera):
+            g = self.call("GET", f"/api/v1/rings/{ring}/geometry", access=self.instructor, quiet=True)
+            self.require(len(g["markers"]) == 6 and g["version"] == 1, "A demo geometry without its six markers")
+        session = self.mongo('db.build_sessions.findOne({clubId:' + json.dumps(s.canic) + '},{_id:1,status:1,obstacles:1})')
+        self.require(session["status"] == "COMPLETED" and all(o["status"] == "PLACED" for o in session["obstacles"]), "The demo build session is not finished")
+        export = self.call("GET", f"/api/v1/build-sessions/{session['_id']}/export", access=self.admin)
+        # The export spells statuses as the planner does (`completed`, `placed`).
+        self.require(export["schemaVersion"] == 1 and export["buildSession"]["status"] == "completed" and len(export["ring"]["markers"]) == 6
+                     and {o["status"] for o in export["buildSession"]["obstacle_statuses"]} == {"placed"},
+                     f"The demo session's export is not a finished BuildSessionExportV1: {export['schemaVersion']}, {export['buildSession']['status']}")
+        self.record("seed:demo E9 section (Cànic)", "seeded",
+                    f"courses {sorted(DEMO_COURSES)}; geometries Central and Carretera (6 markers, v1); 2 placements; active setups "
+                    f"Central {shown[central]['kind']} {shown[central]['levelLabel']} (from the finished build session), Carretera "
+                    f"{shown[carretera]['kind']} {shown[carretera]['levelLabel']}, Muntanya {shown[muntanya]['kind']} {shown[muntanya]['levelLabel']}; "
+                    f"the session's export: {len(export['buildSession']['obstacle_statuses'])} obstacle statuses, 6 markers")
+
+    def library(self):
+        body = dict(name=dict(ca="Recorregut del smoke E9", es="Recorrido del smoke E9"), discipline="AGILITY", source="SMARTER", visibility="CLUB",
+                    schemaVersion=1, normalizedJson=model("Recorregut del smoke E9", ROWS), levelIds=[], tags=["smoke"], agilityhubLevel="MEDIUM",
+                    pathLengthM=61.2)
+        self.call("POST", "/api/v1/courses", 403, access=self.member, body=body, idempotent=True, error="FORBIDDEN")
+        broken = json.loads(json.dumps(body)); broken["normalizedJson"]["obstacles"][0]["obstacleType"] = "Trampoline"
+        details = self.call("POST", "/api/v1/courses", 400, access=self.instructor, body=broken, idempotent=True, error="COURSE_MODEL_INVALID")["details"]
+        course = self.call("POST", "/api/v1/courses", 201, access=self.instructor, body=body, idempotent=True)
+        self.require(course["stats"]["obstacleCount"] == len(ROWS) and course["stats"]["pathLengthM"] == 61.2 and course["schemaVersion"] == 1,
+                     f"The imported course's facts: {course['stats']}")
+        listed = self.call("GET", "/api/v1/courses?filter=tag:eq:smoke", access=self.instructor)
+        self.require([c["id"] for c in listed["items"]] == [course["id"]], "The library does not list the imported course")
+        self.call("GET", "/api/v1/courses", 403, access=self.member, error="FORBIDDEN")
+        self.record("POST /courses (library, instructor)", "201", f"{course['stats']['obstacleCount']} obstacles, pathLengthM "
+                    f"{course['stats']['pathLengthM']}, AgilityHub level {course['agilityhubLevel']}; an unknown obstacle type → 400 COURSE_MODEL_INVALID "
+                    f"({len(details['schemaErrors'])} schema error(s)); a member → 403")
+        return course
+
+    def geometry(self):
+        ring = self.ring["Muntanya"]
+        details = self.call("PUT", f"/api/v1/rings/{ring}/geometry", 422, access=self.admin, body=geometry(2), error="GEOMETRY_INVALID")["details"]
+        self.call("PUT", f"/api/v1/rings/{ring}/geometry", 403, access=self.instructor, body=geometry(6), error="FORBIDDEN")
+        drawn = self.call("PUT", f"/api/v1/rings/{ring}/geometry", access=self.admin, body=geometry(6))
+        self.require(drawn["version"] == 1 and len(drawn["markers"]) == 6, "Muntanya's geometry was not stored")
+        read = self.call("GET", f"/api/v1/rings/{ring}/geometry", access=self.instructor)
+        same = ("version", "lengthM", "widthM", "markers", "doors")
+        self.require({k: read[k] for k in same} == {k: drawn[k] for k in same}, "The instructor reads another geometry")
+        self.record("PUT /rings/{Muntanya}/geometry (admin)", "200", f"36 × 20 m, 6 markers, version {drawn['version']}; two markers → 422 "
+                    f"GEOMETRY_INVALID {sorted({v['rule'] for v in details['violations']})}; an instructor → 403")
+
+    def placement(self, course):
+        ring = self.ring["Muntanya"]
+        resolved = [dict(obstacleId=f"obstacle-{i}", type=kind, x=x + 1, y=y + 1, rotationDeg=rotation, numbers=[i + 1])
+                    for i, (kind, x, y, rotation) in enumerate(ROWS)]
+        critical = dict(id="w-door", ruleId="door-clearance", severity="critical", message="Obstacle 1 blocks the door (fictional)",
+                        obstacleSourceId="1", courseNoGoZoneId=None, ringNoGoZoneId=None, doorId="door-w", distanceMeters=0.4, thresholdMeters=1.5)
+        body = dict(courseId=course["id"], courseVersion=course["version"], ringId=ring, placementMode="PRESERVE_METERS",
+                    transform=dict(offsetXM=1, offsetYM=1, rotationDeg=0, flipX=False, flipY=False), resolvedObstacles=resolved, warnings=[critical],
+                    name="Smoke a la Muntanya")
+        blocked = self.call("POST", "/api/v1/placements", 422, access=self.instructor, body=body, idempotent=True, error="PLACEMENT_BLOCKED")["details"]
+        body["warnings"] = [dict(critical, id="w-margin", ruleId="border-clearance", severity="warning", message="Close to the border (fictional)",
+                                 doorId=None, obstacleSourceId="6")]
+        placement = self.call("POST", "/api/v1/placements", 201, access=self.instructor, body=body, idempotent=True)
+        self.require(not placement["stale"] and len(placement["resolvedObstacles"]) == len(ROWS), "The placement was not stored as sent")
+        self.record("POST /placements (instructor)", "201", f"{len(ROWS)} resolved obstacles, warning kept ({placement['warnings'][0]['ruleId']}); "
+                    f"a critical warning → 422 PLACEMENT_BLOCKED ({blocked['warnings'][0]['ruleId']})")
+        return placement
+
+    def transfer(self, method, url, *, access=None, data=None, mime=None):
+        """A raw request (a signed upload, a PDF download): status, content type and body; tokens stay in curl's stdin config. A local
+        signed link may name the container's own host, so its path is sent to this stack."""
+        path = url.split("://", 1)[1].split("/", 1)[1] if "://" in url else url.lstrip("/")
+        headers = ["Host: " + self.s.host] + (["Authorization: Bearer " + access] if access else []) + (["Content-Type: " + mime, "If-None-Match: *"] if mime else [])
+        target = self.s.private / "transfer"
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--request", method, "--output", str(target),
+                "--write-out", "%{http_code} %{content_type}", "--config", "-"]
+        if data is not None:
+            payload = self.s.private / "transfer-request"
+            payload.write_bytes(data)
+            args += ["--data-binary", "@" + str(payload)]
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.s.base + "/" + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.s.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
+        status, _, content_type = result.stdout.partition(" ")
+        shown = re.sub("[0-9a-f]{8}-[0-9a-f-]{27}", "<id>", path.split("?")[0].rsplit("/", 1)[0])
+        print(f"curl {method} /{shown}/<file> -> {status}", flush=True)
+        return int(status), content_type, target.read_bytes() if target.exists() else b""
+
+    def build_sheet(self, placement):
+        """R-16-10 (T-16-19): the client's PDF goes up by signed URL (purpose BUILD_SHEET), is bound to the placement and reads back."""
+        pdf = b"%PDF-1.4\n% fictional build sheet of the E9 smoke\n%%EOF\n"
+        grant = self.call("POST", "/api/v1/courses/upload-urls", 201, access=self.instructor,
+                          body=dict(purpose="BUILD_SHEET", contentType="application/pdf", size=len(pdf)))
+        status, _, _ = self.transfer("PUT", grant["uploadUrl"], data=pdf, mime="application/pdf")
+        self.require(status in (200, 204), f"The signed build-sheet upload answered {status}")
+        path = f"/api/v1/placements/{placement['id']}/build-sheet"
+        self.call("GET", path, 404, access=self.instructor, error="NOT_FOUND")
+        attached = self.call("POST", path, access=self.instructor, body=dict(fileKey=grant["fileKey"]))
+        self.require(attached["buildSheetFileKey"] == grant["fileKey"] and attached["version"] == placement["version"], "The sheet was not bound as sent")
+        status, content_type, body = self.transfer("GET", path, access=self.admin)
+        self.require(status == 200 and content_type.startswith("application/pdf") and body == pdf, f"GET build-sheet: {status} {content_type}")
+        self.record("POST /courses/upload-urls {BUILD_SHEET} + signed PUT + POST/GET /placements/{id}/build-sheet", "201 · 2xx · 200 · 200",
+                    f"{len(pdf)}-byte PDF read back byte for byte as {content_type.split(';')[0]}; the placement's version stays {attached['version']}; "
+                    "before it, GET → 404")
+
+    def ring_setup(self, placement):
+        ring = self.ring["Muntanya"]
+        before = self.mongo('db.rings.findOne({_id:' + json.dumps(ring) + '}).activeSetupId')
+        created = self.call("POST", "/api/v1/ring-setups", 201, access=self.instructor, idempotent=True,
+                            body=dict(ringId=ring, kind="AGILITY", placementId=placement["id"], agilityhubLevel="MEDIUM", levelIds=[],
+                                      notes="Muntat pel smoke (nota fictícia)"))
+        setup = created["setup"]
+        self.require(created["replacedSetupId"] == before, "The new setup did not replace the seeded one")
+        replaced = self.call("GET", f"/api/v1/ring-setups/{before}", access=self.admin, quiet=True)
+        self.require(replaced["status"] == "DISMANTLED", f"The replaced setup is {replaced['status']}")
+        mine = {r["ringId"]: r["setup"] for r in self.call("GET", f"/api/v1/me/ring-setups?ringIds={ring}", access=self.member)}
+        summary = mine[ring]
+        self.require(summary["id"] == setup["id"] and summary["hasViewer"] and "notes" not in summary and "builtByAccountId" not in summary,
+                     f"The member's summary: {sorted(summary)}")
+        seen = self.call("GET", f"/api/v1/ring-setups/{setup['id']}", access=self.member)
+        self.require(not {"notes", "builtByAccountId"} & set(seen), f"The member reads staff fields: {sorted(set(seen) & {'notes', 'builtByAccountId'})}")
+        course = self.call("GET", f"/api/v1/courses/{placement['courseId']}", access=self.member)
+        self.require(course["id"] == placement["courseId"], "The member cannot open the course the setup shows")
+        self.record("POST /ring-setups (instructor)", "201", f"AGILITY on Muntanya from the placement, replacing the seeded setup ({replaced['status']}); "
+                    f"the member's summary «{summary['levelLabel']}», hasViewer {summary['hasViewer']}, no notes nor builder; the course opens (R-16-16)")
+        return setup
+
+    def planned_class(self, placement):
+        """R-16-13 (E117 point 3): a class on Muntanya plans the placement; the member reads «Recorregut previst» (screen 07)."""
+        ring = self.ring["Muntanya"]
+        found = self.mongo('db.class_sessions.find({clubId:' + json.dumps(self.s.canic) + ',ringId:' + json.dumps(ring) + ',state:"ACTIVE",'
+                           'startsAt:{$gt:new Date()}}).sort({startsAt:1}).limit(1).toArray().map(c=>c._id)')
+        self.require(found, "The demo has no future ACTIVE class on Muntanya")
+        cid = found[0]
+        version = self.call("GET", f"/api/v1/class-sessions/{cid}", access=self.admin, quiet=True)["version"]
+        carretera = self.mongo('db.placements.findOne({clubId:' + json.dumps(self.s.canic) + ',ringId:' + json.dumps(self.ring["Carretera"]) + '})._id')
+        other = self.call("PATCH", f"/api/v1/class-sessions/{cid}", 422, access=self.admin, body=dict(version=version, placementId=carretera),
+                          error="PLACEMENT_RING_MISMATCH")
+        planned = self.call("PATCH", f"/api/v1/class-sessions/{cid}", access=self.admin, body=dict(version=version, placementId=placement["id"]))
+        self.require(planned["placementId"] == placement["id"], "The class does not plan the placement")
+        seen = self.call("GET", f"/api/v1/class-sessions/{cid}", access=self.member)
+        expected = dict(placementId=placement["id"], courseName="Recorregut del smoke E9")
+        self.require(seen.get("plannedPlacement") == expected and "placementId" not in seen, f"The member's class: {seen.get('plannedPlacement')}")
+        self.record("PATCH /class-sessions/{id} {placementId} (admin) + GET as member", "200 · 200",
+                    f"«Recorregut previst»: {seen['plannedPlacement']['courseName']}; another ring's placement → 422 {other['code']}")
+
+    def build_session(self, placement, setup):
+        started = self.call("POST", "/api/v1/build-sessions", 201, access=self.instructor, idempotent=True,
+                            body=dict(placementId=placement["id"], live=True))
+        sid = started["id"]
+        self.require(started["status"] == "NOT_STARTED" and all(o["status"] == "NOT_PLACED" for o in started["obstacles"]), "The session did not start clean")
+        joined = self.call("POST", "/api/v1/build-sessions/join", access=self.second, body=dict(code=started["joinCode"].lower()))
+        self.require(len(joined["participants"]) == 1 and joined["participants"][0]["joinedVia"] == "CODE", "The second phone did not join by code")
+        stream = Stream(self.s, sid, self.second)
+        self.streams.append(stream)
+        self.require(" 200" in stream.next("HTTP/", 10), "The event stream did not open")
+        stream.next(":open", 10)
+        delays = []
+        for obstacle in started["obstacles"]:
+            tapped = time.monotonic()
+            marked = self.call("PATCH", f"/api/v1/build-sessions/{sid}/obstacles/{obstacle['obstacleId']}", access=self.instructor,
+                               body=dict(status="PLACED"), quiet=True)
+            event = stream.event("obstacle", LIVE)
+            delays.append(time.monotonic() - tapped)
+            self.require(event["obstacleId"] == obstacle["obstacleId"] and event["status"] == "PLACED" and event["version"] == marked["version"],
+                         f"The subscriber saw another tap: {event}")
+        print(f"curl PATCH /api/v1/build-sessions/<id>/obstacles/<obstacle> ×{len(delays)} -> 200; slowest event {max(delays):.3f} s", flush=True)
+        finished = self.call("POST", f"/api/v1/build-sessions/{sid}/finish", access=self.instructor, idempotent=True)
+        self.require(finished["status"] == "COMPLETED", "The session did not finish")
+        stream.event("finished", LIVE)
+        late = self.call("PATCH", f"/api/v1/build-sessions/{sid}/obstacles/{started['obstacles'][0]['obstacleId']}", 422, access=self.second,
+                         body=dict(status="SKIPPED"), error="BUILD_SESSION_FINISHED")
+        active = self.mongo('db.rings.findOne({_id:' + json.dumps(self.ring["Muntanya"]) + '}).activeSetupId')
+        refreshed = self.call("GET", f"/api/v1/ring-setups/{active}", access=self.admin, quiet=True)
+        self.require(active == setup["id"] and refreshed["status"] == "ACTIVE" and refreshed["builtAt"] != setup["builtAt"],
+                     "finish did not refresh the ring's setup of this placement")
+        self.record("POST /build-sessions + join + PATCH ×n + finish", "201 · 200 · 200 · 200",
+                    f"{len(delays)} taps, each seen by the live subscriber in < {LIVE:.0f} s (slowest {max(delays):.3f} s); finish → COMPLETED, "
+                    f"stream «finished», the ring's setup refreshed; a later tap → 422 {late['code']}")
+        return sid
+
+    def export(self, sid):
+        export = self.call("GET", f"/api/v1/build-sessions/{sid}/export", access=self.instructor)
+        statuses = export["buildSession"]["obstacle_statuses"]
+        self.require(export["schemaVersion"] == 1 and export["ring"]["id"] == self.ring["Muntanya"] and len(export["ring"]["markers"]) == 6,
+                     "The export is not Muntanya's BuildSessionExportV1")
+        self.require(len(statuses) == len(ROWS) and export["buildSession"]["status"] == "completed" and {o["status"] for o in statuses} == {"placed"},
+                     "The export lacks the session's placed obstacles")
+        self.record("GET /build-sessions/{id}/export", "200", f"BuildSessionExportV1 schemaVersion {export['schemaVersion']}, ring "
+                    f"{export['ring']['name']} with {len(export['ring']['markers'])} markers {[m['label'] for m in export['ring']['markers']]}, "
+                    f"{len(statuses)} obstacle statuses, course «{export['course']['title']}»")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.s.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.s.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E9 backend gate: the demo seed twice (0 changes), its courses, geometries, placements, setups and finished build session "
+              "through the API, and S16's happy path: library → geometry → placement → build sheet → ring setup → a class's planned placement → "
+              "live build session → export", flush=True)
+
+    def cleanup(self):
+        for stream in self.streams:
+            stream.close()
+        self.s.cleanup()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    module = load_smoke()
+    parser.add_argument("--image", nargs="?", const=module.PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building the working tree; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e9-") as directory:
+        smoke = E9(module, Path(directory), options.image)
+        try:
+            smoke.s.start(SEEDS, "Cànic")
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, KeyError, TypeError, IndexError, ValueError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

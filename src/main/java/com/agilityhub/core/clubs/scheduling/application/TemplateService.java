@@ -106,12 +106,14 @@ public class TemplateService {
         return write(() -> {
             context.lockReferences(); var before = current(id, version); var old = templateClass(before, classId);
             Integer capacity = patch.containsKey("capacity") ? (Integer) patch.get("capacity") : old.capacityMode() == CapacityMode.MANUAL ? old.capacity() : null;
-            String placementId = (String) patch.getOrDefault("placementId", old.placementId());
+            String ringId = (String) patch.getOrDefault("ringId", old.ringId());
+            boolean moved = !patch.containsKey("placementId") && !Objects.equals(old.ringId(), ringId);
+            String placementId = moved ? placements.kept(old.placementId()) : (String) patch.getOrDefault("placementId", old.placementId());
             var next = buildClass(before, classId, (String) patch.getOrDefault("bandId", old.bandId()), (DayOfWeek) patch.getOrDefault("dayOfWeek", old.dayOfWeek()),
-                    (List<String>) patch.getOrDefault("instructorIds", old.instructorIds()), (String) patch.getOrDefault("ringId", old.ringId()),
+                    (List<String>) patch.getOrDefault("instructorIds", old.instructorIds()), ringId,
                     (List<String>) patch.getOrDefault("levelIds", old.levelIds()), capacity, (String) patch.getOrDefault("description", old.description()), placementId);
             // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
-            if (patch.containsKey("placementId") || !Objects.equals(old.ringId(), next.ringId())) { placements.check(placementId, next.ringId()); }
+            if (patch.containsKey("placementId") || moved) { placements.check(placementId, next.ringId()); }
             return save(before, changed(before, before.timeBands(), before.classes().stream().map(c -> c.id().equals(classId) ? next : c).toList()));
         });
     }

@@ -43,7 +43,7 @@ public class RingSetupService {
     public record Summary(String id, SetupKind kind, String levelLabel, Instant builtAt, LocalDate expectedUntil, String thumbnailUrl, boolean hasViewer) { }
     public record RingSummary(String ringId, Summary setup) { }
     /** S09 R-09-15: an active setup as `GET /training-slots` shows it, its level names in a language. */
-    public record Active(String id, SetupKind kind, List<String> levelNames, Instant builtAt, LocalDate expectedUntil) { }
+    public record Active(String id, SetupKind kind, List<String> levelNames, Instant builtAt, LocalDate expectedUntil, AgilityHubLevel agilityhubLevel) { }
     static final String ENTITY = "RingSetup";
 
     private final RingSetupRepository setups;
@@ -76,6 +76,8 @@ public class RingSetupService {
         var ring = ring(in.ringId());
         var course = in.courseId() == null ? null : access.course(in.courseId(), false);
         var placement = in.placementId() == null ? null : placements.findById(in.placementId()).orElseThrow(() -> new ApiException(NOT_FOUND));
+        // E117 point 4: the placement's course must still be there (`404`, as a build session on it), so no setup shows a deleted course.
+        if (placement != null) { access.course(placement.courseId(), false); }
         var levelIds = levels(in.levelIds());
         var check = RingSetupRules.check(in.kind(), RingSetupRules.sources(in.placementId(), in.courseId(), in.imageFileKey()));
         if (!check.unexpected().isEmpty()) { throw PlacementService.invalid(field(check.unexpected().getFirst()), "VALIDATION_ERROR"); }
@@ -203,7 +205,7 @@ public class RingSetupService {
         String thumbnail = setup.imageFileKey() != null ? files.url(setup.imageFileKey()) : course == null ? null : files.url(course.thumbnailFileKey());
         boolean model = course != null && course.normalizedJson() != null && !course.normalizedJson().isNull();
         return new Summary(setup.id(), setup.kind(), LevelLabels.label(codes, setup.levelIds(), setup.agilityhubLevel()), setup.builtAt(), setup.expectedUntil(),
-                thumbnail, RingSetupRules.hasViewer(setup.placementId(), model));
+                thumbnail, RingSetupRules.hasViewer(setup.placementId(), course != null, model));
     }
     /** The course a setup shows: its placement's, else its own; a deleted or missing one is none. */
     private Course shownCourse(RingSetup setup) {
@@ -271,10 +273,15 @@ public class RingSetupService {
     /** S09 R-09-15 (`RingSetupPort`): the club's setup {@code id} while it is `ACTIVE`. */
     public Optional<Active> active(String id, Locale locale) {
         return setups.findById(id).filter(setup -> setup.status() == SetupStatus.ACTIVE)
-                .map(setup -> new Active(setup.id(), setup.kind(), labels.names(setup.levelIds(), locale), setup.builtAt(), setup.expectedUntil()));
+                .map(setup -> new Active(setup.id(), setup.kind(), labels.names(setup.levelIds(), locale), setup.builtAt(), setup.expectedUntil(),
+                        setup.agilityhubLevel()));
     }
     /** S06's `placementId` (R-16-13, T-16-20): the ring of a placement of the club, or empty when the club has no such placement. */
     public Optional<String> placementRing(String placementId) { return placements.findById(placementId).map(Placement::ringId); }
+    /** S06's «Recorregut previst» for members (R-16-13, E117 point 3): the name of the live course of the club's placement, in {@code locale}. */
+    public Optional<String> plannedCourseName(String placementId, Locale locale) {
+        return placements.findById(placementId).map(placement -> live(placement.courseId())).map(course -> course.name().resolve(locale).value());
+    }
 
     // ---- helpers ----
 

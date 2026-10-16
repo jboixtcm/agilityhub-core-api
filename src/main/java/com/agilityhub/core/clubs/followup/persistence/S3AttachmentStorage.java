@@ -28,6 +28,10 @@ public class S3AttachmentStorage implements AttachmentStorage {
         client.putObject(request -> request.bucket(bucket).key(objectKey(key)).contentType(mimeType).contentLength(size).ifNoneMatch("*"),
                 software.amazon.awssdk.core.sync.RequestBody.fromInputStream(input, size));
     }
+    @Override public byte[] read(String key) {
+        try { return client.getObjectAsBytes(request -> request.bucket(bucket).key(objectKey(key))).asByteArray(); }
+        catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException missing) { throw new ApiException(ErrorCode.NOT_FOUND); }
+    }
     @Override public Metadata metadata(String key) {
         try {
             var result = client.headObject(request -> request.bucket(bucket).key(objectKey(key)));

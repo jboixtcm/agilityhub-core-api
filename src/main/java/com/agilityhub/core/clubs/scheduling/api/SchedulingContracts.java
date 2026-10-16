@@ -99,7 +99,10 @@ public final class SchedulingContracts {
     public record ClassSessionMemberView(String id, LocalDate date, String startTime, String endTime,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClassRing ring, List<String> levelIds, String displayDescription,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Visibility follows bookings.showInstructorHoursBefore") String instructorName,
-            ClassState state, int capacity, int freeSeats, @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting) { }
+            ClassState state, int capacity, int freeSeats, @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "S16 R-16-13 «Recorregut previst» (screen 07): only with COURSES and "
+                    + "courses.showSetupToMembers; null when the class plans no placement or its course is gone") PlannedPlacement plannedPlacement) { }
+    public record PlannedPlacement(String placementId, @Schema(description = "The course's name in the reader's language") String courseName) { }
     public record ClassRing(String id, String name, String color) { }
     public record CancellationPreview(List<CancellationBooking> bookings, int waitlistCount) { }
     public record CancellationBooking(String bookingId, String memberName, String dogName,

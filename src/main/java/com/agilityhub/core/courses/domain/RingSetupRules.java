@@ -51,6 +51,11 @@ public final class RingSetupRules {
         return new SourceCheck(sources.isEmpty(), List.of());
     }
 
-    /** R-16-09 `hasViewer`: a placed or library course can be drawn in the 2D viewer; a photo or nothing cannot. */
-    public static boolean hasViewer(String placementId, boolean courseWithModel) { return placementId != null || courseWithModel; }
+    /**
+     * R-16-09 `hasViewer`: a placed or library course can be drawn in the 2D viewer while the course is live; a photo, nothing or a
+     * deleted course cannot (E117 point 4).
+     */
+    public static boolean hasViewer(String placementId, boolean liveCourse, boolean courseWithModel) {
+        return liveCourse && (placementId != null || courseWithModel);
+    }
 }

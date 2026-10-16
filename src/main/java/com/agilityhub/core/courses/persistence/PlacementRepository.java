@@ -51,6 +51,12 @@ public class PlacementRepository extends CourseTenantRepository<Placement> {
     public List<String> ofCourse(String courseId) {
         return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("courseId").is(courseId)), "_id", Placement.class, String.class);
     }
+    /** R-16-10: the placement's build sheet, at any version (the sheet is not an edit of the placement). */
+    public void attachSheet(String id, String fileKey, java.time.Instant now, String actor) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(id));
+        if (mongo.updateFirst(query, new Update().set("buildSheetFileKey", fileKey).set("updatedAt", now).set("updatedByAccountId", actor), Placement.class)
+                .getMatchedCount() != 1) { throw new ApiException(ErrorCode.NOT_FOUND); }
+    }
     /** Optimistic replacement at the stored version; another version is `409 STALE_VERSION`. */
     public void update(Placement next, long expectedVersion) {
         var query = tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion));
