@@ -3,10 +3,13 @@ package com.agilityhub.core.courses.api;
 import com.agilityhub.core.courses.application.BuildSessionService;
 import com.agilityhub.core.courses.domain.BuildSessionRules;
 import com.agilityhub.core.courses.domain.CourseParts.BuildObstacle;
+import com.agilityhub.core.courses.domain.CourseTypes.BuildStatus;
 import com.agilityhub.core.courses.persistence.BuildSession;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import org.springframework.beans.factory.DisposableBean;
@@ -22,39 +25,65 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * and, as a fallback, from a one-second poll of the sessions that have subscribers, so another API instance's write or a missed
  * signal still arrives in under two seconds. Data never names more than the session view does; a client that reconnects reads
  * `GET /build-sessions/{id}` again for the state it missed.
+ * <p>
+ * E9-T06: the timer only reads and queues. Each subscriber has its own bounded queue ({@link #QUEUE} frames), sent by a pool
+ * thread one frame at a time, so a client that stops reading (a full TCP buffer) blocks only its own send: its queue filling up,
+ * or one send blocked for {@link #WRITE_TIMEOUT}, closes its stream (EventSource reconnects). A stream lives at most
+ * {@link #TIMEOUT} and never longer than the access token it opened with, so a lost role, module or membership stops at the next
+ * reconnection; a session that has outlived `courses.buildSessionMaxHours` gets `finished {ABANDONED}` at the next poll.
  */
 @Component
 class BuildSessionStreams implements DisposableBean {
     static final Duration HEARTBEAT = Duration.ofSeconds(20);
     static final Duration POLL = Duration.ofSeconds(1);
-    /** A stream ends after this long; the browser's EventSource reconnects by itself. */
+    /** A stream ends after this long at most; the browser's EventSource reconnects by itself. */
     static final Duration TIMEOUT = Duration.ofMinutes(30);
+    /** A send still blocked after this long (a client that stopped reading) closes its stream. */
+    static final Duration WRITE_TIMEOUT = Duration.ofSeconds(10);
+    /** The frames one subscriber may have waiting; one more closes its stream. */
+    static final int QUEUE = 64;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BuildSessionStreams.class);
     record Key(String clubId, String sessionId) { }
 
     private final BuildSessionService sessions;
     private final ObjectMapper mapper;
+    private final Clock clock;
+    /** The polls, heartbeats, after-commit refreshes and the write watchdog; it never writes to a client. */
     private final ScheduledExecutorService timer;
+    /** The writes: each subscriber has at most one send running here, so a blocked client holds only its own thread. */
+    private final ExecutorService senders;
     private final Map<Key, Set<Subscriber>> topics = new ConcurrentHashMap<>();
+    private volatile Duration writeTimeout = WRITE_TIMEOUT;
 
-    BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper) {
-        this.sessions = sessions; this.mapper = mapper;
-        timer = Executors.newSingleThreadScheduledExecutor(task -> {
-            var thread = new Thread(task, "build-session-streams"); thread.setDaemon(true); return thread;
-        });
+    BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock) {
+        this.sessions = sessions; this.mapper = mapper; this.clock = clock;
+        timer = Executors.newSingleThreadScheduledExecutor(task -> daemon(task, "build-session-streams"));
+        senders = Executors.newCachedThreadPool(task -> daemon(task, "build-session-sender"));
         timer.scheduleWithFixedDelay(this::heartbeat, HEARTBEAT.toMillis(), HEARTBEAT.toMillis(), TimeUnit.MILLISECONDS);
         timer.scheduleWithFixedDelay(this::poll, POLL.toMillis(), POLL.toMillis(), TimeUnit.MILLISECONDS);
     }
+    private static Thread daemon(Runnable task, String name) { var thread = new Thread(task, name); thread.setDaemon(true); return thread; }
 
-    /** A new stream on {@code session} as the caller read it: a closed one gets `finished` at once and ends. */
-    SseEmitter subscribe(BuildSession session) {
-        var emitter = new SseEmitter(TIMEOUT.toMillis());
-        var subscriber = new Subscriber(emitter, session);
-        if (!BuildSessionRules.open(session.status())) { subscriber.finish(session); return emitter; }
+    /** How long a stream opened at {@code now} with a token expiring at {@code expiresAt} (none: {@link #TIMEOUT}) may live. */
+    static Duration lifetime(Instant now, Instant expiresAt) {
+        if (expiresAt == null) { return TIMEOUT; }
+        var left = Duration.between(now, expiresAt);
+        if (left.compareTo(TIMEOUT) > 0) { return TIMEOUT; }
+        return left.isNegative() || left.isZero() ? Duration.ofMillis(1) : left;
+    }
+
+    /** A new stream on {@code session} as the caller read it, living no longer than the caller's token ({@code expiresAt}). */
+    SseEmitter subscribe(BuildSession session, Instant expiresAt) {
+        return subscribe(session, new SseEmitter(lifetime(clock.instant(), expiresAt).toMillis()));
+    }
+    /** {@code emitter} subscribed to {@code session}: a closed or outlived one gets `finished` at once and ends. */
+    SseEmitter subscribe(BuildSession session, SseEmitter emitter) {
         var key = new Key(session.clubId(), session.id());
+        var subscriber = new Subscriber(key, emitter, session);
+        emitter.onCompletion(subscriber::gone); emitter.onError(error -> subscriber.gone()); emitter.onTimeout(subscriber::expired);
+        if (!BuildSessionRules.open(session.status())) { subscriber.finish(session); return emitter; }
+        if (sessions.over(session)) { subscriber.outlived(session); return emitter; }
         topics.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(subscriber);
-        Runnable remove = () -> remove(key, subscriber);
-        emitter.onCompletion(remove); emitter.onTimeout(remove); emitter.onError(error -> remove.run());
         // Commits the response headers now, so the client knows the stream is open before the first change or heartbeat.
         subscriber.comment("open");
         return emitter;
@@ -68,18 +97,29 @@ class BuildSessionStreams implements DisposableBean {
     }
 
     int subscribers() { return topics.values().stream().mapToInt(Set::size).sum(); }
+    /** Tests only: a shorter write timeout. */
+    void writeTimeout(Duration timeout) { this.writeTimeout = timeout; }
 
-    private void poll() { for (var key : List.copyOf(topics.keySet())) { refresh(key); } }
-    private void heartbeat() { topics.values().forEach(set -> set.forEach(subscriber -> subscriber.comment("heartbeat"))); }
+    void poll() {
+        for (var key : List.copyOf(topics.keySet())) { refresh(key); }
+        long now = System.nanoTime();
+        topics.values().forEach(set -> List.copyOf(set).forEach(subscriber -> subscriber.watch(now)));
+    }
+    void heartbeat() { topics.values().forEach(set -> List.copyOf(set).forEach(subscriber -> subscriber.comment("heartbeat"))); }
 
     void refresh(Key key) {
         var subscribers = topics.get(key);
         if (subscribers == null || subscribers.isEmpty()) { return; }
         try {
-            Optional<BuildSession> current;
-            try (var scope = TenantContext.open(key.clubId())) { current = sessions.current(key.sessionId()); }
+            Optional<BuildSession> current; boolean over;
+            try (var scope = TenantContext.open(key.clubId())) {
+                current = sessions.current(key.sessionId());
+                over = current.isPresent() && sessions.over(current.get());
+            }
             for (var subscriber : List.copyOf(subscribers)) {
-                if (current.isEmpty()) { subscriber.end(); } else { subscriber.update(current.get()); }
+                if (current.isEmpty()) { subscriber.close(); }
+                else if (over) { subscriber.outlived(current.get()); }
+                else { subscriber.update(current.get()); }
             }
         } catch (RuntimeException failure) {
             // One session's failure (the database unreachable for a moment) must not stop the timer for every other stream.
@@ -91,51 +131,117 @@ class BuildSessionStreams implements DisposableBean {
     }
     @Override public void destroy() {
         timer.shutdownNow();
-        topics.values().forEach(set -> set.forEach(Subscriber::end));
+        topics.values().forEach(set -> List.copyOf(set).forEach(Subscriber::close));
         topics.clear();
+        senders.shutdown();
     }
 
-    /** One stream: what it has sent so far, and its sends, one at a time. */
+    /** One stream: what it has sent so far, and its queue of frames, sent one at a time by a pool thread. */
     final class Subscriber {
+        private final Key key;
         private final SseEmitter emitter;
         private final Map<String, BuildObstacle> sent = new HashMap<>();
+        private final ArrayDeque<SseEmitter.SseEventBuilder> queue = new ArrayDeque<>();
         private long version;
-        private boolean ended;
-        Subscriber(SseEmitter emitter, BuildSession session) { this.emitter = emitter; remember(session); }
+        /** No frame is taken any more: the stream completes once the queue is sent (at once when it was dropped). */
+        private boolean closing;
+        private boolean draining;
+        private boolean completed;
+        /** The {@link System#nanoTime()} at which the send in progress started; 0 when none is. */
+        private volatile long sending;
+        Subscriber(Key key, SseEmitter emitter, BuildSession session) { this.key = key; this.emitter = emitter; remember(session); }
 
         synchronized void update(BuildSession session) {
-            if (ended || session.version() <= version) { return; }
+            if (closing || session.version() <= version) { return; }
             for (var obstacle : session.obstacles()) {
                 if (!obstacle.equals(sent.get(obstacle.obstacleId()))) {
                     var data = new LinkedHashMap<String, Object>();
                     data.put("sessionId", session.id()); data.put("obstacleId", obstacle.obstacleId()); data.put("status", obstacle.status().name());
                     data.put("byAccountId", obstacle.byAccountId()); data.put("at", obstacle.at()); data.put("version", session.version());
-                    event("obstacle", session.version(), data);
+                    enqueue(event("obstacle", session.version(), data));
                 }
             }
             remember(session);
             if (!BuildSessionRules.open(session.status())) { finish(session); }
         }
-        synchronized void finish(BuildSession session) {
+        /** The session closed: `finished` with its status and `finishedAt`, then the stream ends. */
+        synchronized void finish(BuildSession session) { finished(session, session.status(), session.finishedAt()); }
+        /**
+         * R-16-11 «> 12 h es tanca sola»: what changed meanwhile, then `finished {ABANDONED}` without `finishedAt` (S15 P9 has not
+         * recorded it yet), and the stream ends.
+         */
+        synchronized void outlived(BuildSession session) {
+            update(session);
+            finished(session, BuildStatus.ABANDONED, null);
+        }
+        private void finished(BuildSession session, BuildStatus status, Instant finishedAt) {
+            if (closing) { return; }
             var data = new LinkedHashMap<String, Object>();
-            data.put("sessionId", session.id()); data.put("status", session.status().name()); data.put("finishedAt", session.finishedAt());
+            data.put("sessionId", session.id()); data.put("status", status.name()); data.put("finishedAt", finishedAt);
             data.put("version", session.version());
-            event("finished", session.version(), data);
-            end();
+            enqueue(event("finished", session.version(), data));
+            close();
         }
-        synchronized void comment(String text) {
-            if (ended) { return; }
-            try { emitter.send(SseEmitter.event().comment(text)); } catch (java.io.IOException | IllegalStateException gone) { end(); }
+        synchronized void comment(String text) { if (!closing) { enqueue(SseEmitter.event().comment(text)); } }
+        /** Ends the stream once what is queued has been sent. */
+        synchronized void close() {
+            closing = true;
+            remove(key, this);
+            if (!draining) { complete(); }
         }
-        synchronized void end() {
-            if (ended) { return; }
-            ended = true;
+        /** A client that does not read: its queue is dropped and the stream ends as soon as the send in progress returns. */
+        synchronized void drop(String reason) {
+            if (completed) { return; }
+            LOG.info("Build session stream closed ({}) sessionId={} clubId={}", reason, key.sessionId(), key.clubId());
+            queue.clear();
+            close();
+        }
+        /** The watchdog: a send blocked for longer than the write timeout drops the stream. */
+        void watch(long now) {
+            long since = sending;
+            if (since != 0 && now - since > writeTimeout.toNanos()) { drop("write timeout"); }
+        }
+        /** The emitter ended by itself (completion, a network error): nothing more is sent. */
+        synchronized void gone() { queue.clear(); closing = true; completed = true; remove(key, this); }
+        /** The stream's lifetime is over (30 minutes, or its token's `exp`): a clean end; EventSource reconnects. */
+        void expired() {
+            synchronized (this) { queue.clear(); closing = true; remove(key, this); if (completed) { return; } completed = true; }
+            // Outside the monitor: a send in progress holds the emitter's lock until it returns.
             try { emitter.complete(); } catch (IllegalStateException alreadyDone) { LOG.debug("Build session stream already completed"); }
         }
-        private void event(String name, long id, Map<String, Object> data) {
-            if (ended) { return; }
-            try { emitter.send(SseEmitter.event().name(name).id(String.valueOf(id)).data(mapper.writeValueAsString(data))); }
-            catch (java.io.IOException | IllegalStateException gone) { end(); }
+
+        private void enqueue(SseEmitter.SseEventBuilder frame) {
+            if (closing) { return; }
+            if (queue.size() >= QUEUE) { drop("queue full"); return; }
+            queue.add(frame);
+            if (draining) { return; }
+            draining = true;
+            try { senders.execute(this::drain); }
+            catch (RejectedExecutionException stopping) { draining = false; queue.clear(); close(); }
+        }
+        /** On a pool thread: the queued frames in order, one send at a time, outside the monitor; then the end, when closing. */
+        private void drain() {
+            while (true) {
+                SseEmitter.SseEventBuilder frame;
+                synchronized (this) {
+                    frame = queue.poll();
+                    if (frame == null) { draining = false; if (closing) { complete(); } return; }
+                    sending = System.nanoTime();
+                }
+                try { emitter.send(frame); }
+                catch (java.io.IOException | IllegalStateException gone) { synchronized (this) { queue.clear(); closing = true; remove(key, this); } }
+                finally { sending = 0; }
+            }
+        }
+        /** Under the monitor, with no send in progress. */
+        private void complete() {
+            if (completed) { return; }
+            completed = true;
+            try { emitter.complete(); } catch (IllegalStateException alreadyDone) { LOG.debug("Build session stream already completed"); }
+        }
+        private SseEmitter.SseEventBuilder event(String name, long id, Map<String, Object> data) {
+            try { return SseEmitter.event().name(name).id(String.valueOf(id)).data(mapper.writeValueAsString(data)); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException impossible) { throw new IllegalStateException(impossible); }
         }
         private void remember(BuildSession session) {
             version = session.version();

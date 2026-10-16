@@ -24,6 +24,8 @@ public record BuildSession(@Id String id,
         String startedByAccountId,
         Instant startedAt,
         Instant finishedAt,
+        /** R-16-11 (E9-T06): the ring setup `finish` registered or refreshed; null while open, abandoned, or when it registered none. */
+        String setupId,
         String lastKnownMarkerId,
         long localCacheVersion,
         @Field(write = Field.Write.ALWAYS)

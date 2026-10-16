@@ -1,0 +1,28 @@
+== M1 step 1: keyed build-session writes stay in the filter's request transaction
+   file: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_aKeyedStartThatDrawsATakenJoinCodeDrawsAgain [failure] [POST /api/v1/build-sessions {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi e1b9f0cc-b1ae-4440-8a9c-e185d4252e79 al club.","details":{},"traceId":"e1
+   FAILED BuildSessionsIT.T_16_10_aKeyedFinishRacingTapsIsRetriedAndNeverAnswers500 [failure] [round 0 finish: {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 412b252d-ca44-4e9f-b237-28bfe0242328 al club.","details":{},"traceId":"412b252d-ca44-
+== M8 step 5: every send on the caller's thread (the one shared timer) again
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed [error] T_16_10_aClientWhoseQueueFillsIsClosed() timed out after 30 seconds
+   FAILED BuildSessionStreamsTest.T_16_10_aClientThatDoesNotReadDelaysNoOtherStream [failure] No frame with «event:obstacle» within PT2S
+== M9 step 5: no write timeout
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_aClientThatDoesNotReadDelaysNoOtherStream [failure] [the stalled stream left its session] 
+== M10 step 5: an unbounded queue
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed [failure] expected: 1
+== M16 step 9: the trace filter puts the query string in the MDC
+   file: src/main/java/com/agilityhub/core/shared/api/RequestTraceFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=RequestTraceFilterTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED RequestTraceFilterTest.T_16_10_theTraceNeverCarriesTheQueryString [failure] Expecting actual:
+All mutants reverted: True

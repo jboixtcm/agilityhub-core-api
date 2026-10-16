@@ -80,6 +80,13 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             + "|POST /api/v1/invoices(/payments)?|POST /api/v1/invoices/[^/]+/(payment|failure|cancellation|retry|refund)"
             + "|POST /api/v1/pack-balances(/[^/]+/adjustments)?|POST /api/v1/upfront-payments|POST /api/v1/members/[^/]+/plan-change|POST /api/v1/upfront-payments/[^/]+/refund|POST /api/v1/members/[^/]+/card-setup-link|POST /api/v1/me/card-setup");
 
+    /**
+     * S16 R-16-11 (E9-T06, INC-47's pattern), `METHOD path`: the keyed build-session writes (the start, the join and `finish`) run
+     * in `BuildSessionService`'s own transaction, retried whole on a write conflict or a join code already taken, and store
+     * their answer there; exhausted retries are `409 STALE_VERSION`, never a 500. The taps (`PATCH`) are never keyed.
+     */
+    static final java.util.regex.Pattern BUILD_SESSIONS = java.util.regex.Pattern.compile("POST /api/v1/build-sessions(/join|/[^/]+/finish)?");
+
     /** S13 mutations retry and store the response in LifecycleTransactions, including optional keyed admin actions. */
     static final java.util.regex.Pattern LIFECYCLE = java.util.regex.Pattern.compile("POST /api/v1/(me/)?inactivity-periods(/[^/]+/(decision|termination|cancellation))?"
             + "|POST /api/v1/(me/)?leave-requests(/[^/]+/(decision|cancellation))?"
@@ -194,7 +201,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         boolean followup = FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
         // S12 (E8-T02): the billing writes, like the follow-up ones; an error releases the key.
         boolean billing = BILLING.matcher(request.getMethod() + " " + path).matches();
-        if (bookings || signup || followup || billing || LIFECYCLE.matcher(request.getMethod() + " " + path).matches() || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S16 (E9-T06): the keyed build-session writes, like the follow-up ones; an error releases the key.
+        boolean buildSessions = BUILD_SESSIONS.matcher(request.getMethod() + " " + path).matches();
+        if (bookings || signup || followup || billing || buildSessions || LIFECYCLE.matcher(request.getMethod() + " " + path).matches() || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;

@@ -1,6 +1,9 @@
 package com.agilityhub.core.courses.api;
 
+import com.agilityhub.core.courses.application.BuildSessionDraws;
+import com.agilityhub.core.courses.application.BuildSessionService;
 import com.agilityhub.core.courses.application.CourseSchemas;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.identity.application.PasswordHasher;
 import com.agilityhub.core.identity.application.TokenService;
 import com.agilityhub.core.identity.domain.Role;
@@ -38,7 +41,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * E9-T04: live build sessions (S16 R-16-11, T-16-10): the session, its `text/event-stream` with two real subscribers, the join code,
  * `finish` registering the ring's setup, the 12-hour end and S15 P9, the query token accepted only by the stream, and
  * `BuildSessionExportV1` (E77, A9) with its self-check (E98). A real server, so the streams go through Tomcat, the security chain
- * and the async dispatch that ends them.
+ * and the async dispatch that ends them. E9-T06 (review of E9-T04, ruling E118): keyed writes that race are retried, never a 500;
+ * `finish` without the publish switch; a refreshed setup keeps its `expectedUntil`; six active markers for the export; a stream
+ * lives no longer than its token and ends with its outlived session; the query token stays out of every other route and the logs.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "shared.scheduling.enabled=false")
 class BuildSessionsIT extends CourseItSupport {
@@ -50,6 +55,8 @@ class BuildSessionsIT extends CourseItSupport {
     @Autowired PasswordHasher passwords;
     @Autowired JobRunner jobs;
     @Autowired CourseSchemas schemas;
+    @Autowired BuildSessionService service;
+    @Autowired TransactionRetries retries;
     private final List<Stream> streams = new ArrayList<>();
 
     @AfterEach void closeStreams() { streams.forEach(Stream::close); }
@@ -87,6 +94,43 @@ class BuildSessionsIT extends CourseItSupport {
         return post("/api/v1/build-sessions/" + id + "/finish").header("Idempotency-Key", UUID.randomUUID().toString());
     }
     MockHttpServletRequestBuilder join(String code) throws Exception { return json(post("/api/v1/build-sessions/join"), Map.of("code", code)); }
+    /** A placement on A1 (six markers) of a new course with {@code count} resolved obstacles, `obstacle-0` … */
+    String placementWith(int count) throws Exception {
+        ok(as(json(put("/api/v1/rings/" + A1 + "/geometry"), sixMarkers()), CLUB, "ADMIN"), 200);
+        String courseId = ok(as(json(post("/api/v1/courses"), course("Central " + count, model(count, false))), CLUB, "INSTRUCTOR"), 201).path("id").asText();
+        var body = placementBody(courseId, A1);
+        var resolved = body.putArray("resolvedObstacles");
+        for (int i = 0; i < count; i++) {
+            resolved.addObject().put("obstacleId", "obstacle-" + i).put("type", "Jump").put("x", 5 + i * 4).put("y", 6).put("rotationDeg", 0).putArray("numbers").add(i + 1);
+        }
+        return createPlacement("INSTRUCTOR", body, 201).path("id").asText();
+    }
+    /** The requests sent at once, each from its own thread; their responses in the same order. */
+    List<org.springframework.mock.web.MockHttpServletResponse> race(List<MockHttpServletRequestBuilder> requests) throws Exception {
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(requests.size());
+        try {
+            var go = new java.util.concurrent.CountDownLatch(1);
+            var answers = new ArrayList<java.util.concurrent.Future<org.springframework.mock.web.MockHttpServletResponse>>();
+            for (var request : requests) { answers.add(pool.submit(() -> { go.await(); return mvc.perform(request).andReturn().getResponse(); })); }
+            go.countDown();
+            var responses = new ArrayList<org.springframework.mock.web.MockHttpServletResponse>();
+            for (var answer : answers) { responses.add(answer.get(60, TimeUnit.SECONDS)); }
+            return responses;
+        } finally { pool.shutdownNow(); }
+    }
+    String code(org.springframework.mock.web.MockHttpServletResponse response) throws Exception {
+        String body = response.getContentAsString();
+        return body.startsWith("{") ? mapper.readTree(body).path("code").asText() : "";
+    }
+    /** A one-shot request to the real server, the URL (and so any token) passed on stdin, never on the command line; its HTTP status. */
+    int curl(String method, String path) throws Exception {
+        var process = new ProcessBuilder("curl", "--silent", "--output", "/dev/null", "--write-out", "%{http_code}", "--request", method, "--config", "-")
+                .redirectErrorStream(true).start();
+        try (var input = process.outputWriter()) { input.write("url = \"http://localhost:" + port + path + "\"\nheader = \"Host: " + HOST + "\"\n"); }
+        String status = new String(process.getInputStream().readAllBytes()).strip();
+        assertThat(process.waitFor(10, TimeUnit.SECONDS)).isTrue();
+        return Integer.parseInt(status);
+    }
     Document session(String id) { return mongo.findOne(Query.query(Criteria.where("_id").is(id)), Document.class, "build_sessions"); }
     List<Document> clubEvents(String type) { return events(type).stream().filter(e -> CLUB.equals(e.getString("clubId"))).toList(); }
     JobRun cleanup(boolean dry) {
@@ -271,7 +315,8 @@ class BuildSessionsIT extends CourseItSupport {
     /**
      * T-16-10 «token per query només a `/events`»: a real token as `?access_token=` opens the stream and nothing else (`GET`,
      * `PATCH`, `finish`, export → `401 UNAUTHENTICATED`); without a token, with an invalid one, or with the header too → `401`; a
-     * MEMBER's real token → `403`.
+     * MEMBER's real token → `403`. E9-T06: every other bearer operation of the contract, and every other method on the stream's
+     * path, refuses it with `401`.
      */
     @Test void T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream() throws Exception {
         String id = start(placement(A1, true), "INSTRUCTOR", 201).path("id").asText();
@@ -293,6 +338,25 @@ class BuildSessionsIT extends CourseItSupport {
         // The header still works there, as everywhere.
         assertThat(mvc.perform(get("/api/v1/build-sessions/" + id).header("Host", HOST).header("Authorization", "Bearer " + instructor))
                 .andReturn().getResponse().getStatus()).isEqualTo(200);
+        // E9-T06 step 9: no other operation of the published contract that needs a bearer takes it, and no other method on the
+        // stream's path does either.
+        var contract = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        var refused = new ArrayList<String>();
+        for (var path : contract.path("paths").properties()) {
+            for (var operation : path.getValue().properties()) {
+                if (!operation.getValue().path("security").isMissingNode()) { continue; } // only the global bearer requirement
+                var method = org.springframework.http.HttpMethod.valueOf(operation.getKey().toUpperCase(Locale.ROOT));
+                String uri = path.getKey().replaceAll("\\{[^}]+}", "e9t06-x") + "?access_token=" + instructor;
+                var answer = mvc.perform(request(method, uri).header("Host", HOST)).andReturn().getResponse();
+                assertThat(answer.getStatus() + ":" + code(answer)).as(method + " " + path.getKey()).isEqualTo("401:UNAUTHENTICATED");
+                refused.add(method + " " + path.getKey());
+            }
+        }
+        assertThat(refused).hasSizeGreaterThan(300).contains("GET /api/v1/build-sessions/{id}", "POST /api/v1/build-sessions/{id}/finish")
+                .doesNotContain("GET /api/v1/build-sessions/{id}/events");
+        for (var method : List.of("POST", "PUT", "PATCH", "DELETE")) {
+            error(request(org.springframework.http.HttpMethod.valueOf(method), events + "?access_token=" + instructor).header("Host", HOST), 401, "UNAUTHENTICATED");
+        }
     }
 
     /**
@@ -321,19 +385,36 @@ class BuildSessionsIT extends CourseItSupport {
     }
 
     /**
-     * R-16-11 «crea/actualitza el `RingSetup`»: `finish` publishes like `POST /ring-setups`, so an INSTRUCTOR needs
-     * `courses.allowInstructorPublish` (`403`, nothing changes); a session on the placement the ring's active setup already shows
-     * refreshes that setup (built now, a new `expiresAt`, no `RingSetupChanged`); a session on another placement of the ring replaces it.
+     * R-16-11 «crea/actualitza el `RingSetup`» (E118): `finish` is not gated by `courses.allowInstructorPublish`; with it off, an
+     * INSTRUCTOR's finish closes the session (`COMPLETED`, `BuildSessionFinished{setupId: null}`) and registers no setup
+     * (`setupId` null in the answer and in `GET`), and an ADMIN registers it with `POST /ring-setups`; an ADMIN's finish registers
+     * one. A session on the placement the ring's active setup already shows refreshes that setup (built now, a new `expiresAt`, no
+     * `RingSetupChanged`); a session on another placement of the ring replaces it.
      */
     @Test void T_16_10_finishRegistersOrRefreshesTheRingsSetupUnderThePublishingSwitch() throws Exception {
         String placementId = placement(A1, true);
         String first = start(placementId, "INSTRUCTOR", 201).path("id").asText();
         parameter("courses.allowInstructorPublish", false, "bool");
-        error(as(finish(first), CLUB, "INSTRUCTOR"), 403, "FORBIDDEN");
-        assertThat(session(first).getString("status")).isEqualTo("NOT_STARTED");
+        var closed = ok(as(finish(first), CLUB, "INSTRUCTOR"), 200);
+        assertThat(closed.path("status").asText()).isEqualTo("COMPLETED");
+        assertThat(closed.path("finishedAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(closed.has("setupId")).isTrue();
+        assertThat(closed.path("setupId").isNull()).as("no setup registered").isTrue();
+        assertThat(ok(as(get("/api/v1/build-sessions/" + first), CLUB, "INSTRUCTOR"), 200).path("setupId").isNull()).isTrue();
+        assertThat(session(first).getString("status")).isEqualTo("COMPLETED");
         assertThat(ringDocument(A1).get("activeSetupId")).isNull();
-        ok(as(finish(first), CLUB, "ADMIN"), 200);
+        assertThat(clubEvents("RingSetupChanged")).isEmpty();
+        assertThat(clubEvents("BuildSessionFinished").getLast().get("payload", Document.class))
+                .isEqualTo(new Document("sessionId", first).append("setupId", null));
+        error(as(finish(first), CLUB, "ADMIN"), 422, "BUILD_SESSION_FINISHED");
+        var registered = registerSetup(CLUB, "ADMIN", setupBody(A1, "AGILITY").put("placementId", placementId), 201);
+        String adminSetup = registered.at("/setup/id").asText();
+        assertThat(ringDocument(A1).getString("activeSetupId")).isEqualTo(adminSetup);
+
+        String byAdmin = start(placementId, "ADMIN", 201).path("id").asText();
+        var adminFinished = ok(as(finish(byAdmin), CLUB, "ADMIN"), 200);
         String setupId = ringDocument(A1).getString("activeSetupId");
+        assertThat(adminFinished.path("setupId").asText()).isEqualTo(setupId).isEqualTo(adminSetup);
         assertThat(setupDocument(setupId).getString("builtByAccountId")).isEqualTo("e9t2-ADMIN");
         int changes = clubEvents("RingSetupChanged").size();
 
@@ -360,8 +441,9 @@ class BuildSessionsIT extends CourseItSupport {
 
     /**
      * R-16-11 «Una sessió oberta > 12 h es tanca sola (S15 P9 neteja)»: from `courses.buildSessionMaxHours` after its start a session
-     * takes no tap and no participant; P9 lists it (`WOULD_ABANDON_BUILD_SESSION`), then records it `ABANDONED` once (counter
-     * `buildSessionsAbandoned`) and its live stream ends with `finished {ABANDONED}`. With `COURSES` off, P9 leaves sessions alone.
+     * takes no tap and no participant, and its live streams end at the next poll with `finished {ABANDONED, finishedAt: null}`
+     * (E9-T06, review #7); P9 lists it (`WOULD_ABANDON_BUILD_SESSION`), then records it `ABANDONED` once (counter
+     * `buildSessionsAbandoned`), with its `finishedAt` from then on. With `COURSES` off, P9 leaves sessions alone.
      */
     @Test void T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt() throws Exception {
         String placementId = placement(A1, true);
@@ -374,6 +456,14 @@ class BuildSessionsIT extends CourseItSupport {
         stream.event("obstacle", LIVE);
         assertThat(cleanup(false).items()).noneMatch(item -> item.action().contains("BUILD_SESSION"));
         clock.advance(Duration.ofMinutes(1));
+        // E9-T06 (review #7): the next poll ends the stream, before P9 has recorded anything; a stream opened now ends at once.
+        var over = stream.event("finished", LIVE);
+        assertThat(over.path("status").asText()).isEqualTo("ABANDONED");
+        assertThat(over.path("finishedAt").isNull()).isTrue();
+        assertThat(stream.exit(Duration.ofSeconds(5))).isZero();
+        var late = new Stream(id, token("late-watcher", Role.INSTRUCTOR), false);
+        assertThat(late.event("finished", LIVE).path("status").asText()).isEqualTo("ABANDONED");
+        assertThat(late.exit(Duration.ofSeconds(5))).isZero();
         error(as(mark(id, "obstacle-1", "PLACED"), CLUB, "INSTRUCTOR"), 422, "BUILD_SESSION_FINISHED");
         error(as(finish(id), CLUB, "INSTRUCTOR"), 422, "BUILD_SESSION_FINISHED");
         error(as(join(started.path("joinCode").asText()), CLUB, "INSTRUCTOR", "e9t2-late"), 404, "NOT_FOUND");
@@ -388,8 +478,11 @@ class BuildSessionsIT extends CourseItSupport {
         var abandoned = session(id);
         assertThat(abandoned.getString("status")).isEqualTo("ABANDONED");
         assertThat(abandoned.getDate("finishedAt").toInstant()).isEqualTo(clock.instant());
-        assertThat(stream.event("finished", LIVE).path("status").asText()).isEqualTo("ABANDONED");
-        assertThat(stream.exit(Duration.ofSeconds(5))).isZero();
+        var after = new Stream(id, token("after-watcher", Role.INSTRUCTOR), true);
+        var recorded = after.event("finished", LIVE);
+        assertThat(recorded.path("status").asText()).isEqualTo("ABANDONED");
+        assertThat(recorded.path("finishedAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(after.exit(Duration.ofSeconds(5))).isZero();
         clock.advance(Duration.ofMinutes(5));
         assertThat(counter(cleanup(false), "buildSessionsAbandoned")).isZero();
         assertThat(ringDocument(A1).get("activeSetupId")).as("an abandoned session registers no setup").isNull();
@@ -403,7 +496,8 @@ class BuildSessionsIT extends CourseItSupport {
 
     /**
      * E77 / A9: `GET /build-sessions/{id}/export` = `BuildSessionExportV1` with the planner's spellings, which passes the committed
-     * schema; a ring with four markers → `422 GEOMETRY_INVALID {violations: [{markers, TOO_FEW_MARKERS}]}`; a stored course the
+     * schema; a ring with four markers → `422 GEOMETRY_INVALID {violations: [{markers, TOO_FEW_MARKERS}]}`, and only six active
+     * markers export (E118: five active → `TOO_FEW_MARKERS`, seven → `TOO_MANY_MARKERS`); a stored course the
      * schema refuses makes the self-check fail → `500 INTERNAL_ERROR` without details (E98), never `400 COURSE_MODEL_INVALID`.
      */
     @Test void T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError() throws Exception {
@@ -433,9 +527,181 @@ class BuildSessionsIT extends CourseItSupport {
             assertThat(v.path("path").asText()).isEqualTo("markers");
             assertThat(v.path("rule").asText()).isEqualTo("TOO_FEW_MARKERS");
         });
+        // E118 (review #4): exactly six **active** markers. Six with one inactive are five; seven active are too many; seven with
+        // one inactive export the six active ones only.
+        var ringA1 = Query.query(Criteria.where("_id").is(A1));
+        String exportPath = "/api/v1/build-sessions/" + id + "/export";
+        mongo.updateFirst(ringA1, new Update().set("geometry.markers.5.isActive", false), "rings");
+        assertThat(error(as(get(exportPath), CLUB, "INSTRUCTOR"), 422, "GEOMETRY_INVALID").path("violations")).singleElement()
+                .satisfies(v -> assertThat(v.path("path").asText() + ":" + v.path("rule").asText()).isEqualTo("markers:TOO_FEW_MARKERS"));
+        var seventh = new Document("id", "marker-6").append("label", "G").append("markerUid", "uid-6").append("role", "ANCHOR").append("xM", 30.0)
+                .append("yM", 11.0).append("zM", 0.0).append("rotationYDeg", 0.0).append("physicalWidthM", 0.2).append("physicalHeightM", 0.2)
+                .append("isFixed", true).append("isActive", true).append("aprilTagId", 6).append("notes", null);
+        mongo.updateFirst(ringA1, new Update().set("geometry.markers.5.isActive", true), "rings");
+        mongo.updateFirst(ringA1, new Update().push("geometry.markers", seventh), "rings");
+        assertThat(error(as(get(exportPath), CLUB, "INSTRUCTOR"), 422, "GEOMETRY_INVALID").path("violations")).singleElement()
+                .satisfies(v -> assertThat(v.path("path").asText() + ":" + v.path("rule").asText()).isEqualTo("markers:TOO_MANY_MARKERS"));
+        mongo.updateFirst(ringA1, new Update().set("geometry.markers.6.isActive", false), "rings");
+        var sixActive = ok(as(get(exportPath), CLUB, "INSTRUCTOR"), 200);
+        schemas.validateExport((ObjectNode) sixActive);
+        assertThat(sixActive.at("/ring/markers")).extracting(m -> m.path("id").asText())
+                .containsExactly("marker-0", "marker-1", "marker-2", "marker-3", "marker-4", "marker-5");
+        assertThat(sixActive.at("/ring/markers")).allMatch(m -> m.path("is_active").asBoolean());
 
         var placementDoc = mongo.findOne(Query.query(Criteria.where("_id").is(placementId)), Document.class, "placements");
         mongo.updateFirst(Query.query(Criteria.where("_id").is(placementDoc.getString("courseId"))), new Update().unset("normalizedJson.title"), "courses");
         assertThat(error(as(get("/api/v1/build-sessions/" + id + "/export"), CLUB, "INSTRUCTOR"), 500, "INTERNAL_ERROR")).isEmpty();
+    }
+
+    // ---- E9-T06 ----
+
+    /**
+     * Review #1 (INC-47's pattern): a keyed `finish` racing taps — their commits meet its write on the session document — runs in
+     * its own transaction retried whole, never a 500. In each of three rounds seven phones tap while an eighth finishes: the finish
+     * answers 200 and closes the session once; each tap answers 200 (before it) or 422 BUILD_SESSION_FINISHED (after it).
+     */
+    @Test void T_16_10_aKeyedFinishRacingTapsIsRetriedAndNeverAnswers500() throws Exception {
+        String placementId = placementWith(8);
+        for (int round = 0; round < 3; round++) {
+            String id = start(placementId, "INSTRUCTOR", 201).path("id").asText();
+            var requests = new ArrayList<MockHttpServletRequestBuilder>();
+            for (int i = 1; i < 8; i++) { requests.add(as(mark(id, "obstacle-" + i, "PLACED"), CLUB, "INSTRUCTOR", "e9t2-phone-" + i)); }
+            requests.add(as(finish(id), CLUB, "INSTRUCTOR", "e9t2-finisher"));
+            var answers = race(requests);
+            var finished = answers.getLast();
+            assertThat(finished.getStatus()).as("round %d finish: %s", round, finished.getContentAsString()).isEqualTo(200);
+            assertThat(mapper.readTree(finished.getContentAsString()).path("status").asText()).isEqualTo("COMPLETED");
+            for (var tap : answers.subList(0, 7)) {
+                assertThat(tap.getStatus() + ":" + code(tap)).as("round %d tap: %s", round, tap.getContentAsString()).isIn("200:", "422:BUILD_SESSION_FINISHED");
+            }
+            assertThat(session(id).getString("status")).isEqualTo("COMPLETED");
+            assertThat(clubEvents("BuildSessionFinished")).filteredOn(e -> id.equals(e.get("payload", Document.class).getString("sessionId"))).hasSize(1);
+        }
+    }
+
+    /**
+     * Review #1: phones joining one session at once, each with its own `Idempotency-Key` (their pushes to `participants` meet on
+     * the session document), all join, never a 500: three sessions, eight phones each.
+     */
+    @Test void T_16_10_phonesJoiningAtOnceWithKeysAllJoin() throws Exception {
+        String placementId = placement(A1, true);
+        for (int round = 0; round < 3; round++) {
+            var started = start(placementId, "INSTRUCTOR", 201);
+            String id = started.path("id").asText(), code = started.path("joinCode").asText();
+            var requests = new ArrayList<MockHttpServletRequestBuilder>();
+            for (int i = 0; i < 8; i++) {
+                requests.add(as(join(code), CLUB, "INSTRUCTOR", "e9t2-joiner-" + i).header("Idempotency-Key", UUID.randomUUID().toString()));
+            }
+            for (var answer : race(requests)) { assertThat(answer.getStatus()).as("round %d: %s", round, answer.getContentAsString()).isEqualTo(200); }
+            assertThat(session(id).getList("participants", Document.class)).extracting(p -> p.getString("accountId")).hasSize(8).doesNotHaveDuplicates();
+        }
+    }
+
+    /**
+     * Review #1: a keyed `POST /build-sessions` whose join code another session took after this transaction began (it cannot see
+     * it, and the partial unique index `open_join_code` refuses the insert) is retried whole and draws again: `201` with another
+     * code, never a 500. The answer is stored with its key in the attempt that committed: the same request again replays it.
+     */
+    @Test void T_16_10_aKeyedStartThatDrawsATakenJoinCodeDrawsAgain() throws Exception {
+        String placementId = placement(A1, true);
+        var draws = new java.util.concurrent.atomic.AtomicInteger();
+        var random = new java.security.SecureRandom();
+        double before = retries.retries("build-sessions");
+        BuildSessionDraws.set(service, bound -> {
+            if (draws.incrementAndGet() == 1) {
+                // Another phone's session takes `AAAAAA` now, committed outside this request's transaction.
+                java.util.concurrent.CompletableFuture.runAsync(() -> mongo.getCollection("build_sessions").insertOne(new Document("_id", "e9t2-taken")
+                        .append("clubId", CLUB).append("status", "NOT_STARTED").append("joinCode", "AAAAAA").append("placementId", placementId))).join();
+            }
+            return draws.get() <= 6 ? 0 : random.nextInt(bound);
+        });
+        try {
+            String key = UUID.randomUUID().toString();
+            var request = json(post("/api/v1/build-sessions"), Map.of("placementId", placementId, "live", true));
+            var started = ok(as(request, CLUB, "INSTRUCTOR").header("Idempotency-Key", key), 201);
+            assertThat(started.path("joinCode").asText()).isNotEqualTo("AAAAAA").matches("[ABCDEFGHJKMNPQRSTUVWXYZ2-9]{6}");
+            assertThat(draws.get()).as("drawn again after the retry").isGreaterThan(6);
+            assertThat(retries.retries("build-sessions")).isGreaterThan(before);
+            var replayed = ok(as(json(post("/api/v1/build-sessions"), Map.of("placementId", placementId, "live", true)), CLUB, "INSTRUCTOR")
+                    .header("Idempotency-Key", key), 201);
+            assertThat(replayed).isEqualTo(started);
+            assertThat(clubEvents("BuildSessionStarted")).hasSize(1);
+        } finally { BuildSessionDraws.set(service, random::nextInt); }
+    }
+
+    /**
+     * Review #3: a finish that refreshes the ring's active setup keeps the `expectedUntil` a person set and recomputes `expiresAt`
+     * from it, as a renewal does: `min(expectedUntil, builtAt + courses.setupAutoExpireDays)`; like a renewal it writes
+     * `updatedAt`/`updatedByAccountId` and no audit entry or event.
+     */
+    @Test void T_16_08_T_16_10_aRefreshedSetupKeepsItsExpectedUntil() throws Exception {
+        clock.setInstant(RingSetupsIT.MONDAY);
+        String placementId = placement(A1, true);
+        String setupId = registerSetup(CLUB, "ADMIN", setupBody(A1, "AGILITY").put("placementId", placementId).put("expectedUntil", "2026-10-09"), 201)
+                .at("/setup/id").asText();
+        int changes = clubEvents("RingSetupChanged").size();
+        long audits = count("audit_entries", Query.query(Criteria.where("clubId").is(CLUB)));
+        clock.setInstant(RingSetupsIT.local("2026-10-07T18:00"));
+        String id = start(placementId, "INSTRUCTOR", 201).path("id").asText();
+        assertThat(ok(as(finish(id), CLUB, "INSTRUCTOR", "e9t2-rebuilder"), 200).path("setupId").asText()).isEqualTo(setupId);
+        var refreshed = ok(as(get("/api/v1/ring-setups/" + setupId), CLUB, "ADMIN"), 200);
+        assertThat(refreshed.path("expectedUntil").asText()).isEqualTo("2026-10-09");
+        // «Fins quan?» Friday 9-10 is earlier than Wednesday + 7 days: it still ends when Saturday 10-10 starts in Madrid.
+        assertThat(Instant.parse(refreshed.path("expiresAt").asText())).isEqualTo(RingSetupsIT.local("2026-10-10T00:00"));
+        assertThat(refreshed.path("builtAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(refreshed.path("builtByAccountId").asText()).isEqualTo("e9t2-rebuilder");
+        var stored = setupDocument(setupId);
+        assertThat(stored.getDate("updatedAt").toInstant()).isEqualTo(clock.instant());
+        assertThat(stored.getString("updatedByAccountId")).isEqualTo("e9t2-rebuilder");
+        assertThat(clubEvents("RingSetupChanged")).hasSize(changes);
+        assertThat(count("audit_entries", Query.query(Criteria.where("clubId").is(CLUB)))).isEqualTo(audits);
+    }
+
+    /**
+     * Review #6: a stream lives no longer than the access token it opened with. A real token with three seconds left opens the
+     * stream, which ends cleanly (curl exits 0, EventSource reconnects with a new token) once the token has expired, not after 30 min.
+     */
+    @Test void T_16_10_aStreamEndsWhenItsTokenExpires() throws Exception {
+        String id = start(placement(A1, true), "INSTRUCTOR", 201).path("id").asText();
+        String shortLived = token("short-lived", Role.INSTRUCTOR);
+        clock.advance(TokenService.ACCESS_TTL.minusSeconds(3));
+        var stream = new Stream(id, shortLived, true);
+        stream.next(":open", LIVE);
+        long opened = System.nanoTime();
+        assertThat(stream.exit(Duration.ofSeconds(10))).as("a clean end").isZero();
+        assertThat(Duration.ofNanos(System.nanoTime() - opened)).isGreaterThan(Duration.ofSeconds(2)).isLessThan(Duration.ofSeconds(8));
+        assertThat(session(id).getString("status")).isEqualTo("NOT_STARTED");
+    }
+
+    /** Review #8: a finish on a ring that lost its geometry → `422 RING_WITHOUT_GEOMETRY`, as the published contract lists it. */
+    @Test void T_16_10_aFinishOnARingWithoutGeometryIsInItsContract() throws Exception {
+        String id = start(placement(A1, true), "INSTRUCTOR", 201).path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(A1)), new Update().unset("geometry"), "rings");
+        error(as(finish(id), CLUB, "ADMIN"), 422, "RING_WITHOUT_GEOMETRY");
+        assertThat(session(id).getString("status")).isEqualTo("NOT_STARTED");
+        var contract = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        assertThat(contract.at("/paths/~1api~1v1~1build-sessions~1{id}~1finish/post/responses/422/description").asText()).contains("RING_WITHOUT_GEOMETRY");
+    }
+
+    /**
+     * E9-T04's question 3: the query token never reaches a log. Through the real server, a stream opened with `?access_token=`, a
+     * tap it receives, the same token on another route and on a non-GET to the stream's path (both `401`), and an invalid one:
+     * nothing the app writes (RequestTraceFilter's MDC, the security chain, Tomcat, the stream) holds the token or any query string.
+     */
+    @Test @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void T_16_10_theQueryTokenNeverReachesTheLogs(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        String id = start(placement(A1, true), "INSTRUCTOR", 201).path("id").asText();
+        String token = token("logged", Role.INSTRUCTOR);
+        var stream = new Stream(id, token, true);
+        stream.next(":open", LIVE);
+        ok(as(mark(id, "obstacle-0", "PLACED"), CLUB, "INSTRUCTOR"), 200);
+        stream.event("obstacle", LIVE);
+        assertThat(curl("GET", "/api/v1/build-sessions/" + id + "?access_token=" + token)).isEqualTo(401);
+        assertThat(curl("POST", "/api/v1/build-sessions/" + id + "/events?access_token=" + token)).isEqualTo(401);
+        assertThat(curl("GET", "/api/v1/build-sessions/" + id + "/events?access_token=not-a-token")).isEqualTo(401);
+        ok(as(finish(id), CLUB, "INSTRUCTOR"), 200);
+        assertThat(stream.exit(Duration.ofSeconds(5))).isZero();
+        String signature = token.substring(token.lastIndexOf('.') + 1);
+        assertThat(output.getAll()).doesNotContain(token, signature, "not-a-token", "access_token", "access_[redacted]");
     }
 }

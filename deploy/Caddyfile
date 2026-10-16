@@ -17,6 +17,22 @@
     }
 }
 
+# E9-T06 (S16 R-16-11): the build session stream takes the access token as `?access_token=` (a browser EventSource sends no
+# header). Access logging stays off (docs/DEPLOY.md: query strings carry signed capabilities); a site that turns it on imports
+# this snippet, never a bare `log`, so the token is dropped from the logged URI. Caddy already redacts Authorization and Cookie.
+(access_log) {
+    log {
+        format filter {
+            wrap json
+            fields {
+                request>uri query {
+                    delete access_token
+                }
+            }
+        }
+    }
+}
+
 (api_proxy) {
     @backend path /api/* /oauth2/* /.well-known/* /connect/logout
     handle @backend {

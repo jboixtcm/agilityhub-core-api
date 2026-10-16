@@ -99,9 +99,10 @@ public class RingSetupService {
     /**
      * R-16-11 `finish` of a build session on {@code placement}, inside its transaction: the ring's active setup becomes this
      * placement's, of the course's discipline (`BuildSessionRules.kind`) and level. When the active setup already shows this
-     * placement it is refreshed instead (built now by {@code actor}, a new `expiresAt` as a renewal; no event: it stays `ACTIVE`);
-     * otherwise a new setup replaces it as `POST /ring-setups` does (`RingSetupChanged{ACTIVE}`, N-31, `RING_SETUP_REGISTERED`).
-     * The caller has checked the publishing permission. Returns the setup's id.
+     * placement it is refreshed instead, as a renewal (E9-T06): built now by {@code actor}, its `expectedUntil` kept and
+     * `expiresAt` recomputed from it as {@link #renew} does, `updatedAt`/`updatedByAccountId` set, no audit entry and no event (it
+     * stays `ACTIVE`); otherwise a new setup replaces it as `POST /ring-setups` does (`RingSetupChanged{ACTIVE}`, N-31,
+     * `RING_SETUP_REGISTERED`). The caller has checked the publishing permission. Returns the setup's id.
      */
     String built(Placement placement, Course course, String actor) {
         String clubId = TenantContext.require();
@@ -111,9 +112,9 @@ public class RingSetupService {
         var instant = now.toInstant();
         var current = setups.activeOn(ring.id()).orElse(null);
         if (current != null && placement.id().equals(current.placementId())) {
-            var expiresAt = RingSetupRules.expiresAt(instant, null, autoExpireDays(), now.getZone());
+            var expiresAt = RingSetupRules.expiresAt(instant, current.expectedUntil(), autoExpireDays(), now.getZone());
             var rebuilt = new RingSetup(current.id(), current.clubId(), current.ringId(), current.kind(), current.placementId(), current.courseId(),
-                    current.imageFileKey(), current.agilityhubLevel(), current.levelIds(), instant, actor, null, expiresAt, current.status(), null, null,
+                    current.imageFileKey(), current.agilityhubLevel(), current.levelIds(), instant, actor, current.expectedUntil(), expiresAt, current.status(), null, null,
                     current.notes(), current.createdAt(), current.createdByAccountId(), instant, actor);
             if (!setups.replaceActive(rebuilt)) { throw new ApiException(STALE_VERSION); }
             return current.id();

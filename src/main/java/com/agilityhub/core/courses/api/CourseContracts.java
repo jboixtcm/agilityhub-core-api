@@ -169,6 +169,9 @@ public final class CourseContracts {
             String startedByAccountId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant startedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant finishedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "R-16-11: the ring setup finish registered or refreshed; null while "
+                    + "the session is open, once it is ABANDONED, or when an INSTRUCTOR finished it with courses.allowInstructorPublish off "
+                    + "(no setup registered: an ADMIN registers it with POST /ring-setups)") String setupId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String lastKnownMarkerId,
             long localCacheVersion,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) JsonNode progressJson,

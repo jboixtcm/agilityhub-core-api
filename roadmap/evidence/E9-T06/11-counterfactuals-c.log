@@ -1,0 +1,12 @@
+== M15 step 9: the query token on every route
+   file: src/main/java/com/agilityhub/core/configuration/SecurityConfiguration.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream [failure] [GET /api/v1/build-sessions/6651bca9-2e9d-4593-8ad7-598b5943af1b {"id":"6651bca9-2e9d-4593-8ad7-598b5943af1b","placementId":"178d649d-818a-4ff8-9a05-b387c8c7aead","ringId":"e9t2-ring-a1","status":"NOT_STARTED","selectedS
+   FAILED BuildSessionsIT.T_16_10_theQueryTokenNeverReachesTheLogs(CapturedOutput) [failure] expected: 401
+== M17 step 9: the trace filter logs the query token
+   file: src/main/java/com/agilityhub/core/shared/api/RequestTraceFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_theQueryTokenNeverReachesTheLogs(CapturedOutput) [failure] Expecting actual:
+All mutants reverted: True

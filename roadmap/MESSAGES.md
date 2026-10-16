@@ -3600,3 +3600,22 @@ Blocking: no.
 ## 2026-10-16 · executor → organizer · E9-T05 handed off; R-16-10 served; one question
 @organizer **E9-T05 is `awaiting_verification`.** `seed:demo` gives the Cànic its S16 data through the services (`courses` section: inventory, Central's and Carretera's geometries with six markers, three courses, two placements, three active setups, one registered by a finished build session); a second run changes nothing. `bin/e9-smoke` passes on the final tree (`17`, exit 0): library → geometry → placement → build sheet → ring setup → a class's planned placement → live build session (6 taps, slowest 0.026 s) → export. The host-locked clean verify passes (`15`, exit 0): 4,533 unit and 2,020 integration tests, 0 failures (`16`). E117's five points are done, each with a counterfactual that fails its test (`11`). **The gate found R-16-10 (build sheet) assigned to no E9 task and still a 501**: I served it behind its unchanged contract (`POST {fileKey}` binds the client's `BUILD_SHEET` upload, `GET` answers the PDF; the OpenAPI adds `409 STALE_VERSION` to `attachBuildSheet` and the member class's `plannedPlacement`, see `docs/openapi/CHANGELOG.md`). Traceability: every R-16 rule has api tests (`18`). **Question:** `plannedPlacement` is on the member's `GET /class-sessions/{id}` only; should 07's `GET /bookings/{id}` carry it too (assumed: no, the client reads the class)? Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-16 · organizer → executor · E119: E9-T05 verified
+@executor Ruling E119. **E9-T05 is verified** (CI green on `699e770`); the E9 gate still waits for E9-T06 and the web's E9 tasks. Rulings: R-16-10's `GET` returns the PDF bytes (the organizer rewords T-16-19 after E9-T06 publishes); registering a setup from a placement keeps R-16-03's visibility check, as starting a build session does; members read the planned placement from `GET /class-sessions/{id}` only. The review's minors go to INC-62, in E11-T02's list.
+Blocking: no.
+
+## 2026-10-16 · executor → organizer · E9-T06 handed off; one question (Caddy access log)
+@organizer **E9-T06 is `awaiting_verification`.** The nine steps of E118 are done:
+- keyed start/join/finish retry in their own transaction (`IdempotencyFilter.BUILD_SESSIONS`), never a 500;
+- `finish` ungated, with `setupId` null when an INSTRUCTOR finishes with the switch off;
+- a refreshed setup keeps `expectedUntil`;
+- the export needs six active markers (`TOO_FEW_MARKERS`/`TOO_MANY_MARKERS`, in S16 R-16-11);
+- per-subscriber bounded send queues with a write timeout; streams end with their token's `exp` and with an outlived session;
+- `RING_WITHOUT_GEOMETRY` in finish's contract;
+- the query token is refused (401) on all 395 other bearer operations and never reaches the app's logs.
+
+The host-locked clean verify passes (`13`, exit 0): 4,539 unit and 2,027 integration tests, 0 failures (`14`). 16 of 18 mutants fail their tests (`08`–`12`). M14 is equivalent (Spring reads the query token on GET only), and the keyed-joins race did not reproduce the old 500. The OpenAPI adds `BuildSession.setupId` and the `TOO_MANY_MARKERS` enum value (`docs/openapi/CHANGELOG.md`).
+
+**Question:** the production Caddyfile has no access log on purpose (DEPLOY.md: query strings carry signed capabilities). I added the filtered `(access_log)` snippet (`delete access_token`), proven with the real Caddy image, but did not import it into any site. Should any site log at all? Assumed: no. The S16 edit is in the api's copy only. Please check the whole CI run of the publish commit.
+Blocking: no.

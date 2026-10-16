@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.4 · 16-10-2026** (v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.5 · 16-10-2026** (v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -71,6 +71,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-59 | 15-10 | web (facturació, proves) | Menors de la ronda 2 d'E8-W07: la prova vermella de D6 encara depèn de l'ordre d'execució, l'espia de `setTimeout` sense `clearTimeout`, un literal inventat per confirmar | Baixa | oberta — passada de correccions |
 | INC-60 | 15-10 | web (recorreguts) | Menors de la ronda 2 d'E9-W02: el transport per defecte dels esdeveniments de muntatge (per a E9-W04), noms de proves, set etiquetes inventades per confirmar, petits | Baixa | oberta — passada de correccions |
 | INC-61 | 15-10 | api (recorreguts, menors) | Menors d'E9-T02: el llistat de `GET /courses` es fa en memòria (límit conegut a R1), el `slug` del recinte pot xocar i donar un 500 (i A4 hauria de venir del perfil de país), noms de proves | Baixa | oberta — passada de correccions |
+| INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | oberta — passada de correccions (E11-T02; la part del web, E11-W02) |
 
 ---
 
@@ -267,6 +268,26 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 - **Noms de proves** que no són de l'id de l'especificació (`T_16_06_calibrations…`, `T_16_03_editsAreInPlace…`, `T_16_03_aCourseShownByAnActiveSetup…`).
 
 **On mirar**: `CourseLibrary.java:89-95`, `GlobalCourseRepository.java:22-29`, `RingGeometryService.java:119-124`.
+
+---
+
+## INC-62 · Menors d'E9-T05 i dues peticions d'api d'E9-W03 (api i web, recorreguts)
+
+**Gravetat**: mitjana, per la fuita del primer punt; la resta, baixa.
+
+**Origen**: `roadmap/reviews/E9-T05-20261016-0945-claude.md` (api), troballes #2, #3, #4 i #9 i el «Not checked»; la hipòtesi 7 de l'informe d'E9-T05; `roadmap/reviews/E9-W03-20261016-0949-claude.md` (web), troballa #15, i la pregunta 3 de l'informe d'E9-W03; verificació de l'organitzador del 16-10 (decisió E119).
+
+**Llista**:
+- **El nom d'un recorregut privat previst** (R-16-16). `RingSetupService.plannedCourseName` llegeix el recorregut amb `live()`, sense visibilitat: un soci que llegeix `GET /class-sessions/{id}` veu el nom d'un recorregut privat que la classe té previst. S'espera: la projecció del soci no porta el nom d'un recorregut que no pot llegir (ni `CLUB` ni `PUBLIC`) si no el mostra un muntatge actiu.
+- **La prova de `COURSE_NOT_VISIBLE`.** Registrar un muntatge des d'una col·locació comprova la visibilitat del recorregut (decisió E119, com `BuildSessionService.start`), però cap prova ho cobreix: un INSTRUCTOR que no pot llegir el recorregut privat d'un company → `COURSE_NOT_VISIBLE`.
+- **El full de muntatge anterior** (R-16-10). Adjuntar-ne un de nou substitueix `buildSheetFileKey`, però el fitxer anterior queda lligat a `Placement:{id}` i no s'allibera mai. S'espera: una prova amb una segona clau, i el fitxer anterior alliberat (o netejat per P9).
+- **El nivell d'AgilityHub a N-31** surt com el valor de l'enum (`MEDIUM`). S'espera l'etiqueta traduïda (les de D18, quan Jordi les confirmi).
+- **`S3AttachmentStorage.read`** no té cap prova contra S3 o MinIO; només hi ha la del camí local.
+- **`seeds/README.md`**: una línia que digui que les col·locacions del seed no porten els avisos del client (`warnings: []`).
+- **`CourseListItem.updatedAt`**: la llista D18 ha de poder mostrar la data (S16 §2). Al web, la columna, quan l'api la publiqui.
+- **El motiu del desmuntatge**: el muntatge porta `dismantledReason` (`REPLACED · MANUAL · RING_INACTIVE`) o `replacedBySetupId`, perquè D16 no hagi d'inferir «Substituït» de les hores. Al web, D16 el fa servir.
+
+**On mirar**: `RingSetupService.java:80, 283`, `BuildSheetService.java:31`, `PlacementsIT:261`, `S3AttachmentStorage.java`, `seeds/README.md`, `CourseListItem`; al web, `CoursesPage.tsx` i `RingGeometryPage.tsx:679-681`.
 
 ---
 

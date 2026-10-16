@@ -21,7 +21,9 @@ public final class RingGeometryRules {
     /** One failed check (an absent key, such as a marker without an AprilTag id, is never a duplicate): the request path (`doors[0].endM`) and the rule it breaks. */
     public record Violation(String path, Rule rule) { }
     public enum Rule { OUT_OF_RANGE, NEGATIVE, NOT_POSITIVE, DUPLICATE_ID, DUPLICATE_LABEL, DUPLICATE_MARKER_UID, DUPLICATE_APRIL_TAG,
-        OUTSIDE_PERIMETER, OUTSIDE_RING, TOO_FEW_POINTS, NOT_SIMPLE, TOO_FEW_MARKERS, COLLINEAR_MARKERS }
+        OUTSIDE_PERIMETER, OUTSIDE_RING, TOO_FEW_POINTS, NOT_SIMPLE, TOO_FEW_MARKERS, COLLINEAR_MARKERS,
+        /** E118: only the build-session export's «exactly six active markers» refuses more; R-16-04 sets no maximum. */
+        TOO_MANY_MARKERS }
 
     public static List<Violation> check(double lengthM, double widthM, double borderClearanceM, List<RingDoor> doors,
             List<RingNoGoZone> zones, List<RingMarker> markers) {

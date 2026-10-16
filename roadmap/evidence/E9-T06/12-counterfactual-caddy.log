@@ -1,0 +1,33 @@
+== M18 step 9: the access-log snippet keeps access_token (deploy/Caddyfile)
+exit: 1
+test_E9_T06_no_site_logs_without_the_filter (__main__.AccessLogTest.test_E9_T06_no_site_logs_without_the_filter) ... FAIL
+test_E9_T06_production_caddyfile_still_validates (__main__.AccessLogTest.test_E9_T06_production_caddyfile_still_validates) ... ok
+test_E9_T06_real_caddy_drops_the_query_token (__main__.AccessLogTest.test_E9_T06_real_caddy_drops_the_query_token) ... FAIL
+
+======================================================================
+FAIL: test_E9_T06_no_site_logs_without_the_filter (__main__.AccessLogTest.test_E9_T06_no_site_logs_without_the_filter)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/deploy/test_access_log.py", line 25, in test_E9_T06_no_site_logs_without_the_filter
+    self.assertRegex(snippet, r'request>uri query \{\s*delete access_token\s*\}')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: 'request>uri query \\{\\s*delete access_token\\s*\\}' not found in '(access_log) {\n    log {\n        format filter {\n            wrap json\n            fields {\n                request>uri query {\n                    delete other_param\n                } # MUTANT\n            }\n        }\n    }\n}\n\n'
+
+======================================================================
+FAIL: test_E9_T06_real_caddy_drops_the_query_token (__main__.AccessLogTest.test_E9_T06_real_caddy_drops_the_query_token)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/deploy/test_access_log.py", line 70, in test_E9_T06_real_caddy_drops_the_query_token
+    self.assertEqual('/api/v1/build-sessions/session-a/events?lastEventId=3', access[-1]['request']['uri'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '/api[26 chars]-a/events?lastEventId=3' != '/api[26 chars]-a/events?access_token=eyJfictional.access.token&lastEventId=3'
+- /api/v1/build-sessions/session-a/events?lastEventId=3
++ /api/v1/build-sessions/session-a/events?access_token=eyJfictional.access.token&lastEventId=3
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.420s
+
+FAILED (failures=2)
+
+Caddyfile restored: True

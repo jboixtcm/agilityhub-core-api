@@ -44,9 +44,9 @@ public class BuildSessionRepository extends CourseTenantRepository<BuildSession>
                 .set("status", BuildStatus.IN_PROGRESS);
         return modify(query, update);
     }
-    /** R-16-11 `finish` (`COMPLETED`, `finishedAt`) or S15 P9 (`ABANDONED`): the session closes, once. */
-    public Optional<BuildSession> close(String id, BuildStatus status, String actor, Instant at) {
-        return modify(open(id), touched(actor, at).set("status", status).set("finishedAt", at));
+    /** R-16-11 `finish`: the session closes `COMPLETED` once, with `finishedAt` and the setup it registered ({@code setupId}, or none). */
+    public Optional<BuildSession> close(String id, String setupId, String actor, Instant at) {
+        return modify(open(id), touched(actor, at).set("status", BuildStatus.COMPLETED).set("finishedAt", at).set("setupId", setupId));
     }
     /** P9: closes the session only while it is still open and started (else created) before {@code cutoff}. */
     public Optional<BuildSession> abandon(String id, Instant cutoff, Instant at) {

@@ -1,0 +1,17 @@
+Read right after the host-locked ./mvnw -q clean verify (13, exit 0), from target/surefire-reports and target/failsafe-reports.
+surefire: 375 classes; tests=4539, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  BuildSessionExportTest: tests=3, failures=0, errors=0, skipped=0
+  BuildSessionRulesTest: tests=4, failures=0, errors=0, skipped=0
+  BuildSessionStreamsTest: tests=4, failures=0, errors=0, skipped=0
+  CourseSchemasTest: tests=4, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=13, failures=0, errors=0, skipped=0
+  IdempotencyFilterBuildSessionRoutesTest: tests=1, failures=0, errors=0, skipped=0
+  RequestTraceFilterTest: tests=2, failures=0, errors=0, skipped=0
+  RingGeometryRulesTest: tests=6, failures=0, errors=0, skipped=0
+failsafe: 150 classes; tests=2027, failures=0, errors=0, skipped=0
+  BuildSessionsIT: tests=14, failures=0, errors=0, skipped=0
+  DemoCoursesSeedIT: tests=1, failures=0, errors=0, skipped=0
+  E9ContractIT: tests=65, failures=0, errors=0, skipped=0
+  OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  RingSetupsIT: tests=15, failures=0, errors=0, skipped=0

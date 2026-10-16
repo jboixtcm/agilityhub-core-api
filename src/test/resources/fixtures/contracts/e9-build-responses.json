@@ -9,6 +9,7 @@
     "startedByAccountId": "e9-INSTRUCTOR",
     "startedAt": null,
     "finishedAt": null,
+    "setupId": null,
     "lastKnownMarkerId": null,
     "localCacheVersion": 1,
     "progressJson": null,

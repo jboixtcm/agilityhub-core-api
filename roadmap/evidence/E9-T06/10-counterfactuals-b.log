@@ -1,0 +1,23 @@
+== M11 step 6: a stream lives 30 minutes whatever its token
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_aStreamEndsWhenItsTokenExpires [failure] [the stream ended] 
+   FAILED BuildSessionStreamsTest.T_16_10_aStreamLivesNoLongerThanItsToken [failure] expected: 15M
+== M12 step 7: an outlived session's streams wait for P9
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_aSessionOpenForTwelveHoursIsOverAndP9AbandonsIt [failure] No line starting with «event:finished» within PT2S
+   FAILED BuildSessionStreamsTest.T_16_10_anOutlivedSessionEndsItsStreamsBeforeP9 [failure] No frame with «event:finished» within PT2S
+== M13 step 8: finish's contract leaves out RING_WITHOUT_GEOMETRY
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionsController.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=OpenApiSnapshotTest
+   exit: 0
+   FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract [failure] [Regenerate the committed contract with bin/openapi-snapshot] 
+== M14 step 9: the query token on every method of the stream's path
+   file: src/main/java/com/agilityhub/core/configuration/SecurityConfiguration.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   (no test failed)
+All mutants reverted: True

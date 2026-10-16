@@ -155,8 +155,9 @@ public final class BuildSessionExport {
             points(z.putArray("polygon_points_m"), zone.polygonPointsM());
             z.put("warning_margin_m", zone.warningMarginM());
         }
+        // E118: the six active markers the app calibrates with; an inactive one is not there to be seen.
         var markers = node.putArray("markers");
-        for (var marker : g.markers()) {
+        for (var marker : g.markers().stream().filter(RingMarker::isActive).toList()) {
             markers.addObject().put("id", marker.id()).put("label", marker.label()).put("marker_uid", marker.markerUid()).put("role", marker.role())
                     .put("x_m", marker.xM()).put("y_m", marker.yM()).put("z_m", marker.zM()).put("rotation_y_deg", marker.rotationYDeg())
                     .put("physical_width_m", marker.physicalWidthM()).put("physical_height_m", marker.physicalHeightM())

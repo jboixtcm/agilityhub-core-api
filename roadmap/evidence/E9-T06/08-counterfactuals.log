@@ -1,0 +1,36 @@
+== M1 step 1: keyed build-session writes stay in the filter's request transaction
+   file: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_aKeyedStartThatDrawsATakenJoinCodeDrawsAgain [failure] [POST /api/v1/build-sessions {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 6dcda9cf-0cdc-4b28-af14-0666d22abc09 al club.","details":{},"traceId":"6d
+   FAILED BuildSessionsIT.T_16_10_aKeyedFinishRacingTapsIsRetriedAndNeverAnswers500 [failure] [round 1 finish: {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi c719b3f4-79f2-49a4-8bb3-57899509ba8a al club.","details":{},"traceId":"c719b3f4-79f2-
+== M2 step 1: the route group names the start only
+   file: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=IdempotencyFilterBuildSessionRoutesTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED IdempotencyFilterBuildSessionRoutesTest.T_16_10_everyKeyedBuildSessionWriteRunsInItsOwnRetriedTransaction [failure] Expecting actual:
+== M3 step 2: finish gated by the publish switch again
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_finishRegistersOrRefreshesTheRingsSetupUnderThePublishingSwitch [failure] [POST /api/v1/build-sessions/1b7b6eec-7da7-426c-bcfc-090b8ec47bb6/finish {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"16df806a-cad2-4a32-ae03-f31a994e1139"}] 
+== M4 step 3: a refreshed setup drops its expectedUntil
+   file: src/main/java/com/agilityhub/core/courses/application/RingSetupService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_08_T_16_10_aRefreshedSetupKeepsItsExpectedUntil [failure] expected: "2026-10-09"
+== M5 step 4: the export counts every marker, not the active ones
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError [failure] [GET /api/v1/build-sessions/d766bd4e-aec4-44c0-8354-4c19ea48c20a/export {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 689189d1-100f-4494-a316-0fa2d6
+== M6 step 4: more than six markers reported as TOO_FEW_MARKERS
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError [failure] [Iterable check single element] (1 failure)
+== M7 step 4: the export also writes the inactive markers
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionExport.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_03_T_16_10_theExportIsTheUnityContractAndAFailedSelfCheckIsAServerError [failure] [GET /api/v1/build-sessions/ae80a512-f36d-4b42-8c70-af76043b185f/export {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 6f1a2bef-6304-4016-a075-0e4ac3

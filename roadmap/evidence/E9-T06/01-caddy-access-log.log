@@ -1,0 +1,7 @@
+test_E9_T06_no_site_logs_without_the_filter (__main__.AccessLogTest.test_E9_T06_no_site_logs_without_the_filter) ... ok
+test_E9_T06_real_caddy_drops_the_query_token (__main__.AccessLogTest.test_E9_T06_real_caddy_drops_the_query_token) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.305s
+
+OK

@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E9-T06 · S16 build sessions: E9-T04's review follow-ups (ruling E118)
+
+**0 operations or schemas added or removed; 1 response property added (`BuildSession.setupId`); 1 enum value added (`TOO_MANY_MARKERS` in the geometry violation `rule`); `RING_WITHOUT_GEOMETRY` added to 1 error list; 5 descriptions changed.**
+
+- `POST /build-sessions/{id}/finish` is no longer gated by `courses.allowInstructorPublish` (E118): an INSTRUCTOR or ADMIN closes the session (`COMPLETED`, `finishedAt`). The ring setup still follows the switch (R-16-07): with it off, an INSTRUCTOR's finish registers none, `setupId` is `null` and an ADMIN registers it with `POST /ring-setups`. A refreshed setup keeps its `expectedUntil`. Its `422` list adds `RING_WITHOUT_GEOMETRY`, which the code could already throw (review #8).
+- `BuildSession` gains the optional, nullable `setupId`: the setup `finish` registered or refreshed. It is `null` while the session is open, once it is `ABANDONED`, or when no setup was registered. It is in every `BuildSession` response (`POST /build-sessions`, `GET`, `PATCH …/obstacles/{obstacleId}`, `finish`, `join`).
+- `GET /build-sessions/{id}/export` needs exactly six **active** markers and exports only those (E118). With fewer: `422 GEOMETRY_INVALID {violations: [{path: markers, rule: TOO_FEW_MARKERS}]}`. With more: the new `rule: TOO_MANY_MARKERS`, which is also in the published geometry violation enum. `PUT /rings/{id}/geometry` never returns it (R-16-04 keeps «≥ 3»).
+- `GET /build-sessions/{id}/events`: a stream lasts at most 30 minutes and never outlives the access token it opened with. A client that stops reading is closed. A session open for `courses.buildSessionMaxHours` gets `finished {status: ABANDONED, finishedAt: null}` within a second, before S15 P9 records it.
+- Behaviour only, no contract change: keyed `POST /build-sessions`, `/build-sessions/join` and `/build-sessions/{id}/finish` now run in their own retried transaction (INC-47's pattern). A write conflict, or a join code already taken, retries the whole request; when the retries run out the answer is `409 STALE_VERSION`, never a `500`. The join and create descriptions now say so.
+
 ## 2026-10-16 · E9-T05 · S16 integration: the build sheet served, the member's «Recorregut previst», E117's five points
 
 **0 operations added or removed; 1 schema added (`PlannedPlacement`); 1 response property added (`ClassSessionMemberView.plannedPlacement`); `STALE_VERSION` added to 1 error list; 4 descriptions changed.**
