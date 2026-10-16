@@ -23,6 +23,8 @@ public class BrandingController {
     private final ClubConfigService configs;
     private final ObjectMapper mapper;
     private final String pushPublicKey;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ProductBranding product;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.CountryProfileRegistry countries;
     /** @param pushPublicKey `VAPID_PUBLIC_KEY` (S11 R-11-07): the product's web-push key, public by design; blank without one */
     public BrandingController(ClubConfigService configs, ObjectMapper mapper,
             @org.springframework.beans.factory.annotation.Value("${notifications.push.vapid-public-key:}") String pushPublicKey) {
@@ -35,6 +37,12 @@ public class BrandingController {
                 content = @io.swagger.v3.oas.annotations.media.Content)
     })
     public ResponseEntity<BrandingResponse> branding(WebRequest request) throws JsonProcessingException {
+        // S17 §2 «Entrada» (E118 #2): only a product host reaches here without a tenant (TenantFilter); an unknown host is 404 UNKNOWN_HOST.
+        if (TenantContext.current() == null) {
+            var values = product.values(); var profile = countries.get(values.countryProfile());
+            return response(BrandingResponse.product(values, new BrandingResponse.Country(profile.code(), profile.idDocumentTypes(), profile.defaultPhonePrefix()),
+                    product.privacyPolicyUrl()), request);
+        }
         return response(BrandingResponse.from(configs.get(TenantContext.require()), pushPublicKey), request);
     }
     @GetMapping(value = "/api/v1/manifest.webmanifest", produces = "application/manifest+json")

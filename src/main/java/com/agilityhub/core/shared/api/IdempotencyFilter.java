@@ -87,6 +87,25 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      */
     static final java.util.regex.Pattern BUILD_SESSIONS = java.util.regex.Pattern.compile("POST /api/v1/build-sessions(/join|/[^/]+/finish)?");
 
+    /**
+     * S17 R-17-03 (E10-T04), `METHOD path`: the keyed domain verification looks DNS up before its write, then runs
+     * `ConsoleTransactions.keyed`'s own transaction and stores its answer there; no network call holds a Mongo transaction open.
+     */
+    static final java.util.regex.Pattern CONSOLE = java.util.regex.Pattern.compile("POST /api/v1/platform/clubs/[^/]+/domains/[^/]+/verification");
+
+    /**
+     * INC-49 (E10-T04): a console route names its club in the path (`/platform/clubs/{id}/…`). The key is scoped to that club,
+     * never to the token's (a platform token has none); the route's own platform authorization judges the request, before a
+     * replay too (E62). Other platform routes have no club: their keys are scoped to none.
+     */
+    static final java.util.regex.Pattern CONSOLE_CLUB = java.util.regex.Pattern.compile("/api/v1/platform/clubs/([^/]+)/.+");
+
+    /**
+     * S17 R-17-10/R-17-11 (E10-T04): the answers that carry a credential (a support access token, a public key shown once) are
+     * stored sealed with the record's id, as an anonymous signup's are, and opened only to replay them.
+     */
+    static final java.util.regex.Pattern SEALED = java.util.regex.Pattern.compile("POST /api/v1/platform/clubs/[^/]+/(support-access|public-api-key)");
+
     /** S13 mutations retry and store the response in LifecycleTransactions, including optional keyed admin actions. */
     static final java.util.regex.Pattern LIFECYCLE = java.util.regex.Pattern.compile("POST /api/v1/(me/)?inactivity-periods(/[^/]+/(decision|termination|cancellation))?"
             + "|POST /api/v1/(me/)?leave-requests(/[^/]+/(decision|cancellation))?"
@@ -147,15 +166,47 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             }
         } else {
             var jwt = (JwtAuthenticationToken) authentication;
-            // S16/S17: platform commands have no request tenant. Role and impersonation guards still
-            // run before a replay; its claims use clubId=null and remain isolated from every club claim.
+            // S16/S17: platform commands have no request tenant. Role and impersonation guards still run before a replay. A
+            // console route's claim uses its path's club (INC-49, {@link #CONSOLE_CLUB}); any other platform claim uses clubId=null.
             boolean platformCommand = path.startsWith("/api/v1/platform/");
-            clubId = platformCommand ? null : jwt.getToken().getClaimAsString("clubId");
+            var console = CONSOLE_CLUB.matcher(path);
+            clubId = !platformCommand ? jwt.getToken().getClaimAsString("clubId") : console.matches() ? console.group(1) : null;
             accountId = jwt.getToken().getSubject();
             if ((!platformCommand && (clubId == null || clubId.isBlank())) || accountId == null || accountId.isBlank()) {
                 throw new ApiException(ErrorCode.NO_MEMBERSHIP);
             }
+            if (platformCommand && clubId != null) {
+                keyed(request, response, chain, path, body, false, clubId, accountId, authentication, new Rows(records, clubId, true));
+                return;
+            }
         }
+        keyed(request, response, chain, path, body, anonymous, clubId, accountId, authentication, new Rows(records, clubId, false));
+    }
+
+    /**
+     * INC-49 (E10-T04): the idempotency rows are tenant rows. A console route's rows live in its path's club, which is no
+     * request tenant (the handler opens it, and may open another club, a clone's source, meanwhile): each row call opens that
+     * club itself unless it is the one open already. Every other request's rows use its request tenant, as before.
+     */
+    private record Rows(IdempotencyRepository records, String clubId, boolean console) {
+        <T> T in(java.util.function.Supplier<T> work) {
+            if (!console || clubId.equals(com.agilityhub.core.shared.application.TenantContext.current())) { return work.get(); }
+            try (var scope = com.agilityhub.core.shared.application.TenantContext.open(clubId)) { return work.get(); }
+        }
+        IdempotencyRepository.Claim claim(String club, String account, String key, String hash, java.time.Instant now) { return in(() -> records.claim(club, account, key, hash, now)); }
+        void lock(com.agilityhub.core.shared.persistence.IdempotencyRecord record) { in(() -> { records.lock(record); return null; }); }
+        void complete(com.agilityhub.core.shared.persistence.IdempotencyRecord record, int status, byte[] body, Map<String, List<String>> headers) {
+            in(() -> { records.complete(record, status, body, headers); return null; });
+        }
+        void abandon(com.agilityhub.core.shared.persistence.IdempotencyRecord record) { in(() -> { records.abandon(record); return null; }); }
+        boolean held(com.agilityhub.core.shared.persistence.IdempotencyRecord record) { return in(() -> records.held(record)); }
+    }
+
+    private void keyed(HttpServletRequest request, HttpServletResponse response, FilterChain chain, String path, byte[] body, boolean anonymous,
+            String clubId, String accountId, org.springframework.security.core.Authentication authentication, Rows records) throws IOException, ServletException {
+        boolean publicSignup = path.equals("/api/v1/signup");
+        boolean checkout = path.equals("/api/v1/checkout-sessions");
+        boolean sealed = anonymous || SEALED.matcher(request.getMethod() + " " + path).matches();
         String key = request.getHeader("Idempotency-Key");
         try {
             if (!UUID.fromString(key).toString().equalsIgnoreCase(key)) { throw new IllegalArgumentException(); }
@@ -176,7 +227,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")));
             } else {
                 replay = IdempotentReplay.stored(record.responseStatus(), record.responseHeaders(),
-                        anonymous ? capabilities.open(record.responseBody(), record.id()) : record.responseBody());
+                        sealed ? capabilities.open(record.responseBody(), record.id()) : record.responseBody());
             }
             replay.pending(request);
             chain.doFilter(new BufferedRequest(request, body), response);
@@ -203,7 +254,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         boolean billing = BILLING.matcher(request.getMethod() + " " + path).matches();
         // S16 (E9-T06): the keyed build-session writes, like the follow-up ones; an error releases the key.
         boolean buildSessions = BUILD_SESSIONS.matcher(request.getMethod() + " " + path).matches();
-        if (bookings || signup || followup || billing || buildSessions || LIFECYCLE.matcher(request.getMethod() + " " + path).matches() || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S17 (E10-T04): the keyed domain verification, like the follow-up writes; an error releases the key.
+        boolean console = CONSOLE.matcher(request.getMethod() + " " + path).matches();
+        if (bookings || signup || followup || billing || buildSessions || console || LIFECYCLE.matcher(request.getMethod() + " " + path).matches() || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;
@@ -211,7 +264,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                     () -> records.lock(record), (status, bytes) -> {
                         // A 204 (a follow-up DELETE or read mark) has no body and so no Content-Type, as the request transaction's path stores it.
                         var language = List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag());
-                        records.complete(record, status, anonymous ? capabilities.seal(bytes, record.id()) : bytes, bytes.length == 0
+                        records.complete(record, status, sealed ? capabilities.seal(bytes, record.id()) : bytes, bytes.length == 0
                                 ? Map.of("Content-Language", language) : Map.of("Content-Type", List.of("application/json"), "Content-Language", language));
                         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
                                 new org.springframework.transaction.support.TransactionSynchronization() {
@@ -254,7 +307,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 for (String header : List.of("Content-Type", "Location", "ETag", "Cache-Control", "Content-Language")) {
                     headers.put(header, List.copyOf(cachedResponse.getHeaders(header)));
                 }
-                records.complete(record, cachedResponse.getStatus(), anonymous ? capabilities.seal(cachedResponse.getContentAsByteArray(),record.id()) : cachedResponse.getContentAsByteArray(), headers);
+                records.complete(record, cachedResponse.getStatus(), sealed ? capabilities.seal(cachedResponse.getContentAsByteArray(),record.id()) : cachedResponse.getContentAsByteArray(), headers);
             });
         } catch (RuntimeException failure) {
             // E79 (E5-T30 round 2): a retry took this request's claim over after its lease. The answer could not be stored (the

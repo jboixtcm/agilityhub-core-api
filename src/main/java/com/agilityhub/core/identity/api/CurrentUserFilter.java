@@ -16,7 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class CurrentUserFilter extends OncePerRequestFilter {
     private final ImpersonationService impersonations;
-    public CurrentUserFilter(ImpersonationService impersonations) { this.impersonations = impersonations; }
+    private final com.agilityhub.core.identity.application.SupportAccessService supports;
+    public CurrentUserFilter(ImpersonationService impersonations, com.agilityhub.core.identity.application.SupportAccessService supports) {
+        this.impersonations = impersonations; this.supports = supports;
+    }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -39,7 +42,17 @@ public class CurrentUserFilter extends OncePerRequestFilter {
             origin = DomainEvent.Origin.BACKOFFICE;
             SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_MEMBER"))));
         }
-        try (var scope = CurrentUser.open(new CurrentUser(jwt.getSubject(), jwt.getClaimAsString("name"), impersonation, origin))) {
+        CurrentUser.Support support = null;
+        if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("support"))) {
+            // S17 R-17-10 (E10-T04): a support token opens the club's administration only while its grant lives, and never the
+            // routes that hand over personal data or full bank accounts.
+            String path = request.getRequestURI().substring(request.getContextPath().length());
+            support = supports.validate(jwt, path.equals("/oauth2/revoke"));
+            if (com.agilityhub.core.identity.application.SupportAccessService.restricted(request.getMethod(), path)) {
+                throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.SUPPORT_RESTRICTED);
+            }
+        }
+        try (var scope = CurrentUser.open(new CurrentUser(jwt.getSubject(), jwt.getClaimAsString("name"), impersonation, origin, support))) {
             chain.doFilter(request, response);
         } finally { SecurityContextHolder.getContext().setAuthentication(authentication); }
     }

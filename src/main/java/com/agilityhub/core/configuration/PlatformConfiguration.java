@@ -24,8 +24,10 @@ public class PlatformConfiguration {
     }
     @Bean FilterRegistrationBean<TenantFilter> tenantFilter(HostTenantResolver hosts, Environment environment,
                                                           ApiExceptionHandler errors, ObjectMapper mapper,
-                                                          com.agilityhub.core.shared.application.SecurityEvents events) {
-        var registration = new FilterRegistrationBean<>(new TenantFilter(hosts, environment.acceptsProfiles(Profiles.of("local")), errors, mapper, events, java.net.URI.create(environment.getRequiredProperty("identity.issuer")).getHost()));
+                                                          com.agilityhub.core.shared.application.SecurityEvents events,
+                                                          com.agilityhub.core.platform.application.ProductBranding product) {
+        var registration = new FilterRegistrationBean<>(new TenantFilter(hosts, environment.acceptsProfiles(Profiles.of("local")), errors, mapper, events,
+                java.net.URI.create(environment.getRequiredProperty("identity.issuer")).getHost(), product::productHost));
         registration.setOrder(-90);
         return registration;
     }

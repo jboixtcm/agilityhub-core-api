@@ -24,6 +24,20 @@ public class ConsoleTransactions {
     private final TransactionTemplate transactions; private final TransactionRetries retries;
     public ConsoleTransactions(TransactionTemplate transactions, TransactionRetries retries) { this.transactions = transactions; this.retries = retries; }
 
+    /**
+     * A keyed console write left to this transaction by the idempotency filter (`IdempotencyFilter.CONSOLE`, E10-T04): the key's
+     * row is locked first and stores `status` and the answer's bytes in the attempt that commits, as `FollowupTransactions.keyed`.
+     * Without a key the row calls do nothing.
+     */
+    public <T> T keyed(int status, Supplier<T> work, java.util.function.Function<T, byte[]> answer) {
+        return write(() -> {
+            com.agilityhub.core.shared.application.IdempotentOperation.lock();
+            T result = work.get();
+            com.agilityhub.core.shared.application.IdempotentOperation.complete(status, answer.apply(result));
+            return result;
+        });
+    }
+
     public <T> T write(Supplier<T> work) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) { return work.get(); }
         for (int attempt = 1; ; attempt++) {

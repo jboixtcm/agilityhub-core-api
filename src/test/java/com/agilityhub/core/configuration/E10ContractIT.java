@@ -55,7 +55,6 @@ class E10ContractIT extends AbstractIntegrationTest {
                 .authorities(new SimpleGrantedAuthority("ROLE_"+role)));
         return request;
     }
-    boolean deferred(Route r) { return r.path().contains("/domains")||r.path().endsWith("/support-access")||r.path().endsWith("/public-api-key"); }
     void success(MockHttpServletRequestBuilder request) throws Exception { mvc.perform(request).andExpect(status().isOk()); }
     void error(MockHttpServletRequestBuilder request,int status,String code) throws Exception {
         var response=mvc.perform(request).andReturn().getResponse();
@@ -76,10 +75,8 @@ class E10ContractIT extends AbstractIntegrationTest {
     void T_17_10_R_17_12_globalPlatformRoleChecksPrecedeWrites(Route route) throws Exception {
         var before=state();
         for(String role:List.of("ANON","MEMBER","INSTRUCTOR","ADMIN")) {
-            error(call(route,role),role.equals("ANON")?401:role.equals("AGILITYHUB_ADMIN")?501:403,
-                    role.equals("ANON")?"UNAUTHENTICATED":role.equals("AGILITYHUB_ADMIN")?"NOT_IMPLEMENTED":"FORBIDDEN");
+            error(call(route,role),role.equals("ANON")?401:403,role.equals("ANON")?"UNAUTHENTICATED":"FORBIDDEN");
         }
-        if(deferred(route)) error(call(route,"AGILITYHUB_ADMIN"),501,"NOT_IMPLEMENTED");
         assertThat(state()).isEqualTo(before);
         assertThat(TenantContext.current()).isNull();
     }
@@ -89,10 +86,10 @@ class E10ContractIT extends AbstractIntegrationTest {
             var op=api.path("paths").path(r.path()).path(r.method().toLowerCase());
             assertThat(op.isMissingNode()).as(r.method()+" "+r.path()).isFalse();
             assertThat(op.path("responses").has(Integer.toString(r.success()))).isTrue();
-            if(deferred(r)) assertThat(op.path("responses").path("501").path("description").asText()).contains("NOT_IMPLEMENTED");
-            else assertThat(op.path("responses").path("501").path("description").asText()).as(r.path()).doesNotContain("NOT_IMPLEMENTED");
+            // E10-T04: no S17 route is a 501 contract any more.
+            assertThat(op.path("responses").path("501").path("description").asText()).as(r.path()).doesNotContain("NOT_IMPLEMENTED");
             for(var error:r.errors().entrySet()) for(String code:error.getValue())
-                if(!code.equals("NOT_IMPLEMENTED")||deferred(r)) assertThat(op.path("responses").path(error.getKey()).path("description").asText()).contains(code);
+                assertThat(op.path("responses").path(error.getKey()).path("description").asText()).as(r.method()+" "+r.path()).contains(code);
             if(r.key()) assertThat(op.path("parameters").findValuesAsText("name")).contains("Idempotency-Key");
             if(r.body()!=null&&!r.body().isNull()) assertThat(op.path("requestBody").path("content").path("application/json").path("schema").toString()).contains("$ref");
         }
@@ -103,7 +100,9 @@ class E10ContractIT extends AbstractIntegrationTest {
             assertThat(api.path("paths").has(existing)).as(existing).isTrue();
     }
     @Test void T_17_03_internalDomainCheckIsNeverPubliclyAuthorized() throws Exception {
-        error(get("/internal/domains/allowed").param("host","e10-target.example.test"),501,"NOT_IMPLEMENTED");
+        // The internal network gets its answer (the fixture's own verified host); an untrusted address never does.
+        mvc.perform(get("/internal/domains/allowed").param("host","e10-target.example.test")).andExpect(status().isOk());
+        error(get("/internal/domains/allowed").param("host","pending.e10-target.example.test"),404,"NOT_FOUND");
         error(get("/internal/domains/allowed").param("host","e10-target.example.test").with(r->{r.setRemoteAddr("203.0.113.9");return r;}),403,"FORBIDDEN");
         error(get("/internal/domains/allowed").param("host","e10-target.example.test").header("X-Forwarded-For","127.0.0.1")
                 .with(r->{r.setRemoteAddr("203.0.113.9");return r;}),403,"FORBIDDEN");
@@ -170,13 +169,24 @@ class E10ContractIT extends AbstractIntegrationTest {
         for(var route:routes().toList()) error(call(route,"AGILITYHUB_ADMIN").with(jwt().jwt(j->j.subject("e10-actor").claim("imp",true))
                 .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN"))),403,"IMPERSONATION_DENIED");
     }
-    @Test void T_17_11_R_17_11_globalKeysRemainRetryableAfterStubAndCannotBypassRole() throws Exception {
-        var route=route("POST","/clubs/{id}/public-api-key"); var before=state();
+    @Test void T_17_11_R_17_11_keyedRotationReplaysItsKeyAndCannotBypassRole() throws Exception {
+        var route=route("POST","/clubs/{id}/public-api-key");
         String key=UUID.randomUUID().toString();
-        for(int i=0;i<2;i++) error(call(route,"AGILITYHUB_ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key",key);return r;}),501,"NOT_IMPLEMENTED");
+        var first=mvc.perform(call(route,"AGILITYHUB_ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key",key);return r;}))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        var before=state();
+        // The replay answers the same key, which a lost answer would otherwise leave unknown (the first rotation committed).
+        assertThat(mvc.perform(call(route,"AGILITYHUB_ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key",key);return r;}))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).isEqualTo(first);
         error(call(route,"ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key",key);return r;}),403,"FORBIDDEN");
         error(call(route,"AGILITYHUB_ADMIN").with(r->{r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key","invalid");return r;}),400,"VALIDATION_ERROR");
         assertThat(state()).isEqualTo(before);
+        // Sealed at rest: the stored answer never holds the key in clear (S17 R-17-11, «es mostra un sol cop»).
+        String apiKey=mapper.readTree(first).path("apiKey").asText();
+        var stored=mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("key").is(key)),
+                org.bson.Document.class,"idempotency_records").stream()
+                .map(record->new String(record.get("responseBody",org.bson.types.Binary.class).getData(),java.nio.charset.StandardCharsets.UTF_8)).toList();
+        assertThat(stored).isNotEmpty().allSatisfy(body->assertThat(body).doesNotContain(apiKey,"apiKey"));
     }
     @Test void T_17_10_R_17_12_unknownResourcesAndInvalidListQueriesFailBeforeWrites() throws Exception {
         for(var route:routes().filter(r->r.path().contains("{id}")||r.path().contains("{clubId}")).toList())

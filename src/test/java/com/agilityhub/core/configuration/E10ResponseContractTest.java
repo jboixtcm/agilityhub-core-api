@@ -18,8 +18,15 @@ class E10ResponseContractTest {
         var verification=schemas.path("PlatformDomain").path("properties").path("verification");
         assertThat(verification.toString()).contains("DomainVerificationChallenge");
         var challenge=schemas.path("DomainVerificationChallenge");
-        assertThat(challenge.path("required")).contains(mapper.valueToTree("recordName"),mapper.valueToTree("recordValue"));
-        assertThat(challenge.path("description").asText()).contains("_agilityhub-verify", "agh-verify-{token}", "stable until verified");
+        assertThat(challenge.path("required")).contains(mapper.valueToTree("recordName"),mapper.valueToTree("recordValue"),mapper.valueToTree("cnameTarget"));
+        assertThat(challenge.path("description").asText()).contains("_agilityhub-verify", "agh-verify-{token}", "stable while it is PENDING", "removed once it is VERIFIED");
+    }
+    /** E118 #3 (E10-T04): the clone's warnings are codes the console translates, never English free text. */
+    @Test void T_17_07_R_17_08_cloneWarningsAreCodedWithTheirPartAndLocale() throws Exception {
+        var schemas=published().path("components").path("schemas");
+        assertThat(schemas.path("CatalogCloneResult").path("properties").path("warnings").path("items").path("$ref").asText()).isEqualTo("#/components/schemas/CatalogCloneWarning");
+        assertThat(schemas.path("CatalogCloneWarning").path("required")).containsExactlyInAnyOrder(mapper.valueToTree("code"),mapper.valueToTree("part"),mapper.valueToTree("from"));
+        assertThat(schemas.path("CatalogCloneWarning").path("properties").path("code").toString()).contains("LOCALE_OMITTED","DEFAULT_LOCALE_COPIED");
     }
     @Test void T_17_05_R_17_05_providerReadContractKeepsEditableNonSecretConfiguration() throws Exception {
         var properties=published().path("components").path("schemas").path("PlatformProviderSummary").path("properties");

@@ -9,8 +9,8 @@ import static com.agilityhub.core.platform.api.PlatformClubContracts.*;
 
 @Component
 public class PlatformClubMapper {
-    private final PlatformConsoleQueries queries;private final PlatformProviders providers;private final ObjectMapper mapper;
-    public PlatformClubMapper(PlatformConsoleQueries queries,PlatformProviders providers,ObjectMapper mapper) {this.queries=queries;this.providers=providers;this.mapper=mapper;}
+    private final PlatformConsoleQueries queries;private final PlatformProviders providers;private final ObjectMapper mapper;private final PlatformDomains domains;
+    public PlatformClubMapper(PlatformConsoleQueries queries,PlatformProviders providers,ObjectMapper mapper,PlatformDomains domains) {this.queries=queries;this.providers=providers;this.mapper=mapper;this.domains=domains;}
     public OnboardingChecklist checklist(Club c) {return mapper.convertValue(queries.checklist(c),OnboardingChecklist.class);}
     public PlatformClubUsage usage(Club c,String month) {return mapper.convertValue(queries.usage(c,month),PlatformClubUsage.class);}
     /** The read projection is separate from the value-free provider audit snapshot. */
@@ -31,9 +31,15 @@ public class PlatformClubMapper {
         var configured=new LinkedHashMap<Provider,PlatformProviderSummary>();c.paymentProviders().forEach((k,v)->configured.put(Provider.valueOf(k),provider(k,v)));
         return new PlatformClub(c.id(),c.slug(),c.name(),c.legalName(),c.taxId(),mapper.convertValue(c.address(),SettingsContracts.ClubAddress.class),
                 c.displayCity(),c.contactEmail(),c.contactPhone(),c.websiteUrl(),c.locales(),c.defaultLocale(),c.timeZone(),c.currency(),c.countryProfile(),
-                c.domains().stream().map(d->new PlatformDomain(d.host(),d.app().equals("clubs-admin")?DomainApp.CLUBS_ADMIN:DomainApp.CLUBS,
-                        DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary(),null)).toList(),c.theme(),c.modules(),configured,
+                c.domains().stream().map(this::domain).toList(),c.theme(),c.modules(),configured,
                 mapper.convertValue(c.legal(),PlatformClubLegal.class),ClubStatus.valueOf(c.status().name()),c.template(),c.notes(),checklist(c),usage(c,null),c.version(),c.createdAt(),c.updatedAt());
+    }
+    /** S17 R-17-03: the TXT challenge while the domain has one (E10-T04); a verified or legacy domain has none. */
+    public PlatformDomain domain(Club.Domain d) {
+        var challenge=d.verificationToken()==null?null:new DomainVerificationChallenge(
+                com.agilityhub.core.platform.domain.DomainChallenge.recordName(d.host()),com.agilityhub.core.platform.domain.DomainChallenge.recordValue(d.verificationToken()),domains.cnameTarget(d.app()));
+        return new PlatformDomain(d.host(),d.app().equals("clubs-admin")?DomainApp.CLUBS_ADMIN:DomainApp.CLUBS,
+                DomainStatus.valueOf(d.status().name()),d.verifiedAt(),d.primary(),challenge);
     }
     public Map<String,Object> row(Club c,List<String> fields) {
         var value=new LinkedHashMap<String,Object>();value.put("id",c.id());value.put("name",c.name());value.put("slug",c.slug());value.put("status",c.status());

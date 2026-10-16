@@ -263,7 +263,13 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         var parts=List.of("LEVELS","RINGS","PLANS","FAQ","MESSAGE_TEMPLATES");
         var result=call(post(BASE+"/console-target/catalog-clone"),Map.of("fromClubId","console-source","parts",parts),200);
         for(String part:parts) assertThat(result.path("copied").path(part).asInt()).as(part).isEqualTo(1);
-        assertThat(result.path("warnings").toString()).contains("omitted locale es","copied ca into en");
+        // E118 #3 (E10-T04): coded warnings, one per code, part and locale, so the console can name the part and the language.
+        assertThat(result.path("warnings")).contains(mapper.valueToTree(Map.of("code","LOCALE_OMITTED","part","LEVELS","from","es")),
+                mapper.valueToTree(Map.of("code","LOCALE_OMITTED","part","LEVELS","from","ca")),
+                mapper.valueToTree(Map.of("code","DEFAULT_LOCALE_COPIED","part","LEVELS","from","ca")),
+                mapper.valueToTree(Map.of("code","DEFAULT_LOCALE_COPIED","part","MESSAGE_TEMPLATES","from","ca")));
+        assertThat(result.path("warnings").toString()).doesNotContain("omitted locale","copied ca into");
+        var codes=new java.util.HashSet<String>();result.path("warnings").forEach(w->assertThat(codes.add(w.toString())).as("once each: "+w).isTrue());
         try(var scope=com.agilityhub.core.shared.application.TenantContext.open("console-target")) {
             var exported=mapper.valueToTree(catalogs.export());
             assertThat(exported.path("levels").get(0).path("name")).isEqualTo(mapper.valueToTree(Map.of("en","Iniciació")));
@@ -420,6 +426,20 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         assertThat(mvc.perform(get("/api/v1/branding").header("Host","console.example.test")).andReturn().getResponse().getStatus()).isEqualTo(200);
     }
 
+    /** E115 #1 (E10-T04): the public signup of a club stored without `legal` answers, without texts, instead of failing. */
+    @Test void T_17_02_R_17_02_publicSignupOfAClubWithoutLegalAnswers() throws Exception {
+        call(put(BASE+"/console-target/parameters/signup.enabled"),Map.of("version",0,"value",true),200);
+        mongo.updateFirst(byId("console-target"),new org.springframework.data.mongodb.core.query.Update().unset("legal"),"clubs");
+        configs.invalidate("console-target");hosts.invalidate();
+        var response=mvc.perform(get("/api/v1/signup").header("Host","console.example.test")).andReturn().getResponse();
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+        var signup=mapper.readTree(response.getContentAsString());
+        assertThat(signup.path("enabled").asBoolean()).isTrue();
+        assertThat(signup.path("legal").path("privacyPolicyUrl").asText(null)).isNull();
+        assertThat(signup.path("legal").path("legalTextsVersion").asText(null)).isNull();
+        assertThat(signup.path("legal").has("legalName")).isFalse();
+    }
+
     void teamAdmin(String id) {
         mongo.insert(new com.agilityhub.core.identity.persistence.Account(id+"-account",id+"@example.test","Example "+id,"ca",null,Set.of(),
                 com.agilityhub.core.identity.persistence.Account.Status.ACTIVE,new com.agilityhub.core.identity.persistence.Account.Security(0,null,null,0),Map.of(),false,clock.instant()));
@@ -558,5 +578,73 @@ class PlatformConsoleIT extends AbstractIntegrationTest {
         var listed=call(get("/api/v1/platform/audit-entries").param("filter","clubId:eq:"+id).param("size","50"),null,200);
         assertThat(listed.path("items").findValuesAsText("action")).contains("CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED");
         assertThat(call(get("/api/v1/platform/audit-entries").param("filter","action:eq:CLUB_ADMIN_INVITED"),null,200).path("totalItems").asInt()).isEqualTo(1);
+    }
+
+    /** E115 #2 (E10-T04): a pending readmission's submitted method makes its member a user of the provider. */
+    @Test void T_17_05_R_17_05_aPendingReadmissionCountsAsAProviderUser() throws Exception {
+        call(put(BASE+"/console-target/payment-providers/MANUAL"),Map.of("version",version(),"enabled",true,"instructions",Map.of("ca","Recepció")),200);
+        raw("members",row("readmitted","console-target").append("status","LEFT").append("paymentMethod",new org.bson.Document("type","SEPA_DD"))
+                .append("readmissionRequest",new org.bson.Document("submitted",new org.bson.Document("paymentMethod",new org.bson.Document("type","MANUAL")))));
+        raw("members",row("elsewhere","console-source").append("status","ACTIVE").append("paymentMethod",new org.bson.Document("type","MANUAL")));
+        var removal=call(delete(BASE+"/console-target/payment-providers/MANUAL").param("version",Long.toString(version())),null,409);
+        assertThat(removal.path("code").asText()).isEqualTo("PROVIDER_IN_USE");
+        assertThat(removal.path("details").path("count").asInt()).isEqualTo(1);
+        var disabling=call(put(BASE+"/console-target/payment-providers/MANUAL"),Map.of("version",version(),"enabled",false,"instructions",Map.of("ca","Recepció")),409);
+        assertThat(disabling.path("details").path("count").asInt()).isEqualTo(1);
+        mongo.remove(byId("readmitted"),"members");
+        call(delete(BASE+"/console-target/payment-providers/MANUAL").param("version",Long.toString(version())),null,200);
+    }
+
+    /** E118 #1 (E10-T04): the console's «Paràmetres» tab reads the target club's parameters with the shape of GET /parameters. */
+    @Test void T_17_10_R_17_12_platformReadsTheTargetParametersWithTheVersionItsWriteExpects() throws Exception {
+        var rows=call(get(BASE+"/console-target/parameters"),null,200).path("blocks").findValues("rows").stream().flatMap(b->java.util.stream.StreamSupport.stream(b.spliterator(),false)).toList();
+        var minutes=rows.stream().filter(r->r.path("key").asText().equals("platform.supportAccessMinutes")).findFirst().orElseThrow();
+        assertThat(minutes.path("editableBy").asText()).isEqualTo("PLATFORM");
+        assertThat(minutes.path("isOverride").asBoolean()).isFalse();
+        assertThat(minutes.path("version").asLong()).isZero();
+        assertThat(minutes.path("value").asInt()).isEqualTo(60);
+        assertThat(rows.stream().map(r->r.path("key").asText()).toList()).contains("bookings.lateCancelThresholdMinutes");
+        call(put(BASE+"/console-target/parameters/platform.supportAccessMinutes"),Map.of("version",0,"value",30),200);
+        assertThat(call(put(BASE+"/console-target/parameters/platform.supportAccessMinutes"),Map.of("version",0,"value",45),409).path("code").asText()).isEqualTo("STALE_VERSION");
+        var after=call(get(BASE+"/console-target/parameters").param("block","system"),null,200);
+        var updated=after.path("blocks").findValues("rows").stream().flatMap(b->java.util.stream.StreamSupport.stream(b.spliterator(),false))
+                .filter(r->r.path("key").asText().equals("platform.supportAccessMinutes")).findFirst().orElseThrow();
+        assertThat(updated.path("isOverride").asBoolean()).isTrue();
+        assertThat(updated.path("version").asLong()).isEqualTo(1);
+        assertThat(updated.path("value").asInt()).isEqualTo(30);
+        assertThat(after.path("blocks")).allSatisfy(b->assertThat(b.path("key").asText()).isEqualTo("system"));
+        // The source club is untouched: the target is the path's, never a token's.
+        var source=call(get(BASE+"/console-source/parameters").param("block","system"),null,200).path("blocks").findValues("rows").stream()
+                .flatMap(b->java.util.stream.StreamSupport.stream(b.spliterator(),false)).filter(r->r.path("key").asText().equals("platform.supportAccessMinutes")).findFirst().orElseThrow();
+        assertThat(source.path("isOverride").asBoolean()).isFalse();
+        assertThat(call(get(BASE+"/console-missing/parameters"),null,404).path("code").asText()).isEqualTo("CLUB_NOT_FOUND");
+        var club=mvc.perform(get(BASE+"/console-target/parameters").header("Host","console.example.test").with(jwt().jwt(j->j.subject("club-admin").claim("clubId","console-target"))
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andReturn().getResponse();
+        assertThat(club.getStatus()).isEqualTo(403);
+    }
+
+    /** E118 #2 (E10-T04): the console boots on its product host, which has no tenant; an unknown host is still 404. */
+    @Test void T_17_02_R_17_02_productHostAnswersTheProductBranding() throws Exception {
+        for(var request:List.of(get("/api/v1/branding").header("Host","clubsadmin.agilitydoghub.com"),
+                get("/api/v1/branding").header("Host","ClubsAdmin.AgilityDogHub.com:443"),
+                get("/api/v1/branding").header("Host","clubsadmin.agilitydoghub.com").with(jwt().jwt(j->j.subject("console-actor")).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN"))))) {
+            var response=mvc.perform(request).andReturn().getResponse();
+            assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+            var branding=mapper.readTree(response.getContentAsString());
+            assertThat(branding.path("club").path("slug").isNull()).isTrue();
+            assertThat(branding.path("club").path("name").asText()).isEqualTo("AgilityHub");
+            assertThat(branding.path("locales")).containsExactly(mapper.valueToTree("ca"),mapper.valueToTree("es"),mapper.valueToTree("en"));
+            assertThat(branding.path("modules")).isEmpty();
+            assertThat(branding.path("signup").path("enabled").asBoolean()).isFalse();
+            assertThat(branding.path("theme").path("colors").path("primary").asText()).isEqualTo("#2563EB");
+            assertThat(branding.path("legal").path("privacyPolicyUrl").asText()).isEqualTo("https://id.agilitydoghub.com/privacy");
+        }
+        var unknown=mvc.perform(get("/api/v1/branding").header("Host","unknown.example.test")).andReturn().getResponse();
+        assertThat(unknown.getStatus()).isEqualTo(404);
+        assertThat(mapper.readTree(unknown.getContentAsString()).path("code").asText()).isEqualTo("UNKNOWN_HOST");
+        // Only the branding: any other public route of a product host still needs a club.
+        assertThat(mvc.perform(get("/api/v1/manifest.webmanifest").header("Host","clubsadmin.agilitydoghub.com")).andReturn().getResponse().getStatus()).isEqualTo(404);
+        var club=mvc.perform(get("/api/v1/branding").header("Host","console.example.test")).andReturn().getResponse();
+        assertThat(mapper.readTree(club.getContentAsString()).path("club").path("slug").asText()).isEqualTo("console-target");
     }
 }

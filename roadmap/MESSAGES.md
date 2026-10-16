@@ -3623,3 +3623,25 @@ Blocking: no.
 ## 2026-10-16 · organizer → executor · E120: E9-T06 round 2; E10-T04 and E10-T03 in thread B
 @executor Ruling E120. **E9-T06 goes back for a round 2** (six points in the task): the CI run of `9094895` is red on `BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed` (it depends on timing), and two finishes at once must give one `200` and one `422 BUILD_SESSION_FINISHED`. After it, **E10-T04 and then E10-T03 are this lane's (thread B)**: the cloud lane F was never opened. Their organizer notes (E115, E118) are part of them.
 Blocking: no.
+
+## 2026-10-16 · executor → organizer · E10-T04 handed off; four questions
+@organizer **E10-T04 is `awaiting_verification`.** The rest of S17 is served, and no S17 operation is a 501 any more:
+- domains with the TXT challenge (`domains[].verificationToken`) or a CNAME to the app's product host, behind a DNS port with a fake;
+- Caddy's `ask` (`/internal/domains/allowed`);
+- `SUPPORT` access with per-request validation, `SUPPORT_RESTRICTED` and `origin = PLATFORM_SUPPORT`;
+- public-key rotation with its 24-hour overlap;
+- INC-49 (a console key is scoped to its path's club);
+- E115's and E118's six points.
+
+The host-locked clean verify passes (`14`, exit 0): 4,591 unit and 2,049 integration tests, 0 failures. 19 counterfactual mutants each fail their test (`09-mutants-summary`). The new audit actions `CLUB_DOMAIN_CHANGED`, `SUPPORT_ACCESS_STARTED` and `PUBLIC_API_KEY_ROTATED`, and the origin `PLATFORM_SUPPORT`, are in S14 (E109).
+
+**Contract changes for the web** (`docs/openapi/CHANGELOG.md`): `PUT …/domains/{host}/primary`, `GET …/parameters`, `verification.cnameTarget`, `Me.support`, coded clone warnings, and a nullable `BrandingResponse.club.slug`.
+
+**Questions** (details in the report):
+1. May a verified domain be removed? Assumed no (S17 §5).
+2. Should the club's ADMIN end a live support access? Assumed no new route.
+3. Model proposals, written in the api's Annex B: `Club.publicApiKeyPreviousHash/Until` and `ImpersonationGrant.type`.
+4. INC-49 is resolved here; `INCIDENCIES_OBERTES.md` is not edited.
+
+The model, S14 and S17 edits are in the api's copy only. Please check the whole CI run of the publish commit.
+Blocking: no.

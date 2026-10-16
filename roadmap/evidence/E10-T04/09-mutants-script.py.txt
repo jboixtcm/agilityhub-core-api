@@ -1,0 +1,92 @@
+"""E10-T04 counterfactuals: each mutant undoes one rule in the working tree, runs that rule's test, and restores the file."""
+import pathlib, subprocess, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+OUT = ROOT / 'roadmap/evidence/E10-T04/09-mutants'
+OUT.mkdir(parents=True, exist_ok=True)
+J = 'src/main/java/com/agilityhub/core/'
+MUTANTS = [
+    ('M01', 'INC-49: the key scoped to no club', J + 'shared/api/IdempotencyFilter.java',
+     'console.matches() ? console.group(1) : null;', 'null;',
+     'JobsApiIT#T_15_09_INC_49_keyedConsoleTriggersAreScopedToThePathClub'),
+    ('M02', 'E115 #1: signupLegal reads a missing legal', J + 'platform/application/CensusClubSettings.java',
+     'result.put("privacyPolicyUrl", legal == null ? null : legal.privacyPolicyUrl());', 'result.put("privacyPolicyUrl", legal.privacyPolicyUrl());',
+     'PlatformConsoleIT#T_17_02_R_17_02_publicSignupOfAClubWithoutLegalAnswers'),
+    ('M03', 'E115 #2: readmission method not counted', J + 'platform/persistence/PlatformConsoleProjection.java',
+     'Criteria.where("readmissionRequest.submitted.paymentMethod.type").is(method)', 'Criteria.where("paymentMethod.type").is(method)',
+     'PlatformConsoleIT#T_17_05_R_17_05_aPendingReadmissionCountsAsAProviderUser'),
+    ('M04', 'E118 #2: no product branding', J + 'shared/api/TenantFilter.java',
+     'hostClub.isEmpty() && productHosts.test(bare(host));', 'hostClub.isEmpty() && false;',
+     'PlatformConsoleIT#T_17_02_R_17_02_productHostAnswersTheProductBranding'),
+    ('M05', 'R-17-11: no overlap for the replaced key', J + 'platform/application/PublicClubAccess.java',
+     'boolean previous = club.publicApiKeyPreviousUntil() != null', 'boolean previous = false && club.publicApiKeyPreviousUntil() != null',
+     'PublicApiKeyIT#T_17_11_R_17_11_rotationKeepsTheReplacedKeyForTwentyFourHours'),
+    ('M06', 'R-17-11: the overlap never ends', J + 'platform/application/PublicClubAccess.java',
+     'clock.instant().isBefore(club.publicApiKeyPreviousUntil())', 'club.publicApiKeyPreviousUntil() != null',
+     'PublicApiKeyIT#T_17_11_R_17_11_rotationKeepsTheReplacedKeyForTwentyFourHours'),
+    ('M07', 'R-17-10: nothing restricted for a support token', J + 'identity/application/SupportAccessService.java',
+     'return RESTRICTED.matcher(method + " " + path).matches();', 'return false;',
+     'SupportAccessIT#T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports'),
+    ('M08', 'R-17-10: the platform role is not re-checked', J + 'identity/application/SupportAccessService.java',
+     'if (!platformAdmin(actor)) { throw new ApiException(ErrorCode.UNAUTHENTICATED); }', 'if (false) { throw new ApiException(ErrorCode.UNAUTHENTICATED); }',
+     'SupportAccessIT#T_17_09_R_17_10_supportAccessEndsWithItsGrantItsRoleOrItsClub'),
+    ('M09', 'R-17-10: a revoked grant still works', J + 'identity/application/SupportAccessService.java',
+     '(!revoking && grant.revokedAt() != null)', 'false',
+     'SupportAccessIT#T_17_09_R_17_10_supportAccessEndsWithItsGrantItsRoleOrItsClub'),
+    ('M10', 'R-17-10: no PLATFORM_SUPPORT origin', J + 'platform/application/audit/AuditWriter.java',
+     'if (origin == null && Boolean.TRUE.equals(actor.support()))', 'if (false)',
+     'SupportAccessIT#T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports'),
+    ('M11', 'R-17-10: any token with the role claim starts one', J + 'identity/application/SupportAccessService.java',
+     'if (!platformAdmin(actor)) { throw new ApiException(ErrorCode.FORBIDDEN); }', '',
+     'SupportAccessIT#T_17_10_R_17_12_onlyAnActivePlatformAccountStartsASupportAccess'),
+    ('M12', 'R-17-10/11: credentials stored in clear', J + 'shared/api/IdempotencyFilter.java',
+     '/(support-access|public-api-key)");', '/(none)");',
+     'E10ContractIT#T_17_11_R_17_11_keyedRotationReplaysItsKeyAndCannotBypassRole,SupportAccessIT#T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports'),
+    ('M13', 'R-17-03: any CNAME target verifies', J + 'platform/domain/DomainChallenge.java',
+     'targets.stream().map(HostNames::normalize).anyMatch(expected::equals);', 'targets.stream().map(HostNames::normalize).anyMatch(target -> true);',
+     'PlatformDomainsIT#T_17_03_R_17_03_cnameVerificationOpensCaddyAndBrandingOnlyOnceVerified'),
+    ('M14', 'R-17-03: any agh-verify TXT verifies', J + 'platform/domain/DomainChallenge.java',
+     'map(value -> value.strip().replace("\\"", "")).anyMatch(expected::equals);', 'map(value -> value.strip().replace("\\"", "")).anyMatch(value -> value.startsWith(VALUE_PREFIX));',
+     'PlatformDomainsIT#T_17_03_R_17_03_txtChallengeVerifiesAnApexDomainAndIsThenRemoved'),
+    ('M15', 'S17 §5: a verified domain can be removed', J + 'platform/application/PlatformDomains.java',
+     'if (domain.status() != Club.DomainStatus.PENDING) { throw', 'if (false) { throw',
+     'PlatformDomainsIT#T_17_03_R_17_03_onlyPendingDomainsLeaveAndOnlyVerifiedOnesArePrimary'),
+    ('M16', 'WP-17-D: Caddy accepts a pending domain', J + 'platform/application/PlatformDomains.java',
+     'clubs.findByHost(normalized).isPresent()', 'clubs.findByAnyHost(normalized).isPresent()',
+     'PlatformDomainsIT#T_17_03_R_17_03_cnameVerificationOpensCaddyAndBrandingOnlyOnceVerified'),
+    ('M17', 'R-17-02: product hosts not reserved', J + 'platform/application/PlatformDomains.java',
+     'if (DomainChallenge.reserved(normalized)) { throw new ApiException(ErrorCode.HOST_RESERVED); }', '',
+     'PlatformDomainsIT#T_17_02_R_17_02_hostsAreUniqueNormalizedAndProductHostsReserved'),
+    ('M18', 'R-17-03: only-verified primary not enforced', J + 'platform/application/PlatformDomains.java',
+     'if (domain.status() != Club.DomainStatus.VERIFIED) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name())); }\n        if (domain.primary())',
+     'if (domain.primary())',
+     'PlatformDomainsIT#T_17_03_R_17_03_onlyPendingDomainsLeaveAndOnlyVerifiedOnesArePrimary'),
+    ('M19', 'E115 #3: disabling without the provider lock', J + 'platform/application/PlatformProviders.java',
+     'clubs.lockProviders(TenantContext.require());var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));',
+     'var old=changes.club();PlatformClubChanges.requireVersion(old,input.get("version"));',
+     'ConsoleProviderLockIT#T_17_05_R_17_05_assignmentWaitsForAnUncommittedProviderDisabling+T_17_05_R_17_05_disablingWaitsForAnUncommittedAssignmentAndCountsIt'),
+]
+
+only = set(sys.argv[1:])
+summary = []
+for ident, label, path, old, new, tests in MUTANTS:
+    if only and ident not in only:
+        continue
+    file = ROOT / path
+    original = file.read_text()
+    if original.count(old) != 1:
+        summary.append(f'{ident} NOT APPLIED (found {original.count(old)} times): {label}')
+        continue
+    file.write_text(original.replace(old, new))
+    try:
+        command = [str(ROOT / 'mvnw'), '-o', '-Dtest=' + tests, '-Dsurefire.failIfNoSpecifiedTests=false', '-Djacoco.skip=true', 'test']
+        result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+        log = OUT / f'{ident}.log'
+        log.write_text(f'# {ident} {label}\n# file: {path}\n# - {old}\n# + {new}\n# command: {" ".join(command[1:])}\n# exit: {result.returncode}\n' + result.stdout + result.stderr)
+        lines = [line for line in result.stdout.splitlines() if 'Tests run:' in line and ' in ' not in line]
+        summary.append(f'{ident} exit={result.returncode} {lines[-1].strip() if lines else "(no tests line)"} :: {label}')
+    finally:
+        file.write_text(original)
+    print(summary[-1], flush=True)
+(OUT / 'summary.txt').write_text('\n'.join(summary) + '\n') if not only else None
+print('\n'.join(summary))

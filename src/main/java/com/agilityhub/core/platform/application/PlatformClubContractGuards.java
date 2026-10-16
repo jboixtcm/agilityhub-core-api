@@ -17,11 +17,6 @@ public class PlatformClubContractGuards {
         this.clubs=clubs; this.parameters=parameters;
     }
     public void club(String id) { clubs.findById(id).orElseThrow(()->new ApiException(ErrorCode.CLUB_NOT_FOUND)); }
-    public void domain(String id,String host) {
-        var club=clubs.findById(id).orElseThrow(()->new ApiException(ErrorCode.CLUB_NOT_FOUND));
-        String normalized=com.agilityhub.core.platform.domain.HostNames.normalize(host);
-        if(club.domains().stream().noneMatch(domain->domain.host().equals(normalized))) throw new ApiException(ErrorCode.NOT_FOUND);
-    }
     public void template(String id) {
         if(clubs.findById(id).isEmpty()) throw new ApiException(ErrorCode.TEMPLATE_CLUB_NOT_FOUND);
     }

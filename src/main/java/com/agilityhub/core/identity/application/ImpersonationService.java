@@ -95,7 +95,7 @@ public class ImpersonationService {
     java.util.Optional<Jwt> redeem(HandoffCode code) {
         var grant = grants.findById(code.sourceFamilyId()).orElse(null);
         Instant now = clock.instant();
-        if (grant == null || grant.revokedAt() != null || !grant.expiresAt().isAfter(now) || !grant.clubId().equals(code.clubId())
+        if (grant == null || grant.support() || grant.revokedAt() != null || !grant.expiresAt().isAfter(now) || !grant.clubId().equals(code.clubId())
                 || !grant.actorAccountId().equals(code.accountId())) { return java.util.Optional.empty(); }
         IdentityService.Session actor, target;
         try {
@@ -112,7 +112,8 @@ public class ImpersonationService {
     public CurrentUser.Impersonation validate(Jwt jwt, boolean revoking) {
         if (TenantContext.current() == null) { throw new ApiException(ErrorCode.FORBIDDEN); }
         var grant = grants.findById(jwt.getId()).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
-        if ((!revoking && grant.revokedAt() != null) || !grant.expiresAt().isAfter(clock.instant())
+        // A support grant (S17 R-17-10) never opens a member's app.
+        if (grant.support() || (!revoking && grant.revokedAt() != null) || !grant.expiresAt().isAfter(clock.instant())
                 || !grant.impersonatedAccountId().equals(jwt.getSubject())
                 || !grant.actorAccountId().equals(jwt.getClaimAsString("actorAccountId"))
                 || !grant.impersonatedMemberId().equals(jwt.getClaimAsString("impersonatedMemberId"))) {
@@ -133,9 +134,15 @@ public class ImpersonationService {
         if (!value.contains(".")) { return false; }
         Jwt jwt;
         try { jwt = decoder.decode(value); } catch (JwtException invalid) { return true; }
-        if (!Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp")) || TenantContext.current() == null) { return true; }
+        boolean support = Boolean.TRUE.equals(jwt.getClaimAsBoolean("support"));
+        if (!Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp")) && !support || TenantContext.current() == null) { return true; }
         var grant = grants.findById(jwt.getId()).orElse(null);
-        if (grant != null && (requester.equals(grant.actorAccountId()) || requester.equals(grant.impersonatedAccountId()))
+        // S17 R-17-10 (E10-T04): the support banner's «Surt» ends the support access; only its actor can end it this way.
+        if (support) {
+            if (grant != null && grant.support() && requester.equals(grant.actorAccountId())) { grants.revoke(grant.id(), clock.instant()); }
+            return true;
+        }
+        if (grant != null && !grant.support() && (requester.equals(grant.actorAccountId()) || requester.equals(grant.impersonatedAccountId()))
                 && grants.revoke(grant.id(), clock.instant())) { publish(ImpersonationEvent.Kind.ImpersonationEnded, grant); }
         return true;
     }

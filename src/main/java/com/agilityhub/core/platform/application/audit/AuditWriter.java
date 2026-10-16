@@ -92,6 +92,8 @@ public class AuditWriter {
             provenance.put("eventId", webhook);
             details = provenance;
         }
+        // S17 R-17-10 (E10-T04): every action taken with a support access token is the AgilityHub team's, not the club's.
+        if (origin == null && Boolean.TRUE.equals(actor.support())) { origin = "PLATFORM_SUPPORT"; }
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),

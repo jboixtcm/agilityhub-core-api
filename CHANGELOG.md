@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E10-T04: the rest of S17's platform API (E114) and INC-49.
+  - Club domains (R-17-02/R-17-03): add (`PENDING` with its TXT challenge, `domains[].verificationToken` in the model), verify by a CNAME to the app's product host or the TXT record, make primary, remove while pending. The DNS lookup sits behind the `DomainDns` port (JNDI in staging/prod, a fake in local/test) and runs before the write's transaction. Audited `CLUB_DOMAIN_CHANGED`; `ClubDomainVerified` and `ClubUpdated` (the host cache is evicted after the commit).
+  - `GET /internal/domains/allowed` answers Caddy's on-demand TLS `ask`: `200` only for a verified club domain, from the internal network only.
+  - Support access (R-17-10): a `SUPPORT` grant of `platform.supportAccessMinutes` and a `clubs-admin` token (`support: true`, `roles: [ADMIN]`, no platform role), re-checked on every request and ended by `/oauth2/revoke` or by losing the platform role. Exports of personal data, SEPA files, member impersonation and the account's credentials answer `403 SUPPORT_RESTRICTED`. Audited `SUPPORT_ACCESS_STARTED` in the club's own audit; every action with it has `origin = PLATFORM_SUPPORT`. `GET /me` gives the banner `support {actorName, expiresAt}`.
+  - Public key rotation (R-17-11): shown once, stored as a digest; the replaced key works 24 h more. Audited `PUBLIC_API_KEY_ROTATED`. The answers of the support and key routes are stored sealed for their idempotent replay.
+  - INC-49: a keyed `/platform/clubs/{id}/…` request is scoped to the path's club.
+  - E115: a club without `legal` answers its public signup; a pending readmission's method counts as a provider user; disabling a provider has the removal's interleaving tests.
+  - E118: `GET /platform/clubs/{id}/parameters`; `GET /branding` on a product host answers the product's branding; catalog-clone warnings are `{code, part, from}`.
+
 - E9-T06: build sessions, the follow-ups of E9-T04's review (ruling E118).
   - Keyed `POST /build-sessions`, `/join` and `/{id}/finish` run in their own retried transaction and store their answer there. A write conflict, or a join code already taken, retries the whole request; when the retries run out the answer is `409 STALE_VERSION`, never a `500`.
   - `finish` is not gated by `courses.allowInstructorPublish`. With the switch off, an INSTRUCTOR's finish registers no setup and `setupId` stays `null`. A refreshed setup keeps its `expectedUntil`.

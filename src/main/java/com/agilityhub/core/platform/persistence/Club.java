@@ -23,7 +23,22 @@ public record Club(@Id String id, String slug, String name, String legalName, St
                    String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
                    Set<Module> modules, Map<String, Object> paymentProviders, Legal legal,
                    Status status, Map<String, Boolean> onboardingChecklist, Map<String, Long> usage,
-                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template, String publicApiKeyHash, Billing billing, String notes) {
+                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template, String publicApiKeyHash, Billing billing, String notes,
+                   String publicApiKeyPreviousHash, Instant publicApiKeyPreviousUntil) {
+    /**
+     * Before E10-T04: no rotated public key. S17 R-17-11: a rotation keeps the replaced key's digest valid until
+     * `publicApiKeyPreviousUntil` (24 h of overlap), then only `publicApiKeyHash` opens the public routes.
+     */
+    public Club(String id, String slug, String name, String legalName, String taxId, Address address, String displayCity,
+                String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
+                String timeZone, String currency, String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
+                Set<Module> modules, Map<String, Object> paymentProviders, Legal legal, Status status,
+                Map<String, Boolean> onboardingChecklist, Map<String, Long> usage, Long version, Instant createdAt, Instant updatedAt,
+                Boolean template, String publicApiKeyHash, Billing billing, String notes) {
+        this(id, slug, name, legalName, taxId, address, displayCity, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
+                timeZone, currency, countryProfile, domains, theme, pwa, modules, paymentProviders, legal, status,
+                onboardingChecklist, usage, version, createdAt, updatedAt, template, publicApiKeyHash, billing, notes, null, null);
+    }
     /** Compatibility for callers that do not set internal platform notes. */
     public Club(String id, String slug, String name, String legalName, String taxId, Address address, String displayCity,
                 String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
@@ -95,12 +110,21 @@ public record Club(@Id String id, String slug, String name, String legalName, St
     public record Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly, Map<String, Long> counters) {
         public Billing(String invoiceSeriesPattern, Long nextNumber, Boolean resetYearly) { this(invoiceSeriesPattern, nextNumber, resetYearly, null); }
     }
-    public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary) {
+    /**
+     * S17 R-17-03 (E10-T04, model proposal E112 approved in E114): `verificationToken` is the TXT challenge
+     * (`_agilityhub-verify.{host}` = `agh-verify-{token}`), set when a domain is added, never changed while `PENDING` and
+     * removed when it is `VERIFIED`. It is published in DNS, so it is not a secret. Null for a domain without a challenge.
+     */
+    public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary, String verificationToken) {
         public Domain { host = com.agilityhub.core.platform.domain.HostNames.normalize(host); }
+        public Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary) {
+            this(host, app, status, verifiedAt, primary, null);
+        }
     }
     public record Legal(String privacyPolicyUrl, Map<String, String> imageConsentText, String legalTextsVersion) {
         public Legal { imageConsentText = Map.copyOf(imageConsentText); }
     }
-    public enum DomainStatus { PENDING, VERIFIED }
+    /** MODEL_DADES_PLATAFORMA Annex B; `BROKEN` is S17 R-17-03's weekly re-check that failed three times. */
+    public enum DomainStatus { PENDING, VERIFIED, BROKEN }
     public enum Status { ONBOARDING, ACTIVE, SUSPENDED }
 }

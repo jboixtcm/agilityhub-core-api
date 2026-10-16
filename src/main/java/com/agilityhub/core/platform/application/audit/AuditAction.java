@@ -32,6 +32,11 @@ public enum AuditAction {
     CLUB_STATUS_CHANGED,
     /** S17 console (E108, written by E10-T02): a club created from a definition, a payment provider changed, an administrator invited. */
     CLUB_CREATED, CLUB_PAYMENT_PROVIDER_CHANGED, CLUB_ADMIN_INVITED,
+    /**
+     * S17 console (E10-T04, S17 §13 proposals entered in R-14-09): a club domain added, verified, made primary or removed
+     * (R-17-02/R-17-03), a support access started (R-17-10, in the target club's audit) and the public key rotated (R-17-11).
+     */
+    CLUB_DOMAIN_CHANGED, SUPPORT_ACCESS_STARTED, PUBLIC_API_KEY_ROTATED,
     JOB_TRIGGERED,
     /**
      * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)

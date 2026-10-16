@@ -2,6 +2,7 @@ package com.agilityhub.core.platform.application.definition;
 
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.PaymentProviderFlags;
+import com.agilityhub.core.platform.domain.DomainChallenge;
 import com.agilityhub.core.platform.domain.Pwa;
 import com.agilityhub.core.platform.domain.Theme;
 import com.agilityhub.core.platform.persistence.Club;
@@ -66,7 +67,9 @@ public class ClubDefinitionMapper {
                     : previous.domains().stream().filter(item -> item.host().equals(host)).findFirst();
             var status = old.map(Club.Domain::status).orElse(trustedDomains ? Club.DomainStatus.VERIFIED : Club.DomainStatus.PENDING);
             Instant verified = old.map(Club.Domain::verifiedAt).orElse(status == Club.DomainStatus.VERIFIED ? now : null);
-            domains.add(new Club.Domain(host, domain.path("app").asText("clubs"), status, verified, domain.path("primary").asBoolean()));
+            // S17 R-17-03 (E10-T04): a new pending host gets its TXT challenge; a known one keeps it, so reapplying changes nothing.
+            String token = old.isPresent() ? old.get().verificationToken() : status == Club.DomainStatus.PENDING ? DomainChallenge.token() : null;
+            domains.add(new Club.Domain(host, domain.path("app").asText("clubs"), status, verified, domain.path("primary").asBoolean(), token));
         }
         var providers = providers(definition, previous);
         Set<Module> modules = new java.util.HashSet<>(); merged.path("modules").forEach(module -> modules.add(Module.valueOf(module.asText())));
@@ -82,7 +85,9 @@ public class ClubDefinitionMapper {
                 previous == null ? Map.of() : previous.usage(), previous == null ? null : previous.version(),
                 previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash(),
                 // E8-T01: the receipt numbering is operational state, never part of a definition; club:apply keeps it.
-                previous == null ? null : previous.billing(), previous == null ? null : previous.notes());
+                previous == null ? null : previous.billing(), previous == null ? null : previous.notes(),
+                // S17 R-17-11 (E10-T04): a rotated public key's overlap is operational state too.
+                previous == null ? null : previous.publicApiKeyPreviousHash(), previous == null ? null : previous.publicApiKeyPreviousUntil());
     }
     /**
      * The declared providers, in the declared order, each keeping the configuration stored outside the file (S17 R-17-05).

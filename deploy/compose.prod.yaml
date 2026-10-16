@@ -65,6 +65,8 @@ services:
       OIDC_LEARN_REDIRECT_URI: ${OIDC_LEARN_REDIRECT_URI:-https://learn.agilitydoghub.com/oidc/callback}
       OIDC_LEARN_LOGOUT_URI: ${OIDC_LEARN_LOGOUT_URI:-https://learn.agilitydoghub.com/}
       CORS_PLATFORM_HOSTS: ${CORS_PLATFORM_HOSTS:-id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
+      CLUBS_HOST: ${CLUBS_HOST:-clubs.agilitydoghub.com}
+      ADMIN_HOST: ${ADMIN_HOST:-clubsadmin.agilitydoghub.com}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY:?Set SENDGRID_API_KEY}
       MAIL_FROM_PLATFORM: ${MAIL_FROM_PLATFORM:?Set MAIL_FROM_PLATFORM}
       SENDGRID_WEBHOOK_PUBLIC_KEY: ${SENDGRID_WEBHOOK_PUBLIC_KEY:?Set SENDGRID_WEBHOOK_PUBLIC_KEY}

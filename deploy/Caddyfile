@@ -68,7 +68,7 @@
     reverse_proxy core:8080
 }
 
-# Never published by Compose; the API endpoint is pending E10-T02.
+# Never published by Compose. The API answers 200 only for a VERIFIED club domain (S17 R-17-03, E10-T04).
 http://127.0.0.1:9080 {
     @ask path /ask
     handle @ask {

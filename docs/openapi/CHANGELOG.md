@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E10-T04 · S17 the rest of the platform API: domains, Caddy's ask, support access, the public key, E118
+
+**2 operations added (`PUT /platform/clubs/{id}/domains/{host}/primary`, `GET /platform/clubs/{id}/parameters`); 2 schemas added (`CatalogCloneWarning`, `MeSupport`); 1 response property added (`DomainVerificationChallenge.cnameTarget`, required); 1 optional response property added (`Me.support`); `CatalogCloneResult.warnings` items change from string to `CatalogCloneWarning`; 3 `AuditAction` values and 1 `AuditOrigin` value added; `BrandingResponse.club.slug` becomes nullable; no S17 operation is a 501 any more.**
+
+- Served (the 501 contracts of E10-T01, now real responses): `POST /platform/clubs/{id}/domains` (`201 PlatformDomain`, `PENDING`, not primary, with `verification {recordName, recordValue, cnameTarget}`; adds `409 STALE_VERSION`; a template club is `400 VALIDATION_ERROR {field: template}`), `DELETE …/domains/{host}` (only a `PENDING` domain, else `409 INVALID_STATE {status}`), `POST …/domains/{host}/verification` (CNAME to `cnameTarget`, else the TXT challenge; `422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue}`, `409 INVALID_STATE` when already verified, `409 STALE_VERSION`), `GET /internal/domains/allowed` (`200` only for a VERIFIED club domain, else `404 NOT_FOUND`), `POST …/support-access` (`201 {token, expiresAt}`: a `clubs-admin` token with `support: true`, `roles: [ADMIN]` and no platform role; 60 minutes by `platform.supportAccessMinutes`) and `POST …/public-api-key` (`201 {apiKey}` once; the replaced key overlaps 24 h; adds `409 STALE_VERSION`). Their descriptions state the rules; `NOT_IMPLEMENTED` leaves their error lists.
+- New `PUT /platform/clubs/{id}/domains/{host}/primary` (no body, `200 [PlatformDomain]`): the verified domain becomes its app's primary one; `409 INVALID_STATE` for one not verified.
+- New `GET /platform/clubs/{id}/parameters` (E118 #1): the target club's `Parameters`, with the shape of `GET /parameters`; each row's `version` is what `PUT …/parameters/{key}` expects (0 for a key the club has not overridden), as that operation's description now says.
+- `GET /branding` on a product host (E118 #2): the product's branding; `ClubSummary.slug` is `string | null` (null there). An unknown host is still `404 UNKNOWN_HOST`.
+- `POST …/catalog-clone` (E118 #3): `warnings[]` are `{code: LOCALE_OMITTED | DEFAULT_LOCALE_COPIED, part, from}` instead of English text. **Breaking for a client that read the strings** (none should: the console is E10-W).
+- `GET /me` gains the optional `support {actorName, expiresAt}` (`MeSupport`), present only with a support access token; with it, `membership` is `{clubId, roles: [ADMIN], …}` without `memberId`.
+- Audit (S14 R-14-09/§3): `AuditAction` adds `CLUB_DOMAIN_CHANGED`, `SUPPORT_ACCESS_STARTED`, `PUBLIC_API_KEY_ROTATED`; `AuditOrigin` adds `PLATFORM_SUPPORT` (every action taken with a support token).
+- Behaviour only, no contract change (INC-49): a keyed `/platform/clubs/{id}/…` request stores its `Idempotency-Key` under the path's club, so the same key on two clubs is two requests, never `IDEMPOTENCY_KEY_REUSED`. With a support token, the personal-data exports and their files, the SEPA files, `POST /members/{id}/impersonation-token` and the account's own credential and session routes answer `403 SUPPORT_RESTRICTED`.
+
 ## 2026-10-16 · E9-T06 round 2 · S16 build sessions (ruling E120)
 
 **0 operations or schemas added or removed; 1 header parameter added (`Idempotency-Key` on `POST /build-sessions/join`); 1 description changed.**

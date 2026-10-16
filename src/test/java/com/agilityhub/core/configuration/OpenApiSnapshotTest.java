@@ -246,7 +246,10 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 "OnboardingState", "OnboardingField", "RequiredConsent", "HandoffResponse", "ImpersonationTokenResponse", "PlatformAccountRequest");
         assertThat(document.path("paths").has("/auth/magic-link")).isFalse();
         assertThat(names(document.at("/components/schemas/Me/properties")))
-                .containsExactlyInAnyOrder("account", "membership", "impersonation", "features", "paymentMethod");
+                .containsExactlyInAnyOrder("account", "membership", "impersonation", "features", "paymentMethod", "support");
+        // S17 R-17-10 (E10-T04): only a support access token's /me carries the banner's block.
+        assertThat(document.at("/components/schemas/Me/properties/support/$ref").asText()).isEqualTo("#/components/schemas/MeSupport");
+        assertThat(strings(document.at("/components/schemas/Me/required"))).doesNotContain("support");
         assertThat(document.at("/components/schemas/Me/properties/paymentMethod/$ref").asText()).isEqualTo("#/components/schemas/MePaymentMethod");
         assertThat(strings(document.at("/components/schemas/Me/required"))).doesNotContain("paymentMethod");
         assertThat(names(document.at("/components/schemas/MePaymentMethod/properties"))).containsExactlyInAnyOrder("type", "invalid");

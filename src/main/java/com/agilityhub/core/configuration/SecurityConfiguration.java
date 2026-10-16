@@ -44,7 +44,8 @@ public class SecurityConfiguration {
             ObjectProvider<FilterRegistrationBean<TenantFilter>> tenants,
             FilterRegistrationBean<RateLimitFilter> rateLimits, org.springframework.web.cors.CorsConfigurationSource clubCors,
             ApiExceptionHandler errors, ObjectMapper mapper, com.agilityhub.core.shared.application.AccountAccess accountAccess,
-            com.agilityhub.core.identity.application.ImpersonationService impersonations) throws Exception {
+            com.agilityhub.core.identity.application.ImpersonationService impersonations,
+            com.agilityhub.core.identity.application.SupportAccessService supports) throws Exception {
         SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
         http.csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable());
@@ -113,7 +114,7 @@ public class SecurityConfiguration {
         http.addFilterAfter(rateLimits.getFilter(), BearerTokenAuthenticationFilter.class);
         if (tenant != null) {
             http.addFilterAfter(tenant.getFilter(), RateLimitFilter.class);
-            http.addFilterAfter(new com.agilityhub.core.identity.api.CurrentUserFilter(impersonations), TenantFilter.class);
+            http.addFilterAfter(new com.agilityhub.core.identity.api.CurrentUserFilter(impersonations, supports), TenantFilter.class);
         }
         http.addFilterAfter(new com.agilityhub.core.shared.api.AccountStateFilter(accountAccess, errors, mapper), RateLimitFilter.class);
         return http.build();

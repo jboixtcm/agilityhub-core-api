@@ -4,10 +4,11 @@
     "app": "clubs",
     "status": "PENDING",
     "verifiedAt": null,
-    "primary": true,
+    "primary": false,
     "verification": {
       "recordName": "_agilityhub-verify.club.example.test",
-      "recordValue": "agh-verify-fictional"
+      "recordValue": "agh-verify-fictional",
+      "cnameTarget": "clubs.agilitydoghub.com"
     }
   },
   "OnboardingChecklist": {
@@ -395,7 +396,13 @@
     "copied": {
       "LEVELS": 2
     },
-    "warnings": []
+    "warnings": [
+      {
+        "code": "LOCALE_OMITTED",
+        "part": "LEVELS",
+        "from": "en"
+      }
+    ]
   },
   "PlatformAdmin": {
     "accountId": "example-admin",
@@ -432,6 +439,12 @@
   },
   "DomainVerificationChallenge": {
     "recordName": "_agilityhub-verify.club.example.test",
-    "recordValue": "agh-verify-fictional"
+    "recordValue": "agh-verify-fictional",
+    "cnameTarget": "clubs.agilitydoghub.com"
+  },
+  "CatalogCloneWarning": {
+    "code": "DEFAULT_LOCALE_COPIED",
+    "part": "FAQ",
+    "from": "ca"
   }
 }

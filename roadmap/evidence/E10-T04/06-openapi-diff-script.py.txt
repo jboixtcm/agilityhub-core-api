@@ -1,0 +1,40 @@
+import json, sys
+before = json.load(open(sys.argv[1]))
+after = json.load(open(sys.argv[2]))
+def ops(doc):
+    out = {}
+    for path, item in doc['paths'].items():
+        for method, op in item.items():
+            out[method.upper() + ' ' + path] = op
+    return out
+b, a = ops(before), ops(after)
+print('Operations added:', sorted(set(a) - set(b)))
+print('Operations removed:', sorted(set(b) - set(a)))
+for key in sorted(set(a) & set(b)):
+    ob, oa = b[key], a[key]
+    changes = []
+    if ob.get('description') != oa.get('description'): changes.append('description')
+    rb, ra = ob.get('responses', {}), oa.get('responses', {})
+    for code in sorted(set(rb) | set(ra)):
+        if rb.get(code) != ra.get(code):
+            changes.append('response ' + code)
+    if ob.get('parameters') != oa.get('parameters'): changes.append('parameters')
+    if ob.get('requestBody') != oa.get('requestBody'): changes.append('requestBody')
+    if changes: print('Changed', key, ':', ', '.join(changes))
+sb, sa = before['components']['schemas'], after['components']['schemas']
+print('Schemas added:', sorted(set(sa) - set(sb)))
+print('Schemas removed:', sorted(set(sb) - set(sa)))
+for name in sorted(set(sa) & set(sb)):
+    if sb[name] != sa[name]:
+        pb, pa = sb[name].get('properties', {}), sa[name].get('properties', {})
+        detail = []
+        if set(pa) - set(pb): detail.append('+props ' + ','.join(sorted(set(pa) - set(pb))))
+        if set(pb) - set(pa): detail.append('-props ' + ','.join(sorted(set(pb) - set(pa))))
+        for p in sorted(set(pa) & set(pb)):
+            if pa[p] != pb[p]: detail.append('~' + p)
+        if sb[name].get('enum') != sa[name].get('enum'): detail.append('enum ' + str(sa[name].get('enum')))
+        if sb[name].get('required') != sa[name].get('required'): detail.append('required ' + str(sa[name].get('required')))
+        if sb[name].get('description') != sa[name].get('description'): detail.append('description')
+        print('Schema changed', name, ':', '; '.join(detail))
+for key in ['POST /api/v1/platform/clubs/{id}/domains', 'POST /api/v1/platform/clubs/{id}/support-access', 'GET /internal/domains/allowed']:
+    print(key, '501:', a[key]['responses'].get('501', {}).get('description', '')[:80])

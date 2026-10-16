@@ -23,11 +23,12 @@ public final class PlatformClubContracts {
     public enum StripeMode { @com.fasterxml.jackson.annotation.JsonProperty("test") TEST, @com.fasterxml.jackson.annotation.JsonProperty("live") LIVE }
     public enum CatalogPart { LEVELS, RINGS, PLANS, FAQ, MESSAGE_TEMPLATES }
     public enum VerificationMethod { CNAME, TXT }
-    @Schema(description="S17 §2 DNS instructions: CNAME to the product host, or TXT _agilityhub-verify.{host} = agh-verify-{token}. The token is generated when the domain is added and remains stable until verified; DNS lookup is deferred.")
-    public record DomainVerificationChallenge(String recordName, String recordValue) { }
+    @Schema(description="S17 §2 DNS instructions (R-17-03): a CNAME from the host to cnameTarget, or the TXT record recordName = recordValue (_agilityhub-verify.{host} = agh-verify-{token}). The token is generated when the domain is added, stays stable while it is PENDING and is removed once it is VERIFIED.")
+    public record DomainVerificationChallenge(String recordName, String recordValue,
+            @Schema(description="The product host of the domain's app the CNAME points to: clubs.agilitydoghub.com for clubs, clubsadmin.agilitydoghub.com for clubs-admin (deployment hosts).") String cnameTarget) { }
     public record PlatformDomain(String host, DomainApp app, DomainStatus status,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant verifiedAt, boolean primary,
-            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="TXT challenge for a newly added domain; null for legacy domains without a challenge.") DomainVerificationChallenge verification) { }
+            @Schema(requiredMode=NOT_REQUIRED, nullable=true, description="The DNS instructions while the domain is not verified; null once it is VERIFIED and for a legacy domain without a challenge.") DomainVerificationChallenge verification) { }
     public record OnboardingChecklist(boolean dns,
             @Schema(description="At least one configured payment provider when BILLING is enabled; legacy model key.") boolean sepa,
             boolean branding, boolean templates, boolean faq, boolean legal, boolean firstAdmin) { }
@@ -124,7 +125,12 @@ public final class PlatformClubContracts {
     }
     public record ProviderConnectionTest(boolean ok, String accountName, StripeMode mode) { }
     public record CatalogCloneRequest(@NotBlank String fromClubId, @NotEmpty Set<@NotNull CatalogPart> parts) { }
-    public record CatalogCloneResult(Map<CatalogPart,Integer> copied, List<String> warnings) { }
+    public record CatalogCloneResult(Map<CatalogPart,Integer> copied, List<CatalogCloneWarning> warnings) { }
+    /** S17 R-17-08 (E118 #3): LOCALE_OMITTED (the source's `from` locale is not the destination's) or DEFAULT_LOCALE_COPIED (the source's `from` text filled the destination's default locale). */
+    public enum CatalogCloneWarningCode { LOCALE_OMITTED, DEFAULT_LOCALE_COPIED }
+    @Schema(description="S17 R-17-08: one localized-text adjustment of a cloned part, once per code, part and locale.")
+    public record CatalogCloneWarning(CatalogCloneWarningCode code, CatalogPart part,
+            @Schema(description="The source locale the warning is about (ca, es or en).") String from) { }
     public record PlatformAdmin(String accountId, String name, String email, String membershipStatus,
             @Schema(requiredMode=NOT_REQUIRED, nullable=true) Instant lastAccessAt) { }
     public record PlatformAdminRequest(@NotBlank @Email String email, @NotBlank String name) { }

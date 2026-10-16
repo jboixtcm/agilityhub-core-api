@@ -15,10 +15,19 @@ public record MeResponse(@Schema(requiredMode = REQUIRED) MeAccount account,
         @Schema(requiredMode = NOT_REQUIRED) @JsonInclude(JsonInclude.Include.NON_NULL) Impersonation impersonation,
         @Schema(requiredMode = REQUIRED) List<String> features,
         @Schema(requiredMode = NOT_REQUIRED, description = "Current member's payment method; absent without BILLING or a member")
-        @JsonInclude(JsonInclude.Include.NON_NULL) MemberPaymentMethod paymentMethod) {
+        @JsonInclude(JsonInclude.Include.NON_NULL) MemberPaymentMethod paymentMethod,
+        @Schema(requiredMode = NOT_REQUIRED, description = "S17 R-17-10: present only with a support access token of the AgilityHub team; "
+                + "clubs-admin shows its persistent banner from it")
+        @JsonInclude(JsonInclude.Include.NON_NULL) Support support) {
     public MeResponse(MeAccount account, MembershipSummary membership, Impersonation impersonation, List<String> features) {
-        this(account, membership, impersonation, features, null);
+        this(account, membership, impersonation, features, null, null);
     }
+    public MeResponse(MeAccount account, MembershipSummary membership, Impersonation impersonation, List<String> features, MemberPaymentMethod paymentMethod) {
+        this(account, membership, impersonation, features, paymentMethod, null);
+    }
+    @Schema(name = "MeSupport")
+    public record Support(@Schema(requiredMode = REQUIRED, description = "The AgilityHub team member who entered the club") String actorName,
+            @Schema(requiredMode = REQUIRED, description = "When the support access ends") Instant expiresAt) { }
     @Schema(name = "MePaymentMethod")
     public record MemberPaymentMethod(@Schema(requiredMode = REQUIRED, allowableValues = {"CARD", "SEPA_DD", "MANUAL"}) String type,
             @Schema(requiredMode = NOT_REQUIRED, description = "Present only for CARD; true when the saved card is invalid")

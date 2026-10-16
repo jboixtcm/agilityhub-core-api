@@ -13,7 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PlatformCatalogClone {
     public record Source(Club club,Map<String,Object> catalogs,List<Map<String,Object>> templates,java.time.LocalDate today) { }
-    public record Result(String id,Map<String,Integer> copied,List<String> warnings) { }
+    public record Result(String id,Map<String,Integer> copied,List<Warning> warnings) { }
+    /**
+     * S17 R-17-08 (E118 #3, E10-T04): one localized-text adjustment of a part. `LOCALE_OMITTED`: the source's `from` locale is
+     * not one of the destination's, so its texts were left out; `DEFAULT_LOCALE_COPIED`: a text had no destination default
+     * locale, so the source's `from` text was copied into it.
+     */
+    public record Warning(String code,String part,String from) { }
     private final ClubRepository clubs;private final PlatformClubChanges changes;private final ClubCatalogProvisioner catalogs;
     private final ClubTemplateProvisioner templates;private final ObjectMapper mapper;private final ClubClock clock;
     public PlatformCatalogClone(ClubRepository clubs,PlatformClubChanges changes,ClubCatalogProvisioner catalogs,ClubTemplateProvisioner templates,ObjectMapper mapper,ClubClock clock) {
@@ -34,7 +40,7 @@ public class PlatformCatalogClone {
     @Transactional
     @Audited(action=AuditAction.CLUB_UPDATED,entityType="'Club'",entity="#result.id",before="T(java.util.Map).of()",reason="'Catalog clone'",details="#result.copied")
     public Result apply(Source source,Set<String> parts) {
-        var target=changes.club();var current=catalogs.cloneSource();var copied=new LinkedHashMap<String,Integer>();var warnings=new ArrayList<String>();
+        var target=changes.club();var current=catalogs.cloneSource();var copied=new LinkedHashMap<String,Integer>();var warnings=new ArrayList<Warning>();
         if(parts.contains("PLANS")&&!target.currency().equals(source.club().currency())) throw new ApiException(ErrorCode.CURRENCY_MISMATCH);
         var input=mapper.createObjectNode();
         for(String part:new TreeSet<>(parts)) {
@@ -64,14 +70,14 @@ public class PlatformCatalogClone {
         return new Result(target.id(),copied,List.copyOf(new LinkedHashSet<>(warnings)));
     }
     private String section(String part) { return switch(part) {case "LEVELS"->"levels";case "RINGS"->"rings";case "PLANS"->"plans";case "FAQ"->"faq";case "MESSAGE_TEMPLATES"->"messageTemplates";default->throw new ApiException(ErrorCode.VALIDATION_ERROR);}; }
-    private void trim(JsonNode node,Club target,String sourceLocale,List<String> warnings,String part) {
+    private void trim(JsonNode node,Club target,String sourceLocale,List<Warning> warnings,String part) {
         if(node.isArray()) { node.forEach(v->trim(v,target,sourceLocale,warnings,part));return; }
         if(!node.isObject()) return;
         var obj=(com.fasterxml.jackson.databind.node.ObjectNode)node;var names=new ArrayList<String>();obj.fieldNames().forEachRemaining(names::add);
         if(!names.isEmpty()&&Set.of("ca","es","en").containsAll(names)) {
             String fallback=obj.path(sourceLocale).asText(obj.elements().next().asText());
-            for(String name:names) if(!target.locales().contains(name)) {obj.remove(name);warnings.add(part+": omitted locale "+name);}
-            if(!obj.has(target.defaultLocale())) {obj.put(target.defaultLocale(),fallback);warnings.add(part+": copied "+sourceLocale+" into "+target.defaultLocale());}
+            for(String name:names) if(!target.locales().contains(name)) {obj.remove(name);warnings.add(new Warning("LOCALE_OMITTED",part,name));}
+            if(!obj.has(target.defaultLocale())) {obj.put(target.defaultLocale(),fallback);warnings.add(new Warning("DEFAULT_LOCALE_COPIED",part,sourceLocale));}
         } else names.forEach(name->trim(obj.get(name),target,sourceLocale,warnings,part));
     }
 }

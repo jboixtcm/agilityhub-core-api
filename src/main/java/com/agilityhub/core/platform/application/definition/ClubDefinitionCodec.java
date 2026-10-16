@@ -87,7 +87,7 @@ public class ClubDefinitionCodec {
         for (var domain : definition.path("domains")) {
             String host = HostNames.normalize(domain.path("host").asText());
             if (host.isEmpty() || !hosts.add(host)) { throw new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("field", "domains")); }
-            if (host.matches("^(clubs|clubsadmin|id|core)\\..*")) { throw new ApiException(ErrorCode.HOST_RESERVED); }
+            if (com.agilityhub.core.platform.domain.DomainChallenge.reserved(host)) { throw new ApiException(ErrorCode.HOST_RESERVED); }
             ((ObjectNode) domain).put("host", host);
             if (!domain.has("app")) { ((ObjectNode) domain).put("app", "clubs"); }
         }

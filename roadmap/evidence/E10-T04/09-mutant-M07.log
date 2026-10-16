@@ -1,0 +1,306 @@
+# M07 R-17-10: nothing restricted for a support token
+# file: src/main/java/com/agilityhub/core/identity/application/SupportAccessService.java
+# - return RESTRICTED.matcher(method + " " + path).matches();
+# + return false;
+# command: -o -Dtest=SupportAccessIT#T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true test
+# exit: 1
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- jaxb2:3.2.0:xjc (pain-008) @ agilityhub-core-api ---
+[INFO] Ignored given or default xjbSources [/Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/xjb], since it is not an existent file or directory.
+[INFO] No changes detected in schema or binding files - skipping JAXB generation.
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 18 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1414 source files with javac [debug parameters release 21] to target/classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[15,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[17,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[18,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[19,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[49,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[52,66] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[150,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[144,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[145,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[146,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ParameterRepository.java:[46,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekRepository.java:[15,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/CatalogRepository.java:[15,46] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[15,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[17,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[19,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[20,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[16,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[17,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[40,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[41,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[42,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[35,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[36,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[37,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[34,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[37,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/TaskRepository.java:[27,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[29,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[20,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[107,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[108,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MembershipRepository.java:[41,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[41,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[42,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[43,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[39,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[41,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[42,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[43,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[44,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[45,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[22,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[32,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[33,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[35,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[58,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[59,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[61,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[63,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[77,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[82,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[83,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[84,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[85,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[86,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[87,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[198,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[199,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[200,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[201,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[246,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[247,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[284,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[287,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[337,52] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[374,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[375,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[376,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[377,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[388,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[389,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[430,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[431,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/BillingDocuments.java:[440,46] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/UpfrontPaymentRepository.java:[15,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/payments/persistence/PaymentOperationRepository.java:[20,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/inactivity/InactivityPeriodRepository.java:[30,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/inactivity/InactivityPeriodRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PlanRepository.java:[13,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PriceRepository.java:[18,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekTemplateRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/leave/LeaveRequestRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/leave/LeaveRequestRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/leave/LeaveRequestRepository.java:[29,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/SignupNotificationAdmissionRepository.java:[21,58] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java: Some input files additionally use or override a deprecated API that is marked for removal.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 63 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 558 source files with javac [debug parameters release 21] to target/test-classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[74,28] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[81,19] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[87,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[103,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/payments/persistence/BillingDocumentsSurvivorsTest.java:[97,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/bookings/application/BookingCancellationServiceSurvivorsTest.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/bookings/application/BookingCancellationServiceSurvivorsTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.payments.api.SupportAccessIT
+22:41:11.487 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.SupportAccessIT]: SupportAccessIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:41:11.636 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.SupportAccessIT
+22:41:11.690 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:41:11.691 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:41:11.694 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+22:41:11.774 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:41:11.893 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:41:11.893 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:41:11.903 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:41:12.265 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+22:41:12.306 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:41:12.372 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: feebeae379b3b5630eb0be441dc28712f42f263e5005b9d56831054fb35fc02c
+22:41:12.550 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.284232S
+22:41:12.553 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:41:12.553 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:41:12.554 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:41:12.554 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:41:12.590 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 53000f3b75e000a4647a1bb4e34655f7394dd6c524cd99c27ea94375009a2d75
+22:41:13.042 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.487947S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-16T22:41:13.703+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : Starting SupportAccessIT using Java [redacted] with PID 44325 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-16T22:41:13.705+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-16T22:41:14.943+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-16T22:41:14.999+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 52 ms. Found 0 MongoDB repository interfaces.
+2026-10-16T22:41:15.435+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@24be6e34], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@39f3285d, com.mongodb.Jep395RecordCodecProvider@5b312863, com.mongodb.KotlinCodecProvider@1cf7c055]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54356], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@4b6fc231], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-16T22:41:15.442+03:00 INFO  [cluster-ClusterId{value='6ad27ddb18fd76f7bf01ab7c', description='null'}-localhost:54356] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54356, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11339958, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=53000f3b75e0:27017, hosts=[53000f3b75e0:27017], passives=[], arbiters=[], primary='53000f3b75e0:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad27dd84c31762d6c4a24dd, counter=6}, lastWriteDate=Fri Oct 16 22:41:13 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-16T22:41:18.850+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-16T22:41:18.850+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-16T22:41:18.851+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-16T22:41:18.893+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : Started SupportAccessIT in 5.348 seconds (process running for 7.737)
+2026-10-16T22:41:19.853+03:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs/bill-a/support-access' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 9.283 s <<< FAILURE! -- in com.agilityhub.core.payments.api.SupportAccessIT
+[ERROR] com.agilityhub.core.payments.api.SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports -- Time elapsed: 1.602 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[PK-                      [Content_Types].xmlµSËnÂ0üÈ×*6ôPUCÇ©ô\{Xø%¯¡ð÷]8R
+qòcfgfWöd¶q¶ZCB|ÃÆ|Ä*ð*hã»},^ê{Va^K<4lÈfÓÉb+ªõØ°>çø ªD"xBÚÌtLR-eâv4º*ø>×¹h°éä	Z¹²¹zÜÝéÉ­Q2S,±öúH´Þòvà`o"ÞUÏRÙµC(2qÃqa9SÝ
+&
+ÿÚÖ(ÐA­p(ªtS6°Ï9)¿JGÈsBQ4¿Äû0eX9u1ÔØdg9ö2~Ï^Óï+~®#oí) rÍ	ÐÊ4þûWHËÏ×ó/Ãþ/ûD1,ãC1|ïé7PK,(¼;            PK-                      _rels/.rels­ÁJ1_%Ì½miÚ½ÔÙÝ°LHFÝ¾½Á¶lAÁã03ßÿ1Év?I½S.£uÓ¢hÙùØx9>®î@ÁèpâHNT`¿Û>ÓRWÊàSQA$Ýk]ì@KÃbítJ-s¯Ú{Ò¶½Õù'Îêàä[:bîIÌþà<¾2MÅÖÆ)ÑoB¹ë¼¥¶o¢,d_L^vÙ|»8¶Oë&¦ôß24EGnjeñõâWn,gúÒõGÑ
+~Q/ôÙØ}PKn2Kå       J      PK-                      docProps/app.xmlMÁ
+Â0Dï~EÈ½ÝêADÒìA? ¤Û6ÐlB²J?ßÔãÌ0§ºÍ¯â)»@­Ü×H6æV>×ê$;½SC
+;Ì¢(·raglô&×e¦²L!yÃ%¦Â49`_áÐ4GÀF«øJ­úWg
+ÝGSb¸ßü÷
+~úPKá|wØ       ·       PK-                      docProps/core.xmlmÛJÄ0E%ä½MÒ¢¡í Ê 8`Eñ-$Ç¶Ø\H¢ù{Ó:VPßìu'»Úô>ÀÁ³bFZ5®Æí.;Ç(Da­!àmSIÇ¥õ°÷Ö<&péjÜÇè8!Aö EÈaRøj½1]}Go¢RPZ
+Q([ø¤TrUºw?.%	 ÁÄ@XÎÈÁëðïÀ¬ä!+5MS>m.mÄÈóÝíÃ²|6ùïpSÔ\zJ.Uò<m®®Ûn
+Z£+[vÁÏ/èKE~ÍÏÂ¯³õÍe*¤´¿¿¹õ¹"jn>PKJQò      ±      PK-                      xl/sharedStrings.xml=AÂ  ï¾ìÝ.z0Æö`âô®¤,ãóåäq2çoÜÔÄNEìÒx5ðz>W§Ã(RK«^4{£ûûÅ¯5ßÅyV»y§míXV\È.âjÜð¬õ£
+8ý PKp¿Ø&x              PK-                   
+   xl/styles.xml1o0÷þ
+Ë{a¨¢
+ÈPªsR©«G°j-Û ¿¾6T­"uï÷>?ëo{)Èå
+º^¥ Öªáx,èû¾zÜÐmù[7Øu xÚvÎéç$±uÙÒþK«dÎ·æXm56¤H²4}J$ãHËO²ÎZÐ4¥I·
+¯JF£PæöðÉB4?V+¡áØ@MA7AC&!N½0Á<&¹¢aL:ÍIÊ1·Äß_9?bëÌ	ñ°Ä¸}Ê\3çÀ`å2ÕûACAQáçîL7Ì|¾6,ãá/>(Óø-ÎW¯é,¹ÖyáÇ.Néðå¾h8;*d" gÇTxl
+BìÂî?Úvß¸Ä·&ìçÏ¥4À_Ò"{Íþ%}{áÿå^ßw¦µ*\V;ôÕõï_~PK­Äe      2      PK-                      xl/workbook.xmlËNÃ0E÷|eK B4JR!UºAH¶Õ$4Výl÷ñù¸iíÕèjî¹ö³£VlOÎKkJÈ&)02ÒlJøZ-^aVÝë¶µµ[íÆÐÐçû¦#~b{2±ÓZ§1Dé6Ü÷Pø(hÅÓôkÎÜýaÛV64·ÍN	g#!õì=T¿É>(¦Ï%´¨<¯Sç[ÒÁÿOaäVX|üÊ8d+3¨©MºÌåRàâ	Ø`XF
+qNP+
+÷8x«.¬õQ=Y/¤
+äæ°Æ)Û úñâQÛT÷É[åÉ<É¦¿bW7*îåã{«PKù;      ä      PK-                      xl/_rels/workbook.xml.rels­MkÃ0@ÿÑ}qÒÁ£n/cÐk?~°84±¥µË¿¯»ÃÖ@;ô$ð{´\:Qæ>MU¢`£ëCgà°ÿxzÅÁáa½Zni@)_Ø÷Ua6àEÒÖl=ÈULÊ¦yD)ÏÜéöéE]¿è|Ë9Sm¼q
+¨=æÄ {ÌävKW\VS¢ÿhcÛöÞ£ý)È»ÁAßYÜÄÈ4Ðã+¾©éõçìäZ^FóèÁ5FÏ®½º PKgë¢¨Õ       4      PK-                      xl/worksheets/sheet1.xml­Krã6÷9{¢ü=¦ôMfjÆQYm$AÓäYfë¥IiLÖ­Q6"(ößÀ@Í_è¿I%ÛrcV :ï«X'B­ÁÏ³³ÛàýðþNg»áÜ1WvlËÞ¡7<{®3®ðÉJÞuh3Ã!)E©»ÎuPÁ°«¢Cføj¢wÓè.ý2øIð­µYÑ÷RëçâæS2p.yì8Þ;sÌâì·E&;XÑ¿s"}á+7áRb§ÝAìÄÏQ7Ú9ÏËÉf§áÛØêíocs07,á+È¥{Ð»¹XoQ]á°0A¬¥-?Y*YX
+/åu'·E s½þ²ÿª¤kªîAÕm¥º8¨.Z©.ªË&ªpWNÆàö1zÇLí¸hÕÄ8-BI¡øÂ\EJ7-µ×f+¾	ãá^7>®û¨­ÕÖ£×}Õ	à¾ñv9=.ý`ÿ!·îVÐ]"Çýë_F -!ñ1S2'»ReÔsÛcäO©ó÷ÓO÷{ìÐ8F}QQ_Pé¸á8
+#¤Rù ©Ø6ÐT1è±òrø²¾¤Raùk,>^Jäã¥bÛðR9FX÷rc¼WïjFrË&f¾ßäÒù[ÄN©Ø¦h×Ú5j&°VÞE|\Tlµí±éëEÃGLeiJ|SßP%ÔWð®#%ññR±¯Eë!yM$XËPØ$_RéßVà·Tßçbí#§4>r*¶ÍÊÑ÷®Â½£ª2äìAp>^Jäã¥b+Þ\eFÄ<é±úA®Î¯ß)«)wÔ©9µÃÁÄìAÇ^rRå5TpÅAüuðUWu¼¾ÊÒºî·(ÿ² lÒOM©¼ÔTpN&i]ó[åd>kPl¤V÷ñovRíÿ?¤1|ÍvE£ùy±ä$vçEÝýÆÍºlM¹ô)®ñÔlXDYÒx.´äÆËßÆÁ­ýT/ÕÌXD¹G¤¶ÀµÁ«¼#+p/L wÆ_ÿÀýT³ÕÜZDù äO"ñ1)óÿ»ck°â§¶¨æØ"ÊUîI¥½k#[AjÖ¢[(+4ç2o-ÞÆ°Á­ OµlQÍ³Eú	ÿü*ä^è6®nýýZXõ!wz&$ïÏ	3Xstkk¡,ÛÍ
+Îù
+Ö_ÜádÃ!y»|åÊ¨ýi\Ùv:;h«·cÎáßPKL­"            PK-        ,(¼;                     [Content_Types].xmlPK-        n2Kå   J                 _rels/.relsPK-        á|wØ   ·                ª  docProps/app.xmlPK-        JQò  ±                 docProps/core.xmlPK-        p¿Ø&x                   Î  xl/sharedStrings.xmlPK-        ­Äe  2  
+               xl/styles.xmlPK-        ù;  ä               8  xl/workbook.xmlPK-        gë¢¨Õ   4                 xl/_rels/workbook.xml.relsPK-        L­"                 À	  xl/worksheets/sheet1.xmlPK    	 	 ?  0    ] 
+expected: 403
+ but was: 200
+	at com.agilityhub.core.payments.api.SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports(SupportAccessIT.java:107)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports:107 [PK-                      [Content_Types].xmlµSËnÂ0üÈ×*6ôPUCÇ©ô\{Xø%¯¡ð÷]8R
+qòcfgfWöd¶q¶ZCB|ÃÆ|Ä*ð*hã»},^ê{Va^K<4lÈfÓÉb+ªõØ°>çø ªD"xBÚÌtLR-eâv4º*ø>×¹h°éä	Z¹²¹zÜÝéÉ­Q2S,±öúH´Þòvà`o"ÞUÏRÙµC(2qÃqa9SÝ
+&
+ÿÚÖ(ÐA­p(ªtS6°Ï9)¿JGÈsBQ4¿Äû0eX9u1ÔØdg9ö2~Ï^Óï+~®#oí) rÍ	ÐÊ4þûWHËÏ×ó/Ãþ/ûD1,ãC1|ïé7PK,(¼;            PK-                      _rels/.rels­ÁJ1_%Ì½miÚ½ÔÙÝ°LHFÝ¾½Á¶lAÁã03ßÿ1Év?I½S.£uÓ¢hÙùØx9>®î@ÁèpâHNT`¿Û>ÓRWÊàSQA$Ýk]ì@KÃbítJ-s¯Ú{Ò¶½Õù'Îêàä[:bîIÌþà<¾2MÅÖÆ)ÑoB¹ë¼¥¶o¢,d_L^vÙ|»8¶Oë&¦ôß24EGnjeñõâWn,gúÒõGÑ
+~Q/ôÙØ}PKn2Kå       J      PK-                      docProps/app.xmlMÁ
+Â0Dï~EÈ½ÝêADÒìA? ¤Û6ÐlB²J?ßÔãÌ0§ºÍ¯â)»@­Ü×H6æV>×ê$;½SC
+;Ì¢(·raglô&×e¦²L!yÃ%¦Â49`_áÐ4GÀF«øJ­úWg
+ÝGSb¸ßü÷
+~úPKá|wØ       ·       PK-                      docProps/core.xmlmÛJÄ0E%ä½MÒ¢¡í Ê 8`Eñ-$Ç¶Ø\H¢ù{Ó:VPßìu'»Úô>ÀÁ³bFZ5®Æí.;Ç(Da­!àmSIÇ¥õ°÷Ö<&péjÜÇè8!Aö EÈaRøj½1]}Go¢RPZ
+Q([ø¤TrUºw?.%	 ÁÄ@XÎÈÁëðïÀ¬ä!+5MS>m.mÄÈóÝíÃ²|6ùïpSÔ\zJ.Uò<m®®Ûn
+Z£+[vÁÏ/èKE~ÍÏÂ¯³õÍe*¤´¿¿¹õ¹"jn>PKJQò      ±      PK-                      xl/sharedStrings.xml=AÂ  ï¾ìÝ.z0Æö`âô®¤,ãóåäq2çoÜÔÄNEìÒx5ðz>W§Ã(RK«^4{£ûûÅ¯5ßÅyV»y§míXV\È.âjÜð¬õ£
+8ý PKp¿Ø&x              PK-                   
+   xl/styles.xml1o0÷þ
+Ë{a¨¢
+ÈPªsR©«G°j-Û ¿¾6T­"uï÷>?ëo{)Èå
+º^¥ Öªáx,èû¾zÜÐmù[7Øu xÚvÎéç$±uÙÒþK«dÎ·æXm56¤H²4}J$ãHËO²ÎZÐ4¥I·
+¯JF£PæöðÉB4?V+¡áØ@MA7AC&!N½0Á<&¹¢aL:ÍIÊ1·Äß_9?bëÌ	ñ°Ä¸}Ê\3çÀ`å2ÕûACAQáçîL7Ì|¾6,ãá/>(Óø-ÎW¯é,¹ÖyáÇ.Néðå¾h8;*d" gÇTxl
+BìÂî?Úvß¸Ä·&ìçÏ¥4À_Ò"{Íþ%}{áÿå^ßw¦µ*\V;ôÕõï_~PK­Äe      2      PK-                      xl/workbook.xmlËNÃ0E÷|eK B4JR!UºAH¶Õ$4Výl÷ñù¸iíÕèjî¹ö³£VlOÎKkJÈ&)02ÒlJøZ-^aVÝë¶µµ[íÆÐÐçû¦#~b{2±ÓZ§1Dé6Ü÷Pø(hÅÓôkÎÜýaÛV64·ÍN	g#!õì=T¿É>(¦Ï%´¨<¯Sç[ÒÁÿOaäVX|üÊ8d+3¨©MºÌåRàâ	Ø`XF
+qNP+
+÷8x«.¬õQ=Y/¤
+äæ°Æ)Û úñâQÛT÷É[åÉ<É¦¿bW7*îåã{«PKù;      ä      PK-                      xl/_rels/workbook.xml.rels­MkÃ0@ÿÑ}qÒÁ£n/cÐk?~°84±¥µË¿¯»ÃÖ@;ô$ð{´\:Qæ>MU¢`£ëCgà°ÿxzÅÁáa½Zni@)_Ø÷Ua6àEÒÖl=ÈULÊ¦yD)ÏÜéöéE]¿è|Ë9Sm¼q
+¨=æÄ {ÌävKW\VS¢ÿhcÛöÞ£ý)È»ÁAßYÜÄÈ4Ðã+¾©éõçìäZ^FóèÁ5FÏ®½º PKgë¢¨Õ       4      PK-                      xl/worksheets/sheet1.xml­Krã6÷9{¢ü=¦ôMfjÆQYm$AÓäYfë¥IiLÖ­Q6"(ößÀ@Í_è¿I%ÛrcV :ï«X'B­ÁÏ³³ÛàýðþNg»áÜ1WvlËÞ¡7<{®3®ðÉJÞuh3Ã!)E©»ÎuPÁ°«¢Cføj¢wÓè.ý2øIð­µYÑ÷RëçâæS2p.yì8Þ;sÌâì·E&;XÑ¿s"}á+7áRb§ÝAìÄÏQ7Ú9ÏËÉf§áÛØêíocs07,á+È¥{Ð»¹XoQ]á°0A¬¥-?Y*YX
+/åu'·E s½þ²ÿª¤kªîAÕm¥º8¨.Z©.ªË&ªpWNÆàö1zÇLí¸hÕÄ8-BI¡øÂ\EJ7-µ×f+¾	ãá^7>®û¨­ÕÖ£×}Õ	à¾ñv9=.ý`ÿ!·îVÐ]"Çýë_F -!ñ1S2'»ReÔsÛcäO©ó÷ÓO÷{ìÐ8F}QQ_Pé¸á8
+#¤Rù ©Ø6ÐT1è±òrø²¾¤Raùk,>^Jäã¥bÛðR9FX÷rc¼WïjFrË&f¾ßäÒù[ÄN©Ø¦h×Ú5j&°VÞE|\Tlµí±éëEÃGLeiJ|SßP%ÔWð®#%ññR±¯Eë!yM$XËPØ$_RéßVà·Tßçbí#§4>r*¶ÍÊÑ÷®Â½£ª2äìAp>^Jäã¥b+Þ\eFÄ<é±úA®Î¯ß)«)wÔ©9µÃÁÄìAÇ^rRå5TpÅAüuðUWu¼¾ÊÒºî·(ÿ² lÒOM©¼ÔTpN&i]ó[åd>kPl¤V÷ñovRíÿ?¤1|ÍvE£ùy±ä$vçEÝýÆÍºlM¹ô)®ñÔlXDYÒx.´äÆËßÆÁ­ýT/ÕÌXD¹G¤¶ÀµÁ«¼#+p/L wÆ_ÿÀýT³ÕÜZDù äO"ñ1)óÿ»ck°â§¶¨æØ"ÊUîI¥½k#[AjÖ¢[(+4ç2o-ÞÆ°Á­ OµlQÍ³Eú	ÿü*ä^è6®nýýZXõ!wz&$ïÏ	3Xstkk¡,ÛÍ
+Îù
+Ö_ÜádÃ!y»|åÊ¨ýi\Ùv:;h«·cÎáßPKL­"            PK-        ,(¼;                     [Content_Types].xmlPK-        n2Kå   J                 _rels/.relsPK-        á|wØ   ·                ª  docProps/app.xmlPK-        JQò  ±                 docProps/core.xmlPK-        p¿Ø&x                   Î  xl/sharedStrings.xmlPK-        ­Äe  2  
+               xl/styles.xmlPK-        ù;  ä               8  xl/workbook.xmlPK-        gë¢¨Õ   4                 xl/_rels/workbook.xml.relsPK-        L­"                 À	  xl/worksheets/sheet1.xmlPK    	 	 ?  0    ] 
+expected: 403
+ but was: 200
+[INFO] 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  24.893 s
+[INFO] Finished at: 2026-10-16T22:41:21+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release

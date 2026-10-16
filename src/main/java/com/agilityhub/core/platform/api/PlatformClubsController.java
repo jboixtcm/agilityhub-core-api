@@ -33,9 +33,17 @@ public class PlatformClubsController {
     @org.springframework.beans.factory.annotation.Autowired private PlatformClubMapper views;
     @org.springframework.beans.factory.annotation.Autowired private SettingsMapper settings;
     @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.PlatformDomains platformDomains;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.PlatformPublicKeys publicKeys;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.ConsoleSupportAccess support;
     @org.springframework.beans.factory.annotation.Autowired private jakarta.validation.Validator validator;
     private <T> T scoped(String id,java.util.function.Supplier<T> work) {
         guards.club(id);try(var scope=com.agilityhub.core.shared.application.TenantContext.open(id)) {return work.get();}
+    }
+    /** The answer's bytes as MVC writes them, for a keyed write that stores its answer in its own transaction. */
+    private byte[] json(Object answer) {
+        try { return mapper.writeValueAsBytes(answer); }
+        catch(com.fasterxml.jackson.core.JsonProcessingException impossible) { throw new IllegalStateException(impossible); }
     }
     private final PlatformClubContractGuards guards;
     private final PlatformDefinitionSchema definitions;
@@ -115,40 +123,64 @@ public class PlatformClubsController {
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/domains")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND, HOST_ALREADY_USED, HOST_RESERVED})
-    @Operation(summary="addPlatformDomain", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, HOST_ALREADY_USED, STALE_VERSION, HOST_RESERVED})
+    @Operation(summary="addPlatformDomain", description="S17 R-17-02/R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. "
+            + "The host is normalized (lower case, IDN to ASCII, no final dot or port); it is unique among every club and app (409 HOST_ALREADY_USED) and the product hosts "
+            + "clubs.*, clubsadmin.*, id.* and core.* are reserved (422 HOST_RESERVED). A template club has no domains: 400 VALIDATION_ERROR {field: template}. "
+            + "The new domain is PENDING, not primary, with its DNS instructions in verification; GET /branding with it answers 404 UNKNOWN_HOST until it is verified. "
+            + "Audited CLUB_DOMAIN_CHANGED; publishes ClubUpdated.",
             responses=@ApiResponse(responseCode="201", description="PlatformDomain", useReturnTypeSchema=true))
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public PlatformDomain addPlatformDomain(@PathVariable String id,
             @Valid @RequestBody PlatformDomainRequest request,
             @RequestHeader(value="Idempotency-Key", required=false) String idempotencyKey) {
-        guards.club(id);
-        throw new UnsupportedOperationException("S17 contract");
+        return scoped(id,()->transactions.write(()->views.domain(platformDomains.add(request.host(),request.app()==DomainApp.CLUBS_ADMIN?"clubs-admin":"clubs").domain())));
     }
 
     @DeleteMapping(value="/api/v1/platform/clubs/{id}/domains/{host}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND, NOT_FOUND})
-    @Operation(summary="deletePlatformDomain", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, NOT_FOUND, STALE_VERSION, INVALID_STATE})
+    @Operation(summary="deletePlatformDomain", description="S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Only a PENDING domain is removed; "
+            + "a VERIFIED or BROKEN one answers 409 INVALID_STATE {status}. An unknown host of the club is 404 NOT_FOUND. Audited CLUB_DOMAIN_CHANGED.",
             responses=@ApiResponse(responseCode="204", description="No content", content=@Content))
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
     public void deletePlatformDomain(@PathVariable String id,
             @PathVariable String host,
             @RequestHeader(value="Idempotency-Key", required=false) String idempotencyKey) {
-        guards.club(id);
-        guards.domain(id,host);
-        throw new UnsupportedOperationException("S17 contract");
+        scoped(id,()->transactions.write(()->platformDomains.remove(host)));
     }
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/domains/{host}/verification")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND, NOT_FOUND, HOST_NOT_VERIFIED})
-    @Operation(summary="verifyPlatformDomain", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, NOT_FOUND, STALE_VERSION, INVALID_STATE, HOST_NOT_VERIFIED})
+    @Operation(summary="verifyPlatformDomain", description="S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host "
+            + "to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the "
+            + "challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and "
+            + "GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED "
+            + "{host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, "
+            + "so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. The DNS lookup runs before the write's transaction.",
             responses=@ApiResponse(responseCode="200", description="DomainVerification", useReturnTypeSchema=true))
     public DomainVerification verifyPlatformDomain(@PathVariable String id,
             @PathVariable String host,
             @RequestHeader(value="Idempotency-Key", required=false) String idempotencyKey) {
-        guards.club(id);
-        guards.domain(id,host);
-        throw new UnsupportedOperationException("S17 contract");
+        return scoped(id,()->{
+            var check=platformDomains.check(host);
+            return transactions.keyed(200,()->{
+                var verification=platformDomains.verify(check).verification();
+                return new DomainVerification(DomainStatus.valueOf(verification.status().name()),verification.checkedAt(),VerificationMethod.valueOf(verification.method()));
+            },this::json);
+        });
+    }
+
+    @PutMapping(value="/api/v1/platform/clubs/{id}/domains/{host}/primary")
+    @PreAuthorize(PlatformJobsController.PLATFORM)
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, NOT_FOUND, STALE_VERSION, INVALID_STATE})
+    @Operation(summary="makePlatformDomainPrimary", description="S17 §2 (E10-T04). Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. The domain becomes the "
+            + "primary one of its app (the host links and e-mails use) and the app's previous primary stops being it; repeating it changes nothing. Only a VERIFIED "
+            + "domain can be primary: 409 INVALID_STATE {status}. Answers every domain of the club. Audited CLUB_DOMAIN_CHANGED.",
+            responses=@ApiResponse(responseCode="200", description="List<PlatformDomain>", useReturnTypeSchema=true))
+    public List<PlatformDomain> makePlatformDomainPrimary(@PathVariable String id, @PathVariable String host) {
+        return scoped(id,()->transactions.write(()->{platformDomains.primary(host);return queries.get(id).domains().stream().map(views::domain).toList();}));
     }
 
     @PutMapping(value="/api/v1/platform/clubs/{id}/theme")
@@ -212,10 +244,24 @@ public class PlatformClubsController {
         return scoped(id,()->{var result=providers.test();return new ProviderConnectionTest(result.ok(),result.accountName(),StripeMode.valueOf(result.mode().toUpperCase(Locale.ROOT)));});
     }
 
+    @GetMapping(value="/api/v1/platform/clubs/{id}/parameters")
+    @PreAuthorize(PlatformJobsController.PLATFORM)
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND})
+    @Operation(summary="listPlatformParameters", description="S17 §2 «Paràmetres» (E118 #1). Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. "
+            + "The target club's parameters with the shape of GET /parameters (every catalog key, PLATFORM_ONLY included, grouped by block), each row with its "
+            + "value, isOverride and version. version is the club override's version, 0 for a key the club has not overridden: "
+            + "PUT /platform/clubs/{id}/parameters/{key} expects exactly that value (409 STALE_VERSION otherwise). block filters one block.",
+            responses=@ApiResponse(responseCode="200", description="SettingsContracts.Parameters", useReturnTypeSchema=true))
+    public SettingsContracts.Parameters listPlatformParameters(@PathVariable String id, @RequestParam(required=false) String block) {
+        return scoped(id,()->settings.parameters(parameters.list(block)));
+    }
+
     @PutMapping(value="/api/v1/platform/clubs/{id}/parameters/{key}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION, UNKNOWN_PARAMETER, PARAMETER_INVALID, MODULE_DISABLED})
-    @Operation(summary="updatePlatformParameter", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
+    @Operation(summary="updatePlatformParameter", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. PLATFORM_ONLY keys included. "
+            + "version is the row's version from GET /platform/clubs/{id}/parameters: the override's version, 0 for a key the club has not overridden "
+            + "(409 STALE_VERSION otherwise).",
             responses=@ApiResponse(responseCode="200", description="SettingsContracts.Parameter", useReturnTypeSchema=true))
     public SettingsContracts.Parameter updatePlatformParameter(@PathVariable String id,
             @PathVariable String key,
@@ -226,7 +272,7 @@ public class PlatformClubsController {
     @PostMapping(value="/api/v1/platform/clubs/{id}/catalog-clone")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, CATALOG_NOT_EMPTY, CURRENCY_MISMATCH, TEMPLATE_CLUB_NOT_FOUND})
-    @Operation(summary="clonePlatformCatalog", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Empty destination parts only; warnings describe locale fallback.",
+    @Operation(summary="clonePlatformCatalog", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Empty destination parts only. warnings[] are {code, part, from}, once each: LOCALE_OMITTED (texts in the source locale `from` were left out, the destination does not use it) or DEFAULT_LOCALE_COPIED (a text without the destination's default locale got the source's `from` text).",
             responses=@ApiResponse(responseCode="200", description="CatalogCloneResult", useReturnTypeSchema=true))
     public CatalogCloneResult clonePlatformCatalog(@PathVariable String id,
             @Valid @RequestBody CatalogCloneRequest request,
@@ -234,7 +280,8 @@ public class PlatformClubsController {
         guards.club(id);var source=clones.source(request.fromClubId());
         return scoped(id,()->{var result=clones.apply(source,request.parts().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet()));
             var counts=new EnumMap<CatalogPart,Integer>(CatalogPart.class);result.copied().forEach((k,v)->counts.put(CatalogPart.valueOf(k),v));
-            return new CatalogCloneResult(counts,result.warnings());});
+            return new CatalogCloneResult(counts,result.warnings().stream().map(w->new CatalogCloneWarning(CatalogCloneWarningCode.valueOf(w.code()),
+                    CatalogPart.valueOf(w.part()),w.from())).toList());});
     }
 
     @GetMapping(value="/api/v1/platform/clubs/{id}/admins")
@@ -283,25 +330,35 @@ public class PlatformClubsController {
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/support-access")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND})
-    @Operation(summary="startSupportAccess", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. SUPPORT grant, ADMIN role and PLATFORM_SUPPORT origin; no personal exports or full IBAN.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND})
+    @Operation(summary="startSupportAccess", description="S17 R-17-10. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. "
+            + "A SUPPORT grant of platform.supportAccessMinutes (60) and its token: a clubs-admin access token (no refresh token) with the club's clubId, roles [ADMIN], "
+            + "actorAccountId and sub = the calling platform account, support = true and no platformRoles. Every request with it re-checks the grant: once it expires, "
+            + "is ended with POST /oauth2/revoke, or its account is no longer an active AGILITYHUB_ADMIN, the token is 401 UNAUTHENTICATED. It never reaches the "
+            + "personal-data exports and their files, the SEPA files (full IBANs), a member impersonation or the account's own credentials and sessions: "
+            + "403 SUPPORT_RESTRICTED; IBANs stay masked elsewhere. GET /me answers it with an ADMIN membership and support {actorName, expiresAt}. "
+            + "Audited SUPPORT_ACCESS_STARTED {reason, details.expiresAt} in the club's own audit, and every action taken with it is audited with "
+            + "origin = PLATFORM_SUPPORT; publishes SupportAccessStarted. A replay of the same key answers the same token.",
             responses=@ApiResponse(responseCode="201", description="SupportAccess", useReturnTypeSchema=true))
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public SupportAccess startSupportAccess(@PathVariable String id,
             @Valid @RequestBody SupportAccessRequest request,
             @RequestHeader(value="Idempotency-Key", required=false) String idempotencyKey) {
-        guards.club(id);
-        throw new UnsupportedOperationException("S17 contract");
+        return scoped(id,()->{var issued=support.start(request.reason().strip());return new SupportAccess(issued.token(),issued.expiresAt());});
     }
 
     @PostMapping(value="/api/v1/platform/clubs/{id}/public-api-key")
     @PreAuthorize(PlatformJobsController.PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_IMPLEMENTED, CLUB_NOT_FOUND})
-    @Operation(summary="rotatePublicApiKey", description="S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. One-time key response; previous key overlaps for 24 hours.",
+    @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, STALE_VERSION})
+    @Operation(summary="rotatePublicApiKey", description="S17 R-17-11. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Generates the club's website key "
+            + "(agh_pub_ + 43 URL-safe characters) and answers it once; only its SHA-256 digest is stored. The key it replaces keeps opening the X-Api-Key public "
+            + "routes (S05/S07) for 24 hours, then answers 403 INVALID_API_KEY; a second rotation inside those 24 hours ends the older key at once. "
+            + "A replay of the same Idempotency-Key answers the same key (stored sealed). Audited PUBLIC_API_KEY_ROTATED without any key value; publishes ClubUpdated.",
             responses=@ApiResponse(responseCode="201", description="PublicApiKey", useReturnTypeSchema=true))
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
     public PublicApiKey rotatePublicApiKey(@PathVariable String id,
             @RequestHeader(value="Idempotency-Key", required=false) String idempotencyKey) {
-        guards.club(id);
-        throw new UnsupportedOperationException("S17 contract");
+        return scoped(id,()->transactions.write(()->new PublicApiKey(publicKeys.rotate().key())));
     }
 
     @GetMapping(value="/api/v1/platform/clubs/{id}/usage")

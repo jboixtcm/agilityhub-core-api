@@ -124,6 +124,11 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged.class,
                 () -> new com.agilityhub.core.platform.domain.events.ClubPaymentProviderChanged("club-a", Instant.parse("2030-01-01T00:00:00Z"),
                         Map.of("clubId", "club-a", "provider", "MANUAL", "configured", true), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        // E10-T04: S17 §7's domain verification and support access (Annex A).
+        samples.put(com.agilityhub.core.platform.domain.events.ClubDomainVerified.class,
+                () -> new com.agilityhub.core.platform.domain.events.ClubDomainVerified("club-a", "app.example.test", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
+        samples.put(com.agilityhub.core.identity.domain.SupportAccessStarted.class,
+                () -> new com.agilityhub.core.identity.domain.SupportAccessStarted("club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -195,6 +200,18 @@ class EventCatalogContractTest {
                 assertThat(catalog).contains("ClubPaymentProviderChanged");
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.payload()).containsOnlyKeys("clubId", "provider", "configured"); return;
+            }
+            // E10-T04: S17 §7's `ClubDomainVerified{clubId, host}` and `SupportAccessStarted{clubId, actorAccountId}` (Annex A).
+            if (event instanceof com.agilityhub.core.platform.domain.events.ClubDomainVerified) {
+                assertThat(catalog).contains("ClubDomainVerified");
+                assertThat(event.aggregateType()).isEqualTo("Club"); assertThat(event.aggregateId()).isEqualTo(event.clubId());
+                assertThat(event.payload()).containsOnlyKeys("clubId", "host"); return;
+            }
+            if (event instanceof com.agilityhub.core.identity.domain.SupportAccessStarted) {
+                assertThat(catalog).contains("SupportAccessStarted");
+                assertThat(event.aggregateType()).isEqualTo("ImpersonationGrant");
+                assertThat(event.payload()).containsOnly(Map.entry("clubId", "club-a"), Map.entry("actorAccountId", "account-a"));
+                assertThat(event.impersonatedMemberId()).isNull(); return;
             }
             if (event instanceof com.agilityhub.core.platform.domain.events.ConsoleEvent) {
                 assertThat(catalog).contains("ClubCreated","ClubUpdated","ClubModulesChanged","ClubStatusChanged");

@@ -1,0 +1,17 @@
+target/surefire-reports: tests=4591, failures=0, errors=0, skipped=0
+  com.agilityhub.core.arch.ArchitectureRulesTest: tests=20, failures=0, errors=0, skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E10ResponseContractTest: tests=8, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1, failures=0, errors=0, skipped=0
+  com.agilityhub.core.shared.api.HealthControllerTest: tests=13, failures=0, errors=0, skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=3, failures=0, errors=0, skipped=0
+target/failsafe-reports: tests=2049, failures=0, errors=0, skipped=0
+  com.agilityhub.core.clubs.bookings.api.JobsApiIT: tests=7, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E10ContractIT: tests=44, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.api.ConsoleProviderLockIT: tests=4, failures=0, errors=0, skipped=0
+  com.agilityhub.core.payments.api.SupportAccessIT: tests=3, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.api.PlatformConsoleIT: tests=42, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.api.PlatformDomainsIT: tests=5, failures=0, errors=0, skipped=0
+  com.agilityhub.core.platform.api.PublicApiKeyIT: tests=2, failures=0, errors=0, skipped=0

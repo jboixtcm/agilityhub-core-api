@@ -26,7 +26,14 @@ public class TenantFilter extends OncePerRequestFilter {
     public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events) {
         this(hosts, local, errors, mapper, events, null);
     }
+    private final java.util.function.Predicate<String> productHosts;
     public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events, String identityHost) {
+        this(hosts, local, errors, mapper, events, identityHost, host -> false);
+    }
+    /** @param productHosts S17 §2 «Entrada» (E118 #2): the product hosts, whose `GET /branding` answers without a tenant */
+    public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events, String identityHost,
+            java.util.function.Predicate<String> productHosts) {
+        this.productHosts = productHosts;
         this.identityHost = identityHost;
         this.hosts = hosts; this.local = local; this.errors = errors; this.mapper = mapper; this.events = events;
     }
@@ -72,11 +79,17 @@ public class TenantFilter extends OncePerRequestFilter {
                             ? request.getHeader("X-Club-Host") : request.getHeader("Host");
                     var hostClub = hosts.resolve(host);
                     request.setAttribute("signup.resolvedHost",host);
+                    // S17 §2 «Entrada» (E118 #2): a product host has no tenant; its branding is the product's, and only the branding.
+                    boolean productBranding = path.equals("/api/v1/branding") && hostClub.isEmpty() && productHosts.test(bare(host));
                     String clubId;
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");
                         if ((clubId == null || clubId.isBlank()) && accountRoute) {
                             if (hostClub.isPresent()) { throw new ApiException(ErrorCode.NO_MEMBERSHIP); }
+                            chain.doFilter(request, response);
+                            return;
+                        }
+                        if ((clubId == null || clubId.isBlank()) && productBranding) {
                             chain.doFilter(request, response);
                             return;
                         }
@@ -86,7 +99,7 @@ public class TenantFilter extends OncePerRequestFilter {
                             throw new ApiException(ErrorCode.TENANT_MISMATCH);
                         }
                     } else {
-                        if ((optionalHost || accountRoute) && hostClub.isEmpty()) {
+                        if ((optionalHost || accountRoute || productBranding) && hostClub.isEmpty()) {
                             chain.doFilter(request, response);
                             return;
                         }
@@ -104,5 +117,12 @@ public class TenantFilter extends OncePerRequestFilter {
             response.setStatus(exception.code().httpStatus()); response.setContentType("application/json");
             mapper.writeValue(response.getOutputStream(), errors.body(exception, request));
         } finally { TenantContext.clear(); }
+    }
+    /** The host without its port, in lower case; a final dot does not count. */
+    private static String bare(String host) {
+        if (host == null) { return ""; }
+        String value = host.strip().toLowerCase(java.util.Locale.ROOT);
+        if (value.matches("[^:]+:[0-9]+")) { value = value.substring(0, value.lastIndexOf(':')); }
+        return value.endsWith(".") ? value.substring(0, value.length() - 1) : value;
     }
 }

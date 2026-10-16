@@ -1,0 +1,16 @@
+import pathlib, xml.etree.ElementTree as ET
+CHANGED = ['PlatformDomainsIT', 'SupportAccessIT', 'PublicApiKeyIT', 'PlatformConsoleIT', 'E10ContractIT', 'E10ResponseContractTest',
+           'JobsApiIT', 'ConsoleProviderLockIT', 'EventCatalogContractTest', 'OpenApiSnapshotTest', 'HealthControllerTest', 'E2ContractIT',
+           'AuditContractTest', 'ArchitectureTest', 'ArchitectureRulesTest']
+for folder in ['target/surefire-reports', 'target/failsafe-reports']:
+    totals = [0, 0, 0, 0]; rows = {}
+    for report in sorted(pathlib.Path(folder).glob('TEST-*.xml')):
+        suite = ET.parse(report).getroot()
+        values = [int(suite.get(k, 0)) for k in ('tests', 'failures', 'errors', 'skipped')]
+        totals = [a + b for a, b in zip(totals, values)]
+        name = suite.get('name')
+        if name.split('.')[-1] in CHANGED:
+            rows[name] = values
+    print(f'{folder}: tests={totals[0]}, failures={totals[1]}, errors={totals[2]}, skipped={totals[3]}')
+    for name, v in sorted(rows.items()):
+        print(f'  {name}: tests={v[0]}, failures={v[1]}, errors={v[2]}, skipped={v[3]}')

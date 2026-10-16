@@ -110,6 +110,11 @@ core:
     bank-key: ${BILLING_BANK_KEY:}
     # ProviderSecretVault (ADR-009, E8-T01 round 2): the clubs' encrypted payment-provider secrets (paymentProviders.STRIPE.*Enc).
     secrets-key: ${BILLING_SECRETS_KEY:}
+  platform:
+    # S17 R-17-03 (E10-T04): the product hosts a club domain's CNAME points to, per app (the Caddy site hosts of deploy/).
+    product-hosts:
+      clubs: ${CLUBS_HOST:clubs.agilitydoghub.com}
+      clubs-admin: ${ADMIN_HOST:clubsadmin.agilitydoghub.com}
   oidc:
     master-key: ${OIDC_MASTER_KEY:}
     login-url: ${OIDC_LOGIN_URL:https://id.agilitydoghub.com/login}

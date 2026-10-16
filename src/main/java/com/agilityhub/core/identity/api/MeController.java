@@ -43,6 +43,8 @@ public class MeController {
                     + "Includes global bootstrap and a member-only impersonation view with the actor name.",
             responses = @ApiResponse(responseCode = "200", description = "App bootstrap (Me)"))
     public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
+        var current = com.agilityhub.core.shared.application.CurrentUser.current();
+        if (current != null && current.support() != null) { return support(current.support()); }
         var session = identities.current(jwt.getSubject());
         var account = session.account();
         var membership = session.membership();
@@ -55,7 +57,6 @@ public class MeController {
                 ? census.paymentMethod(membership.memberId()) : null;
         var paymentMethod = method == null ? null : new MeResponse.MemberPaymentMethod(method.type(), method.invalid());
         var gender = details.gender() == null ? null : MeResponse.Gender.valueOf(details.gender());
-        var current = com.agilityhub.core.shared.application.CurrentUser.current();
         if (current != null && current.impersonation() != null) {
             // E5-T29 (ruling E73): the banner names the member the admin opened, never the account.
             String memberName = census.displayName(current.impersonation().memberId()).or(() -> census.displayName(membership.memberId())).orElse(account.name());
@@ -74,6 +75,21 @@ public class MeController {
                 new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.copyOf(profiles), activeProfile, profiles,
                         membership.memberId(), membership.instructorId(), defaultProfile, membership.rememberProfile(), gender, details.lastDogForClass(), details.lastDogForTraining()), null,
                 clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList(), paymentMethod);
+    }
+
+    /**
+     * S17 R-17-10 (E10-T04): the support token has no membership of its own. It opens the club's administration as an ADMIN
+     * without a member record, and `support` gives the persistent banner its actor and end; no platform role travels with it.
+     */
+    private MeResponse support(com.agilityhub.core.shared.application.CurrentUser.Support support) {
+        var account = accounts.active(support.actorAccountId());
+        var profiles = List.of(Profile.ADMIN);
+        return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(), java.util.Set.of(),
+                account.passwordHash() != null, account.emailVerifiedAt(), false),
+                new MeResponse.MembershipSummary(TenantContext.require(), java.util.Set.of(Profile.ADMIN), Profile.ADMIN, profiles,
+                        null, null, null, false, null, null, null), null,
+                clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList(), null,
+                new MeResponse.Support(support.actorName(), support.expiresAt()));
     }
 
     @PatchMapping("/api/v1/me")

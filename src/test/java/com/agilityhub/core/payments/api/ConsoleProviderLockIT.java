@@ -71,6 +71,70 @@ class ConsoleProviderLockIT extends BillingItSupport {
         assertThat(method("puig")).isEqualTo("SEPA_DD");
     }
 
+    /** E115 #3 (E10-T04): disabling a provider (`enabled: false`) takes the same lock as removing it, so it interleaves the same way. */
+    @Test void T_17_05_R_17_05_assignmentWaitsForAnUncommittedProviderDisabling() throws Exception {
+        long version = version();
+        var inside = new CountDownLatch(1); var release = new CountDownLatch(1);
+        try (var pool = Executors.newFixedThreadPool(2)) {
+            var console = pool.submit(() -> {
+                try (var tenant = TenantContext.open(CLUB)) {
+                    return transactions.execute(tx -> { providers.update("MANUAL", disabled(version)); inside.countDown(); await(release); return "OK"; });
+                } catch (ApiException failure) { inside.countDown(); return failure.getMessage(); }
+            });
+            assertThat(inside.await(20, TimeUnit.SECONDS)).isTrue();
+            var assignment = pool.submit(() -> mvc.perform(admin(patch("/api/v1/members/puig/payment-method")).contentType("application/json")
+                    .content("{\"type\":\"MANUAL\",\"manual\":{\"channel\":\"cash\"}}")).andReturn().getResponse());
+            // Without the shared lock the assignment reads MANUAL as enabled and commits while the disabling is still open.
+            MockHttpServletResponse early = within(assignment, 2);
+            release.countDown();
+            assertThat(console.get(30, TimeUnit.SECONDS)).isEqualTo("OK");
+            var response = early != null ? early : assignment.get(30, TimeUnit.SECONDS);
+            assertThat(response.getStatus()).as(response.getContentAsString()).isBetween(400, 499);
+            assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).isEqualTo("PAYMENT_PROVIDER_NOT_ENABLED");
+        }
+        assertThat(manualEnabled()).isFalse();
+        assertThat(method("puig")).isEqualTo("SEPA_DD");
+    }
+
+    @Test void T_17_05_R_17_05_disablingWaitsForAnUncommittedAssignmentAndCountsIt() throws Exception {
+        var inside = new CountDownLatch(1); var release = new CountDownLatch(1);
+        try (var pool = Executors.newFixedThreadPool(2)) {
+            var assignment = pool.submit(() -> {
+                try (var tenant = TenantContext.open(CLUB)) {
+                    return transactions.execute(tx -> {
+                        members.payment("puig", Map.of("type", "MANUAL", "manual", Map.of("channel", "cash")));
+                        inside.countDown(); await(release); return "OK";
+                    });
+                } catch (ApiException failure) { inside.countDown(); return failure.getMessage(); }
+            });
+            assertThat(inside.await(20, TimeUnit.SECONDS)).isTrue();
+            long version = version();
+            var disabling = pool.submit(() -> mvc.perform(put("/api/v1/platform/clubs/" + CLUB + "/payment-providers/MANUAL")
+                    .contentType("application/json").content(mapper.writeValueAsString(disabled(version)))
+                    .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("console-actor"))
+                            .authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse());
+            // Without the shared lock the disabling counts zero users and commits while the assignment is still open.
+            MockHttpServletResponse early = within(disabling, 2);
+            release.countDown();
+            assertThat(assignment.get(30, TimeUnit.SECONDS)).isEqualTo("OK");
+            var response = early != null ? early : disabling.get(30, TimeUnit.SECONDS);
+            assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(409);
+            var error = mapper.readTree(response.getContentAsString());
+            assertThat(error.path("code").asText()).isEqualTo("PROVIDER_IN_USE");
+            assertThat(error.path("details").path("count").asInt()).isEqualTo(1);
+        }
+        assertThat(manualEnabled()).isTrue();
+        assertThat(method("puig")).isEqualTo("MANUAL");
+    }
+    Map<String, Object> disabled(long version) {
+        var instructions = clubs.findById(CLUB).orElseThrow().paymentProviders().get("MANUAL") instanceof Map<?, ?> manual
+                && manual.get("instructions") instanceof Map<?, ?> text && !text.isEmpty() ? text : Map.of("ca", "Recepció");
+        return Map.<String, Object>of("version", version, "enabled", false, "instructions", instructions);
+    }
+    boolean manualEnabled() {
+        return clubs.findById(CLUB).orElseThrow().paymentProviders().get("MANUAL") instanceof Map<?, ?> manual && Boolean.TRUE.equals(manual.get("enabled"));
+    }
+
     @Test void T_17_05_R_17_05_removalWaitsForAnUncommittedAssignmentAndCountsIt() throws Exception {
         var inside = new CountDownLatch(1); var release = new CountDownLatch(1);
         try (var pool = Executors.newFixedThreadPool(2)) {

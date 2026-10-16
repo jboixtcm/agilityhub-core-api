@@ -86,6 +86,9 @@ public final class AuditContracts {
         CLUB_CREATED,
         CLUB_PAYMENT_PROVIDER_CHANGED,
         CLUB_ADMIN_INVITED,
+        CLUB_DOMAIN_CHANGED,
+        SUPPORT_ACCESS_STARTED,
+        PUBLIC_API_KEY_ROTATED,
         CATALOG_CHANGED,
         MIGRATION_APPLIED,
         ANNOUNCEMENT_SENT,
@@ -102,8 +105,11 @@ public final class AuditContracts {
         RING_SETUP_REGISTERED
     }
     public enum AuditActorRole { ADMIN, INSTRUCTOR, MEMBER, SYSTEM, PLATFORM, WEBHOOK }
-    /** PUBLIC (E3-T09): an anonymous mutation of the public signup, the readmission submission of R-04-06. */
-    public enum AuditOrigin { APP, BACKOFFICE, SYSTEM, WEBHOOK, PUBLIC }
+    /**
+     * PUBLIC (E3-T09): an anonymous mutation of the public signup, the readmission submission of R-04-06. PLATFORM_SUPPORT
+     * (S17 R-17-10, E10-T04): an action taken with a support access token of the AgilityHub team.
+     */
+    public enum AuditOrigin { APP, BACKOFFICE, SYSTEM, WEBHOOK, PUBLIC, PLATFORM_SUPPORT }
     @Schema(description = "Values are masked by the audit writer.")
     public record AuditChange(
             @Schema(requiredMode = REQUIRED) String path,

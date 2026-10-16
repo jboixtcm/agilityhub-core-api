@@ -79,6 +79,26 @@ class JobsApiIT extends BookingFixtures {
         platform(post("/api/v1/platform/clubs/s08-missing/jobs/cleanup/trigger").contentType("application/json").content("{\"dryRun\":true}"), 404);
     }
 
+    /**
+     * INC-49 (E10-T04): a keyed console trigger with a platform token (no `clubId`) reaches its handler, and its key is scoped
+     * to the club its path names: the same key in another club is another request, and a retry replays its own club's run.
+     */
+    @Test void T_15_09_INC_49_keyedConsoleTriggersAreScopedToThePathClub() throws Exception {
+        String key = java.util.UUID.randomUUID().toString();
+        var first = platform(post("/api/v1/platform/clubs/" + CLUB + "/jobs/cleanup/trigger").header("Idempotency-Key", key)
+                .contentType("application/json").content("{\"dryRun\":true}"), 200);
+        var other = platform(post("/api/v1/platform/clubs/" + OTHER + "/jobs/cleanup/trigger").header("Idempotency-Key", key)
+                .contentType("application/json").content("{\"dryRun\":true}"), 200);
+        assertThat(other.path("runId").asText()).isNotEqualTo(first.path("runId").asText());
+        var replay = platform(post("/api/v1/platform/clubs/" + CLUB + "/jobs/cleanup/trigger").header("Idempotency-Key", key)
+                .contentType("application/json").content("{\"dryRun\":true}"), 200);
+        assertThat(replay.path("runId").asText()).isEqualTo(first.path("runId").asText());
+        assertThat(mongo.find(Query.query(Criteria.where("key").is(key)), Document.class, "idempotency_records"))
+                .extracting(record -> record.getString("clubId")).containsExactlyInAnyOrder(CLUB, OTHER);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("job").is("CLEANUP").and("trigger").is("MANUAL")), "job_runs")).isEqualTo(1);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("job").is("CLEANUP").and("trigger").is("MANUAL")), "job_runs")).isEqualTo(1);
+    }
+
     @Test void T_15_09_theSwitchWritesTheParameterAndTheListsAreScopedToTheTenant() throws Exception {
         var switched = call(PUT, "/jobs/reminders/switch", Map.of("enabled", false), as("admin"), 200);
         assertThat(switched.path("name").asText()).isEqualTo("reminders");

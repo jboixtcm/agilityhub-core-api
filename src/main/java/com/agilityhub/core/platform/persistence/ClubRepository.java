@@ -111,6 +111,28 @@ public class ClubRepository extends GlobalRepository<Club> {
         return result;
     }
     /**
+     * S17 R-17-02/R-17-03 (E10-T04): a versioned write of the club's domains. Another club that already holds one of the hosts
+     * fails the unique `club_host` index: `409 HOST_ALREADY_USED`, not a version conflict.
+     */
+    public Club updateDomains(String id, long version, java.util.List<Club.Domain> domains, java.time.Instant now) {
+        var update = new org.springframework.data.mongodb.core.query.Update().inc("version", 1L).set("updatedAt", now).set("domains", domains);
+        Club result;
+        try {
+            result = mongo.findAndModify(Query.query(Criteria.where("_id").is(id).and("version").is(version)), update,
+                    org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true), Club.class);
+        } catch (org.springframework.dao.DuplicateKeyException taken) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.HOST_ALREADY_USED);
+        } catch (org.springframework.dao.DataAccessException failure) { throw SettingsWriteConflict.translate(failure); }
+        if (result == null) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
+        return result;
+    }
+    /** S17 R-17-11 (E10-T04): the public key's digest, and the replaced one's until the end of its overlap. */
+    public Club rotatePublicApiKey(String id, long version, String hash, String previousHash, java.time.Instant previousUntil, java.time.Instant now) {
+        var changes = new java.util.LinkedHashMap<String, Object>();
+        changes.put("publicApiKeyHash", hash); changes.put("publicApiKeyPreviousHash", previousHash); changes.put("publicApiKeyPreviousUntil", previousUntil);
+        return updateVersioned(id, version, changes, now);
+    }
+    /**
      * S17 R-17-05: the club's payment-provider serialisation boundary (`provider_write_locks`). Assigning a payment method and
      * removing or disabling a provider both take it first in their transaction, so they conflict instead of committing a member
      * on a provider that is gone.

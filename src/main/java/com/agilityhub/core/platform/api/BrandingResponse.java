@@ -25,11 +25,21 @@ public record BrandingResponse(ClubSummary club, Theme theme, List<String> local
                 pushPublicKey != null && config.modules().contains(com.agilityhub.core.platform.application.Module.PUSH) ? pushPublicKey : null);
     }
     /**
+     * S17 §2 «Entrada» (E118 #2, E10-T04): the branding of a product host (the console's `clubsadmin.…`), which has no club:
+     * `club.slug` null and the product's name, AgilityHub's theme preset and languages, no module, signup closed, `status`
+     * ACTIVE and the platform's privacy policy.
+     */
+    public static BrandingResponse product(com.agilityhub.core.platform.application.ProductBranding.Values values, Country country, String privacyPolicyUrl) {
+        return new BrandingResponse(new ClubSummary(null, values.name(), null, null, null, null), values.theme(), values.locales(), values.defaultLocale(),
+                values.timeZone(), values.currency(), country, List.of(), new Signup(false), "ACTIVE", new Legal(privacyPolicyUrl), null);
+    }
+    /**
      * R-02-02 (amended 24-09): `legalName` and `taxId` are the club's public business identifiers, which LSSI art. 10 asks
      * the public web to show (the footer); always present, `null` when the club has not set them. E3-T16 (amended 25-09):
      * the footer reads «{legalName} · {taxId} · {city}», with the registered office «{street} · {postalCode} {city}» below.
      */
-    public record ClubSummary(String slug, String name,
+    public record ClubSummary(@io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,
+                    types = {"string", "null"}, description = "The club's slug; null on a product host (S17 §2 «Entrada»), whose branding is the product's.") String slug, String name,
             @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"}, description = "The town shown with the club's name: displayCity, else the registered office's town.") String city,
             @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,

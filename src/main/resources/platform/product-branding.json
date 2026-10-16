@@ -1,0 +1,31 @@
+{
+  "name": "AgilityHub",
+  "locales": ["ca", "es", "en"],
+  "defaultLocale": "ca",
+  "timeZone": "Europe/Madrid",
+  "currency": "EUR",
+  "countryProfile": "GENERIC",
+  "theme": {
+    "logoUrl": null,
+    "logoDarkUrl": null,
+    "markUrl": null,
+    "colors": {
+      "primary": "#2563EB",
+      "onPrimary": "#FFFFFF",
+      "background": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "surfaceAlt": "#F1F5F9",
+      "text": "#0F172A",
+      "textMuted": "#475569",
+      "border": "#CBD5E1",
+      "success": "#15803D",
+      "warning": "#A16207",
+      "danger": "#B91C1C",
+      "info": "#0369A1"
+    },
+    "fontFamily": "system-ui",
+    "radius": "8px",
+    "ringPalette": [],
+    "mode": "light"
+  }
+}

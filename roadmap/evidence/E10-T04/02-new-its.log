@@ -1,0 +1,146 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- jaxb2:3.2.0:xjc (pain-008) @ agilityhub-core-api ---
+[INFO] Ignored given or default xjbSources [/Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/xjb], since it is not an existent file or directory.
+[INFO] No changes detected in schema or binding files - skipping JAXB generation.
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 18 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 63 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.payments.api.SupportAccessIT
+22:29:20.609 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.payments.api.SupportAccessIT]: SupportAccessIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:29:20.776 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.payments.api.SupportAccessIT
+22:29:20.845 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:29:20.846 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:29:20.850 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+22:29:20.952 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:29:21.085 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:29:21.086 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:29:21.095 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:29:21.498 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+22:29:21.536 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:29:21.604 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 6a62756a175cf4d56282b205fca3f758b8732c9a869af3dbfeec9af187f83f17
+22:29:21.773 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.27576S
+22:29:21.777 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:29:21.777 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:29:21.777 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:29:21.777 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:29:21.822 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 4b711c9cab2b4a64eacf1fb33d848b778c6cd3dd4be3cbf06850ad62f97ac97f
+22:29:22.287 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.509693S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-16T22:29:22.965+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : Starting SupportAccessIT using Java [redacted] with PID 37519 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-16T22:29:22.967+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-16T22:29:23.982+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-16T22:29:24.037+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 51 ms. Found 0 MongoDB repository interfaces.
+2026-10-16T22:29:24.482+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2e243122], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2a5c115b, com.mongodb.Jep395RecordCodecProvider@49b6373f, com.mongodb.KotlinCodecProvider@20f3291d]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:53623], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2f51b100], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-16T22:29:24.490+03:00 INFO  [cluster-ClusterId{value='6ad27b14739049865a84c847', description='null'}-localhost:53623] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:53623, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10703542, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4b711c9cab2b:27017, hosts=[4b711c9cab2b:27017], passives=[], arbiters=[], primary='4b711c9cab2b:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad27b128dbcba077b170798, counter=6}, lastWriteDate=Fri Oct 16 22:29:22 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-16T22:29:28.052+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-16T22:29:28.052+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-16T22:29:28.053+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 1 ms
+2026-10-16T22:29:28.101+03:00 INFO  [main] c.a.core.payments.api.SupportAccessIT traceId= clubId= accountId= : Started SupportAccessIT in 5.301 seconds (process running for 7.839)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-16T22:29:29.534+03:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/platform/clubs/bill-a/support-access' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 11.17 s <<< FAILURE! -- in com.agilityhub.core.payments.api.SupportAccessIT
+[ERROR] com.agilityhub.core.payments.api.SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports -- Time elapsed: 0.655 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "{"id":"puig","memberNumber":208,"firstName":"Eva","lastName1":"Puig","fullName":"Eva Puig","contactEmails":[],"phones":[],"address":{},"status":"ACTIVE","displayStatus":{"kind":"ACTIVE","label":"ACTIVE"},"version":0,"accountId":"bill-account-puig","idDocument":{},"bookingBlock":{"active":false},"roles":[],"billedViaMemberId":"puig","paymentMethod":{"type":"SEPA_DD","maskedAccount":"···· ···· ···· ···· 0208","holderName":"Eva Puig Example"},"maskedAccount":"···· ···· ···· ···· 0208","planId":"bill-plan-abonat","nextInvoiceDate":"2026-09-01","accountMissing":false,"plan":{"id":"bill-plan-abonat","name":"Abonat","type":"MONTHLY","billingMode":"MONTHLY_FEE"}}"
+to contain:
+  "4321" 
+	at com.agilityhub.core.payments.api.SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports(SupportAccessIT.java:95)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.platform.api.PublicApiKeyIT
+2026-10-16T22:29:31.750+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.PublicApiKeyIT]: PublicApiKeyIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-16T22:29:31.796+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.PublicApiKeyIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.162 s -- in com.agilityhub.core.platform.api.PublicApiKeyIT
+[INFO] Running com.agilityhub.core.platform.api.PlatformDomainsIT
+2026-10-16T22:29:32.913+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.PlatformDomainsIT]: PlatformDomainsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-16T22:29:32.914+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.PlatformDomainsIT
+2026-10-16T22:29:34.298+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ac639190-c6b3-4990-9b5e-e551c686961a clubId=- accountId=domains-actor : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-16T22:29:34.303+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=402e2a96-1a0d-40cc-8d47-975fede3d456 clubId=- accountId=domains-actor : Framework request rejected code=VALIDATION_ERROR traceId=402e2a96-1a0d-40cc-8d47-975fede3d456
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.787 s -- in com.agilityhub.core.platform.api.PlatformDomainsIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SupportAccessIT.T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports:95 
+Expecting actual:
+  "{"id":"puig","memberNumber":208,"firstName":"Eva","lastName1":"Puig","fullName":"Eva Puig","contactEmails":[],"phones":[],"address":{},"status":"ACTIVE","displayStatus":{"kind":"ACTIVE","label":"ACTIVE"},"version":0,"accountId":"bill-account-puig","idDocument":{},"bookingBlock":{"active":false},"roles":[],"billedViaMemberId":"puig","paymentMethod":{"type":"SEPA_DD","maskedAccount":"···· ···· ···· ···· 0208","holderName":"Eva Puig Example"},"maskedAccount":"···· ···· ···· ···· 0208","planId":"bill-plan-abonat","nextInvoiceDate":"2026-09-01","accountMissing":false,"plan":{"id":"bill-plan-abonat","name":"Abonat","type":"MONTHLY","billingMode":"MONTHLY_FEE"}}"
+to contain:
+  "4321" 
+[INFO] 
+[ERROR] Tests run: 10, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.903 s
+[INFO] Finished at: 2026-10-16T22:29:36+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

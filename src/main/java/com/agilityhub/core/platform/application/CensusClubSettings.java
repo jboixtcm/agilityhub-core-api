@@ -28,9 +28,14 @@ public class CensusClubSettings {
     public Map<String,Object> signupLegal(String locale) {
         var club = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var legal = club.legal();
-        return Map.of("privacyPolicyUrl", legal.privacyPolicyUrl(), "legalTextsVersion", legal.legalTextsVersion(),
-                "imageConsentText", legal.imageConsentText().getOrDefault(locale, legal.imageConsentText().getOrDefault(club.defaultLocale(), "")),
-                "legalName", club.legalName() == null ? club.name() : club.legalName());
+        // E115 #1 (E10-T04): a club document without `legal` (migrated before S17's rule) reads as «no texts yet», as
+        // ClubConfigService reads it, so its public signup answers instead of failing.
+        var result = new java.util.LinkedHashMap<String, Object>();
+        result.put("privacyPolicyUrl", legal == null ? null : legal.privacyPolicyUrl());
+        result.put("legalTextsVersion", legal == null ? null : legal.legalTextsVersion());
+        result.put("imageConsentText", legal == null ? "" : legal.imageConsentText().getOrDefault(locale, legal.imageConsentText().getOrDefault(club.defaultLocale(), "")));
+        result.put("legalName", club.legalName() == null ? club.name() : club.legalName());
+        return result;
     }
     /**
      * `CLUB.paymentProviders.MANUAL.instructions` (model §2, a LocalizedText) resolved in `locale`, falling back to the

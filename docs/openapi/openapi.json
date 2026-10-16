@@ -1748,7 +1748,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -1832,7 +1832,7 @@
             "type" : "string"
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC" ],
+            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC", "PLATFORM_SUPPORT" ],
             "type" : "string"
           },
           "reason" : {
@@ -1909,7 +1909,7 @@
             "type" : "string"
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC" ],
+            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC", "PLATFORM_SUPPORT" ],
             "type" : "string"
           },
           "reason" : {
@@ -4308,12 +4308,31 @@
           },
           "warnings" : {
             "items" : {
-              "type" : "string"
+              "$ref" : "#/components/schemas/CatalogCloneWarning"
             },
             "type" : "array"
           }
         },
         "required" : [ "copied", "warnings" ],
+        "type" : "object"
+      },
+      "CatalogCloneWarning" : {
+        "description" : "S17 R-17-08: one localized-text adjustment of a cloned part, once per code, part and locale.",
+        "properties" : {
+          "code" : {
+            "enum" : [ "LOCALE_OMITTED", "DEFAULT_LOCALE_COPIED" ],
+            "type" : "string"
+          },
+          "from" : {
+            "description" : "The source locale the warning is about (ca, es or en).",
+            "type" : "string"
+          },
+          "part" : {
+            "enum" : [ "LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "from", "part" ],
         "type" : "object"
       },
       "CatalogItemsAdministrator" : {
@@ -6719,7 +6738,8 @@
             "type" : "string"
           },
           "slug" : {
-            "type" : "string"
+            "description" : "The club's slug; null on a product host (S17 §2 «Entrada»), whose branding is the product's.",
+            "type" : [ "string", "null" ]
           },
           "taxId" : {
             "description" : "Normalized: upper case, without spaces or separators (S02 §3). ES: a 7-digit DNI is stored padded to 8 digits.",
@@ -8830,8 +8850,12 @@
         "type" : "object"
       },
       "DomainVerificationChallenge" : {
-        "description" : "S17 §2 DNS instructions: CNAME to the product host, or TXT _agilityhub-verify.{host} = agh-verify-{token}. The token is generated when the domain is added and remains stable until verified; DNS lookup is deferred.",
+        "description" : "S17 §2 DNS instructions (R-17-03): a CNAME from the host to cnameTarget, or the TXT record recordName = recordValue (_agilityhub-verify.{host} = agh-verify-{token}). The token is generated when the domain is added, stays stable while it is PENDING and is removed once it is VERIFIED.",
         "properties" : {
+          "cnameTarget" : {
+            "description" : "The product host of the domain's app the CNAME points to: clubs.agilitydoghub.com for clubs, clubsadmin.agilitydoghub.com for clubs-admin (deployment hosts).",
+            "type" : "string"
+          },
           "recordName" : {
             "type" : "string"
           },
@@ -8839,7 +8863,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "recordName", "recordValue" ],
+        "required" : [ "cnameTarget", "recordName", "recordValue" ],
         "type" : "object"
       },
       "EligibleDog" : {
@@ -13331,6 +13355,10 @@
           "paymentMethod" : {
             "$ref" : "#/components/schemas/MePaymentMethod",
             "description" : "Current member's payment method; absent without BILLING or a member"
+          },
+          "support" : {
+            "$ref" : "#/components/schemas/MeSupport",
+            "description" : "S17 R-17-10: present only with a support access token of the AgilityHub team; clubs-admin shows its persistent banner from it"
           }
         },
         "required" : [ "account", "features" ],
@@ -13999,6 +14027,21 @@
           }
         },
         "required" : [ "builtAt", "hasViewer", "id", "kind" ],
+        "type" : "object"
+      },
+      "MeSupport" : {
+        "properties" : {
+          "actorName" : {
+            "description" : "The AgilityHub team member who entered the club",
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "description" : "When the support access ends",
+            "format" : "date-time",
+            "type" : "string"
+          }
+        },
+        "required" : [ "actorName", "expiresAt" ],
         "type" : "object"
       },
       "Member" : {
@@ -18006,7 +18049,7 @@
             }, {
               "type" : "null"
             } ],
-            "description" : "TXT challenge for a newly added domain; null for legacy domains without a challenge."
+            "description" : "The DNS instructions while the domain is not verified; null once it is VERIFIED and for a legacy domain without a challenge."
           },
           "verifiedAt" : {
             "format" : "date-time",
@@ -73827,7 +73870,7 @@
     },
     "/api/v1/platform/clubs/{id}/catalog-clone" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Empty destination parts only; warnings describe locale fallback.",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Empty destination parts only. warnings[] are {code, part, from}, once each: LOCALE_OMITTED (texts in the source locale `from` were left out, the destination does not use it) or DEFAULT_LOCALE_COPIED (a text without the destination's default locale got the source's `from` text).",
         "operationId" : "clonePlatformCatalog",
         "parameters" : [ {
           "in" : "path",
@@ -74285,7 +74328,7 @@
     },
     "/api/v1/platform/clubs/{id}/domains" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17 R-17-02/R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. The host is normalized (lower case, IDN to ASCII, no final dot or port); it is unique among every club and app (409 HOST_ALREADY_USED) and the product hosts clubs.*, clubsadmin.*, id.* and core.* are reserved (422 HOST_RESERVED). A template club has no domains: 400 VALIDATION_ERROR {field: template}. The new domain is PENDING, not primary, with its DNS instructions in verification; GET /branding with it answers 404 UNKNOWN_HOST until it is verified. Audited CLUB_DOMAIN_CHANGED; publishes ClubUpdated.",
         "operationId" : "addPlatformDomain",
         "parameters" : [ {
           "in" : "path",
@@ -74371,7 +74414,7 @@
                 }
               }
             },
-            "description" : "HOST_ALREADY_USED"
+            "description" : "HOST_ALREADY_USED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -74430,7 +74473,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74449,7 +74492,7 @@
     },
     "/api/v1/platform/clubs/{id}/domains/{host}" : {
       "delete" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Only a PENDING domain is removed; a VERIFIED or BROKEN one answers 409 INVALID_STATE {status}. An unknown host of the club is 404 NOT_FOUND. Audited CLUB_DOMAIN_CHANGED.",
         "operationId" : "deletePlatformDomain",
         "parameters" : [ {
           "in" : "path",
@@ -74525,7 +74568,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -74584,7 +74627,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74601,9 +74644,166 @@
         "tags" : [ "platform" ]
       }
     },
+    "/api/v1/platform/clubs/{id}/domains/{host}/primary" : {
+      "put" : {
+        "description" : "S17 §2 (E10-T04). Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. The domain becomes the primary one of its app (the host links and e-mails use) and the app's previous primary stops being it; repeating it changes nothing. Only a VERIFIED domain can be primary: 409 INVALID_STATE {status}. Answers every domain of the club. Audited CLUB_DOMAIN_CHANGED.",
+        "operationId" : "makePlatformDomainPrimary",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "host",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PlatformDomain"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "List<PlatformDomain>"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND, NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION, INVALID_STATE"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "makePlatformDomainPrimary",
+        "tags" : [ "platform" ]
+      }
+    },
     "/api/v1/platform/clubs/{id}/domains/{host}/verification" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED.",
+        "description" : "S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. The DNS lookup runs before the write's transaction.",
         "operationId" : "verifyPlatformDomain",
         "parameters" : [ {
           "in" : "path",
@@ -74686,7 +74886,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -74745,7 +74945,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -74919,9 +75119,163 @@
         "tags" : [ "platform" ]
       }
     },
+    "/api/v1/platform/clubs/{id}/parameters" : {
+      "get" : {
+        "description" : "S17 §2 «Paràmetres» (E118 #1). Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. The target club's parameters with the shape of GET /parameters (every catalog key, PLATFORM_ONLY included, grouped by block), each row with its value, isOverride and version. version is the club override's version, 0 for a key the club has not overridden: PUT /platform/clubs/{id}/parameters/{key} expects exactly that value (409 STALE_VERSION otherwise). block filters one block.",
+        "operationId" : "listPlatformParameters",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "block",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Parameters"
+                }
+              }
+            },
+            "description" : "SettingsContracts.Parameters"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN, IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CLUB_NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "listPlatformParameters",
+        "tags" : [ "platform" ]
+      }
+    },
     "/api/v1/platform/clubs/{id}/parameters/{key}" : {
       "put" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. ",
+        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. PLATFORM_ONLY keys included. version is the row's version from GET /platform/clubs/{id}/parameters: the override's version, 0 for a key the club has not overridden (409 STALE_VERSION otherwise).",
         "operationId" : "updatePlatformParameter",
         "parameters" : [ {
           "in" : "path",
@@ -75559,7 +75913,7 @@
     },
     "/api/v1/platform/clubs/{id}/public-api-key" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. One-time key response; previous key overlaps for 24 hours.",
+        "description" : "S17 R-17-11. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Generates the club's website key (agh_pub_ + 43 URL-safe characters) and answers it once; only its SHA-256 digest is stored. The key it replaces keeps opening the X-Api-Key public routes (S05/S07) for 24 hours, then answers 403 INVALID_API_KEY; a second rotation inside those 24 hours ends the older key at once. A replay of the same Idempotency-Key answers the same key (stored sealed). Audited PUBLIC_API_KEY_ROTATED without any key value; publishes ClubUpdated.",
         "operationId" : "rotatePublicApiKey",
         "parameters" : [ {
           "in" : "path",
@@ -75635,7 +75989,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -75694,7 +76048,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -75877,7 +76231,7 @@
     },
     "/api/v1/platform/clubs/{id}/support-access" : {
       "post" : {
-        "description" : "S17. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Guards then 501 NOT_IMPLEMENTED. SUPPORT grant, ADMIN role and PLATFORM_SUPPORT origin; no personal exports or full IBAN.",
+        "description" : "S17 R-17-10. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. A SUPPORT grant of platform.supportAccessMinutes (60) and its token: a clubs-admin access token (no refresh token) with the club's clubId, roles [ADMIN], actorAccountId and sub = the calling platform account, support = true and no platformRoles. Every request with it re-checks the grant: once it expires, is ended with POST /oauth2/revoke, or its account is no longer an active AGILITYHUB_ADMIN, the token is 401 UNAUTHENTICATED. It never reaches the personal-data exports and their files, the SEPA files (full IBANs), a member impersonation or the account's own credentials and sessions: 403 SUPPORT_RESTRICTED; IBANs stay masked elsewhere. GET /me answers it with an ADMIN membership and support {actorName, expiresAt}. Audited SUPPORT_ACCESS_STARTED {reason, details.expiresAt} in the club's own audit, and every action taken with it is audited with origin = PLATFORM_SUPPORT; publishes SupportAccessStarted. A replay of the same key answers the same token.",
         "operationId" : "startSupportAccess",
         "parameters" : [ {
           "in" : "path",
@@ -76022,7 +76376,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {
@@ -92376,7 +92730,7 @@
     },
     "/internal/domains/allowed" : {
       "get" : {
-        "description" : "S17 R-17-03. Caddy internal-network endpoint, no bearer or tenant. Public ingress blocks /internal/*. The request address must be loopback or RFC1918 under the existing trusted-proxy configuration; untrusted forwarded headers grant no access. Contract only: never authorizes a certificate yet.",
+        "description" : "S17 R-17-03, WP-17-D. Caddy's on-demand TLS ask (internal network), no bearer or tenant. Public ingress blocks /internal/*. The request address must be loopback or RFC1918 under the existing trusted-proxy configuration; untrusted forwarded headers grant no access (403 FORBIDDEN). 200 (no body) only for a VERIFIED domain of a club, the host compared normalized; a PENDING, BROKEN or unknown host, or a product host, is 404 NOT_FOUND, so Caddy issues no certificate for it.",
         "operationId" : "allowed",
         "parameters" : [ {
           "description" : "DNS host",
@@ -92469,7 +92823,7 @@
                 }
               }
             },
-            "description" : "NOT_IMPLEMENTED"
+            "description" : "Not Implemented"
           },
           "5XX" : {
             "content" : {

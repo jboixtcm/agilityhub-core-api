@@ -50,6 +50,10 @@ class HealthControllerTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
+    /** E10-T04: the security chain's CurrentUserFilter validates support access tokens too. */
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    com.agilityhub.core.identity.application.SupportAccessService supports;
+
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.agilityhub.core.shared.persistence.DatabaseProbe database;
 

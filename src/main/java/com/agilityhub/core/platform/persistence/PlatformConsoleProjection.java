@@ -42,7 +42,9 @@ public class PlatformConsoleProjection extends GlobalRepository<Club> {
         if(!security) { var privacy=new Criteria().andOperator(Criteria.where("memberId").is(null),Criteria.where("impersonatedMemberId").is(null),
                 new Criteria().orOperator(
                     new Criteria().andOperator(Criteria.where("entityType").is("Club"),Criteria.where("action").in("CLUB_UPDATED","CLUB_MODULES_CHANGED","CLUB_STATUS_CHANGED",
-                            "CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED")),
+                            "CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED","CLUB_DOMAIN_CHANGED","PUBLIC_API_KEY_ROTATED")),
+                    // S17 R-17-10 (E10-T04): the platform's own support accesses, never what was done with them inside the club.
+                    new Criteria().andOperator(Criteria.where("entityType").is("ImpersonationGrant"),Criteria.where("action").is("SUPPORT_ACCESS_STARTED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Parameter"),Criteria.where("action").is("PARAMETER_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Account"),Criteria.where("action").is("PLATFORM_ROLES_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").in("Level","Ring","Plan","Price","FaqEntry","MessageTemplate"),Criteria.where("action").is("CATALOG_CHANGED"))));
@@ -73,7 +75,14 @@ public class PlatformConsoleProjection extends GlobalRepository<Club> {
         if(value instanceof List<?> l) return l.stream().map(this::normalize).toList();return value;
     }
     public long activeMembers(String club) { return mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")),"members"); }
-    public long providerUsers(String club,String method) { return mongo.count(Query.query(Criteria.where("clubId").is(club).and("paymentMethod.type").is(method).and("status").ne("ERASED")),"members"); }
+    /**
+     * R-17-05 `PROVIDER_IN_USE{count}`: the members whose method is the provider's, counting a pending readmission's submitted
+     * method too (`readmissionRequest.submitted.paymentMethod`, E38; E115 #2), which validating the readmission makes theirs.
+     */
+    public long providerUsers(String club,String method) {
+        return mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").ne("ERASED").orOperator(
+                Criteria.where("paymentMethod.type").is(method),Criteria.where("readmissionRequest.submitted.paymentMethod.type").is(method))),"members");
+    }
     /**
      * S17 §2/§6 usage: the bytes of the club's stored files, from the upload records whose object was checked and claimed
      * (`attachment_uploads.boundEntity`); a removed record stops counting. Tenant-scoped by `clubId`, an aggregate only.
