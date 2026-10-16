@@ -1,0 +1,2 @@
+14:26:59.595 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword discriminator - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+14:26:59.597 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword

@@ -1,0 +1,142 @@
+== R1a point 1: an unbounded queue (the queue test must still catch it)
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[1] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[2] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[3] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[4] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[5] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[6] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[7] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[8] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[9] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[10] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[11] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[12] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[13] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[14] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[15] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[16] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[17] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[18] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[19] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[20] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[21] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[22] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[23] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[24] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[25] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[26] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[27] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[28] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[29] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[30] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[31] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[32] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[33] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[34] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[35] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[36] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[37] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[38] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[39] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[40] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[41] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[42] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[43] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[44] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[45] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[46] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[47] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[48] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[49] [failure] [one frame more closes it] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[50] [failure] [one frame more closes it] 
+== R1b point 1: a queue one frame shorter (the boundary)
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[1] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[2] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[3] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[4] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[5] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[6] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[7] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[8] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[9] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[10] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[11] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[12] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[13] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[14] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[15] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[16] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[17] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[18] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[19] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[20] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[21] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[22] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[23] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[24] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[25] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[26] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[27] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[28] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[29] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[30] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[31] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[32] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[33] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[34] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[35] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[36] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[37] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[38] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[39] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[40] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[41] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[42] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[43] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[44] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[45] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[46] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[47] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[48] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[49] [failure] [a full queue keeps its stream] 
+   FAILED BuildSessionStreamsTest.T_16_10_aClientWhoseQueueFillsIsClosed()[50] [failure] [a full queue keeps its stream] 
+== R2 point 2: finish turns the setup's write conflict into STALE_VERSION again
+   file: src/main/java/com/agilityhub/core/courses/application/BuildSessionService.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_twoKeyedFinishesAtOnceGiveOne200AndOne422 [failure] [{"code":"STALE_VERSION","message":"Les dades han canviat. Actualitza-les i torna-ho a provar.","details":{},"traceId":"2c50202b-cb0c-4d81-8cd9-ed25e275b0e7"}] 
+== R3 point 3: keyed build-session writes stay in the filter's request transaction (E9-T06's M1)
+   file: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_twoKeyedJoinsAtOnceBothJoin [failure] [{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 616af5e0-43c8-4f7d-a1a4-2e137eaeb511 al club.","details":{},"traceId":"616af5e0-43c8-4f7d-a1a4-2e137e
+   FAILED BuildSessionsIT.T_16_10_aKeyedStartThatDrawsATakenJoinCodeDrawsAgain [failure] [POST /api/v1/build-sessions {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 4807f4f9-344a-4071-af78-99817c9dc235 al club.","details":{},"traceId":"48
+   FAILED BuildSessionsIT.T_16_10_twoKeyedFinishesAtOnceGiveOne200AndOne422 [failure] [{"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 5481f631-08a1-4caf-b771-cf6b79c49e1e al club.","details":{},"traceId":"5481f631-08a1-4caf-b771-cf6b79
+   FAILED BuildSessionsIT.T_16_10_phonesJoiningAtOnceWithKeysAllJoin [failure] [round 2: {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 1d0e590a-96e6-4f75-8a86-c962183270ac al club.","details":{},"traceId":"1d0e590a-96e6-4f75-8a
+== R4 point 4: CI no longer runs the Caddy access-log tests
+   file: .github/workflows/ci.yml
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=CiWorkflowTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED CiWorkflowTest.T_16_10_theCiRunsTheCaddyAccessLogTests [failure] Expecting ArrayList:
+== R5a point 5: an unbounded sender pool
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionStreams.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=BuildSessionStreamsTest -Dit.test=NoSuchIT
+   exit: 0
+   FAILED BuildSessionStreamsTest.T_16_10_theSendersAreBoundedAndAFullPoolRefusesANewStream [failure] [refused at once] 
+== R5b point 5: Tomcat's default write timeout
+   file: src/main/resources/application.yml
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=BuildSessionsIT
+   exit: 0
+   FAILED BuildSessionsIT.T_16_10_aStalledStreamHoldsItsSenderNoLongerThanTheWriteTimeout(ServletWebServerApplicationContext) [failure] expected: 20000
+== R6 point 6: join declares no Idempotency-Key
+   file: src/main/java/com/agilityhub/core/courses/api/BuildSessionsController.java
+   command: ./mvnw -q verify -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Dtest=NoSuchUnitTest -Dit.test=OpenApiSnapshotTest
+   exit: 0
+   FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract [failure] [Regenerate the committed contract with bin/openapi-snapshot] 
+All mutants reverted: True

@@ -53,6 +53,8 @@ public class BuildSessionService {
     private static final SecureRandom RANDOM = new SecureRandom();
     /** An index below its bound per join-code character; a test makes a draw meet a code already taken. */
     private IntUnaryOperator draws = RANDOM::nextInt;
+    /** Called at a named point of a write (`join` between its read and its write, `finish` after its checks); a test commits another write there. */
+    private java.util.function.Consumer<String> pauses = point -> { };
 
     private final BuildSessionRepository sessions;
     private final PlacementRepository placements;
@@ -145,7 +147,9 @@ public class BuildSessionService {
      * gated by `courses.allowInstructorPublish`). The ring's setup (R-16-07 through {@link RingSetupService#built}) follows that
      * switch: an ADMIN, or an INSTRUCTOR while it is on, registers or refreshes it; an INSTRUCTOR with it off registers none, and
      * the session's `setupId` stays null (an ADMIN registers it with `POST /ring-setups`). The placement's course must still be
-     * readable (`COURSE_NOT_VISIBLE`). Publishes `BuildSessionFinished{sessionId, setupId}`.
+     * readable (`COURSE_NOT_VISIBLE`). Publishes `BuildSessionFinished{sessionId, setupId}`. A write conflict on the ring or its
+     * setup (another `finish` of the session, E120) is retried whole like one on the session, so the loser answers `422
+     * BUILD_SESSION_FINISHED`.
      */
     public BuildSession finish(String id) { return finish(id, null); }
     /** The keyed `finish`: {@code answer} gives the bytes of its `200`, stored with the `Idempotency-Key` in the attempt that commits. */
@@ -156,6 +160,7 @@ public class BuildSessionService {
         var placement = placement(session.placementId());
         var course = access.course(placement.courseId(), false);
         String actor = CourseAccess.accountId();
+        pauses.accept("finish");
         boolean registers = CourseAccess.role("ADMIN") || access.enabled("courses.allowInstructorPublish");
         String setupId = registers ? setups.built(placement, course, actor) : null;
         var finished = sessions.close(id, setupId, actor, now).orElseThrow(() -> new ApiException(BUILD_SESSION_FINISHED));
@@ -180,6 +185,7 @@ public class BuildSessionService {
         if (BuildSessionRules.outlived(session.status(), session.startedAt(), session.createdAt(), maxHours(), now)) { throw new ApiException(NOT_FOUND); }
         if (session.participants().stream().anyMatch(p -> p.accountId().equals(actor))) { return session; }
         var joined = new BuildParticipant(actor, now, byCode.isPresent() ? JoinedVia.CODE : JoinedVia.QR);
+        pauses.accept("join");
         var updated = sessions.join(session.id(), joined, now);
         if (updated.isEmpty()) { return get(session.id()); }
         signal(updated.get());
@@ -264,6 +270,8 @@ public class BuildSessionService {
     private Placement placement(String id) { return placements.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
     /** Tests only: the join-code draws. */
     void draws(IntUnaryOperator draws) { this.draws = draws; }
+    /** Tests only: what runs at each named point of a write. */
+    void pauses(java.util.function.Consumer<String> pauses) { this.pauses = pauses; }
     private int maxHours() { return configs.get(TenantContext.require()).get(MAX_HOURS, Integer.class); }
     private static String token() {
         var bytes = new byte[32]; RANDOM.nextBytes(bytes);

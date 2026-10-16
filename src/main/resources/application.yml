@@ -69,6 +69,11 @@ server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: native
   tomcat:
+    # E9-T06 round 2: also each socket's write timeout, so a client that stops reading a build-session stream holds its sender
+    # thread (BuildSessionStreams.SENDERS) at most this long.
+    connection-timeout: 20s
+    # Idle keep-alive connections from Caddy stay as before (Tomcat's default followed the 60 s connection timeout).
+    keep-alive-timeout: 60s
     remoteip:
       # Empty trusts no proxy. Deployments must explicitly identify their Caddy peers.
       internal-proxies: ${TRUSTED_PROXY_PATTERN:}

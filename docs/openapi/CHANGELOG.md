@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-16 · E9-T06 round 2 · S16 build sessions (ruling E120)
+
+**0 operations or schemas added or removed; 1 header parameter added (`Idempotency-Key` on `POST /build-sessions/join`); 1 description changed.**
+
+- `POST /build-sessions/join` declares the optional `Idempotency-Key` header, as create and `finish` do: the server already ran it as a keyed, retried write (review #6).
+- `POST /build-sessions/{id}/finish`: its description says that another finish racing it is retried too, so of two finishes at once one closes the session and the other gets `422 BUILD_SESSION_FINISHED` (before: `409 STALE_VERSION` when the ring had no setup for that placement yet).
+- Behaviour only, no contract change: `GET /build-sessions/{id}/events` runs at most 64 sends at once; a stream that finds every sender busy (clients that stopped reading) is closed and EventSource reconnects.
+
 ## 2026-10-16 · E9-T06 · S16 build sessions: E9-T04's review follow-ups (ruling E118)
 
 **0 operations or schemas added or removed; 1 response property added (`BuildSession.setupId`); 1 enum value added (`TOO_MANY_MARKERS` in the geometry violation `rule`); `RING_WITHOUT_GEOMETRY` added to 1 error list; 5 descriptions changed.**

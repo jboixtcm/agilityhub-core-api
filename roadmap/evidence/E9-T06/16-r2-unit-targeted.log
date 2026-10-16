@@ -1,0 +1,95 @@
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.095 s <<< FAILURE! -- in com.agilityhub.core.shared.api.IdempotencyFilterBuildSessionRoutesTest
+[ERROR] com.agilityhub.core.shared.api.IdempotencyFilterBuildSessionRoutesTest.T_16_10_everyKeyedBuildSessionWriteRunsInItsOwnRetriedTransaction -- Time elapsed: 0.094 s <<< FAILURE!
+java.lang.AssertionError: 
+[POST /api/v1/build-sessions/join] 
+Expecting EmptyList:
+  []
+to contain:
+  ["Idempotency-Key"]
+but could not find the following element(s):
+  ["Idempotency-Key"]
+
+	at com.agilityhub.core.shared.api.IdempotencyFilterBuildSessionRoutesTest.T_16_10_everyKeyedBuildSessionWriteRunsInItsOwnRetriedTransaction(IdempotencyFilterBuildSessionRoutesTest.java:34)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+13:08:38.882 [junit-timeout-thread-1] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.893 [junit-timeout-thread-2] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.899 [junit-timeout-thread-3] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.905 [junit-timeout-thread-4] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.911 [junit-timeout-thread-5] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.917 [junit-timeout-thread-6] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.922 [junit-timeout-thread-7] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.927 [junit-timeout-thread-8] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.931 [junit-timeout-thread-9] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.935 [junit-timeout-thread-10] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.941 [junit-timeout-thread-11] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.946 [junit-timeout-thread-12] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.950 [junit-timeout-thread-13] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.953 [junit-timeout-thread-14] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.957 [junit-timeout-thread-15] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.961 [junit-timeout-thread-16] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.965 [junit-timeout-thread-17] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.969 [junit-timeout-thread-18] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.973 [junit-timeout-thread-19] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.977 [junit-timeout-thread-20] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.981 [junit-timeout-thread-21] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.985 [junit-timeout-thread-22] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.990 [junit-timeout-thread-23] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.994 [junit-timeout-thread-24] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:38.998 [junit-timeout-thread-25] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.003 [junit-timeout-thread-26] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.008 [junit-timeout-thread-27] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.012 [junit-timeout-thread-28] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.017 [junit-timeout-thread-29] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.022 [junit-timeout-thread-30] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.027 [junit-timeout-thread-31] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.034 [junit-timeout-thread-32] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.040 [junit-timeout-thread-33] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.046 [junit-timeout-thread-34] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.052 [junit-timeout-thread-35] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.058 [junit-timeout-thread-36] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.063 [junit-timeout-thread-37] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.068 [junit-timeout-thread-38] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.074 [junit-timeout-thread-39] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.078 [junit-timeout-thread-40] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.083 [junit-timeout-thread-41] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.088 [junit-timeout-thread-42] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.093 [junit-timeout-thread-43] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.099 [junit-timeout-thread-44] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.104 [junit-timeout-thread-45] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.110 [junit-timeout-thread-46] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.116 [junit-timeout-thread-47] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.121 [junit-timeout-thread-48] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.125 [junit-timeout-thread-49] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.130 [junit-timeout-thread-50] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (queue full) sessionId=session-a clubId=club-a
+13:08:39.151 [junit-timeout-thread-52] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (no sender) sessionId=session-a clubId=club-a
+13:08:40.159 [build-session-streams] INFO com.agilityhub.core.courses.api.BuildSessionStreams -- Build session stream closed (write timeout) sessionId=session-a clubId=club-a
+[ERROR] Failures: 
+[ERROR]   IdempotencyFilterBuildSessionRoutesTest.T_16_10_everyKeyedBuildSessionWriteRunsInItsOwnRetriedTransaction:34 [POST /api/v1/build-sessions/join] 
+Expecting EmptyList:
+  []
+to contain:
+  ["Idempotency-Key"]
+but could not find the following element(s):
+  ["Idempotency-Key"]
+
+[ERROR] Tests run: 59, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

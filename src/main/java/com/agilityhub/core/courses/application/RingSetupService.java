@@ -13,7 +13,6 @@ import com.agilityhub.core.platform.application.audit.AuditWriter;
 import com.agilityhub.core.shared.application.ClubClock;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.application.TenantContext;
-import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import java.time.Instant;
@@ -93,7 +92,8 @@ public class RingSetupService {
         String id = UUID.randomUUID().toString(), actor = CourseAccess.accountId();
         // R-16-16: «Foto o plànol» is the club's own `COURSE_IMAGE` upload, bound to this setup (another club's key is `404`).
         if (in.imageFileKey() != null) { files.claim(in.imageFileKey(), UploadPurpose.COURSE_IMAGE, ENTITY, id); }
-        return activate(id, ring, placement, course, in, levelIds, now, actor);
+        // A concurrent registration of the ring (a write conflict) is `409 STALE_VERSION` here; `built` keeps the raw conflict.
+        return WriteConflicts.guard(() -> activate(id, ring, placement, course, in, levelIds, now, actor));
     }
 
     /**
@@ -103,6 +103,10 @@ public class RingSetupService {
      * `expiresAt` recomputed from it as {@link #renew} does, `updatedAt`/`updatedByAccountId` set, no audit entry and no event (it
      * stays `ACTIVE`); otherwise a new setup replaces it as `POST /ring-setups` does (`RingSetupChanged{ACTIVE}`, N-31,
      * `RING_SETUP_REGISTERED`). The caller has checked the publishing permission. Returns the setup's id.
+     * <p>
+     * E9-T06 round 2 (E120): a write conflict is rethrown raw, as E117 does for jobs and consumers, so the build session's own
+     * retry runs the whole `finish` again and sees what the other write did (a session another `finish` closed meanwhile is
+     * `422 BUILD_SESSION_FINISHED`, not `409`).
      */
     String built(Placement placement, Course course, String actor) {
         String clubId = TenantContext.require();
@@ -126,7 +130,10 @@ public class RingSetupService {
         return activate(UUID.randomUUID().toString(), ring, placement, null, in, levelIds, now, actor).setup().setup().id();
     }
 
-    /** R-16-07's effects once every check passed: the new `ACTIVE` setup replaces the ring's, with its event and audit entry. */
+    /**
+     * R-16-07's effects once every check passed: the new `ACTIVE` setup replaces the ring's, with its event and audit entry. A
+     * write conflict is rethrown raw; each caller decides what it means.
+     */
     private Created activate(String id, RingGeometryRepository.GeometryRecord ring, Placement placement, Course course, SetupInput in,
             List<String> levelIds, java.time.ZonedDateTime now, String actor) {
         String clubId = TenantContext.require();
@@ -135,26 +142,21 @@ public class RingSetupService {
         var setup = new RingSetup(id, clubId, ring.id(), in.kind(), in.placementId(), in.courseId(), in.imageFileKey(), in.agilityhubLevel(), levelIds,
                 instant, actor, in.expectedUntil(), expiresAt, SetupStatus.ACTIVE, null, null, in.notes(), instant, actor, instant, actor);
         String replaced = null;
-        try {
-            // R-16-07: the ring's pointer is written first, so two registrations of one ring meet on the ring document (a write
-            // conflict) before either touches a setup; the partial unique index `active_setup` is the last guard.
-            rings.pointActiveSetup(ring.id(), id);
-            // E115 (write skew): the geometry a placement needs and the course the setup shows are written at the versions read,
-            // so a concurrent removal of either (which `RING_GEOMETRY_IN_USE` / `COURSE_IN_USE` would refuse) conflicts instead.
-            if (placement != null) { rings.reference(ring.id(), ring.geometry().version()); }
-            var shown = course != null ? course : placement == null ? null : live(placement.courseId());
-            if (shown != null) { access.reference(shown); }
-            var previous = setups.activeOn(ring.id()).orElse(null);
-            if (previous != null) {
-                // The active setup is replaced (`DISMANTLED`) in the same transaction; one ended meanwhile is a conflict too.
-                if (!setups.replaceActive(ended(previous, SetupStatus.DISMANTLED, instant, actor))) { throw new ApiException(STALE_VERSION); }
-                replaced = previous.id();
-            }
-            setups.insert(setup);
-        } catch (RuntimeException conflict) {
-            if (!(conflict instanceof ApiException) && TransactionRetries.conflict(conflict)) { throw new ApiException(STALE_VERSION); }
-            throw conflict;
+        // R-16-07: the ring's pointer is written first, so two registrations of one ring meet on the ring document (a write
+        // conflict) before either touches a setup; the partial unique index `active_setup` is the last guard.
+        rings.pointActiveSetup(ring.id(), id);
+        // E115 (write skew): the geometry a placement needs and the course the setup shows are written at the versions read,
+        // so a concurrent removal of either (which `RING_GEOMETRY_IN_USE` / `COURSE_IN_USE` would refuse) conflicts instead.
+        if (placement != null) { rings.reference(ring.id(), ring.geometry().version()); }
+        var shown = course != null ? course : placement == null ? null : live(placement.courseId());
+        if (shown != null) { access.reference(shown); }
+        var previous = setups.activeOn(ring.id()).orElse(null);
+        if (previous != null) {
+            // The active setup is replaced (`DISMANTLED`) in the same transaction; one ended meanwhile is a conflict too.
+            if (!setups.replaceActive(ended(previous, SetupStatus.DISMANTLED, instant, actor))) { throw new ApiException(STALE_VERSION); }
+            replaced = previous.id();
         }
+        setups.insert(setup);
         publish(setup, SetupStatus.ACTIVE, replaced, actor, DomainEvent.Origin.BACKOFFICE, instant);
         var after = new LinkedHashMap<String, Object>();
         after.put("ringId", setup.ringId()); after.put("kind", setup.kind().name()); after.put("placementId", setup.placementId());

@@ -33,6 +33,8 @@ jobs:
           cache: maven
       - name: Check Docker for Testcontainers
         run: docker info
+      - name: Caddy access log drops the stream's query token (E9-T06)
+        run: python3 deploy/test_access_log.py -v
       - name: Build, test, and enforce coverage
         run: ./mvnw -B clean verify
       - name: Upload JaCoCo HTML report

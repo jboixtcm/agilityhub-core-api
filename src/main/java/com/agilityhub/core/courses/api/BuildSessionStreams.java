@@ -31,6 +31,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * or one send blocked for {@link #WRITE_TIMEOUT}, closes its stream (EventSource reconnects). A stream lives at most
  * {@link #TIMEOUT} and never longer than the access token it opened with, so a lost role, module or membership stops at the next
  * reconnection; a session that has outlived `courses.buildSessionMaxHours` gets `finished {ABANDONED}` at the next poll.
+ * <p>
+ * E9-T06 round 2 (known limit): a blocked servlet write cannot be cancelled, so a stalled client keeps its sender thread until
+ * Tomcat's write timeout (`server.tomcat.connection-timeout`, 20 s) fails the write. At most {@link #SENDERS} sends run at once:
+ * while every sender is held, a stream that needs one is closed instead (a new one is refused at once) and EventSource retries.
  */
 @Component
 class BuildSessionStreams implements DisposableBean {
@@ -42,6 +46,8 @@ class BuildSessionStreams implements DisposableBean {
     static final Duration WRITE_TIMEOUT = Duration.ofSeconds(10);
     /** The frames one subscriber may have waiting; one more closes its stream. */
     static final int QUEUE = 64;
+    /** The sends running at once (one per subscriber at most); a stream that finds them all busy is closed. */
+    static final int SENDERS = 64;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BuildSessionStreams.class);
     record Key(String clubId, String sessionId) { }
 
@@ -51,16 +57,22 @@ class BuildSessionStreams implements DisposableBean {
     /** The polls, heartbeats, after-commit refreshes and the write watchdog; it never writes to a client. */
     private final ScheduledExecutorService timer;
     /** The writes: each subscriber has at most one send running here, so a blocked client holds only its own thread. */
-    private final ExecutorService senders;
+    private final ThreadPoolExecutor senders;
     private final Map<Key, Set<Subscriber>> topics = new ConcurrentHashMap<>();
     private volatile Duration writeTimeout = WRITE_TIMEOUT;
 
-    BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock) {
+    @org.springframework.beans.factory.annotation.Autowired
+    BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock) { this(sessions, mapper, clock, SENDERS, true); }
+    /** Tests: {@code senders} sends at once, and with {@code scheduled} false no heartbeat or poll runs unless called. */
+    BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock, int senders, boolean scheduled) {
         this.sessions = sessions; this.mapper = mapper; this.clock = clock;
         timer = Executors.newSingleThreadScheduledExecutor(task -> daemon(task, "build-session-streams"));
-        senders = Executors.newCachedThreadPool(task -> daemon(task, "build-session-sender"));
-        timer.scheduleWithFixedDelay(this::heartbeat, HEARTBEAT.toMillis(), HEARTBEAT.toMillis(), TimeUnit.MILLISECONDS);
-        timer.scheduleWithFixedDelay(this::poll, POLL.toMillis(), POLL.toMillis(), TimeUnit.MILLISECONDS);
+        // No queue: a send starts on an idle or new thread up to the cap, else it is refused (and its stream closed).
+        this.senders = new ThreadPoolExecutor(0, senders, 60, TimeUnit.SECONDS, new SynchronousQueue<>(), task -> daemon(task, "build-session-sender"));
+        if (scheduled) {
+            timer.scheduleWithFixedDelay(this::heartbeat, HEARTBEAT.toMillis(), HEARTBEAT.toMillis(), TimeUnit.MILLISECONDS);
+            timer.scheduleWithFixedDelay(this::poll, POLL.toMillis(), POLL.toMillis(), TimeUnit.MILLISECONDS);
+        }
     }
     private static Thread daemon(Runnable task, String name) { var thread = new Thread(task, name); thread.setDaemon(true); return thread; }
 
@@ -97,6 +109,8 @@ class BuildSessionStreams implements DisposableBean {
     }
 
     int subscribers() { return topics.values().stream().mapToInt(Set::size).sum(); }
+    /** The sender threads alive now. */
+    int senderThreads() { return senders.getPoolSize(); }
     /** Tests only: a shorter write timeout. */
     void writeTimeout(Duration timeout) { this.writeTimeout = timeout; }
 
@@ -217,7 +231,8 @@ class BuildSessionStreams implements DisposableBean {
             if (draining) { return; }
             draining = true;
             try { senders.execute(this::drain); }
-            catch (RejectedExecutionException stopping) { draining = false; queue.clear(); close(); }
+            // Every sender is held (stalled clients) or the server stops: the stream ends; EventSource reconnects later.
+            catch (RejectedExecutionException busy) { draining = false; drop("no sender"); }
         }
         /** On a pool thread: the queued frames in order, one send at a time, outside the monitor; then the end, when closing. */
         private void drain() {

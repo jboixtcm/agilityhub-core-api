@@ -10,6 +10,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,49 +32,74 @@ import static org.mockito.Mockito.when;
  * E9-T06 (review of E9-T04 #5–#7): the live streams of R-16-11 with fake clients. A client that never reads blocks only its own
  * send: another subscriber of the same session still gets each change in under R-16-11's 2 s, and the stalled one is closed once
  * its write times out or its queue fills. A stream lives no longer than its token, and an outlived session ends its streams.
+ * Round 2: the queue test and the sender cap run without the timer and wait on latches only, never on the runner's speed.
  */
 @org.junit.jupiter.api.Timeout(value = 30, threadMode = org.junit.jupiter.api.Timeout.ThreadMode.SEPARATE_THREAD)
 class BuildSessionStreamsTest {
     static final Instant NOW = Instant.parse("2026-10-16T08:00:00Z");
     static final Duration LIVE = Duration.ofSeconds(2);
+    /** The most a latch may wait before the test fails; no outcome depends on waiting less. */
+    static final Duration WAIT = Duration.ofSeconds(10);
     final BuildSessionService service = mock(BuildSessionService.class);
-    final BuildSessionStreams streams = new BuildSessionStreams(service, new ObjectMapper().findAndRegisterModules(), Clock.fixed(NOW, ZoneOffset.UTC));
+    final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    final BuildSessionStreams streams = new BuildSessionStreams(service, mapper, Clock.fixed(NOW, ZoneOffset.UTC));
+    final List<BuildSessionStreams> quiet = new ArrayList<>();
 
     /** Every stalled client, released after each test so that no thread stays blocked (a mutant that sends on the caller's thread). */
     final List<Stalled> stalled = new java.util.concurrent.CopyOnWriteArrayList<>();
 
-    @AfterEach void stop() { stalled.forEach(client -> client.release.countDown()); streams.destroy(); }
+    @AfterEach void stop() {
+        stalled.forEach(client -> client.release.countDown());
+        streams.destroy(); quiet.forEach(BuildSessionStreams::destroy);
+    }
+
+    /** Streams with {@code senders} sends at once and no heartbeat or poll of their own: only what the test calls is sent. */
+    BuildSessionStreams quiet(int senders) {
+        var created = new BuildSessionStreams(service, mapper, Clock.fixed(NOW, ZoneOffset.UTC), senders, false);
+        quiet.add(created);
+        return created;
+    }
 
     static BuildSession session(long version, BuildStatus status, ObstacleStatus obstacle) {
         return new BuildSession("session-a", "club-a", "placement-a", "ring-a", status, BuildStrategy.EQUIPMENT_TYPE, true, "account-a", NOW, null, null,
                 null, 0, null, "ABC234", "fictional-token", NOW, List.of(new BuildObstacle("obstacle-a", obstacle, "account-a", NOW, null)), List.of(), null,
                 version, NOW, "account-a", NOW, "account-a");
     }
+    static void await(CountDownLatch latch, String what) throws InterruptedException {
+        assertThat(latch.await(WAIT.toMillis(), TimeUnit.MILLISECONDS)).as(what).isTrue();
+    }
 
     /** A client that reads every frame, as it arrives. */
     static class Reader extends SseEmitter {
         final BlockingQueue<String> frames = new LinkedBlockingQueue<>();
+        final CountDownLatch done = new CountDownLatch(1);
         volatile boolean completed;
         Reader() { super(0L); }
         @Override public void send(SseEventBuilder builder) throws IOException {
             frames.add(builder.build().stream().map(part -> part.getData().toString()).collect(Collectors.joining()));
         }
-        @Override public void complete() { completed = true; }
-        String next(String text) throws InterruptedException {
-            long deadline = System.nanoTime() + LIVE.toNanos();
+        @Override public void complete() { completed = true; done.countDown(); }
+        String next(String text) throws InterruptedException { return next(text, LIVE); }
+        String next(String text, Duration within) throws InterruptedException {
+            long deadline = System.nanoTime() + within.toNanos();
             for (String frame; (frame = frames.poll(deadline - System.nanoTime(), TimeUnit.NANOSECONDS)) != null; ) {
                 if (frame.contains(text)) { return frame; }
             }
-            throw new AssertionError("No frame with «" + text + "» within " + LIVE);
+            throw new AssertionError("No frame with «" + text + "» within " + within);
         }
     }
-    /** A client that stops reading after the first frame: every later send blocks (a full TCP buffer) until released. */
+    /** A client that stops reading after {@code free} frames: every later send blocks (a full TCP buffer) until released. */
     class Stalled extends Reader {
         final CountDownLatch release = new CountDownLatch(1);
+        /** Counted down when a send starts to block. */
+        final CountDownLatch blocked = new CountDownLatch(1);
         final AtomicInteger sends = new AtomicInteger();
-        Stalled() { stalled.add(this); }
+        final int free;
+        Stalled() { this(1); }
+        Stalled(int free) { this.free = free; stalled.add(this); }
         @Override public void send(SseEventBuilder builder) throws IOException {
-            if (sends.incrementAndGet() > 1) {
+            if (sends.incrementAndGet() > free) {
+                blocked.countDown();
                 try { release.await(); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
             }
             super.send(builder);
@@ -109,20 +136,59 @@ class BuildSessionStreamsTest {
         eventually(() -> assertThat(streams.subscribers()).as("the stalled stream left its session").isEqualTo(1));
         assertThat(stalled.completed).isFalse();
         stalled.release.countDown();
-        eventually(() -> assertThat(stalled.completed).as("completed once its blocked send returned").isTrue());
+        await(stalled.done, "completed once its blocked send returned");
         assertThat(reader.completed).isFalse();
     }
 
-    /** Review #5: a client whose queue fills up (more than {@link BuildSessionStreams#QUEUE} frames waiting) is closed at once. */
-    @Test void T_16_10_aClientWhoseQueueFillsIsClosed() throws Exception {
+    /**
+     * Review #5, round 2 (E120: the CI run of `9094895` failed it): a client whose send is blocked keeps its stream while exactly
+     * {@link BuildSessionStreams#QUEUE} frames wait, and the next frame closes it at once; the phone that reads keeps its stream.
+     * No timer runs and every step waits on a latch (the blocked send, each frame read), so the outcome is the same on any runner.
+     */
+    @RepeatedTest(50) void T_16_10_aClientWhoseQueueFillsIsClosed() throws Exception {
+        var streams = quiet(BuildSessionStreams.SENDERS);
         var stalled = new Stalled(); var reader = new Reader();
         streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), stalled);
         streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), reader);
-        for (int i = 0; i <= BuildSessionStreams.QUEUE + 1; i++) { streams.heartbeat(); }
-        assertThat(streams.subscribers()).isEqualTo(1);
-        assertThat(reader.next(":heartbeat")).isNotEmpty();
+        stalled.next(":open", WAIT); reader.next(":open", WAIT);
+        streams.heartbeat();
+        await(stalled.blocked, "the stalled client's second send blocks");
+        reader.next(":heartbeat", WAIT);
+        for (int i = 0; i < BuildSessionStreams.QUEUE; i++) {
+            streams.heartbeat();
+            reader.next(":heartbeat", WAIT);
+        }
+        assertThat(streams.subscribers()).as("a full queue keeps its stream").isEqualTo(2);
+        streams.heartbeat();
+        assertThat(streams.subscribers()).as("one frame more closes it").isEqualTo(1);
+        reader.next(":heartbeat", WAIT);
+        assertThat(stalled.completed).isFalse();
         stalled.release.countDown();
-        eventually(() -> assertThat(stalled.completed).isTrue());
+        await(stalled.done, "completed once its blocked send returned");
+        assertThat(stalled.frames).as("its queue was dropped: only the blocked send went out").hasSize(1);
+        assertThat(stalled.frames.peek()).contains(":heartbeat");
+        assertThat(reader.completed).isFalse();
+    }
+
+    /**
+     * Review #5, round 2: the senders are bounded. With every sender held by a stalled client, a new stream is refused at once
+     * (closed: EventSource retries later) and no thread is added; the streams already served keep theirs.
+     */
+    @Test void T_16_10_theSendersAreBoundedAndAFullPoolRefusesANewStream() throws Exception {
+        var streams = quiet(2);
+        var first = new Stalled(0); var second = new Stalled(0);
+        for (var client : List.of(first, second)) {
+            // Its first send (`:open`) already blocks, so each of them holds one sender before the next subscribes.
+            streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), client);
+            await(client.blocked, "a sender is held");
+        }
+        var refused = new Reader();
+        streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), refused);
+        assertThat(refused.completed).as("refused at once").isTrue();
+        assertThat(refused.frames).isEmpty();
+        assertThat(streams.subscribers()).isEqualTo(2);
+        assertThat(streams.senderThreads()).isEqualTo(2);
+        assertThat(first.completed || second.completed).isFalse();
     }
 
     /** Review #6: the stream's timeout is the smaller of 30 minutes and what is left of the access token. */
@@ -151,12 +217,12 @@ class BuildSessionStreamsTest {
         streams.changed(new BuildSessionService.Changed("club-a", "session-a"));
         String finished = reader.next("event:finished");
         assertThat(finished).contains("\"status\":\"ABANDONED\"", "\"finishedAt\":null", "\"version\":1");
-        eventually(() -> assertThat(reader.completed).isTrue());
+        await(reader.done, "the stream ended");
         assertThat(streams.subscribers()).isZero();
         var late = new Reader();
         streams.subscribe(open, late);
         assertThat(late.next("event:finished")).contains("\"status\":\"ABANDONED\"");
-        eventually(() -> assertThat(late.completed).isTrue());
+        await(late.done, "the late stream ended");
         assertThat(streams.subscribers()).isZero();
     }
 }

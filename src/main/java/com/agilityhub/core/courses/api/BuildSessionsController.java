@@ -79,7 +79,8 @@ public class BuildSessionsController {
             + "placement it is refreshed instead, as a renewal (builtAt, builtByAccountId, the same expectedUntil and a new expiresAt; no "
             + "event). An INSTRUCTOR's finish with the switch off registers no setup: setupId is null and an ADMIN registers it with POST "
             + "/ring-setups. A closed or outlived session → BUILD_SESSION_FINISHED; a course no longer readable → COURSE_NOT_VISIBLE; a ring "
-            + "without geometry → RING_WITHOUT_GEOMETRY. Taps racing it are retried, STALE_VERSION only when the retries run out. Publishes "
+            + "without geometry → RING_WITHOUT_GEOMETRY. Taps or another finish racing it are retried (of two finishes at once, one closes the "
+            + "session and the other gets BUILD_SESSION_FINISHED), STALE_VERSION only when the retries run out. Publishes "
             + "BuildSessionFinished and ends the session's streams with a finished event.",
             responses = @ApiResponse(responseCode = "200", description = "S16 BuildSession", useReturnTypeSchema = true))
     public BuildSession finishBuildSession(@PathVariable String id,
@@ -114,7 +115,8 @@ public class BuildSessionsController {
             + "second join returns the session unchanged); phones joining at once all join. No open session of the club with that code, or "
             + "one open for courses.buildSessionMaxHours or longer → NOT_FOUND.",
             responses = @ApiResponse(responseCode = "200", description = "S16 BuildSession", useReturnTypeSchema = true))
-    public BuildSession joinBuildSession(@Valid @RequestBody BuildJoinRequest request) {
+    public BuildSession joinBuildSession(@Valid @RequestBody BuildJoinRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         return CourseViews.session(sessions.join(request.code(), this::answer));
     }
 

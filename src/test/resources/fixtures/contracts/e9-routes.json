@@ -740,7 +740,7 @@
     "method": "POST",
     "path": "/api/v1/build-sessions/join",
     "success": 200,
-    "idempotency": false,
+    "idempotency": true,
     "impersonation": false,
     "roles": [
       "INSTRUCTOR",

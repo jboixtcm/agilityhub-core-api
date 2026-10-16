@@ -1,0 +1,17 @@
+Read right after 18 (exit 0): the classes of that run.
+surefire: 4 classes; tests=70, failures=0, errors=0, skipped=0
+  CiWorkflowTest: tests=4, failures=0, errors=0, skipped=0
+      T_16_10_theCiRunsTheCaddyAccessLogTests: passed=1, failed=0
+  OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  BuildSessionStreamsTest: tests=54, failures=0, errors=0, skipped=0
+      T_16_10_aClientWhoseQueueFillsIsClosed: passed=50, failed=0
+      T_16_10_theSendersAreBoundedAndAFullPoolRefusesANewStream: passed=1, failed=0
+  IdempotencyFilterBuildSessionRoutesTest: tests=1, failures=0, errors=0, skipped=0
+      T_16_10_everyKeyedBuildSessionWriteRunsInItsOwnRetriedTransaction: passed=1, failed=0
+failsafe: 3 classes; tests=43, failures=0, errors=0, skipped=0
+  OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  BuildSessionsIT: tests=17, failures=0, errors=0, skipped=0
+      T_16_10_aStalledStreamHoldsItsSenderNoLongerThanTheWriteTimeout(ServletWebServerApplicationContext): passed=1, failed=0
+      T_16_10_twoKeyedJoinsAtOnceBothJoin: passed=1, failed=0
+      T_16_10_twoKeyedFinishesAtOnceGiveOne200AndOne422: passed=1, failed=0
+  RingSetupsIT: tests=15, failures=0, errors=0, skipped=0

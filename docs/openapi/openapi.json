@@ -34100,6 +34100,14 @@
       "post" : {
         "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11 (S16 §14.2): code is an open session's joinCode (case-insensitive; joinedVia CODE) or the joinToken of its QR (joinedVia QR); the caller becomes a participant once (a second join returns the session unchanged); phones joining at once all join. No open session of the club with that code, or one open for courses.buildSessionMaxHours or longer → NOT_FOUND.",
         "operationId" : "joinBuildSession",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -34693,7 +34701,7 @@
     },
     "/api/v1/build-sessions/{id}/finish" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11: the session becomes COMPLETED (finishedAt), whoever of them finishes it. The ring's setup follows courses.allowInstructorPublish (R-16-07): an ADMIN, or an INSTRUCTOR while it is on, registers it as POST /ring-setups does (kind from the course's discipline: AGILITY, JUMPING, else FUN; the placement as its source; the course's levels), and setupId names it; when the ring's active setup already shows this placement it is refreshed instead, as a renewal (builtAt, builtByAccountId, the same expectedUntil and a new expiresAt; no event). An INSTRUCTOR's finish with the switch off registers no setup: setupId is null and an ADMIN registers it with POST /ring-setups. A closed or outlived session → BUILD_SESSION_FINISHED; a course no longer readable → COURSE_NOT_VISIBLE; a ring without geometry → RING_WITHOUT_GEOMETRY. Taps racing it are retried, STALE_VERSION only when the retries run out. Publishes BuildSessionFinished and ends the session's streams with a finished event.",
+        "description" : "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-11: the session becomes COMPLETED (finishedAt), whoever of them finishes it. The ring's setup follows courses.allowInstructorPublish (R-16-07): an ADMIN, or an INSTRUCTOR while it is on, registers it as POST /ring-setups does (kind from the course's discipline: AGILITY, JUMPING, else FUN; the placement as its source; the course's levels), and setupId names it; when the ring's active setup already shows this placement it is refreshed instead, as a renewal (builtAt, builtByAccountId, the same expectedUntil and a new expiresAt; no event). An INSTRUCTOR's finish with the switch off registers no setup: setupId is null and an ADMIN registers it with POST /ring-setups. A closed or outlived session → BUILD_SESSION_FINISHED; a course no longer readable → COURSE_NOT_VISIBLE; a ring without geometry → RING_WITHOUT_GEOMETRY. Taps or another finish racing it are retried (of two finishes at once, one closes the session and the other gets BUILD_SESSION_FINISHED), STALE_VERSION only when the retries run out. Publishes BuildSessionFinished and ends the session's streams with a finished event.",
         "operationId" : "finishBuildSession",
         "parameters" : [ {
           "in" : "path",

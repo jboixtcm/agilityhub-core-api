@@ -46,4 +46,11 @@ class CiWorkflowTest {
         assertThat(sent.getFirst()).contains(":sha-fixture", ":ci-fixturecurrent-amd64", ":ci-fixturecurrent-arm64").doesNotContain(":main");
         if (current) { assertThat(sent.getLast()).contains("--tag ghcr.io/jboixtcm/agilityhub-core-api:main"); }
     }
+    /** E9-T06 round 2 (review #3): the build job, which has Docker, runs the Caddy access-log tests, so the token filter stays guarded. */
+    @Test void T_16_10_theCiRunsTheCaddyAccessLogTests() throws Exception {
+        Map<String, Object> workflow = new Yaml().load(Files.readString(Path.of(".github/workflows/ci.yml")));
+        var steps = (List<Map<String, Object>>) ((Map<?, ?>) ((Map<?, ?>) workflow.get("jobs")).get("tests")).get("steps");
+        assertThat(steps).extracting(step -> step.get("run")).contains("python3 deploy/test_access_log.py -v");
+        assertThat(Path.of("deploy/test_access_log.py")).exists();
+    }
 }
