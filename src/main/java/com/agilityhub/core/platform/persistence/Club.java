@@ -114,12 +114,24 @@ public record Club(@Id String id, String slug, String name, String legalName, St
      * S17 R-17-03 (E10-T04, model proposal E112 approved in E114): `verificationToken` is the TXT challenge
      * (`_agilityhub-verify.{host}` = `agh-verify-{token}`), set when a domain is added, never changed while `PENDING` and
      * removed when it is `VERIFIED`. It is published in DNS, so it is not a secret. Null for a domain without a challenge.
+     * <p>
+     * `checkedAt` and `failedChecks` (E10-T03, model proposal in its report): the last periodic re-check of S15 P9 and the
+     * failed re-checks in a row since the last good one (R-17-03: three make a `VERIFIED` domain `BROKEN`). Null before the
+     * first re-check; a verification resets them.
      */
-    public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary, String verificationToken) {
+    public record Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary, String verificationToken,
+            Instant checkedAt, Integer failedChecks) {
         public Domain { host = com.agilityhub.core.platform.domain.HostNames.normalize(host); }
+        public Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary, String verificationToken) {
+            this(host, app, status, verifiedAt, primary, verificationToken, null, null);
+        }
         public Domain(String host, String app, DomainStatus status, Instant verifiedAt, boolean primary) {
             this(host, app, status, verifiedAt, primary, null);
         }
+        /** The failed re-checks in a row (0 before the first one). */
+        public int failures() { return failedChecks == null ? 0 : failedChecks; }
+        /** The same domain as primary or not, everything else kept. */
+        public Domain withPrimary(boolean value) { return new Domain(host, app, status, verifiedAt, value, verificationToken, checkedAt, failedChecks); }
     }
     public record Legal(String privacyPolicyUrl, Map<String, String> imageConsentText, String legalTextsVersion) {
         public Legal { imageConsentText = Map.copyOf(imageConsentText); }

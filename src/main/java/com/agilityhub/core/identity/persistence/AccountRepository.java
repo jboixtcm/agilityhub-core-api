@@ -100,6 +100,13 @@ public class AccountRepository extends GlobalRepository<Account> {
         return mongo.count(Query.query(Criteria.where("platformRoles").is(Account.PlatformRole.AGILITYHUB_ADMIN)
                 .and("status").is(Account.Status.ACTIVE)), Account.class);
     }
+    /** E10-T03: the active `AGILITYHUB_ADMIN` accounts, in id order (N-43's recipients, S17 §8). */
+    public java.util.List<String> activePlatformAdminIds() {
+        var query = Query.query(Criteria.where("platformRoles").is(Account.PlatformRole.AGILITYHUB_ADMIN).and("status").is(Account.Status.ACTIVE))
+                .with(org.springframework.data.domain.Sort.by("_id"));
+        query.fields().include("_id");
+        return mongo.find(query, org.bson.Document.class, mongo.getCollectionName(Account.class)).stream().map(row -> row.getString("_id")).toList();
+    }
     public void platformRoles(String id, java.util.Set<Account.PlatformRole> roles) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("platformRoles", roles), Account.class);
     }

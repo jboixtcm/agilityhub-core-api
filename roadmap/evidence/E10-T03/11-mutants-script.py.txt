@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""E10-T03 counterfactual mutants: each one undoes one rule in the working tree, runs that rule's test and restores the file.
+Run from the repository root: python3 roadmap/evidence/E10-T03/11-mutants-script.py.txt"""
+from pathlib import Path
+import subprocess
+
+ROOT = Path.cwd()
+EVIDENCE = ROOT / "roadmap/evidence/E10-T03"
+MAIN = "src/main/java/com/agilityhub/core/"
+RECHECK = "DomainRecheckIT#T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain"
+APEX = "DomainRecheckIT#T_17_03_R_17_03_anApexDomainIsRecheckedByItsAddressesAndTheParameterTurnsTheRecheckOff"
+APPLY = "DomainRecheckIT#T_17_03_R_17_03_aClubApplyKeepsTheRecheckStateAndTheTestDnsRouteValidatesItsRecords"
+SEED = "DemoPlatformAccountsSeedIT"
+MUTANTS = [
+    ("M01", "R-17-03: three failures make it BROKEN", MAIN + "platform/application/PlatformDomains.java",
+     "public static final int BROKEN_AFTER = 3;", "public static final int BROKEN_AFTER = 4;", RECHECK, None),
+    ("M02", "P9: only due domains (platform.domainRecheckDays)", MAIN + "platform/application/PlatformDomains.java",
+     "return last == null || !last.isAfter(cutoff);", "return true;", RECHECK, None),
+    ("M03", "P9: a plain check bumps no club version", MAIN + "platform/persistence/ClubRepository.java",
+     "update, mongo.getCollectionName(Club.class))", "update, Club.class)", RECHECK, None),
+    ("M04", "P9: days = 0 turns the re-check off", MAIN + "platform/application/PlatformDomains.java",
+     "if (days <= 0) { return List.of(); }", "", APEX, None),
+    ("M05", "P9: an apex domain passes with its addresses", MAIN + "platform/application/PlatformDomains.java",
+     ': DomainChallenge.addressesMatch(dns.addresses(item.host()), dns.addresses(target)) ? "ADDRESS" : null;', ": null;", APEX, None),
+    ("M06", "console: a BROKEN apex domain re-verifies by ADDRESS", MAIN + "platform/application/PlatformDomains.java",
+     ': domain.status() == Club.DomainStatus.BROKEN && DomainChallenge.addressesMatch(dns.addresses(domain.host()), dns.addresses(target)) ? "ADDRESS" : null;',
+     ": null;", APEX, None),
+    ("M07", "N-43: active platform admins only", MAIN + "identity/persistence/AccountRepository.java",
+     '.and("status").is(Account.Status.ACTIVE))\n                .with(', ")\n                .with(", RECHECK, None),
+    ("M08", "N-43: a redelivery sends nothing twice", MAIN + "identity/application/DomainBrokenNotices.java",
+     'String id = UUID.nameUUIDFromBytes((eventId + ":" + CODE + ":" + accountId).getBytes(StandardCharsets.UTF_8)).toString();',
+     "String id = UUID.randomUUID().toString();", RECHECK, None),
+    ("M09", "club:apply keeps the re-check state", MAIN + "platform/application/definition/ClubDefinitionMapper.java",
+     "old.map(Club.Domain::checkedAt).orElse(null), old.map(Club.Domain::failedChecks).orElse(null)", "null, null", APPLY, None),
+    ("M10", "HOST_NOT_VERIFIED's null details are not a 500", MAIN + "shared/domain/ApiException.java",
+     "this.details = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(details));", "this.details = Map.copyOf(details);", APEX, None),
+    ("M11", "E118: the demo account gets AGILITYHUB_ADMIN", MAIN + "identity/application/DemoPlatformAccountsSeeder.java",
+     "accounts.platformRoles(account.id(), roles);", "", SEED, None),
+    ("M12", "local: unpublished hosts resolve to the default addresses", MAIN + "platform/application/FakeDomainDns.java",
+     "addresses.getOrDefault(key(host), defaultAddresses)", "addresses.getOrDefault(key(host), List.of())", None, "TestDnsProfileGuardTest"),
+    ("M13", "BROKEN publishes ClubUpdated (the host cache follows)", MAIN + "platform/application/PlatformDomains.java",
+     'events.publish(new com.agilityhub.core.platform.domain.events.ConsoleEvent("ClubUpdated", club.id(), clock.instant(),',
+     'if (false) events.publish(new com.agilityhub.core.platform.domain.events.ConsoleEvent("ClubUpdated", club.id(), clock.instant(),', RECHECK, None),
+    ("M14", "P9 applies the plan's DNS answer", MAIN + "clubs/common/application/CleanupJob.java",
+     'Boolean.TRUE.equals(item.detail().get("passed"))', "false", RECHECK, None),
+    ("M15", "a re-check failure is audited only on BROKEN", MAIN + "platform/application/PlatformDomains.java",
+     "if (outcome.equals(CONFIRMED) || outcome.equals(FAILED)) {", "if (outcome.equals(CONFIRMED)) {", RECHECK, None),
+]
+
+summary = []
+for mid, rule, path, old, new, it, unit in MUTANTS:
+    file = ROOT / path
+    original = file.read_text()
+    assert original.count(old) == 1, f"{mid}: the original text is not unique in {path}"
+    file.write_text(original.replace(old, new))
+    try:
+        command = ["./mvnw", "-o", "-q", "verify", "-Djacoco.skip=true", "-Dsurefire.failIfNoSpecifiedTests=false",
+                   "-Dfailsafe.failIfNoSpecifiedTests=false", "-Dtest=" + (unit or "none"), "-Dit.test=" + (it or "none")]
+        result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    finally:
+        file.write_text(original)
+    (EVIDENCE / f"11-mutant-{mid}.log").write_text(result.stdout)
+    tests = [line.strip() for line in result.stdout.splitlines() if "Tests run:" in line and ("FAIL" in line or "ERROR" in line)]
+    line = f"{mid} exit={result.returncode} {tests[-1] if tests else '(no test summary: compile or setup failure)'} :: {rule}"
+    print(line, flush=True)
+    summary.append(line)
+(EVIDENCE / "11-mutants-summary.log").write_text("\n".join(summary) + "\n")

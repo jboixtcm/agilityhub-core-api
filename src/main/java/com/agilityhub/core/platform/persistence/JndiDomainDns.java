@@ -19,6 +19,18 @@ public class JndiDomainDns implements DomainDns {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(JndiDomainDns.class);
     @Override public List<String> cnames(String host) { return lookup(host, "CNAME"); }
     @Override public List<String> txt(String name) { return lookup(name, "TXT"); }
+    /**
+     * E10-T03: the addresses through the JVM's resolver, which follows CNAMEs (a JNDI `A` query answers only the queried name's
+     * own records). A failed lookup is an empty list, as the others.
+     */
+    @Override public List<String> addresses(String host) {
+        try {
+            return java.util.Arrays.stream(java.net.InetAddress.getAllByName(host)).map(java.net.InetAddress::getHostAddress).distinct().toList();
+        } catch (java.net.UnknownHostException | SecurityException missing) {
+            LOG.info("Domain DNS lookup found nothing: type=ADDRESS reason={}", missing.getClass().getSimpleName());
+            return List.of();
+        }
+    }
 
     private List<String> lookup(String name, String type) {
         var environment = new Hashtable<String, String>();

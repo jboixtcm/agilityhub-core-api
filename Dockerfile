@@ -20,6 +20,8 @@ WORKDIR /app
 COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
 COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+# E10-T03: the console's catalog-clone source (S17 R-17-08, §13 #5), applied with `club:apply`.
+COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml

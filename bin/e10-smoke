@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+"""Rehearse the E10 backend gate (S17 console, WP-17-B/D; S15 P9's domain re-check) on a disposable local Compose stack.
+
+Seeds the Cànic (club:apply + seed:demo, which brings the fictional platform account `platform@example.test`, E10-T03) and the
+template club twice (the second runs must change nothing), then creates a second club only through the console API, signed in as
+that platform account through AgilityHub ID, and times it: the definition (POST /platform/clubs), the theme, the modules, the base
+catalogs cloned from the template club, a payments provider (SEPA_XML, fictional creditor), two domains verified over the fake
+resolver (a CNAME for the members' app, the TXT challenge for the back office; POST /test/dns publishes the records), the first
+administrator invited (N-53 in the local mailbox), and the activation. «Usable» means: its branding resolves on its own host, the
+invited administrator redeems the invitation, sets a password and signs in on the club's back-office host as ADMIN, and the cloned
+catalogs are there; the run prints how long that took (S17 §1: «segon club operatiu en menys d'una hora»).
+
+Then S15 P9's re-check (R-17-03 «es reverifica setmanalment»): with the club's scheduled P9 switched off, the test clock moves a week
+at a time and the console triggers P9: both domains are confirmed (CNAME, and the address proof for the TXT-verified one), the
+members' record is lost, the third failed re-check makes the domain BROKEN (Caddy's ask and /branding refuse it, N-43 reaches the
+platform account, a SYSTEM audit entry), and the record back restores it. Re-runnable: every run builds its own stack and removes
+it. Never prints a token, a magic link, a challenge value, a password nor an IBAN. Reuses bin/e5-smoke's stack helpers.
+"""
+import argparse
+import base64
+import datetime
+import importlib.machinery
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"),
+         ("club:apply", "seeds/club-template-default.yaml"))
+PLATFORM = "platform@example.test"
+ID_HOST = "id.example.test"            # bin/e5-smoke's AUTH_ISSUER
+CONSOLE_HOST = "clubsadmin.agilitydoghub.com"
+CLUBS_TARGET = "clubs.agilitydoghub.com"  # core.platform.product-hosts.clubs (CLUBS_HOST default)
+SLUG = "e10-smoke"
+APP_HOST, ADMIN_HOST = "app.e10-smoke.example.test", "admin.e10-smoke.example.test"
+ADMIN_EMAIL = "e10.admin@example.test"
+WEEK = 7 * 86400
+TARGET_SECONDS = 3600
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+THEME = dict(colors=dict(primary="#1D4ED8", onPrimary="#FFFFFF", background="#F8FAFC", surface="#FFFFFF", surfaceAlt="#E2E8F0",
+                         text="#0F172A", textMuted="#475569", border="#94A3B8", success="#15803D", warning="#A16207", danger="#B91C1C",
+                         info="#0369A1"), fontFamily="system-ui", radius="6px", ringPalette=[], mode="light")
+
+
+class E10:
+    def __init__(self, smoke_module, private, image):
+        self.m = smoke_module
+        self.s = smoke_module.Smoke(private, image)
+        self.s.project = "e10-smoke-" + secrets.token_hex(6)
+        args = self.s.compose_args
+        args[args.index("--project-name") + 1] = self.s.project
+        # Fresh vault keys for the provider credentials (the SEPA creditor's IBAN is stored encrypted); never printed.
+        override_path = private / "compose.override.json"
+        override = json.loads(override_path.read_text())
+        keys = {name: base64.b64encode(secrets.token_bytes(32)).decode() for name in ("BILLING_BANK_KEY", "BILLING_SECRETS_KEY")}
+        for service in override["services"].values():
+            if service.get("environment") is not None:
+                service["environment"].update(keys)
+        override_path.write_text(json.dumps(override))
+
+    # ---- helpers
+    def require(self, condition, message):
+        self.m.require(condition, message)
+
+    def record(self, step, status, values=""):
+        self.s.record(step, status, values)
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def console(self, method, path, expected=200, **kwargs):
+        """A console call: the platform token, on the console's product host (S17 §2 «Entrada»)."""
+        return self.s.call(method, "/api/v1/platform" + path, expected, access=self.platform, host=CONSOLE_HOST, **kwargs)
+
+    def sign_in(self):
+        """AgilityHub ID's global token (client id-web on the ID host): platform roles, no club (S01 R-01-17)."""
+        self.platform = self.s.login(PLATFORM, "id-web", host=ID_HOST)
+
+    def version(self):
+        return self.console("GET", f"/clubs/{self.club}", quiet=True)["version"]
+
+    def dns(self, kind, name, values):
+        self.s.call("POST", "/api/v1/test/dns", body=dict(type=kind, name=name, values=values), host=CONSOLE_HOST, quiet=True)
+
+    def mailbox(self):
+        """The local mailbox of the API (`LogEmailSender`): one JSON file per accepted e-mail."""
+        target = self.s.private / ("mailbox-" + secrets.token_hex(3))
+        target.mkdir()
+        self.s.compose("cp", self.s.service + ":/app/mailbox/.", str(target))
+        return [json.loads(path.read_text()) for path in target.glob("local-*.json")]
+
+    def advance(self, seconds, label):
+        now = self.s.call("POST", "/api/v1/test/clock", body=dict(advanceSeconds=seconds), quiet=True)["now"]
+        print(f"POST /test/clock -> 200 ({label}; server now {now[:16]}Z)", flush=True)
+        self.sign_in()  # access tokens live 15 minutes on the moved clock
+
+    # ---- the gate
+    def scenario(self):
+        self.sign_in()
+        me = self.s.call("GET", "/api/v1/me", access=self.platform, host=ID_HOST, quiet=True)
+        self.require("AGILITYHUB_ADMIN" in me["account"]["platformRoles"] and "membership" not in me,
+                     "The demo platform account is not an AGILITYHUB_ADMIN without a club")
+        refused = self.s.call("POST", "/oauth2/token", 403, host=self.s.host, quiet=True, form=dict(
+            grant_type="password", client_id="clubs-admin", username=PLATFORM, password=self.s.env["SEED_PASSWORD"]))
+        self.record("seed:demo platform account (E118)", "AGILITYHUB_ADMIN, no club",
+                    f"{PLATFORM}: ID token with platform roles and no club; on the Cànic's host → 403 {refused['code']} (T-17-10)")
+        started = time.monotonic()
+        self.create()
+        self.second_club_setup()
+        self.domains()
+        self.admin_invitation()
+        self.activate()
+        self.usable()
+        self.elapsed = time.monotonic() - started
+        self.require(self.elapsed < TARGET_SECONDS, f"The second club took {self.elapsed:.0f} s")
+        self.record("Second club usable (S17 §1)", f"{self.elapsed:.1f} s", f"from POST /platform/clubs to the admin's first back-office call; target < {TARGET_SECONDS} s")
+        print(f"PASS second club «{SLUG}» usable in {self.elapsed:.1f} s (target < 1 hour)", flush=True)
+        self.recheck()
+
+    def create(self):
+        definition = dict(apiVersion="agilityhub.club/v1",
+                          club=dict(slug=SLUG, name="Club Fictici del Smoke E10", locales=["ca", "es"], defaultLocale="ca", timeZone="Europe/Madrid",
+                                    currency="EUR", countryProfile="ES", status="ONBOARDING", contactEmail="e10.club@example.test", displayCity="Vila Fictícia"),
+                          modules=[], theme=dict(THEME, colors=dict(primary="#123456", background="#FFFFFF", surface="#EEEEEE", text="#000000")),
+                          legal=dict(privacyPolicyUrl="https://e10-smoke.example.test/privacitat", legalTextsVersion="2026-10",
+                                     imageConsentText=dict(ca="Accepto l'ús d'imatges (text fictici).", es="Acepto el uso de imágenes (texto ficticio).")))
+        taken = dict(definition, club=dict(definition["club"], slug="canic"))
+        self.console("POST", "/clubs", 409, body=taken, idempotent=True, error="SLUG_TAKEN")
+        created = self.console("POST", "/clubs", 201, body=definition, idempotent=True)
+        self.club = created["club"]["id"]
+        self.require(created["club"]["status"] == "ONBOARDING" and created["club"]["slug"] == SLUG, "The club does not start ONBOARDING")
+        self.record("POST /platform/clubs (definition)", "201", f"«{created['club']['name']}» {SLUG}, ONBOARDING, ca/es, Europe/Madrid, EUR, ES; "
+                    f"the Cànic's slug → 409 SLUG_TAKEN; checklist {sum(created['checklist'].values())}/7")
+
+    def second_club_setup(self):
+        low = dict(THEME, version=self.version(), colors=dict(THEME["colors"], onPrimary="#2563EB"))
+        contrast = self.console("PUT", f"/clubs/{self.club}/theme", 422, body=low, error="THEME_CONTRAST")
+        theme = self.console("PUT", f"/clubs/{self.club}/theme", body=dict(THEME, version=self.version()))
+        self.require(theme["colors"]["primary"] == THEME["colors"]["primary"], "The theme was not stored")
+        self.record("PUT /platform/clubs/{id}/theme", "200", f"primary {THEME['colors']['primary']}, light; a low-contrast onPrimary → 422 {contrast['code']}")
+        missing = self.console("PUT", f"/clubs/{self.club}/modules", 422, body=dict(version=self.version(), modules=["PACKS"]), error="MODULE_DEPENDENCY")
+        modules = self.console("PUT", f"/clubs/{self.club}/modules", body=dict(version=self.version(), preset="CANIC"))
+        self.require("BILLING" in modules["modules"], "The CANIC preset has no BILLING")
+        self.record("PUT /platform/clubs/{id}/modules", "200", f"preset CANIC → {len(modules['modules'])} modules; PACKS alone → 422 {missing['code']}")
+        # seeds/club-template-default.yaml (the template list has no slug).
+        template = next(t for t in self.console("GET", "/club-templates", quiet=True) if t["name"] == "AgilityHub template")
+        clone = self.console("POST", f"/clubs/{self.club}/catalog-clone", body=dict(fromClubId=template["id"],
+                             parts=["LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES"]), idempotent=True)
+        self.copied = clone["copied"]
+        self.require(set(self.copied) == {"LEVELS", "RINGS", "PLANS", "FAQ", "MESSAGE_TEMPLATES"}, f"The clone answered {self.copied}")
+        again = self.console("POST", f"/clubs/{self.club}/catalog-clone", 409 if self.copied["LEVELS"] else 200, quiet=True, idempotent=True,
+                             body=dict(fromClubId=template["id"], parts=["LEVELS"]))
+        # seeds/club-template-default.yaml has empty catalogs today (S17 §13 #5: who maintains the template's texts is open).
+        self.record("POST /platform/clubs/{id}/catalog-clone (template club)", "200", f"copied {self.copied} from «{template['name']}»; "
+                    f"{len(clone['warnings'])} coded warning(s); a second clone → {again.get('code', 200) if isinstance(again, dict) else 200}")
+        sepa = dict(version=self.version(), enabled=True, creditorName="Club Fictici del Smoke E10", creditorId="ES97000G12345678",
+                    iban="ES9121000418450200051332", suffix="000")
+        provider = self.console("PUT", f"/clubs/{self.club}/payment-providers/SEPA_XML", body=sepa, quiet=True)
+        print("curl PUT /api/v1/platform/clubs/<id>/payment-providers/SEPA_XML -> 200", flush=True)
+        self.require(provider["configured"] is True, "SEPA_XML is not configured")
+        stored = json.dumps(self.mongo('db.clubs.findOne({_id:' + json.dumps(self.club) + '}).paymentProviders'))
+        self.require("ES9121000418450200051332" not in stored, "The IBAN is stored in clear")
+        self.record("PUT /platform/clubs/{id}/payment-providers/SEPA_XML", "200", "fictional creditor; configured, IBAN encrypted at rest (never in clear in Mongo)")
+
+    def domains(self):
+        app = self.console("POST", f"/clubs/{self.club}/domains", 201, body=dict(host=APP_HOST, app="clubs"), idempotent=True)
+        admin = self.console("POST", f"/clubs/{self.club}/domains", 201, body=dict(host=ADMIN_HOST, app="clubs-admin"), idempotent=True)
+        reserved = self.console("POST", f"/clubs/{self.club}/domains", 422, body=dict(host="clubs.e10-smoke.example.test", app="clubs"),
+                                idempotent=True, error="HOST_RESERVED")
+        self.require(app["status"] == "PENDING" and app["verification"]["cnameTarget"] == CLUBS_TARGET, "The members' domain has no CNAME instructions")
+        self.s.call("GET", "/api/v1/branding", 404, host=APP_HOST, error="UNKNOWN_HOST")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 404)
+        missing = self.console("POST", f"/clubs/{self.club}/domains/{APP_HOST}/verification", 422, idempotent=True, error="HOST_NOT_VERIFIED")
+        self.require(missing["details"]["cnameTarget"] == CLUBS_TARGET, "HOST_NOT_VERIFIED without the expected records")
+        self.dns("CNAME", APP_HOST, [CLUBS_TARGET + "."])
+        by_cname = self.console("POST", f"/clubs/{self.club}/domains/{APP_HOST}/verification", idempotent=True)
+        # The back office's domain proves itself with the TXT challenge; the value is published in DNS, but never printed here.
+        self.dns("TXT", admin["verification"]["recordName"], ['"' + admin["verification"]["recordValue"] + '"'])
+        by_txt = self.console("POST", f"/clubs/{self.club}/domains/{ADMIN_HOST}/verification", idempotent=True)
+        self.require((by_cname["status"], by_cname["method"], by_txt["status"], by_txt["method"]) == ("VERIFIED", "CNAME", "VERIFIED", "TXT"),
+                     f"Verification: {by_cname} / {by_txt}")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
+        listed = {d["host"]: d for d in self.console("GET", f"/clubs/{self.club}", quiet=True)["domains"]}
+        self.require(listed[APP_HOST]["primary"] and listed[ADMIN_HOST]["primary"] and listed[APP_HOST]["verification"] is None,
+                     "The verified domains are not their apps' primary ones")
+        self.record("POST /platform/clubs/{id}/domains ×2 + verification (fake DNS)", "201 · 422 · 200 · 200",
+                    f"{APP_HOST} by CNAME → {CLUBS_TARGET}, {ADMIN_HOST} by the TXT challenge; before the record → 422 {missing['code']} "
+                    f"and GET /branding → 404 UNKNOWN_HOST; a product prefix → 422 {reserved['code']}; Caddy's ask 404 → 200; both primary")
+
+    def admin_invitation(self):
+        invited = self.console("POST", f"/clubs/{self.club}/admins", 201, body=dict(email=ADMIN_EMAIL, name="Arnau Fictici"), idempotent=True)
+        self.admin_account = invited["accountId"]
+        mail = self.m.wait(lambda: next((m for m in self.mailbox() if m["to"] == ADMIN_EMAIL and re.search(r"[?]t=[A-Za-z0-9_-]{43}", m["text"])), None),
+                           "No N-53 invitation in the local mailbox", timeout=90)
+        self.welcome = re.search(r"[?]t=([A-Za-z0-9_-]{43})", mail["text"])[1]
+        self.record("POST /platform/clubs/{id}/admins (first administrator)", "201", f"membership {invited['membershipStatus']}; N-53 «{mail['subject']}» "
+                    f"in the local mailbox ({mail['locale']}), link=[truncated]")
+
+    def activate(self):
+        checklist = self.console("GET", f"/clubs/{self.club}/checklist", quiet=True)
+        active = self.console("PUT", f"/clubs/{self.club}/status", body=dict(status="ACTIVE"), idempotent=True)
+        self.require(active["status"] == "ACTIVE", "The club was not activated")
+        done = [k for k, v in checklist.items() if v]
+        self.record("PUT /platform/clubs/{id}/status ACTIVE", "200", f"checklist {len(done)}/7 before activating ({', '.join(sorted(done))})")
+
+    def usable(self):
+        brand = self.s.call("GET", "/api/v1/branding", host=APP_HOST)
+        self.require(brand["club"]["slug"] == SLUG and brand["status"] == "ACTIVE" and brand["theme"]["colors"]["primary"] == THEME["colors"]["primary"]
+                     and "BILLING" in brand["modules"], "The club's branding is not its own")
+        # The invited administrator: the N-53 link opens AgilityHub ID, sets a password and signs in on the club's back office.
+        session = self.s.call("POST", "/oauth2/token", host=ID_HOST, quiet=True, form=dict(
+            grant_type="urn:agilityhub:grant:magic-link", client_id="id-web", token=self.welcome))["access_token"]
+        print("curl POST /oauth2/token (magic-link, id-web) -> 200", flush=True)
+        password = secrets.token_urlsafe(24)
+        self.s.call("PUT", "/api/v1/me/password", host=ID_HOST, access=session, quiet=True, body={"new": password, "repeat": password})
+        print("curl PUT /api/v1/me/password -> 200", flush=True)
+        admin = self.s.call("POST", "/oauth2/token", host=ADMIN_HOST, quiet=True, form=dict(
+            grant_type="password", client_id="clubs-admin", username=ADMIN_EMAIL, password=password))["access_token"]
+        print("curl POST /oauth2/token (password, clubs-admin, the club's back-office host) -> 200", flush=True)
+        me = self.s.call("GET", "/api/v1/me", host=ADMIN_HOST, access=admin)
+        self.require(me["membership"]["clubId"] == self.club and "ADMIN" in me["membership"]["roles"], f"The admin's membership: {me.get('membership')}")
+        levels = self.s.call("GET", "/api/v1/levels", host=ADMIN_HOST, access=admin)
+        count = len(levels["items"] if isinstance(levels, dict) else levels)
+        self.require(count == self.copied["LEVELS"], f"The admin sees {count} levels, {self.copied['LEVELS']} cloned")
+        self.s.call("GET", "/api/v1/members", host=ADMIN_HOST, access=admin)
+        self.s.call("GET", "/api/v1/levels", 403, host=APP_HOST, access=self.platform, error="NO_MEMBERSHIP")
+        checklist = self.console("GET", f"/clubs/{self.club}/checklist", quiet=True)
+        print("Checklist after the admin's first sign-in (R-17-06): " + ", ".join(f"{k} {'✓' if v else '·'}" for k, v in checklist.items()), flush=True)
+        self.record("The second club in use", "200 · 200 · 200 · 200", f"GET /branding on {APP_HOST}: ACTIVE, own theme and modules; the invited admin "
+                    f"redeems N-53, sets a password and signs in on {ADMIN_HOST} as ADMIN; {count} cloned levels, /members answers; "
+                    "the platform token on the club → 403 NO_MEMBERSHIP")
+
+    def trigger(self, label):
+        run = self.console("POST", f"/clubs/{self.club}/jobs/cleanup/trigger", body=dict(dryRun=False), idempotent=True, quiet=True)
+        self.require(run["status"] == "SUCCEEDED" and run["trigger"] == "MANUAL", f"P9 {label}: {run['status']} {run.get('errors')}")
+        items = {i["entityId"]: i for i in run["effects"]["items"] if i["entityType"] == "ClubDomain"}
+        print(f"curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 ({label}: "
+              + ", ".join(f"{h} {i['detail']['outcome']}" for h, i in sorted(items.items())) + ")", flush=True)
+        return run, items
+
+    def domain(self, host):
+        return next(d for d in self.mongo('db.clubs.findOne({_id:' + json.dumps(self.club) + '}).domains') if d["host"] == host)
+
+    def recheck(self):
+        """S15 P9 (R-17-03): the weekly re-check, run from the console while the club's scheduled P9 is off."""
+        rows = [r for b in self.console("GET", f"/clubs/{self.club}/parameters", quiet=True)["blocks"] for r in b["rows"]]
+        switch = next(r for r in rows if r["key"] == "jobs.cleanup.enabled")
+        days = next(r for r in rows if r["key"] == "platform.domainRecheckDays")["value"]
+        self.console("PUT", f"/clubs/{self.club}/parameters/jobs.cleanup.enabled", body=dict(value=False, version=switch["version"], reason="E10 smoke: P9 from the console only"))
+        self.advance(WEEK + 300, f"{days} days after the verifications")
+        run, items = self.trigger("week 1")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "CONFIRMED" and items[APP_HOST]["detail"]["method"] == "CNAME"
+                     and items[ADMIN_HOST]["detail"]["outcome"] == "CONFIRMED" and items[ADMIN_HOST]["detail"]["method"] == "ADDRESS",
+                     f"Week 1: {items}")
+        self.require(run["effects"]["counters"]["domainsRechecked"] == 2 and run["parametersSnapshot"]["platform.domainRecheckDays"] == days, "Week 1 counters")
+        self.record("P9 re-check, week 1 (POST …/jobs/cleanup/trigger)", "200 SUCCEEDED", f"platform.domainRecheckDays {days}; {APP_HOST} CONFIRMED by CNAME, "
+                    f"{ADMIN_HOST} (TXT-verified, no challenge left) CONFIRMED by ADDRESS; domainsRechecked 2")
+        # The members' record is lost: no CNAME and no address any more.
+        self.dns("CNAME", APP_HOST, [])
+        self.dns("A", APP_HOST, [])
+        for week in (2, 3):
+            self.advance(WEEK, f"week {week}")
+            _, items = self.trigger(f"week {week}")
+            self.require(items[APP_HOST]["detail"]["outcome"] == "FAILED", f"Week {week}: {items[APP_HOST]}")
+            self.require(self.domain(APP_HOST)["status"] == "VERIFIED", "The domain changed before its third failure")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
+        self.advance(WEEK, "week 4")
+        run, items = self.trigger("week 4")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "BROKEN" and run["effects"]["counters"]["domainsBroken"] == 1, f"Week 4: {items[APP_HOST]}")
+        stored = self.domain(APP_HOST)
+        self.require(stored["status"] == "BROKEN" and stored["failedChecks"] == 3, f"Stored: {stored['status']} {stored.get('failedChecks')}")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 404)
+        self.s.call("GET", "/api/v1/branding", 404, host=APP_HOST, error="UNKNOWN_HOST")
+        broken = [d["host"] for d in self.console("GET", f"/clubs/{self.club}", quiet=True)["domains"] if d["status"] == "BROKEN"]
+        self.require(broken == [APP_HOST], f"The console lists {broken} BROKEN")
+        audit = self.mongo('db.audit_entries.find({clubId:' + json.dumps(self.club) + ',action:"CLUB_DOMAIN_CHANGED",reason:"Domain broken"})'
+                           '.toArray().map(e=>({origin:e.origin,role:e.actorRole,job:(e.details||{}).job}))')
+        self.require(audit == [dict(origin="SYSTEM", role="SYSTEM", job="cleanup")], f"Audit: {audit}")
+        notice = self.m.wait(lambda: next((m for m in self.mailbox() if m["to"] == PLATFORM and APP_HOST in m["text"]), None),
+                             "No N-43 for the platform account in the local mailbox", timeout=90)
+        rows = self.mongo('db.notifications.find({code:"N-43"}).toArray().map(n=>({club:n.clubId,account:(n.recipient||{}).accountId}))')
+        platform_id = self.mongo('db.accounts.findOne({email:' + json.dumps(PLATFORM) + '})._id')
+        # JSON.stringify leaves out a field Mongo did not store: a platform row has no clubId at all.
+        self.require(rows and all(r.get("club") is None for r in rows) and [r.get("account") for r in rows].count(platform_id) == 1,
+                     f"N-43 rows: {len(rows)}")
+        self.record("P9 re-check, weeks 2–4 (record lost)", "FAILED · FAILED · BROKEN", f"{APP_HOST}: failedChecks 3 → BROKEN; Caddy's ask 200 → 404, "
+                    f"GET /branding → 404 UNKNOWN_HOST; audit CLUB_DOMAIN_CHANGED origin SYSTEM, job cleanup; N-43 «{notice['subject']}» to {PLATFORM} "
+                    f"({notice['locale']}, platform e-mail, no club)")
+        # The record is back: the next re-check restores the domain.
+        self.dns("CNAME", APP_HOST, [CLUBS_TARGET])
+        self.advance(WEEK, "week 5")
+        run, items = self.trigger("week 5")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "RESTORED" and run["effects"]["counters"]["domainsRestored"] == 1, f"Week 5: {items[APP_HOST]}")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
+        self.require(self.s.call("GET", "/api/v1/branding", host=APP_HOST)["club"]["slug"] == SLUG, "The restored host does not resolve the club")
+        skipped = self.mongo('db.job_runs.countDocuments({clubId:' + json.dumps(self.club) + ',job:"CLEANUP",status:"SKIPPED",skipReason:"DISABLED"})')
+        self.record("P9 re-check, week 5 (record back)", "RESTORED", f"{APP_HOST} VERIFIED again, Caddy's ask 200, /branding resolves; "
+                    f"the club's {skipped} scheduled P9 run(s) meanwhile SKIPPED{{DISABLED}} (the switch), the console's runs ran anyway (R-15-09)")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.s.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.s.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print(f"PASS E10 backend gate: a second club through the console API, usable in {self.elapsed:.1f} s (definition, theme, modules, "
+              "catalogs, SEPA_XML, two domains over the fake DNS, the first admin, activation), and S15 P9's domain re-check "
+              "(confirmed → three failures → BROKEN with N-43 → RESTORED)", flush=True)
+
+    def cleanup(self):
+        self.s.cleanup()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    module = load_smoke()
+    parser.add_argument("--image", nargs="?", const=module.PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building the working tree; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e10-") as directory:
+        smoke = E10(module, Path(directory), options.image)
+        try:
+            print("E10 smoke started " + datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), flush=True)
+            smoke.s.start(SEEDS, "Cànic, template club")
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, KeyError, TypeError, IndexError, ValueError, StopIteration) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

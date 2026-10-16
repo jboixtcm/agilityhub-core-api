@@ -2,9 +2,12 @@ package com.agilityhub.core.platform.application;
 
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.platform.application.audit.AuditActorProvider;
+import com.agilityhub.core.platform.application.audit.AuditCommand;
+import com.agilityhub.core.platform.application.audit.AuditWriter;
 import com.agilityhub.core.platform.application.audit.Audited;
 import com.agilityhub.core.platform.domain.DomainChallenge;
 import com.agilityhub.core.platform.domain.HostNames;
+import com.agilityhub.core.platform.domain.events.ClubDomainBroken;
 import com.agilityhub.core.platform.domain.events.ClubDomainVerified;
 import com.agilityhub.core.platform.persistence.Club;
 import com.agilityhub.core.platform.persistence.ClubRepository;
@@ -34,12 +37,23 @@ public class PlatformDomains {
     public record Verification(Club.DomainStatus status, Instant checkedAt, String method) { }
     /** What the DNS answered, read before the settlement's transaction (no network call inside a Mongo transaction). */
     public record Check(String host, String method, Instant checkedAt) { }
+    /**
+     * S15 P9's re-check of one due domain (E10-T03): what the DNS answered, read in the plan outside any transaction, and the
+     * outcome it leads to ({@link #CONFIRMED}, {@link #FAILED}, {@link #BROKEN} or {@link #RESTORED}).
+     */
+    public record Recheck(String host, Club.DomainStatus status, int failedChecks, boolean passed, String method, String outcome) { }
+    /** R-17-03: «si falla 3 cops → BROKEN» (a product constant, as S17 states it). */
+    public static final int BROKEN_AFTER = 3;
+    public static final String CONFIRMED = "CONFIRMED", FAILED = "FAILED", BROKEN = "BROKEN", RESTORED = "RESTORED", SKIPPED = "SKIPPED";
+    /** The process named in the system audit entries of the re-check (S14 §3: `SYSTEM` carries `job` in `details`). */
+    static final String PROCESS = "cleanup";
     private final ClubRepository clubs; private final PlatformClubChanges changes; private final DomainDns dns;
-    private final EventPublisher events; private final AuditActorProvider actors; private final Clock clock;
+    private final EventPublisher events; private final AuditActorProvider actors; private final AuditWriter audits; private final Clock clock;
     private final String clubsHost; private final String adminHost;
-    public PlatformDomains(ClubRepository clubs, PlatformClubChanges changes, DomainDns dns, EventPublisher events, AuditActorProvider actors, Clock clock,
+    public PlatformDomains(ClubRepository clubs, PlatformClubChanges changes, DomainDns dns, EventPublisher events, AuditActorProvider actors,
+            AuditWriter audits, Clock clock,
             @Value("${core.platform.product-hosts.clubs}") String clubsHost, @Value("${core.platform.product-hosts.clubs-admin}") String adminHost) {
-        this.clubs = clubs; this.changes = changes; this.dns = dns; this.events = events; this.actors = actors; this.clock = clock;
+        this.clubs = clubs; this.changes = changes; this.dns = dns; this.events = events; this.actors = actors; this.audits = audits; this.clock = clock;
         this.clubsHost = clubsHost; this.adminHost = adminHost;
     }
 
@@ -86,7 +100,7 @@ public class PlatformDomains {
         if (domain.status() != Club.DomainStatus.VERIFIED) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name())); }
         if (domain.primary()) { return new Change(club.id(), audit(club.domains()), domain, null); }
         var domains = club.domains().stream().map(item -> !item.app().equals(domain.app()) ? item
-                : new Club.Domain(item.host(), item.app(), item.status(), item.verifiedAt(), item.host().equals(domain.host()), item.verificationToken())).toList();
+                : item.withPrimary(item.host().equals(domain.host()))).toList();
         var next = write(club, domains, Map.of("primary", domain.host()));
         return new Change(next.id(), audit(next.domains()), domain(next, host), null);
     }
@@ -94,14 +108,16 @@ public class PlatformDomains {
     /**
      * The DNS half of R-17-03, outside any transaction: (a) a CNAME from the host to the product host of its app, else (b) the
      * TXT challenge. Neither: `422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue}` (the records it expects; the
-     * TXT pair is null without a challenge). A verified domain has nothing to verify: `409 INVALID_STATE`.
+     * TXT pair is null without a challenge). A verified domain has nothing to verify: `409 INVALID_STATE`. A `BROKEN` domain was
+     * verified once and has no challenge left, so it also passes with the re-check's address proof (E10-T03, an apex domain).
      */
     public Check check(String host) {
         var domain = domain(changes.club(), host);
         if (domain.status() == Club.DomainStatus.VERIFIED) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name())); }
         String target = cnameTarget(domain.app());
         String method = DomainChallenge.cnameMatches(dns.cnames(domain.host()), target) ? "CNAME"
-                : domain.verificationToken() != null && DomainChallenge.txtMatches(dns.txt(DomainChallenge.recordName(domain.host())), domain.verificationToken()) ? "TXT" : null;
+                : domain.verificationToken() != null && DomainChallenge.txtMatches(dns.txt(DomainChallenge.recordName(domain.host())), domain.verificationToken()) ? "TXT"
+                : domain.status() == Club.DomainStatus.BROKEN && DomainChallenge.addressesMatch(dns.addresses(domain.host()), dns.addresses(target)) ? "ADDRESS" : null;
         if (method == null) {
             var details = new LinkedHashMap<String, Object>();
             details.put("host", domain.host()); details.put("cnameTarget", target);
@@ -126,13 +142,71 @@ public class PlatformDomains {
         }
         boolean primary = domain.primary() || club.domains().stream().noneMatch(item -> item.app().equals(domain.app())
                 && item.primary() && item.status() == Club.DomainStatus.VERIFIED);
-        var verified = new Club.Domain(domain.host(), domain.app(), Club.DomainStatus.VERIFIED, check.checkedAt(), primary, null);
+        // A verification resets the periodic re-check (E10-T03): the check just made is its last one, with no failure.
+        var verified = new Club.Domain(domain.host(), domain.app(), Club.DomainStatus.VERIFIED, check.checkedAt(), primary, null, check.checkedAt(), 0);
         var domains = club.domains().stream().map(item -> item.host().equals(domain.host()) ? verified
-                : primary && item.app().equals(domain.app()) && item.primary()
-                        ? new Club.Domain(item.host(), item.app(), item.status(), item.verifiedAt(), false, item.verificationToken()) : item).toList();
+                : primary && item.app().equals(domain.app()) && item.primary() ? item.withPrimary(false) : item).toList();
         var next = write(club, domains, Map.of("verified", domain.host(), "method", check.method()));
         events.publish(new ClubDomainVerified(club.id(), domain.host(), clock.instant(), actors.current().accountId()));
         return new Change(next.id(), audit(next.domains()), verified, new Verification(Club.DomainStatus.VERIFIED, check.checkedAt(), check.method()));
+    }
+
+    /**
+     * S15 P9's plan (E10-T03; S17 R-17-03 «es reverifica setmanalment»): the open club's `VERIFIED` and `BROKEN` domains whose
+     * last re-check (or their verification) is `days` or more before `now`, each with the DNS answer, read here outside any
+     * transaction. A domain still reaches its app when its CNAME is the app's product host or, for an apex domain, when it
+     * shares one of that host's addresses. `days = 0` turns the re-check off (`platform.domainRecheckDays`).
+     */
+    public List<Recheck> recheckPlan(Instant now, int days) {
+        if (days <= 0) { return List.of(); }
+        Instant cutoff = now.minus(java.time.Duration.ofDays(days));
+        return changes.club().domains().stream()
+                .filter(item -> item.status() == Club.DomainStatus.VERIFIED || item.status() == Club.DomainStatus.BROKEN)
+                .filter(item -> { Instant last = item.checkedAt() != null ? item.checkedAt() : item.verifiedAt(); return last == null || !last.isAfter(cutoff); })
+                .map(item -> {
+                    String target = cnameTarget(item.app());
+                    String method = DomainChallenge.cnameMatches(dns.cnames(item.host()), target) ? "CNAME"
+                            : DomainChallenge.addressesMatch(dns.addresses(item.host()), dns.addresses(target)) ? "ADDRESS" : null;
+                    return new Recheck(item.host(), item.status(), item.failures(), method != null, method, outcome(item, method != null));
+                }).toList();
+    }
+
+    /**
+     * S15 P9's item (E10-T03), inside the run's transaction: a good re-check clears the failures (`CONFIRMED`) or brings a
+     * `BROKEN` domain back (`RESTORED`: `VERIFIED`, `verifiedAt`, `ClubDomainVerified`); a failed one counts (`FAILED`), and the
+     * third in a row makes a `VERIFIED` domain `BROKEN` (`ClubDomainBroken` → N-43). A status change bumps the club's version,
+     * publishes `ClubUpdated` (the host cache is evicted after the commit, so Caddy's `ask` and `/branding` follow at once) and
+     * is audited `CLUB_DOMAIN_CHANGED` as the system's, with the process in `details.job`. A domain removed or pending meanwhile is
+     * `SKIPPED`. Answers the outcome applied.
+     */
+    @Transactional
+    public String recheck(String host, boolean passed, String method, Instant at) {
+        var club = changes.club();
+        var current = club.domains().stream().filter(item -> item.host().equals(HostNames.normalize(host))).findFirst().orElse(null);
+        if (current == null || current.status() == Club.DomainStatus.PENDING) { return SKIPPED; }
+        String outcome = outcome(current, passed);
+        int failures = passed ? 0 : current.failures() + 1;
+        if (outcome.equals(CONFIRMED) || outcome.equals(FAILED)) {
+            clubs.recordDomainCheck(club.id(), current.host(), at, failures);
+            return outcome;
+        }
+        boolean broken = outcome.equals(BROKEN);
+        var changed = new Club.Domain(current.host(), current.app(), broken ? Club.DomainStatus.BROKEN : Club.DomainStatus.VERIFIED,
+                broken ? current.verifiedAt() : at, current.primary(), null, at, failures);
+        var domains = club.domains().stream().map(item -> item.host().equals(current.host()) ? changed : item).toList();
+        var next = clubs.updateDomains(club.id(), club.version(), domains, clock.instant());
+        var diff = new LinkedHashMap<String, Object>(); diff.put(broken ? "broken" : "restored", current.host());
+        if (method != null) { diff.put("method", method); }
+        events.publish(new com.agilityhub.core.platform.domain.events.ConsoleEvent("ClubUpdated", club.id(), clock.instant(),
+                Map.of("clubId", club.id(), "diff", Map.of("domains", diff)), null, null, com.agilityhub.core.shared.domain.DomainEvent.Origin.SYSTEM));
+        events.publish(broken ? new ClubDomainBroken(club.id(), current.host(), clock.instant()) : ClubDomainVerified.restored(club.id(), current.host(), clock.instant()));
+        audits.writeAsSystem(new AuditCommand(AuditAction.CLUB_DOMAIN_CHANGED, "Club", club.id(), null, new Change(club.id(), audit(club.domains()), null, null),
+                new Change(next.id(), audit(next.domains()), null, null), broken ? "Domain broken" : "Domain restored"), PROCESS);
+        return outcome;
+    }
+    static String outcome(Club.Domain domain, boolean passed) {
+        if (passed) { return domain.status() == Club.DomainStatus.BROKEN ? RESTORED : CONFIRMED; }
+        return domain.status() == Club.DomainStatus.VERIFIED && domain.failures() + 1 >= BROKEN_AFTER ? BROKEN : FAILED;
     }
 
     /** S17 WP-17-D, Caddy's `ask`: only a verified club domain gets a certificate. */

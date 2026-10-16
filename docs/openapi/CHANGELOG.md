@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-17 · E10-T03 · S17 E10 integration: S15 P9's domain re-check
+
+**0 operations or schemas added or removed; 1 enum value added (`DomainVerification.method`: `ADDRESS`); 1 description changed.**
+
+- `POST /platform/clubs/{id}/domains/{host}/verification`: a `BROKEN` domain (S15 P9's re-check failed three times in a row) also passes when the host shares an address with `verification.cnameTarget`, answered `method: ADDRESS`. An apex domain has no CNAME, and its TXT challenge was removed when it was first verified, so this is how the console re-verifies it. A `PENDING` domain is still verified by CNAME or TXT only.
+- Behaviour only, no contract change: `422 HOST_NOT_VERIFIED` for a domain without a challenge now sends `recordName: null, recordValue: null` as documented; before, those nulls made it a `500`. The domain list already showed `status: BROKEN`; P9 now sets it.
+- Not in the contract (local/test only, hidden like `POST /test/clock`): `POST /api/v1/test/dns {type: CNAME | TXT | A, name, values[]}` publishes records in the fake resolver of a local stack.
+
 ## 2026-10-16 · E10-T04 · S17 the rest of the platform API: domains, Caddy's ask, support access, the public key, E118
 
 **2 operations added (`PUT /platform/clubs/{id}/domains/{host}/primary`, `GET /platform/clubs/{id}/parameters`); 2 schemas added (`CatalogCloneWarning`, `MeSupport`); 1 response property added (`DomainVerificationChallenge.cnameTarget`, required); 1 optional response property added (`Me.support`); `CatalogCloneResult.warnings` items change from string to `CatalogCloneWarning`; 3 `AuditAction` values and 1 `AuditOrigin` value added; `BrandingResponse.club.slug` becomes nullable; no S17 operation is a 501 any more.**

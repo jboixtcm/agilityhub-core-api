@@ -75,6 +75,8 @@ public class SecurityConfiguration {
                 authorize.requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll();
                 // S15 WP-15-E end-to-end clock; the controller itself only exists under these profiles.
                 authorize.requestMatchers(HttpMethod.POST, "/api/v1/test/clock").permitAll();
+                // E10-T03: the fake resolver's records of a local stack, under the same guard.
+                authorize.requestMatchers(HttpMethod.POST, "/api/v1/test/dns").permitAll();
             }
             authorize.requestMatchers("/actuator/**", "/v3/api-docs/**", "/api/v1/openapi.json", "/api/v1/openapi.json/**").denyAll();
             authorize.anyRequest().authenticated();

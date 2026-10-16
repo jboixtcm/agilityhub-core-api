@@ -11,10 +11,14 @@ public class ApiException extends RuntimeException {
         this(code, Map.of());
     }
 
+    /**
+     * `details` is copied in its own order, and a null value is kept: the contract sends `null` where a detail has no value (E10-T03:
+     * `HOST_NOT_VERIFIED`'s TXT pair for a domain without a challenge, which `Map.copyOf` turned into a 500).
+     */
     public ApiException(ErrorCode code, Map<String, Object> details) {
         super(code.name());
         this.code = Objects.requireNonNull(code);
-        this.details = Map.copyOf(details);
+        this.details = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(details));
     }
 
     /**

@@ -1,0 +1,38 @@
+heavy.sh: 00:14 waiting for the host lock, held by: 00:12 agilityhub-core-api-c: ./mvnw -q -Pmutation -DtargetClasses=com.agilityhub.core.clubs.bookings.application.WaitlistTransitions,com.agilityhub.core.clubs.bookings.application.WaitlistTransitions$*,com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf,com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$*,com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery,com.agilityhub.core.clubs.bookings.application.WeekAgendaQuery$* -DtargetTests=com.agilityhub.core.*Test,com.agilityhub.core.clubs.bookings.*,com.agilityhub.core.clubs.census.application.Demo*IT,com.agilityhub.core.clubs.scheduling.*IT,com.agilityhub.core.clubs.training.*IT,com.agilityhub.core.clubs.activities.*IT -DmutationUnitSize=50 -DreportsDirectory=target/pit-reports/session10-202-session10-pit-bookings-b4-agenda -DhistoryInputFile=.local/pitest/session8-unit.bin -DhistoryOutputFile=.local/pitest/session10-202-session10-pit-bookings-b4-agenda.bin test-compile org.pitest:pitest-maven:mutationCoverage
+heavy.sh: 00:49 got the host lock after 35 min 3 s
+E10 smoke started 2026-10-16T21:49:24Z
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  402 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  0 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 2: 0 changes
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  7 changes (applied)
+PASS club:apply seeds/club-template-default.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-template-default.yaml run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, template club; x2): second runs 0 changes · week start 2026-10-26 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+PASS seed:demo platform account (E118): AGILITYHUB_ADMIN, no club · platform@example.test: ID token with platform roles and no club; on the Cànic's host → 403 NO_MEMBERSHIP (T-17-10)
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: POST /api/v1/platform/clubs: expected 409, got 400 VALIDATION_ERROR

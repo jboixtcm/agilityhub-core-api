@@ -127,6 +127,9 @@ class EventCatalogContractTest {
         // E10-T04: S17 §7's domain verification and support access (Annex A).
         samples.put(com.agilityhub.core.platform.domain.events.ClubDomainVerified.class,
                 () -> new com.agilityhub.core.platform.domain.events.ClubDomainVerified("club-a", "app.example.test", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
+        // E10-T03: S15 P9's re-check makes a verified domain BROKEN (S17 §7, N-43).
+        samples.put(com.agilityhub.core.platform.domain.events.ClubDomainBroken.class,
+                () -> new com.agilityhub.core.platform.domain.events.ClubDomainBroken("club-a", "app.example.test", Instant.parse("2030-01-01T00:00:00Z")));
         samples.put(com.agilityhub.core.identity.domain.SupportAccessStarted.class,
                 () -> new com.agilityhub.core.identity.domain.SupportAccessStarted("club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
         Set<Class<?>> implementations = new HashSet<>();
@@ -206,6 +209,12 @@ class EventCatalogContractTest {
                 assertThat(catalog).contains("ClubDomainVerified");
                 assertThat(event.aggregateType()).isEqualTo("Club"); assertThat(event.aggregateId()).isEqualTo(event.clubId());
                 assertThat(event.payload()).containsOnlyKeys("clubId", "host"); return;
+            }
+            if (event instanceof com.agilityhub.core.platform.domain.events.ClubDomainBroken) {
+                assertThat(catalog).contains("ClubDomainBroken");
+                assertThat(event.aggregateType()).isEqualTo("Club"); assertThat(event.aggregateId()).isEqualTo(event.clubId());
+                assertThat(event.payload()).containsOnlyKeys("clubId", "host");
+                assertThat(event.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); assertThat(event.actorAccountId()).isNull(); return;
             }
             if (event instanceof com.agilityhub.core.identity.domain.SupportAccessStarted) {
                 assertThat(catalog).contains("SupportAccessStarted");

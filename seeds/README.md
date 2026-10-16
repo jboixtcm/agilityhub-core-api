@@ -473,6 +473,15 @@ The setups expire `courses.setupAutoExpireDays` (7) days after the run (P5 step 
 the API, then walks S16's happy path on Muntanya. A database seeded before E9-T05 answers `CLUB_NOT_EMPTY` to `seed:demo`, as
 above.
 
+### E10 platform account (`platform` section, E10-T03)
+
+The Cànic's demo also creates `platform@example.test` (Pat Plataforma Example, `ca`, the run's `SEED_PASSWORD`) with
+`platformRoles: [AGILITYHUB_ADMIN]` and **no** club membership: the AgilityHub team's account of S17 §2 «Entrada». Signed in on a
+product host (`clubsadmin.agilitydoghub.com`, a `core.security.cors.platform-hosts` entry), its token has no `clubId` and opens
+`/api/v1/platform/*`; on a club host it is `403 NO_MEMBERSHIP` (T-17-10). The account is insert-only (an existing one only gains
+the role) and the planning run is recorded once, so a second `seed:demo` changes nothing. `bin/e10-smoke` creates its second
+club with it. A database seeded before E10-T03 answers `CLUB_NOT_EMPTY` to `seed:demo`, as above.
+
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.
 The generic AgilityHub theme is a neutral blue/light seed preset; all example

@@ -12,4 +12,9 @@ public interface DomainDns {
     List<String> cnames(String host);
     /** The TXT strings of `name`. */
     List<String> txt(String name);
+    /**
+     * The IPv4 and IPv6 addresses `host` resolves to, CNAMEs followed (E10-T03): S15 P9's re-check of a verified apex domain,
+     * which has no CNAME and whose TXT challenge was removed when it was verified.
+     */
+    List<String> addresses(String host);
 }

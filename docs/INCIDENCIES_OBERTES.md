@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.6 · 16-10-2026** (v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.7 · 16-10-2026** (v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -72,6 +72,8 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-60 | 15-10 | web (recorreguts) | Menors de la ronda 2 d'E9-W02: el transport per defecte dels esdeveniments de muntatge (per a E9-W04), noms de proves, set etiquetes inventades per confirmar, petits | Baixa | oberta — passada de correccions |
 | INC-61 | 15-10 | api (recorreguts, menors) | Menors d'E9-T02: el llistat de `GET /courses` es fa en memòria (límit conegut a R1), el `slug` del recinte pot xocar i donar un 500 (i A4 hauria de venir del perfil de país), noms de proves | Baixa | oberta — passada de correccions |
 | INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe i el d'una col·locació moguda, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | oberta — passada de correccions (E11-T02; la part del web, E11-W02) |
+| INC-63 | 16-10 | api (sessions de muntatge, menors) | Menors de la ronda 2 d'E9-T06: el límit d'enviadors refusa fluxos sans per sobre d'uns 64 subscriptors per instància, la prova del temps d'escriptura només llegeix la configuració, el `connection-timeout` de 20 s és global (també per a les pujades), l'estil del ganxo de proves, la prova dels dos `finish` només cobreix un camí | Baixa | oberta — passada de correccions (E11-T02) |
+| INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — passada de correccions (E11-T02); el pas manual es documenta a la ronda 2 d'E10-T04 |
 
 ---
 
@@ -289,6 +291,37 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 - **El motiu del desmuntatge**: el muntatge porta `dismantledReason` (`REPLACED · MANUAL · RING_INACTIVE`) o `replacedBySetupId`, perquè D16 no hagi d'inferir «Substituït» de les hores. Al web, D16 el fa servir.
 
 **On mirar**: `RingSetupService.java:80, 283`, `BuildSheetService.java:31`, `PlacementsIT:261`, `S3AttachmentStorage.java`, `seeds/README.md`, `CourseListItem`; al web, `CoursesPage.tsx` i `RingGeometryPage.tsx:679-681`.
+
+---
+
+## INC-63 · Menors de la ronda 2 d'E9-T06 (api, sessions de muntatge)
+
+**Gravetat**: baixa. A l'escala d'avui (un club, pocs mòbils per sessió) no passa.
+
+**Origen**: `roadmap/reviews/E9-T06-20261016-2155-claude.md` (api), troballes #1–#5; verificació de l'organitzador del 16-10 (decisió E123).
+
+**Llista**:
+- **El límit d'enviadors** (`BuildSessionStreams`, `ThreadPoolExecutor(0, 64, …, SynchronousQueue)`): amb més d'uns 64 subscriptors sans en una instància, el batec de 20 s ja no troba fil i tanca fluxos sans («no sender»). S'espera: una ràfega espera en una cua acotada, i només es refusa o es tanca un flux quan els enviadors bloquejats més de `WRITE_TIMEOUT` arriben al límit; una prova amb `SENDERS + 1` lectors sans i un batec, sense cap flux tancat. El Javadoc i el «Known limit» ho han de dir bé.
+- **La prova del temps d'escriptura** (`T_16_10_aStalledStreamHoldsItsSenderNoLongerThanTheWriteTimeout`) només llegeix dues propietats del connector: o es reanomena pel que comprova o es fa amb un sòcol real que deixa de llegir.
+- **`server.tomcat.connection-timeout: 20s` és global**: també limita la inactivitat del cos de qualsevol petició (per exemple, les pujades de fitxers des d'una xarxa mòbil lenta). S'ha d'escriure com a límit conegut (DEPLOY) o aplicar-lo només als fluxos.
+- **El ganxo de proves `pauses`** de `BuildSessionService`: un import normal, i els noms dels punts compartits entre el servei i la prova.
+- **La prova dels dos `finish` alhora** només cobreix el camí del muntatge nou (`activate`); falta el del refresc.
+
+**On mirar**: `BuildSessionStreams.java:71,122,233-235`, `BuildSessionsIT.java:646,705-711`, `application.yml:76-80`, `BuildSessionService.java:57,163,188,274`.
+
+---
+
+## INC-64 · Un domini d'administració verificat no serveix l'app d'administració (api i infra, consola)
+
+**Gravetat**: baixa. A R1, cada club té com a molt un host d'administració propi, i el pas manual queda documentat (ronda 2 d'E10-T04).
+
+**Origen**: `roadmap/reviews/E10-T04-20261016-2330-claude.md` (api), troballa #2; verificació de l'organitzador del 16-10 (decisió E123).
+
+**El problema**: en verificar un domini `clubs-admin` a la consola, Caddy n'emet el certificat (`/internal/domains/allowed`), però tria l'SPA amb la llista estàtica `CLUB_ADMIN_HOSTS`: el host nou rep l'app `clubs` fins que algú edita la variable i recrea Caddy (`docs/DEPLOY.md`).
+
+**S'espera**: que l'app d'un domini verificat es triï sola, per exemple amb una pista `app` de `/internal/domains/allowed` o un emparellament dinàmic de hosts.
+
+**On mirar**: `deploy/Caddyfile:87`, `docs/DEPLOY.md:351,408`, `PlatformDomains.java`.
 
 ---
 

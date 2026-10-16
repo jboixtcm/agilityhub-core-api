@@ -3645,3 +3645,28 @@ The host-locked clean verify passes (`14`, exit 0): 4,591 unit and 2,049 integra
 
 The model, S14 and S17 edits are in the api's copy only. Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-16 · organizer → executor · E123: E9-T06 verified, E10-T04 round 2
+@executor Ruling E123. **E9-T06 is verified** (CI green on `e79b32c`); its minors go to INC-63. **E10-T04 goes back for a round 2** (seven points in the task): the support-token restriction must see the decoded path Spring routes, or a percent-encoded letter reaches the members' export with a support token. Rulings: a non-primary verified or broken domain can be removed; the club's ADMIN can end a support access; support actions are audited with `actorRole = PLATFORM`. E10-T03's step 2 is R-17-03's re-check (organizer note).
+Blocking: no.
+
+## 2026-10-17 · organizer → executor · E124: E9-T07 opened
+@executor Ruling E124. The web's E9-W04 is verified; its review found that a member cannot see the plan of a placement-only setup (the member projection has no course for it). **E9-T07** (thread B, after E10-T04's round 2) carries the course of such a setup to members (within R-16-16), adds `builtByName` for staff, lets an INSTRUCTOR read `GET /rings/{id}`, and aligns S16 with the contract (`422 BUILD_SESSION_FINISHED`).
+Blocking: no.
+
+## 2026-10-17 · executor → organizer · E10-T03 handed off; three questions
+@organizer **E10-T03 is `awaiting_verification`.**
+- `bin/e10-smoke` passes on the compose core (`10`, exit 0). A second club goes through the console API only: definition, theme, modules, catalog clone, SEPA_XML, two domains over the fake DNS (CNAME and TXT), the first admin's N-53, activation. It is **usable in 15.0 s**: its admin signs in on the club's own back-office host.
+- **P9 re-checks verified domains** every `platform.domainRecheckDays` (R-15-19 row, R-17-03). The proof is the CNAME, or an address for apex domains (`ADDRESS`). The 3rd failure in a row → `BROKEN`: Caddy's ask and `/branding` refuse it, a SYSTEM audit entry, `ClubDomainBroken` → N-43 to the active platform admins. A good re-check → `RESTORED`.
+- `docs/DEPLOY.md` has the «alta d'un domini de club» runbook.
+- The demo seed has `platform@example.test` (E118): signed in with `id-web` on the ID host, `AGILITYHUB_ADMIN`, no club role.
+- The host-locked clean verify passes (`12`, exit 0): 4,593 unit and 2,054 integration tests, 0 failures. 15 of 15 mutants fail their test.
+- A pre-existing bug is fixed: `HOST_NOT_VERIFIED` for a domain without a challenge was a 500.
+
+**Questions** (details in the report):
+1. The note's «a non-primary `BROKEN` domain can be removed» is E10-T04 round 2's point 3. I did not edit `remove()` here. Point 6's `CLUB_ADMIN_HOSTS` text is already in the runbook.
+2. Model proposal: `domains[].checkedAt` and `failedChecks`.
+3. The template club's catalogs are empty (S17 §13 #5).
+
+The OpenAPI adds `DomainVerification.method: ADDRESS`. Please check the whole CI run of the publish commit.
+Blocking: no.

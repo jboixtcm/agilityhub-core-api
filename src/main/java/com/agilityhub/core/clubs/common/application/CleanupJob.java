@@ -7,6 +7,7 @@ import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
 import com.agilityhub.core.clubs.common.application.ports.OutlivedBuildSessionsPort;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.ParameterCatalog;
+import com.agilityhub.core.platform.application.PlatformDomains;
 import com.agilityhub.core.platform.application.jobs.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -32,21 +33,29 @@ import org.springframework.stereotype.Component;
  * session started `courses.buildSessionMaxHours` or more before the occurrence becomes `ABANDONED` (item `ABANDON_BUILD_SESSION`,
  * `WOULD_ABANDON_BUILD_SESSION` in a dry run, counter `buildSessionsAbandoned`). The one item that is not a `DELETE`: the session
  * is a business document and is kept; it is reached through {@link OutlivedBuildSessionsPort} only.
+ * <p>
+ * Domain re-check (E10-T03, S17 R-17-03 «es reverifica setmanalment (S15 P9)»): the club's `VERIFIED` and `BROKEN` domains whose
+ * last re-check is `platform.domainRecheckDays` (7; 0 = off) or more before the occurrence. The plan asks the DNS (outside any
+ * transaction) and each item settles one domain (`RECHECK_DOMAIN`, `WOULD_RECHECK_DOMAIN` in a dry run, its detail the outcome
+ * and the proof): counters `domainsRechecked`, `domainsBroken` (the third failure in a row; `ClubDomainBroken` → N-43) and
+ * `domainsRestored`. Like the build sessions, nothing is deleted; the item goes through {@link PlatformDomains} only.
  */
 @Component
 public class CleanupJob implements Job {
     static final String DELETE = "DELETE";
     static final String ABANDON = "ABANDON_BUILD_SESSION";
+    static final String RECHECK = "RECHECK_DOMAIN";
     static final int KEEP_RUNS = 5;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(CleanupJob.class);
     /** The `idempotency_records` TTL (`IdempotencyRepository`, 24 h): older records are only waiting for Mongo's TTL monitor. */
     static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
     private final AttachmentStorage uploads; private final ParameterCatalog parameters; private final OutlivedBuildSessionsPort buildSessions;
+    private final PlatformDomains domains;
     public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads, ParameterCatalog parameters,
-            OutlivedBuildSessionsPort buildSessions) {
+            OutlivedBuildSessionsPort buildSessions, PlatformDomains domains) {
         this.cleanup = cleanup; this.exports = exports; this.exportFiles = exportFiles; this.uploads = uploads; this.parameters = parameters;
-        this.buildSessions = buildSessions;
+        this.buildSessions = buildSessions; this.domains = domains;
     }
     /** Platform rows belong to no club, so their retention is the catalog's product value, never a club's (R-15-19). */
     private record PlatformCutoffs(Instant events, Instant runs) { }
@@ -104,6 +113,13 @@ public class CleanupJob implements Job {
             context.parameter("courses.buildSessionMaxHours", Integer.class);
             buildSessions.outlived(now).forEach(id -> items.add(new JobItem("BuildSession", id, ABANDON)));
         }
+        int recheckDays = context.parameter("platform.domainRecheckDays", Integer.class);
+        for (var recheck : domains.recheckPlan(now, recheckDays)) {
+            var detail = new LinkedHashMap<String, Object>(); detail.put("outcome", recheck.outcome()); detail.put("passed", recheck.passed());
+            if (recheck.method() != null) { detail.put("method", recheck.method()); }
+            detail.put("failedChecks", recheck.passed() ? 0 : recheck.failedChecks() + 1);
+            items.add(new JobItem("ClubDomain", recheck.host(), RECHECK, detail));
+        }
         // A dry run only looks (a real run of this occurrence would still get the pass); a real run claims the cycle.
         boolean platformPass = context.dryRun() ? cleanup.platformCycleOpen(now) : cleanup.claimPlatformCycle(club, now, context.runId());
         recorder.count("platformPass", platformPass ? 1 : 0);
@@ -113,6 +129,7 @@ public class CleanupJob implements Job {
             for (String key : List.of("orphanUploadsDeleted", "exportsPurged", "domainEventsDeleted", "stripeEventsDeleted", "jobRunsDeleted",
                     "platformDomainEventsDeleted", "platformJobRunsDeleted")) { recorder.count(key, 0); }
             if (context.config().modules().contains(Module.COURSES)) { recorder.count("buildSessionsAbandoned", 0); }
+            if (recheckDays > 0) { for (String key : List.of("domainsRechecked", "domainsBroken", "domainsRestored")) { recorder.count(key, 0); } }
         }
         return items;
     }
@@ -156,6 +173,13 @@ public class CleanupJob implements Job {
             case "BuildSession" -> {
                 long abandoned = buildSessions.abandon(item.entityId(), context.scheduledFor()) ? 1 : 0;
                 yield new JobEffect(ABANDON, Map.of(), Map.of("buildSessionsAbandoned", abandoned));
+            }
+            case "ClubDomain" -> {
+                String outcome = domains.recheck(item.entityId(), Boolean.TRUE.equals(item.detail().get("passed")), (String) item.detail().get("method"),
+                        context.scheduledFor());
+                var detail = new LinkedHashMap<String, Object>(item.detail()); detail.put("outcome", outcome);
+                yield new JobEffect(RECHECK, detail, Map.of("domainsRechecked", outcome.equals(PlatformDomains.SKIPPED) ? 0L : 1L,
+                        "domainsBroken", outcome.equals(PlatformDomains.BROKEN) ? 1L : 0L, "domainsRestored", outcome.equals(PlatformDomains.RESTORED) ? 1L : 0L));
             }
             case "PlatformJobRuns" -> counted(item, "platformJobRunsDeleted",
                     cleanup.deletePlatformRuns(cleanup.expiredPlatformRuns(item.entityId(), platformCutoffs(context).runs(), KEEP_RUNS)));

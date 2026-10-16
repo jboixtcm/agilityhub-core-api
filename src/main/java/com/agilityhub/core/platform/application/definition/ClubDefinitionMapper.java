@@ -69,7 +69,9 @@ public class ClubDefinitionMapper {
             Instant verified = old.map(Club.Domain::verifiedAt).orElse(status == Club.DomainStatus.VERIFIED ? now : null);
             // S17 R-17-03 (E10-T04): a new pending host gets its TXT challenge; a known one keeps it, so reapplying changes nothing.
             String token = old.isPresent() ? old.get().verificationToken() : status == Club.DomainStatus.PENDING ? DomainChallenge.token() : null;
-            domains.add(new Club.Domain(host, domain.path("app").asText("clubs"), status, verified, domain.path("primary").asBoolean(), token));
+            // E10-T03: the periodic re-check's state (S15 P9) is the process's, never the file's: a re-apply keeps it.
+            domains.add(new Club.Domain(host, domain.path("app").asText("clubs"), status, verified, domain.path("primary").asBoolean(), token,
+                    old.map(Club.Domain::checkedAt).orElse(null), old.map(Club.Domain::failedChecks).orElse(null)));
         }
         var providers = providers(definition, previous);
         Set<Module> modules = new java.util.HashSet<>(); merged.path("modules").forEach(module -> modules.add(Module.valueOf(module.asText())));

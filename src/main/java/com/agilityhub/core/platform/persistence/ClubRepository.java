@@ -126,6 +126,17 @@ public class ClubRepository extends GlobalRepository<Club> {
         if (result == null) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
         return result;
     }
+    /**
+     * E10-T03 (S15 P9): a re-check that changes no status records only when it ran and the failures in a row, on that domain
+     * alone. It does not bump the club's version, so a console form open meanwhile does not go stale; a status change goes
+     * through {@link #updateDomains}.
+     */
+    public boolean recordDomainCheck(String id, String host, java.time.Instant checkedAt, int failedChecks) {
+        var update = new org.springframework.data.mongodb.core.query.Update().set("domains.$.checkedAt", checkedAt).set("domains.$.failedChecks", failedChecks);
+        // By collection name: an update typed with `Club` would increment its `@Version` field.
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("domains.host").is(host)), update, mongo.getCollectionName(Club.class))
+                .getMatchedCount() == 1;
+    }
     /** S17 R-17-11 (E10-T04): the public key's digest, and the replaced one's until the end of its overlap. */
     public Club rotatePublicApiKey(String id, long version, String hash, String previousHash, java.time.Instant previousUntil, java.time.Instant now) {
         var changes = new java.util.LinkedHashMap<String, Object>();

@@ -1,0 +1,59 @@
+01:41:58.237 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 8.0.3.Final
+01:41:58.476 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.476 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.478 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 2 ms
+01:41:58.559 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.560 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.560 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+01:41:58.599 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.599 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.599 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+01:41:58.641 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.641 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.642 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+01:41:58.676 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.676 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.676 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+01:41:58.709 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.709 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.709 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+01:41:58.762 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+01:41:58.762 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+01:41:58.762 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.911 s <<< FAILURE! -- in com.agilityhub.core.configuration.TestDnsProfileGuardTest
+[ERROR] com.agilityhub.core.configuration.TestDnsProfileGuardTest.E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine -- Time elapsed: 0.124 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[local] 
+expected: ["127.0.0.1"]
+ but was: []
+	at com.agilityhub.core.configuration.TestDnsProfileGuardTest.lambda$E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine$1(TestDnsProfileGuardTest.java:57)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.accept(AbstractApplicationContextRunner.java:469)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.consumeAssertableContext(AbstractApplicationContextRunner.java:385)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$0(AbstractApplicationContextRunner.java:363)
+	at org.springframework.boot.test.util.TestPropertyValues.lambda$applyToSystemProperties$1(TestPropertyValues.java:174)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:188)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:173)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$1(AbstractApplicationContextRunner.java:363)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.withContextClassLoader(AbstractApplicationContextRunner.java:391)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.run(AbstractApplicationContextRunner.java:362)
+	at com.agilityhub.core.configuration.TestDnsProfileGuardTest.E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine(TestDnsProfileGuardTest.java:47)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   TestDnsProfileGuardTest.E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine:47->lambda$E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine$1:57 [local] 
+expected: ["127.0.0.1"]
+ but was: []
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

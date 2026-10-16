@@ -158,7 +158,9 @@ public class PlatformClubsController {
             + "challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and "
             + "GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED "
             + "{host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, "
-            + "so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. The DNS lookup runs before the write's transaction.",
+            + "so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) "
+            + "also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). "
+            + "The DNS lookup runs before the write's transaction.",
             responses=@ApiResponse(responseCode="200", description="DomainVerification", useReturnTypeSchema=true))
     public DomainVerification verifyPlatformDomain(@PathVariable String id,
             @PathVariable String host,

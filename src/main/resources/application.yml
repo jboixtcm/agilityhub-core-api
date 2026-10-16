@@ -205,6 +205,13 @@ springdoc:
   api-docs:
     enabled: true
 
+# E10-T03: the fake resolver of a local stack points every host at the machine, so S15 P9's domain re-check keeps the
+# seeded clubs' hosts verified; `POST /api/v1/test/dns` publishes or removes records (tests keep no default).
+core:
+  platform:
+    fake-dns:
+      default-addresses: 127.0.0.1
+
 ---
 spring:
   config:

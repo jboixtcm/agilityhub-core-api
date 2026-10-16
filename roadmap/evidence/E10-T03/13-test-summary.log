@@ -1,0 +1,9 @@
+Command: ./mvnw -q clean verify (under heavy.sh), exit 0; totals read from target/*-reports/TEST-*.xml
+surefire (unit): tests=4593 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.TestDnsProfileGuardTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=3 failures=0 errors=0 skipped=0
+failsafe (integration): tests=2054 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.application.DemoPlatformAccountsSeedIT: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.DomainRecheckIT: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.PlatformDomainsIT: tests=5 failures=0 errors=0 skipped=0

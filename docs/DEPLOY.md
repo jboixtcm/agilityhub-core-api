@@ -340,22 +340,77 @@ Twilio recipients, VAPID delivery, SendGrid webhook signatures, E8 Stripe keys
 and per-club webhook endpoints, bank settings/legal approval, and a real recovery
 rehearsal on the droplet. This local task neither accesses nor deploys production.
 
-**«Alta d'un domini de club» (E10-T03)** waits for E10-T02's
-`GET /internal/domains/allowed?host=`. Caddy's on-demand TLS uses a private ask
-bridge that translates its native `domain` query to `host` and forwards to
-`http://core:8080/internal/domains/allowed`. Only a successful backend approval
-allows issuance; the absent route currently fails closed. The bridge binds to
-loopback inside Caddy and the core public host refuses `/internal/*`.
-Register/verify ownership and the club's role-specific hosts and OIDC callbacks
-before pointing CNAME records here. Add verified **admin** aliases to the
-space-separated `CLUB_ADMIN_HOSTS` and recreate Caddy; other approved aliases
-serve the member SPA. Check branding, SPA selection, HTTPS, cookie refresh and
-revocation after each change. Do not enable an unconditional `ask` responder. Production fixes
-`CADDY_ASK_UPSTREAM=core:8080`. Only the local override uses `ask-stub:8080`, which
-approves exactly `approved.localhost` and records its received query. The smoke
-obtains a trusted certificate for that host, checks `host=approved.localhost`
-arrived at the stub, and confirms another hostname is denied.
-See [Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls).
+### «Alta d'un domini de club» (S17 WP-17-D, R-17-02/R-17-03; E10-T03)
+
+A club's own host (for example `app.agilitycanic.cat` for the members' app and `admin.agilitycanic.cat` for its back office)
+is served by the same Caddy and Core as the product hosts. Caddy gets its certificate **on demand**, and only for a
+host the Core says is a `VERIFIED` club domain. Nobody edits the Caddyfile per club. The only per-club deploy setting is
+the back-office aliases in `CLUB_ADMIN_HOSTS` (step 5).
+
+**How the pieces fit.** The `https://` catch-all site of `deploy/Caddyfile` has `tls { on_demand }`. On the first TLS
+handshake for an unknown host, Caddy asks its private bridge `http://127.0.0.1:9080/ask?domain=<host>`. The bridge
+rewrites that to `GET /internal/domains/allowed?host=<host>` and forwards it to `CADDY_ASK_UPSTREAM` (always
+`core:8080` in production). The Core answers `200` only when the host is a `VERIFIED` domain of a club, else `404`. Caddy
+issues a certificate only on `200`. `/internal/*` answers only loopback/private-network callers without forwarding
+headers, and the public `CORE_HOST` site refuses `/internal/*` and `/actuator/*` itself (`respond 404`). Never add an
+unconditional `ask` responder. Only the local override uses `ask-stub:8080`, which approves exactly
+`approved.localhost`; `bin/deploy-smoke` checks that it issues a certificate for that host and refuses another
+([Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls)).
+
+**Steps (the AgilityHub team, from the console D19 «Dominis» tab or the API with an `AGILITYHUB_ADMIN` token):**
+
+1. **Add the domain**: `POST /api/v1/platform/clubs/{id}/domains {host, app: clubs | clubs-admin}` → `201 PENDING`, with its
+   instructions in `verification`. The host must be new on the platform (`409 HOST_ALREADY_USED`). The product prefixes
+   `clubs.`, `clubsadmin.`, `id.` and `core.` are refused (`422 HOST_RESERVED`).
+2. **The club creates one DNS record** at its DNS provider, either of:
+   - a **CNAME** `host → verification.cnameTarget`, the product host of the domain's app (`CLUBS_HOST` for `clubs`,
+     `ADMIN_HOST` for `clubs-admin`; `clubs.agilitydoghub.com` / `clubsadmin.agilitydoghub.com`). This is the usual record
+     for a subdomain, and it keeps working when the droplet's address changes.
+   - the **TXT** challenge `verification.recordName` (`_agilityhub-verify.{host}`) = `verification.recordValue`
+     (`agh-verify-{token}`), for an apex domain, which cannot have a CNAME. The host itself then needs `A`/`AAAA`
+     records with the addresses of the product host. The challenge is not a secret: it is published in DNS.
+3. **Verify**: `POST …/domains/{host}/verification` (with an `Idempotency-Key`). The Core asks the DNS (`JndiDomainDns`,
+   the host's resolvers, 2 s timeout, one retry; the `core` container needs outbound DNS). No record yet →
+   `422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue}`: nothing changed, and the same request can be
+   retried once the record has propagated. Found → `200 {status: VERIFIED, method: CNAME | TXT}`. The challenge is
+   removed, and the first verified domain of its app becomes that app's **primary** domain, the one links and e-mails use
+   (`PUT …/domains/{host}/primary` moves it to another verified one). The host cache is evicted after the commit, so
+   `GET /branding` with that `Host` and Caddy's ask answer `200` at once.
+4. **First request over HTTPS**: open `https://{host}/`. The first handshake takes a few seconds while Caddy obtains the
+   certificate. Then check that `GET https://{host}/api/v1/branding` shows the club, its theme and its modules.
+5. **Back-office aliases only** (`app: clubs-admin`): add the host to the space-separated `CLUB_ADMIN_HOSTS` in the
+   populated env file and recreate Caddy (`docker compose --env-file … -f deploy/compose.prod.yaml up -d caddy`). Without
+   it, Caddy serves that host the members' SPA. Members' aliases need nothing more.
+6. **Sign-in on the club's host**: a club's apps sign in on their own host with the club-scoped grants (password, magic
+   link, handoff). The tenant comes from the `Host`, so test a login, a token refresh (the refresh cookie is host-only)
+   and a logout there. The OIDC code flow of `clubs-app`/`clubs-admin` is registered for one redirect URI each
+   (`OIDC_CLUBS_APP_REDIRECT_URI`, `OIDC_CLUBS_ADMIN_REDIRECT_URI`) and takes its club from that URI's host. A club alias
+   does not get its own code-flow callback today; ask the organizer before registering one.
+7. Only a `PENDING` domain can be removed (`DELETE …/domains/{host}`, S17 §5). A verified one keeps serving its club.
+
+**Weekly re-check and `BROKEN` (S15 P9, R-17-03).** Every club's daily P9 `cleanup` re-checks the club's verified
+domains whose last check is `platform.domainRecheckDays` (7; `0` turns it off for that club) or more days old. A domain
+passes when its CNAME is still its app's product host or, for an apex domain, when it shares an address with that host.
+The run's trace lists each domain (`ClubDomain`, `RECHECK_DOMAIN`, outcome `CONFIRMED`, `FAILED`, `BROKEN` or `RESTORED`),
+with the counters `domainsRechecked`, `domainsBroken` and `domainsRestored`. On the **third failure in a row** the domain
+becomes `BROKEN`:
+
+- Caddy's ask refuses it, so no new certificate and no renewal.
+- `GET /branding` and every request with that `Host` answer `404 UNKNOWN_HOST`.
+- Links and the sender address use only `VERIFIED` domains (`ClubAppUrls`, `ClubEmailSettings`). Another verified
+  domain of the same app takes over. With none, e-mails go out from the platform address and the club's links have no
+  host until the domain is back.
+- The change is audited `CLUB_DOMAIN_CHANGED` by the system (`details.job = cleanup`).
+- `ClubDomainBroken` sends **N-43** «Domini del club trencat» by e-mail to every active `AGILITYHUB_ADMIN`.
+
+What to do on an N-43: ask the club to restore the record from step 2. The next re-check restores the domain to
+`VERIFIED` (`ClubDomainVerified`, audited), or the console's [Verifica] does it at once. A `BROKEN` apex domain also
+passes [Verifica] with its addresses (`method: ADDRESS`), because its TXT challenge is gone. Then repeat step 4.
+
+**Local rehearsal.** `bin/e10-smoke` (through `heavy.sh`) runs all of this on a disposable stack, with the fake resolver of
+the `local` profile (`POST /api/v1/test/dns` publishes the records; it exists only under `local`/`test`): a second club
+through the console, a CNAME and a TXT verification, then the re-check with the test clock moved a week at a time,
+through `BROKEN`, N-43 and `RESTORED`.
 
 ### Environment inventory (source, purpose and rotation)
 

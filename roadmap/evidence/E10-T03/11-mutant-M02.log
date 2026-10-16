@@ -1,0 +1,77 @@
+01:35:34.935 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.DomainRecheckIT]: DomainRecheckIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:35:35.144 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.DomainRecheckIT
+01:35:35.230 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:35:35.232 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:35:35.237 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+01:35:35.366 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:35:35.552 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:35:35.553 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:35:35.569 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+01:35:36.152 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+01:35:36.227 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+01:35:36.355 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: c991330823d6db8d73abb5572584933a47ce36d1679072665bef09302bb1e286
+01:35:36.846 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.693832S
+01:35:36.851 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:35:36.851 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:35:36.852 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:35:36.852 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+01:35:36.941 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 23d3cb4a182a4ddd0e89a1e589495caf30e5f7b487a591faf023a1b04ad62adf
+01:35:37.722 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.870019S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T01:35:38.853+03:00 INFO  [main] c.a.core.platform.api.DomainRecheckIT traceId= clubId= accountId= : Starting DomainRecheckIT using Java [redacted] with PID 82647 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-17T01:35:38.855+03:00 INFO  [main] c.a.core.platform.api.DomainRecheckIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T01:35:40.710+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T01:35:40.790+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 74 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T01:35:41.431+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6dd7af2f], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5e8bc83e, com.mongodb.Jep395RecordCodecProvider@6c75c5e8, com.mongodb.KotlinCodecProvider@69374e28]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:63140], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@39c93af6], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T01:35:41.438+03:00 INFO  [cluster-ClusterId{value='6ad2a6bde516ab4fc0d0f794', description='null'}-localhost:63140] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:63140, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=14107959, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=23d3cb4a182a:27017, hosts=[23d3cb4a182a:27017], passives=[], arbiters=[], primary='23d3cb4a182a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2a6b901ad93b8c25ebfd1, counter=6}, lastWriteDate=Sat Oct 17 01:35:38 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T01:35:47.009+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T01:35:47.010+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T01:35:47.010+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-17T01:35:47.062+03:00 INFO  [main] c.a.core.platform.api.DomainRecheckIT traceId= clubId= accountId= : Started DomainRecheckIT in 8.454 seconds (process running for 12.658)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 13.90 s <<< FAILURE! -- in com.agilityhub.core.platform.api.DomainRecheckIT
+[ERROR] com.agilityhub.core.platform.api.DomainRecheckIT.T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain -- Time elapsed: 1.108 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [Item[entityType=ClubDomain, entityId=target.example.test, action=RECHECK_DOMAIN, detail=[Entry[key=passed, value=true], Entry[key=method, value=CNAME], Entry[key=outcome, value=CONFIRMED], Entry[key=failedChecks, value=0]]]]
+	at com.agilityhub.core.platform.api.DomainRecheckIT.T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain(DomainRecheckIT.java:110)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   DomainRecheckIT.T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain:110 
+Expecting empty but was: [Item[entityType=ClubDomain, entityId=target.example.test, action=RECHECK_DOMAIN, detail=[Entry[key=passed, value=true], Entry[key=method, value=CNAME], Entry[key=outcome, value=CONFIRMED], Entry[key=failedChecks, value=0]]]]
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

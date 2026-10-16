@@ -46,7 +46,7 @@ public class TenantFilter extends OncePerRequestFilter {
             global = global || path.equals("/.well-known/openid-configuration") || path.equals("/oauth2/authorize")
                     || path.equals("/connect/logout") || path.equals("/oauth2/session") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
                     || path.matches("/api/v1/public/[^/]+/(plans|theme/[^/]+|pages/[^/]+|activities(?:/[^/]+(?:/files/[^/]+)?)?)")
-                    || path.equals("/api/v1/test/clock")
+                    || path.equals("/api/v1/test/clock") || path.equals("/api/v1/test/dns")
                     // S12 R-12-21 (E8-T01): the Stripe webhook names its club in the path and opens it itself, never from a host or a bearer.
                     || path.startsWith("/webhooks/stripe/")
                     // E5-T24: a signed local file URL takes its club from the signed file, never from the host or a bearer;

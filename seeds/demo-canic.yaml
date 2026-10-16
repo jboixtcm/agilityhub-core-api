@@ -404,3 +404,9 @@ courses:
     - {ring: Carretera, kind: AGILITY, placement: agility-carretera, levels: [A, B], expectedInDays: 3, notes: "Balancí revisat (nota fictícia)."}
     - {ring: Muntanya, kind: FUN, course: tunnels, agilityhubLevel: EASY, notes: "Túnels per escalfar (nota fictícia)."}
   buildSession: {placement: jumping-central}
+
+# E10-T03 (organizer note E118, web E10-W01 question 3): the AgilityHub team's fictional platform account, with
+# `platformRoles: [AGILITYHUB_ADMIN]` and no club role, for the console's entry on a product host (S17 §2). Insert-only.
+platform:
+  accounts:
+    - {email: platform@example.test, name: Pat Plataforma Example, locale: ca, password: "${SEED_PASSWORD}"}

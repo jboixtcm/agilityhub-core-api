@@ -22,7 +22,8 @@ public final class PlatformClubContracts {
     public enum Provider { SEPA_XML, STRIPE, MANUAL }
     public enum StripeMode { @com.fasterxml.jackson.annotation.JsonProperty("test") TEST, @com.fasterxml.jackson.annotation.JsonProperty("live") LIVE }
     public enum CatalogPart { LEVELS, RINGS, PLANS, FAQ, MESSAGE_TEMPLATES }
-    public enum VerificationMethod { CNAME, TXT }
+    @Schema(description="How the domain was found: CNAME to cnameTarget, the TXT challenge, or ADDRESS (E10-T03: a BROKEN domain, verified once and without a challenge left, that shares an address with cnameTarget, as S15 P9's re-check of an apex domain).")
+    public enum VerificationMethod { CNAME, TXT, ADDRESS }
     @Schema(description="S17 §2 DNS instructions (R-17-03): a CNAME from the host to cnameTarget, or the TXT record recordName = recordValue (_agilityhub-verify.{host} = agh-verify-{token}). The token is generated when the domain is added, stays stable while it is PENDING and is removed once it is VERIFIED.")
     public record DomainVerificationChallenge(String recordName, String recordValue,
             @Schema(description="The product host of the domain's app the CNAME points to: clubs.agilitydoghub.com for clubs, clubsadmin.agilitydoghub.com for clubs-admin (deployment hosts).") String cnameTarget) { }

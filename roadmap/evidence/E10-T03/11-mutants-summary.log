@@ -1,0 +1,15 @@
+M01 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: R-17-03: three failures make it BROKEN
+M02 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: P9: only due domains (platform.domainRecheckDays)
+M03 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: P9: a plain check bumps no club version
+M04 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: P9: days = 0 turns the re-check off
+M05 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: P9: an apex domain passes with its addresses
+M06 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: console: a BROKEN apex domain re-verifies by ADDRESS
+M07 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: N-43: active platform admins only
+M08 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: N-43: a redelivery sends nothing twice
+M09 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: club:apply keeps the re-check state
+M10 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: HOST_NOT_VERIFIED's null details are not a 500
+M11 exit=1 [ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0 :: E118: the demo account gets AGILITYHUB_ADMIN
+M12 exit=1 [ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0 :: local: unpublished hosts resolve to the default addresses
+M13 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: BROKEN publishes ClubUpdated (the host cache follows)
+M14 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: P9 applies the plan's DNS answer
+M15 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: a re-check failure is audited only on BROKEN

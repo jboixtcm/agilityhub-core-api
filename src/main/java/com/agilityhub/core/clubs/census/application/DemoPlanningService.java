@@ -21,9 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DemoPlanningService {
     /**
      * The seed file's sections the steps read; `messaging` (E7-T04) holds the S11 preference profiles and `CUSTOM` templates, `courses`
-     * (E9-T05) S16's library, geometries, placements, setups and build session.
+     * (E9-T05) S16's library, geometries, placements, setups and build session, `platform` (E10-T03) the AgilityHub team's
+     * fictional platform accounts.
      */
-    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities", "scenario", "messaging", "billing", "courses");
+    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities", "scenario", "messaging", "billing", "courses", "platform");
     public record Result(String id, int changes, Map<String, Integer> counts, LocalDate weekStart) {
         public String render() { return counts + "\n" + changes + " changes (demo planning, week start " + weekStart + ")"; }
     }

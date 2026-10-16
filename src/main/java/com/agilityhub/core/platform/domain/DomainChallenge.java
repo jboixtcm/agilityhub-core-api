@@ -35,6 +35,14 @@ public final class DomainChallenge {
         String expected = recordValue(token);
         return values.stream().map(value -> value.strip().replace("\"", "")).anyMatch(expected::equals);
     }
+    /**
+     * The re-check of a domain verified earlier (E10-T03, S15 P9): the host still reaches the product host of its app when it
+     * shares one of its addresses (an apex domain has no CNAME, and its TXT challenge was removed when it was verified).
+     */
+    public static boolean addressesMatch(Collection<String> host, Collection<String> productHost) {
+        return host.stream().map(value -> value.strip().toLowerCase(Locale.ROOT)).filter(value -> !value.isEmpty())
+                .anyMatch(value -> productHost.stream().map(other -> other.strip().toLowerCase(Locale.ROOT)).anyMatch(value::equals));
+    }
     /** R-17-02: the product hosts (`clubs.*`, `clubsadmin.*`, `id.*`, `core.*`) are never a club's. */
     public static boolean reserved(String host) {
         return host.toLowerCase(Locale.ROOT).matches("^(clubs|clubsadmin|id|core)\\..*");

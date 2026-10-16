@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E10-T03: E10 integration.
+  - S15 P9 re-checks the club's verified domains every `platform.domainRecheckDays` (7; 0 turns it off). The proof is the CNAME, or for an apex domain an address it shares with its app's product host (`DomainDns.addresses`). The run traces each domain (`RECHECK_DOMAIN`; counters `domainsRechecked`, `domainsBroken`, `domainsRestored`). The third failure in a row makes a domain `BROKEN`: Caddy's ask and `/branding` refuse it at once, it is audited `CLUB_DOMAIN_CHANGED` by the system, and `ClubDomainBroken` sends N-43 to every active platform admin. A good re-check restores it (`ClubDomainVerified`). The console re-verifies a `BROKEN` domain with the same address proof (`method: ADDRESS`). The model gains `domains[].checkedAt` and `failedChecks`; a re-apply keeps them.
+  - `HOST_NOT_VERIFIED` for a domain without a challenge answers its documented `null` TXT pair. Before, `ApiException` refused null details and it was a `500`.
+  - `seed:demo` gives the Cànic's stack the fictional platform account `platform@example.test` (`AGILITYHUB_ADMIN`, no club role; organizer note E118). A second run changes nothing.
+  - Local stacks: `POST /api/v1/test/dns` publishes records in the fake resolver, under the test clock's guard. Hosts with no published address resolve to `127.0.0.1` in the `local` profile, so the re-check keeps seeded hosts verified. The image ships `seeds/club-template-default.yaml`.
+  - `bin/e10-smoke`: a second club through the console API (definition, theme, modules, catalog clone, SEPA_XML, two domains over the fake DNS, the first admin's invitation, activation). It is usable, and timed, when the invited admin signs in on the club's own back-office host. Then P9's re-check runs through `BROKEN`, N-43 and `RESTORED`.
+  - `docs/DEPLOY.md`: the runbook «alta d'un domini de club» (Caddy's on-demand TLS with `ask`, the DNS records, `CLUB_ADMIN_HOSTS`, the weekly re-check and what to do on an N-43).
+
 - E10-T04: the rest of S17's platform API (E114) and INC-49.
   - Club domains (R-17-02/R-17-03): add (`PENDING` with its TXT challenge, `domains[].verificationToken` in the model), verify by a CNAME to the app's product host or the TXT record, make primary, remove while pending. The DNS lookup sits behind the `DomainDns` port (JNDI in staging/prod, a fake in local/test) and runs before the write's transaction. Audited `CLUB_DOMAIN_CHANGED`; `ClubDomainVerified` and `ClubUpdated` (the host cache is evicted after the commit).
   - `GET /internal/domains/allowed` answers Caddy's on-demand TLS `ask`: `200` only for a verified club domain, from the internal network only.
