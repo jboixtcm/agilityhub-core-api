@@ -241,6 +241,42 @@ class E9ResponseContractTest {
         assertThat(strings(schemas.at("/BuildSession/required"))).doesNotContain("progressJson");
     }
 
+    /**
+     * E9-T07 steps 1 and 2 (E9-W04 questions 1 and 2; S16 §2, R-16-16): the staff's setup names who built it (`builtByName`); the
+     * member's never does, and carries, for a setup with a placement, where it stands on the ring (`placement`: the transform, the
+     * resolved obstacles and the ring's size), so the members' viewer draws its course in the ring's frame.
+     */
+    @Test void T_16_09_T_16_16_theStaffSetupNamesItsBuilderAndTheMemberSetupCarriesItsPlacement() throws Exception {
+        assertThat(components(CourseContracts.RingSetup.class)).contains("builtByAccountId", "builtByName");
+        assertThat(components(CourseContracts.MemberRingSetup.class)).contains("courseId", "placement").doesNotContain("builtByName");
+        var schemas=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");
+        assertThat(strings(schemas.at("/RingSetup/properties/builtByName/type"))).containsExactly("string", "null");
+        assertThat(strings(schemas.at("/RingSetup/required"))).doesNotContain("builtByName");
+        assertThat(schemas.at("/MemberRingSetup/properties").has("builtByName")).isFalse();
+        assertThat(schemas.at("/MemberRingSetup/properties/placement/anyOf/0/$ref").asText()).isEqualTo("#/components/schemas/MemberSetupPlacement");
+        assertThat(schemas.at("/MemberSetupPlacement/properties").fieldNames()).toIterable()
+                .containsExactlyInAnyOrder("transform", "resolvedObstacles", "ringLengthM", "ringWidthM");
+        assertThat(strings(schemas.at("/MemberSetupPlacement/required"))).containsExactlyInAnyOrder("transform", "resolvedObstacles");
+    }
+    /**
+     * E9-T07 step 4 (E109; E9-W04 question 4 and review #9): S16 follows the contract. §2's build session lists the obstacle statuses
+     * the api serves, and §6 and T-16-10 answer a closed session with `422 BUILD_SESSION_FINISHED`, the catalog's status.
+     */
+    @Test void T_16_10_theSpecNamesTheContractsObstacleStatusesAndFinishedError() throws Exception {
+        var spec=Files.readString(Path.of("docs/specs/S16-recorreguts-rings-i-muntatge.md"));
+        assertThat(ErrorCode.BUILD_SESSION_FINISHED.httpStatus()).isEqualTo(422);
+        assertThat(spec).doesNotContain("409 BUILD_SESSION_FINISHED").doesNotContain("PENDING · PLACED · VERIFIED").doesNotContain("pendent · col·locat · verificat");
+        var lines=spec.lines().toList();
+        String api=lines.stream().filter(l->l.contains("POST `/build-sessions/{id}/finish`")).findFirst().orElseThrow();
+        String test=lines.stream().filter(l->l.startsWith("- T-16-10 ")).findFirst().orElseThrow();
+        String screen=lines.stream().filter(l->l.startsWith("| **Sessió de muntatge**")).findFirst().orElseThrow();
+        assertThat(api).contains("422 BUILD_SESSION_FINISHED");
+        assertThat(test).contains("422 BUILD_SESSION_FINISHED");
+        for(var status:ObstacleStatus.values()) { assertThat(screen).contains("`"+status.name()+"`"); }
+    }
+    static List<String> components(Class<?> record) {
+        return Arrays.stream(record.getRecordComponents()).map(java.lang.reflect.RecordComponent::getName).toList();
+    }
     @Test void T_16_06_T_16_09_geometryAndHiddenSetupSemanticsStayInThePublishedContract() throws Exception {
         var api=mapper.readTree(Path.of("docs/openapi/openapi.json").toFile());
         for(String field:List.of("lengthM","widthM")) {

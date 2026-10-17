@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - A re-check's status change that meets a concurrent club write fails its item with `STALE_VERSION`: the run is `PARTIAL` and the domain stays due (tested).
   - `docs/DEPLOY.md`: verify the trusted domains, or set `platform.domainRecheckDays: 0`, until the DNS points at the droplet; what `SKIPPED` means. `POST /api/v1/test/dns` takes `failing: true`, and `bin/e10-smoke` adds a week with no DNS answer (both domains `SKIPPED`).
 
+- E9-T07: ring-setup reads for the members' app (E9-W04's review, ruling E124).
+  - R-16-16: a member's `GET /ring-setups/{id}` names the course a placement-only setup shows (`courseId`, the placement's), as every build session's `finish` registers it, and where the placement stands on the ring (`placement`: transform, resolved obstacles, the ring's size). Before, `courseId` was `null` and the members' viewer had nothing to draw. Still only through an `ACTIVE` setup while `courses.showSetupToMembers`.
+  - S16 §2: the staff's setup views carry `builtByName` («muntat … per {instructor}»), the builder's account name in the club; the member's view does not.
+  - `GET /rings/{id}`: an INSTRUCTOR reads it (reader projection); writes stay ADMIN. `CatalogsIT.T_05_19` now expects this.
+  - S16 (the api's copy, E109) follows the contract: the five obstacle statuses of a build session, and `422 BUILD_SESSION_FINISHED` (R-16-11, §6, T-16-10); §6 lists `GET /rings/{id}` for INSTRUCTOR.
+
 - E10-T04 round 2 (ruling E123):
   - R-17-10: a support token's restricted routes are matched on the decoded path Spring routes, and their handlers refuse it too (`@SupportRestricted`, 23 handlers, with a test that every restricted route carries it). Before, `GET /members/%65xport` handed the members' export to a support token.
   - R-17-10: the club's ADMIN ends a live support access (`DELETE /support-accesses/{id}`; audited `SUPPORT_ACCESS_ENDED`, also in the platform audit; `SupportAccessEnded`). Actions taken with a support token are audited `actorRole = PLATFORM`.

@@ -1,0 +1,22 @@
+Read right after `./mvnw -q clean verify -Dmaven.test.failure.ignore=true` on the native Mongo 7.0.34 replica set (12, exit 0), from target/surefire-reports and target/failsafe-reports.
+surefire: 422 classes; tests=4693, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=15, failures=0, errors=0, skipped=0
+failsafe: 155 classes; tests=2056, failures=1, errors=5, skipped=0
+  BuildSessionsIT: tests=17, failures=0, errors=0, skipped=0
+  CatalogsIT: tests=20, failures=0, errors=0, skipped=0
+  CourseLibraryIT: tests=14, failures=0, errors=0, skipped=0
+  DemoCoursesSeedIT: tests=1, failures=0, errors=0, skipped=0
+  E2ContractIT: tests=14, failures=0, errors=0, skipped=0
+  E9ContractIT: tests=65, failures=0, errors=0, skipped=0
+  OpenApiSnapshotTest: tests=11, failures=0, errors=0, skipped=0
+  PlacementsIT: tests=6, failures=0, errors=0, skipped=0
+  RingGeometryIT: tests=6, failures=0, errors=0, skipped=0
+  RingSetupsIT: tests=17, failures=0, errors=0, skipped=0
+  SecurityInventoryIT: tests=2, failures=0, errors=0, skipped=0
+  FAILED SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce [error]
+  FAILED E9PersistenceIT.E9_T01_indexesMatchEveryDeclaredQueryAndMongoshListsAllSevenCollections [error]
+  FAILED ClubDefinitionsIT.T_17_01_cliExportsYamlAndExitsWithoutOpeningTheConfiguredHttpPort(Path) [error]
+  FAILED JobFrameworkTwoInstancesIT.T_15_31_twoInstancesKeepOneTickPerMinuteAndOneExecutionPerOccurrence [error]
+  FAILED HealthIndependenceIT. [error]
+  FAILED IntegrationTestSupportIT.E0_T02_sharedMongoRemainsPrimaryAcrossTestClasses [failure]

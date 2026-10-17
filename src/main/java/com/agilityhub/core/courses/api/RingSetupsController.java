@@ -50,13 +50,16 @@ public class RingSetupsController {
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
     @Operation(summary = "getRingSetup", description = "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. R-16-09: INSTRUCTOR and ADMIN read any setup of the "
-            + "club (view STAFF); a MEMBER (impersonation included) reads only an ACTIVE one while courses.showSetupToMembers (else NOT_FOUND), without "
-            + "builtByAccountId, dismantledByAccountId or notes (view MEMBER). imageUrl is a short-lived signed URL of imageFileKey.",
+            + "club (view STAFF, with builtByName: who built it, S16 §2); a MEMBER (impersonation included) reads only an ACTIVE one while "
+            + "courses.showSetupToMembers (else NOT_FOUND), without builtByAccountId, builtByName, dismantledByAccountId or notes (view MEMBER). The MEMBER "
+            + "view's courseId is the course the setup shows (its own, else its placement's), which R-16-16 lets the member read with GET /courses/{id}, and "
+            + "its placement is where that placement stands on the ring (transform, resolvedObstacles, the ring's size) (E9-T07). imageUrl is a "
+            + "short-lived signed URL of imageFileKey.",
             responses = @ApiResponse(responseCode = "200", description = "S16 setup projected by view: STAFF or MEMBER",
                     content = @Content(schema = @Schema(oneOf = {RingSetup.class, MemberRingSetup.class}))))
     public Object getRingSetup(@PathVariable String id) {
         var setup = setups.get(id);
-        return CourseAccess.staff() ? CourseViews.setup(setup) : CourseViews.memberSetup(setup);
+        return CourseAccess.staff() ? CourseViews.setup(setup) : CourseViews.memberSetup(setup, setups.shown(setup.setup()));
     }
 
     @PostMapping(value = "/api/v1/ring-setups/{id}/dismantle")

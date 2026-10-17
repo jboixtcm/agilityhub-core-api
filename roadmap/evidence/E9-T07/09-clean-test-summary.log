@@ -1,0 +1,5 @@
+Read right after `./mvnw -q clean test` (08, exit 0), from target/surefire-reports.
+surefire: 422 classes; tests=4693, failures=0, errors=0, skipped=0
+  ArchitectureTest: tests=22, failures=0, errors=0, skipped=0
+  E9ResponseContractTest: tests=15, failures=0, errors=0, skipped=0
+failsafe: 0 classes; tests=0, failures=0, errors=0, skipped=0

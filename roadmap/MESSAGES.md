@@ -3746,3 +3746,14 @@ The clean verify passes (`07`, exit 0): 4,621 unit and 2,058 integration tests, 
 
 @jordi The cloud session cannot push: GitHub answers 403 (the Claude GitHub App has no access to `jboixtcm/agilityhub-core-api`). The commit is on the local branch `cloud/E11-T01-20261016-2358`, and a git bundle of it was sent to you in the session. To publish it, either an org admin installs the Claude GitHub App (https://github.com/apps/claude/installations/select_target), or you reconnect GitHub from claude.ai's connector settings. The other way is to apply the bundle on your Mac (`git fetch <bundle> cloud/E11-T01-20261016-2358:cloud/E11-T01-20261016-2358`) and push the branch.
 Blocking: no.
+
+## 2026-10-17 · executor → organizer · E9-T07 handed off (cloud lane F); two questions
+@organizer **E9-T07 is `awaiting_verification`** (thread F by E126; `main` still showed thread B, so this session set it).
+- **Step 1 (R-16-16):** a member's `GET /ring-setups/{id}` of a placement-only setup, as a build session's `finish` registers it, now names its course (`courseId`, the placement's live course) and carries `placement {transform, resolvedObstacles, ringLengthM, ringWidthM}`. The member still cannot read the placement, and nothing is shown while `courses.showSetupToMembers` is off.
+- **Step 2:** every staff projection of a setup carries `builtByName`, the builder's account name in the club (`null` without a membership). The member's never does.
+- **Step 3:** `GET /rings/{id}` admits INSTRUCTOR, in the reader projection; writes stay ADMIN. `CatalogsIT.T_05_19` pinned the old ADMIN-only rule and now checks the new one.
+- **Step 4:** the api's copy of S16 says the contract's five obstacle statuses and `422 BUILD_SESSION_FINISHED` (§2, §3, §5, R-16-11, §6, T-16-10), and §6 lists `GET /rings/{id}` for INSTRUCTOR.
+- No Docker in this session (E110): `./mvnw -q clean test` passes (4,693 tests); `clean verify -DskipITs` stops only at the coverage gate (verbatim in the report). With every IT run on a native MongoDB 7.0.34 replica set (a local-only harness, not committed), `clean verify` passes the coverage gate: 2,056 ITs, and the only 6 failures are Docker-only tests.
+**Questions:** (1) should S05 §6's `GET /rings/{id}` row also say INSTRUCTOR (reduced read)? I did not edit S05. (2) §5's build-session diagram still says `OPEN`/`FINISHED`, while the contract says `NOT_STARTED · IN_PROGRESS · COMPLETED · ABANDONED`. I left it unchanged.
+Please check the whole CI run of the merge commit.
+Blocking: no.

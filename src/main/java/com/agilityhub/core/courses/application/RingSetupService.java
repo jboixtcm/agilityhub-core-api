@@ -3,9 +3,12 @@ package com.agilityhub.core.courses.application;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.courses.domain.AgilityHubLevel;
 import com.agilityhub.core.courses.domain.CourseEvent;
+import com.agilityhub.core.courses.domain.CourseParts.PlacementTransform;
+import com.agilityhub.core.courses.domain.CourseParts.ResolvedObstacle;
 import com.agilityhub.core.courses.domain.CourseTypes.*;
 import com.agilityhub.core.courses.domain.RingSetupRules;
 import com.agilityhub.core.courses.persistence.*;
+import com.agilityhub.core.identity.application.CensusIdentityService;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.platform.application.audit.AuditCommand;
@@ -28,14 +31,22 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * ring's active one and points `Ring.activeSetupId` to the new one in the same transaction (the partial unique index
  * `active_setup` is the guard: a concurrent registration of the ring is `409 STALE_VERSION`), publishes
  * `RingSetupChanged{ACTIVE, replacedSetupId}` and writes `RING_SETUP_REGISTERED`. Ending one (dismantled, expired, its ring
- * deactivated) clears the pointer when it still names it and publishes `RingSetupChanged` with the new status.
+ * deactivated) clears the pointer when it still names it and publishes `RingSetupChanged` with the new status. E9-T07: the staff's
+ * views name who built a setup (S16 §2), and a member's read carries what the setup shows (R-16-16).
  */
 @Service
 public class RingSetupService {
     public record SetupInput(String ringId, SetupKind kind, String placementId, String courseId, String imageFileKey, AgilityHubLevel agilityhubLevel,
             List<String> levelIds, LocalDate expectedUntil, String notes) { }
-    /** A setup with its signed image URL. */
-    public record SetupView(RingSetup setup, String imageUrl) { }
+    /** A setup with its signed image URL and, for staff only, the name of who built it (S16 §2, E9-T07; null without one). */
+    public record SetupView(RingSetup setup, String imageUrl, String builtByName) { }
+    /**
+     * E9-T07 (R-16-16): what a member's viewer draws of a setup — the live course it shows (its own, else its placement's) and, with
+     * a placement, where it stands on the ring.
+     */
+    public record Shown(String courseId, Placed placed) { }
+    /** The placement's transform and resolved obstacles (the ring's frame, metres) and the ring geometry's size (null without one). */
+    public record Placed(PlacementTransform transform, List<ResolvedObstacle> resolvedObstacles, Double ringLengthM, Double ringWidthM) { }
     public record Created(SetupView setup, String replacedSetupId) { }
     public record SetupPage(List<SetupView> items, int page, int size, long total) { }
     /** R-16-09's summary of a ring's active setup. */
@@ -58,11 +69,13 @@ public class RingSetupService {
     private final ClubClock clocks;
     private final AuditWriter audit;
     private final EventPublisher events;
+    private final CensusIdentityService identities;
     public RingSetupService(RingSetupRepository setups, PlacementRepository placements, RingGeometryRepository rings, CourseRepository courses,
             GlobalCourseRepository global, CourseAccess access, CourseFiles files, LevelLabels labels, PlanningCatalogAccess catalogs, ClubConfigService configs,
-            ClubClock clocks, AuditWriter audit, EventPublisher events) {
+            ClubClock clocks, AuditWriter audit, EventPublisher events, CensusIdentityService identities) {
         this.setups = setups; this.placements = placements; this.rings = rings; this.courses = courses; this.global = global; this.access = access;
         this.files = files; this.labels = labels; this.catalogs = catalogs; this.configs = configs; this.clocks = clocks; this.audit = audit; this.events = events;
+        this.identities = identities;
     }
 
     // ---- R-16-07: registering ----
@@ -180,10 +193,24 @@ public class RingSetupService {
         if (!CourseAccess.staff() && setup.status() != SetupStatus.ACTIVE) { throw new ApiException(NOT_FOUND); }
         return view(setup);
     }
+    /**
+     * E9-T07 (R-16-16, a MEMBER's `GET /ring-setups/{id}`): the course {@code setup} shows and, with a placement, where it stands on
+     * the ring, so the members' viewer draws it in the ring's frame. The placement's warnings and the ring's geometry stay the staff's.
+     */
+    public Shown shown(RingSetup setup) {
+        var placement = setup.placementId() == null ? null : placements.findById(setup.placementId()).orElse(null);
+        var course = live(placement != null ? placement.courseId() : setup.courseId());
+        String courseId = course == null ? null : course.id();
+        if (placement == null) { return new Shown(courseId, null); }
+        var geometry = rings.findById(placement.ringId()).map(RingGeometryRepository.GeometryRecord::geometry).orElse(null);
+        return new Shown(courseId, new Placed(placement.transform(), Objects.requireNonNullElse(placement.resolvedObstacles(), List.of()),
+                geometry == null ? null : geometry.lengthM(), geometry == null ? null : geometry.widthM()));
+    }
     /** R-16-08: the ring's setups, newest first, the ended ones included. */
     public SetupPage history(String ringId, int page, int size) {
         ring(ringId);
-        return new SetupPage(setups.history(ringId, page, size).stream().map(this::view).toList(), page, size, setups.countOn(ringId));
+        var names = new HashMap<String, String>();
+        return new SetupPage(setups.history(ringId, page, size).stream().map(setup -> view(setup, names)).toList(), page, size, setups.countOn(ringId));
     }
     /**
      * R-16-09 `GET /me/ring-setups`: the named rings of the club (each must exist), else its active rings in catalog order, each with
@@ -288,7 +315,15 @@ public class RingSetupService {
 
     // ---- helpers ----
 
-    private SetupView view(RingSetup setup) { return new SetupView(setup, files.url(setup.imageFileKey())); }
+    private SetupView view(RingSetup setup) { return view(setup, new HashMap<>()); }
+    /**
+     * S16 §2 (E9-T07): the staff's view names who built the setup, the name of the builder's account in the club (`""` when it has no
+     * membership of the club, then `null`); a member's never does. {@code names} keeps the names a page already read.
+     */
+    private SetupView view(RingSetup setup, Map<String, String> names) {
+        String name = !CourseAccess.staff() || setup.builtByAccountId() == null ? "" : names.computeIfAbsent(setup.builtByAccountId(), identities::displayName);
+        return new SetupView(setup, files.url(setup.imageFileKey()), name.isEmpty() ? null : name);
+    }
     private RingSetup setup(String id) { return setups.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
     private RingGeometryRepository.GeometryRecord ring(String id) { return rings.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
     private int autoExpireDays() { return configs.get(TenantContext.require()).get("courses.setupAutoExpireDays", Integer.class); }

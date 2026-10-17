@@ -128,6 +128,8 @@ public final class CourseContracts {
             List<String> levelIds,
             Instant builtAt,
             String builtByAccountId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "S16 §2 «muntat … per {instructor}» (E9-T07): the name of the "
+                    + "builder's account in the club; null when that account has no membership of the club") String builtByName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate expectedUntil,
             Instant expiresAt,
             SetupStatus status,
@@ -230,7 +232,8 @@ public final class CourseContracts {
             String ringId,
             SetupKind kind,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String placementId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String courseId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "R-16-16 (E9-T07): the course the setup shows, which the member "
+                    + "reads with GET /courses/{id}: its own, else its placement's; null when it shows none or that course was deleted") String courseId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String imageFileKey,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String imageUrl,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) AgilityHubLevel agilityhubLevel,
@@ -240,10 +243,21 @@ public final class CourseContracts {
             Instant expiresAt,
             SetupStatus status,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant dismantledAt,
-            Instant createdAt) {
+            Instant createdAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "E9-T07: where the setup's placement stands on the ring, so the "
+                    + "members' viewer draws its course in the ring's frame; null for a setup without a placement") MemberSetupPlacement placement) {
         @JsonProperty(value = "view", access = JsonProperty.Access.READ_ONLY)
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED, _const = "MEMBER")
         public String view() { return "MEMBER"; }
     }
+
+    /**
+     * E9-T07 (R-16-16): a member's view of the placement a setup shows — its transform and resolved obstacles (the ring's frame, in
+     * metres) and the ring's size, without its warnings or the ring's geometry.
+     */
+    public record MemberSetupPlacement(PlacementTransform transform,
+            List<ResolvedObstacle> resolvedObstacles,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "the ring geometry's lengthM; null without a geometry") Double ringLengthM,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "the ring geometry's widthM; null without a geometry") Double ringWidthM) { }
 
 }
