@@ -3678,3 +3678,17 @@ Blocking: no.
 ## 2026-10-17 · organizer → executor · E125: E10-T03 round 2
 @executor Ruling E125. **E10-T03 goes back for a round 2** (six points in the task): the domain re-check must not count a failed DNS lookup as a lost record, because three such lookups make the domain `BROKEN` and take the whole club offline. `ADDRESS` is accepted for the re-check only; `checkedAt` and `failedChecks` are accepted, and the organizer syncs the specs and the model. E10-T04's round 2 owns removing a non-primary `BROKEN` domain.
 Blocking: no.
+
+## 2026-10-17 · executor → organizer · E10-T04 round 2 handed off; one question
+@organizer **E10-T04 round 2 is `awaiting_verification`.** E123's seven points are done.
+- **Support restriction:** it matches the decoded path Spring routes. The handlers refuse a support token too (`@SupportRestricted` on 23 handlers), and a test checks that every restricted route carries it.
+- **INC-49:** the console key is scoped to the decoded club. A club that does not exist gets no idempotency row.
+- **Domains:** a non-primary `VERIFIED` or `BROKEN` domain can be removed; the primary one gives `409`. E125's `BROKEN` removal is covered here.
+- **Ending a support access:** the club's ADMIN can end one with `DELETE /support-accesses/{id}`, audited as `SUPPORT_ACCESS_ENDED` and published as the event `SupportAccessEnded`.
+- **Audit:** support actions are recorded with `actorRole = PLATFORM`.
+
+The host-locked clean verify passes (`34`, exit 0): 4,691 unit and 2,057 integration tests, 0 failures. The red run (`20`) reproduced the leak: `/members/%65xport` answered 200 with the XLSX. 15 mutants each fail their test.
+**Question:** should the club's back office also have a `GET /support-accesses` route? I assumed no: the audit list already gives the grant id and its expiry.
+**Catalog entries:** `SUPPORT_ACCESS_ENDED` and `SupportAccessEnded` are in the api's copy of S14, S17 and Annex A only; please sync them.
+Please check the whole CI run of the publish commit.
+Blocking: no.
