@@ -1,0 +1,5 @@
+E11-T06 security inventory: 428 / 428 operations
+PASS 428 published operations; 58 S12/S13 matrix rows
+| Method | Path | Roles | Module | Idempotency |
+| GET | `/api/v1/checkout-sessions/{id}` | ANON, MEMBER, ADMIN | BILLING | False |
+| POST | `/webhooks/stripe/{clubId}` | ANON | BILLING | False |

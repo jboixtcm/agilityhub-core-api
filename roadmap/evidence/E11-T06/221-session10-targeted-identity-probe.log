@@ -1,0 +1,106 @@
+6:27:26 PIT >> INFO : Verbose logging is disabled. If you encounter a problem, please enable it before reporting an issue.
+6:27:26 PIT >> INFO : Created 21 mutation test units in pre scan
+6:27:26 PIT >> INFO : Sending 43 test classes to minion
+6:27:26 PIT >> INFO : Sent tests to minion
+6:27:26 PIT >> INFO : MINION : Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+6:27:26 PIT >> INFO : MINION : WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+6:27:26 PIT >> INFO : MINION : WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+6:27:26 PIT >> INFO : MINION : WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+6:27:26 PIT >> INFO : MINION : WARNING: Dynamic loading of agents will be disallowed by default in a future release
+6:27:26 PIT >> INFO : MINION : OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|6:27:29 PIT >> INFO : Calculated coverage in 3 seconds.
+6:27:29 PIT >> INFO : 0 tests took longer than 2000 ms
+6:27:29 PIT >> INFO : Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.payments.application.sepa.Pain008DocumentSurvivors3Test]/[method:T_12_11_aDocumentFailingTheSchemaReportsItsLineAndColumn()]) took 106 ms
+6:27:29 PIT >> INFO : Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.identity.application.OidcServiceSurvivors3Test]/[method:T_01_13_completingTheLoginReplacesTheBrowsersPreviousSession()]) covered 106 blocks
+6:27:29 PIT >> WARNING : Found more than one mutation similar on same line in a finally block. Can't correct for inlining.
+6:27:29 PIT >> INFO : Created 18 mutation test units
+/-\|/-\|/-\|/-\|/-6:27:33 PIT >> INFO : Completed in 7 seconds
+================================================================================
+- Mutators
+================================================================================
+> org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator
+>> Generated 13 Killed 0 (0%)
+> KILLED 0 SURVIVED 2 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 11 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator
+>> Generated 2 Killed 0 (0%)
+> KILLED 0 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 2 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator
+>> Generated 2 Killed 0 (0%)
+> KILLED 0 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 2 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator
+>> Generated 49 Killed 7 (14%)
+> KILLED 7 SURVIVED 5 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 37 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator
+>> Generated 21 Killed 4 (19%)
+> KILLED 4 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 16 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator
+>> Generated 96 Killed 22 (23%)
+> KILLED 22 SURVIVED 2 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 72 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.MathMutator
+>> Generated 13 Killed 1 (8%)
+> KILLED 1 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 12 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator
+>> Generated 33 Killed 7 (21%)
+> KILLED 7 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 26 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator
+>> Generated 7 Killed 1 (14%)
+> KILLED 1 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 5 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator
+>> Generated 368 Killed 53 (14%)
+> KILLED 53 SURVIVED 20 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 295 
+--------------------------------------------------------------------------------
+================================================================================
+- Timings
+================================================================================
+> pre-scan for mutations : < 1 second
+> scan classpath : < 1 second
+> coverage and dependency analysis : 3 seconds
+> build mutation tests : < 1 second
+> run mutation analysis : 4 seconds
+--------------------------------------------------------------------------------
+> Total  : 7 seconds
+--------------------------------------------------------------------------------
+> 0 tests took longer than 2000 ms
+> Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.payments.application.sepa.Pain008DocumentSurvivors3Test]/[method:T_12_11_aDocumentFailingTheSchemaReportsItsLineAndColumn()]) took 106 ms
+> Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.identity.application.OidcServiceSurvivors3Test]/[method:T_01_13_completingTheLoginReplacesTheBrowsersPreviousSession()]) covered 106 blocks
+================================================================================
+- Statistics
+================================================================================
+>> Line Coverage (for mutated classes only): 174/666 (26%)
+>> 43 tests examined
+>> Generated 604 mutations Killed 95 (16%)
+>> Mutations with no coverage 478. Test strength 75%
+>> Ran 140 tests (0.23 tests per mutation)
+Enhanced functionality available at https://www.arcmutate.com/
+
+Build messages:- 
+* Project uses Spring, but the Arcmutate Spring plugin is not present. (https://docs.arcmutate.com/docs/spring.html)

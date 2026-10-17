@@ -1,0 +1,1 @@
+./mvnw -q -f .local/e11-t06-ws/pom.xml -Pmutation -Djacoco.skip=true '-DtargetClasses=com.agilityhub.core.payments.api.CheckoutContracts,com.agilityhub.core.payments.api.CheckoutContracts$*' '-DtargetTests=com.agilityhub.core.*Survivors3Test' -DreportsDirectory=target/pit-reports/197-session10-targeted-checkout-contracts test-compile org.pitest:pitest-maven:mutationCoverage

@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/session10-verify-kills.py check roadmap/evidence/E11-T06/pit/session10/223-session10-targeted-identity-final-mutations.xml roadmap/evidence/E11-T06/pit/session10/decisions-identity.json

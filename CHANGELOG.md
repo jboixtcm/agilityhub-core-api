@@ -69,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - E8-T12 round 4 verification completed on the current source: host-locked clean verification passes 4,476 unit and 1,865 integration tests, including all 70 payment invariants and coverage/architecture gates. The tested source matches its isolated snapshot; all changed test classes and immutable attempt evidence are recorded. No additional product changes were needed on resume.
 
-- E11-T06 verification resume: the inherited PIT writer is gone, but the fresh clean build exposes E108's audit catalog prerequisite. S14 now requires the three console audit actions assigned to E10-T02 round 2, while the API catalog still omits them. Verification evidence and an input snapshot that includes documentation are retained; no new security-gate success is claimed.
+- E11-T06 final verification on `e94adcb0`: host-locked clean verify (4,512 unit + 1,987 integration tests, coverage and architecture gates), the security inventory over all 428 published operations, the production-wiring/view-restore/split-IAM rehearsal and the image scan all pass. The full-package mutation gate runs the fresh unit pass plus integration supplements in parts that fit the one-hour deadline, and the survivor triage adds `*Survivors3Test` regression tests for `payments`, `bookings` and `identity`, each proven to kill its mutant by a targeted run.
 
 ### Fixed
 

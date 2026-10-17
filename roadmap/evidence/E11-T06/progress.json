@@ -60,5 +60,12 @@
     "evidence_limit": "130 confirms 1994 old inputs unchanged but that manifest omits specs; it cannot carry forward session 6 clean verification. Attempt 127 has a complete log without an exit record and is not accepted as a completed PIT verification.",
     "remaining": "Organizer publishes/routes E10-T02 audit-contract alignment, then reopen E11-T06 for clean verification, fresh bounded PIT and current survivor triage, inventory, image/compose/view/IAM checks, and full final handoff.",
     "changes": "Report, generated STATUS, append-only MESSAGES, E11 changelog checkpoint and evidence helpers/logs only. No product/test/catalog changes or git writes."
+  },
+  "session10": {
+    "date": "2026-10-16",
+    "baseline": "e94adcb0",
+    "status": "in_progress",
+    "completed": "155 clean verify exit 0 (156: 4512 unit + 1987 IT green); 157 inventory exit 0 (428/428); 158/159 image build+scan exit 0; 160 deploy smoke exit 0; PIT batches with session8-pit.py run: 161 payments b0, 162 b1, 163 b2, 164 b3, 165 b4 (all exit 0); 166 b5 exit 124 (20-min lock wait inside the one-hour deadline, not counted); then session10-pit.py run-part splits: 167/168 b5 (2 parts), 169-171 b6 (3), 172/173 b7 (2), all exit 0; payments complete (interim 2867/3109 = 92.22%); bookings b0 174/175, b1 176-178, b2 179-182 (4 parts), b3 183-186 (part + 3 explicit groups), all exit 0; 187 b4 part 1/3 exit 124 (demo-covered classes; not counted) -> 195 run-classes SeatHoldService; 188 shellcheck, 189 smoke checks, 190 scan summary, 191-194 policy/merge/deploy/backup tests all exit 0; payments triage: pit/session10/decisions-payments-{refunds,other}.json (all 91 hand-written rows), 47 test decisions proven killed by targeted PIT 196 in .local/e11-t06-ws (CheckoutContracts:28 index 8 is a PIT RUN_ERROR, 197, now a reason); staged tests in .local/e11-t06-staged-tests/session10 (install into src/test after the last PIT run)",
+    "next": "bookings b4: run-classes SingleClassCharges WaitlistConsumers; run-classes PaymentsPackBalanceAdapter PendingChargeConsumers WaitlistFifoJob; run-part bookings 4 1 3 and 4 2 3; bookings 5 whole; identity 0 (4 parts), 1 (3), 2 (4), 3 (2); triage bookings/identity; install staged tests; final clean verify; merge + gate; secret audit; report (drafts in .local/e11-t06-report-*.md, splice with .local/e11-t06-splice.py)"
   }
 }

@@ -1,0 +1,99 @@
+22:21:22 PIT >> INFO : Verbose logging is disabled. If you encounter a problem, please enable it before reporting an issue.
+22:21:23 PIT >> INFO : Created 39 mutation test units in pre scan
+22:21:23 PIT >> INFO : Sending 27 test classes to minion
+22:21:23 PIT >> INFO : Sent tests to minion
+22:21:23 PIT >> INFO : MINION : Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+22:21:23 PIT >> INFO : MINION : WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+22:21:23 PIT >> INFO : MINION : WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+22:21:23 PIT >> INFO : MINION : WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+22:21:23 PIT >> INFO : MINION : WARNING: Dynamic loading of agents will be disallowed by default in a future release
+22:21:23 PIT >> INFO : MINION : OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/22:21:25 PIT >> INFO : Calculated coverage in 2 seconds.
+22:21:25 PIT >> INFO : 0 tests took longer than 2000 ms
+22:21:25 PIT >> INFO : Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.payments.application.sepa.Pain008DocumentSurvivors3Test]/[method:T_12_11_aDocumentFailingTheSchemaReportsItsLineAndColumn()]) took 112 ms
+22:21:25 PIT >> INFO : Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeederSurvivors3Test]/[method:E11_T06_theWaitingCastJoinsOneSecondApartWhileTheSheetIsHeldAtItsBookedCount()]) covered 168 blocks
+22:21:25 PIT >> INFO : Created 21 mutation test units
+/-\|/-\|/-\|/-\|/-\|/22:21:30 PIT >> INFO : Completed in 8 seconds
+================================================================================
+- Mutators
+================================================================================
+> org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator
+>> Generated 17 Killed 1 (6%)
+> KILLED 1 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 16 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator
+>> Generated 3 Killed 3 (100%)
+> KILLED 3 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 0 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator
+>> Generated 117 Killed 14 (12%)
+> KILLED 14 SURVIVED 14 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 89 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator
+>> Generated 46 Killed 2 (4%)
+> KILLED 2 SURVIVED 1 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 43 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator
+>> Generated 110 Killed 21 (19%)
+> KILLED 21 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 89 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.MathMutator
+>> Generated 22 Killed 5 (23%)
+> KILLED 5 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 17 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator
+>> Generated 14 Killed 1 (7%)
+> KILLED 1 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 13 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator
+>> Generated 51 Killed 6 (12%)
+> KILLED 6 SURVIVED 2 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 43 
+--------------------------------------------------------------------------------
+> org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator
+>> Generated 256 Killed 22 (9%)
+> KILLED 22 SURVIVED 7 TIMED_OUT 0 NON_VIABLE 0 
+> MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
+> NO_COVERAGE 227 
+--------------------------------------------------------------------------------
+================================================================================
+- Timings
+================================================================================
+> pre-scan for mutations : < 1 second
+> scan classpath : < 1 second
+> coverage and dependency analysis : 2 seconds
+> build mutation tests : < 1 second
+> run mutation analysis : 5 seconds
+--------------------------------------------------------------------------------
+> Total  : 7 seconds
+--------------------------------------------------------------------------------
+> 0 tests took longer than 2000 ms
+> Slowest test ([engine:junit-jupiter]/[class:com.agilityhub.core.payments.application.sepa.Pain008DocumentSurvivors3Test]/[method:T_12_11_aDocumentFailingTheSchemaReportsItsLineAndColumn()]) took 112 ms
+> Largest test ([engine:junit-jupiter]/[class:com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeederSurvivors3Test]/[method:E11_T06_theWaitingCastJoinsOneSecondApartWhileTheSheetIsHeldAtItsBookedCount()]) covered 168 blocks
+================================================================================
+- Statistics
+================================================================================
+>> Line Coverage (for mutated classes only): 197/793 (25%)
+>> 27 tests examined
+>> Generated 636 mutations Killed 75 (12%)
+>> Mutations with no coverage 537. Test strength 76%
+>> Ran 103 tests (0.16 tests per mutation)
+Enhanced functionality available at https://www.arcmutate.com/
+
+Build messages:- 
+* Project uses Spring, but the Arcmutate Spring plugin is not present. (https://docs.arcmutate.com/docs/spring.html)

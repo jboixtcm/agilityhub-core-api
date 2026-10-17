@@ -1,0 +1,556 @@
+[
+ {
+  "identity": "com.agilityhub.core.payments.api.CheckoutContracts$CheckoutSessionRequest|extended|()Z|28|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.api.CheckoutContracts$CheckoutSessionRequest",
+  "method": "extended",
+  "line": 28,
+  "mutator": "NegateConditionals",
+  "description": "negated conditional",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "public boolean extended() { return bookingId != null || upfrontPaymentIds != null; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.AesGcmCipher|decrypt|(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;|49|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|17|3",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.AesGcmCipher",
+  "method": "decrypt",
+  "line": 49,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "if (bytes.length <= NONCE_BYTES) { throw new IllegalArgumentException(); }",
+  "history": [
+   "triage-batch2 line 49: reason: equivalent — differs only for exactly 12 bytes, where the ciphertext is empty and GCM `doFinal` throws `AEADBadTagException` (shorter than the 16-byte tag), caught as `GeneralSecurityException` → the same `IllegalStateException(\"… decryption failed\")` that `BankAccountVaultTest` already asserts for 12 bytes."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.BillingRunService|lambda$rollback$9|(Lcom/agilityhub/core/payments/persistence/Remittance;Lcom/agilityhub/core/payments/persistence/Collection;)Z|211|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$9|8|3",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.BillingRunService",
+  "method": "lambda$rollback$9",
+  "line": 211,
+  "mutator": "BooleanTrueReturnVals",
+  "description": "replaced boolean return with true for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$9",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "var last = collections.forInvoice(receipt.id()).stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);",
+  "history": [
+   "triage-batch2 line 211: reason: unreachable with real data — at a rollback that passed its blockers (lines 186-188), a COLLECTING receipt's attempt in the run's remittance R is its latest document (`forInvoice` sorts by attempt then createdAt, BillingDocuments.java:223-226; the remitted attempt is the previous last + 1, BillingRunService.java:354; only a PENDING receipt without remittance is remitted, BillingDocuments.java:155-157). After it, R-12-17 (InvoiceActions.java:85-93) and R-12-16 (InvoiceActions.java:143-151) append documents but move the receipt to FAILED/PAID, and R-12-19 cancels only PENDING/FAILED (line 104); the one path back to COLLECTING, CardPayments.retry (CardPayments.java:73-102), appends a later STRIPE attempt outside R but leaves it SUBMITTED (line 101) until a webhook moves the receipt to PAID or FAILED (lines 158-166), and a SUBMITTED/SUCCEEDED non-manual attempt or a PAID receipt blocks the rollback (BillingRunService.java:258-262). So dropping the filter picks the same attempt"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.BillingRunService|lambda$rollback$10|(Lcom/agilityhub/core/payments/persistence/Collection;Lcom/agilityhub/core/payments/persistence/Collection;)Lcom/agilityhub/core/payments/persistence/Collection;|211|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$10|4|0",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.application.BillingRunService",
+  "method": "lambda$rollback$10",
+  "line": 211,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$10",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var last = collections.forInvoice(receipt.id()).stream().filter(attempt -> remittance.id().equals(attempt.remittanceId())).reduce((a, b) -> b).orElse(null);",
+  "history": [
+   "triage-batch2 line 211: reason: unreachable with real data — the accumulator runs only for a COLLECTING receipt with two documents in the run's remittance R at a rollback that passed its blockers (lines 186-188). The run writes one attempt per receipt in R (BillingRunService.java:119-124; R is a fresh UUID, line 102; `forNextRun` lists each receipt once, BillingDocuments.java:155-157). The only other writer of an R document is R-12-17 (InvoiceActions.java:85-93), which moves the receipt to FAILED (skipped at line 210); a FAILED receipt is never remitted again (`forNextRun` wants PENDING without remittance) and only CardPayments.retry (CardPayments.java:73-102) makes it COLLECTING again, with a STRIPE attempt SUBMITTED (line 101) until a webhook moves the receipt to PAID or FAILED (lines 158-166) — a SUBMITTED or SUCCEEDED non-manual attempt and a PAID receipt are rollback blockers (lines 258-262), and R-12-14 runs only while R is GENERATED, so no settlement (BillingExpirations needs SUBMITTED) has touched it"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.BillingRunService|invoice|(Ljava/lang/String;Lcom/agilityhub/core/payments/application/InvoicingService$Context;Ljava/lang/String;JLjava/time/LocalDate;Ljava/time/YearMonth;Lcom/agilityhub/core/shared/application/BillingCensusAccess$BillingMember;Ljava/util/List;Lcom/agilityhub/core/payments/domain/PaymentMethodType;Lcom/agilityhub/core/payments/domain/InvoiceStatus;Lcom/agilityhub/core/payments/domain/InvoiceKind;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/time/Instant;Ljava/lang/String;)Lcom/agilityhub/core/payments/persistence/Invoice;|319|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|80|21",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.BillingRunService",
+  "method": "invoice",
+  "line": 319,
+  "mutator": "NegateConditionals",
+  "description": "negated conditional",
+  "testsRun": 3,
+  "killingTest": "",
+  "source": "String taxId = payment != null && payment.holderTaxId() != null ? payment.holderTaxId() : member.taxId();",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.CardPayments|chargeRun|(Ljava/lang/String;)Lcom/agilityhub/core/payments/application/ports/CardChargingPort$Result;|53|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|27|5",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.CardPayments",
+  "method": "chargeRun",
+  "line": 53,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 5,
+  "killingTest": "",
+  "source": "for (int start = 0; start < prepared.operations().size(); start += 25) {",
+  "history": [
+   "triage-batch3a line 53: reason: equivalent; the extra iteration runs only when `start == size` (0, 25, 50…), where `subList(size, min(size+25, size))` is empty, so `execute` is never called"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.CheckoutService|lambda$expire$20|(Ljava/lang/String;)Ljava/lang/Object;|327|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/application/SignupPaymentAccess::lock|5|0",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.CheckoutService",
+  "method": "lambda$expire$20",
+  "line": 327,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to com/agilityhub/core/payments/application/SignupPaymentAccess::lock",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "members.lock();var session=sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.ConsolePaymentValidation|iban|(Ljava/lang/String;)Z|16|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|80|16",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.ConsolePaymentValidation",
+  "method": "iban",
+  "line": 16,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "for(char c:moved.toCharArray()) { int n=Character.isDigit(c)?c-'0':c-'A'+10;remainder=(remainder*(n<10?10:100)+n)%97; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Map::clear|11|2",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.FakePaymentProvider",
+  "method": "reset",
+  "line": 49,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to java/util/Map::clear",
+  "testsRun": 203,
+  "killingTest": "",
+  "source": "public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = \"succeeded\"; refundRejections.clear(); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Queue::clear|17|3",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.FakePaymentProvider",
+  "method": "reset",
+  "line": 49,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to java/util/Queue::clear",
+  "testsRun": 203,
+  "killingTest": "",
+  "source": "public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = \"succeeded\"; refundRejections.clear(); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Map::clear|20|4",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.FakePaymentProvider",
+  "method": "reset",
+  "line": 49,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to java/util/Map::clear",
+  "testsRun": 203,
+  "killingTest": "",
+  "source": "public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = \"succeeded\"; refundRejections.clear(); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Queue::clear|32|5",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.FakePaymentProvider",
+  "method": "reset",
+  "line": 49,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to java/util/Queue::clear",
+  "testsRun": 203,
+  "killingTest": "",
+  "source": "public void reset() { calls.clear(); results.clear(); moneyCreatedAt.clear(); afterCharge = result -> {}; outcomes.clear(); cards.clear(); beforeRefundReturn = (call, result) -> {}; beforeRefund = call -> {}; refundStatus = \"succeeded\"; refundRejections.clear(); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.InvoicingService|integer|(Lcom/agilityhub/core/platform/application/ClubConfig;Ljava/lang/String;I)I|166|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|12|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.InvoicingService",
+  "method": "integer",
+  "line": 166,
+  "mutator": "NegateConditionals",
+  "description": "negated conditional",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "return value == null ? fallback : value;",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.InvoicingService$1|lambda$charges$2|(Lcom/agilityhub/core/payments/persistence/PendingCharge;Ljava/lang/String;)Ljava/math/BigDecimal;|157|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/InvoicingService$1::lambda$charges$2|18|4",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.InvoicingService$1",
+  "method": "lambda$charges$2",
+  "line": 157,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/InvoicingService$1::lambda$charges$2",
+  "testsRun": 58,
+  "killingTest": "",
+  "source": ".map(BillingCatalogAccess.BillingPrice::taxPercent).orElse(BigDecimal.ZERO)), charge.description())).toList();",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.PackBalanceService|lambda$refund$9|(Ljava/lang/String;Lcom/agilityhub/core/payments/persistence/PackBalance$Movement;)Z|130|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/PackBalanceService::lambda$refund$9|19|7",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.PackBalanceService",
+  "method": "lambda$refund$9",
+  "line": 130,
+  "mutator": "BooleanTrueReturnVals",
+  "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PackBalanceService::lambda$refund$9",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "if (pack.movements().stream().noneMatch(m -> m.type() == PackMovementType.CONSUME && bookingId.equals(m.bookingId()))) { return null; }",
+  "history": [
+   "triage-batch4b line 130: reason: unreachable with real data — `forBooking` matches `movements.bookingId` (BillingDocuments.java:361-362); only CONSUME/REFUND movements carry a `bookingId` (PackBalanceService.java:114,131; OPEN/ADJUST/EXPIRE pass null, lines 44,72,147,159; MemberPlanChangeService.java:36 copies the movements unchanged; no other writer of `pack_balances`), a REFUND is appended only to a pack that already holds that booking's CONSUME (line 130 before 131) and returns at line 129, so the found pack always holds the booking's CONSUME and `noneMatch` is never true"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.PackBalanceService|refund|(Ljava/lang/String;)Ljava/lang/String;|130|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/application/PackBalanceService::refund|52|17",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.application.PackBalanceService",
+  "method": "refund",
+  "line": 130,
+  "mutator": "EmptyObjectReturnVals",
+  "description": "replaced return value with \"\" for com/agilityhub/core/payments/application/PackBalanceService::refund",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "if (pack.movements().stream().noneMatch(m -> m.type() == PackMovementType.CONSUME && bookingId.equals(m.bookingId()))) { return null; }",
+  "history": [
+   "triage-batch4b line 130: reason: unreachable with real data — the `return null` of line 130 never runs: a pack found by `movements.bookingId` (BillingDocuments.java:361-362) always holds that booking's CONSUME (only CONSUME/REFUND movements carry a `bookingId`, PackBalanceService.java:114,131, and no other writer adds movements, MemberPlanChangeService.java:36; a REFUND is appended only after line 130 found the CONSUME, and returns at line 129)",
+   "triage-batch4b line 135: test: PackBalanceServiceSurvivorsTest#T_12_07_aRefundAnswersTheIdOfItsRefundMovement"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.PaymentRetryPolicy|lambda$execute$5|(Lcom/agilityhub/core/payments/persistence/PaymentOperation;Lcom/agilityhub/core/payments/persistence/PaymentOperationRepository$Claim;ZLjava/lang/RuntimeException;Ljava/util/function/Predicate;Ljava/time/Duration;Ljava/lang/Runnable;)Ljava/lang/Boolean;|68|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced Boolean return with True for com/agilityhub/core/payments/application/PaymentRetryPolicy::lambda$execute$5|52|19",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.PaymentRetryPolicy",
+  "method": "lambda$execute$5",
+  "line": 68,
+  "mutator": "BooleanTrueReturnVals",
+  "description": "replaced Boolean return with True for com/agilityhub/core/payments/application/PaymentRetryPolicy::lambda$execute$5",
+  "testsRun": 15,
+  "killingTest": "",
+  "source": "if (postponed.test(failure)) { operations.postpone(operation.id(), clock.instant().plus(delay)); return false; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.PaymentRetryPolicy|warnIntervention|(Ljava/lang/String;)V|88|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/lang/Runnable::run|12|2",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.application.PaymentRetryPolicy",
+  "method": "warnIntervention",
+  "line": 88,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to java/lang/Runnable::run",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "if (!TransactionSynchronizationManager.isSynchronizationActive()) { warning.run(); return; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.ReceiptPdf|wrap|(Lorg/apache/pdfbox/pdmodel/font/PDFont;Ljava/lang/String;F)Ljava/util/List;|110|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|69|15",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.ReceiptPdf",
+  "method": "wrap",
+  "line": 110,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "if (font.getStringWidth(next) * SIZE / 1000 > width && line.length() > 0) { lines.add(line.toString()); line = new StringBuilder(word); }",
+  "history": [
+   "triage-batch5 line 110: reason: equivalent — `>` and `>=` differ only at width == 389.2756f (A4 width − 206); every glyph advance is an integer or a multiple of 125/256 font units, so `w × 10 / 1000` moves in steps of ~0.005 and the nearest reachable values are 389.2724 and 389.2773: equality cannot occur for any text",
+   "triage-batch5 line 110: test: ReceiptPdfSurvivorsTest#T_12_20_aSingleWordWiderThanTheColumnStaysOnOneLineWithItsAmount (no empty first line; amount on the word's line)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.StripeWebhookSignatures|valid|(Ljava/lang/String;[BLjava/lang/String;Ljava/time/Instant;)Z|76|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|47|7",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.StripeWebhookSignatures",
+  "method": "valid",
+  "line": 76,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "if (separator < 0) { continue; }",
+  "history": [
+   "triage-batch5 line 76: reason: equivalent; `separator == 0` gives the name `\"\"`, which is neither `t` nor `v1`, so the part is skipped whether by `continue` or by falling through"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.StripeWebhooks|lambda$handle$2|()Lcom/agilityhub/core/shared/domain/ApiException;|100|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$2|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.application.StripeWebhooks",
+  "method": "lambda$handle$2",
+  "line": 100,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$2",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var session = sessions.findById(operation == null ? id : operation).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch5 line 97: reason: equivalent; `handle` runs only inside `process`, whose `catch (RuntimeException)` treats the `ApiException(NOT_FOUND)` and the mutant's `NullPointerException` (from `orElseThrow` of a null) identically (failed attempt + `FAILED` event), and `BillingTransactions.run` rethrows both as non-conflicts; the type never escapes"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.StripeWebhooks|lambda$handle$3|()Lcom/agilityhub/core/shared/domain/ApiException;|111|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$3|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.payments.application.StripeWebhooks",
+  "method": "lambda$handle$3",
+  "line": 111,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$3",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var session = sessions.findById(operation).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch5 line 108: reason: equivalent, same as line 97 (`setup_intent.succeeded` with an unknown session: any RuntimeException takes the same deferred path)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|write|(Lcom/agilityhub/core/payments/domain/SepaDirectDebits$File;)[B|98|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to jakarta/xml/bind/Marshaller::setProperty|213|66",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+  "method": "write",
+  "line": 98,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to jakarta/xml/bind/Marshaller::setProperty",
+  "testsRun": 13,
+  "killingTest": "",
+  "source": "marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());",
+  "history": [
+   "triage-batch1 line 98: reason: equivalent — the JAXB `Marshaller` default encoding is UTF-8, and with `JAXB_FRAGMENT` no declaration is written (the fixed `DECLARATION` is prepended), so the bytes are identical."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|validate|([B)V|120|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to javax/xml/validation/Validator::setProperty|11|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+  "method": "validate",
+  "line": 120,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to javax/xml/validation/Validator::setProperty",
+  "testsRun": 13,
+  "killingTest": "",
+  "source": "validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, \"\");",
+  "history": [
+   "triage-batch1 line 120: reason: defence-in-depth hardening — the JDK validator inherits the `SchemaFactory`'s secure processing and `ACCESS_EXTERNAL_DTD = \"\"` (lines 58-59), and `write` never emits a DOCTYPE, so removing the call is not observable in-process.",
+   "triage-batch1 line 121: reason: defence-in-depth hardening — inherited from the factory (line 60), and a `Schema` built by `newSchema(URL)` validates with its fixed grammar pool only (no `xsi:schemaLocation` fetch), so not observable in-process."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|validate|([B)V|121|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to javax/xml/validation/Validator::setProperty|17|2",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+  "method": "validate",
+  "line": 121,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to javax/xml/validation/Validator::setProperty",
+  "testsRun": 13,
+  "killingTest": "",
+  "source": "validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, \"\");",
+  "history": [
+   "triage-batch1 line 120: reason: defence-in-depth hardening — the JDK validator inherits the `SchemaFactory`'s secure processing and `ACCESS_EXTERNAL_DTD = \"\"` (lines 58-59), and `write` never emits a DOCTYPE, so removing the call is not observable in-process.",
+   "triage-batch1 line 121: reason: defence-in-depth hardening — inherited from the factory (line 60), and a `Schema` built by `newSchema(URL)` validates with its fixed grammar pool only (no `xsi:schemaLocation` fetch), so not observable in-process."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument|line|()I|46|org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator|replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::line|5|0",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument",
+  "method": "line",
+  "line": 46,
+  "mutator": "PrimitiveReturns",
+  "description": "replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::line",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "public int line() { return line; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument|column|()I|47|org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator|replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::column|5|0",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument",
+  "method": "column",
+  "line": 47,
+  "mutator": "PrimitiveReturns",
+  "description": "replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::column",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "public int column() { return column; }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider|lambda$forgetCustomer$9|(Lcom/stripe/StripeClient;Ljava/lang/String;)Lcom/stripe/model/Customer;|137|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$forgetCustomer$9|13|4",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider",
+  "method": "lambda$forgetCustomer$9",
+  "line": 137,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$forgetCustomer$9",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "try { return client.v1().customers().delete(customerId, options(\"forget:\" + customerId)); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider|lambda$expire$10|(Lcom/stripe/StripeClient;Ljava/util/Optional;Ljava/lang/String;)Lcom/stripe/model/checkout/Session;|149|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$expire$10|15|6",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider",
+  "method": "lambda$expire$10",
+  "line": 149,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$expire$10",
+  "testsRun": 2,
+  "killingTest": "",
+  "source": "var client = client(false); calls.call(() -> client.v1().checkout().sessions().expire(reference.get(), options(\"expire:\" + sessionId)));",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.InvoiceAmounts|percent|(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;|51|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|21|6",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.InvoiceAmounts",
+  "method": "percent",
+  "line": 51,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 17,
+  "killingTest": "",
+  "source": "if (percent.signum() < 0 || percent.compareTo(HUNDRED) > 0) { throw new IllegalArgumentException(\"taxPercent\"); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.InvoicingRules|own|(Lcom/agilityhub/core/payments/domain/InvoicingRules$Member;Ljava/time/YearMonth;Ljava/time/LocalDate;Lcom/agilityhub/core/payments/domain/InvoicingRules$Settings;Lcom/agilityhub/core/payments/domain/InvoicingRules$Sources;Lcom/agilityhub/core/payments/domain/InvoicingRules$Describer;Z)Lcom/agilityhub/core/payments/domain/InvoicingRules$Outcome;|205|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|126|39",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.InvoicingRules",
+  "method": "own",
+  "line": 205,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 3,
+  "killingTest": "",
+  "source": "boolean semester = settings.cashInvoicing() == CashInvoicing.SEMESTER && member.method() == PaymentMethodType.MANUAL && settings.cashPeriodMonths() > 1;",
+  "history": [
+   "triage-batch1 line 205: reason: equivalent — differs only at `cashPeriodMonths = 1`, where the \"semester\" branch gives `cashMonths(M, next, 1) = [M]` (a due member's `next` is never after `M`) and `invoiceDay(periodEnd(M,1)+1) = invoiceDay(M+1)`: same months, same date."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|claims|()Ljava/util/Map;|42|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|48|11",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "claims",
+  "line": 42,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 3,
+  "killingTest": "",
+  "source": "if (owed > 0) { current = current.withClaims(Map.of(id, owed)); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|lambda$withClaims$2|(Ljava/util/ArrayList;Ljava/lang/String;Ljava/lang/Long;)V|53|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|7|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "lambda$withClaims$2",
+  "line": 53,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 3,
+  "killingTest": "",
+  "source": "claims.forEach((id, owed) -> { if (owed > 0) { replaced.add(Reservation.intervention(id, owed)); } });",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|reservationShares|(Ljava/lang/String;)Ljava/util/Map;|131|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|97|29",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "reservationShares",
+  "line": 131,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 6,
+  "killingTest": "",
+  "source": "if (remaining > 0 && !rows.isEmpty()) {",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|allocate|(JLjava/util/List;Ljava/util/Map;Ljava/util/Map;)J|143|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|24|4",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "allocate",
+  "line": 143,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 7,
+  "killingTest": "",
+  "source": "for (int tier = 0; tier < 3; tier++) {",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|allocate|(JLjava/util/List;Ljava/util/Map;Ljava/util/Map;)J|145|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|42|10",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "allocate",
+  "line": 145,
+  "mutator": "NegateConditionals",
+  "description": "negated conditional",
+  "testsRun": 7,
+  "killingTest": "",
+  "source": "long protectedCredit = tier == 0 || tier == 1 && row.billed() ? row.credited() : 0;",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|allocate|(JLjava/util/List;Ljava/util/Map;Ljava/util/Map;)J|145|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|45|11",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+  "method": "allocate",
+  "line": 145,
+  "mutator": "NegateConditionals",
+  "description": "negated conditional",
+  "testsRun": 7,
+  "killingTest": "",
+  "source": "long protectedCredit = tier == 0 || tier == 1 && row.billed() ? row.credited() : 0;",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.domain.SepaText|of|(Ljava/lang/String;I)Ljava/lang/String;|22|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|11|2",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.domain.SepaText",
+  "method": "of",
+  "line": 22,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 18,
+  "killingTest": "",
+  "source": "return clean.length() <= max ? clean : clean.substring(0, max).stripTrailing();",
+  "history": [
+   "triage-batch1 line 22: reason: equivalent — at `length == max` the mutant returns `clean.substring(0, max).stripTrailing()` = `clean.stripTrailing()` = `clean`, because `transliterate` already ends with `strip()`."
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.payments.persistence.PaymentOperationRepository|interventionOwed|(Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;)Z|73|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/persistence/PaymentOperationRepository::interventionOwed|42|13",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.persistence.PaymentOperationRepository",
+  "method": "interventionOwed",
+  "line": 73,
+  "mutator": "BooleanTrueReturnVals",
+  "description": "replaced boolean return with true for com/agilityhub/core/payments/persistence/PaymentOperationRepository::interventionOwed",
+  "testsRun": 15,
+  "killingTest": "",
+  "source": "return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where(\"_id\").is(id).and(\"interventionOwed\").ne(amount)),",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.payments.persistence.UpfrontPaymentRepository|lateInterventionWarning|(Ljava/lang/String;Ljava/time/Instant;)Z|55|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/persistence/UpfrontPaymentRepository::lateInterventionWarning|46|14",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.payments.persistence.UpfrontPaymentRepository",
+  "method": "lateInterventionWarning",
+  "line": 55,
+  "mutator": "BooleanTrueReturnVals",
+  "description": "replaced boolean return with true for com/agilityhub/core/payments/persistence/UpfrontPaymentRepository::lateInterventionWarning",
+  "testsRun": 11,
+  "killingTest": "",
+  "source": "return previous != null && previous.get(\"compensationInterventionAt\") == null;",
+  "history": []
+ }
+]

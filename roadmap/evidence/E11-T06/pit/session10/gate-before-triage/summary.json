@@ -1,0 +1,39 @@
+{
+  "bookings": {
+    "generated": 2109,
+    "outcomes": {
+      "KILLED": 2020,
+      "SURVIVED": 62,
+      "NO_COVERAGE": 27
+    },
+    "assertionKillPercent": 95.78,
+    "minimumPercent": 70.0,
+    "notProof": 0,
+    "passed": true
+  },
+  "identity": {
+    "generated": 1364,
+    "outcomes": {
+      "KILLED": 1316,
+      "SURVIVED": 32,
+      "NO_COVERAGE": 15,
+      "MEMORY_ERROR": 1
+    },
+    "assertionKillPercent": 96.4809,
+    "minimumPercent": 75.0,
+    "notProof": 1,
+    "passed": true
+  },
+  "payments": {
+    "generated": 3109,
+    "outcomes": {
+      "KILLED": 2867,
+      "SURVIVED": 64,
+      "NO_COVERAGE": 178
+    },
+    "assertionKillPercent": 92.2161,
+    "minimumPercent": 80.0,
+    "notProof": 0,
+    "passed": true
+  }
+}

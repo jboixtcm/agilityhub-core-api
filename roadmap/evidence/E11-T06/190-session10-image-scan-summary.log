@@ -1,0 +1,10 @@
+{
+ "vulnerabilities": 83,
+ "fixableCritical": [],
+ "suppressedCritical": 2,
+ "secretRules": [],
+ "otherFindings": 81,
+ "expiredSuppressions": [],
+ "javaPackages": 180
+}
+suppressedCritical ids: ['CVE-2026-47884', 'CVE-2026-47890']

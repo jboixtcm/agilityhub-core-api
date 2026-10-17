@@ -1,0 +1,3 @@
+{
+ "com.agilityhub.core.payments.api.CheckoutContracts$CheckoutSessionRequest|extended|()Z|28|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1": "test: CheckoutContractsSurvivors3Test#T_12_16_aCheckoutRequestIsExtendedOnlyByABookingOrUpfrontPayments"
+}

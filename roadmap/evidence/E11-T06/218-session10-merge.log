@@ -1,0 +1,6 @@
+payments: 3109 mutation identities match the clean unit pass
+bookings: 2109 mutation identities match the clean unit pass
+identity: 1364 mutation identities match the clean unit pass
+6582 generated mutants retained; 2207 additional witnessed kills; 0 unwitnessed promotions refused
+77 previously uncovered mutants were exercised and survived
+{'KILLED': 6203, 'SURVIVED': 158, 'NO_COVERAGE': 220, 'MEMORY_ERROR': 1}

@@ -1,0 +1,3413 @@
+[
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$seatTaken$5",
+    "lineNumber": "184",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::lambda$seatTaken$5"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$seatTaken$7",
+    "lineNumber": "186",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::lambda$seatTaken$7"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$stillNotified$13",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$stillNotified$13",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$stillNotified$13",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "adminOnly",
+    "lineNumber": "74",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "classBookings",
+    "lineNumber": "328",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/BookingContractAccess::classSession"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "classWaitlist",
+    "lineNumber": "340",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/BookingContractAccess::classSession"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "instructorOnly",
+    "lineNumber": "59",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.CardPayments",
+    "mutatedMethod": "chargeRun",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$10",
+    "lineNumber": "120",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$10"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$claim$9",
+    "lineNumber": "116",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$9"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$leave$4",
+    "lineNumber": "90",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$4"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "lambda$leave$5",
+    "lineNumber": "94",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$5"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PackBalanceService",
+    "mutatedMethod": "lambda$refund$9",
+    "lineNumber": "130",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PackBalanceService::lambda$refund$9"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PackBalanceService",
+    "mutatedMethod": "refund",
+    "lineNumber": "130",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/application/PackBalanceService::refund"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "consumption",
+    "lineNumber": "289",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "credit",
+    "lineNumber": "146",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/application/PaymentRefunds::intervene"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "credited",
+    "lineNumber": "292",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "credited",
+    "lineNumber": "293",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::credited"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "entityType",
+    "lineNumber": "384",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/application/PaymentRefunds::entityType"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "intervene",
+    "lineNumber": "158",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "intervene",
+    "lineNumber": "165",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/application/PaymentRetryPolicy::warnIntervention"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$compensate$12",
+    "lineNumber": "109",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$compensate$12",
+    "lineNumber": "109",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$compensate$12",
+    "lineNumber": "113",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/application/PaymentRefunds::compensateRemaining"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$consumption$28",
+    "lineNumber": "289",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$29",
+    "lineNumber": "293",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$29",
+    "lineNumber": "293",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$29",
+    "lineNumber": "293",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$29",
+    "lineNumber": "293",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::lambda$credited$29"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$30",
+    "lineNumber": "294",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.InvertNegsMutator",
+    "description": "removed negation"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$credited$30",
+    "lineNumber": "294",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced Long return value with 0L for com/agilityhub/core/payments/application/PaymentRefunds::lambda$credited$30"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$execute$36",
+    "lineNumber": "342",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$execute$38",
+    "lineNumber": "350",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$intentLedger$26",
+    "lineNumber": "259",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$invoice$4",
+    "lineNumber": "46",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$lateBooking$34",
+    "lineNumber": "313",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$31",
+    "lineNumber": "303",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$31",
+    "lineNumber": "304",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$31",
+    "lineNumber": "304",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$31",
+    "lineNumber": "303",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::lambda$ledger$31"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$32",
+    "lineNumber": "304",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::lambda$ledger$32"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$ledger$33",
+    "lineNumber": "306",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::lambda$ledger$33"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$reconsiderLate$21",
+    "lineNumber": "231",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/PaymentRefunds::lambda$reconsiderLate$21"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$reportOverpayment$16",
+    "lineNumber": "206",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$reportOverpayment$17",
+    "lineNumber": "208",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$reverse$41",
+    "lineNumber": "401",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::lambda$reverse$41"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$settled$47",
+    "lineNumber": "441",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/payments/application/PaymentRefunds::lambda$settled$47"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$settled$48",
+    "lineNumber": "442",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::lambda$settled$48"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$upfront$6",
+    "lineNumber": "60",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::lambda$upfront$6"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$upfront$7",
+    "lineNumber": "70",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::lambda$upfront$7"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "lambda$upfront$8",
+    "lineNumber": "64",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "late",
+    "lineNumber": "98",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "ledger",
+    "lineNumber": "298",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "ledger",
+    "lineNumber": "301",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "ledger",
+    "lineNumber": "305",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/PaymentRefunds::ledger"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "reconcile",
+    "lineNumber": "361",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "reconsiderCompensation",
+    "lineNumber": "218",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "reconsiderLate",
+    "lineNumber": "232",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/UpfrontPaymentRepository::lock"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "reverse",
+    "lineNumber": "402",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.InvertNegsMutator",
+    "description": "removed negation"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "reverse",
+    "lineNumber": "400",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "settled",
+    "lineNumber": "440",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "settled",
+    "lineNumber": "471",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "settled",
+    "lineNumber": "433",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "settled",
+    "lineNumber": "444",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/payments/application/PaymentRefunds::settled"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.OidcService",
+    "mutatedMethod": "lambda$complete$2",
+    "lineNumber": "128",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/OidcStateRepository::deleteBrowser"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoBookingSeeder",
+    "mutatedMethod": "order",
+    "lineNumber": "36",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/DemoBookingSeeder::order"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "lambda$sendAdminInvitation$0",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/identity/application/MagicLinkService::lambda$sendAdminInvitation$0"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingQueryService",
+    "mutatedMethod": "keys",
+    "lineNumber": "97",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptySet for com/agilityhub/core/clubs/bookings/application/BookingQueryService::keys"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.InvoicingRules",
+    "mutatedMethod": "own",
+    "lineNumber": "205",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeeder",
+    "mutatedMethod": "offer",
+    "lineNumber": "123",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeeder",
+    "mutatedMethod": "order",
+    "lineNumber": "62",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/DemoScenarioSeeder::order"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+    "mutatedMethod": "headers",
+    "lineNumber": "108",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+    "mutatedMethod": "page",
+    "lineNumber": "120",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+    "mutatedMethod": "row",
+    "lineNumber": "127",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createAccountIdentificationSEPAMandate",
+    "lineNumber": "57",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createAccountIdentificationSEPAMandate"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createAmendmentInformationDetailsSDD",
+    "lineNumber": "81",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createAmendmentInformationDetailsSDD"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createBranchAndFinancialInstitutionIdentificationSEPA2",
+    "lineNumber": "97",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createBranchAndFinancialInstitutionIdentificationSEPA2"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createCashAccountSEPAMandate",
+    "lineNumber": "121",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCashAccountSEPAMandate"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createCategoryPurposeSEPA",
+    "lineNumber": "129",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCategoryPurposeSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createCreditorReferenceInformationSEPA1",
+    "lineNumber": "137",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceInformationSEPA1"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createCreditorReferenceTypeCodeSEPA",
+    "lineNumber": "153",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceTypeCodeSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createCreditorReferenceTypeSEPA",
+    "lineNumber": "145",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceTypeSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createDateAndPlaceOfBirth",
+    "lineNumber": "169",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createDateAndPlaceOfBirth"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createFinancialInstitutionIdentificationSEPA2",
+    "lineNumber": "209",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createFinancialInstitutionIdentificationSEPA2"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createGenericAccountIdentificationSEPA",
+    "lineNumber": "65",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createGenericAccountIdentificationSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createGenericPersonIdentification1",
+    "lineNumber": "225",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createGenericPersonIdentification1"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createOrganisationIdentificationSchemeName1Choice",
+    "lineNumber": "273",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createOrganisationIdentificationSchemeName1Choice"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createPartyIdentificationSEPA4",
+    "lineNumber": "321",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPartyIdentificationSEPA4"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createPersonIdentificationSEPA1Choice",
+    "lineNumber": "361",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPersonIdentificationSEPA1Choice"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createPersonIdentificationSchemeName1Choice",
+    "lineNumber": "377",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPersonIdentificationSchemeName1Choice"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createPostalAddressSEPA",
+    "lineNumber": "393",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPostalAddressSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createPurposeSEPA",
+    "lineNumber": "401",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPurposeSEPA"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ObjectFactory",
+    "mutatedMethod": "createStructuredRemittanceInformationSEPA1",
+    "lineNumber": "425",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createStructuredRemittanceInformationSEPA1"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.StripeWebhooks",
+    "mutatedMethod": "lambda$handle$2",
+    "lineNumber": "100",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$2"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.StripeWebhooks",
+    "mutatedMethod": "lambda$handle$3",
+    "lineNumber": "111",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$3"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.LearnImportService",
+    "mutatedMethod": "preview",
+    "lineNumber": "106",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.ReceiptPdf",
+    "mutatedMethod": "wrap",
+    "lineNumber": "110",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationService",
+    "mutatedMethod": "lambda$confirmInTransaction$8",
+    "lineNumber": "62",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/BookingChecks::notBookedYet"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider",
+    "mutatedMethod": "lambda$expire$10",
+    "lineNumber": "149",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$expire$10"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider",
+    "mutatedMethod": "lambda$forgetCustomer$9",
+    "lineNumber": "137",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$forgetCustomer$9"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "allocate",
+    "lineNumber": "143",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "allocate",
+    "lineNumber": "145",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "allocate",
+    "lineNumber": "145",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "claims",
+    "lineNumber": "42",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "lambda$withClaims$2",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.PaymentIntentLedger",
+    "mutatedMethod": "reservationShares",
+    "lineNumber": "131",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.CheckoutService",
+    "mutatedMethod": "lambda$expire$20",
+    "lineNumber": "327",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/payments/application/SignupPaymentAccess::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingViews",
+    "mutatedMethod": "lambda$dog$7",
+    "lineNumber": "151",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingViews::lambda$dog$7"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.BillingRunService",
+    "mutatedMethod": "invoice",
+    "lineNumber": "319",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.BillingRunService",
+    "mutatedMethod": "lambda$rollback$10",
+    "lineNumber": "211",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$10"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.BillingRunService",
+    "mutatedMethod": "lambda$rollback$9",
+    "lineNumber": "211",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$9"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookableClassesQuery",
+    "mutatedMethod": "lambda$bookable$2",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookableClassesQuery::lambda$bookable$2"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookableClassesQuery",
+    "mutatedMethod": "lambda$select$9",
+    "lineNumber": "72",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/BookableClassesQuery::lambda$select$9"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "lambda$stillNotified$13",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::lambda$stillNotified$13"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "reminder",
+    "lineNumber": "232",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "reminder",
+    "lineNumber": "234",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "stillNotified",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::stillNotified"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts",
+    "mutatedMethod": "stillNotified",
+    "lineNumber": "248",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::stillNotified"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+    "mutatedMethod": "render",
+    "lineNumber": "64",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced float subtraction with addition"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+    "mutatedMethod": "render",
+    "lineNumber": "64",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced float subtraction with addition"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+    "mutatedMethod": "wrap",
+    "lineNumber": "149",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "apply",
+    "lineNumber": "93",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "apply",
+    "lineNumber": "96",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced integer addition with subtraction"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "apply",
+    "lineNumber": "98",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "lambda$history$7",
+    "lineNumber": "139",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$history$7"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "lambda$mark$10",
+    "lineNumber": "157",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$10"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "lambda$mark$11",
+    "lineNumber": "154",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$11"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "lambda$mark$9",
+    "lineNumber": "156",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$9"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder",
+    "mutatedMethod": "order",
+    "lineNumber": "66",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::order"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.domain.AttendanceMetrics",
+    "mutatedMethod": "lambda$lastClasses$4",
+    "lineNumber": "69",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/domain/AttendanceMetrics::lambda$lastClasses$4"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TeamMembershipService",
+    "mutatedMethod": "lambda$accountName$0",
+    "lineNumber": "41",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TeamMembershipService::lambda$accountName$0"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TeamMembershipService",
+    "mutatedMethod": "lambda$forMember$1",
+    "lineNumber": "44",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TeamMembershipService::lambda$forMember$1"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.TeamMembershipService",
+    "mutatedMethod": "lambda$requireActive$6",
+    "lineNumber": "57",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/identity/application/TeamMembershipService::lambda$requireActive$6"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.TeamMembershipService",
+    "mutatedMethod": "lambda$save$7",
+    "lineNumber": "67",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/TeamMembershipService::lambda$save$7"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "memberId",
+    "lineNumber": "65",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.BookingsController",
+    "mutatedMethod": "staff",
+    "lineNumber": "69",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.api.MeController",
+    "mutatedMethod": "lambda$me$1",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Optional.empty for com/agilityhub/core/identity/api/MeController::lambda$me$1"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.api.MeController",
+    "mutatedMethod": "me",
+    "lineNumber": "54",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MembershipService",
+    "mutatedMethod": "lambda$status$2",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/MembershipService::lambda$status$2"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MembershipService",
+    "mutatedMethod": "resume",
+    "lineNumber": "43",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/MembershipService::resume"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MembershipService",
+    "mutatedMethod": "save",
+    "lineNumber": "56",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/MembershipService::save"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MembershipService",
+    "mutatedMethod": "status",
+    "lineNumber": "45",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/MembershipService::status"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MembershipService",
+    "mutatedMethod": "suspend",
+    "lineNumber": "42",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/MembershipService::suspend"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.InstructorController",
+    "mutatedMethod": "instructorDay",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/AttendanceContractAccess::filters"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.InstructorController",
+    "mutatedMethod": "instructorWeek",
+    "lineNumber": "89",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/AttendanceContractAccess::filters"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.InstructorController",
+    "mutatedMethod": "memberId",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.api.InstructorController",
+    "mutatedMethod": "saveAttendance",
+    "lineNumber": "133",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/AttendanceContractAccess::classSession"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.AccountService",
+    "mutatedMethod": "lambda$active$2",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/AccountService::lambda$active$2"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.FakePaymentProvider",
+    "mutatedMethod": "reset",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Map::clear"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.FakePaymentProvider",
+    "mutatedMethod": "reset",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Queue::clear"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.FakePaymentProvider",
+    "mutatedMethod": "reset",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Map::clear"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.FakePaymentProvider",
+    "mutatedMethod": "reset",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/util/Queue::clear"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRetryPolicy",
+    "mutatedMethod": "lambda$execute$5",
+    "lineNumber": "68",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced Boolean return with True for com/agilityhub/core/payments/application/PaymentRetryPolicy::lambda$execute$5"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRetryPolicy",
+    "mutatedMethod": "warnIntervention",
+    "lineNumber": "88",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/lang/Runnable::run"
+  },
+  {
+    "package": "identity",
+    "status": "MEMORY_ERROR",
+    "mutatedClass": "com.agilityhub.core.identity.application.LearnCsv",
+    "mutatedMethod": "read",
+    "lineNumber": "26",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator",
+    "description": "Changed increment from 1 to -1"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.StripeWebhookSignatures",
+    "mutatedMethod": "valid",
+    "lineNumber": "76",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.persistence.PaymentOperationRepository",
+    "mutatedMethod": "interventionOwed",
+    "lineNumber": "73",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/persistence/PaymentOperationRepository::interventionOwed"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+    "mutatedMethod": "validate",
+    "lineNumber": "120",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to javax/xml/validation/Validator::setProperty"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+    "mutatedMethod": "validate",
+    "lineNumber": "121",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to javax/xml/validation/Validator::setProperty"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.sepa.Pain008Document",
+    "mutatedMethod": "write",
+    "lineNumber": "98",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to jakarta/xml/bind/Marshaller::setProperty"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.InvoicingService",
+    "mutatedMethod": "integer",
+    "lineNumber": "166",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers",
+    "mutatedMethod": "lambda$modulesChanged$0",
+    "lineNumber": "43",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers",
+    "mutatedMethod": "switchedOn",
+    "lineNumber": "48",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingConsumers::switchedOn"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.OidcService",
+    "mutatedMethod": "scope",
+    "lineNumber": "231",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/OidcService::scope"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationService",
+    "mutatedMethod": "lambda$keepCheckoutUrl$9",
+    "lineNumber": "139",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced long addition with subtraction"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConfirmationService",
+    "mutatedMethod": "lambda$paymentSucceeded$10",
+    "lineNumber": "181",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "description": "Replaced long addition with subtraction"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "invite",
+    "lineNumber": "41",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "invite",
+    "lineNumber": "31",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/shared/application/TeamWriteLock::lock"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "lambda$list$0",
+    "lineNumber": "23",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/identity/application/ConsoleAdministrators::lambda$list$0"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "lambda$remove$4",
+    "lineNumber": "50",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/ConsoleAdministrators::lambda$remove$4"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "lambda$snapshot$2",
+    "lineNumber": "27",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyMap for com/agilityhub/core/identity/application/ConsoleAdministrators::lambda$snapshot$2"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "lambda$view$1",
+    "lineNumber": "25",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/ConsoleAdministrators::lambda$view$1"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleAdministrators",
+    "mutatedMethod": "remove",
+    "lineNumber": "54",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/platform/application/PlatformClubChanges::administratorChange"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.SepaText",
+    "mutatedMethod": "of",
+    "lineNumber": "22",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "50",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "50",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "50",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "50",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/application/CompromisedPasswords::warn"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/application/CompromisedPasswords::warn"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/identity/application/CompromisedPasswords::contains"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CompromisedPasswords",
+    "mutatedMethod": "contains",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/identity/application/CompromisedPasswords::contains"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+    "mutatedMethod": "offerNext",
+    "lineNumber": "151",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.ClassBookingsAdapter",
+    "mutatedMethod": "lambda$byClass$3",
+    "lineNumber": "40",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/ClassBookingsAdapter::lambda$byClass$3"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.HandoffService",
+    "mutatedMethod": "exchange",
+    "lineNumber": "48",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/HandoffService::exchange"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MigrationIdentityService",
+    "mutatedMethod": "lambda$preview$0",
+    "lineNumber": "21",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced Boolean return with True for com/agilityhub/core/identity/application/MigrationIdentityService::lambda$preview$0"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.persistence.UpfrontPaymentRepository",
+    "mutatedMethod": "lateInterventionWarning",
+    "lineNumber": "55",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/persistence/UpfrontPaymentRepository::lateInterventionWarning"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingContext",
+    "mutatedMethod": "asOf",
+    "lineNumber": "29",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingContext",
+    "mutatedMethod": "asOf",
+    "lineNumber": "29",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to java/lang/ThreadLocal::set"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.ConsolePaymentValidation",
+    "mutatedMethod": "iban",
+    "lineNumber": "16",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "displayName",
+    "lineNumber": "18",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "displayName",
+    "lineNumber": "18",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "displayName",
+    "lineNumber": "19",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/identity/application/CensusIdentityService::displayName"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "lambda$accessEmail$0",
+    "lineNumber": "22",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/CensusIdentityService::lambda$accessEmail$0"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "lambda$reactivate$2",
+    "lineNumber": "38",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/identity/application/CensusIdentityService::lambda$reactivate$2"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.CensusIdentityService",
+    "mutatedMethod": "lambda$reactivate$3",
+    "lineNumber": "39",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/identity/application/CensusIdentityService::lambda$reactivate$3"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistTransitions",
+    "mutatedMethod": "expire",
+    "lineNumber": "80",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::expire"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingOwners",
+    "mutatedMethod": "lambda$checkout$4",
+    "lineNumber": "23",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingOwners::lambda$checkout$4"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingOwners",
+    "mutatedMethod": "ownerOf",
+    "lineNumber": "26",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/BookingOwners::ownerOf"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+    "mutatedMethod": "row",
+    "lineNumber": "132",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingChecks",
+    "mutatedMethod": "lambda$subject$0",
+    "lineNumber": "31",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingChecks::lambda$subject$0"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingChecks",
+    "mutatedMethod": "lambda$subject$3",
+    "lineNumber": "35",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingChecks::lambda$subject$3"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingChecks",
+    "mutatedMethod": "lambda$subject$4",
+    "lineNumber": "36",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingChecks::lambda$subject$4"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getCdtr",
+    "lineNumber": "275",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getCdtrAcct",
+    "lineNumber": "299",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrAcct"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getCdtrAgt",
+    "lineNumber": "323",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrAgt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getCdtrSchmeId",
+    "lineNumber": "395",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrSchmeId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getChrgBr",
+    "lineNumber": "371",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getChrgBr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getCtrlSum",
+    "lineNumber": "203",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCtrlSum"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getNbOfTxs",
+    "lineNumber": "179",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getNbOfTxs"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getPmtInfId",
+    "lineNumber": "107",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtInfId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getPmtMtd",
+    "lineNumber": "131",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtMtd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getPmtTpInf",
+    "lineNumber": "227",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtTpInf"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getReqdColltnDt",
+    "lineNumber": "251",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getReqdColltnDt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "getUltmtCdtr",
+    "lineNumber": "347",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getUltmtCdtr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "isBtchBookg",
+    "lineNumber": "155",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced Boolean return with False for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::isBtchBookg"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD",
+    "mutatedMethod": "isBtchBookg",
+    "lineNumber": "155",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced Boolean return with True for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::isBtchBookg"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.api.CurrentUserFilter",
+    "mutatedMethod": "doFilterInternal",
+    "lineNumber": "40",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to org/springframework/security/core/context/SecurityContext::setAuthentication"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.AesGcmCipher",
+    "mutatedMethod": "decrypt",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob",
+    "mutatedMethod": "apply",
+    "lineNumber": "44",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistFifoJob::apply"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.domain.InvoiceAmounts",
+    "mutatedMethod": "percent",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "description": "changed conditional boundary"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingCancellationService",
+    "mutatedMethod": "lambda$seatReleased$4",
+    "lineNumber": "153",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingCancellationService::lambda$seatReleased$4"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getChrgBr",
+    "lineNumber": "137",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getChrgBr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getDbtr",
+    "lineNumber": "233",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getDbtrAcct",
+    "lineNumber": "257",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtrAcct"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getDbtrAgt",
+    "lineNumber": "209",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtrAgt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getDrctDbtTx",
+    "lineNumber": "161",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDrctDbtTx"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getInstdAmt",
+    "lineNumber": "113",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getInstdAmt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getPmtId",
+    "lineNumber": "89",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getPmtId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getPurp",
+    "lineNumber": "305",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getPurp"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getRmtInf",
+    "lineNumber": "329",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getRmtInf"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getUltmtCdtr",
+    "lineNumber": "185",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getUltmtCdtr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD",
+    "mutatedMethod": "getUltmtDbtr",
+    "lineNumber": "281",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getUltmtDbtr"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingActivityAdapter",
+    "mutatedMethod": "activeBookingsByLevel",
+    "lineNumber": "24",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/BookingActivityAdapter::tenant"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingActivityAdapter",
+    "mutatedMethod": "dogsWithBooking",
+    "lineNumber": "17",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/bookings/application/BookingActivityAdapter::tenant"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.SingleClassCharges",
+    "mutatedMethod": "lambda$open$0",
+    "lineNumber": "46",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/SingleClassCharges::lambda$open$0"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.AttendanceListQuery",
+    "mutatedMethod": "keys",
+    "lineNumber": "27",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptySet for com/agilityhub/core/clubs/bookings/application/AttendanceListQuery::keys"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.AttendanceConsumers",
+    "mutatedMethod": "lambda$classUpdated$0",
+    "lineNumber": "41",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced Long return value with 0L for com/agilityhub/core/clubs/bookings/application/AttendanceConsumers::lambda$classUpdated$0"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "lambda$sendAdminInvitation$1",
+    "lineNumber": "54",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/identity/application/MagicLinkService::lambda$sendAdminInvitation$1"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "lambda$sendAdminInvitation$2",
+    "lineNumber": "59",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/AccountRepository::touchSessions"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "lambda$sendAdminInvitation$2",
+    "lineNumber": "62",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/identity/persistence/MagicLinkTokenRepository::trim"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.MagicLinkService",
+    "mutatedMethod": "sendAdminInvitation",
+    "lineNumber": "67",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.InvoicingService$1",
+    "mutatedMethod": "lambda$charges$2",
+    "lineNumber": "157",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/application/InvoicingService$1::lambda$charges$2"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.AttendanceCallers",
+    "mutatedMethod": "lambda$resolve$0",
+    "lineNumber": "21",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced boolean return with false for com/agilityhub/core/clubs/bookings/application/AttendanceCallers::lambda$resolve$0"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "bookingBlock",
+    "lineNumber": "104",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::bookingBlock"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "classCancelled",
+    "lineNumber": "102",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::classCancelled"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "classUpdated",
+    "lineNumber": "101",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::classUpdated"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "dogLevel",
+    "lineNumber": "103",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::dogLevel"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "failed",
+    "lineNumber": "106",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::failed"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "handler",
+    "lineNumber": "115",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::handler"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "modules",
+    "lineNumber": "109",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::modules"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingConsumers$Handlers",
+    "mutatedMethod": "paid",
+    "lineNumber": "105",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingConsumers$Handlers::paid"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfiguration",
+    "mutatedMethod": "bookingActivity",
+    "lineNumber": "33",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingsAutoConfiguration::bookingActivity"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfiguration",
+    "mutatedMethod": "classBookings",
+    "lineNumber": "30",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingsAutoConfiguration::classBookings"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingsAutoConfiguration",
+    "mutatedMethod": "singleClassCharges",
+    "lineNumber": "67",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingsAutoConfiguration::singleClassCharges"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleInvitationConsumer",
+    "mutatedMethod": "handle",
+    "lineNumber": "23",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "identity",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.identity.application.ConsoleInvitationConsumer",
+    "mutatedMethod": "lambda$handle$0",
+    "lineNumber": "23",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/identity/application/ConsoleInvitationConsumer::lambda$handle$0"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingEvents",
+    "mutatedMethod": "belowMinimum",
+    "lineNumber": "26",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/BookingEvents::belowMinimum"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingEvents",
+    "mutatedMethod": "publish",
+    "lineNumber": "21",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/BookingEvents::publish"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.DemoBillingBookingsSeeder",
+    "mutatedMethod": "lambda$seed$0",
+    "lineNumber": "39",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoBillingBookingsSeeder::lambda$seed$0"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.PaymentRefunds",
+    "mutatedMethod": "settled",
+    "lineNumber": "494",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::settled"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "getAmdmntInfDtls",
+    "lineNumber": "138",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getAmdmntInfDtls"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "getDtOfSgntr",
+    "lineNumber": "90",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getDtOfSgntr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "getElctrncSgntr",
+    "lineNumber": "162",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getElctrncSgntr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "getMndtId",
+    "lineNumber": "66",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getMndtId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "isAmdmntInd",
+    "lineNumber": "114",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator",
+    "description": "replaced Boolean return with False for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::isAmdmntInd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD",
+    "mutatedMethod": "isAmdmntInd",
+    "lineNumber": "114",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator",
+    "description": "replaced Boolean return with True for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::isAmdmntInd"
+  },
+  {
+    "package": "identity",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.identity.application.GrantPlatformAdminCommand",
+    "mutatedMethod": "lambda$run$1",
+    "lineNumber": "25",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptySet for com/agilityhub/core/identity/application/GrantPlatformAdminCommand::lambda$run$1"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+    "mutatedMethod": "getCreDtTm",
+    "lineNumber": "91",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getCreDtTm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+    "mutatedMethod": "getCtrlSum",
+    "lineNumber": "139",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getCtrlSum"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+    "mutatedMethod": "getInitgPty",
+    "lineNumber": "163",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getInitgPty"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+    "mutatedMethod": "getMsgId",
+    "lineNumber": "67",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getMsgId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD",
+    "mutatedMethod": "getNbOfTxs",
+    "lineNumber": "115",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getNbOfTxs"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD",
+    "mutatedMethod": "getCtgyPurp",
+    "lineNumber": "133",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getCtgyPurp"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD",
+    "mutatedMethod": "getLclInstrm",
+    "lineNumber": "85",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getLclInstrm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD",
+    "mutatedMethod": "getSeqTp",
+    "lineNumber": "109",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getSeqTp"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD",
+    "mutatedMethod": "getSvcLvl",
+    "lineNumber": "61",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getSvcLvl"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth",
+    "mutatedMethod": "getBirthDt",
+    "lineNumber": "62",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getBirthDt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth",
+    "mutatedMethod": "getCityOfBirth",
+    "lineNumber": "110",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getCityOfBirth"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth",
+    "mutatedMethod": "getCtryOfBirth",
+    "lineNumber": "134",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getCtryOfBirth"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth",
+    "mutatedMethod": "getPrvcOfBirth",
+    "lineNumber": "86",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getPrvcOfBirth"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD",
+    "mutatedMethod": "getOrgnlCdtrSchmeId",
+    "lineNumber": "83",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlCdtrSchmeId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD",
+    "mutatedMethod": "getOrgnlDbtrAcct",
+    "lineNumber": "107",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlDbtrAcct"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD",
+    "mutatedMethod": "getOrgnlDbtrAgt",
+    "lineNumber": "131",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlDbtrAgt"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD",
+    "mutatedMethod": "getOrgnlMndtId",
+    "lineNumber": "59",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlMndtId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.api.CheckoutContracts$CheckoutSessionRequest",
+    "mutatedMethod": "extended",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2",
+    "mutatedMethod": "getId",
+    "lineNumber": "103",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2",
+    "mutatedMethod": "getNm",
+    "lineNumber": "55",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2",
+    "mutatedMethod": "getPstlAdr",
+    "lineNumber": "79",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getPstlAdr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CustomerDirectDebitInitiationV02",
+    "mutatedMethod": "getGrpHdr",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CustomerDirectDebitInitiationV02::getGrpHdr"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.BookingContractAccess",
+    "mutatedMethod": "classSession",
+    "lineNumber": "22",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator",
+    "description": "removed call to com/agilityhub/core/clubs/scheduling/application/SchedulingContractAccess::classSession"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1",
+    "mutatedMethod": "getId",
+    "lineNumber": "55",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1",
+    "mutatedMethod": "getIssr",
+    "lineNumber": "103",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getIssr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1",
+    "mutatedMethod": "getSchmeNm",
+    "lineNumber": "79",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getSchmeNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA",
+    "mutatedMethod": "getAdrLine",
+    "lineNumber": "91",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "description": "negated conditional"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA",
+    "mutatedMethod": "getAdrLine",
+    "lineNumber": "94",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Collections.emptyList for com/agilityhub/core/payments/sepa/generated/PostalAddressSEPA::getAdrLine"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA",
+    "mutatedMethod": "getCtry",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PostalAddressSEPA::getCtry"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1",
+    "mutatedMethod": "getId",
+    "lineNumber": "55",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1",
+    "mutatedMethod": "getIssr",
+    "lineNumber": "103",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getIssr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1",
+    "mutatedMethod": "getSchmeNm",
+    "lineNumber": "79",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getSchmeNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionSDD",
+    "mutatedMethod": "getCdtrSchmeId",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionSDD::getCdtrSchmeId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionSDD",
+    "mutatedMethod": "getMndtRltdInf",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionSDD::getMndtRltdInf"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.SequenceType1Code",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "38",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/SequenceType1Code::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.SequenceType1Code",
+    "mutatedMethod": "value",
+    "lineNumber": "34",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/SequenceType1Code::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeSEPA",
+    "mutatedMethod": "getCdOrPrtry",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA::getCdOrPrtry"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeSEPA",
+    "mutatedMethod": "getIssr",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA::getIssr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentMethod2Code",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentMethod2Code::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentMethod2Code",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentMethod2Code::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartySEPAChoice",
+    "mutatedMethod": "getOrgId",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPAChoice::getOrgId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartySEPAChoice",
+    "mutatedMethod": "getPrvtId",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPAChoice::getPrvtId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentIdentificationSEPA",
+    "mutatedMethod": "getEndToEndId",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentIdentificationSEPA::getEndToEndId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PaymentIdentificationSEPA",
+    "mutatedMethod": "getInstrId",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentIdentificationSEPA::getInstrId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA4",
+    "mutatedMethod": "getId",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA4",
+    "mutatedMethod": "getNm",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4::getNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA5",
+    "mutatedMethod": "getNm",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA5::getNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA5",
+    "mutatedMethod": "getPstlAdr",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA5::getPstlAdr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA1",
+    "mutatedMethod": "getId",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA1",
+    "mutatedMethod": "getNm",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1::getNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RestrictedSMNDACode",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RestrictedSMNDACode",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceInformationSEPA1",
+    "mutatedMethod": "getRef",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1::getRef"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceInformationSEPA1",
+    "mutatedMethod": "getTp",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1::getTp"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ChargeBearerTypeSEPACode",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ChargeBearerTypeSEPACode",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSchemeName1Choice",
+    "mutatedMethod": "getCd",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSchemeName1Choice",
+    "mutatedMethod": "getPrtry",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice::getPrtry"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSEPA",
+    "mutatedMethod": "getId",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSEPA::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSEPA",
+    "mutatedMethod": "getSchmeNm",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSEPA::getSchmeNm"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.IdentificationSchemeNameSEPA",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.IdentificationSchemeNameSEPA",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA1Choice",
+    "mutatedMethod": "getDtAndPlcOfBirth",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice::getDtAndPlcOfBirth"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA1Choice",
+    "mutatedMethod": "getOthr",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice::getOthr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSEPAChoice",
+    "mutatedMethod": "getBICOrBEI",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSEPAChoice::getBICOrBEI"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSEPAChoice",
+    "mutatedMethod": "getOthr",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSEPAChoice::getOthr"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument",
+    "mutatedMethod": "column",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::column"
+  },
+  {
+    "package": "payments",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.payments.application.sepa.Pain008Document$InvalidDocument",
+    "mutatedMethod": "line",
+    "lineNumber": "46",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator",
+    "description": "replaced int return with 0 for com/agilityhub/core/payments/application/sepa/Pain008Document$InvalidDocument::line"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort",
+    "mutatedMethod": "balance",
+    "lineNumber": "15",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::balance"
+  },
+  {
+    "package": "bookings",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort",
+    "mutatedMethod": "consume",
+    "lineNumber": "16",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::consume"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OthrIdentificationCode",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/OthrIdentificationCode::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OthrIdentificationCode",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OthrIdentificationCode::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyCodeEUR",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyCodeEUR",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyAndAmountSEPA",
+    "mutatedMethod": "getCcy",
+    "lineNumber": "73",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyAndAmountSEPA::getCcy"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyAndAmountSEPA",
+    "mutatedMethod": "getValue",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyAndAmountSEPA::getValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSchemeName1Choice",
+    "mutatedMethod": "getCd",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSchemeName1Choice",
+    "mutatedMethod": "getPrtry",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice::getPrtry"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RemittanceInformationSEPA1Choice",
+    "mutatedMethod": "getStrd",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/RemittanceInformationSEPA1Choice::getStrd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RemittanceInformationSEPA1Choice",
+    "mutatedMethod": "getUstrd",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RemittanceInformationSEPA1Choice::getUstrd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA1",
+    "mutatedMethod": "getCcy",
+    "lineNumber": "75",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA1::getCcy"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA1",
+    "mutatedMethod": "getId",
+    "lineNumber": "51",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA1::getId"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers",
+    "mutatedMethod": "seatReleased",
+    "lineNumber": "22",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::seatReleased"
+  },
+  {
+    "package": "bookings",
+    "status": "SURVIVED",
+    "mutatedClass": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers",
+    "mutatedMethod": "waitlistExpired",
+    "lineNumber": "34",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::waitlistExpired"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DocumentType3CodeSEPA",
+    "mutatedMethod": "fromValue",
+    "lineNumber": "32",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA::fromValue"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.DocumentType3CodeSEPA",
+    "mutatedMethod": "value",
+    "lineNumber": "28",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA::value"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA3",
+    "mutatedMethod": "getBIC",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA3::getBIC"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA3",
+    "mutatedMethod": "getOthr",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA3::getOthr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPAMandate",
+    "mutatedMethod": "getIBAN",
+    "lineNumber": "53",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate::getIBAN"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPAMandate",
+    "mutatedMethod": "getOthr",
+    "lineNumber": "77",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate::getOthr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.LocalInstrumentSEPA",
+    "mutatedMethod": "getCd",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/LocalInstrumentSEPA::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA3",
+    "mutatedMethod": "getId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA3::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PurposeSEPA",
+    "mutatedMethod": "getCd",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PurposeSEPA::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSchemeNameSEPA",
+    "mutatedMethod": "getPrtry",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSchemeNameSEPA::getPrtry"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.GenericAccountIdentificationSEPA",
+    "mutatedMethod": "getId",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericAccountIdentificationSEPA::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA3",
+    "mutatedMethod": "getFinInstnId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA3::getFinInstnId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA2",
+    "mutatedMethod": "getFinInstnId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA2::getFinInstnId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CategoryPurposeSEPA",
+    "mutatedMethod": "getCd",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CategoryPurposeSEPA::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeCodeSEPA",
+    "mutatedMethod": "getCd",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeCodeSEPA::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.Document",
+    "mutatedMethod": "getCstmrDrctDbtInitn",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/Document::getCstmrDrctDbtInitn"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA2",
+    "mutatedMethod": "getOthr",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA2::getOthr"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPAMandate",
+    "mutatedMethod": "getId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPAMandate::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPA",
+    "mutatedMethod": "getIBAN",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPA::getIBAN"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA2",
+    "mutatedMethod": "getId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA2::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.ServiceLevel",
+    "mutatedMethod": "getCd",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ServiceLevel::getCd"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.StructuredRemittanceInformationSEPA1",
+    "mutatedMethod": "getCdtrRefInf",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/StructuredRemittanceInformationSEPA1::getCdtrRefInf"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.PartySEPA2",
+    "mutatedMethod": "getPrvtId",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPA2::getPrvtId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.OthrIdentification",
+    "mutatedMethod": "getId",
+    "lineNumber": "49",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator",
+    "description": "replaced return value with null for com/agilityhub/core/payments/sepa/generated/OthrIdentification::getId"
+  },
+  {
+    "package": "payments",
+    "status": "NO_COVERAGE",
+    "mutatedClass": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA2",
+    "mutatedMethod": "getBIC",
+    "lineNumber": "47",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "description": "replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA2::getBIC"
+  }
+]

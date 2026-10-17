@@ -1,0 +1,29 @@
+PASS prod Core, local seed, both billing keys, private network with no provider egress
+PASS helper contains exact current source and pinned Mongo 7.0.41
+PASS authenticated production topology became healthy with local override
+PASS Caddy HTTPS health UP (trusted internal CA, no -k)
+PASS branding resolves canic by each preserved front Host
+PASS three SPAs: /, /index.html and deep links serve index with Cache-Control: no-cache
+PASS proxy refresh rotates host-only ah_refresh; Secure HttpOnly SameSite=Strict Path=/oauth2/token
+PASS old refresh cookie rejected through Caddy
+PASS TLS certificate issued only for approved.localhost; real bridge forwards host=; other host denied
+PASS Mongo rejects unauthenticated reads; internal ask route is not public
+PASS distinct MinIO writer Put/List and recovery Get/List principals provisioned
+PASS MinIO lifecycle is 30 days; normal backup container has only the public recipient
+PASS ops memory is 1 GiB and its anonymous work volume disappears with the container
+FAILED: ClientError; provider/database details suppressed
+PASS writer environment cannot verify a backup (GetObject denied)
+PASS missing recipient and bucket fail before container/dump/upload
+PASS backup principal has only backup role and cannot write
+PASS snapshot counts exclude the later live write (source snapshot=3, live=4)
+PASS transaction insert/update/delete completed DURING mongodump in 0.004s
+PASS real view is recreated with its definition and queries restored data
+PASS concurrent-write backup restores exact snapshot counts
+PASS low disk refuses before producing any dump
+FAILED: age failed (exit 1); private tool output suppressed
+PASS authenticated decryption rejects tampered ciphertext before Mongo starts
+FAILED: Collection count mismatch
+PASS authenticated false count fails verification
+PASS restore requires --verify and has no live destination
+E11-T04 ALL CHECKS PASSED
+CLEANUP disposable project, volumes and private credentials removed

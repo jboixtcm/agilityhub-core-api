@@ -1,0 +1,294 @@
+[
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.SingleClassCharges|lambda$open$0|()Lcom/agilityhub/core/shared/domain/ApiException;|46|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/SingleClassCharges::lambda$open$0|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.SingleClassCharges",
+  "method": "lambda$open$0",
+  "line": 46,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/SingleClassCharges::lambda$open$0",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var member = census.member(pending.ownerMemberId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch11 line 46: reason: unreachable with real data — the only caller BookingConfirmationService#openCheckout (BookingConfirmationService.java:122) opens the `Pending` that `prepare` built for `subject.owner().id()` (:84), a member BookingChecks#subject read in the same request; members are never deleted and nothing in src/main writes `Member.erasedAt` (Member.java:66, only read), the only reason BookingMemberAccess#member (BookingMemberAccess.java:28-31) is empty for an existing id"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers|seatReleased|(Lcom/agilityhub/core/clubs/bookings/application/WaitlistService;)Lcom/agilityhub/core/shared/application/DomainEventHandler;|22|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::seatReleased|8|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers",
+  "method": "seatReleased",
+  "line": 22,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::seatReleased",
+  "testsRun": 16,
+  "killingTest": "",
+  "source": "return new DomainEventHandler<>() {",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers|waitlistExpired|(Lcom/agilityhub/core/clubs/bookings/application/WaitlistService;Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository;)Lcom/agilityhub/core/shared/application/DomainEventHandler;|34|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::waitlistExpired|9|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistConsumers",
+  "method": "waitlistExpired",
+  "line": 34,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistConsumers::waitlistExpired",
+  "testsRun": 16,
+  "killingTest": "",
+  "source": "return new DomainEventHandler<>() {",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob|apply|(Lcom/agilityhub/core/platform/application/jobs/JobContext;Lcom/agilityhub/core/platform/application/jobs/JobItem;)Lcom/agilityhub/core/platform/application/jobs/JobEffect;|44|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistFifoJob::apply|22|7",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistFifoJob",
+  "method": "apply",
+  "line": 44,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistFifoJob::apply",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "if (initial == null) { return new JobEffect(\"NOT_IN_SCOPE\", Map.of(), Map.of()); }",
+  "history": [
+   "triage-batch11 line 44: reason: unreachable with real data — items come from `plan()`, i.e. `waitlist.notifiedDue` (WaitlistFifoJob.java:37-39), and waiting-list entries are never deleted (BR-12, WaitlistEntry.java:12; no remove/deleteById of `waitlist_entries` in src/main)",
+   "triage-batch11 line 49: test: WaitlistFifoJobSurvivorsTest#T_08_34_anOfferLeftBetweenThePlanAndTheItemIsNotInScope"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|lambda$leave$4|()Lcom/agilityhub/core/shared/domain/ApiException;|90|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$4|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+  "method": "lambda$leave$4",
+  "line": 90,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$4",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var initial = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch11 line 90: reason: unreachable with real data — the only caller BookingsController#leaveWaitlist runs `waitlist.visible(id, …)` first (BookingsController.java:299), NOT_FOUND for an unknown id; waiting-list entries are never deleted (BR-12, WaitlistEntry.java:12; no remove/deleteById of `waitlist_entries` in src/main)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|lambda$leave$5|()Lcom/agilityhub/core/shared/domain/ApiException;|94|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$5|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+  "method": "lambda$leave$5",
+  "line": 94,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$leave$5",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var entry = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch11 line 94: reason: unreachable with real data — the re-read at WaitlistService.java:94 finds the entry read at :90 in the same request; waiting-list entries are never deleted (BR-12, WaitlistEntry.java:12; no remove/deleteById of `waitlist_entries` in src/main)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|lambda$claim$9|()Lcom/agilityhub/core/shared/domain/ApiException;|116|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$9|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+  "method": "lambda$claim$9",
+  "line": 116,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$9",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var initial = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch11 line 116: reason: unreachable with real data — the only caller BookingsController#claimSeat runs `waitlist.visible(id, …)` first (BookingsController.java:316), which is NOT_FOUND for an unknown id (WaitlistService.java:77); waiting-list entries are never deleted (BR-12, WaitlistEntry.java:12; no remove/deleteById of `waitlist_entries` in src/main)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|lambda$claim$10|()Lcom/agilityhub/core/shared/domain/ApiException;|120|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$10|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+  "method": "lambda$claim$10",
+  "line": 120,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistService::lambda$claim$10",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "var entry = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));",
+  "history": [
+   "triage-batch11 line 120: reason: unreachable with real data — the re-read at WaitlistService.java:120 finds the entry read at :116 in the same request; waiting-list entries are never deleted (BR-12, WaitlistEntry.java:12; no remove/deleteById of `waitlist_entries` in src/main)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|offerNext|(Ljava/lang/String;Ljava/lang/String;)I|151|org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator|replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext|8|1",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistService",
+  "method": "offerNext",
+  "line": 151,
+  "mutator": "PrimitiveReturns",
+  "description": "replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "public int offerNext(String classSessionId, String expiredEntryId) { return offer(classSessionId, Integer.MAX_VALUE, expiredEntryId); }",
+  "history": [
+   "triage-batch11 line 151: reason: discarded result — the only production caller, the `WaitlistExpired` consumer (WaitlistConsumers.java:42), ignores the count; `WaitlistService` implements no port for it; the offer itself (`transitions.notify` + `WaitlistNotified`) is asserted by WaitlistServiceSurvivorsTest#T_08_34_aWaitlistExpiredDeliveryNeverExpiresTheEntryAgainAndOffersTheSeatToTheNextUnderTheLock"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistTransitions|expire|(Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntry;Ljava/time/Instant;)Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntry;|80|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::expire|17|3",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WaitlistTransitions",
+  "method": "expire",
+  "line": 80,
+  "mutator": "NullReturnVals",
+  "description": "replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::expire",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "return write(e, WaitlistState.EXPIRED, e.notifiedAt(), e.confirmBy(), null, null, null, now, null, null);",
+  "history": [
+   "triage-batch11 line 80: reason: discarded result — `expire` is package-private (no port contract) and both callers ignore the returned entry: WaitlistService.java:159 (`ifPresent(e -> transitions.expire(e, now))`) and WaitlistFifoJob.java:51; the expiry itself is the `waitlist.update` write, asserted by WaitlistTransitionsSurvivorsTest#T_08_21_aFifoExpiryWritesTheExpiredEntryWithoutItsOfferMark"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|render|(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B|64|org.pitest.mutationtest.engine.gregor.mutators.MathMutator|Replaced float subtraction with addition|330|90",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+  "method": "render",
+  "line": 64,
+  "mutator": "Math",
+  "description": "Replaced float subtraction with addition",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "if (rows.isEmpty()) { pages.row(\"\", List.of(List.of(text(\"empty\", Map.of(), locale))), size.getWidth() - 2 * MARGIN - HOUR_WIDTH); }",
+  "history": [
+   "triage-batch11 line 48: test: WeekAgendaPdfSurvivorsTest#T_10_20_theGridDrawsTheBandHeadersCellsAndSeparatorsAtTheirPlaces (column x)",
+   "triage-batch11 line 48: test: WeekAgendaPdfSurvivorsTest#T_10_20_theGridDrawsTheBandHeadersCellsAndSeparatorsAtTheirPlaces"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|render|(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B|64|org.pitest.mutationtest.engine.gregor.mutators.MathMutator|Replaced float subtraction with addition|332|90",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+  "method": "render",
+  "line": 64,
+  "mutator": "Math",
+  "description": "Replaced float subtraction with addition",
+  "testsRun": 1,
+  "killingTest": "",
+  "source": "if (rows.isEmpty()) { pages.row(\"\", List.of(List.of(text(\"empty\", Map.of(), locale))), size.getWidth() - 2 * MARGIN - HOUR_WIDTH); }",
+  "history": [
+   "triage-batch11 line 48: test: WeekAgendaPdfSurvivorsTest#T_10_20_theGridDrawsTheBandHeadersCellsAndSeparatorsAtTheirPlaces (column x)",
+   "triage-batch11 line 48: test: WeekAgendaPdfSurvivorsTest#T_10_20_theGridDrawsTheBandHeadersCellsAndSeparatorsAtTheirPlaces"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|wrap|(Lorg/apache/pdfbox/pdmodel/font/PDFont;Ljava/lang/String;F)Ljava/util/List;|149|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|56|11",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf",
+  "method": "wrap",
+  "line": 149,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 3,
+  "killingTest": "",
+  "source": "if (font.getStringWidth(line + next) * SIZE / 1000 > width) {",
+  "history": [
+   "triage-batch11 line 149: reason: truly equivalent — `getStringWidth` sums the embedded font's `W` widths, which PDFBox's Type0 embedder stores as integers in 1/1000 em (Liberation Sans' 2048-unit advances × 1000/2048, rounded), so the left side `k · 7.5/1000` is a multiple of 0.0075 pt; the only call (WeekAgendaPdf.java:58) passes `columnWidth − 6` = (841.8898 − 108)/days − 6 (WeekAgendaPdf.java:40,48), i.e. 116.31496 pt (6 days) or 98.84140 pt (7 days: Monday–Saturday plus Sunday only with items, WeekAgendaQuery.java:86), at least 0.0011 pt from the nearest multiple of 0.0075 (116.3175 / 98.8425), far above the float error of the sum, so `>` and `>=` agree",
+   "triage-batch11 line 151: test: WeekAgendaPdfSurvivorsTest#T_10_20_aCellWrapsAtTheColumnWidthAndCutsALongWordOnceWithoutAnEmptyLine (an empty line instead of « https://…»)"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|headers|(Ljava/util/List;Ljava/lang/String;F)V|108|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page|13|0",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+  "method": "headers",
+  "line": 108,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "this.headers = headers; this.hourLabel = hourLabel; this.columnWidth = columnWidth; page();",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|page|()V|120|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont|158|30",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+  "method": "page",
+  "line": 120,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "stream.beginText(); stream.setFont(font, 8); stream.newLineAtOffset(MARGIN + HOUR_WIDTH + i * columnWidth + 3, y);",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|row|(Ljava/lang/String;Ljava/util/List;F)V|127|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|24|5",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+  "method": "row",
+  "line": 127,
+  "mutator": "ConditionalsBoundary",
+  "description": "changed conditional boundary",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "if (y - height * LINE < FOOTER) { page(); }",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|row|(Ljava/lang/String;Ljava/util/List;F)V|132|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont|107|23",
+  "status": "SURVIVED",
+  "class": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages",
+  "method": "row",
+  "line": 132,
+  "mutator": "VoidMethodCall",
+  "description": "removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont",
+  "testsRun": 4,
+  "killingTest": "",
+  "source": "stream.beginText(); stream.setFont(font, SIZE); stream.newLineAtOffset(x, lineY); stream.showText(printable(font, text)); stream.endText();",
+  "history": []
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort|balance|(Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDate;)Ljava/util/Optional;|15|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::balance|7|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort",
+  "method": "balance",
+  "line": 15,
+  "mutator": "EmptyObjectReturnVals",
+  "description": "replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::balance",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "default Optional<Balance> balance(String memberId, String dogId, LocalDate classDate) { return balance(memberId, dogId); }",
+  "history": [
+   "triage-batch8 line 15: reason: unreachable with real data — the dated `balance` default only runs in an implementation that does not override it; the only implementation, PaymentsPackBalanceAdapter.java:11, overrides it (PaymentsPackBalanceAdapter.java:16), so no production call reaches PackBalancePort.java:15"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort|consume|(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDate;)Ljava/lang/String;|16|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::consume|8|1",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort",
+  "method": "consume",
+  "line": 16,
+  "mutator": "EmptyObjectReturnVals",
+  "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/ports/PackBalancePort::consume",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": "default String consume(String memberId, String dogId, String bookingId, LocalDate classDate) { return consume(memberId, dogId, bookingId); }",
+  "history": [
+   "triage-batch8 line 16: reason: unreachable with real data — the dated `consume` default only runs in an implementation that does not override it; the only implementation, PaymentsPackBalanceAdapter.java:11, overrides it (PaymentsPackBalanceAdapter.java:20), so no production call reaches PackBalancePort.java:16"
+  ]
+ },
+ {
+  "identity": "com.agilityhub.core.clubs.bookings.domain.AttendanceMetrics|lambda$lastClasses$4|(Lcom/agilityhub/core/clubs/bookings/domain/AttendanceMetrics$LastClass;)Ljava/lang/String;|69|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/clubs/bookings/domain/AttendanceMetrics::lambda$lastClasses$4|6|2",
+  "status": "NO_COVERAGE",
+  "class": "com.agilityhub.core.clubs.bookings.domain.AttendanceMetrics",
+  "method": "lambda$lastClasses$4",
+  "line": 69,
+  "mutator": "EmptyObjectReturnVals",
+  "description": "replaced return value with \"\" for com/agilityhub/core/clubs/bookings/domain/AttendanceMetrics::lambda$lastClasses$4",
+  "testsRun": 0,
+  "killingTest": "",
+  "source": ".sorted(Comparator.comparing((LastClass l) -> l.record().classStartsAt()).reversed().thenComparing(l -> l.record().bookingId()))",
+  "history": [
+   "triage-batch8 line 69: reason: unreachable with real data — the only caller feeds `lastClasses` the bookings of `forDogs` (InstructorCardQuery.java:42,56), which Mongo returns sorted by `classStartsAt, _id` (BookingRepository.java:63); booking ids are UUID strings (BookingConfirmationService.java:79), whose Mongo binary order equals `String.compareTo`, so within one start the input is already in id order and the stable `sorted` (AttendanceMetrics.java:69) keeps it with a constant `\"\"` key too"
+  ]
+ }
+]

@@ -3670,3 +3670,7 @@ Blocking: no.
 
 The OpenAPI adds `DomainVerification.method: ADDRESS`. Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-15 · organizer → executor · E116: E10-T04 and E10-T03 move to the cloud lane F
+@executor Ruling E116. **E10-T04 and E10-T03 move to thread F**, a Claude cloud session, so they run in parallel with E11-T06. This lane keeps thread D (E11-T06); the organizer gives it new work when E11-T06 is handed off.
+Blocking: no.
