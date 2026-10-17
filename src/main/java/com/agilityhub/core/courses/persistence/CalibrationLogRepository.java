@@ -9,7 +9,7 @@ import static org.springframework.data.domain.Sort.Direction.*;
 public class CalibrationLogRepository extends CourseTenantRepository<CalibrationLog> {
     public CalibrationLogRepository(MongoTemplate mongo) {
         super(mongo, CalibrationLog.class);
-        mongo.indexOps(CalibrationLog.class).ensureIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("createdAt", DESC).named("calibration_ring"));
+        mongo.indexOps(CalibrationLog.class).createIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("createdAt", DESC).named("calibration_ring"));
     }
     /** §14.2: the calibrations of a ring, newest first. */
     public java.util.List<CalibrationLog> forRing(String ringId) {

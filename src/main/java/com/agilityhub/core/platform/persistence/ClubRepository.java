@@ -173,8 +173,8 @@ public class ClubRepository extends GlobalRepository<Club> {
         mongo.upsert(Query.query(Criteria.where("clubId").is(clubId)), new org.springframework.data.mongodb.core.query.Update().inc("sequence", 1L), "provider_write_locks");
     }
     public void ensureIndexes() {
-        mongo.indexOps("provider_write_locks").ensureIndex(new Index().on("clubId", Direction.ASC).unique());
-        mongo.indexOps(Club.class).ensureIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));
-        mongo.indexOps(Club.class).ensureIndex(new Index().on("domains.host", Direction.ASC).unique().sparse().named("club_host"));
+        mongo.indexOps("provider_write_locks").createIndex(new Index().on("clubId", Direction.ASC).unique());
+        mongo.indexOps(Club.class).createIndex(new Index().on("slug", Direction.ASC).unique().named("club_slug"));
+        mongo.indexOps(Club.class).createIndex(new Index().on("domains.host", Direction.ASC).unique().sparse().named("club_host"));
     }
 }

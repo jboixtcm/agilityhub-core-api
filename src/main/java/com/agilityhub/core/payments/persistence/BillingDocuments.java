@@ -74,17 +74,17 @@ public final class BillingDocuments {
             for (var info : indexes.getIndexInfo()) {
                 if (info.getName().equals("invoice_club_series_number") && info.getPartialFilterExpression() == null) { indexes.dropIndex(info.getName()); }
             }
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", ASC).unique()
+            indexes.createIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", ASC).unique()
                     .partial(PartialIndexFilter.of(Criteria.where("status").in(NUMBERED_STATUSES))).named("invoice_club_series_number"));
             // E8-T07 step 5: the numbering reads (highestNumber, numberedFrom, seriesUsed) leave the cancelled receipts in and the
             // rolled-back ones out, which the partial index above cannot serve. This one covers every receipt (not unique; number
             // descending, so it is a different key pattern from the guard's).
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", DESC).named(SERIES_NUMBER_INDEX));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("period", ASC).on("status", ASC).named("invoice_club_period_status"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("issueDate", DESC).named("invoice_club_member_issue"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("runId", ASC).named("invoice_club_run"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("invoice_club_remittance"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("sourceIds.playoffReceiptId", ASC).unique()
+            indexes.createIndex(new Index().on("clubId", ASC).on("series", ASC).on("number", DESC).named(SERIES_NUMBER_INDEX));
+            indexes.createIndex(new Index().on("clubId", ASC).on("period", ASC).on("status", ASC).named("invoice_club_period_status"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("issueDate", DESC).named("invoice_club_member_issue"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("runId", ASC).named("invoice_club_run"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("invoice_club_remittance"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("sourceIds.playoffReceiptId", ASC).unique()
                     .partial(present("sourceIds.playoffReceiptId")).named("invoice_club_playoff_source"));
         }
         /** R-12-10 (T-12-12): an issued invoice is never replaced — only its state fields move, through {@link #transition}. */
@@ -195,10 +195,10 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(Collection.class);
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("invoiceId", ASC).on("attempt", ASC).named("collection_club_invoice_attempt"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("provider", ASC).on("status", ASC).named("collection_club_provider_status"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("collection_club_remittance"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("providerRef", ASC).unique().partial(present("providerRef")).named("collection_club_provider_ref"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("invoiceId", ASC).on("attempt", ASC).named("collection_club_invoice_attempt"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("provider", ASC).on("status", ASC).named("collection_club_provider_status"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("remittanceId", ASC).named("collection_club_remittance"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("providerRef", ASC).unique().partial(present("providerRef")).named("collection_club_provider_ref"));
         }
         public java.util.Optional<Collection> byProviderReference(String reference) {
             return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("providerRef").is(reference)), Collection.class));
@@ -243,8 +243,8 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(Remittance.class);
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("period", ASC).on("status", ASC).named("remittance_club_period_status"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("messageId", ASC).unique().named("remittance_club_message"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("period", ASC).on("status", ASC).named("remittance_club_period_status"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("messageId", ASC).unique().named("remittance_club_message"));
         }
         public List<Remittance> forPeriod(String period) {
             return mongo.find(tenantQuery().addCriteria(Criteria.where("period").is(period)).with(Sort.by(DESC, "creationAt")), Remittance.class);
@@ -281,10 +281,10 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(BillingRun.class);
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("period", ASC).unique()
+            indexes.createIndex(new Index().on("clubId", ASC).on("period", ASC).unique()
                     .partial(PartialIndexFilter.of(Criteria.where("status").in(LIVE_RUN_STATUSES))).named("billing_run_live_period"));
             // E8-T07: the rolled-back runs every receipt read leaves out (rolledBackRunIds).
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("status", ASC).named("billing_run_club_status"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("status", ASC).named("billing_run_club_status"));
         }
         /** R-12-11: the month's live run (`GENERATED`, `CHARGING`, `COMPLETED`), if any. */
         public java.util.Optional<BillingRun> live(String period) {
@@ -334,7 +334,7 @@ public final class BillingDocuments {
         public BillingSimulationRepository(MongoTemplate mongo) { super(mongo, BillingSimulation.class); }
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
-            mongo.indexOps(BillingSimulation.class).ensureIndex(new Index().on("clubId", ASC).on("period", ASC).unique().named("billing_simulation_club_period"));
+            mongo.indexOps(BillingSimulation.class).createIndex(new Index().on("clubId", ASC).on("period", ASC).unique().named("billing_simulation_club_period"));
         }
         public java.util.Optional<BillingSimulation> forPeriod(String period) {
             return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("period").is(period)), BillingSimulation.class));
@@ -371,10 +371,10 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(PackBalance.class);
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("state", ASC).on("expiresOn", ASC).named("pack_club_dog_state_expiry"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("state", ASC).named("pack_club_member_state"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("upfrontPaymentId", ASC).unique().partial(present("upfrontPaymentId")).named("pack_club_upfront_payment"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("sourceIds.playoffPackId", ASC).unique()
+            indexes.createIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("state", ASC).on("expiresOn", ASC).named("pack_club_dog_state_expiry"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("state", ASC).named("pack_club_member_state"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("upfrontPaymentId", ASC).unique().partial(present("upfrontPaymentId")).named("pack_club_upfront_payment"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("sourceIds.playoffPackId", ASC).unique()
                     .partial(present("sourceIds.playoffPackId")).named("pack_club_playoff_source"));
         }
     }
@@ -385,8 +385,8 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(PendingCharge.class);
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("bookingId", ASC).unique().named("pending_charge_club_booking"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("invoiceId", ASC).named("pending_charge_club_member_invoice"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("bookingId", ASC).unique().named("pending_charge_club_booking"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("invoiceId", ASC).named("pending_charge_club_member_invoice"));
         }
         public java.util.Optional<PendingCharge> forBooking(String bookingId) {
             return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("bookingId").is(bookingId)), PendingCharge.class));
@@ -427,8 +427,8 @@ public final class BillingDocuments {
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
             var indexes = mongo.indexOps(StripeEvent.class);
-            indexes.ensureIndex(new Index().on("eventId", ASC).unique().named("stripe_event_id"));
-            indexes.ensureIndex(new Index().on("clubId", ASC).on("receivedAt", ASC).named("stripe_event_club_received"));
+            indexes.createIndex(new Index().on("eventId", ASC).unique().named("stripe_event_id"));
+            indexes.createIndex(new Index().on("clubId", ASC).on("receivedAt", ASC).named("stripe_event_club_received"));
         }
     }
 
@@ -437,7 +437,7 @@ public final class BillingDocuments {
         public BillingLockRepository(MongoTemplate mongo) { super(mongo, BillingLock.class); }
         @jakarta.annotation.PostConstruct
         public void ensureIndexes() {
-            mongo.indexOps(BillingLock.class).ensureIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("billing_lock_ttl"));
+            mongo.indexOps(BillingLock.class).createIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("billing_lock_ttl"));
         }
         /**
          * R-12-11: takes the club's billing lock for {@code holder} for {@link #BILLING_LOCK_LEASE}, outside any transaction so that

@@ -28,11 +28,11 @@ public class AttendanceRepository extends TenantRepository<Attendance> {
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(Attendance.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("bookingId", ASC).unique().named("attendance_club_booking"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).named("attendance_club_class"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("classStartsAt", ASC).named("attendance_club_dog_starts"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("bookingId", ASC).unique().named("attendance_club_booking"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).named("attendance_club_class"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("classStartsAt", ASC).named("attendance_club_dog_starts"));
         // R-10-06: the P3 claim reads NO_SHOW rows not yet queued with an earlier class date.
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("noShowNotice.queuedAt", ASC).on("classDate", ASC)
+        indexes.createIndex(new Index().on("clubId", ASC).on("state", ASC).on("noShowNotice.queuedAt", ASC).on("classDate", ASC)
                 .named("attendance_club_state_notice_date"));
     }
     public List<Attendance> findByClassSession(String classSessionId) {

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Repository;
 public class InstructorRepository extends TenantRepository<Instructor> implements com.agilityhub.core.shared.application.TeamWriteLock {
     public InstructorRepository(MongoTemplate mongo) {
         super(mongo, Instructor.class);
-        mongo.indexOps(Instructor.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("memberId", Direction.ASC).unique());
-        mongo.indexOps("team_write_locks").ensureIndex(new Index().on("clubId", Direction.ASC).unique());
+        mongo.indexOps(Instructor.class).createIndex(new Index().on("clubId", Direction.ASC).on("memberId", Direction.ASC).unique());
+        mongo.indexOps("team_write_locks").createIndex(new Index().on("clubId", Direction.ASC).unique());
     }
     /** All team writers share one transactional write, preventing last-admin write skew. */
     @Override public void lock() { mongo.upsert(tenantQuery(), new Update().inc("sequence", 1), "team_write_locks"); }

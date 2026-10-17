@@ -29,11 +29,11 @@ public class ErasureRequestRepository extends GlobalRepository<ErasureRequest> {
 
     public void ensureIndexes() {
         var indexes = mongo.indexOps(ErasureRequest.class);
-        indexes.ensureIndex(new Index().on("memberIds", Sort.Direction.ASC).unique()
+        indexes.createIndex(new Index().on("memberIds", Sort.Direction.ASC).unique()
                 .partial(PartialIndexFilter.of(new Document("live", true))).named("erasure_live_member"));
-        indexes.ensureIndex(new Index().on("clubIds", Sort.Direction.ASC).on("status", Sort.Direction.ASC).on("executeAt", Sort.Direction.ASC).named("erasure_club_due"));
-        indexes.ensureIndex(new Index().on("accountId", Sort.Direction.ASC).on("status", Sort.Direction.ASC).named("erasure_account"));
-        indexes.ensureIndex(new Index().on("requestedAt", Sort.Direction.DESC).named("erasure_requested"));
+        indexes.createIndex(new Index().on("clubIds", Sort.Direction.ASC).on("status", Sort.Direction.ASC).on("executeAt", Sort.Direction.ASC).named("erasure_club_due"));
+        indexes.createIndex(new Index().on("accountId", Sort.Direction.ASC).on("status", Sort.Direction.ASC).named("erasure_account"));
+        indexes.createIndex(new Index().on("requestedAt", Sort.Direction.DESC).named("erasure_requested"));
     }
 
     /** A second live request for one of its members → `409 ERASURE_ALREADY_REQUESTED` (the unique partial index, T-14-24). */

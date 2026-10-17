@@ -37,8 +37,8 @@ public class ActivityRepository extends TenantRepository<Activity> {
     }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(Activity.class).ensureIndex(new Index().on("clubId", ASC).on("slug", ASC).unique().named("activity_club_slug"));
-        mongo.indexOps(Activity.class).ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("startsAt", ASC).named("activity_club_state_start"));
-        mongo.indexOps(Activity.class).ensureIndex(new Index().on("clubId", ASC).on("date", ASC).named("activity_club_date"));
+        mongo.indexOps(Activity.class).createIndex(new Index().on("clubId", ASC).on("slug", ASC).unique().named("activity_club_slug"));
+        mongo.indexOps(Activity.class).createIndex(new Index().on("clubId", ASC).on("state", ASC).on("startsAt", ASC).named("activity_club_state_start"));
+        mongo.indexOps(Activity.class).createIndex(new Index().on("clubId", ASC).on("date", ASC).named("activity_club_date"));
     }
 }

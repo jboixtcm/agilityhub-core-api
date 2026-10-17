@@ -16,7 +16,7 @@ import static org.springframework.data.domain.Sort.Direction.*;
 public class ObstacleInventoryRepository extends CourseTenantRepository<ObstacleInventory> {
     public ObstacleInventoryRepository(MongoTemplate mongo) {
         super(mongo, ObstacleInventory.class);
-        mongo.indexOps(ObstacleInventory.class).ensureIndex(new Index().on("clubId", ASC).on("scope", ASC).on("ringId", ASC).unique().named("inventory_scope"));
+        mongo.indexOps(ObstacleInventory.class).createIndex(new Index().on("clubId", ASC).on("scope", ASC).on("ringId", ASC).unique().named("inventory_scope"));
     }
     private Query scope(InventoryScope scope, String ringId) {
         return tenantQuery().addCriteria(Criteria.where("scope").is(scope).and("ringId").is(ringId));

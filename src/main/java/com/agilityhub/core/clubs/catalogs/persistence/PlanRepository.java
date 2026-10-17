@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public class PlanRepository extends CatalogRepository<Plan> {
     public PlanRepository(MongoTemplate mongo) {
         super(mongo, Plan.class);
-        mongo.indexOps(Plan.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("code", Direction.ASC)
+        mongo.indexOps(Plan.class).createIndex(new Index().on("clubId", Direction.ASC).on("code", Direction.ASC)
                 .unique().partial(PartialIndexFilter.of(Criteria.where("code").exists(true)))
                 .collation(Collation.of("en").strength(2)).named("plan_code"));
     }

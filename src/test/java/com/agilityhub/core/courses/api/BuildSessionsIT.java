@@ -703,8 +703,8 @@ class BuildSessionsIT extends CourseItSupport {
      * `server.tomcat.connection-timeout` is set explicitly (20 s) instead of Tomcat's default (60 s); idle keep-alive stays 60 s.
      */
     @Test void T_16_10_aStalledStreamHoldsItsSenderNoLongerThanTheWriteTimeout(
-            @Autowired org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext context) {
-        var tomcat = (org.springframework.boot.web.embedded.tomcat.TomcatWebServer) context.getWebServer();
+            @Autowired org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext context) {
+        var tomcat = (org.springframework.boot.tomcat.TomcatWebServer) context.getWebServer();
         var connector = tomcat.getTomcat().getConnector();
         assertThat(connector.getProperty("connectionTimeout")).isEqualTo(20_000);
         assertThat(connector.getProperty("keepAliveTimeout")).as("idle keep-alive unchanged").isEqualTo(60_000);

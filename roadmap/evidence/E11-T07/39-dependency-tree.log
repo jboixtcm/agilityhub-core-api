@@ -1,0 +1,18 @@
+|  +- io.sentry:sentry-spring-boot-4:jar:8.61.0:compile
+|     +- io.netty:netty-common:jar:4.2.17.Final:runtime
+|  |     \- tools.jackson.core:jackson-databind:jar:3.1.5:compile
+|  |  |  +- org.apache.tomcat.embed:tomcat-embed-core:jar:11.0.27:compile
+|     \- org.springframework:spring-webmvc:jar:7.0.9:compile
+|  |  \- org.mongodb:mongodb-driver-sync:jar:5.8.1:compile
+|     \- org.springframework.data:spring-data-mongodb:jar:5.1.1:compile
+|  |  |  \- org.springframework.security:spring-security-core:jar:7.1.1:compile
+|  +- org.springframework.boot:spring-boot:jar:4.1.1:compile
+|  +- com.fasterxml.jackson.core:jackson-databind:jar:2.21.5:compile
++- org.springdoc:springdoc-openapi-starter-webmvc-ui:jar:3.0.3:compile
+|  +- org.springdoc:springdoc-openapi-starter-webmvc-api:jar:3.0.3:compile
+|  |  +- org.springdoc:springdoc-openapi-starter-common:jar:3.0.3:compile
+|  |  |  \- io.swagger.core.v3:swagger-core-jakarta:jar:2.2.47:compile
+|  |  +- org.junit.jupiter:junit-jupiter-api:jar:6.0.3:test
++- org.testcontainers:testcontainers-mongodb:jar:2.0.5:test
+|  \- org.testcontainers:testcontainers:jar:2.0.5:test
++- org.testcontainers:testcontainers-junit-jupiter:jar:2.0.5:test

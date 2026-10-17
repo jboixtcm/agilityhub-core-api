@@ -43,7 +43,7 @@ public class ParameterRepository extends TenantRepository<Parameter> {
         return java.util.Optional.ofNullable(latest == null ? null : latest.updatedAt());
     }
     public void ensureIndexes() {
-        mongo.indexOps(Parameter.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC)
+        mongo.indexOps(Parameter.class).createIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC)
                 .on("scopeRef", Direction.ASC).unique().named("parameter_scope_key"));
     }
 }

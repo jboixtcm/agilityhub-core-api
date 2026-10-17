@@ -63,7 +63,19 @@ spring:
       enabled: true
   autoconfigure:
     exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  # E11-T07: Jackson 2 (spring-boot-jackson2) keeps writing the HTTP JSON until the Jackson 3 task.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+  # E11-T07: Boot 4 no longer picks these; they are what Boot 3.5 (Spring Data MongoDB 4.5) stored.
+  mongodb:
+    representation:
+      uuid: java-legacy
+  data:
+    mongodb:
+      representation:
+        big-decimal: string
 
 server:
   port: ${SERVER_PORT:8080}
@@ -88,6 +100,9 @@ management:
   endpoint:
     health:
       show-details: never
+      # E11-T07: Boot 4 turns the liveness/readiness groups on by default; the health answer and the deploy checks stay as before.
+      probes:
+        enabled: false
 
 core:
   # E11-T03 infrastructure bounds; HTTP budgets do not limit background transaction lifetimes (E85).
@@ -196,10 +211,9 @@ spring:
   config:
     activate:
       on-profile: local
-  data:
-    mongodb:
-      # Direct connection also works from the host, where Compose's mongo DNS is unavailable.
-      uri: mongodb://${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:agilityhub}?replicaSet=${MONGODB_REPLICA_SET:rs0}&directConnection=true
+  mongodb:
+    # Direct connection also works from the host, where Compose's mongo DNS is unavailable.
+    uri: mongodb://${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:agilityhub}?replicaSet=${MONGODB_REPLICA_SET:rs0}&directConnection=true
 
 springdoc:
   api-docs:
@@ -217,9 +231,8 @@ spring:
   config:
     activate:
       on-profile: test
-  data:
-    mongodb:
-      uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0&directConnection=true}
+  mongodb:
+    uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0&directConnection=true}
 
 attachments:
   local-directory: ./target/test-attachments
@@ -241,15 +254,14 @@ spring:
   config:
     activate:
       on-profile: staging | prod
-  data:
-    mongodb:
-      host: ${MONGODB_HOST}
-      port: ${MONGODB_PORT:27017}
-      database: ${MONGODB_DATABASE}
-      replica-set-name: ${MONGODB_REPLICA_SET:rs0}
-      authentication-database: ${MONGODB_AUTH_DATABASE:admin}
-      username: ${MONGODB_USERNAME}
-      password: ${MONGODB_PASSWORD}
+  mongodb:
+    host: ${MONGODB_HOST}
+    port: ${MONGODB_PORT:27017}
+    database: ${MONGODB_DATABASE}
+    replica-set-name: ${MONGODB_REPLICA_SET:rs0}
+    authentication-database: ${MONGODB_AUTH_DATABASE:admin}
+    username: ${MONGODB_USERNAME}
+    password: ${MONGODB_PASSWORD}
 
 springdoc:
   api-docs:

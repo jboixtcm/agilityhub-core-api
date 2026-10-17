@@ -18,7 +18,7 @@ public class SecurityEventRepository extends GlobalRepository<SecurityEvent> {
         var existing = indexes.getIndexInfo().stream()
                 .filter(index -> index.getName().equals("security_event_retention")).findFirst();
         if (existing.isEmpty()) {
-            indexes.ensureIndex(new Index().on("at", Direction.ASC).expire(retention).named("security_event_retention"));
+            indexes.createIndex(new Index().on("at", Direction.ASC).expire(retention).named("security_event_retention"));
         } else if (!existing.get().getExpireAfter().equals(java.util.Optional.of(retention))) {
             indexes.alterIndex("security_event_retention", IndexOptions.expireAfter(retention));
         }

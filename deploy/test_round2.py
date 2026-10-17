@@ -51,11 +51,11 @@ class DeploymentReviewTest(unittest.TestCase):
             '-f', 'deploy/compose.prod.yaml', '-f', 'deploy/compose.prod.local.yaml',
             'config', '--format', 'json'], cwd=ROOT, env=env))
         core = local['services']['core']['environment']
-        self.assertNotIn('SPRING_DATA_MONGODB_URI', core)
+        self.assertNotIn('SPRING_MONGODB_URI', core)
         for key in ('MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_DATABASE',
                     'MONGODB_AUTH_DATABASE', 'MONGODB_REPLICA_SET'):
             self.assertEqual(self.prod['services']['core']['environment'][key], core[key])
-        self.assertEqual(env['LOCAL_MONGODB_URI'], local['services']['seed']['environment']['SPRING_DATA_MONGODB_URI'])
+        self.assertEqual(env['LOCAL_MONGODB_URI'], local['services']['seed']['environment']['SPRING_MONGODB_URI'])
 
     def test_E11_T06_predeploy_verification_selects_recovery_identity(self):
         predeploy = self.doc[self.doc.index('4. From the installed checkout'):self.doc.index('5. Smoke the deployed hosts')]

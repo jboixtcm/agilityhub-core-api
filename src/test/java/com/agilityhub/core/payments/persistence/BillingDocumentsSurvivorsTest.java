@@ -94,7 +94,7 @@ class BillingDocumentsSurvivorsTest {
         new BillingDocuments.CollectionRepository(mongo).ensureIndexes();
 
         var definitions = ArgumentCaptor.forClass(IndexDefinition.class);
-        verify(indexes, atLeastOnce()).ensureIndex(definitions.capture());
+        verify(indexes, atLeastOnce()).createIndex(definitions.capture());
         var providerRef = definitions.getAllValues().stream()
                 .filter(definition -> "collection_club_provider_ref".equals(definition.getIndexOptions().getString("name"))).findFirst().orElseThrow();
         assertThat(providerRef.getIndexOptions().get("partialFilterExpression"))

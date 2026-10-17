@@ -57,11 +57,11 @@ public class RefreshTokenRepository extends TenantRepository<RefreshToken> {
     }
     static Update revoked(Instant now) { return new Update().set("revokedAt", now).set("status", RefreshToken.Status.REVOKED); }
     public void ensureIndexes() {
-        mongo.indexOps(RefreshToken.class).ensureIndex(new Index().on("tokenHash", Direction.ASC).unique().named("refresh_hash"));
-        mongo.indexOps(RefreshToken.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("familyId", Direction.ASC));
-        mongo.indexOps(RefreshToken.class).ensureIndex(new Index().on("accountId", Direction.ASC).on("createdAt", Direction.ASC));
+        mongo.indexOps(RefreshToken.class).createIndex(new Index().on("tokenHash", Direction.ASC).unique().named("refresh_hash"));
+        mongo.indexOps(RefreshToken.class).createIndex(new Index().on("clubId", Direction.ASC).on("familyId", Direction.ASC));
+        mongo.indexOps(RefreshToken.class).createIndex(new Index().on("accountId", Direction.ASC).on("createdAt", Direction.ASC));
         // Retain rotated tokens until the family expires so delayed reuse still revokes the active descendant.
-        mongo.indexOps(RefreshToken.class).ensureIndex(new Index().on("expiresAt", Direction.ASC).expire(0));
+        mongo.indexOps(RefreshToken.class).createIndex(new Index().on("expiresAt", Direction.ASC).expire(0));
     }
     public void extendFamilyRetention(String familyId, Instant expiry) {
         mongo.updateMulti(contextQuery().addCriteria(Criteria.where("familyId").is(familyId)),

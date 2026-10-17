@@ -19,7 +19,7 @@ public class JobLockRepository extends GlobalRepository<JobLock> {
     public JobLockRepository(MongoTemplate mongo) { super(mongo, JobLock.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(JobLock.class).ensureIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("job_lock_ttl"));
+        mongo.indexOps(JobLock.class).createIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("job_lock_ttl"));
     }
 
     /** R-15-06: upsert guarded by `expiresAt < now`; a live lease makes the upsert hit the `_id` and fail with DuplicateKey. */

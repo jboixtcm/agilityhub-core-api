@@ -1,0 +1,24 @@
+# Baseline (main 2316349c, Boot 3.5.16) vs final (rebased on origin/main 195d82d2, Boot 4.1.1), per test class.
+surefire: baseline classes=422 tests=4693 | final classes=431 tests=4731 failures=0 errors=0 skipped=0
+failsafe: baseline classes=155 tests=2060 | final classes=160 tests=2072 failures=0 errors=0 skipped=0
+baseline classes missing in final: none
+classes with fewer tests than baseline: [(('failsafe', 'com.agilityhub.core.configuration.E2ContractIT'), 14, 8)]
+classes new in final (this task or the rebased lanes):
+   failsafe com.agilityhub.core.configuration.StoredRepresentationIT tests=3
+   failsafe com.agilityhub.core.identity.api.SecurityEventHashIT tests=2
+   failsafe com.agilityhub.core.platform.privacy.ErasureIT tests=9
+   failsafe com.agilityhub.core.platform.privacy.MemberDataExportIT tests=2
+   failsafe com.agilityhub.core.platform.privacy.RetentionSweepIT tests=2
+   surefire com.agilityhub.core.identity.application.DemoPlatformAccountsSeederSurvivors3Test tests=2
+   surefire com.agilityhub.core.identity.application.SupportAccessServiceSurvivors3Test tests=2
+   surefire com.agilityhub.core.identity.domain.SupportAccessEventsSurvivors3Test tests=2
+   surefire com.agilityhub.core.platform.application.privacy.ErasureEligibilityTest tests=4
+   surefire com.agilityhub.core.platform.application.privacy.ErasureExecutorTest tests=8
+   surefire com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest tests=2
+   surefire com.agilityhub.core.platform.application.privacy.ErasurePolicyTest tests=5
+   surefire com.agilityhub.core.platform.application.privacy.ErasureServiceTest tests=7
+   surefire com.agilityhub.core.platform.application.privacy.PrivacyJobsTest tests=3
+classes with more tests than baseline:
+   surefire com.agilityhub.core.configuration.OpenApiConfigurationTest 2 -> 3
+   surefire com.agilityhub.core.identity.api.MeControllerSurvivors3Test 2 -> 3
+   surefire com.agilityhub.core.platform.application.jobs.JobCatalogContractTest 4 -> 5

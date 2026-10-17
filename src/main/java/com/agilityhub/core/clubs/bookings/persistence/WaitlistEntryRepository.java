@@ -17,10 +17,10 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(WaitlistEntry.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).on("state", ASC).named("waitlist_club_class_state"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("bookingWeekKey", ASC).on("state", ASC).named("waitlist_club_dog_week_state"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).on("state", ASC).named("waitlist_club_class_state"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("bookingWeekKey", ASC).on("state", ASC).named("waitlist_club_dog_week_state"));
         // S15 P6 expires NOTIFIED entries whose confirmBy has passed.
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("confirmBy", ASC).named("waitlist_club_state_confirm"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("state", ASC).on("confirmBy", ASC).named("waitlist_club_state_confirm"));
     }
     /** Live (ACTIVE or NOTIFIED) entries of a class in FIFO order. */
     public List<WaitlistEntry> live(String classSessionId) {

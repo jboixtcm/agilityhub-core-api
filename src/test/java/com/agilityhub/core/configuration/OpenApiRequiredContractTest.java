@@ -183,7 +183,7 @@ class OpenApiRequiredContractTest {
             @JsonProperty("wire_name") String renamed,
             @Schema(name = "schema_name") String schemaRenamed,
             @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) @Schema(requiredMode = NOT_REQUIRED) String writeOnly,
-            Optional<String> optional, @org.springframework.lang.Nullable String springNullable,
+            Optional<String> optional,
             @org.jspecify.annotations.Nullable String jspecifyNullable,
             List<@org.jspecify.annotations.Nullable String> nullableItems,
             @Schema(requiredMode = NOT_REQUIRED) String optOut,

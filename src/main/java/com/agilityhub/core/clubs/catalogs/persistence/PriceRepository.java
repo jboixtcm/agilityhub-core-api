@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class PriceRepository extends TenantRepository<Price> {
     public PriceRepository(MongoTemplate mongo) {
         super(mongo, Price.class);
-        mongo.indexOps(Price.class).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("planId", Sort.Direction.ASC)
+        mongo.indexOps(Price.class).createIndex(new Index().on("clubId", Sort.Direction.ASC).on("planId", Sort.Direction.ASC)
                 .on("concept", Sort.Direction.ASC).on("validFrom", Sort.Direction.ASC).unique()
                 .partial(PartialIndexFilter.of(Criteria.where("concept").exists(true).and("validFrom").exists(true))).named("price_start"));
     }

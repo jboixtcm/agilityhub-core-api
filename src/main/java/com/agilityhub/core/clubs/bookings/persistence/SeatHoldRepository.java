@@ -18,8 +18,8 @@ public class SeatHoldRepository extends TenantRepository<SeatHold> {
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(SeatHold.class);
-        indexes.ensureIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("seat_hold_ttl"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).on("dogId", ASC).unique().named("seat_hold_club_class_dog"));
+        indexes.createIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("seat_hold_ttl"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("classSessionId", ASC).on("dogId", ASC).unique().named("seat_hold_club_class_dog"));
     }
     /** Live holds of a class: the TTL lags up to 60 s, so `expiresAt > now` is always filtered (R-08-07, T-08-33). */
     public List<SeatHold> live(String classSessionId, Instant now) {

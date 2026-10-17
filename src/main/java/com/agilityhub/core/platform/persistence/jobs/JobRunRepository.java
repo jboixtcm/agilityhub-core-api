@@ -20,11 +20,11 @@ public class JobRunRepository extends TenantRepository<JobRun> {
     public void ensureIndexes() {
         var indexes = mongo.indexOps(JobRun.class);
         // R-15-04 level 1: one claimed execution per occurrence, even with two instances.
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("job", ASC).on("scheduledFor", ASC).on("trigger", ASC).unique()
+        indexes.createIndex(new Index().on("clubId", ASC).on("job", ASC).on("scheduledFor", ASC).on("trigger", ASC).unique()
                 .partial(PartialIndexFilter.of(Criteria.where("exclusive").is(true))).named("job_run_occurrence"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("job", ASC).on("startedAt", ASC).named("job_run_club_job_started"));
-        indexes.ensureIndex(new Index().on("finishedAt", ASC).named("job_run_finished"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("requestRef", ASC)
+        indexes.createIndex(new Index().on("clubId", ASC).on("job", ASC).on("startedAt", ASC).named("job_run_club_job_started"));
+        indexes.createIndex(new Index().on("finishedAt", ASC).named("job_run_finished"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("requestRef", ASC)
                 .partial(PartialIndexFilter.of(Criteria.where("requestRef").exists(true))).named("job_run_request"));
     }
 

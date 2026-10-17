@@ -24,9 +24,9 @@ public class MessageTemplateRepository extends TenantRepository<MessageTemplate>
     @PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(MessageTemplate.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("code", ASC).unique().named("template_club_code")
+        indexes.createIndex(new Index().on("clubId", ASC).on("code", ASC).unique().named("template_club_code")
                 .partial(PartialIndexFilter.of(Criteria.where("code").type(2))));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("category", ASC).on("status", ASC).named("template_club_category_status"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("category", ASC).on("status", ASC).named("template_club_category_status"));
     }
     /**
      * Every club that holds a template: the one read across tenants, for E7-T06's start-up upgrade ({@code TemplateUpgrade}).

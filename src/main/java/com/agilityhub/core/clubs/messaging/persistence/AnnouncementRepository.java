@@ -13,6 +13,6 @@ public class AnnouncementRepository extends TenantRepository<Announcement> {
     public AnnouncementRepository(MongoTemplate mongo) { super(mongo, Announcement.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(Announcement.class).ensureIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("announcement_club_created"));
+        mongo.indexOps(Announcement.class).createIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("announcement_club_created"));
     }
 }

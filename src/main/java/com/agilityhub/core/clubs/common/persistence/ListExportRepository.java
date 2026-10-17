@@ -13,11 +13,11 @@ import org.springframework.stereotype.Repository;
 public class ListExportRepository extends TenantRepository<ExportJob> {
     public ListExportRepository(MongoTemplate mongo) { super(mongo, ExportJob.class); }
     public void ensureIndexes() {
-        mongo.indexOps(ExportJob.class).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("ownerAccountId", Sort.Direction.ASC).on("createdAt", Sort.Direction.DESC).named("export_owner"));
-        mongo.indexOps(ExportJob.class).ensureIndex(new Index().on("status", Sort.Direction.ASC).on("expiresAt", Sort.Direction.ASC).named("export_work"));
+        mongo.indexOps(ExportJob.class).createIndex(new Index().on("clubId", Sort.Direction.ASC).on("ownerAccountId", Sort.Direction.ASC).on("createdAt", Sort.Direction.DESC).named("export_owner"));
+        mongo.indexOps(ExportJob.class).createIndex(new Index().on("status", Sort.Direction.ASC).on("expiresAt", Sort.Direction.ASC).named("export_work"));
         // Only cleaned tombstones get a TTL, so Mongo can never erase the storage-cleanup obligation.
-        mongo.indexOps(ExportJob.class).ensureIndex(new Index().on("purgeAt", Sort.Direction.ASC).expire(Duration.ZERO).named("export_purge"));
-        mongo.indexOps("export_write_locks").ensureIndex(new Index().on("clubId", Sort.Direction.ASC).unique());
+        mongo.indexOps(ExportJob.class).createIndex(new Index().on("purgeAt", Sort.Direction.ASC).expire(Duration.ZERO).named("export_purge"));
+        mongo.indexOps("export_write_locks").createIndex(new Index().on("clubId", Sort.Direction.ASC).unique());
     }
     public void lock() { mongo.upsert(tenantQuery(), new Update().inc("sequence", 1), "export_write_locks"); }
     public List<ExportJob> owned(String account, String kind) {

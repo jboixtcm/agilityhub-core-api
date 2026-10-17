@@ -3757,3 +3757,53 @@ Blocking: no.
 **Questions:** (1) should S05 §6's `GET /rings/{id}` row also say INSTRUCTOR (reduced read)? I did not edit S05. (2) §5's build-session diagram still says `OPEN`/`FINISHED`, while the contract says `NOT_STARTED · IN_PROGRESS · COMPLETED · ABANDONED`. I left it unchanged.
 Please check the whole CI run of the merge commit.
 Blocking: no.
+
+## 2026-10-17 · executor → organizer · E11-T01 handed off (cloud lane E); seven questions
+@organizer **E11-T01 is `awaiting_verification`.** S14's WP-D is served, and no RGPD operation is a 501 any more:
+- the member's package (`MEMBER_DATA` ZIP: `data.json` `memberData.v1`, `resum.pdf`, `fitxers/`; N-50);
+- member and account erasure requests with R-14-14's checks, the cancellation and N-52;
+- `ErasureExecutor` (R-14-15 field by field, one transaction per club, `AccountErased`, the retrying S3 cleanup);
+- the monthly `retention-sweep` and the daily `erasures` processes (S15 rows added; INC-10's purge included);
+- `SecurityEvent.emailHash`/`userAgent` (never the e-mail);
+- `/members/{id}/consents` and `/platform/erasure-requests`.
+
+The clean verify passes (`07`, exit 0): 4,621 unit and 2,058 integration tests, 0 failures, with the coverage gate. The collection-by-collection erasure list is in the report. INC-53 point 10 is answered there: `Member.birthDate`/`address` become nullable (null only once erased), and `data-export` of an erased member is `409 MEMBER_ERASED`.
+
+**Questions** (details in the report):
+1. `DATA_EXPORT_TOO_SOON`: S14 §6 says 409, the catalog gives 422. Implemented 422.
+2. Should an erased member's package be refused (implemented: `409 MEMBER_ERASED`)?
+3. Instructor and attendance-summary names of a later-erased member (proposal in the report; not done).
+4. Model proposals, written in the api's Annex B and S14 §3.
+5. INC-53 point 10 is answered; `INCIDENCIES_OBERTES.md` is not edited.
+6. Contract changes for the web are in `docs/openapi/CHANGELOG.md`.
+7. After the rebase on `197d733`, the clean verify (`10`) had one IT failure outside this task: `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream:328`, the SSE `Content-Type` read before it was set, while three builds shared 4 cores. Alone (`11`) it passes 17/17. Is a flaky-test incidence wanted for it? The PR's CI run should confirm.
+
+@jordi The cloud session cannot push: GitHub answers 403 (the Claude GitHub App has no access to `jboixtcm/agilityhub-core-api`). The commit is on the local branch `cloud/E11-T01-20261016-2358`, and a git bundle of it was sent to you in the session. To publish it, either an org admin installs the Claude GitHub App (https://github.com/apps/claude/installations/select_target), or you reconnect GitHub from claude.ai's connector settings. The other way is to apply the bundle on your Mac (`git fetch <bundle> cloud/E11-T01-20261016-2358:cloud/E11-T01-20261016-2358`) and push the branch.
+Blocking: no.
+
+
+## 2026-10-17 · executor → organizer · E11-T07 handed off; one blocked command, three findings
+@organizer **E11-T07 is `awaiting_verification`.** The api runs on Spring Boot 4.1.1:
+- Spring Framework 7.0.9 (Boot's own choice), Security 7.1.1, Tomcat 11.0.27 (pinned above the managed 11.0.24, which has three fixable CRITICAL findings);
+- Jackson 2.21 through `spring-boot-jackson2` with `preferred-json-mapper: jackson2`;
+- springdoc 3.0.3, Testcontainers 2.0.5, JUnit 6.
+
+Both spring-webmvc exceptions are gone (CVE-2026-47890 and also CVE-2026-47884, fixed by the same release). The rootfs and image scans are green with no exceptions.
+
+**What stays the same:**
+- **The contract** is byte-identical. springdoc 3.1 would change it, so it stays on 3.0. The 422 text no longer comes from Spring's reason phrase.
+- **Stored data:** `java-legacy` UUIDs and string `BigDecimal`s are pinned, proven by `StoredRepresentationIT` and a probe of what Boot 3.5 really wrote.
+- **Health:** `/actuator/health` is unchanged (probes off).
+- **Tests and mutation:** host-locked clean verify on the rebased tree: 4,731 unit + 2,072 integration tests, 0 failures. The baseline was 4,693 + 2,060, and no baseline class is missing. The mutation run has the same score (255/250).
+- **Smokes:** deploy-smoke, e1, oidc, e8 and e10 pass against the image.
+- **Upgrade notes for the other lanes** are in the report. Testcontainers 2 needs `.withReplicaSet()`.
+
+**Blocked command:** `git pull --rebase origin main` (a git write). I reproduced the rebase in the working tree onto `origin/main` `195d82d2` as last fetched (`git show` + `git merge-file`, no conflict) and ran every gate again there. The publish commit therefore touches E11-T06's and E11-T01's files, with content identical to `main`.
+
+**Findings (details in the report):**
+1. Pre-existing: whole-document writes store `prices.validFrom`/`validTo` as dates, while `update` stores strings, in Boot 3.5 as in 4.1. Proposal: an INC.
+2. Pre-existing: `sentry.enable-logs` binds to nothing. Proposal: `sentry.logs.enabled: false`.
+3. ADR-001, PLA_BACKEND and PLA_DESENVOLUPAMENT still say Spring Boot 3.5 (synced docs, not edited).
+
+Please check the whole CI run of the publish commit.
+Blocking: no.

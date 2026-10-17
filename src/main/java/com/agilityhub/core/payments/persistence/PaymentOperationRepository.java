@@ -17,7 +17,7 @@ public class PaymentOperationRepository extends TenantRepository<PaymentOperatio
         return inserted;
     }
     @jakarta.annotation.PostConstruct public void indexes() {
-        mongo.indexOps(PaymentOperation.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
+        mongo.indexOps(PaymentOperation.class).createIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("key", org.springframework.data.domain.Sort.Direction.ASC).unique());
     }
     public java.util.Optional<PaymentOperation> byKey(String key) {

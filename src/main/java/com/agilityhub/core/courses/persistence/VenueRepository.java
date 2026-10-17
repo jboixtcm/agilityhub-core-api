@@ -11,8 +11,8 @@ import static org.springframework.data.domain.Sort.Direction.*;
 public class VenueRepository extends CourseTenantRepository<Venue> {
     public VenueRepository(MongoTemplate mongo) {
         super(mongo, Venue.class);
-        mongo.indexOps(Venue.class).ensureIndex(new Index().on("clubId", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("clubId").type(2))).named("venue_club"));
-        mongo.indexOps(Venue.class).ensureIndex(new Index().on("slug", ASC).unique().named("venue_slug"));
+        mongo.indexOps(Venue.class).createIndex(new Index().on("clubId", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("clubId").type(2))).named("venue_club"));
+        mongo.indexOps(Venue.class).createIndex(new Index().on("slug", ASC).unique().named("venue_slug"));
     }
     /** S16 §14.2: the club's own venue (one per club), if it exists yet. */
     public java.util.Optional<Venue> club() { return java.util.Optional.ofNullable(mongo.findOne(tenantQuery(), Venue.class)); }

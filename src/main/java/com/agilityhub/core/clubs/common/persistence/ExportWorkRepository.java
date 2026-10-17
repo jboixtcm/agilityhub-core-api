@@ -13,8 +13,8 @@ import org.springframework.stereotype.Repository;
 public class ExportWorkRepository extends GlobalRepository<ExportJob> {
     public ExportWorkRepository(MongoTemplate mongo) { super(mongo, ExportJob.class); }
     public void ensureIndexes() {
-        mongo.indexOps("export_account_locks").ensureIndex(new org.springframework.data.mongodb.core.index.Index().on("accountId", org.springframework.data.domain.Sort.Direction.ASC).unique());
-        mongo.indexOps("export_jobs").ensureIndex(new org.springframework.data.mongodb.core.index.Index().on("ownerAccountId", org.springframework.data.domain.Sort.Direction.ASC).on("createdAt", org.springframework.data.domain.Sort.Direction.DESC));
+        mongo.indexOps("export_account_locks").createIndex(new org.springframework.data.mongodb.core.index.Index().on("accountId", org.springframework.data.domain.Sort.Direction.ASC).unique());
+        mongo.indexOps("export_jobs").createIndex(new org.springframework.data.mongodb.core.index.Index().on("ownerAccountId", org.springframework.data.domain.Sort.Direction.ASC).on("createdAt", org.springframework.data.domain.Sort.Direction.DESC));
     }
     public void lockAccount(String account) { mongo.upsert(Query.query(Criteria.where("accountId").is(account)), new Update().inc("sequence", 1), "export_account_locks"); }
     public long recent(String account, Instant since) {

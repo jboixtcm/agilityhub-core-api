@@ -14,7 +14,7 @@ public class OidcStateRepository extends GlobalRepository<OidcState.Browser> {
     public OidcStateRepository(MongoTemplate mongo) { super(mongo, OidcState.Browser.class); }
     public void ensureIndexes() {
         for (Class<?> type : new Class<?>[]{OidcState.Browser.class, OidcState.Flow.class, OidcState.Code.class}) {
-            mongo.indexOps(type).ensureIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
+            mongo.indexOps(type).createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
         }
     }
     public void insert(Object value) { mongo.insert(value); }

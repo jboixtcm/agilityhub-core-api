@@ -1,6 +1,6 @@
 # AgilityHub Core API
 
-Spring Boot 3.5 modular monolith, Java 21, Maven 3.9.16 and MongoDB 7
+Spring Boot 4.1 (Spring Framework 7) modular monolith, Java 21, Maven 3.9.16 and MongoDB 7
 (replica set). See `AGENTS.md` and `roadmap/README.md` for the task protocol.
 
 ## Run locally
@@ -142,8 +142,8 @@ lists from JSON resources with `fixtures.read(path, Type.class)` and
 and contain fictional data only. `MongoTransactionSmokeIT` exercises commit and
 rollback using the application's `MongoTransactionManager`.
 
-Dependency versions are fixed by the Spring Boot 3.5.16 parent or explicit
-properties in `pom.xml`; the Maven wrapper also checks its distribution SHA-256.
+Dependency versions are fixed by the Spring Boot 4.1.1 parent or explicit
+properties in `pom.xml` (E11-T07: Jackson stays on 2 through `spring-boot-jackson2`, springdoc on its 3.0 line); the Maven wrapper also checks its distribution SHA-256.
 
 `bin/openapi-snapshot` starts an isolated test server with Testcontainers and
 requires Java, Docker and Python 3. It writes the generated contract to

@@ -38,7 +38,7 @@ public class MembershipRepository extends TenantRepository<Membership> {
                 new org.springframework.data.mongodb.core.query.Update().set("lastAccessAt", now), Membership.class);
     }
     public void ensureIndexes() {
-        mongo.indexOps(Membership.class).ensureIndex(new Index().on("accountId", Direction.ASC)
+        mongo.indexOps(Membership.class).createIndex(new Index().on("accountId", Direction.ASC)
                 .on("clubId", Direction.ASC).unique().named("membership_account_club"));
     }
 }

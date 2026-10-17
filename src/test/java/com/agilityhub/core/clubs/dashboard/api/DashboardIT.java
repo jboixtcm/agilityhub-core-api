@@ -20,7 +20,7 @@ import org.bson.Document;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.DefaultApplicationArguments;
-import org.springframework.boot.test.autoconfigure.web.servlet.*;
+import org.springframework.boot.webmvc.test.autoconfigure.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -41,7 +41,7 @@ class DashboardIT extends AbstractIntegrationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
     static class MongoProbeConfiguration {
         @org.springframework.context.annotation.Bean
-        org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer dashboardMongoProbe() {
+        org.springframework.boot.mongodb.autoconfigure.MongoClientSettingsBuilderCustomizer dashboardMongoProbe() {
             return builder -> builder.addCommandListener(new com.mongodb.event.CommandListener() {
                 @Override public void commandStarted(com.mongodb.event.CommandStartedEvent event) {
                     if (event.getCommandName().equals("aggregate")) { aggregateCommands.add(event.getCommand().getString("aggregate").getValue()); }

@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(properties = "shared.scheduling.enabled=false")
@@ -32,7 +32,8 @@ public abstract class AbstractIntegrationTest {
     public static final java.nio.file.Path EXPORTS = java.nio.file.Path.of("target/test-exports", String.valueOf(ProcessHandle.current().pid()));
     // Fixtures use MockClock; Mongo's wall-clock TTL worker would delete their historical
     // tokens/events nondeterministically. Keep TTL indexes and application expiry checks.
-    protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7")
+    // Testcontainers 2 (E11-T07): the single-node replica set (transactions) is opt-in.
+    protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7").withReplicaSet()
             .withCommand("--replSet", "docker-rs", "--bind_ip_all", "--setParameter", "ttlMonitorEnabled=false");
 
     static {
@@ -61,7 +62,7 @@ public abstract class AbstractIntegrationTest {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
         registry.add("core.billing.secrets-key", () -> BILLING_SECRETS);
         registry.add("exports.local-directory", EXPORTS::toString);
-        registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
+        registry.add("spring.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
     }
 
     @BeforeEach

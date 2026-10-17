@@ -12,7 +12,7 @@ import org.bson.Document;
 public class CatalogRepository<T extends CatalogEntity> extends TenantRepository<T> {
     private final Class<T> type;
     public CatalogRepository(MongoTemplate mongo, Class<T> type) { super(mongo, type); this.type = type;
-        mongo.indexOps("catalog_write_locks").ensureIndex(new org.springframework.data.mongodb.core.index.Index()
+        mongo.indexOps("catalog_write_locks").createIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("catalog", org.springframework.data.domain.Sort.Direction.ASC).unique());
     }
     public void lock() {

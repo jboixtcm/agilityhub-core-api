@@ -29,9 +29,9 @@ public class IdempotencyRepository extends TenantRepository<IdempotencyRecord> {
     public IdempotencyRepository(MongoTemplate mongo) { super(mongo, IdempotencyRecord.class); }
 
     public void ensureIndexes() {
-        mongo.indexOps(IdempotencyRecord.class).ensureIndex(new Index().on("clubId", Direction.ASC)
+        mongo.indexOps(IdempotencyRecord.class).createIndex(new Index().on("clubId", Direction.ASC)
                 .on("accountId", Direction.ASC).on("key", Direction.ASC).unique().named("scope_key"));
-        mongo.indexOps(IdempotencyRecord.class).ensureIndex(new Index().on("createdAt", Direction.ASC)
+        mongo.indexOps(IdempotencyRecord.class).createIndex(new Index().on("createdAt", Direction.ASC)
                 .expire(Duration.ofHours(24)).named("idempotency_retention"));
     }
 

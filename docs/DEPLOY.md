@@ -502,7 +502,7 @@ Fixed wiring in the production Compose (not additional operator choices):
 Mongo's `MONGO_INITDB_ROOT_USERNAME`/`MONGO_INITDB_ROOT_PASSWORD` receive the root
 values above. `CADDY_LOCAL_OPTIONS` is empty in production; `CADDY_ASK_UPSTREAM` is fixed to
 `core:8080`. The local override sets `local_certs`, uses a fixture ask upstream,
-sets `SPRING_DATA_MONGODB_URI`, keeps Core on `prod` and uses `local` only for
+sets `SPRING_MONGODB_URI`, keeps Core on `prod` and uses `local` only for
 the seed (`EXPORT_LOCAL_DIRECTORY` and `ATTACHMENT_LOCAL_DIRECTORY`). It supplies MinIO's
 `MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD` from the generated S3 credentials.
 `BUILDX_CONFIG` in the smoke is a disposable build-metadata directory, not a key.
@@ -546,6 +546,23 @@ contract is still pending. RSA OIDC signing keys
 live encrypted in Mongo, not in a separate env variable. Cloud/SSH/GHCR keys are
 host credentials, provisioned and rotated by their respective providers and kept
 out of the Core container.
+
+### Platform versions (E11-T07)
+
+The image runs Spring Boot 4.1.1 on Java 21: Spring Framework 7.0.9, Spring Security 7.1.1 (with the authorization
+server), Tomcat 11.0.27 (pinned above Boot's 11.0.24 for the scans), Jackson 2.21 through Boot's `spring-boot-jackson2`
+module, springdoc 3.0.3 and, in tests, Testcontainers 2.0.5. What an operator sees is unchanged:
+
+- MongoDB connection properties live under `spring.mongodb.*`. The production Compose sets only the `MONGODB_*`
+  variables of the inventory above, so nothing changes there. Anything that overrides the connection directly must use
+  `SPRING_MONGODB_URI` (or `SPRING_MONGODB_HOST`, ...): Boot 4 ignores the old `SPRING_DATA_MONGODB_*` names, and the API
+  would silently connect to its default instead.
+- `GET /api/v1/health` and the management `/actuator/health` answer as before (`{"status":"UP"}`). Boot 4's
+  liveness/readiness groups stay off (`management.endpoint.health.probes.enabled: false`). The image `HEALTHCHECK` and
+  both Compose files are unchanged.
+- Stored data keeps its representation: UUIDs `JAVA_LEGACY`, `BigDecimal`/`BigInteger` as strings, which Boot 4 no
+  longer chooses by default (`StoredRepresentationIT`).
+- `bin/security-scan-suppressions.json` is empty again: Spring Framework 7.0.9 fixes CVE-2026-47884 and CVE-2026-47890.
 
 ## Run the published image (E1-T14)
 

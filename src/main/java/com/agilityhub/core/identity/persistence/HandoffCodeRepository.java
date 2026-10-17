@@ -24,7 +24,7 @@ public class HandoffCodeRepository extends TenantRepository<HandoffCode> {
                 new Update().set("usedAt", now), HandoffCode.class).getModifiedCount() == 1;
     }
     public void ensureIndexes() {
-        mongo.indexOps(HandoffCode.class).ensureIndex(new Index().on("codeHash", Sort.Direction.ASC).unique());
-        mongo.indexOps(HandoffCode.class).ensureIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
+        mongo.indexOps(HandoffCode.class).createIndex(new Index().on("codeHash", Sort.Direction.ASC).unique());
+        mongo.indexOps(HandoffCode.class).createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
     }
 }

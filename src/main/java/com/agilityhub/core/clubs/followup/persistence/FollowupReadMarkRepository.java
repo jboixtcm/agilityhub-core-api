@@ -22,7 +22,7 @@ public class FollowupReadMarkRepository extends TenantRepository<FollowupReadMar
     public FollowupReadMarkRepository(MongoTemplate mongo) { super(mongo, FollowupReadMark.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(FollowupReadMark.class).ensureIndex(new Index().on("clubId", ASC).on("accountId", ASC).unique().named("followup_read_club_account"));
+        mongo.indexOps(FollowupReadMark.class).createIndex(new Index().on("clubId", ASC).on("accountId", ASC).unique().named("followup_read_club_account"));
     }
     private Query mark(String accountId) { return tenantQuery().addCriteria(Criteria.where("accountId").is(accountId)); }
     private static Update created(Update update, String id, Instant now) { return update.setOnInsert("_id", id).setOnInsert("createdAt", now).set("updatedAt", now); }

@@ -12,8 +12,8 @@ public class RingBlockRepository extends TenantRepository<RingBlock> {
     public RingBlockRepository(MongoTemplate mongo) { super(mongo, RingBlock.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(RingBlock.class).ensureIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("from", ASC).on("to", ASC).named("block_club_ring_range"));
-        mongo.indexOps(RingBlock.class).ensureIndex(new Index().on("clubId", ASC).on("from", ASC).named("block_club_from"));
+        mongo.indexOps(RingBlock.class).createIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("from", ASC).on("to", ASC).named("block_club_ring_range"));
+        mongo.indexOps(RingBlock.class).createIndex(new Index().on("clubId", ASC).on("from", ASC).named("block_club_from"));
     }
 
     public java.util.List<RingBlock> between(java.time.Instant from, java.time.Instant to) {

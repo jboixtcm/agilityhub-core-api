@@ -1,0 +1,27 @@
+# E11-T07 step 8: differences between docs/openapi/openapi.json (Boot 3.5.16, springdoc 2.8.17) and the document the
+# upgraded app served, per attempt. Each attempt: OpenApiSnapshotTest#E0_T12_downloadAndWriteStableOpenApi31Contract run with
+# a temporary line that wrote the raw (key-sorted) document to target/openapi-raw-probe.json before its assertions (the line is
+# reverted), then a structural JSON diff (path: committed -> served). Counts and paths copied from the diff output.
+
+## A. springdoc 3.1.1 (swagger-core 2.2.55), HttpStatus reason phrases (09-verify-attempt1.log: 4 failsafe failures)
+324 differences
+- 279 x /paths/<op>/responses/422/description: "Unprocessable Entity" -> "Unprocessable Content"
+  (Spring Framework 7 renamed HttpStatus.UNPROCESSABLE_ENTITY's reason phrase; OpenApiConfiguration.withErrors used it)
+- 33 x .../properties/<field>/minimum: + 0  or  exclusiveMinimum: + 0  (swagger-core 2.2.55 maps @PositiveOrZero/@Positive), e.g.
+  /components/schemas/ActivityPatchRequest/properties/maxPlaces/exclusiveMinimum: + 0
+  /components/schemas/ActivityPatchRequest/properties/version/minimum: + 0
+  /components/schemas/UploadUrlRequest/properties/sizeBytes/exclusiveMinimum: + 0
+- 2 x class-level @Schema(types = {"object", "null"}) dropped:
+  /components/schemas/LastChange/type: ["object", "null"] -> "object"
+  /components/schemas/RequiredConsent/type: ["object", "null"] -> "object"
+  (OpenApiSnapshotTest T_01_25 / T_14_13 / E0_T12 and E7ContractIT WP_11_A_T_11_16 failed on these)
+
+## B. springdoc 3.1.1 with swagger-core pinned to 2.2.47, fixed error descriptions
+24 differences (rejected: a mismatched pair)
+- 19 x Object-typed properties gain type: + "object", e.g. /components/schemas/AuditChange/properties/after/type: + "object",
+  /components/schemas/Parameter/properties/value/type: + "object"
+- 5 x parameter schema default: + "##default" (swagger's annotation sentinel leaks), e.g.
+  /paths//api/v1/signup/post/parameters[0]/schema/default: + "##default", /paths//oauth2/authorize/get/parameters[6]/schema/default
+
+## C. springdoc 3.0.3 (its own swagger-core 2.2.47, no pin), fixed error descriptions (final)
+0 differences

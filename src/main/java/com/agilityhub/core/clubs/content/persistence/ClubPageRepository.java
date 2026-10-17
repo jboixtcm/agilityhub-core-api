@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public class ClubPageRepository extends TenantRepository<ClubPage> {
     public ClubPageRepository(MongoTemplate mongo) {
         super(mongo, ClubPage.class);
-        mongo.indexOps(ClubPage.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC).unique());
+        mongo.indexOps(ClubPage.class).createIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC).unique());
     }
     public Optional<ClubPage> findByKey(String key) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("key").is(key)), ClubPage.class));

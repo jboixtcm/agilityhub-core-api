@@ -4,7 +4,7 @@ You are the **executor** agent for this repository. Your work is organised by th
 
 ## What this repository is
 
-The **AgilityHub Core API**: a modular monolith (Spring Boot 3.5, Java 21, Maven, MongoDB 7 replica set) that is the backend of the AgilityHub platform — **AgilityHub ID** (single account, OIDC), **AgilityHub Clubs** (white-label, multi-tenant club management; first client: Club Agility Cànic) and **Recorreguts/Courses** (course library, Smarter import, ring geometry, placements, build sessions). Long-term vision: `docs/VISIO_PLATAFORMA_AGILITYHUB.md`.
+The **AgilityHub Core API**: a modular monolith (Spring Boot 4.1, Java 21, Maven, MongoDB 7 replica set) that is the backend of the AgilityHub platform — **AgilityHub ID** (single account, OIDC), **AgilityHub Clubs** (white-label, multi-tenant club management; first client: Club Agility Cànic) and **Recorreguts/Courses** (course library, Smarter import, ring geometry, placements, build sessions). Long-term vision: `docs/VISIO_PLATAFORMA_AGILITYHUB.md`.
 
 Bounded contexts (one Java package each, layers `api / application / domain / persistence`): `shared`, `platform`, `identity`, `clubs.census`, `clubs.catalogs`, `clubs.scheduling`, `clubs.activities`, `clubs.bookings`, `clubs.training`, `clubs.followup`, `clubs.messaging`, `clubs.common`, `courses`, `payments`, `migration`. Base package `com.agilityhub.core`.
 

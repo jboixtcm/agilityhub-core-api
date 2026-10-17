@@ -42,10 +42,10 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
         registry.add("notifications.push.vapid-public-key", () -> "fictional-public-key");
         registry.add("notifications.push.vapid-private-key", () -> "fictional-private-key");
         registry.add("notifications.push.vapid-subject", () -> "mailto:push@example.test");
-        registry.add("spring.data.mongodb.host", () -> "localhost");
-        registry.add("spring.data.mongodb.database", () -> "agilityhub_test");
-        registry.add("spring.data.mongodb.username", () -> "fixture");
-        registry.add("spring.data.mongodb.password", () -> "fixture");
+        registry.add("spring.mongodb.host", () -> "localhost");
+        registry.add("spring.mongodb.database", () -> "agilityhub_test");
+        registry.add("spring.mongodb.username", () -> "fixture");
+        registry.add("spring.mongodb.password", () -> "fixture");
     }
 
     @Test void E0_T12_productionDocumentationIsDeniedEvenWithAnAuthenticatedPlatformRole() throws Exception {

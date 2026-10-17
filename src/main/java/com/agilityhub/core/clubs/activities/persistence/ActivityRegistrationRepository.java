@@ -32,8 +32,8 @@ public class ActivityRegistrationRepository extends TenantRepository<ActivityReg
     public java.util.List<ActivityRegistration> live(String id) { return forActivity(id).stream().filter(r -> r.state()!=com.agilityhub.core.clubs.activities.domain.RegistrationState.CANCELLED).toList(); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(ActivityRegistration.class).ensureIndex(new Index().on("clubId", ASC).on("activityId", ASC).on("memberId", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("state").in("ACTIVE", "WAITLISTED"))).named("registration_club_activity_member_live"));
-        mongo.indexOps(ActivityRegistration.class).ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("activityStartsAt", ASC).on("state", ASC).named("registration_club_member_start_state"));
-        mongo.indexOps(ActivityRegistration.class).ensureIndex(new Index().on("clubId", ASC).on("activityId", ASC).on("state", ASC).on("position", ASC).named("registration_club_activity_state_position"));
+        mongo.indexOps(ActivityRegistration.class).createIndex(new Index().on("clubId", ASC).on("activityId", ASC).on("memberId", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("state").in("ACTIVE", "WAITLISTED"))).named("registration_club_activity_member_live"));
+        mongo.indexOps(ActivityRegistration.class).createIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("activityStartsAt", ASC).on("state", ASC).named("registration_club_member_start_state"));
+        mongo.indexOps(ActivityRegistration.class).createIndex(new Index().on("clubId", ASC).on("activityId", ASC).on("state", ASC).on("position", ASC).named("registration_club_activity_state_position"));
     }
 }

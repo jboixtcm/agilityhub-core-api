@@ -17,6 +17,6 @@ public class ImpersonationGrantRepository extends TenantRepository<Impersonation
                 new Update().set("revokedAt", now), ImpersonationGrant.class).getModifiedCount() == 1;
     }
     public void ensureIndexes() {
-        mongo.indexOps(ImpersonationGrant.class).ensureIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
+        mongo.indexOps(ImpersonationGrant.class).createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
     }
 }

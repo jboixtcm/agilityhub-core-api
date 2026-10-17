@@ -18,9 +18,9 @@ import static org.springframework.data.domain.Sort.Direction.*;
 public class PlacementRepository extends CourseTenantRepository<Placement> {
     public PlacementRepository(MongoTemplate mongo) {
         super(mongo, Placement.class);
-        mongo.indexOps(Placement.class).ensureIndex(new Index().on("clubId", ASC).on("ringId", ASC).named("placement_ring"));
-        mongo.indexOps(Placement.class).ensureIndex(new Index().on("clubId", ASC).on("courseId", ASC).named("placement_course"));
-        mongo.indexOps(Placement.class).ensureIndex(new Index().on("clubId", ASC).on("activityId", ASC).named("placement_activity"));
+        mongo.indexOps(Placement.class).createIndex(new Index().on("clubId", ASC).on("ringId", ASC).named("placement_ring"));
+        mongo.indexOps(Placement.class).createIndex(new Index().on("clubId", ASC).on("courseId", ASC).named("placement_course"));
+        mongo.indexOps(Placement.class).createIndex(new Index().on("clubId", ASC).on("activityId", ASC).named("placement_activity"));
     }
     /** R-16-06: every placement of the ring keeps its `resolvedObstacles` and becomes `stale` until the client recalculates it. */
     public long markStale(String ringId) {

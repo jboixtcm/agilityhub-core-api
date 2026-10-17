@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 public class SavedViewRepository extends TenantRepository<SavedView> {
     public SavedViewRepository(MongoTemplate mongo) {
         super(mongo, SavedView.class);
-        mongo.indexOps(SavedView.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
+        mongo.indexOps(SavedView.class).createIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC)
                 .on("data.ownerAccountId", org.springframework.data.domain.Sort.Direction.ASC)
                 .on("data.listKey", org.springframework.data.domain.Sort.Direction.ASC)

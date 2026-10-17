@@ -12,7 +12,7 @@ public class WeekRepository extends TenantRepository<Week> {
     public WeekRepository(MongoTemplate mongo) { super(mongo, Week.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(Week.class).ensureIndex(new Index().on("clubId", ASC).on("startDate", ASC).unique().named("week_club_start"));
+        mongo.indexOps(Week.class).createIndex(new Index().on("clubId", ASC).on("startDate", ASC).unique().named("week_club_start"));
     }
 
     public Week update(Week next, long expectedVersion) {

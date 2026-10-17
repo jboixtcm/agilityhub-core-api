@@ -23,8 +23,8 @@ public class FollowupItemRepository extends TenantRepository<FollowupItem> {
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(FollowupItem.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("activityAt", ASC).named("followup_club_activity"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("kind", ASC).on("activityAt", ASC).named("followup_club_kind_activity"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("activityAt", ASC).named("followup_club_activity"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("kind", ASC).on("activityAt", ASC).named("followup_club_kind_activity"));
     }
     public static String taskRowId(String taskId) { return UUID.nameUUIDFromBytes(("followup:task:" + taskId).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(); }
     public static String noteRowId(String clubId, String dogId) {

@@ -43,7 +43,7 @@ Source: [src/main/java/com/agilityhub/core/platform/persistence/ParameterReposit
 public class ParameterRepository extends TenantRepository<Parameter> {
     public ParameterRepository(MongoTemplate mongo) { super(mongo, Parameter.class); }
     public void ensureIndexes() {
-        mongo.indexOps(Parameter.class).ensureIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC)
+        mongo.indexOps(Parameter.class).createIndex(new Index().on("clubId", Direction.ASC).on("key", Direction.ASC)
                 .on("scopeRef", Direction.ASC).unique().named("parameter_scope_key"));
     }
 }

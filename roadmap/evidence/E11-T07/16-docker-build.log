@@ -1,0 +1,99 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.93kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 1.2s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#2 DONE 1.2s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 218B done
+#4 DONE 0.0s
+
+#5 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#5 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320 done
+#5 DONE 0.0s
+
+#6 [stage-1  1/13] FROM docker.io/library/eclipse-temurin:21-jre@sha256:227118764cccd3c3294617061aaa93a08309c63a395eefa83e6b35032992ea99
+#6 resolve docker.io/library/eclipse-temurin:21-jre@sha256:227118764cccd3c3294617061aaa93a08309c63a395eefa83e6b35032992ea99 done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 15.23MB 0.2s done
+#7 DONE 0.3s
+
+#8 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [build 3/8] WORKDIR /workspace
+#9 CACHED
+
+#10 [build 4/8] COPY .mvn/ .mvn/
+#10 CACHED
+
+#11 [build 5/8] COPY mvnw pom.xml ./
+#11 DONE 0.0s
+
+#12 [build 6/8] COPY src/ src/
+#12 DONE 0.2s
+
+#13 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#13 DONE 0.0s
+
+#14 [build 8/8] RUN ./mvnw -B -q -DskipTests package
+#14 DONE 106.0s
+
+#15 [stage-1  2/13] RUN apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#15 CACHED
+
+#16 [stage-1  3/13] WORKDIR /app
+#16 CACHED
+
+#17 [stage-1  4/13] COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
+#17 DONE 0.1s
+
+#18 [stage-1  5/13] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
+#18 DONE 0.0s
+
+#19 [stage-1  6/13] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#19 DONE 0.0s
+
+#20 [stage-1  7/13] COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml
+#20 DONE 0.0s
+
+#21 [stage-1  8/13] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#21 DONE 0.0s
+
+#22 [stage-1  9/13] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#22 DONE 0.0s
+
+#23 [stage-1 10/13] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#23 DONE 0.0s
+
+#24 [stage-1 11/13] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#24 DONE 0.0s
+
+#25 [stage-1 12/13] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#25 DONE 0.0s
+
+#26 [stage-1 13/13] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#26 DONE 0.0s
+
+#27 exporting to image
+#27 exporting layers
+#27 exporting layers 1.9s done
+#27 exporting manifest sha256:a23ee244bd95de758a8f79505c59d12278f7b442f707e509f903dbce065a2c25 done
+#27 exporting config sha256:24b53dc023ee9204b3a24434f65688da4dd3e4178370f6f12308d4b3cb796094 done
+#27 exporting attestation manifest sha256:033c18eac5c301641e1e088cd7780c637c94c1d573ad24e55084ef090d4e1856 done
+#27 exporting manifest list sha256:fd3e1a3f27e298c73cdef961d2640a5ca8b77df3c96ab1844fea83f6a7b5b203 done
+#27 naming to ghcr.io/jboixtcm/agilityhub-core-api:e11-t07 done
+#27 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:e11-t07
+#27 unpacking to ghcr.io/jboixtcm/agilityhub-core-api:e11-t07 0.5s done
+#27 DONE 2.5s

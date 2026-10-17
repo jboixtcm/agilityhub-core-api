@@ -32,7 +32,7 @@ services:
     environment:
       <<: *local-environment
       SPRING_PROFILES_ACTIVE: local
-      SPRING_DATA_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
+      SPRING_MONGODB_URI: ${LOCAL_MONGODB_URI:?Set LOCAL_MONGODB_URI with URL-encoded credentials}
       EXPORT_LOCAL_DIRECTORY: /app/exports
       ATTACHMENT_LOCAL_DIRECTORY: /app/attachments
       SEED_PASSWORD: ${SEED_PASSWORD:?Set a fictional local SEED_PASSWORD}

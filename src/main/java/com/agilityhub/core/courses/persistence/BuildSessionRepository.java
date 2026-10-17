@@ -25,9 +25,9 @@ public class BuildSessionRepository extends CourseTenantRepository<BuildSession>
     static final List<String> OPEN = List.of(BuildStatus.NOT_STARTED.name(), BuildStatus.IN_PROGRESS.name());
     public BuildSessionRepository(MongoTemplate mongo) {
         super(mongo, BuildSession.class);
-        mongo.indexOps(BuildSession.class).ensureIndex(new Index().on("clubId", ASC).on("placementId", ASC).named("session_placement"));
-        mongo.indexOps(BuildSession.class).ensureIndex(new Index().on("clubId", ASC).on("status", ASC).on("startedAt", ASC).named("session_cleanup"));
-        mongo.indexOps(BuildSession.class).ensureIndex(new Index().on("clubId", ASC).on("joinCode", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("status").in("NOT_STARTED", "IN_PROGRESS"))).named("open_join_code"));
+        mongo.indexOps(BuildSession.class).createIndex(new Index().on("clubId", ASC).on("placementId", ASC).named("session_placement"));
+        mongo.indexOps(BuildSession.class).createIndex(new Index().on("clubId", ASC).on("status", ASC).on("startedAt", ASC).named("session_cleanup"));
+        mongo.indexOps(BuildSession.class).createIndex(new Index().on("clubId", ASC).on("joinCode", ASC).unique().partial(PartialIndexFilter.of(Criteria.where("status").in("NOT_STARTED", "IN_PROGRESS"))).named("open_join_code"));
     }
     public Optional<BuildSession> findOpenByCode(String code) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("joinCode").is(code)

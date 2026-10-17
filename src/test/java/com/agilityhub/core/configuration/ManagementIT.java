@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"management.server.port=0", "shared.scheduling.enabled=false"})
-@org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability
+@org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics
 class ManagementIT extends AbstractIntegrationTest {
     @LocalServerPort int apiPort;
     @LocalManagementPort int managementPort;

@@ -12,7 +12,7 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
     /** E8-T01: `GET /upfront-payments?memberId=&status=` (S12 §6) and D10's «Pagaments a l'acte» read by member and status. */
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(UpfrontPayment.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
+        mongo.indexOps(UpfrontPayment.class).createIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId",org.springframework.data.domain.Sort.Direction.ASC).on("memberId",org.springframework.data.domain.Sort.Direction.ASC)
                 .on("status",org.springframework.data.domain.Sort.Direction.ASC).named("upfront_club_member_status"));
     }

@@ -9,8 +9,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -19,7 +19,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
 class HealthIndependenceIT {
     // Separate storage proves startup and every probe work before any club/account is seeded.
-    @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
+    @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7").withReplicaSet();
     /**
      * E5-T27 round 3: a master key persists the signing key ring, as on staging and prod, so decoding any bearer reads it from
      * Mongo (`SigningKeys.publicKeys()`). The ring is written at startup: it is bootstrap, not club or account data.
@@ -57,7 +57,7 @@ class HealthIndependenceIT {
     static final String PROBE_ACCOUNT = "health-probe-account";
     @DynamicPropertySource static void database(DynamicPropertyRegistry registry) {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
-        registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("health_empty"));
+        registry.add("spring.mongodb.uri", () -> MONGO.getReplicaSetUrl("health_empty"));
     }
     @Autowired MockMvc mvc;
     @Autowired MongoTemplate mongo;

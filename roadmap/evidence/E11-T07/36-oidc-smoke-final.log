@@ -1,0 +1,102 @@
+COMMAND docker compose --env-file /dev/null --project-name e11-t07-oidc-e037f399 -f /Users/jordib/dev/agilityhub/agilityhub-core-api/docker-compose.consumer.yml up -d --wait --wait-timeout 240
+ Network e11-t07-oidc-e037f399_default Creating 
+ Volume e11-t07-oidc-e037f399_mongo-data Creating 
+ Network e11-t07-oidc-e037f399_default Creating 
+ Volume e11-t07-oidc-e037f399_mongo-data Creating 
+ Volume e11-t07-oidc-e037f399_mailbox Creating 
+ Volume e11-t07-oidc-e037f399_export-files Creating 
+ Volume e11-t07-oidc-e037f399_export-files Creating 
+ Volume e11-t07-oidc-e037f399_attachment-files Creating 
+ Volume e11-t07-oidc-e037f399_attachment-files Creating 
+ Volume e11-t07-oidc-e037f399_mailbox Creating 
+ Volume e11-t07-oidc-e037f399_export-files Created 
+ Volume e11-t07-oidc-e037f399_export-files Created 
+ Volume e11-t07-oidc-e037f399_mailbox Created 
+ Volume e11-t07-oidc-e037f399_mailbox Created 
+ Volume e11-t07-oidc-e037f399_mongo-data Created 
+ Volume e11-t07-oidc-e037f399_mongo-data Created 
+ Volume e11-t07-oidc-e037f399_attachment-files Created 
+ Volume e11-t07-oidc-e037f399_attachment-files Created 
+ Network e11-t07-oidc-e037f399_default Created 
+ Network e11-t07-oidc-e037f399_default Created 
+ Container e11-t07-oidc-e037f399-mongo-1 Creating 
+ Container e11-t07-oidc-e037f399-mongo-1 Created 
+ Container e11-t07-oidc-e037f399-seed-1 Creating 
+ Container e11-t07-oidc-e037f399-seed-1 Created 
+ Container e11-t07-oidc-e037f399-core-1 Creating 
+ Container e11-t07-oidc-e037f399-core-1 Created 
+ Container e11-t07-oidc-e037f399-mongo-1 Starting 
+ Container e11-t07-oidc-e037f399-mongo-1 Started 
+ Container e11-t07-oidc-e037f399-mongo-1 Waiting 
+ Container e11-t07-oidc-e037f399-mongo-1 Healthy 
+ Container e11-t07-oidc-e037f399-seed-1 Starting 
+ Container e11-t07-oidc-e037f399-seed-1 Started 
+ Container e11-t07-oidc-e037f399-seed-1 Waiting 
+ Container e11-t07-oidc-e037f399-mongo-1 Waiting 
+ Container e11-t07-oidc-e037f399-mongo-1 Healthy 
+ Container e11-t07-oidc-e037f399-seed-1 Exited 
+ Container e11-t07-oidc-e037f399-core-1 Starting 
+ Container e11-t07-oidc-e037f399-core-1 Started 
+ Container e11-t07-oidc-e037f399-mongo-1 Waiting 
+ Container e11-t07-oidc-e037f399-seed-1 Waiting 
+ Container e11-t07-oidc-e037f399-core-1 Waiting 
+ Container e11-t07-oidc-e037f399-seed-1 Exited 
+ Container e11-t07-oidc-e037f399-mongo-1 Healthy 
+ Container e11-t07-oidc-e037f399-core-1 Healthy 
+COMMAND docker compose --env-file /dev/null --project-name e11-t07-oidc-e037f399 -f /Users/jordib/dev/agilityhub/agilityhub-core-api/docker-compose.consumer.yml run --rm --no-deps -T --entrypoint java seed -jar /app/app.jar --core.command=identity:seed-test-accounts --club=minim
+ Container e11-t07-oidc-e037f399-seed-run-8de0ad64542c Creating 
+ Container e11-t07-oidc-e037f399-seed-run-8de0ad64542c Created 
+= accounts: 0 to provision
+0 changes (applied)
+HEALTH 200 {"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-10-17T11:49:55.301Z"}
+Discovery document:
+{
+  "authorization_endpoint": "https://id.example.test/oauth2/authorize",
+  "code_challenge_methods_supported": [
+    "S256"
+  ],
+  "end_session_endpoint": "https://id.example.test/connect/logout",
+  "grant_types_supported": [
+    "authorization_code",
+    "password",
+    "refresh_token",
+    "urn:agilityhub:grant:magic-link",
+    "urn:agilityhub:grant:handoff"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "issuer": "https://id.example.test",
+  "jwks_uri": "https://id.example.test/.well-known/jwks.json",
+  "response_types_supported": [
+    "code"
+  ],
+  "revocation_endpoint": "https://id.example.test/oauth2/revoke",
+  "scopes_supported": [
+    "openid",
+    "profile",
+    "email",
+    "memberships",
+    "offline_access",
+    "accounts:write"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "token_endpoint": "https://id.example.test/oauth2/token",
+  "token_endpoint_auth_methods_supported": [
+    "none",
+    "client_secret_post",
+    "client_secret_basic"
+  ],
+  "userinfo_endpoint": "https://id.example.test/oauth2/userinfo"
+}
+PASS discovery metadata
+PASS public authorization rejects missing PKCE
+PASS cookie-bound login continuation and state
+PASS code exchange, ID-token claims and scoped userinfo
+PASS authorization code replay rejected
+PASS RP logout removes browser SSO session
+OIDC smoke passed (no credentials, codes, cookies or tokens printed).
+OIDC_SMOKE exit 0 in 0.3 s
+CLEANUP project, volumes and network removed

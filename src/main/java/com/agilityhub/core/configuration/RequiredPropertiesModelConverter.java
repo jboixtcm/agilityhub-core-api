@@ -19,7 +19,7 @@ import java.util.TreeSet;
 
 /** Derives property presence from Java models after swagger has resolved names and references. */
 final class RequiredPropertiesModelConverter implements ModelConverter {
-    private static final Set<String> NULLABLE = Set.of("org.springframework.lang.Nullable", "org.jspecify.annotations.Nullable");
+    private static final Set<String> NULLABLE = Set.of("org.jspecify.annotations.Nullable");
     private final ObjectMapper mapper;
 
     RequiredPropertiesModelConverter(ObjectMapper mapper) { this.mapper = mapper; }

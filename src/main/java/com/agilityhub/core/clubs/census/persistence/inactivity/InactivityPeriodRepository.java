@@ -27,8 +27,8 @@ public class InactivityPeriodRepository extends TenantRepository<InactivityPerio
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(InactivityPeriod.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("state", ASC).named("inactivity_club_member_state"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("fromMonth", ASC).named("inactivity_club_state_from"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("memberId", ASC).on("state", ASC).named("inactivity_club_member_state"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("state", ASC).on("fromMonth", ASC).named("inactivity_club_state_from"));
     }
     /** The period of a member of the open club; another member's, also of the same family group, is empty (R-13-18). */
     public Optional<InactivityPeriod> findOwn(String id, String memberId) {

@@ -12,11 +12,11 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     public ClassSessionRepository(MongoTemplate mongo) { super(mongo, ClassSession.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("date", ASC).on("state", ASC).named("class_club_date_state"));
-        mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("startsAt", ASC).named("class_club_start"));
-        mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("weekId", ASC).named("class_club_week"));
-        mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("startsAt", ASC).named("class_club_ring_start"));
-        mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("endsAt", ASC).named("class_club_state_end"));
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("date", ASC).on("state", ASC).named("class_club_date_state"));
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("startsAt", ASC).named("class_club_start"));
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("weekId", ASC).named("class_club_week"));
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("startsAt", ASC).named("class_club_ring_start"));
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("state", ASC).on("endsAt", ASC).named("class_club_state_end"));
     }
     /** Serialize lifecycle cancellation decisions with planning edits, inside the caller's transaction. */
     public ClassSession lock(String id) {

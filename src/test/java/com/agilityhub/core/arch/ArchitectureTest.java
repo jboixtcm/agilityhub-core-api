@@ -15,8 +15,8 @@ class ArchitectureTest {
                     .should().dependOnClassesThat().resideInAnyPackage("org.springframework..", "com.mongodb..", "org.bson..");
 
     /**
-     * E8-T08 round 2 (E92): CVE-2026-47884 (Spring MVC `XsltView`, fixed only in Framework 7) is suppressed in
-     * `bin/security-scan-suppressions.json` because the api renders no server-side views; this keeps that true.
+     * E8-T08 round 2 (E92): CVE-2026-47884 (Spring MVC `XsltView`) was suppressed because the api renders no server-side
+     * views. E11-T07 adopted the fix (Framework 7.0.9) and removed the exception; the rule stays as defence in depth.
      */
     @ArchTest
     static final ArchRule E8_T08_noXsltServerSideViews =
@@ -24,7 +24,7 @@ class ArchitectureTest {
                     .should().dependOnClassesThat().resideInAnyPackage("org.springframework.web.servlet.view.xslt..")
                     .orShould().dependOnClassesThat().haveFullyQualifiedName("org.springframework.web.servlet.ViewResolver");
 
-    /** E8-T10 round 3: the bounded CVE-2026-47890 exception requires no SSE view-fragment rendering. */
+    /** E8-T10 round 3: no SSE view-fragment rendering (CVE-2026-47890; fixed by Framework 7.0.9 in E11-T07, the rule stays). */
     @ArchTest
     static final ArchRule E8_T10_round3_point1_noSseViewFragments =
             com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()

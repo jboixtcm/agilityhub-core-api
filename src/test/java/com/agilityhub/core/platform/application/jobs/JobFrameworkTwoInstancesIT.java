@@ -42,7 +42,7 @@ class JobFrameworkTwoInstancesIT extends AbstractIntegrationTest {
         if (second == null) {
             // Command-line arguments outrank application.yml, as the DynamicPropertySource of the first context does.
             second = new SpringApplicationBuilder(CoreApplication.class).profiles("test")
-                    .run("--spring.data.mongodb.uri=" + MONGO.getReplicaSetUrl("agilityhub_test"), "--core.oidc.master-key=" + OIDC_MASTER,
+                    .run("--spring.mongodb.uri=" + MONGO.getReplicaSetUrl("agilityhub_test"), "--core.oidc.master-key=" + OIDC_MASTER,
                             "--shared.scheduling.enabled=false", "--server.port=0", "--management.server.port=0");
         }
         mongo.remove(Query.query(Criteria.where("_id").is(CLUB)), Club.class);

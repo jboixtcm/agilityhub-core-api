@@ -1,0 +1,125 @@
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.000s
+
+OK
+security-scan-test exit 0
+Trivy 0.74.0: rootfs vulnerability audit
+2026-10-17T14:49:30+03:00	INFO	[vuln] Vulnerability scanning is enabled
+2026-10-17T14:49:31+03:00	INFO	Number of language-specific files	num=1
+2026-10-17T14:49:31+03:00	INFO	[jar] Detecting vulnerabilities...
+
+📣 [34mNotices:[0m
+  - Version 0.76.0 of Trivy is now available, current version is 0.74.0
+
+To suppress version checks, run Trivy scans with the --skip-version-check flag
+
+{
+  "vulnerabilities": 14,
+  "fixableCritical": [],
+  "suppressedCritical": [],
+  "secretRules": [],
+  "otherFindings": [
+    [
+      "CVE-2026-89407",
+      "com.fasterxml.jackson.core:jackson-core",
+      "HIGH",
+      "2.21.5",
+      "2.18.11, 2.21.7, 2.22.3"
+    ],
+    [
+      "CVE-2026-89425",
+      "com.fasterxml.jackson.core:jackson-core",
+      "HIGH",
+      "2.21.5",
+      "2.21.7, 2.22.3, 2.18.11"
+    ],
+    [
+      "CVE-2026-68497",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.5",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "CVE-2026-91776",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.5",
+      "2.18.11, 2.21.7, 2.22.3"
+    ],
+    [
+      "CVE-2026-91777",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "HIGH",
+      "2.21.5",
+      "2.21.7, 2.18.11, 2.22.3"
+    ],
+    [
+      "CVE-2026-19032",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.5",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "CVE-2026-83557",
+      "com.fasterxml.jackson.core:jackson-databind",
+      "MEDIUM",
+      "2.21.5",
+      "2.18.10, 2.21.6, 2.22.2"
+    ],
+    [
+      "CVE-2026-89407",
+      "tools.jackson.core:jackson-core",
+      "HIGH",
+      "3.1.5",
+      "3.1.7, 3.2.2"
+    ],
+    [
+      "CVE-2026-89425",
+      "tools.jackson.core:jackson-core",
+      "HIGH",
+      "3.1.5",
+      "3.1.7, 3.2.3"
+    ],
+    [
+      "CVE-2026-68497",
+      "tools.jackson.core:jackson-databind",
+      "HIGH",
+      "3.1.5",
+      "3.2.2, 3.1.6"
+    ],
+    [
+      "CVE-2026-91776",
+      "tools.jackson.core:jackson-databind",
+      "HIGH",
+      "3.1.5",
+      "3.1.7, 3.2.3"
+    ],
+    [
+      "CVE-2026-91777",
+      "tools.jackson.core:jackson-databind",
+      "HIGH",
+      "3.1.5",
+      "3.1.7, 3.2.3"
+    ],
+    [
+      "CVE-2026-19032",
+      "tools.jackson.core:jackson-databind",
+      "MEDIUM",
+      "3.1.5",
+      "3.1.6, 3.2.2"
+    ],
+    [
+      "CVE-2026-83557",
+      "tools.jackson.core:jackson-databind",
+      "MEDIUM",
+      "3.1.5",
+      "3.1.6, 3.2.2"
+    ]
+  ],
+  "expiredSuppressions": [],
+  "javaPackages": 204
+}
+security-scan rootfs exit 0

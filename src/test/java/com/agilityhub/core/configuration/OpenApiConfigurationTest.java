@@ -30,6 +30,18 @@ class OpenApiConfigurationTest {
         assertThat(OpenApiConfiguration.withErrors(new Operation()).getResponses()).containsKeys("4XX", "5XX");
     }
 
+    /** E11-T07: the shared error texts are the contract's, not the framework's (Spring 7 says "Unprocessable Content"). */
+    @Test void E11_T07_sharedErrorDescriptionsKeepThePublishedTexts() {
+        var responses = OpenApiConfiguration.withErrors(new Operation()).getResponses();
+        var descriptions = new java.util.LinkedHashMap<String, String>();
+        responses.forEach((status, response) -> descriptions.put(status, response.getDescription()));
+        assertThat(descriptions).containsExactly(java.util.Map.entry("400", "Bad Request"), java.util.Map.entry("401", "Unauthorized"),
+                java.util.Map.entry("403", "Forbidden"), java.util.Map.entry("404", "Not Found"), java.util.Map.entry("409", "Conflict"),
+                java.util.Map.entry("422", "Unprocessable Entity"), java.util.Map.entry("429", "Too Many Requests"),
+                java.util.Map.entry("500", "Internal Server Error"), java.util.Map.entry("501", "Not Implemented"),
+                java.util.Map.entry("4XX", "Client error"), java.util.Map.entry("5XX", "Server error"));
+    }
+
     /** E5-T27 step 5 (INC-01, A7-07): the health's 503 DOWN keeps the health envelope; its other errors stay ApiError. */
     @Test void E5_T27_theHealthRoutes503IsItsOwnEnvelope() throws Exception {
         var health = new OpenApiConfiguration().contextAndErrors().customize(new Operation().responses(new ApiResponses().addApiResponse("200", new ApiResponse())),

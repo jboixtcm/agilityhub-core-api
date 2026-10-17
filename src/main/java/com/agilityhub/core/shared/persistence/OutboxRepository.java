@@ -22,9 +22,9 @@ public class OutboxRepository extends GlobalRepository<DomainEventRecord> {
 
     public void ensureIndexes() {
         var indexes = mongo.indexOps(DomainEventRecord.class);
-        indexes.ensureIndex(new Index().on("publishedAt", Direction.ASC).expire(Duration.ofDays(90)).named("outbox_retention"));
-        indexes.ensureIndex(new Index().on("status", Direction.ASC).on("nextAttemptAt", Direction.ASC).named("outbox_dispatch"));
-        indexes.ensureIndex(new Index().on("clubId", Direction.ASC).on("aggregateType", Direction.ASC)
+        indexes.createIndex(new Index().on("publishedAt", Direction.ASC).expire(Duration.ofDays(90)).named("outbox_retention"));
+        indexes.createIndex(new Index().on("status", Direction.ASC).on("nextAttemptAt", Direction.ASC).named("outbox_dispatch"));
+        indexes.createIndex(new Index().on("clubId", Direction.ASC).on("aggregateType", Direction.ASC)
                 .on("aggregateId", Direction.ASC).named("outbox_aggregate"));
     }
 

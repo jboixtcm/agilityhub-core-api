@@ -7,12 +7,12 @@ import com.agilityhub.core.shared.application.IcuMessageSource;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import io.sentry.*;
-import io.sentry.spring.boot.jakarta.SentryAutoConfiguration;
+import io.sentry.spring.boot4.SentryAutoConfiguration;
 import io.sentry.transport.ITransport;
 import java.util.ArrayList;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.jackson2.autoconfigure.Jackson2AutoConfiguration;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +31,7 @@ class SentryCaptureTest {
     void T_14_30_handled500ReachesTransportOnceWithResponseTraceAndNoPrivateData(String path, String type) {
         var events = new ArrayList<SentryEvent>();
         new WebApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class,
+                .withConfiguration(AutoConfigurations.of(Jackson2AutoConfiguration.class,
                         WebMvcAutoConfiguration.class, SentryAutoConfiguration.class))
                 .withUserConfiguration(Fixture.class)
                 .withPropertyValues("sentry.dsn=https://fictional@localhost/1", "sentry.traces-sample-rate=0",

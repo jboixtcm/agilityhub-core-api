@@ -150,7 +150,7 @@ def main():
                 'BILLING_BANK_KEY must reach Core from the deployment environment'
             assert resolved['services']['core']['environment'].get('BILLING_SECRETS_KEY') == values['BILLING_SECRETS_KEY'], \
                 'BILLING_SECRETS_KEY must reach Core from the deployment environment'
-            assert 'SPRING_DATA_MONGODB_URI' not in resolved['services']['core']['environment']
+            assert 'SPRING_MONGODB_URI' not in resolved['services']['core']['environment']
             for key in ('MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_DATABASE',
                         'MONGODB_AUTH_DATABASE', 'MONGODB_REPLICA_SET'):
                 expected = {'MONGODB_HOST': 'mongo', 'MONGODB_AUTH_DATABASE': 'admin', 'MONGODB_REPLICA_SET': 'rs0'}.get(key, values.get(key))

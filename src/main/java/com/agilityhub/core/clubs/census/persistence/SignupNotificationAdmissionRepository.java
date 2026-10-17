@@ -18,7 +18,7 @@ public class SignupNotificationAdmissionRepository extends TenantRepository<Sign
     public SignupNotificationAdmissionRepository(MongoTemplate mongo) { super(mongo, SignupNotificationAdmission.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(SignupNotificationAdmission.class).ensureIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("signup_admission_ttl"));
+        mongo.indexOps(SignupNotificationAdmission.class).createIndex(new Index().on("expiresAt", ASC).expire(Duration.ZERO).named("signup_admission_ttl"));
     }
     public Optional<SignupNotificationAdmission> decision(String eventId, String notificationCode) {
         return findById(SignupNotificationAdmission.id(eventId, notificationCode));

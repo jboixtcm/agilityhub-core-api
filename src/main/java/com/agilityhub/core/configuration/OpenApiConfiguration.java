@@ -24,7 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -209,11 +208,20 @@ public class OpenApiConfiguration {
         }
     }
 
+    /**
+     * The contract's own texts for the shared error responses. E11-T07: Spring Framework 7 renamed 422's reason phrase to RFC
+     * 9110's "Unprocessable Content"; the published contract keeps the texts it had, independent of the framework.
+     */
+    private static final List<java.util.Map.Entry<String, String>> ERROR_DESCRIPTIONS = List.of(java.util.Map.entry("400", "Bad Request"),
+            java.util.Map.entry("401", "Unauthorized"), java.util.Map.entry("403", "Forbidden"), java.util.Map.entry("404", "Not Found"),
+            java.util.Map.entry("409", "Conflict"), java.util.Map.entry("422", "Unprocessable Entity"),
+            java.util.Map.entry("429", "Too Many Requests"), java.util.Map.entry("500", "Internal Server Error"),
+            java.util.Map.entry("501", "Not Implemented"));
+
     static Operation withErrors(Operation operation) {
         if (operation.getResponses() == null) { operation.setResponses(new ApiResponses()); }
-        for (int status : new int[]{400, 401, 403, 404, 409, 422, 429, 500, 501}) {
-            operation.getResponses().putIfAbsent(Integer.toString(status),
-                    new ApiResponse().description(HttpStatus.valueOf(status).getReasonPhrase()));
+        for (var error : ERROR_DESCRIPTIONS) {
+            operation.getResponses().putIfAbsent(error.getKey(), new ApiResponse().description(error.getValue()));
         }
         operation.getResponses().putIfAbsent("4XX", new ApiResponse().description("Client error"));
         operation.getResponses().putIfAbsent("5XX", new ApiResponse().description("Server error"));

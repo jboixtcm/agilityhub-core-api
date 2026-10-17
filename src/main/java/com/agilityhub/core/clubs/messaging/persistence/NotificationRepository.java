@@ -36,13 +36,13 @@ public class NotificationRepository extends TenantRepository<Notification> {
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(Notification.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("dedupKey", ASC).unique().named("notification_club_dedup")
+        indexes.createIndex(new Index().on("clubId", ASC).on("dedupKey", ASC).unique().named("notification_club_dedup")
                 .partial(PartialIndexFilter.of(Criteria.where("dedupKey").type(2))));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("createdAt", DESC).named("notification_club_recipient_created"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("readAt", ASC).named("notification_club_recipient_read"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("notification_club_created"));
-        indexes.ensureIndex(new Index().on("deliveries.status", ASC).on("deliveries.nextAttemptAt", ASC).named("notification_delivery_due"));
-        indexes.ensureIndex(new Index().on("deliveries.acceptedAt", ASC).named("notification_delivery_accepted")
+        indexes.createIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("createdAt", DESC).named("notification_club_recipient_created"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("readAt", ASC).named("notification_club_recipient_read"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("notification_club_created"));
+        indexes.createIndex(new Index().on("deliveries.status", ASC).on("deliveries.nextAttemptAt", ASC).named("notification_delivery_due"));
+        indexes.createIndex(new Index().on("deliveries.acceptedAt", ASC).named("notification_delivery_accepted")
                 .partial(PartialIndexFilter.of(Criteria.where("deliveries.acceptedAt").exists(true))));
     }
 

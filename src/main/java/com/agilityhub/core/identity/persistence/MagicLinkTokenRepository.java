@@ -38,8 +38,8 @@ public class MagicLinkTokenRepository extends TenantRepository<MagicLinkToken> {
         }
     }
     public void ensureIndexes() {
-        mongo.indexOps(MagicLinkToken.class).ensureIndex(new Index().on("tokenHash", Sort.Direction.ASC).unique());
-        mongo.indexOps(MagicLinkToken.class).ensureIndex(new Index().on("accountId", Sort.Direction.ASC).on("purpose", Sort.Direction.ASC));
-        mongo.indexOps(MagicLinkToken.class).ensureIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
+        mongo.indexOps(MagicLinkToken.class).createIndex(new Index().on("tokenHash", Sort.Direction.ASC).unique());
+        mongo.indexOps(MagicLinkToken.class).createIndex(new Index().on("accountId", Sort.Direction.ASC).on("purpose", Sort.Direction.ASC));
+        mongo.indexOps(MagicLinkToken.class).createIndex(new Index().on("expiresAt", Sort.Direction.ASC).expire(0));
     }
 }

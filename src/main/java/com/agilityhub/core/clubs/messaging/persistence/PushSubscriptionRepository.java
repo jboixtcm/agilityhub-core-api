@@ -22,10 +22,10 @@ public class PushSubscriptionRepository extends TenantRepository<PushSubscriptio
     public void ensureIndexes() {
         var indexes = mongo.indexOps(PushSubscription.class);
         if (indexes.getIndexInfo().stream().anyMatch(index -> LEGACY_ENDPOINT_INDEX.equals(index.getName()))) { indexes.dropIndex(LEGACY_ENDPOINT_INDEX); }
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).unique().named("push_club_endpoint_active")
+        indexes.createIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).unique().named("push_club_endpoint_active")
                 .partial(org.springframework.data.mongodb.core.index.PartialIndexFilter.of(new org.bson.Document("status", PushSubscription.Status.ACTIVE.name()))));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).on("accountId", ASC).unique().named("push_club_endpoint_account"));
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("accountId", ASC).on("status", ASC).named("push_club_account_status"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).on("accountId", ASC).unique().named("push_club_endpoint_account"));
+        indexes.createIndex(new Index().on("clubId", ASC).on("accountId", ASC).on("status", ASC).named("push_club_account_status"));
     }
     /** The `ACTIVE` subscription ids of each account of the tenant (R-11-03 PUSH: one delivery per subscription). */
     public java.util.Map<String, java.util.List<String>> activeFor(java.util.Collection<String> accountIds) {

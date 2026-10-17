@@ -1,0 +1,65 @@
+# E11-T07 step 5: what MappingMongoConverter writes with the Boot defaults (no representation configured).
+# Probe project: .local/probe/old (not committed); the same test against two parents, run from the repo root:
+#   ./mvnw -B -q -f .local/probe/old/pom-35.xml test    (spring-boot-starter-parent 3.5.16)
+#   ./mvnw -B -q -f .local/probe/old/pom-41.xml clean test   (spring-boot-starter-parent 4.1.1)
+# Both exit 0. Probe record: (String id, @Field(targetType=STRING) LocalDate validFrom, LocalDate plainDate, BigDecimal tax, BigInteger count, Money amount)
+
+## Boot 3.5.16
+PROBE 6.2.19 canConvert(LocalDate,String)=false
+PROBE _id = java.lang.String p
+PROBE validFrom = java.util.Date Thu Jan 01 00:00:00 EET 2026
+PROBE plainDate = java.util.Date Thu Jan 01 00:00:00 EET 2026
+PROBE tax = java.lang.String 21.00
+PROBE count = java.lang.String 12345678901234567890
+PROBE amount = org.bson.Document Document{{amountMinor=4500, currency=EUR}}
+PROBE _class = java.lang.String probe.RepresentationProbeTest$Probe
+
+## Boot 4.1.1 (defaults, before this task pins big-decimal=string)
+PROBE 7.0.9 canConvert(LocalDate,String)=false
+PROBE _id = java.lang.String p
+PROBE validFrom = java.util.Date Thu Jan 01 00:00:00 EET 2026
+PROBE plainDate = java.util.Date Thu Jan 01 00:00:00 EET 2026
+PROBE tax = java.math.BigDecimal 21.00
+PROBE count = java.math.BigInteger 12345678901234567890
+PROBE amount = org.bson.Document Document{{amountMinor=4500, currency=EUR}}
+PROBE _class = java.lang.String probe.RepresentationProbeTest$Probe
+
+# Source of the probe test:
+package probe;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
+import org.springframework.data.mongodb.core.convert.NoOpDbRefResolver;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+
+class RepresentationProbeTest {
+    record Money(long amountMinor, String currency) { }
+    record Probe(@Id String id, @Field(targetType = FieldType.STRING) LocalDate validFrom, LocalDate plainDate, BigDecimal tax,
+            BigInteger count, Money amount) { }
+
+    @Test void probe() {
+        var context = new MongoMappingContext();
+        // What Spring Boot's MongoDataConfiguration builds when nothing is configured.
+        var conversions = new MongoCustomConversions(List.of());
+        context.setSimpleTypeHolder(conversions.getSimpleTypeHolder());
+        context.afterPropertiesSet();
+        var converter = new MappingMongoConverter(NoOpDbRefResolver.INSTANCE, context);
+        converter.setCustomConversions(conversions);
+        converter.afterPropertiesSet();
+        var document = new org.bson.Document();
+        converter.write(new Probe("p", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-01"), new BigDecimal("21.00"),
+                new BigInteger("12345678901234567890"), new Money(4500, "EUR")), document);
+        System.out.println("PROBE " + org.springframework.core.SpringVersion.getVersion() + " canConvert(LocalDate,String)="
+                + converter.getConversionService().canConvert(LocalDate.class, String.class));
+        document.forEach((key, value) -> System.out.println("PROBE " + key + " = " + (value == null ? null : value.getClass().getName()) + " " + value));
+    }
+}

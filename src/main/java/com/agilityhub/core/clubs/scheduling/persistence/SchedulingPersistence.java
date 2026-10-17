@@ -30,7 +30,7 @@ public class SchedulingPersistence {
                 catch (DataAccessException raced) { if (!mongo.collectionExists(RingSlotLock.class)) { throw raced; } }
             }
             var indexes = mongo.indexOps(RingSlotLock.class);
-            try { indexes.ensureIndex(new Index().on(EXPIRES_AT, Sort.Direction.ASC).expire(Duration.ZERO).named(RING_SLOT_TTL)); }
+            try { indexes.createIndex(new Index().on(EXPIRES_AT, Sort.Direction.ASC).expire(Duration.ZERO).named(RING_SLOT_TTL)); }
             catch (DataAccessException raced) {
                 // Tolerated only when the index now stands with the same key and TTL: a conflicting definition stays a startup failure.
                 if (indexes.getIndexInfo().stream().noneMatch(SchedulingPersistence::ringSlotTtl)) { throw raced; }

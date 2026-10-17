@@ -15,9 +15,9 @@ public class CourseRepository extends CourseTenantRepository<Course> {
     static final String[] HEAVY = {"normalizedJson", "history"};
     public CourseRepository(MongoTemplate mongo) {
         super(mongo, Course.class);
-        mongo.indexOps(Course.class).ensureIndex(new Index().on("clubId", ASC).on("deletedAt", ASC).on("updatedAt", DESC).named("club_deleted_updated"));
-        mongo.indexOps(Course.class).ensureIndex(new Index().on("ownerType", ASC).on("visibility", ASC).on("deletedAt", ASC).named("owner_visibility_deleted"));
-        mongo.indexOps(Course.class).ensureIndex(new Index().on("ownerAccountId", ASC).on("deletedAt", ASC).named("account_deleted"));
+        mongo.indexOps(Course.class).createIndex(new Index().on("clubId", ASC).on("deletedAt", ASC).on("updatedAt", DESC).named("club_deleted_updated"));
+        mongo.indexOps(Course.class).createIndex(new Index().on("ownerType", ASC).on("visibility", ASC).on("deletedAt", ASC).named("owner_visibility_deleted"));
+        mongo.indexOps(Course.class).createIndex(new Index().on("ownerAccountId", ASC).on("deletedAt", ASC).named("account_deleted"));
     }
     /** The club's live courses without their model (R-16-03: the caller's visibility is applied by the library). */
     public List<Course> library() {

@@ -71,20 +71,20 @@ class SchedulingPersistenceTest {
         for (boolean exists : List.of(false, true)) {
             var indexes = mock(IndexOperations.class);
             run(mongo(exists, indexes));
-            verify(indexes).ensureIndex(argThat((IndexDefinition definition) -> {
+            verify(indexes).createIndex(argThat((IndexDefinition definition) -> {
                 var options = definition.getIndexOptions();
                 return definition.getIndexKeys().equals(new org.bson.Document("expiresAt", 1)) && SchedulingPersistence.RING_SLOT_TTL.equals(options.getString("name"))
                         && options.get("expireAfterSeconds") instanceof Number seconds && seconds.longValue() == 0;
             }));
         }
         var raced = mock(IndexOperations.class);
-        when(raced.ensureIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("index build already in progress"));
+        when(raced.createIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("index build already in progress"));
         var built = List.of(index("_id_", null, ascending("_id")), index(SchedulingPersistence.RING_SLOT_TTL, Duration.ZERO, ascending("expiresAt")));
         when(raced.getIndexInfo()).thenReturn(built);
         assertThatCode(() -> run(mongo(true, raced))).doesNotThrowAnyException();
 
         var conflicting = mock(IndexOperations.class);
-        when(conflicting.ensureIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("IndexOptionsConflict"));
+        when(conflicting.createIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("IndexOptionsConflict"));
         var other = List.of(index(SchedulingPersistence.RING_SLOT_TTL, Duration.ofDays(1), ascending("expiresAt")));
         when(conflicting.getIndexInfo()).thenReturn(other);
         assertThatThrownBy(() -> run(mongo(true, conflicting))).isInstanceOf(DataAccessResourceFailureException.class);
@@ -100,7 +100,7 @@ class SchedulingPersistenceTest {
                 new IndexField[] {ascending("expiresAt"), ascending("clubId")});
         for (var fields : keys) {
             var indexes = mock(IndexOperations.class);
-            when(indexes.ensureIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("IndexKeySpecsConflict"));
+            when(indexes.createIndex(any(Index.class))).thenThrow(new DataAccessResourceFailureException("IndexKeySpecsConflict"));
             var standing = List.of(index("_id_", null, ascending("_id")), index(SchedulingPersistence.RING_SLOT_TTL, Duration.ZERO, fields));
             when(indexes.getIndexInfo()).thenReturn(standing);
             assertThatThrownBy(() -> run(mongo(true, indexes))).as(List.of(fields).toString()).isInstanceOf(DataAccessResourceFailureException.class);

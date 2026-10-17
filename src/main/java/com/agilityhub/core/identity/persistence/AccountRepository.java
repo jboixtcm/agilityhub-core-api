@@ -111,8 +111,8 @@ public class AccountRepository extends GlobalRepository<Account> {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("platformRoles", roles), Account.class);
     }
     public void ensureIndexes() {
-        mongo.indexOps(Account.class).ensureIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
-        mongo.indexOps(Account.class).ensureIndex(new Index().on("externalIds.learnUserId", Direction.ASC).unique()
+        mongo.indexOps(Account.class).createIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
+        mongo.indexOps(Account.class).createIndex(new Index().on("externalIds.learnUserId", Direction.ASC).unique()
                 .partial(org.springframework.data.mongodb.core.index.PartialIndexFilter.of(Criteria.where("externalIds.learnUserId").type(2)))
                 .named("account_learn_user"));
     }

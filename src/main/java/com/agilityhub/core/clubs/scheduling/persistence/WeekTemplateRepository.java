@@ -12,7 +12,7 @@ public class WeekTemplateRepository extends TenantRepository<WeekTemplate> {
     public WeekTemplateRepository(MongoTemplate mongo) { super(mongo, WeekTemplate.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
-        mongo.indexOps(WeekTemplate.class).ensureIndex(new Index().on("clubId", ASC).on("kind", ASC).on("name", ASC).unique().collation(Collation.of("en").strength(Collation.ComparisonLevel.secondary())).named("template_club_kind_name"));
+        mongo.indexOps(WeekTemplate.class).createIndex(new Index().on("clubId", ASC).on("kind", ASC).on("name", ASC).unique().collation(Collation.of("en").strength(Collation.ComparisonLevel.secondary())).named("template_club_kind_name"));
     }
 
     public WeekTemplate update(WeekTemplate next, long expectedVersion) {

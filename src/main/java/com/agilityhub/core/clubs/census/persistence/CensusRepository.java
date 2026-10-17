@@ -28,7 +28,7 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     public void ensureNameIndex() {
         var indexes = mongo.indexOps(type);
         if (indexes.getIndexInfo().stream().anyMatch(index -> "name_ci".equals(index.getName()))) { indexes.dropIndex("name_ci"); }
-        indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("nameKey", Sort.Direction.ASC).collation(NAME_COLLATION).named("dog_name_key"));
+        indexes.createIndex(new Index().on("clubId", Sort.Direction.ASC).on("nameKey", Sort.Direction.ASC).collation(NAME_COLLATION).named("dog_name_key"));
     }
     /**
      * R-04-12 (E3-T09 round 2): the idempotent migration of `Dog.nameKey` for the dogs of every club stored before the key
@@ -46,10 +46,10 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
         return updated;
     }
     public void ensureIndexes(String field, String bsonType, String name) {
-        mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)
+        mongo.indexOps(type).createIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)
                 .unique().partial(PartialIndexFilter.of(new Document(field, new Document("$type", bsonType)))).named(name));
     }
-    public void ensureLookup(String field) { mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)); }
+    public void ensureLookup(String field) { mongo.indexOps(type).createIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)); }
     @Override public T insert(T item) {
         item.beforeWrite(); item.version = 0L; item.createdAt = clock.instant(); item.updatedAt = item.createdAt;
         try { return super.insert(item); } catch (DuplicateKeyException duplicate) { throw duplicate(duplicate); }
@@ -147,7 +147,7 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require() + ":census")), new Update().inc("sequence", 1), "census_write_locks");
     }
     public void documentIndex() {
-        mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("dogId", Sort.Direction.ASC)
+        mongo.indexOps(type).createIndex(new Index().on("clubId", Sort.Direction.ASC).on("dogId", Sort.Direction.ASC)
                 .on("type", Sort.Direction.ASC).unique().named("dog_document_type"));
     }
 }

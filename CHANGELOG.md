@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T07: Spring Boot 4.1 and Spring Framework 7 (ruling E129). The HTTP contract, the stored data and the gates are unchanged.
+  - Spring Boot 3.5.16 → 4.1.1: Spring Framework 7.0.9, Spring Security 7.1.1 (with the authorization server), Tomcat 11.0.27 (pinned above the managed 11.0.24 for three fixable CRITICAL findings), Netty 4.2, Mongo driver 5.8, Spring Data MongoDB 5.1, JUnit 6, Testcontainers 2.0.5. E11-T03's `tomcat.version` 10.1.x and `netty.version` 4.1.x pins are gone.
+  - Boot 4 starters: `spring-boot-starter-webmvc`, `-security-oauth2-resource-server`, `-security-oauth2-authorization-server`, `-aspectj`, and the test starters `-webmvc-test`, `-security-test`, `-data-mongodb-test`, `-actuator-test`. Sentry moves to `sentry-spring-boot-4-starter`, springdoc to 3.0.3 (its 3.0 line keeps swagger-core 2.2.47, so the contract is byte-identical).
+  - Jackson stays on 2 (`spring-boot-jackson2`, `spring.http.converters.preferred-json-mapper: jackson2`); Jackson 3 is a later task.
+  - MongoDB: `spring.data.mongodb.*` connection keys → `spring.mongodb.*` (also `SPRING_MONGODB_URI` in the local deploy override). The representations Boot 3.5 used are now explicit: `spring.mongodb.representation.uuid: java-legacy`, `spring.data.mongodb.representation.big-decimal: string`. `StoredRepresentationIT` reads documents written the old way and writes them back byte for byte.
+  - Health: Boot 4's liveness/readiness groups stay off, so `/actuator/health` still answers `{"status":"UP"}`. The contract's error descriptions are fixed texts (Spring 7 renamed 422's reason phrase to "Unprocessable Content").
+  - `bin/security-scan-suppressions.json` is empty: Spring Framework 7.0.9 fixes CVE-2026-47884 and CVE-2026-47890. The suppression mechanism and its tests stay.
+  - Code: `IndexOperations.ensureIndex` → `createIndex` (deprecated for removal in Spring Data MongoDB 5); `org.springframework.lang.Nullable` is no longer a nullable marker (JSpecify only); test imports follow Boot 4's modules and Testcontainers 2 (`org.testcontainers.mongodb.MongoDBContainer`, `withReplicaSet()`).
+
 - E10-T03 round 2 (ruling E125):
   - S15 P9's domain re-check counts only an answer without the record. A lookup with no answer (a timeout, SERVFAIL, no network; `DomainDns.LookupFailed`) or a product host with no address is traced `SKIPPED` (`reason: LOOKUP_FAILED` / `PRODUCT_HOST_UNRESOLVED`). It counts nothing, and the domain stays due for the next run, so a resolver hiccup can no longer make a club's domain `BROKEN`. `JndiDomainDns` tells NXDOMAIN apart from a failed lookup, also when the JVM resolver finds no address. The console's verification still answers `422 HOST_NOT_VERIFIED` on a failed lookup.
   - Writes of a club's `domains[]` (console domain writes and full club saves) keep the stored `checkedAt`/`failedChecks`, read in the write's transaction, unless the write itself sets them (a verification, a re-check's status change).
