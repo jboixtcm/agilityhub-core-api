@@ -237,6 +237,7 @@
     "levelIds": [],
     "builtAt": "2026-10-08T08:00:00Z",
     "builtByAccountId": "e9-INSTRUCTOR",
+    "builtByName": "Fictional instructor",
     "expectedUntil": null,
     "expiresAt": "2026-10-08T08:00:00Z",
     "status": "ACTIVE",
@@ -262,7 +263,49 @@
     "status": "ACTIVE",
     "dismantledAt": null,
     "createdAt": "2026-10-08T08:00:00Z",
+    "placement": {
+      "transform": {
+        "offsetXM": 1.5,
+        "offsetYM": 1.5,
+        "rotationDeg": 1.5,
+        "flipX": true,
+        "flipY": true
+      },
+      "resolvedObstacles": [
+        {
+          "obstacleId": "obstacle-a",
+          "type": "Jump",
+          "x": 1.5,
+          "y": 1.5,
+          "rotationDeg": 1.5,
+          "numbers": []
+        }
+      ],
+      "ringLengthM": 40.0,
+      "ringWidthM": 20.0
+    },
     "view": "MEMBER"
+  },
+  "MemberSetupPlacement": {
+    "transform": {
+      "offsetXM": 1.5,
+      "offsetYM": 1.5,
+      "rotationDeg": 1.5,
+      "flipX": true,
+      "flipY": true
+    },
+    "resolvedObstacles": [
+      {
+        "obstacleId": "obstacle-a",
+        "type": "Jump",
+        "x": 1.5,
+        "y": 1.5,
+        "rotationDeg": 1.5,
+        "numbers": []
+      }
+    ],
+    "ringLengthM": 40.0,
+    "ringWidthM": 20.0
   },
   "RingSetupCreated": {
     "setup": {
@@ -277,6 +320,7 @@
       "levelIds": [],
       "builtAt": "2026-10-08T08:00:00Z",
       "builtByAccountId": "e9-INSTRUCTOR",
+      "builtByName": "Fictional instructor",
       "expectedUntil": null,
       "expiresAt": "2026-10-08T08:00:00Z",
       "status": "ACTIVE",
@@ -302,6 +346,7 @@
         "levelIds": [],
         "builtAt": "2026-10-08T08:00:00Z",
         "builtByAccountId": "e9-INSTRUCTOR",
+        "builtByName": "Fictional instructor",
         "expectedUntil": null,
         "expiresAt": "2026-10-08T08:00:00Z",
         "status": "ACTIVE",

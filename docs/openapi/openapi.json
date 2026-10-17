@@ -14822,6 +14822,7 @@
             "type" : "string"
           },
           "courseId" : {
+            "description" : "R-16-16 (E9-T07): the course the setup shows, which the member reads with GET /courses/{id}: its own, else its placement's; null when it shows none or that course was deleted",
             "type" : [ "string", "null" ]
           },
           "createdAt" : {
@@ -14859,6 +14860,14 @@
             },
             "type" : "array"
           },
+          "placement" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/MemberSetupPlacement"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "E9-T07: where the setup's placement stands on the ring, so the members' viewer draws its course in the ring's frame; null for a setup without a placement"
+          },
           "placementId" : {
             "type" : [ "string", "null" ]
           },
@@ -14876,6 +14885,31 @@
           }
         },
         "required" : [ "builtAt", "createdAt", "expiresAt", "id", "kind", "levelIds", "ringId", "status", "view" ],
+        "type" : "object"
+      },
+      "MemberSetupPlacement" : {
+        "properties" : {
+          "resolvedObstacles" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ResolvedObstacle"
+            },
+            "type" : "array"
+          },
+          "ringLengthM" : {
+            "description" : "the ring geometry's lengthM; null without a geometry",
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "ringWidthM" : {
+            "description" : "the ring geometry's widthM; null without a geometry",
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "transform" : {
+            "$ref" : "#/components/schemas/PlacementTransform"
+          }
+        },
+        "required" : [ "resolvedObstacles", "transform" ],
         "type" : "object"
       },
       "MemberSignupView" : {
@@ -20297,6 +20331,10 @@
           },
           "builtByAccountId" : {
             "type" : "string"
+          },
+          "builtByName" : {
+            "description" : "S16 §2 «muntat … per {instructor}» (E9-T07): the name of the builder's account in the club; null when that account has no membership of the club",
+            "type" : [ "string", "null" ]
           },
           "courseId" : {
             "type" : [ "string", "null" ]
@@ -81965,7 +82003,7 @@
     },
     "/api/v1/ring-setups/{id}" : {
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. R-16-09: INSTRUCTOR and ADMIN read any setup of the club (view STAFF); a MEMBER (impersonation included) reads only an ACTIVE one while courses.showSetupToMembers (else NOT_FOUND), without builtByAccountId, dismantledByAccountId or notes (view MEMBER). imageUrl is a short-lived signed URL of imageFileKey.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN. Module: COURSES. R-16-09: INSTRUCTOR and ADMIN read any setup of the club (view STAFF, with builtByName: who built it, S16 §2); a MEMBER (impersonation included) reads only an ACTIVE one while courses.showSetupToMembers (else NOT_FOUND), without builtByAccountId, builtByName, dismantledByAccountId or notes (view MEMBER). The MEMBER view's courseId is the course the setup shows (its own, else its placement's), which R-16-16 lets the member read with GET /courses/{id}, and its placement is where that placement stands on the ring (transform, resolvedObstacles, the ring's size) (E9-T07). imageUrl is a short-lived signed URL of imageFileKey.",
         "operationId" : "getRingSetup",
         "parameters" : [ {
           "in" : "path",
@@ -83044,7 +83082,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "get" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT; impersonation is rejected. ADMIN reads the whole ring; INSTRUCTOR reads it too, as S16 §6 lets it read the ring's geometry (E9-T07), in the reader projection of S05 §6 (RingReaderView: no trainingCapacity, usage or lastChange). Writes stay ADMIN.",
         "operationId" : "getRing",
         "parameters" : [ {
           "in" : "path",

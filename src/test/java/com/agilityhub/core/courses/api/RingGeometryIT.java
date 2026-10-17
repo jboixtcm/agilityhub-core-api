@@ -155,4 +155,32 @@ class RingGeometryIT extends CourseItSupport {
         error(as(json(put("/api/v1/obstacle-inventories/club"), Map.of("items", List.of())), CLUB, "INSTRUCTOR"), 403, "FORBIDDEN");
         assertThat(ok(as(get("/api/v1/obstacle-inventories/club"), CLUB, "ADMIN"), 200).at("/items/0/count").asInt()).isEqualTo(10);
     }
+
+    /**
+     * E9-T07 step 3 (E9-W04 question 3): an INSTRUCTOR reads `GET /rings/{id}`, as S16 §6 lets them read the ring's geometry, in the
+     * reader's projection of S05 §6 (no `trainingCapacity`, `usage` or `lastChange`); writing the ring stays the ADMIN's, a MEMBER
+     * reads it only through `GET /rings`, and another club's ring is not found.
+     */
+    @Test void T_16_06_anInstructorReadsTheRingAndOnlyAnAdminWritesIt() throws Exception {
+        putGeometry(CLUB, geometry(0), 200);
+        var read = ok(as(get("/api/v1/rings/" + RING), CLUB, "INSTRUCTOR"), 200);
+        assertThat(read.path("id").asText()).isEqualTo(RING);
+        assertThat(read.path("name").asText()).isEqualTo("Ring A1");
+        assertThat(read.path("shortName").asText()).isEqualTo("Ra1");
+        assertThat(read.path("active").asBoolean()).isTrue();
+        assertThat(read.path("version").asLong()).isEqualTo(3);
+        assertThat(read.hasNonNull("trainingCapacity")).isFalse();
+        assertThat(read.hasNonNull("usage")).isFalse();
+        assertThat(read.hasNonNull("lastChange")).isFalse();
+        assertThat(ok(as(get("/api/v1/rings/" + RING), CLUB, "ADMIN"), 200).hasNonNull("usage")).isTrue();
+        assertThat(ok(as(get("/api/v1/rings/" + RING + "/geometry"), CLUB, "INSTRUCTOR"), 200).path("lengthM").asDouble()).isEqualTo(40);
+        // Tenant and roles: reads only; the ring and its geometry are written by an ADMIN.
+        error(as(get("/api/v1/rings/" + RING), OTHER, "INSTRUCTOR"), 404, "NOT_FOUND");
+        error(as(get("/api/v1/rings/" + RING), CLUB, "MEMBER"), 403, "FORBIDDEN");
+        error(as(json(patch("/api/v1/rings/" + RING), Map.of("version", 3, "name", "Ring A1 nou")), CLUB, "INSTRUCTOR"), 403, "FORBIDDEN");
+        error(as(delete("/api/v1/rings/" + RING), CLUB, "INSTRUCTOR"), 403, "FORBIDDEN");
+        error(as(json(put("/api/v1/rings/" + RING + "/geometry"), geometry(1)), CLUB, "INSTRUCTOR"), 403, "FORBIDDEN");
+        assertThat(ring().getString("name")).isEqualTo("Ring A1");
+        assertThat(ring().get("version", Number.class).longValue()).isEqualTo(3);
+    }
 }

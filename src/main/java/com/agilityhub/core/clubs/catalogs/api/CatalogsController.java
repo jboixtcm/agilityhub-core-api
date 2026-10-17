@@ -98,9 +98,10 @@ public class CatalogsController {
     public Ring createRing(@Valid @RequestBody RingCreate request) { return views.ring(views.create(RING, request)); }
 
     @GetMapping("/api/v1/rings/{id}")
-    @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
     @Operation(summary = "Get ring",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT; impersonation is rejected. ADMIN reads the whole ring; INSTRUCTOR reads it too, as S16 §6 lets it read "
+                    + "the ring's geometry (E9-T07), in the reader projection of S05 §6 (RingReaderView: no trainingCapacity, usage or lastChange). Writes stay ADMIN.",
             responses = @ApiResponse(responseCode = "200", description = "Ring"))
     public Ring getRing(@PathVariable String id) { return views.ring(id); }
 

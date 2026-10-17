@@ -661,7 +661,8 @@
     "method": "GET",
     "path": "/api/v1/rings/{id}",
     "roles": [
-      "ADMIN"
+      "ADMIN",
+      "INSTRUCTOR"
     ],
     "global": false,
     "module": null,

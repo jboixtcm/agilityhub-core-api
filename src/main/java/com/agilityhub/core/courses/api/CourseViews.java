@@ -96,13 +96,18 @@ final class CourseViews {
     static RingSetup setup(RingSetupService.SetupView view) {
         var s = view.setup();
         return new RingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(), s.levelIds(),
-                s.builtAt(), s.builtByAccountId(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.dismantledByAccountId(), s.notes(), s.createdAt());
+                s.builtAt(), s.builtByAccountId(), view.builtByName(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.dismantledByAccountId(),
+                s.notes(), s.createdAt());
     }
-    /** R-16-09: a member never sees who built or dismantled the setup, nor its notes. */
-    static MemberRingSetup memberSetup(RingSetupService.SetupView view) {
-        var s = view.setup();
-        return new MemberRingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(), s.levelIds(),
-                s.builtAt(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.createdAt());
+    /**
+     * R-16-09: a member never sees who built or dismantled the setup, nor its notes. E9-T07 (R-16-16): the course it shows and where its
+     * placement stands on the ring.
+     */
+    static MemberRingSetup memberSetup(RingSetupService.SetupView view, RingSetupService.Shown shown) {
+        var s = view.setup(); var placed = shown.placed();
+        return new MemberRingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), shown.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(),
+                s.levelIds(), s.builtAt(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.createdAt(),
+                placed == null ? null : new MemberSetupPlacement(placed.transform(), placed.resolvedObstacles(), placed.ringLengthM(), placed.ringWidthM()));
     }
     static RingSetupPage history(RingSetupService.SetupPage page) {
         return new RingSetupPage(page.items().stream().map(CourseViews::setup).toList(), page.page(), page.size(), page.total(),

@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-17 · E9-T07 · S16 ring-setup reads for the members' app (ruling E124)
+
+**1 schema added (`MemberSetupPlacement`); 2 optional nullable response properties added (`RingSetup.builtByName`, `MemberRingSetup.placement`); 3 descriptions changed; `GET /rings/{id}` also admits INSTRUCTOR; 0 operations added or removed.**
+
+- `GET /ring-setups/{id}`, view `MEMBER`: `courseId` is now the course the setup shows — its own, else its placement's — so a setup that a build session's `finish` registered (placement only) names its course; before, it was `null`. A MEMBER reads that course with `GET /courses/{id}` (R-16-16, unchanged). New `placement: MemberSetupPlacement | null` {`transform`, `resolvedObstacles`, `ringLengthM`, `ringWidthM`}: where the placement stands on the ring, so the members' viewer draws the course in the ring's frame; `null` without a placement. The placement's warnings and the ring's geometry are not in it.
+- `RingSetup` (view `STAFF`: `POST /ring-setups`, `GET /ring-setups/{id}`, dismantle, renewal, `GET /rings/{id}/setups`): new `builtByName: string | null`, the name of the builder's account in the club (S16 §2 «muntat … per {instructor}»); `null` when that account has no membership of the club. The `MEMBER` view never carries it.
+- `GET /rings/{id}`: INSTRUCTOR reads it too (S16 §6), in the reader projection (no `trainingCapacity`, `usage` or `lastChange`); impersonation is still refused; `PATCH`/`DELETE` stay ADMIN.
+
 ## 2026-10-17 · E10-T04 round 2 · S17 support access and domains (ruling E123)
 
 **1 operation added (`DELETE /support-accesses/{id}`); 1 enum value added (`AuditAction`: `SUPPORT_ACCESS_ENDED`); 2 descriptions changed; 0 schemas added or removed.**

@@ -297,8 +297,9 @@ class CatalogsIT extends AbstractIntegrationTest {
         List<MockHttpServletRequestBuilder> adminRequests = new ArrayList<>(List.of(body(post(path), input(catalog, "2")),
                 body(patch(path + "/" + id), Map.of("active", false, "version", 0)), delete(path + "/" + id),
                 body(put(path + "/order"), Map.of(orderKey(catalog), List.of(id)))));
-        if (!catalog.equals("faq-entries")) { adminRequests.add(get(path + "/" + id)); }
-        else { adminRequests.add(get(path + "/filter-values").param("field", "category")); }
+        // E9-T07 (ruling E124): an INSTRUCTOR also reads a ring's detail, checked below; a level's stays the ADMIN's.
+        if (catalog.equals("levels")) { adminRequests.add(get(path + "/" + id)); }
+        else if (catalog.equals("faq-entries")) { adminRequests.add(get(path + "/filter-values").param("field", "category")); }
         for (var request : adminRequests) {
             mvc.perform(request.header("Host", HOST)).andExpect(status().isUnauthorized());
             for (String role : List.of("MEMBER", "INSTRUCTOR", "AGILITYHUB_ADMIN")) { call(request, CLUB, role).andExpect(status().isForbidden()); }
@@ -306,6 +307,18 @@ class CatalogsIT extends AbstractIntegrationTest {
                     .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
             // Missing persisted impersonation grants are rejected by the common filter before reaching the admin guard.
             mvc.perform(request.header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("imp", true)).authorities(() -> "ROLE_ADMIN")))
+                    .andExpect(status().isUnauthorized());
+        }
+        if (catalog.equals("rings")) {
+            // E9-T07: the INSTRUCTOR reads the reader's projection (S05 §6); MEMBER and AGILITYHUB_ADMIN do not, nor an impersonation.
+            var reader = json(call(get(path + "/" + id), CLUB, "INSTRUCTOR"), 200);
+            assertThat(reader.path("id").asText()).isEqualTo(id);
+            assertThat(reader.hasNonNull("usage") || reader.hasNonNull("lastChange") || reader.hasNonNull("trainingCapacity")).isFalse();
+            assertThat(json(admin(get(path + "/" + id)), 200).hasNonNull("usage")).isTrue();
+            mvc.perform(get(path + "/" + id).header("Host", HOST)).andExpect(status().isUnauthorized());
+            for (String role : List.of("MEMBER", "AGILITYHUB_ADMIN")) { call(get(path + "/" + id), CLUB, role).andExpect(status().isForbidden()); }
+            call(get(path + "/" + id), OTHER, "INSTRUCTOR").andExpect(status().isNotFound());
+            mvc.perform(get(path + "/" + id).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("imp", true)).authorities(() -> "ROLE_INSTRUCTOR")))
                     .andExpect(status().isUnauthorized());
         }
         call(get(path), CLUB, "AGILITYHUB_ADMIN").andExpect(status().isForbidden());

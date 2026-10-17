@@ -559,4 +559,117 @@ class RingSetupsIT extends CourseItSupport {
         columns = ok(as(get("/api/v1/day-grid").param("date", "2026-10-05").param("view", "instructor"), CLUB, "INSTRUCTOR"), 200).path("columns");
         assertThat(columns).isNotEmpty().allSatisfy(c -> assertThat(c.has("activeSetupId")).isFalse());
     }
+
+    // ---- E9-T07: the reads of the members' app (E9-W04's review) ----
+
+    /** A fictional account of the club with {@code role}, named {@code name}: the builder `as(…, role)` signs in as. */
+    void builder(String club, String role, String name) {
+        String id = "e9t2-" + role;
+        mongo.insert(new com.agilityhub.core.identity.persistence.Account(id, "e9t2-" + club + "-" + role.toLowerCase(Locale.ROOT) + "@example.test", name, "ca", null, Set.of(),
+                com.agilityhub.core.identity.persistence.Account.Status.ACTIVE, new com.agilityhub.core.identity.persistence.Account.Security(0, null, null, 0),
+                Map.of(), false, clock.instant()));
+        var granted = com.agilityhub.core.identity.domain.Role.valueOf(role);
+        mongo.insert(new com.agilityhub.core.identity.persistence.Membership("e9t2-membership-" + club + "-" + role, id, club, null, Set.of(granted),
+                com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, granted));
+    }
+    /** A build session on {@code placementId}, started and finished by {@code role} (R-16-11): the id of the setup its `finish` registered. */
+    String built(String placementId, String role) throws Exception {
+        String session = ok(as(json(post("/api/v1/build-sessions"), Map.of("placementId", placementId, "live", false)), CLUB, role)
+                .header("Idempotency-Key", UUID.randomUUID().toString()), 201).path("id").asText();
+        return ok(as(post("/api/v1/build-sessions/" + session + "/finish").header("Idempotency-Key", UUID.randomUUID().toString()), CLUB, role), 200)
+                .path("setupId").asText();
+    }
+
+    /**
+     * E9-T07 step 1 (R-16-16, R-16-09; E9-W04 question 1): the setup a build session's `finish` registers names only its placement.
+     * The member's projection carries the course it shows (`courseId`, the placement's) and where it stands on the ring (`placement`:
+     * the transform, the resolved obstacles and the ring's size), so the members' viewer draws it in the ring's frame; the member reads
+     * that course through it, and still no placement. A setup without a placement has no `placement`. With
+     * `courses.showSetupToMembers = false` the member reads nothing.
+     */
+    @Test void T_16_09_T_16_16_aMemberReadsTheCourseOfASetupABuildSessionRegistered() throws Exception {
+        clock.setInstant(MONDAY);
+        drawRing(A1);
+        String course = createCourse("Agility P");
+        String placement = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        String setup = built(placement, "INSTRUCTOR");
+        assertThat(setupDocument(setup).getString("placementId")).isEqualTo(placement);
+        assertThat(setupDocument(setup).get("courseId")).as("the setup stores only its placement").isNull();
+        var member = setup(setup, "MEMBER");
+        assertThat(member.path("view").asText()).isEqualTo("MEMBER");
+        assertThat(member.path("placementId").asText()).isEqualTo(placement);
+        assertThat(member.path("courseId").asText()).isEqualTo(course);
+        var placed = member.path("placement");
+        assertThat(placed.at("/transform/offsetXM").asDouble()).isEqualTo(2);
+        assertThat(placed.at("/transform/offsetYM").asDouble()).isEqualTo(1);
+        assertThat(placed.at("/transform/rotationDeg").asDouble()).isZero();
+        assertThat(placed.at("/transform/flipX").asBoolean()).isFalse();
+        assertThat(placed.at("/transform/flipY").asBoolean()).isFalse();
+        assertThat(placed.path("resolvedObstacles")).hasSize(1);
+        var obstacle = placed.at("/resolvedObstacles/0");
+        assertThat(obstacle.path("obstacleId").asText()).isEqualTo("obstacle-0");
+        assertThat(obstacle.path("type").asText()).isEqualTo("Jump");
+        assertThat(obstacle.path("x").asDouble()).isEqualTo(14);
+        assertThat(obstacle.path("y").asDouble()).isEqualTo(4);
+        assertThat(obstacle.path("numbers")).extracting(JsonNode::asInt).containsExactly(4);
+        assertThat(placed.path("ringLengthM").asDouble()).isEqualTo(40);
+        assertThat(placed.path("ringWidthM").asDouble()).isEqualTo(22);
+        assertThat(placed.has("warnings")).as("the placement's warnings stay the staff's").isFalse();
+        assertThat(ok(as(get("/api/v1/courses/" + member.path("courseId").asText()), CLUB, "MEMBER"), 200).path("id").asText()).isEqualTo(course);
+        assertThat(mine("MEMBER", A1).at("/0/setup/hasViewer").asBoolean()).isTrue();
+        // R-16-16 stays the limit: the placement itself is the staff's; the staff's projection is what was registered.
+        error(as(get("/api/v1/placements/" + placement), CLUB, "MEMBER"), 403, "FORBIDDEN");
+        var staff = setup(setup, "INSTRUCTOR");
+        assertThat(staff.path("view").asText()).isEqualTo("STAFF");
+        assertThat(staff.path("courseId").isNull()).isTrue();
+        assertThat(staff.has("placement")).isFalse();
+        // A setup of a library course (no placement): its own course, no placement.
+        String plain = id(register("INSTRUCTOR", course(A2, "AGILITY", course)));
+        var unplaced = setup(plain, "MEMBER");
+        assertThat(unplaced.path("courseId").asText()).isEqualTo(course);
+        assertThat(unplaced.path("placement").isNull()).isTrue();
+        // Another club's member reads nothing of it.
+        error(as(get("/api/v1/ring-setups/" + setup), OTHER, "MEMBER"), 404, "NOT_FOUND");
+        // showSetupToMembers = false: nothing for the member.
+        parameter("courses.showSetupToMembers", false, "bool");
+        error(as(get("/api/v1/ring-setups/" + setup), CLUB, "MEMBER"), 404, "NOT_FOUND");
+        error(as(get("/api/v1/courses/" + course), CLUB, "MEMBER"), 404, "NOT_FOUND");
+        assertThat(mine("MEMBER", A1).at("/0/setup").isNull()).isTrue();
+        assertThat(setup(setup, "INSTRUCTOR").path("id").asText()).isEqualTo(setup);
+    }
+
+    /**
+     * E9-T07 step 2 (S16 §2 «muntat … per {instructor}», l'autor només per a instructors; E9-W04 question 2): every staff read of a
+     * setup names who built it (`builtByName`, the builder's name in the club), the member's never does. A build session's builder is
+     * named too; a builder with no account in the club has no name (`null`).
+     */
+    @Test void T_16_09_theStaffSeeWhoBuiltASetupAndAMemberDoesNot() throws Exception {
+        clock.setInstant(MONDAY);
+        builder(CLUB, "INSTRUCTOR", "Fictional Estel");
+        builder(OTHER, "ADMIN", "Fictional Other Admin");
+        String course = createCourse("Agility N");
+        var created = register("INSTRUCTOR", course(A1, "AGILITY", course).put("notes", "Nota privada"));
+        assertThat(created.at("/setup/builtByName").asText()).isEqualTo("Fictional Estel");
+        String id = id(created);
+        assertThat(setup(id, "ADMIN").path("builtByName").asText()).isEqualTo("Fictional Estel");
+        assertThat(setup(id, "INSTRUCTOR").path("builtByAccountId").asText()).isEqualTo("e9t2-INSTRUCTOR");
+        assertThat(ok(as(get("/api/v1/rings/" + A1 + "/setups"), CLUB, "INSTRUCTOR"), 200).at("/items/0/builtByName").asText()).isEqualTo("Fictional Estel");
+        assertThat(act("ADMIN", id, "renewal", Map.of(), 200).path("builtByName").asText()).isEqualTo("Fictional Estel");
+        // The member's projection and summary never name the builder.
+        var member = setup(id, "MEMBER");
+        assertThat(member.has("builtByName")).isFalse();
+        assertThat(member.toString()).doesNotContain("Fictional Estel", "e9t2-INSTRUCTOR");
+        assertThat(mine("MEMBER", A1).toString()).doesNotContain("Fictional Estel", "builtBy");
+        // A build session's `finish` names its builder.
+        drawRing(A2);
+        String placement = createPlacement("INSTRUCTOR", placementBody(course, A2), 201).path("id").asText();
+        assertThat(setup(built(placement, "INSTRUCTOR"), "ADMIN").path("builtByName").asText()).isEqualTo("Fictional Estel");
+        // `e9t2-ADMIN` has an account only in the other club: no name here (tenant), and a dismantled setup keeps its builder.
+        String byAdmin = id(registerSetup(CLUB, "ADMIN", course(A1, "JUMPING", course), 201));
+        assertThat(setup(byAdmin, "INSTRUCTOR").has("builtByName")).isTrue();
+        assertThat(setup(byAdmin, "INSTRUCTOR").path("builtByName").isNull()).isTrue();
+        assertThat(act("INSTRUCTOR", byAdmin, "dismantle", null, 200).path("builtByName").isNull()).isTrue();
+        assertThat(setup(id, "INSTRUCTOR").path("status").asText()).isEqualTo("DISMANTLED");
+        assertThat(setup(id, "INSTRUCTOR").path("builtByName").asText()).isEqualTo("Fictional Estel");
+    }
 }

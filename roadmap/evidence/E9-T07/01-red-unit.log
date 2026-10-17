@@ -1,0 +1,841 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=46825 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=46825 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+08:46:55.729 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword discriminator - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+08:46:55.737 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 15, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 4.890 s <<< FAILURE! -- in com.agilityhub.core.configuration.E9ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields -- Time elapsed: 0.797 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["agilityhubLevel",
+    "builtAt",
+    "builtByAccountId",
+    "courseId",
+    "createdAt",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "expectedUntil",
+    "expiresAt",
+    "id",
+    "imageFileKey",
+    "imageUrl",
+    "kind",
+    "levelIds",
+    "notes",
+    "placementId",
+    "ringId",
+    "status",
+    "view"]
+to contain exactly in any order:
+  ["id",
+    "ringId",
+    "kind",
+    "placementId",
+    "courseId",
+    "imageFileKey",
+    "imageUrl",
+    "agilityhubLevel",
+    "levelIds",
+    "builtAt",
+    "builtByAccountId",
+    "builtByName",
+    "expectedUntil",
+    "expiresAt",
+    "status",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "notes",
+    "createdAt",
+    "view"]
+but could not find the following elements:
+  ["builtByName"]
+
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields(E9ResponseContractTest.java:83)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_10_theSpecNamesTheContractsObstacleStatusesAndFinishedError -- Time elapsed: 0.020 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "# S16 ? Recorreguts, rings i muntatge
+
+**Etapa:** E9 (fil independent: la recuperaci? de `course-core` pot comen?ar a E0; la integraci? amb 08/10/23/D12 quan S06/S09 existeixin) ? **M?duls:** `COURSES` (tot el vertical), `FREE_TRAINING` (recorregut muntat a 08), `ACTIVITIES` (col?locacions d'una activitat), `LEARN_LINK`/R2 (challenges) ? **Pantalles:** **D18 ?Biblioteca de recorreguts?** (nova, sense mockup), D16 bloc ?Geometria? (nou), **visor m?bil** + **?Registra qu? hi ha muntat?** (instructor) + **sessi? de muntatge** (noves), integracions a 08 (S09), 10/23 (S06), 07 (S08), D12 (S10), D7 (S07), D3/D4 (S06 `placementId`) ? **Model:** PLATAFORMA ?0 i **?5** (COURSE, geometria del RING, PLACEMENT, RING_SETUP, BUILD_SESSION, OBSTACLE_INVENTORY, CHALLENGE/ATTEMPT reservats) ? ADR-013 ? **Estat:** esborrany (03-09-2026) ? **Versi?:** 0.2 (05-09: verificaci? del web-planner, ?14 ? mana sobre ?3/?4/?12 on discrepin)
+
+## 1. Prop?sit i abast
+
+Resol la **vertical de pistes**: que el club tingui una **biblioteca de recorreguts** (propis, importats de Smarter, dibuixats a l'editor, fotografiats o copiats de la biblioteca p?blica d'AgilityHub), que cada **pista** pugui tenir **geometria de ring** (mides, portes, zones no-go, marcadors de calibratge), que un recorregut es pugui **col?locar** en un ring amb avisos autom?tics, que l'instructor **registri en 30 segons qu? hi ha muntat** a cada pista (IDEA-02) i que l'alumne ho vegi abans de reservar un entrenament i als quadres, amb **full de muntatge** imprimible i **sessi? de muntatge** en directe des del m?bil. ?s la base de dades i d'API que despr?s consumiran els **challenges** de Learn (R2) i l'**app AR/VR** (R3) sense cap dada nova. Decisi? t?cnica (ADR-013): `course-core` (TS pur) i `course-ui` (React/three) es recuperen del web-planner com a packages; el core API persisteix el model com a JSON versionat.
+
+| Fora d'abast | On viu |
+|---|---|
+| Reserva d'entrenaments i pantalla 08 (aqu?: el bloc ?recorregut muntat? que hi apareix) | S09 |
+| Quadres 10/23, calendari, `ClassSession.placementId` (aqu?: qu? hi aporta) | S06 |
+| Activitats (aqu?: `Placement.activityId`) | S07 |
+| Caducitat autom?tica dels muntatges (P5f) | S15 |
+| Challenges: regles, v?deo, validaci?, intents | S19 (R2) ? aqu? nom?s la forma de l'API |
+| App AR/VR | S20 (R3) ? aqu? els requisits que ha de complir aquesta API |
+| Manteniment de pistes (nom, color, reservable) | S05 (aqu?: el bloc ?Geometria? de D16) |
+
+## 2. Pantalles i rutes
+
+Totes les pantalles noves es dissenyen amb el design system (`packages/ui`) seguint D16/D7 com a refer?ncia d'estil; Josep les valida a staging.
+
+| Pantalla | App | Ruta | Rol | Comportament |
+|---|---|---|---|---|
+| **D18 Biblioteca** | clubs-admin | `/recorreguts` | ADMIN ? INSTRUCTOR | Llistat universal (CONVENCIONS ?4) amb miniatura, nom, disciplina, nivell, autor, font, pistes on ?s muntat, dates; xips ?Del club? ? ?AgilityHub? (`PUBLIC`) ? ?Meus? (`ACCOUNT`); accions: **[Nou recorregut]** (men?: ?Importa un fitxer Smarter (.txt)?, ?Dibuixa'l? (editor), ?Puja un pl?nol o foto?, ?Copia d'AgilityHub?) ? fila ? detall: visor 2D (`CourseViewer2D`), pestanya 3D (`CourseViewer3D`, c?rrega diferida), metadades editables, ?Col?loca en una pista? ? **editor de col?locaci?** (`PlacementEditor`: tria de ring amb geometria, arrossega/gira/mirall, avisos en viu, [DESA LA COL?LOCACI?]), ?Full de muntatge? (PDF), ?Registra-ho com a muntat? (? `RingSetup`), ?Duplica?, ?Comparteix amb el club? (visibilitat), ?Elimina? (soft). Estats buit (?Encara no hi ha cap recorregut. Importa'n un de Smarter o dibuixa'n un.?), carregant, error. |
+| D16 bloc ?Geometria? | clubs-admin | `/pistes/:id` | ADMIN | Targeta ?Geometria del ring? (`RingGeometryEditor`): amplada ? llargada (m), orientaci? (graus respecte al nord), portes (posici? al per?metre, amplada, flux entrada/sortida/ambd?s), zones no-go (pol?gons dibuixats), marcadors de calibratge (6 per defecte, A?F, els que l'exportaci? per a l'AR necessita; arrossegables), superf?cie, notes; [DESA] ? `PUT /rings/{id}/geometry`; [Full de marcadors] ? PDF amb els marcadors AprilTag (36h11), generat al client (`MarkerSheet` de `course-ui`, A8b; E115, E119). Sense geometria: text ?Aquesta pista no t? geometria: nom?s s'hi poden registrar muntatges amb foto o pl?nol.? |
+| **Visor m?bil** | clubs | `/recorreguts/:setupId` ? `/recorreguts/muntat/:ringId` | MEMBER ? INSTRUCTOR | Des de 08 (xip de pista), 10/23 (cel?la), 07 (detall de reserva) o D12: nom/tipus/nivell del muntatge, ?muntat {fa 2 dies} per {instructor}? (l'autor nom?s per a instructors), ?previst fins {data}?, imatge/pl?nol o visor 2D del recorregut col?locat (zoom i gir), numeraci?; per a instructors: [Marca com a desmuntat] i [Sessi? de muntatge]. |
+| **Registra qu? hi ha muntat** | clubs | `/instructor/pistes/:ringId/muntat` | INSTRUCTOR ? ADMIN | Formulari de 30 segons: pista (preseleccionada), ?Qu? hi ha muntat?? (`kind`: Agility ? Jumping ? Fun ? Treball d'obstacle ? Buida), font: ?Un recorregut de la biblioteca? (cerca) / ?Foto o pl?nol? (c?mera/galeria ? S3) / ?Cap? (nom?s tipus), nivell orientatiu (nivells del club o escala AgilityHub), ?Fins quan?? (per defecte `builtAt + courses.setupAutoExpireDays`), nota; [REGISTRA] ? `POST /ring-setups`. Si hi ha un muntatge actiu: ?Substituir? el muntatge actual ({tipus}, de {dia})?. Acc?s des de 20/23/24 (icona de con a la cap?alera de pista, assumpci? ?13). |
+| **Sessi? de muntatge** | clubs | `/instructor/muntatge/:sessionId` | INSTRUCTOR ? ADMIN | Llista d'obstacles numerats amb estat (pendent ? col?locat ? verificat) i posici?/orientaci? (m i graus des dels marcadors); toc = seg?ent estat; mode ?en directe? (SSE) perqu? dos m?bils vegin el mateix; [FINALITZA] ? crea/actualitza el `RingSetup`; [Full de muntatge] (PDF). |
+| Integracions | clubs / clubs-admin | 08, 10, 23, 07, D12, D7, D3/D4 | segons pantalla | 08: `rings[].setup` (S09 R-09-15) pinta ?Jumping ? nivell C?D ? muntat ahir? sota la xip de la pista ? visor. 10/23: icona de recorregut a la cap?alera de la columna (S06 ?2) ? visor. 07: l?nia ?A la pista hi ha muntat: ?? si la classe t? `placementId` o la pista un muntatge actiu. D12: icona a la cap?alera de pista. D7: ?Col?locacions? de l'activitat (llista + [Afegeix]). D3/D4: selector opcional ?Recorregut previst? a la classe (`placementId`). Tot condicionat a `courses.showSetupToMembers` per a MEMBER. |
+
+## 3. Entitats i camps
+
+### `Course` (`courses`) ? `ownerType = CLUB` (amb `clubId`) ? `AGILITYHUB` (global, `GlobalRepository`) ? `ACCOUNT` (global amb `ownerAccountId`)
+| Camp | Tipus | Obl. | Validaci? / notes |
+|---|---|---|---|
+| `ownerType`, `clubId?`, `ownerAccountId?` | | s? | segons propietari |
+| `visibility` | enum | s? | `PRIVATE` (nom?s l'autor) ? `CLUB` (instructors/admins del club) ? `PUBLIC` (tots els clubs; nom?s `AGILITYHUB` o `ACCOUNT` que ho publica) |
+| `name` | LocalizedText | s? | fallback `defaultLocale` |
+| `discipline` | enum | s? | `AGILITY ? JUMPING ? OTHER` |
+| `designerName`, `designedOn?`, `eventName?` | string, date | no | |
+| `agilityhubLevel?`, `levelIds[]` (club) | | no | nivell orientatiu |
+| `tags[]`, `notes` | | no | |
+| `source` | enum | s? | `SMARTER ? EDITOR ? IMAGE ? AGILITYHUB_COPY` (`sourceCourseId`) |
+| `sourceFileKey?`, `imageFileKey?`, `thumbnailFileKey?` | S3 | | miniatura generada al client (SVG ? PNG) en desar |
+| `model?` | JSON `CourseModel` | s? llevat de `IMAGE` | validat amb el **JSON Schema publicat per `course-core`** (`course-data.v{n}.schema.json`; el `Course` en desa `schemaVersion`, 1 a R1, perqu? `CourseData` no porta cap camp de versi?; decisi? E84); mida ? 256 KB |
+| `stats` | `{obstacleCount, pathLengthM, bbox {w, h}}` | calculat | del model, per a llistats i filtres |
+| `version`, `history[]` (10 darreres versions del `model`) | | | edici? in-place (assumpci? ?13) |
+| `createdAt`, `createdByAccountId`, `updatedAt`, `deletedAt?` | | | soft delete |
+
+### `CourseModel` (contracte de `course-core`, `schemaVersion = 1`) ? **hip?tesi a verificar**
+`{ schemaVersion, units: "m", origin: "bottom-left", size: {w, h}, obstacles: [{ id, type: JUMP ? DOUBLE ? TRIPLE ? WALL ? TYRE ? TUNNEL ? AFRAME ? DOGWALK ? SEESAW ? WEAVES ? TABLE ? LONG_JUMP ? START ? FINISH ? OTHER, x, y, rotationDeg, length?, width?, numbers: [n?], props: {} }], sequence: [{ obstacleId, direction: FORWARD ? BACKWARD }], meta: { designer, event, class, level, smarter: { version, rawHeader } } }`. Coordenades en metres amb origen a la cantonada inferior esquerra del recorregut; `numbers` admet m?s d'un n?mero (obstacles que es fan dues vegades).
+
+### `Ring.geometry` (embegut a `Ring`, S05)
+`{ width, length, orientationDeg, origin: {x: 0, y: 0}, gates: [{id, side: N?S?E?W, offsetM, widthM, flow: IN ? OUT ? BOTH}], noGoZones: [{id, polygon: [{x, y}?], label}], calibrationMarkers: [{id, x, y, qrPayload: "agh:ring:{ringId}:{markerId}"}], surface: GRASS ? SAND ? ARTIFICIAL ? INDOOR ? OTHER, notes, version, updatedAt }` ? `width/length` 10?60 m; ? 3 marcadors no col?lineals per a l'AR.
+
+### `Placement` (`placements`)
+`courseId`, `courseVersion`, `ringId`, `transform {dx, dy, rotationDeg, mirror}`, `resolvedObstacles[] {obstacleId, type, x, y, rotationDeg, numbers[]}` (coordenades absolutes del ring, **el que consumeix l'AR**), `warnings[] {code, severity: WARN ? BLOCK, obstacleId?, details}`, `activityId?`, `classSessionIds[]` (lectura), `name?`, `createdByAccountId`, `createdAt`, `updatedAt`, `version`.
+
+### `RingSetup` (`ring_setups`) ? ?recorregut muntat?
+`ringId`, `kind` (`AGILITY ? JUMPING ? FUN ? OBSTACLE_DRILL ? EMPTY`), `placementId?` **o** `courseId?` (recorregut sense col?locaci?) **o** `imageFileKey?` (foto/pl?nol) ? almenys un llevat de `EMPTY`, `agilityhubLevel?`, `levelIds[]`, `builtAt`, `builtByAccountId`, `expectedUntil?`, `expiresAt` (= `builtAt + courses.setupAutoExpireDays`, o `expectedUntil` si ?s abans), `status` (`ACTIVE ? EXPIRED ? DISMANTLED`), `dismantledAt?`, `dismantledByAccountId?`, `notes`, `createdAt`.
+
+### `BuildSession` (`build_sessions`)
+`placementId`, `ringId`, `startedByAccountId`, `startedAt`, `finishedAt?`, `live` (bool), `obstacles[] {obstacleId, status: PENDING ? PLACED ? VERIFIED, byAccountId?, at?}`, `participants[] {accountId, joinedAt}`, `buildSheetFileKey?`, `version`.
+
+### `ObstacleInventory` (`obstacle_inventories`)
+`scope` (`CLUB` ? `RING` + `ringId`), `items[] {type, count, notes}`, `updatedAt`. L'inventari efectiu d'un ring = `RING` si existeix, si no `CLUB`.
+
+### Reservats (R2): `Challenge` (global), `ChallengeAttempt` (`clubId`) ? vegeu ?6 (contracte).
+
+## 4. Regles de negoci
+
+| Regla | Enunciat | Par?metres | Exemple |
+|---|---|---|---|
+| **R-16-01 `course-core` com a ?nica veritat geom?trica** | Tot c?lcul (parser Smarter, bounding box, longitud, col?locaci? i avisos) viu a `packages/course-core` i s'executa **al client** (browser) i, per a validacions, al servidor **nom?s** com a validaci? d'esquema JSON (el back no reimplementa geometria a Java). El servidor guarda `model` + `resolvedObstacles` + `warnings` tal com els envia el client i **recalcula** avisos nom?s marcant `stale = true` quan la geometria del ring canvia (R-16-06); el client els regenera en obrir. `course-core` publica `course-data.v1.schema.json` i `build-session-export.v1.schema.json` (JSON Schema draft-07, decisi? E84; organitzador 01-10, pregunta d'E9-W01), que el core valida amb una llibreria est?ndard. | ? | Importaci? d'un `.txt`: el navegador parseja, mostra la vista pr?via i envia la `CourseData`. |
+| **R-16-02 Importaci? Smarter** | `parseSmarter(text) ? {model} | {errors[]}`: format hipot?tic (?13): cap?alera amb versi?/autor/mides + una l?nia per obstacle (tipus, x, y, rotaci?, n?meros). Obstacles desconeguts ? `type OTHER` + av?s `UNKNOWN_OBSTACLE`; unitats en peus ? conversi? a metres; fitxer sense mides ? `size` = bbox + 2 m de marge. El `.txt` original es desa a S3 (`sourceFileKey`) per reprocessar quan el parser millori. Mida m?xima 512 KB. | `files.*` | ?Course 12 obstacles, 20?40 m? ? miniatura i llistat. |
+| **R-16-03 Visibilitat i propietat** | Lectura: `CLUB` ? membres amb rol INSTRUCTOR/ADMIN del club (MEMBER nom?s via `RingSetup`); `PUBLIC` ? qualsevol usuari autenticat de qualsevol club (biblioteca AgilityHub); `PRIVATE` (`ACCOUNT`) ? nom?s l'autor. Escriptura: `CLUB` ? INSTRUCTOR/ADMIN; `AGILITYHUB` ? `AGILITYHUB_ADMIN`; `ACCOUNT` ? l'autor. `POST /courses/{id}/copy-to-club` copia un `PUBLIC` com a `CLUB` amb `source = AGILITYHUB_COPY` i `sourceCourseId` (les millores p?bliques no es propaguen; el club pot tornar a copiar). Un club **mai** pot llegir un `CLUB` d'un altre club (`404`). | ? | C?nic copia ?AH ? Foundations 07? ? recorregut propi editable. |
+| **R-16-04 Geometria del ring** | `PUT /rings/{id}/geometry` (ADMIN): `width/length ? [10, 60]`, portes dins del per?metre, pol?gons no-go simples i dins del ring, ? 3 marcadors no col?lineals (`422 GEOMETRY_INVALID{details}`). Desar incrementa `geometry.version`, emet `RingGeometryChanged` i marca `stale` les col?locacions del ring (R-16-06). Esborrar la geometria nom?s si no hi ha `Placement` ni `RingSetup` `ACTIVE` amb col?locaci? (`409 RING_GEOMETRY_IN_USE`). | ? | Muntanya 22 ? 40 m, porta N a 3 m (2 m d'ample, entrada), no-go ?bassa? 3 ? 3, 4 marcadors. |
+| **R-16-05 Col?locaci? i avisos** | `course-core` calcula al client `resolvedObstacles` (rotaci? + translaci? + mirall; es desen, A8c) i els avisos de `runWarnings(course, ring, placement, {thresholdMeters})`, identificats pel seu `ruleId` (`door-clearance`, `obstacle-inventory`, `obstacle-inventory:not-configured`, zones no-go, marges?) amb severitat `critical ? warning ? info` (?14.4). Hi ha un sol motor: el core no recalcula la geometria. Desa els avisos que rep (`warningsJson`) i n'aplica la pol?tica: amb algun `critical`, `POST /placements` demana `force = true` i rol ADMIN (si no, `422 PLACEMENT_BLOCKED{warnings}`) i registra `COURSE_FORCED_PLACEMENT`; els `warning` i `info` es desen. El llindar ?s el `warningThresholdM` de la col?locaci?, per defecte `courses.defaultWarningThresholdM`; la dist?ncia a cada porta ?s la `clearanceM` de la porta, i el marge al per?metre, el `borderClearanceM` del ring (organitzador 30-09, E77). | `courses.defaultWarningThresholdM = 1.5` | Salt 4 a 0,8 m de la tanca amb `borderClearanceM = 1` ? un av?s de marge (`warning`); t?nel dins la bassa ? un av?s `critical` de zona no-go. *C?lcul:* obstacle (12, 3) amb `dx = 2, dy = 1, rotaci? 0` ? (14, 4). |
+| **R-16-06 Canvi de geometria amb col?locacions** | `RingGeometryChanged` ? totes les `Placement` del ring: `stale = true` (les `resolvedObstacles` es conserven); el seg?ent `GET` retorna `stale` i el client recalcula i fa `PUT` (`PlacementUpdated`). Un `RingSetup` `ACTIVE` sobre una col?locaci? `stale` mostra ?Geometria canviada: revisa la col?locaci?? a instructors. | ? | ? |
+| **R-16-07 Un muntatge actiu per pista** | `POST /ring-setups` (INSTRUCTOR si `courses.allowInstructorPublish`, ADMIN sempre): si la pista t? un `ACTIVE`, aquest passa a `DISMANTLED{replaced}` en la mateixa transacci?; `Ring.activeSetupId` apunta al nou; `expiresAt = min(expectedUntil, builtAt + courses.setupAutoExpireDays)`; `kind = EMPTY` deixa la pista ?buida? (setup actiu de tipus `EMPTY`, ?til per dir ?ja no hi ha res?); `RingSetupChanged{ringId, setupId, status: ACTIVE, replacedSetupId?}`. Un `placementId` d'un altre ring ? `422 PLACEMENT_RING_MISMATCH`. Sense geometria: `placementId` prohibit (`422 RING_WITHOUT_GEOMETRY`), `courseId`/imatge permesos. | `courses.setupAutoExpireDays = 7`, `courses.allowInstructorPublish = true` | Estel registra ?Jumping ? C?D ? foto? a Carretera el dl 5-10 ? caduca el 12-10 si ning? no el renova. |
+| **R-16-08 Caducitat, desmuntatge i renovaci?** | S15 P5f: `ACTIVE` amb `expiresAt ? now` ? `EXPIRED`, `Ring.activeSetupId = null`, `RingSetupChanged{EXPIRED}`. `POST /ring-setups/{id}/dismantle` ? `DISMANTLED` (idem). `POST /ring-setups/{id}/renewal {expectedUntil?}` sobre `ACTIVE` ? `expiresAt` nou (renovar ?s m?s r?pid que re-registrar). Els muntatges caducats/desmuntats queden a l'**historial per pista** (`GET /rings/{id}/setups`). | `courses.setupAutoExpireDays` | Dl 12-10 06:00 ? `EXPIRED`; l'instructor, en veure-ho, ?Renova? perqu? encara hi ?s. |
+| **R-16-09 Qu? veu l'alumne** | Amb `COURSES` i `courses.showSetupToMembers`: `GET /me/ring-setups` ? per pista reservable (i per a les de les seves classes): `{ringId, setup?: {id, kind, levelLabel, builtAgo, expectedUntil, thumbnailUrl, hasViewer}}` **sense** `builtBy`, notes ni inventari. Rings sense muntatge ? `setup = null` (?Sense recorregut registrat?). El visor 2D per a MEMBER mostra numeraci? i obstacles, no l'editor. Instructors/admins veuen tot. | `courses.showSetupToMembers = true` | Laura, abans de reservar Muntanya: ?Agility ? nivell D ? muntat fa 2 dies?. |
+| **R-16-10 Full de muntatge** | `GET /placements/{id}/build-sheet` ? PDF (client `BuildSheet` renderitzat al servidor via el motor d'S14 o generat al client i pujat ? decisi?: **client** genera el PDF amb `course-ui` i el desa a S3 via `POST /placements/{id}/build-sheet`; el servidor nom?s emmagatzema; assumpci? ?13): pl?nol amb numeraci?, taula d'obstacles amb posici? (x, y) i orientaci? respecte als **marcadors** (dist?ncies a 2 marcadors per obstacle ? el que un muntador mesura amb cinta), inventari necessari, portes, notes. | ? | ? |
+| **R-16-11 Sessi? de muntatge** | `POST /build-sessions {placementId, live}` (INSTRUCTOR/ADMIN) ? `obstacles[]` `PENDING`; `PATCH /build-sessions/{id}/obstacles/{obstacleId} {status}` amb `version` (concurr?ncia: last-write-wins per obstacle, `409 STALE_VERSION` nom?s a nivell de sessi? tancada); `GET /build-sessions/{id}/events` (SSE `text/event-stream`, esdeveniments `obstacle`, `finished`, heartbeat 20 s; token per query `?access_token=` acceptat nom?s per a aquest endpoint); `POST /build-sessions/{id}/finish` ? `finishedAt`, crea/actualitza el `RingSetup` (`kind` de la disciplina del recorregut) i `BuildSessionFinished`. El `finish` no dep?n de `courses.allowInstructorPublish`: qui pot escriure a la sessi? la tanca; el registre del muntatge (R-16-07) s? que en dep?n: amb l'interruptor apagat, el `finish` d'un INSTRUCTOR no registra cap muntatge (`setupId` nul a la sessi? i a `BuildSessionFinished`) i l'ADMIN el registra amb `POST /ring-setups`; un muntatge refrescat conserva el seu `expectedUntil` (com una renovaci?, R-16-08) (decisi? E118). `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) exigeix exactament sis marcadors **actius** (A?F) i nom?s exporta aquests: menys ? `422 GEOMETRY_INVALID{violations: [{path: markers, rule: TOO_FEW_MARKERS}]}`, m?s ? `rule: TOO_MANY_MARKERS`; R-16-04 mant? ?? 3? per a la geometria (decisi? E118). Una sessi? oberta > 12 h es tanca sola (S15 P9 neteja, ?13); els seus fluxos SSE reben `finished {ABANDONED}` a la consulta seg?ent, sense esperar P9. Un flux viu com a molt 30 min i mai m?s que el token d'acc?s amb qu? s'ha obert. | ? | Dos instructors munten Central: cada toc es veu a l'altre m?bil en < 2 s. |
+| **R-16-12 Inventari** | `PUT /obstacle-inventories/{scope}` (ADMIN): `items[]` amb `count ? 0`; `INVENTORY_SHORT` es calcula amb l'inventari efectiu del ring (R-16-05). Sense inventari ? cap av?s d'inventari. | ? | Club: 12 salts, 2 t?nels; recorregut amb 3 t?nels ? ?Falten 1 t?nel?. |
+| **R-16-13 Activitats i classes** | `Placement.activityId` (S07): les col?locacions d'una activitat surten a D7 i, el dia de l'activitat, com a muntatge previst (?Competici? social ? pista Central ? recorregut 1?); `ClassSession.placementId`/`TemplateClass.placementId` (S06): ?Recorregut previst? visible a instructors (20/23/D12) i, si `showSetupToMembers`, com a l?nia informativa a 07. Cap automatisme crea `RingSetup` a partir d'una classe: es registra a m? (0.3.7). | ? | ? |
+| **R-16-14 Biblioteca p?blica d'AgilityHub** | `POST /platform/courses` (`AGILITYHUB_ADMIN`) ? `ownerType AGILITYHUB`, `visibility PUBLIC`, `agilityhubLevel` obligatori; llistable des de qualsevol club amb xip ?AgilityHub?; **mai** editable pels clubs. Preparat per als challenges (R2, ?6). | ? | ? |
+| **R-16-15 M?dul i variants** | `COURSES` off: tots els endpoints `404 MODULE_DISABLED`; cap bloc a D16/D18/08/10/23/07/D12/D7; S06/S07 ometen `placementId`; S15 omet P5f. `levels.enabled = false`: `levelIds[]` buit i nom?s `agilityhubLevel`/text lliure com a nivell orientatiu. `FREE_TRAINING` off: sense integraci? a 08 (el visor segueix accessible des de 10). | ? | ? |
+| **R-16-16 Tenant, rols i fitxers** | Recorreguts `CLUB` i tot el m?dul filtrats per `clubId`; `PUBLIC` per `GlobalRepository` nom?s lectura; fitxers a S3 amb prefix `{clubId}/courses/` i URLs signades; validaci? MIME (`.txt` Smarter, imatges, PDF) i mides (`files.*`). MEMBER: nom?s `GET /me/ring-setups`, `GET /ring-setups/{id}` (si visible) i `GET /courses/{id}` d'un recorregut referenciat per un muntatge visible. | `files.maxSizeMb` | ? |
+| **R-16-17 i18n** | `Course.name` LocalizedText; tipus d'obstacle, `kind`, avisos i estats amb `enums:` (ca/es/en); unitats sempre en metres (formataci? amb `Intl`); PDF del full en l'idioma de qui el genera. | ? | ? |
+
+## 5. Estats i transicions
+
+```mermaid
+stateDiagram-v2
+  [*] --> ACTIVE : POST /ring-setups (substitueix l'ACTIVE anterior)
+  ACTIVE --> ACTIVE : renewal (expiresAt nou)
+  ACTIVE --> EXPIRED : S15 P5f (expiresAt)
+  ACTIVE --> DISMANTLED : dismantle ? substitu?t ? finish d'una sessi? nova
+```
+
+```mermaid
+stateDiagram-v2
+  [*] --> OPEN : POST /build-sessions
+  OPEN --> OPEN : PATCH obstacle (PENDING ? PLACED ? VERIFIED)
+  OPEN --> FINISHED : finish (crea/actualitza RingSetup)
+  OPEN --> ABANDONED : neteja > 12 h (S15)
+```
+
+`Course`: sense estats (soft delete `deletedAt`; `visibility` canviable). `Placement`: `stale` com a marca.
+
+| Transici? | Qui | Condici? | Efectes | Esdeveniment |
+|---|---|---|---|---|
+| recorregut creat/importat/copiat | INSTRUCTOR/ADMIN ? AGILITYHUB_ADMIN | esquema v?lid | fitxers S3, `stats` | `CourseCreated` / `CourseImported{source}` |
+| geometria desada | ADMIN | R-16-04 | `stale` a col?locacions | `RingGeometryChanged` |
+| col?locaci? creada/actualitzada | INSTRUCTOR/ADMIN | R-16-05 | `resolvedObstacles`, `warnings` | `PlacementCreated` / `PlacementUpdated` |
+| muntatge registrat | INSTRUCTOR/ADMIN | R-16-07 | `Ring.activeSetupId`, anterior `DISMANTLED` | `RingSetupChanged{ACTIVE}` (+ N-31 opcional) |
+| muntatge caducat/desmuntat | S15 ? INSTRUCTOR/ADMIN | R-16-08 | `activeSetupId = null` | `RingSetupChanged{EXPIRED ? DISMANTLED}` |
+| sessi? iniciada/progr?s/acabada | INSTRUCTOR/ADMIN | R-16-11 | SSE, `RingSetup` | `BuildSessionStarted` / `BuildSessionProgress` / `BuildSessionFinished` |
+
+## 6. API
+
+M?dul `COURSES` a tot llevat de `/platform/courses`. Rols segons R-16-03/16.
+
+| M?tode | Ruta | Rol | Idem. | Descripci? | Cos / par?metres | Respostes i errors |
+|---|---|---|---|---|---|---|
+| GET | `/courses` | INSTRUCTOR ? ADMIN | ? | llistat universal (club + `PUBLIC` + propis) | `x-filterable`: `owner (CLUB?AGILITYHUB?MINE), discipline, agilityhubLevel, levelId, source, tag, designerName, obstacleCount, updatedAt`; `q` | `200 {items: CourseListItem[{id, name, discipline, level, designerName, source, thumbnailUrl, stats, ownerType, activeOnRings[]}], ?}` |
+| POST | `/courses` | INSTRUCTOR ? ADMIN | s? | crea (`EDITOR`, `IMAGE`, `SMARTER` amb `model` ja parsejat) | `{name, discipline, source, model?, imageFileKey?, sourceFileKey?, designerName?, agilityhubLevel?, levelIds[], tags[], notes, visibility}` | `201` ? `400 COURSE_MODEL_INVALID{schemaErrors}` / `SCHEMA_VERSION_UNSUPPORTED` |
+| GET ? PATCH ? DELETE | `/courses/{id}` | segons visibilitat | `version` | detall (model complet) ? edici? ? soft delete | | `200` ? `404 COURSE_NOT_VISIBLE` ? `409 STALE_VERSION` / `COURSE_IN_USE` (delete amb muntatge actiu) |
+| POST | `/courses/{id}/duplicate` ? `/courses/{id}/copy-to-club` | INSTRUCTOR ? ADMIN | s? | R-16-03 | `{name?}` | `201` |
+| POST | `/courses/upload-urls` | INSTRUCTOR ? ADMIN | ? | URL signada per a `.txt`/imatge | `{purpose: SMARTER_SOURCE ? COURSE_IMAGE ? THUMBNAIL ? BUILD_SHEET, contentType, size}` | `201 {uploadUrl, fileKey}` ? `400 FILE_TYPE_NOT_ALLOWED` / `FILE_TOO_LARGE` |
+| GET ? PUT ? DELETE | `/rings/{id}/geometry` | ADMIN (GET: INSTRUCTOR) | `version` | R-16-04 | `RingGeometry` | `200` ? `422 GEOMETRY_INVALID` ? `409 RING_GEOMETRY_IN_USE` |
+| GET | `/rings/{id}/setups` | INSTRUCTOR ? ADMIN | ? | historial de muntatges | `page,size` | `200` |
+| GET | `/placements` ? `/placements/{id}` | INSTRUCTOR ? ADMIN | ? | per `ringId` / `courseId` / `activityId` | | `200` (amb `stale`) |
+| POST ? PUT | `/placements` ? `/placements/{id}` | INSTRUCTOR ? ADMIN | s? / `version` | R-16-05 | `{courseId, courseVersion, ringId, transform, resolvedObstacles[], warnings[], activityId?, name?, force?}` | `201/200` ? `422 PLACEMENT_BLOCKED{warnings}` / `RING_WITHOUT_GEOMETRY` / `PLACEMENT_RING_MISMATCH` |
+| POST ? GET | `/placements/{id}/build-sheet` | INSTRUCTOR ? ADMIN | ? | R-16-10 | `{fileKey}` | `200 application/pdf` |
+| POST | `/ring-setups` | INSTRUCTOR (`allowInstructorPublish`) ? ADMIN | s? | R-16-07 | `{ringId, kind, placementId?, courseId?, imageFileKey?, agilityhubLevel?, levelIds[], expectedUntil?, notes}` | `201 {setup, replacedSetupId?}` ? `422 RING_WITHOUT_GEOMETRY` / `PLACEMENT_RING_MISMATCH` / `SETUP_SOURCE_REQUIRED` |
+| GET | `/ring-setups/{id}` | MEMBER (visible) ? INSTRUCTOR ? ADMIN | ? | visor | ? | `200` (projecci? per rol) ? `404` |
+| POST | `/ring-setups/{id}/dismantle` ? `/ring-setups/{id}/renewal` | INSTRUCTOR ? ADMIN | s? | R-16-08 | `{expectedUntil?}` | `200` ? `409 INVALID_STATE` |
+| GET | `/me/ring-setups` | MEMBER ? INSTRUCTOR | ? | R-16-09 | `ringIds?` | `200 [{ringId, setup?}]` |
+| POST | `/build-sessions` | INSTRUCTOR ? ADMIN | s? | R-16-11 | `{placementId, live}` | `201` |
+| GET | `/build-sessions/{id}` ? PATCH `/build-sessions/{id}/obstacles/{obstacleId}` ? POST `/build-sessions/{id}/finish` | INSTRUCTOR ? ADMIN | ? / ? / s? | R-16-11 | `{status}` | `200` ? `409 BUILD_SESSION_FINISHED` |
+| GET | `/build-sessions/{id}/events` | INSTRUCTOR ? ADMIN | ? | SSE | `access_token` (query) | `text/event-stream` |
+| GET ? PUT | `/obstacle-inventories/{scope}` (`club` ? `ring:{ringId}`) | ADMIN (GET: INSTRUCTOR) | ? | R-16-12 | `{items[]}` | `200` ? `422 INVENTORY_INVALID` |
+| GET ? POST ? PATCH | `/platform/courses` | AGILITYHUB_ADMIN | s? | R-16-14 | com `/courses` | `201`/`200` |
+| **R2** GET `/challenges` ? GET `/challenges/{id}` ? POST `/challenges/{id}/attempts` ? GET `/me/challenge-attempts` | tots ? MEMBER | | contracte reservat (S19): `Challenge {id, courseId, title, description, agilityhubLevel, rules, validFrom, validTo, status}`; `Attempt {challengeId, dogId, ringSetupId?, timeMs, faults, videoUrl?, submittedAt, status}` | | `501 NOT_IMPLEMENTED` a R1 |
+
+**Requisits per a l'app AR (R3, S20)**: OIDC natiu (S01 client `ar-app`); `GET /rings/{id}/geometry` (marcadors amb `qrPayload`), `GET /placements/{id}` (`resolvedObstacles` en metres, frame del ring), `GET /build-sessions/{id}/events` + `PATCH` per obstacle; tot ja definit aqu? ? **cap endpoint nou**.
+
+## 7. Esdeveniments
+
+**Emesos**: `CourseCreated{courseId, ownerType, source}` ? `CourseUpdated{courseId, diff}` ? `CourseImported{courseId, source: SMARTER, warnings[]}` ? `RingGeometryChanged{ringId, version}` ? `PlacementCreated{placementId, ringId, courseId, warnings[]}` ? `PlacementUpdated{placementId, stale: false}` ? `RingSetupChanged{ringId, setupId, status, replacedSetupId?, kind, byAccountId}` ? `BuildSessionStarted{sessionId, placementId, live}` ? `BuildSessionProgress{sessionId, obstacleId, status}` ? `BuildSessionFinished{sessionId, setupId}` ? **nous (?13)**: `CourseDeleted`, `CourseCopied{fromCourseId}`, `InventoryChanged{scope}`.
+
+**Consumits**: `RingChanged{deactivated}` (S05) ? muntatge actiu `DISMANTLED{ring_inactive}` ? `ActivityCancelled` (S07) ? col?locacions de l'activitat queden (informatives) ? `AccountErased` (S14) ? `Course.ownerType ACCOUNT` ? `PRIVATE`, `designerName` null.
+
+## 8. Notificacions
+
+| Codi | Moment | P?blic ? canals | Variables |
+|---|---|---|---|
+| N-31 Recorregut nou a la pista | `RingSetupChanged{ACTIVE}` si `messaging.notifyNewRingSetup` i `kind ? EMPTY` | MEMBER amb dret d'entrenament (S09 `TrainingEligibilityService.membersWithRight()`) ? APP, acci? `OPEN_SETUP` | `ring_name`, `setup_kind`, `level` |
+
+Cap altra: els instructors veuen els muntatges als quadres.
+
+## 9. Par?metres i m?duls
+
+Llegeix: `courses.setupAutoExpireDays` (7), `courses.defaultWarningThresholdM` (1.5; substitueix `courses.placementMarginMeters`), `courses.buildSessionMaxHours` (12), `courses.showSetupToMembers` (true), `courses.allowInstructorPublish` (true), `messaging.notifyNewRingSetup` (false), `files.maxSizeMb`, `files.allowedTypes`, `levels.enabled`. El `.txt` de Smarter (`text/plain`) nom?s s'accepta a `/courses/upload-urls`. Les propostes `courses.gateClearanceMeters` i `courses.obstacleClearanceMeters` no s'afegeixen: la dist?ncia a una porta ?s de la porta, i els marges els calcula `course-core` (organitzador 30-09, E77; E9-T01 aplica el cat?leg amb el codi).
+
+| M?dul / variant | Efecte |
+|---|---|
+| `COURSES` off | vertical absent (R-16-15) |
+| `FREE_TRAINING` off | sense bloc a 08 |
+| `ACTIVITIES` off | sense `activityId` |
+| `levels.enabled = false` | nom?s `agilityhubLevel` / text |
+
+## 10. i18n i localitzaci?
+
+- Namespaces `courses` (visor, registre, sessi?), `admin-courses` (D18, geometria, inventari); `enums:obstacleType.*`, `enums:setupKind.*` (?Agility?, ?Jumping?, ?Fun?, ?Treball d'obstacle?, ?Buida?), `enums:placementWarning.*` (?Fora del ring?, ?Massa a prop de la tanca?, ?Porta bloquejada?, ?Zona no permesa?, ?Obstacles massa junts?, ?Falta material?), `enums:buildStatus.*`.
+- `Course.name` LocalizedText (fallback); `builtAgo` amb `fmtRelative` i el fus del club; PDFs en l'idioma de qui els genera; unitats en metres amb `Intl` (decimal segons `locale`).
+
+## 11. Criteris d'acceptaci? i tests obligatoris
+
+**`course-core` (unitaris, Vitest, fixtures)**
+- T-16-01 (R-16-02) `parseSmarter` amb 5 fitxers de mostra (a obtenir del web-planner o de Smarter real): recompte d'obstacles, posicions ? 1 cm, seq??ncia, obstacle desconegut ? `OTHER` + `UNKNOWN_OBSTACLE`, fitxer corrupte ? `errors[]` sense excepci?.
+- T-16-02 (R-16-05) `placeInRing`: translaci?/rotaci?/mirall amb valors coneguts (obstacle (12, 3), `dx 2 dy 1 rot 90` ? (?)); cada codi d'av?s amb un cas positiu i un de negatiu; `INVENTORY_SHORT` amb inventari de ring vs club.
+- T-16-03 (R-16-01) la `CourseData` que `course-core` obt? de cada fixture Smarter valida contra `course-data.v1.schema.json`, i una `BuildSessionExportV1` feta amb els fixtures, contra `build-session-export.v1.schema.json`; una `CourseData` sense un camp obligatori o amb un tipus d'obstacle desconegut, i una exportaci? amb `schemaVersion 2`, ? inv?lides; el `Course` desa `schemaVersion = 1` al costat de `normalizedJson`, i una versi? desconeguda ? inv?lida a R1 (decisi? E84).
+- T-16-04 `course-ui`: snapshots del `CourseViewer2D` i del `BuildSheet` per a 2 fixtures; `PlacementEditor` emet `transform` i avisos en arrossegar (test d'interacci?).
+
+**Integraci? (Testcontainers, S3 doble)**
+- T-16-05 (R-16-03/16) club A crea un `CLUB` ? club B `GET` ? `404`; `PUBLIC` d'AgilityHub visible als dos; `copy-to-club` crea `AGILITYHUB_COPY` editable; MEMBER `GET /courses` ? `403`; `ACCOUNT` `PRIVATE` nom?s per l'autor.
+- T-16-06 (R-16-04/06) geometria v?lida/inv?lida (2 marcadors ? `GEOMETRY_INVALID`); canvi de geometria ? col?locacions `stale`; `DELETE` amb muntatge actiu ? `409`.
+- T-16-07 (R-16-05) `POST /placements` amb `BLOCK` ? `422`; amb `force` (ADMIN) ? `201` i auditoria; INSTRUCTOR amb `force` ? `403`.
+- T-16-08 (R-16-07/08) dos `POST /ring-setups` seguits a la mateixa pista ? el primer `DISMANTLED{replaced}`, `activeSetupId` = segon; `kind EMPTY`; `placementId` d'un altre ring ? `422`; ring sense geometria amb `placementId` ? `422`; `renewal` ? `expiresAt` nou; `dismantle` ? `activeSetupId null`; S15 P5f amb `Clock` ? `EXPIRED` idempotent.
+- T-16-09 (R-16-09) `GET /me/ring-setups` per a MEMBER sense `builtBy`/notes; `showSetupToMembers=false` ? `setup` absent per a MEMBER i present per a INSTRUCTOR (T-09-22 d'S09).
+- T-16-10 (R-16-11) sessi?: dos clients SSE reben `obstacle` en < 2 s (test amb dos subscriptors); `finish` crea el `RingSetup`; `PATCH` despr?s de `finish` ? `409 BUILD_SESSION_FINISHED`; token per query nom?s a `/events`.
+- T-16-11 (R-16-12) inventari de ring preval sobre el del club.
+- T-16-12 (R-16-15) `COURSES` off ? `404` a tot, `placementId` absent a S06/S07, P5f om?s; `levels.enabled=false` ? `levelIds` rebutjats.
+- T-16-13 N-31 nom?s amb `messaging.notifyNewRingSetup` i `kind ? EMPTY`; destinataris = amb dret d'entrenament.
+- T-16-14 fitxers: `.exe` com a Smarter ? `FILE_TYPE_NOT_ALLOWED`; 600 KB ? `FILE_TOO_LARGE`; URLs signades caduquen.
+
+**Front**
+- T-16-15 D18: importaci? Smarter d'un fixture ? vista pr?via ? desar ? llistat amb miniatura; col?locaci? amb avisos en viu; full de muntatge; ?Registra-ho com a muntat?.
+- T-16-16 m?bil: registre en < 5 tocs (pista preseleccionada ? tipus ? foto ? REGISTRA); visor des de 08 i 10; sessi? de muntatge amb dos dispositius (E2E).
+
+**Cobertura addicional (tra?abilitat regla ? test)**
+- T-16-17 (R-16-06) despr?s de `PUT /rings/{id}/geometry`, `GET /placements/{id}` ? `stale: true`; `PUT /placements/{id}` amb `resolvedObstacles` nous ? `stale: false` + `PlacementUpdated`; un `RingSetup` actiu sobre una col?locaci? `stale` mostra l'av?s a instructors.
+- T-16-18 (R-16-08) `renewal` sobre `EXPIRED` ? `409 INVALID_STATE`; `GET /rings/{id}/setups` retorna l'historial ordenat amb `EXPIRED`/`DISMANTLED`.
+- T-16-19 (R-16-10) `POST /placements/{id}/build-sheet {fileKey}` desa el PDF i `GET` en retorna els bytes (`200 application/pdf`); sense fitxer ? `404`.
+- T-16-20 (R-16-13) classe amb `placementId` d'un altre ring ? `422 PLACEMENT_RING_MISMATCH` (S06); l'activitat llista les seves col?locacions (S07); 07 mostra ?A la pista hi ha muntat: ?? nom?s amb `showSetupToMembers`.
+- T-16-21 (R-16-14, R-16-16) `POST /platform/courses` sense `agilityhubLevel` ? `400`; un ADMIN de club sobre `/platform/courses` ? `403`; `PATCH` d'un `PUBLIC` per un club ? `403`; fitxers d'un club en `{clubId}/courses/` i URL signada d'un altre club ? `404`.
+- T-16-22 (R-16-17) `Course.name` amb nom?s `ca` es resol per a un usuari `en` (fallback); `enums:obstacleType.*` i `enums:setupKind.*` presents en ca/es/en; `builtAgo` calculat amb el fus del club (?fa 2 dies? / ?hace 2 d?as? / ?2 days ago?).
+
+## 12. Paquets de feina (per a fils d'IA en paral?lel)
+
+| Paquet | Repo | Dep?n de | Lliurable verificable |
+|---|---|---|---|
+| **WP-16-0 Revisi? del web-planner** (primer de tot) | `@agilityhub/web-planner` (lectura) | acc?s al codi | informe amb la llista de ?13 ?Verificacions? resolta: format real del `CourseModel`, parser Smarter (versions suportades, fixtures), regles de col?locaci? existents, depend?ncies (three.js versi?, Supabase acoblat?), tests existents, llic?ncia; decisi? ?extreure tal qual? vs ?reescriure? per fitxer; ajust d'aquesta spec (v0.2) |
+| WP-16-A `course-core` | `agilityhub-core-web/packages/course-core` | WP-16-0 | package TS pur amb parser, geometria, `placeInRing`, JSON Schema publicat, fixtures i T-16-01?03; `README` amb el format |
+| WP-16-B `course-ui` | `agilityhub-core-web/packages/course-ui` | WP-16-A | `CourseViewer2D/3D`, `PlacementEditor`, `RingGeometryEditor`, `BuildSheet`, `MarkerSheet`; T-16-04 |
+| WP-16-C Back `courses` | `agilityhub-core-api/courses` | WP-16-A (schema), S05 (`Ring`), S14 (audit) | entitats, endpoints de ?6 (sense SSE), validaci? d'esquema, S3, esdeveniments; T-16-05?09, 11?14 |
+| WP-16-D Sessions live | `agilityhub-core-api/courses` | WP-16-C | `BuildSession`, SSE, neteja; T-16-10 |
+| WP-16-E Front admin | `agilityhub-core-web/apps/clubs-admin` | WP-16-B, WP-16-C | D18, bloc geometria de D16, inventari, D7/D3 selectors; T-16-15 |
+| WP-16-F Front m?bil + integracions | `agilityhub-core-web/apps/clubs` | WP-16-B, WP-16-C, S06/S08/S09/S10 | visor, registre, sessi?; blocs a 08/10/23/07/D12; T-16-16 |
+| WP-16-G Biblioteca AgilityHub | core | WP-16-C | `/platform/courses`. Sense migraci? de Supabase: nom?s t? dades de prova (Jordi 30-09, A6) |
+
+Ordre: 0 ? A ? B ? C ? D ? E ? F ? G. Fils: (1) 0+A+B, (2) C+D, (3) E+F.
+
+## 13. Dubtes oberts i verificacions
+
+**Verificacions obligat?ries sobre el web-planner (ADR-013) ? tanquen WP-16-0:**
+1. `course-core` no importa Supabase/Next; t? tests; llic?ncia i autoria.
+2. Format real del model: unitats, origen de coordenades, sentit de rotaci?, tipus d'obstacle, com es representen obstacles amb dos n?meros i la seq??ncia.
+3. Parser Smarter: versions del `.txt` suportades, casos d'error, fixtures disponibles (demanar-ne 5 reals a Jordi, anonimitzats de nom d'autor si cal).
+4. Regles de col?locaci? i avisos existents (marges, portes, no-go, inventari) i com es calculen les dist?ncies als marcadors per al full de muntatge.
+5. Representaci? dels marcadors QR i del calibratge (per a l'AR); llibreria de generaci? de QR.
+6. `three.js` (versi?, pes), estat del visor 3D, si el 2D ?s SVG o canvas.
+7. Persist?ncia a Supabase: quines taules (venues, rings, courses, placements, events, build sessions, judges) tenen **dades reals** que calgui migrar (WP-16-G) i si hi ha usuaris reals (? importaci? de comptes a S01 igual que Learn).
+8. Rols del planner (`is_agilityhub_admin`, venue admin, judge) ? mapatge a `AGILITYHUB_ADMIN`, ADMIN de club i `ACCOUNT` (dissenys personals).
+
+| # | Dubte | Qui | Assumpci? mentrestant |
+|---|---|---|---|
+| 1 | Edici? de recorreguts in-place amb `history` (10) o versions immutables? | Jordi | in-place + `history` |
+| 2 | Generaci? del PDF (full de muntatge, marcadors) al client (`course-ui`) o al servidor? | Jordi | client, pujat a S3 |
+| 3 | Acc?s a ?Registra qu? hi ha muntat? des de 20/23/24 (icona) ? sense mockup | Josep | icona de con a la cap?alera de la pista |
+| 4 | Rols del web-planner (jutges convidats a un event) ? R2 amb activitats? | Jordi | fora de R1 |
+| 5 | Els alumnes poden veure el recorregut sencer (numeraci?) o nom?s tipus/nivell? | Josep | sencer si `showSetupToMembers` |
+| 6 | Format Smarter: descripci? hipot?tica de R-16-02 | WP-16-0 | ? |
+
+**Resolts (organitzador 30-09, E77):** el dubte 1 segons A8a (in-place + `history` de 10), el 2 segons A8b (al client), el 4 a R2 i el 6 pel ?14.3; el 3 i el 5 segueixen amb l'assumpci? (Josep). Les propostes seg?ents les aplica E9-T01 amb el codi (E77), llevat dels dos par?metres de dist?ncia, que no s'afegeixen.
+
+**Propostes**: par?metres `courses.buildSessionMaxHours` (12), `courses.gateClearanceMeters` (1.5), `courses.obstacleClearanceMeters` (0.5); `files.allowedTypes` + `text/plain`; esdeveniments `CourseDeleted`, `CourseCopied`, `InventoryChanged`; errors `COURSE_MODEL_INVALID`, `SCHEMA_VERSION_UNSUPPORTED`, `COURSE_NOT_VISIBLE`, `COURSE_IN_USE`, `GEOMETRY_INVALID`, `RING_GEOMETRY_IN_USE`, `RING_WITHOUT_GEOMETRY`, `PLACEMENT_BLOCKED`, `PLACEMENT_RING_MISMATCH`, `SETUP_SOURCE_REQUIRED`, `BUILD_SESSION_FINISHED`, `INVENTORY_INVALID`, `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `SMARTER_PARSE_ERROR` (client); rutes a afegir a CONVENCIONS ?3: `/courses/upload-urls`, `/rings/{id}/setups`, `/ring-setups/{id}/renewal`, `/build-sessions/{id}/finish`, `/platform/courses`, `/challenges*` (R2); auditoria (S14): `COURSE_FORCED_PLACEMENT`, `RING_GEOMETRY_CHANGED`, `RING_SETUP_REGISTERED`.
+
+## 14. Verificaci? del web-planner (WP-16-0, 05-09-2026) ? fets i ajustos (v0.2)
+
+Codi revisat: `agilityhub-course-builder/apps/web-planner` (Next 15 App Router + React 18 + Tailwind 3 + three 0.160 + `@supabase/supabase-js`, vitest amb 21 fitxers de test, fase 12d d'un pla per fases amb registre de decisions `D-0xx`). **No revisat** (fora de la carpeta muntada): `packages/course-core`, `packages/shared-types`, `packages/ui` (symlinks a `../../../../packages/*`) i les altres apps del monorepo (Unity/Quest). Cal muntar l'arrel del monorepo per tancar-ho (?14.6).
+
+### 14.1 El que ja existeix (i ?s molt m?s que ?col?locaci??)
+
+| Pe?a | Estat real | Decisi? |
+|---|---|---|
+| `@agilityhub/course-core` | API usada pel planner: `parseSmarterTxt`, `summarizeCourse`, `centerCourseInRing`, `IDENTITY_PLACEMENT`, `runWarnings` (regles amb `ruleId`, severitats `critical ? warning ? info`, `thresholdMeters`), `obstacleTypeSchema` (zod), `ObstacleInventory`, `Ring` (`lengthMeters, widthMeters, borderClearanceMeters, doors[], noGoZones[], obstacleInventory`), portes (`inferDoorEdgeFromPolygon`, `normalizeDoorSide`, `doorPolygonFromEdge`), marcadors AprilTag (`buildMarkerUid`, `aprilTagIdFromMarkerUid`, `assignAprilTagIdForMarker`), calibratge (`CalibrationMeasurement`, `gradeCalibration`), unitats (`UnitSystem M/FT`, `formatLength`), paper (`PAPER_PRESETS`) | **Es recupera tal qual** com a `packages/course-core` (?12 WP-16-A passa de ?escriure? a ?copiar + tests?). El `CourseModel` hipot?tic de ?3 queda **substitu?t pel `CourseData` real** (`title, titleRaw, units, designLengthMeters, designWidthMeters, canvasWidth, canvasHeight, origin, metadata, obstacles[], numbers[]`) i `normalized_json` |
+| `@agilityhub/shared-types` | Tipus de fila de la BBDD (`DBVenue, DBRing, DBRingMarker, DBCourse, DBCoursePlacement, DBBuildSession, DBBuildObstacleStatus, DBEvent, DBEventJudge, DBEventAttachment, DBProfile, DBAuditLog, DBCalibrationLog, DBImportLog`) i **`BuildSessionExportV1`** (zod) = el contracte de l'app **Unity** (D-037) | Els noms i camps del core **adopten els del planner** (?14.2). `BuildSessionExportV1` es mant? byte a byte: el core l'exposa a `GET /build-sessions/{id}/export` |
+| `PlannerStore` (`src/lib/storage/types.ts`) amb dues implementacions (`MockStore` en mem?ria amb seed; `SupabaseStore`) | La UI nom?s coneix aquesta interf?cie | **Via de port**: implementar `CoreApiStore` (tercera implementaci?) contra el core; la UI del planner (p?gines React) es trasllada a `apps/clubs-admin` (D18) i a `packages/course-ui` amb canvis m?nims |
+| P?gines: `/plan/{venue,upload,place,details}` (wizard), `/venues`, `/venue/[id]/{markers,calendar,events}`, `/markers/{print,test}`, `/build-sessions/[id]` (+ `/live`), `/calendar`, `/events`, `/designer/*`, `/admin/*` (venues, users, events, build-sessions, logs), `/courses/share`, `/login`; components `PlannerCanvas` (2D, 572 l?nies), `Planner3D` (three, 1.726 l?nies), `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `EventAttachments`, `EventManagePanels`, `PaperSizeToggle`, `UnitsToggle` | Cobreix D18 + geometria de D16 + sessi? de muntatge + calendari + esdeveniments | Les p?gines ?server? de Next (`src/app/api/invites/event`, `api/calibration/log`, `supabase-server.ts`, email via **Resend**) passen a endpoints del core |
+| BBDD Supabase (`bmcahqnybxmnxrdvzzcs`): `venues, venue_members, rings, ring_doors, ring_no_go_zones, ring_markers, ring_obstacle_inventory, courses, course_source_files, course_obstacles, course_numbers, course_no_go_zones, course_themes, course_collaborators, course_placements, events, event_rings, event_judges, event_attachments, build_sessions, build_session_participants, build_obstacle_status, calibration_logs, audit_logs, import_logs, profiles`; RPC `is_agilityhub_admin`, `is_venue_admin`, `link_my_pending_invites`, `rotate_build_session_invite`; buckets `course-source-files`, `event-docs`, `build-session-exports`; Realtime per a `build_obstacle_status` | Esquema madur amb RLS i triggers (`enforce_placement_ring_in_event`) | El model del core (?14.2) el reprodueix; **si hi ha dades reals** (a confirmar per Jordi) s'importen amb un script (WP-16-G) |
+| Rols: `agilityhub_admin` (global), `venue_admin` (per venue via `venue_members`), `judge` (per `event_judges`), rutes `designer`; `profiles.platform_user_id` (enlla? previst amb usuaris de la plataforma) | Coincideix amb ADR-010 | `AGILITYHUB_ADMIN`; `venue_admin` = ADMIN del club quan el venue ?s un club, o **venue sense club** (sales de competici?) ? entitat `Venue` pr?pia (?14.2); `judge`/`designer` i esdeveniments amb jutges ? **R2** (S07/S19) |
+| Feature flags `NEXT_PUBLIC_ENABLE_AR_BUILD_SESSIONS`, `?MANUFACTURER_PROFILES`, `?QUEST_PLACEHOLDER`; export amb `assetProfile generic-fci`, temes (`course_themes`), producer `agilityhub-web-planner@phase8`; sessions amb `join_token/join_code` i participants; estat per obstacle `not_placed ? placed ? ?` escrit per l'AR | **L'AR ja t? direcci?: Unity (AR Foundation) amb marcadors AprilTag; VR = Quest** (S20 s'actualitza) | El core mant? aquests contractes |
+| Fixtures Smarter reals: `route-validation-artifacts/*.txt` (4 fitxers verificats, ?parse with zero warnings?) + skill `smarter-verify-course-txt` | Resol ?13 ?Verificacions? 3 | Fixtures per als tests T-16-01 |
+
+### 14.2 Model del core alineat amb el planner (substitueix ?3 on discrepi)
+
+| Entitat core | Origen al planner | Camps (noms del core en camelCase; a la BBDD del core es conserven els valors) |
+|---|---|---|
+| **`Venue`** (nova, `courses`) | `venues`, `venue_members` | `slug, name, country, city, address, surface, indoorOutdoor, contactEmail, publicNotes, privateNotes, visibility (public_preview?), partnerStatus, partnerSince/Until, defaultPaperSize, clubId?` ? **un club = un venue** (creat autom?ticament amb el club, `clubId`); els venues sense club (sales) queden per a R2 |
+| **`Ring`** (S05) + geometria | `rings` (`venue_id, name, length_m, width_m, border_clearance_m, surface`), `ring_doors` (`label, side, start_m, end_m, flow in?out?both, clearance_m, polygon_points_m, is_active, notes`), `ring_no_go_zones` (`label, polygon_points_m, warning_margin_m`), `ring_markers` (`label A?F, marker_uid, role, x_m, y_m, z_m, rotation_y_deg, physical_width_m, physical_height_m, is_fixed, is_active, april_tag_id, notes`), `ring_obstacle_inventory` (`obstacle_type, quantity`) | `Ring.geometry = {lengthM, widthM, borderClearanceM, doors[], noGoZones[], markers[]}` + `Ring.obstacleInventory[]`; les pistes del C?nic s?n rings del venue del club |
+| **`Course`** | `courses` (`source_file_id, owner_id, title, title_raw, source smarter-agility, source_version, units m?ft, design_length_m, design_width_m, canvas_width, canvas_height, origin, metadata, course_grade, course_type, theme_id, normalized_json`), `course_source_files` (bucket), `course_obstacles`, `course_numbers`, `course_no_go_zones`, `course_themes`, `course_collaborators` | `Course` conserva `normalizedJson` (= `CourseData`) i els camps promoguts; afegim `ownerType/visibility/clubId` (?3) i `sizeCategory GRAND ? GARDEN` (Learn); `course_collaborators` ? R2 |
+| **`Placement`** | `course_placements` (`course_id, venue_id, ring_id, owner_id, name, display_name, placement_mode, offset_x_m, offset_y_m, rotation_deg, flip_x_bool, flip_y_bool, warning_threshold_m, warnings_json, status ready_to_build?, scheduled_at, event_id, course_type Jumping?Agility, grades[], sizes[] (XS/S/M/I/L/ALL), is_training, mode event?training?free-floating`) | `Placement.transform` de ?3 = `{offsetXM, offsetYM, rotationDeg, flipX, flipY}`; `resolvedObstacles` es calcula amb `course-core` (no cal persistir-lo si l'export ho fa) ? decisi?: **es persisteix** per a l'AR/consultes (?13) |
+| **`BuildSession`** | `build_sessions` (`placement_id, judge_id, status not_started?in_progress??, selected_strategy equipment_type, last_known_marker_id, started_at, completed_at, local_cache_version, progress_json, join_token, join_code, join_token_rotated_at`), `build_session_participants`, `build_obstacle_status` (`course_obstacle_id, status not_placed?placed??, updated_by, last_updated_client_session_id`) | S16 R-16-11 adopta `joinCode/joinToken` (unir-se des d'un altre m?bil), `selectedStrategy`, `lastKnownMarkerId`; Realtime ? SSE del core |
+| **Calibratge** | `calibration_logs` (mesures per marcador, `gradeCalibration` amb llindars en cm) | `POST /rings/{id}/calibrations` (nou) ? el resultat es guarda i es mostra a D16 |
+| **Esdeveniments** | `events` (`venue_id, name, start_date, end_date, status draft?, notes`), `event_rings`, `event_judges` (rols), `event_attachments` (bucket `event-docs`), invitacions per correu | **R2**: mapatge amb `Activity` (S07) + jutges convidats (`Account` extern al club) |
+| Auditoria / importacions | `audit_logs`, `import_logs` | `AuditEntry` (S14) + `CourseImported{warnings}` |
+
+### 14.3 Format Smarter (verificat amb els fixtures)
+
+Fitxer `.txt` = una l?nia de text (?Copy the text below and paste it in the Smarter Agility import form?) + `+++++++SAD` + **JSON en base64** (`export_version`, `layout_version`, `settings.version = 10.1.2`). Cap?alera: `course_type` (Agility), `organization` (fci), `units` (M/FT), `length`, `width` (metres), `spacing`, `origin` (LT), `canvasWidth/Height`, `title`, `designer`, `grade`, `category`, `date`. `settings` (JSON dins del JSON): `obstacles` per **codi de tipus** (`jb` salt, `dw` passarel?la, `af` A-frame, `t5s` t?nel amb `cps` (punts de control), ?) ? per n?mero: `x, y` (p?xels de canvas), `angle` (graus), `custom`; `numbers` (etiquetes amb posici? i `cp1d/cp1a/cp2d/cp2a` per als camins), `lines`, `logos`, `config.paths`, `discipline` (AG), `course_type` (A_A). La conversi? p?xel ? metre usa `length/width` i `canvasWidth/Height`. **Tot aix? ja ho fa `parseSmarterTxt`**: R-16-02 passa d'hip?tesi a fet; els fixtures `wald_*`, `burning_dogs_*`, `jg3_*`, `switz-*` s?n els casos de T-16-01.
+
+### 14.4 Regles de col?locaci? i avisos (verificat)
+
+`runWarnings(course, ring, placement, {thresholdMeters})` amb regles identificades per `ruleId` (`door-clearance`, `obstacle-inventory` amb `obstacle-inventory:not-configured`, no-go, marges?) i severitats `critical ? warning ? info`; `warning_threshold_m` es guarda a la col?locaci?; `PlacementControls` fa `NUDGE / ROTATE / FLIP_X / FLIP_Y / CENTER / RESET`; `centerCourseInRing` col?loca per defecte. Els codis de ?4 R-16-05 (`OUT_OF_BOUNDS`, `MARGIN_TOO_SMALL`?) es **substitueixen pels `ruleId` reals** del motor en copiar el package.
+
+### 14.5 Via de port (substitueix WP-16-0/A/B/E de ?12)
+
+1. **WP-16-A?** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests (**fet a E0-W08**, web, 24-09). La publicaci? del JSON Schema de `CourseData`/`BuildSessionExportV1` (zod ? JSON Schema) per a la validaci? al core se'n separa: ?s precondici? de WP-16-C? i ser? la primera tasca web quan s'obri S16 (**E9-W01**: draft-07 amb zod-to-json-schema; la versi? va al nom del fitxer i a `$id`, perqu? `CourseData` no t? cap camp de versi? i afegir-n'hi un trencaria `BuildSessionExportV1`, A9; decisi? E84).
+2. **WP-16-C?** Back `courses`: col?leccions segons ?14.2; endpoints modelats sobre els m?todes de `PlannerStore` (`listVenues, listRings, uploadCourse, savePlacement, createBuildSession, listCalendarPlacements, createMarker/updateMarker, listMarkers, createCalibrationLog, upsertBuildObstacleStatus, subscribeBuildObstacleStatuses ? SSE, listAuditLogs?`) + `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) + `POST /rings/{id}/calibrations`.
+3. **WP-16-B?** `packages/course-ui`: moure `PlannerCanvas`, `Planner3D`, `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `PaperSizeToggle`, `UnitsToggle` (s?n React + Tailwind sense Next); `CoreApiStore implements PlannerStore` a `packages/api-client`.
+4. **WP-16-E?** `apps/clubs-admin`: p?gines del wizard (`/recorreguts/nou` = `plan/*`), biblioteca (D18 = `courses` + calendari), geometria de D16 (`venue/[id]/markers` + `RingDoorEditor` + inventari), sessions (`build-sessions/[id]` i `/live`), impressi? de marcadors (`markers/print`). Next App Router ? React Router: substituir `next/navigation`, `next/link`, `NextResponse` i `supabase-server` pels equivalents.
+5. **WP-16-F?** `apps/clubs`: visor + ?Registra qu? hi ha muntat? (nou, no existia al planner) + sessi? de muntatge m?bil (reutilitza `/live`).
+6. **WP-16-G?** Retirada del planner. No hi ha importaci? de Supabase: nom?s t? dades de prova (Jordi 30-09, A6).
+
+### 14.6 Verificacions pendents (necessiten l'arrel del monorepo)
+
+1. ~~`course-core` i `shared-types`: depend?ncies (nom?s `zod`?), llic?ncia, cobertura de tests, exist?ncia de JSON Schema exportable.~~ **Resolt 24-09 (E0-W08):**
+   - depend?ncies: `course-core` nom?s `zod` (3.25.76), i `shared-types` `zod` + `course-core`;
+   - llic?ncia: cap llic?ncia de paquet, i l'?nic av?s de tercers ?s el BSD-2 d'AprilTag (`LICENSE-apriltag`);
+   - cobertura: 17 fitxers i 317 tests d'origen + 21 de `shared-types`;
+   - JSON Schema: encara no n'hi ha cap d'exportable (cal `zod-to-json-schema`); vegeu WP-16-A? a ?14.5.
+
+   L'origen ?s el commit `65126cf` del 21-09-2026. La p?gina de marcadors imprimible (`marker-svg.ts`) porta colors literals de la impressi?, amb una excepci? aprovada a la regla de colors: WP-16-E? decideix si la cap?alera i el peu prenen els colors del *branding* del club.
+2. Apps Unity/Quest del monorepo: estat real, versi? d'AR Foundation, com llegeixen `BuildSessionExportV1` (`StreamingAssets/`), autenticaci? actual (Supabase?) ? S20.
+3. ~~Dades reals a Supabase (venues, rings, courses, usuaris amb `profiles`) ? WP-16-G? i importaci? de comptes a S01 si hi ha usuaris reals.~~ **Resolt 30-09 (Jordi, A6):** nom?s s?n dades de prova; no s'importa res.
+4. `packages/ui` (design system del planner) vs `packages/ui` del core: fusi? o coexist?ncia.
+
+**Propostes noves**: entitat `Venue` (+ `venue_members` ? membresies/rols de plataforma), `Course.sizeCategory`, `Ring.geometry.markers[].aprilTagId/physicalWidthM/physicalHeightM/zM/rotationYDeg/role/isFixed`, `Placement.mode/scheduledAt/grades/sizes/displayName`, `BuildSession.joinCode/joinToken/selectedStrategy/lastKnownMarkerId`, `CalibrationLog`, endpoints `GET /build-sessions/{id}/export`, `POST /rings/{id}/calibrations`, `POST /build-sessions/join {code}`; par?metre `courses.defaultWarningThresholdM` (substitueix `placementMarginMeters`, 1.5).
+
+## Canvis
+
+- 03-09-2026 ? v0.1 ? esborrany inicial a partir d'ADR-013, PLATAFORMA ?5, IDEA-02 i les specs S05/S06/S07/S09/S15. Pendent de la revisi? del codi del web-planner (WP-16-0) ? v0.2.
+- 05-09-2026 ? v0.2 ? ?14: verificaci? del web-planner (course-core i shared-types reals, esquema Supabase, `PlannerStore`, Unity export, AprilTag, calibratge, fixtures Smarter). El model de ?3 i els paquets de ?12 queden substitu?ts pel ?14 on discrepin; pendent muntar l'arrel del monorepo per a ?14.6.
+- 24-09-2026 ? verificaci? d'E0-W08 (web): WP-16-A? fet (c?pia de `course-core` i `shared-types` des de `65126cf`). La publicaci? del JSON Schema se'n separa com a precondici? de WP-16-C?. ?14.6-1 resolt.
+- 30-09-2026 ? preparaci? d'E9 (decisi? E77): R-16-05 amb els `ruleId` de `course-core` i la pol?tica dels avisos `critical`; ?9, `courses.defaultWarningThresholdM` i `courses.buildSessionMaxHours` (E9-T01 aplica el cat?leg amb el codi); ?13, dubtes resolts.
+- 30-09-2026 ? A6 tancada (Jordi): el Supabase del web-planner nom?s t? dades de prova; WP-16-G? queda sense importaci? (?12, ?14.5, ?14.6-3).
+- 01-10-2026 ? preparaci? d'E9-W01 (decisi? E84): ?3 (`model?`), T-16-03 i ?14.5 WP-16-A?, els esquemes JSON versionats pel nom del fitxer i `$id`, i el `Course` en desa `schemaVersion`.
+- 16-10-2026 ? E9-T03 (decisi? E115): el full de marcadors QR el genera el client (A8b); `GET /rings/{id}/marker-sheet` surt de ?6 i de D16.
+- 16-10-2026 ? E9-T06 (decisi? E118, c?pia de l'api; E109): R-16-11 diu que el `finish` no dep?n de `courses.allowInstructorPublish` (el registre del muntatge s?), que un muntatge refrescat conserva `expectedUntil`, que l'exportaci? exigeix sis marcadors actius (nova regla `TOO_MANY_MARKERS` als `violations` de `GEOMETRY_INVALID`), i el final dels fluxos SSE (sessi? caducada, token caducat).
+- 16-10-2026 ? verificacions d'E9-T05 i E9-W03 (decisions E119 i E120; organitzador): D16 t? sis marcadors per defecte (A?F, els de l'exportaci? per a l'AR) i el full de marcadors porta els marcadors AprilTag; T-16-19: el `GET` del full de muntatge en retorna els bytes (`200 application/pdf`).
+"
+not to contain:
+  "409 BUILD_SESSION_FINISHED"
+
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_10_theSpecNamesTheContractsObstacleStatusesAndFinishedError(E9ResponseContractTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_T_16_16_theStaffSetupNamesItsBuilderAndTheMemberSetupCarriesItsPlacement -- Time elapsed: 0.006 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting ListN:
+  ["id",
+    "ringId",
+    "kind",
+    "placementId",
+    "courseId",
+    "imageFileKey",
+    "imageUrl",
+    "agilityhubLevel",
+    "levelIds",
+    "builtAt",
+    "builtByAccountId",
+    "expectedUntil",
+    "expiresAt",
+    "status",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "notes",
+    "createdAt"]
+to contain:
+  ["builtByAccountId", "builtByName"]
+but could not find the following element(s):
+  ["builtByName"]
+
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_09_T_16_16_theStaffSetupNamesItsBuilderAndTheMemberSetupCarriesItsPlacement(E9ResponseContractTest.java:250)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E9ResponseContractTest.T_16_09_T_16_16_theStaffSetupNamesItsBuilderAndTheMemberSetupCarriesItsPlacement:250 
+Expecting ListN:
+  ["id",
+    "ringId",
+    "kind",
+    "placementId",
+    "courseId",
+    "imageFileKey",
+    "imageUrl",
+    "agilityhubLevel",
+    "levelIds",
+    "builtAt",
+    "builtByAccountId",
+    "expectedUntil",
+    "expiresAt",
+    "status",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "notes",
+    "createdAt"]
+to contain:
+  ["builtByAccountId", "builtByName"]
+but could not find the following element(s):
+  ["builtByName"]
+
+[ERROR]   E9ResponseContractTest.T_16_09_formsRoundTripEveryFieldAndNullAndMemberProjectionHasNoStaffFields:83 
+Expecting actual:
+  ["agilityhubLevel",
+    "builtAt",
+    "builtByAccountId",
+    "courseId",
+    "createdAt",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "expectedUntil",
+    "expiresAt",
+    "id",
+    "imageFileKey",
+    "imageUrl",
+    "kind",
+    "levelIds",
+    "notes",
+    "placementId",
+    "ringId",
+    "status",
+    "view"]
+to contain exactly in any order:
+  ["id",
+    "ringId",
+    "kind",
+    "placementId",
+    "courseId",
+    "imageFileKey",
+    "imageUrl",
+    "agilityhubLevel",
+    "levelIds",
+    "builtAt",
+    "builtByAccountId",
+    "builtByName",
+    "expectedUntil",
+    "expiresAt",
+    "status",
+    "dismantledAt",
+    "dismantledByAccountId",
+    "notes",
+    "createdAt",
+    "view"]
+but could not find the following elements:
+  ["builtByName"]
+
+[ERROR]   E9ResponseContractTest.T_16_10_theSpecNamesTheContractsObstacleStatusesAndFinishedError:268 
+Expecting actual:
+  "# S16 ? Recorreguts, rings i muntatge
+
+**Etapa:** E9 (fil independent: la recuperaci? de `course-core` pot comen?ar a E0; la integraci? amb 08/10/23/D12 quan S06/S09 existeixin) ? **M?duls:** `COURSES` (tot el vertical), `FREE_TRAINING` (recorregut muntat a 08), `ACTIVITIES` (col?locacions d'una activitat), `LEARN_LINK`/R2 (challenges) ? **Pantalles:** **D18 ?Biblioteca de recorreguts?** (nova, sense mockup), D16 bloc ?Geometria? (nou), **visor m?bil** + **?Registra qu? hi ha muntat?** (instructor) + **sessi? de muntatge** (noves), integracions a 08 (S09), 10/23 (S06), 07 (S08), D12 (S10), D7 (S07), D3/D4 (S06 `placementId`) ? **Model:** PLATAFORMA ?0 i **?5** (COURSE, geometria del RING, PLACEMENT, RING_SETUP, BUILD_SESSION, OBSTACLE_INVENTORY, CHALLENGE/ATTEMPT reservats) ? ADR-013 ? **Estat:** esborrany (03-09-2026) ? **Versi?:** 0.2 (05-09: verificaci? del web-planner, ?14 ? mana sobre ?3/?4/?12 on discrepin)
+
+## 1. Prop?sit i abast
+
+Resol la **vertical de pistes**: que el club tingui una **biblioteca de recorreguts** (propis, importats de Smarter, dibuixats a l'editor, fotografiats o copiats de la biblioteca p?blica d'AgilityHub), que cada **pista** pugui tenir **geometria de ring** (mides, portes, zones no-go, marcadors de calibratge), que un recorregut es pugui **col?locar** en un ring amb avisos autom?tics, que l'instructor **registri en 30 segons qu? hi ha muntat** a cada pista (IDEA-02) i que l'alumne ho vegi abans de reservar un entrenament i als quadres, amb **full de muntatge** imprimible i **sessi? de muntatge** en directe des del m?bil. ?s la base de dades i d'API que despr?s consumiran els **challenges** de Learn (R2) i l'**app AR/VR** (R3) sense cap dada nova. Decisi? t?cnica (ADR-013): `course-core` (TS pur) i `course-ui` (React/three) es recuperen del web-planner com a packages; el core API persisteix el model com a JSON versionat.
+
+| Fora d'abast | On viu |
+|---|---|
+| Reserva d'entrenaments i pantalla 08 (aqu?: el bloc ?recorregut muntat? que hi apareix) | S09 |
+| Quadres 10/23, calendari, `ClassSession.placementId` (aqu?: qu? hi aporta) | S06 |
+| Activitats (aqu?: `Placement.activityId`) | S07 |
+| Caducitat autom?tica dels muntatges (P5f) | S15 |
+| Challenges: regles, v?deo, validaci?, intents | S19 (R2) ? aqu? nom?s la forma de l'API |
+| App AR/VR | S20 (R3) ? aqu? els requisits que ha de complir aquesta API |
+| Manteniment de pistes (nom, color, reservable) | S05 (aqu?: el bloc ?Geometria? de D16) |
+
+## 2. Pantalles i rutes
+
+Totes les pantalles noves es dissenyen amb el design system (`packages/ui`) seguint D16/D7 com a refer?ncia d'estil; Josep les valida a staging.
+
+| Pantalla | App | Ruta | Rol | Comportament |
+|---|---|---|---|---|
+| **D18 Biblioteca** | clubs-admin | `/recorreguts` | ADMIN ? INSTRUCTOR | Llistat universal (CONVENCIONS ?4) amb miniatura, nom, disciplina, nivell, autor, font, pistes on ?s muntat, dates; xips ?Del club? ? ?AgilityHub? (`PUBLIC`) ? ?Meus? (`ACCOUNT`); accions: **[Nou recorregut]** (men?: ?Importa un fitxer Smarter (.txt)?, ?Dibuixa'l? (editor), ?Puja un pl?nol o foto?, ?Copia d'AgilityHub?) ? fila ? detall: visor 2D (`CourseViewer2D`), pestanya 3D (`CourseViewer3D`, c?rrega diferida), metadades editables, ?Col?loca en una pista? ? **editor de col?locaci?** (`PlacementEditor`: tria de ring amb geometria, arrossega/gira/mirall, avisos en viu, [DESA LA COL?LOCACI?]), ?Full de muntatge? (PDF), ?Registra-ho com a muntat? (? `RingSetup`), ?Duplica?, ?Comparteix amb el club? (visibilitat), ?Elimina? (soft). Estats buit (?Encara no hi ha cap recorregut. Importa'n un de Smarter o dibuixa'n un.?), carregant, error. |
+| D16 bloc ?Geometria? | clubs-admin | `/pistes/:id` | ADMIN | Targeta ?Geometria del ring? (`RingGeometryEditor`): amplada ? llargada (m), orientaci? (graus respecte al nord), portes (posici? al per?metre, amplada, flux entrada/sortida/ambd?s), zones no-go (pol?gons dibuixats), marcadors de calibratge (6 per defecte, A?F, els que l'exportaci? per a l'AR necessita; arrossegables), superf?cie, notes; [DESA] ? `PUT /rings/{id}/geometry`; [Full de marcadors] ? PDF amb els marcadors AprilTag (36h11), generat al client (`MarkerSheet` de `course-ui`, A8b; E115, E119). Sense geometria: text ?Aquesta pista no t? geometria: nom?s s'hi poden registrar muntatges amb foto o pl?nol.? |
+| **Visor m?bil** | clubs | `/recorreguts/:setupId` ? `/recorreguts/muntat/:ringId` | MEMBER ? INSTRUCTOR | Des de 08 (xip de pista), 10/23 (cel?la), 07 (detall de reserva) o D12: nom/tipus/nivell del muntatge, ?muntat {fa 2 dies} per {instructor}? (l'autor nom?s per a instructors), ?previst fins {data}?, imatge/pl?nol o visor 2D del recorregut col?locat (zoom i gir), numeraci?; per a instructors: [Marca com a desmuntat] i [Sessi? de muntatge]. |
+| **Registra qu? hi ha muntat** | clubs | `/instructor/pistes/:ringId/muntat` | INSTRUCTOR ? ADMIN | Formulari de 30 segons: pista (preseleccionada), ?Qu? hi ha muntat?? (`kind`: Agility ? Jumping ? Fun ? Treball d'obstacle ? Buida), font: ?Un recorregut de la biblioteca? (cerca) / ?Foto o pl?nol? (c?mera/galeria ? S3) / ?Cap? (nom?s tipus), nivell orientatiu (nivells del club o escala AgilityHub), ?Fins quan?? (per defecte `builtAt + courses.setupAutoExpireDays`), nota; [REGISTRA] ? `POST /ring-setups`. Si hi ha un muntatge actiu: ?Substituir? el muntatge actual ({tipus}, de {dia})?. Acc?s des de 20/23/24 (icona de con a la cap?alera de pista, assumpci? ?13). |
+| **Sessi? de muntatge** | clubs | `/instructor/muntatge/:sessionId` | INSTRUCTOR ? ADMIN | Llista d'obstacles numerats amb estat (pendent ? col?locat ? verificat) i posici?/orientaci? (m i graus des dels marcadors); toc = seg?ent estat; mode ?en directe? (SSE) perqu? dos m?bils vegin el mateix; [FINALITZA] ? crea/actualitza el `RingSetup`; [Full de muntatge] (PDF). |
+| Integracions | clubs / clubs-admin | 08, 10, 23, 07, D12, D7, D3/D4 | segons pantalla | 08: `rings[].setup` (S09 R-09-15) pinta ?Jumping ? nivell C?D ? muntat ahir? sota la xip de la pista ? visor. 10/23: icona de recorregut a la cap?alera de la columna (S06 ?2) ? visor. 07: l?nia ?A la pista hi ha muntat: ?? si la classe t? `placementId` o la pista un muntatge actiu. D12: icona a la cap?alera de pista. D7: ?Col?locacions? de l'activitat (llista + [Afegeix]). D3/D4: selector opcional ?Recorregut previst? a la classe (`placementId`). Tot condicionat a `courses.showSetupToMembers` per a MEMBER. |
+
+## 3. Entitats i camps
+
+### `Course` (`courses`) ? `ownerType = CLUB` (amb `clubId`) ? `AGILITYHUB` (global, `GlobalRepository`) ? `ACCOUNT` (global amb `ownerAccountId`)
+| Camp | Tipus | Obl. | Validaci? / notes |
+|---|---|---|---|
+| `ownerType`, `clubId?`, `ownerAccountId?` | | s? | segons propietari |
+| `visibility` | enum | s? | `PRIVATE` (nom?s l'autor) ? `CLUB` (instructors/admins del club) ? `PUBLIC` (tots els clubs; nom?s `AGILITYHUB` o `ACCOUNT` que ho publica) |
+| `name` | LocalizedText | s? | fallback `defaultLocale` |
+| `discipline` | enum | s? | `AGILITY ? JUMPING ? OTHER` |
+| `designerName`, `designedOn?`, `eventName?` | string, date | no | |
+| `agilityhubLevel?`, `levelIds[]` (club) | | no | nivell orientatiu |
+| `tags[]`, `notes` | | no | |
+| `source` | enum | s? | `SMARTER ? EDITOR ? IMAGE ? AGILITYHUB_COPY` (`sourceCourseId`) |
+| `sourceFileKey?`, `imageFileKey?`, `thumbnailFileKey?` | S3 | | miniatura generada al client (SVG ? PNG) en desar |
+| `model?` | JSON `CourseModel` | s? llevat de `IMAGE` | validat amb el **JSON Schema publicat per `course-core`** (`course-data.v{n}.schema.json`; el `Course` en desa `schemaVersion`, 1 a R1, perqu? `CourseData` no porta cap camp de versi?; decisi? E84); mida ? 256 KB |
+| `stats` | `{obstacleCount, pathLengthM, bbox {w, h}}` | calculat | del model, per a llistats i filtres |
+| `version`, `history[]` (10 darreres versions del `model`) | | | edici? in-place (assumpci? ?13) |
+| `createdAt`, `createdByAccountId`, `updatedAt`, `deletedAt?` | | | soft delete |
+
+### `CourseModel` (contracte de `course-core`, `schemaVersion = 1`) ? **hip?tesi a verificar**
+`{ schemaVersion, units: "m", origin: "bottom-left", size: {w, h}, obstacles: [{ id, type: JUMP ? DOUBLE ? TRIPLE ? WALL ? TYRE ? TUNNEL ? AFRAME ? DOGWALK ? SEESAW ? WEAVES ? TABLE ? LONG_JUMP ? START ? FINISH ? OTHER, x, y, rotationDeg, length?, width?, numbers: [n?], props: {} }], sequence: [{ obstacleId, direction: FORWARD ? BACKWARD }], meta: { designer, event, class, level, smarter: { version, rawHeader } } }`. Coordenades en metres amb origen a la cantonada inferior esquerra del recorregut; `numbers` admet m?s d'un n?mero (obstacles que es fan dues vegades).
+
+### `Ring.geometry` (embegut a `Ring`, S05)
+`{ width, length, orientationDeg, origin: {x: 0, y: 0}, gates: [{id, side: N?S?E?W, offsetM, widthM, flow: IN ? OUT ? BOTH}], noGoZones: [{id, polygon: [{x, y}?], label}], calibrationMarkers: [{id, x, y, qrPayload: "agh:ring:{ringId}:{markerId}"}], surface: GRASS ? SAND ? ARTIFICIAL ? INDOOR ? OTHER, notes, version, updatedAt }` ? `width/length` 10?60 m; ? 3 marcadors no col?lineals per a l'AR.
+
+### `Placement` (`placements`)
+`courseId`, `courseVersion`, `ringId`, `transform {dx, dy, rotationDeg, mirror}`, `resolvedObstacles[] {obstacleId, type, x, y, rotationDeg, numbers[]}` (coordenades absolutes del ring, **el que consumeix l'AR**), `warnings[] {code, severity: WARN ? BLOCK, obstacleId?, details}`, `activityId?`, `classSessionIds[]` (lectura), `name?`, `createdByAccountId`, `createdAt`, `updatedAt`, `version`.
+
+### `RingSetup` (`ring_setups`) ? ?recorregut muntat?
+`ringId`, `kind` (`AGILITY ? JUMPING ? FUN ? OBSTACLE_DRILL ? EMPTY`), `placementId?` **o** `courseId?` (recorregut sense col?locaci?) **o** `imageFileKey?` (foto/pl?nol) ? almenys un llevat de `EMPTY`, `agilityhubLevel?`, `levelIds[]`, `builtAt`, `builtByAccountId`, `expectedUntil?`, `expiresAt` (= `builtAt + courses.setupAutoExpireDays`, o `expectedUntil` si ?s abans), `status` (`ACTIVE ? EXPIRED ? DISMANTLED`), `dismantledAt?`, `dismantledByAccountId?`, `notes`, `createdAt`.
+
+### `BuildSession` (`build_sessions`)
+`placementId`, `ringId`, `startedByAccountId`, `startedAt`, `finishedAt?`, `live` (bool), `obstacles[] {obstacleId, status: PENDING ? PLACED ? VERIFIED, byAccountId?, at?}`, `participants[] {accountId, joinedAt}`, `buildSheetFileKey?`, `version`.
+
+### `ObstacleInventory` (`obstacle_inventories`)
+`scope` (`CLUB` ? `RING` + `ringId`), `items[] {type, count, notes}`, `updatedAt`. L'inventari efectiu d'un ring = `RING` si existeix, si no `CLUB`.
+
+### Reservats (R2): `Challenge` (global), `ChallengeAttempt` (`clubId`) ? vegeu ?6 (contracte).
+
+## 4. Regles de negoci
+
+| Regla | Enunciat | Par?metres | Exemple |
+|---|---|---|---|
+| **R-16-01 `course-core` com a ?nica veritat geom?trica** | Tot c?lcul (parser Smarter, bounding box, longitud, col?locaci? i avisos) viu a `packages/course-core` i s'executa **al client** (browser) i, per a validacions, al servidor **nom?s** com a validaci? d'esquema JSON (el back no reimplementa geometria a Java). El servidor guarda `model` + `resolvedObstacles` + `warnings` tal com els envia el client i **recalcula** avisos nom?s marcant `stale = true` quan la geometria del ring canvia (R-16-06); el client els regenera en obrir. `course-core` publica `course-data.v1.schema.json` i `build-session-export.v1.schema.json` (JSON Schema draft-07, decisi? E84; organitzador 01-10, pregunta d'E9-W01), que el core valida amb una llibreria est?ndard. | ? | Importaci? d'un `.txt`: el navegador parseja, mostra la vista pr?via i envia la `CourseData`. |
+| **R-16-02 Importaci? Smarter** | `parseSmarter(text) ? {model} | {errors[]}`: format hipot?tic (?13): cap?alera amb versi?/autor/mides + una l?nia per obstacle (tipus, x, y, rotaci?, n?meros). Obstacles desconeguts ? `type OTHER` + av?s `UNKNOWN_OBSTACLE`; unitats en peus ? conversi? a metres; fitxer sense mides ? `size` = bbox + 2 m de marge. El `.txt` original es desa a S3 (`sourceFileKey`) per reprocessar quan el parser millori. Mida m?xima 512 KB. | `files.*` | ?Course 12 obstacles, 20?40 m? ? miniatura i llistat. |
+| **R-16-03 Visibilitat i propietat** | Lectura: `CLUB` ? membres amb rol INSTRUCTOR/ADMIN del club (MEMBER nom?s via `RingSetup`); `PUBLIC` ? qualsevol usuari autenticat de qualsevol club (biblioteca AgilityHub); `PRIVATE` (`ACCOUNT`) ? nom?s l'autor. Escriptura: `CLUB` ? INSTRUCTOR/ADMIN; `AGILITYHUB` ? `AGILITYHUB_ADMIN`; `ACCOUNT` ? l'autor. `POST /courses/{id}/copy-to-club` copia un `PUBLIC` com a `CLUB` amb `source = AGILITYHUB_COPY` i `sourceCourseId` (les millores p?bliques no es propaguen; el club pot tornar a copiar). Un club **mai** pot llegir un `CLUB` d'un altre club (`404`). | ? | C?nic copia ?AH ? Foundations 07? ? recorregut propi editable. |
+| **R-16-04 Geometria del ring** | `PUT /rings/{id}/geometry` (ADMIN): `width/length ? [10, 60]`, portes dins del per?metre, pol?gons no-go simples i dins del ring, ? 3 marcadors no col?lineals (`422 GEOMETRY_INVALID{details}`). Desar incrementa `geometry.version`, emet `RingGeometryChanged` i marca `stale` les col?locacions del ring (R-16-06). Esborrar la geometria nom?s si no hi ha `Placement` ni `RingSetup` `ACTIVE` amb col?locaci? (`409 RING_GEOMETRY_IN_USE`). | ? | Muntanya 22 ? 40 m, porta N a 3 m (2 m d'ample, entrada), no-go ?bassa? 3 ? 3, 4 marcadors. |
+| **R-16-05 Col?locaci? i avisos** | `course-core` calcula al client `resolvedObstacles` (rotaci? + translaci? + mirall; es desen, A8c) i els avisos de `runWarnings(course, ring, placement, {thresholdMeters})`, identificats pel seu `ruleId` (`door-clearance`, `obstacle-inventory`, `obstacle-inventory:not-configured`, zones no-go, marges?) amb severitat `critical ? warning ? info` (?14.4). Hi ha un sol motor: el core no recalcula la geometria. Desa els avisos que rep (`warningsJson`) i n'aplica la pol?tica: amb algun `critical`, `POST /placements` demana `force = true` i rol ADMIN (si no, `422 PLACEMENT_BLOCKED{warnings}`) i registra `COURSE_FORCED_PLACEMENT`; els `warning` i `info` es desen. El llindar ?s el `warningThresholdM` de la col?locaci?, per defecte `courses.defaultWarningThresholdM`; la dist?ncia a cada porta ?s la `clearanceM` de la porta, i el marge al per?metre, el `borderClearanceM` del ring (organitzador 30-09, E77). | `courses.defaultWarningThresholdM = 1.5` | Salt 4 a 0,8 m de la tanca amb `borderClearanceM = 1` ? un av?s de marge (`warning`); t?nel dins la bassa ? un av?s `critical` de zona no-go. *C?lcul:* obstacle (12, 3) amb `dx = 2, dy = 1, rotaci? 0` ? (14, 4). |
+| **R-16-06 Canvi de geometria amb col?locacions** | `RingGeometryChanged` ? totes les `Placement` del ring: `stale = true` (les `resolvedObstacles` es conserven); el seg?ent `GET` retorna `stale` i el client recalcula i fa `PUT` (`PlacementUpdated`). Un `RingSetup` `ACTIVE` sobre una col?locaci? `stale` mostra ?Geometria canviada: revisa la col?locaci?? a instructors. | ? | ? |
+| **R-16-07 Un muntatge actiu per pista** | `POST /ring-setups` (INSTRUCTOR si `courses.allowInstructorPublish`, ADMIN sempre): si la pista t? un `ACTIVE`, aquest passa a `DISMANTLED{replaced}` en la mateixa transacci?; `Ring.activeSetupId` apunta al nou; `expiresAt = min(expectedUntil, builtAt + courses.setupAutoExpireDays)`; `kind = EMPTY` deixa la pista ?buida? (setup actiu de tipus `EMPTY`, ?til per dir ?ja no hi ha res?); `RingSetupChanged{ringId, setupId, status: ACTIVE, replacedSetupId?}`. Un `placementId` d'un altre ring ? `422 PLACEMENT_RING_MISMATCH`. Sense geometria: `placementId` prohibit (`422 RING_WITHOUT_GEOMETRY`), `courseId`/imatge permesos. | `courses.setupAutoExpireDays = 7`, `courses.allowInstructorPublish = true` | Estel registra ?Jumping ? C?D ? foto? a Carretera el dl 5-10 ? caduca el 12-10 si ning? no el renova. |
+| **R-16-08 Caducitat, desmuntatge i renovaci?** | S15 P5f: `ACTIVE` amb `expiresAt ? now` ? `EXPIRED`, `Ring.activeSetupId = null`, `RingSetupChanged{EXPIRED}`. `POST /ring-setups/{id}/dismantle` ? `DISMANTLED` (idem). `POST /ring-setups/{id}/renewal {expectedUntil?}` sobre `ACTIVE` ? `expiresAt` nou (renovar ?s m?s r?pid que re-registrar). Els muntatges caducats/desmuntats queden a l'**historial per pista** (`GET /rings/{id}/setups`). | `courses.setupAutoExpireDays` | Dl 12-10 06:00 ? `EXPIRED`; l'instructor, en veure-ho, ?Renova? perqu? encara hi ?s. |
+| **R-16-09 Qu? veu l'alumne** | Amb `COURSES` i `courses.showSetupToMembers`: `GET /me/ring-setups` ? per pista reservable (i per a les de les seves classes): `{ringId, setup?: {id, kind, levelLabel, builtAgo, expectedUntil, thumbnailUrl, hasViewer}}` **sense** `builtBy`, notes ni inventari. Rings sense muntatge ? `setup = null` (?Sense recorregut registrat?). El visor 2D per a MEMBER mostra numeraci? i obstacles, no l'editor. Instructors/admins veuen tot. | `courses.showSetupToMembers = true` | Laura, abans de reservar Muntanya: ?Agility ? nivell D ? muntat fa 2 dies?. |
+| **R-16-10 Full de muntatge** | `GET /placements/{id}/build-sheet` ? PDF (client `BuildSheet` renderitzat al servidor via el motor d'S14 o generat al client i pujat ? decisi?: **client** genera el PDF amb `course-ui` i el desa a S3 via `POST /placements/{id}/build-sheet`; el servidor nom?s emmagatzema; assumpci? ?13): pl?nol amb numeraci?, taula d'obstacles amb posici? (x, y) i orientaci? respecte als **marcadors** (dist?ncies a 2 marcadors per obstacle ? el que un muntador mesura amb cinta), inventari necessari, portes, notes. | ? | ? |
+| **R-16-11 Sessi? de muntatge** | `POST /build-sessions {placementId, live}` (INSTRUCTOR/ADMIN) ? `obstacles[]` `PENDING`; `PATCH /build-sessions/{id}/obstacles/{obstacleId} {status}` amb `version` (concurr?ncia: last-write-wins per obstacle, `409 STALE_VERSION` nom?s a nivell de sessi? tancada); `GET /build-sessions/{id}/events` (SSE `text/event-stream`, esdeveniments `obstacle`, `finished`, heartbeat 20 s; token per query `?access_token=` acceptat nom?s per a aquest endpoint); `POST /build-sessions/{id}/finish` ? `finishedAt`, crea/actualitza el `RingSetup` (`kind` de la disciplina del recorregut) i `BuildSessionFinished`. El `finish` no dep?n de `courses.allowInstructorPublish`: qui pot escriure a la sessi? la tanca; el registre del muntatge (R-16-07) s? que en dep?n: amb l'interruptor apagat, el `finish` d'un INSTRUCTOR no registra cap muntatge (`setupId` nul a la sessi? i a `BuildSessionFinished`) i l'ADMIN el registra amb `POST /ring-setups`; un muntatge refrescat conserva el seu `expectedUntil` (com una renovaci?, R-16-08) (decisi? E118). `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) exigeix exactament sis marcadors **actius** (A?F) i nom?s exporta aquests: menys ? `422 GEOMETRY_INVALID{violations: [{path: markers, rule: TOO_FEW_MARKERS}]}`, m?s ? `rule: TOO_MANY_MARKERS`; R-16-04 mant? ?? 3? per a la geometria (decisi? E118). Una sessi? oberta > 12 h es tanca sola (S15 P9 neteja, ?13); els seus fluxos SSE reben `finished {ABANDONED}` a la consulta seg?ent, sense esperar P9. Un flux viu com a molt 30 min i mai m?s que el token d'acc?s amb qu? s'ha obert. | ? | Dos instructors munten Central: cada toc es veu a l'altre m?bil en < 2 s. |
+| **R-16-12 Inventari** | `PUT /obstacle-inventories/{scope}` (ADMIN): `items[]` amb `count ? 0`; `INVENTORY_SHORT` es calcula amb l'inventari efectiu del ring (R-16-05). Sense inventari ? cap av?s d'inventari. | ? | Club: 12 salts, 2 t?nels; recorregut amb 3 t?nels ? ?Falten 1 t?nel?. |
+| **R-16-13 Activitats i classes** | `Placement.activityId` (S07): les col?locacions d'una activitat surten a D7 i, el dia de l'activitat, com a muntatge previst (?Competici? social ? pista Central ? recorregut 1?); `ClassSession.placementId`/`TemplateClass.placementId` (S06): ?Recorregut previst? visible a instructors (20/23/D12) i, si `showSetupToMembers`, com a l?nia informativa a 07. Cap automatisme crea `RingSetup` a partir d'una classe: es registra a m? (0.3.7). | ? | ? |
+| **R-16-14 Biblioteca p?blica d'AgilityHub** | `POST /platform/courses` (`AGILITYHUB_ADMIN`) ? `ownerType AGILITYHUB`, `visibility PUBLIC`, `agilityhubLevel` obligatori; llistable des de qualsevol club amb xip ?AgilityHub?; **mai** editable pels clubs. Preparat per als challenges (R2, ?6). | ? | ? |
+| **R-16-15 M?dul i variants** | `COURSES` off: tots els endpoints `404 MODULE_DISABLED`; cap bloc a D16/D18/08/10/23/07/D12/D7; S06/S07 ometen `placementId`; S15 omet P5f. `levels.enabled = false`: `levelIds[]` buit i nom?s `agilityhubLevel`/text lliure com a nivell orientatiu. `FREE_TRAINING` off: sense integraci? a 08 (el visor segueix accessible des de 10). | ? | ? |
+| **R-16-16 Tenant, rols i fitxers** | Recorreguts `CLUB` i tot el m?dul filtrats per `clubId`; `PUBLIC` per `GlobalRepository` nom?s lectura; fitxers a S3 amb prefix `{clubId}/courses/` i URLs signades; validaci? MIME (`.txt` Smarter, imatges, PDF) i mides (`files.*`). MEMBER: nom?s `GET /me/ring-setups`, `GET /ring-setups/{id}` (si visible) i `GET /courses/{id}` d'un recorregut referenciat per un muntatge visible. | `files.maxSizeMb` | ? |
+| **R-16-17 i18n** | `Course.name` LocalizedText; tipus d'obstacle, `kind`, avisos i estats amb `enums:` (ca/es/en); unitats sempre en metres (formataci? amb `Intl`); PDF del full en l'idioma de qui el genera. | ? | ? |
+
+## 5. Estats i transicions
+
+```mermaid
+stateDiagram-v2
+  [*] --> ACTIVE : POST /ring-setups (substitueix l'ACTIVE anterior)
+  ACTIVE --> ACTIVE : renewal (expiresAt nou)
+  ACTIVE --> EXPIRED : S15 P5f (expiresAt)
+  ACTIVE --> DISMANTLED : dismantle ? substitu?t ? finish d'una sessi? nova
+```
+
+```mermaid
+stateDiagram-v2
+  [*] --> OPEN : POST /build-sessions
+  OPEN --> OPEN : PATCH obstacle (PENDING ? PLACED ? VERIFIED)
+  OPEN --> FINISHED : finish (crea/actualitza RingSetup)
+  OPEN --> ABANDONED : neteja > 12 h (S15)
+```
+
+`Course`: sense estats (soft delete `deletedAt`; `visibility` canviable). `Placement`: `stale` com a marca.
+
+| Transici? | Qui | Condici? | Efectes | Esdeveniment |
+|---|---|---|---|---|
+| recorregut creat/importat/copiat | INSTRUCTOR/ADMIN ? AGILITYHUB_ADMIN | esquema v?lid | fitxers S3, `stats` | `CourseCreated` / `CourseImported{source}` |
+| geometria desada | ADMIN | R-16-04 | `stale` a col?locacions | `RingGeometryChanged` |
+| col?locaci? creada/actualitzada | INSTRUCTOR/ADMIN | R-16-05 | `resolvedObstacles`, `warnings` | `PlacementCreated` / `PlacementUpdated` |
+| muntatge registrat | INSTRUCTOR/ADMIN | R-16-07 | `Ring.activeSetupId`, anterior `DISMANTLED` | `RingSetupChanged{ACTIVE}` (+ N-31 opcional) |
+| muntatge caducat/desmuntat | S15 ? INSTRUCTOR/ADMIN | R-16-08 | `activeSetupId = null` | `RingSetupChanged{EXPIRED ? DISMANTLED}` |
+| sessi? iniciada/progr?s/acabada | INSTRUCTOR/ADMIN | R-16-11 | SSE, `RingSetup` | `BuildSessionStarted` / `BuildSessionProgress` / `BuildSessionFinished` |
+
+## 6. API
+
+M?dul `COURSES` a tot llevat de `/platform/courses`. Rols segons R-16-03/16.
+
+| M?tode | Ruta | Rol | Idem. | Descripci? | Cos / par?metres | Respostes i errors |
+|---|---|---|---|---|---|---|
+| GET | `/courses` | INSTRUCTOR ? ADMIN | ? | llistat universal (club + `PUBLIC` + propis) | `x-filterable`: `owner (CLUB?AGILITYHUB?MINE), discipline, agilityhubLevel, levelId, source, tag, designerName, obstacleCount, updatedAt`; `q` | `200 {items: CourseListItem[{id, name, discipline, level, designerName, source, thumbnailUrl, stats, ownerType, activeOnRings[]}], ?}` |
+| POST | `/courses` | INSTRUCTOR ? ADMIN | s? | crea (`EDITOR`, `IMAGE`, `SMARTER` amb `model` ja parsejat) | `{name, discipline, source, model?, imageFileKey?, sourceFileKey?, designerName?, agilityhubLevel?, levelIds[], tags[], notes, visibility}` | `201` ? `400 COURSE_MODEL_INVALID{schemaErrors}` / `SCHEMA_VERSION_UNSUPPORTED` |
+| GET ? PATCH ? DELETE | `/courses/{id}` | segons visibilitat | `version` | detall (model complet) ? edici? ? soft delete | | `200` ? `404 COURSE_NOT_VISIBLE` ? `409 STALE_VERSION` / `COURSE_IN_USE` (delete amb muntatge actiu) |
+| POST | `/courses/{id}/duplicate` ? `/courses/{id}/copy-to-club` | INSTRUCTOR ? ADMIN | s? | R-16-03 | `{name?}` | `201` |
+| POST | `/courses/upload-urls` | INSTRUCTOR ? ADMIN | ? | URL signada per a `.txt`/imatge | `{purpose: SMARTER_SOURCE ? COURSE_IMAGE ? THUMBNAIL ? BUILD_SHEET, contentType, size}` | `201 {uploadUrl, fileKey}` ? `400 FILE_TYPE_NOT_ALLOWED` / `FILE_TOO_LARGE` |
+| GET ? PUT ? DELETE | `/rings/{id}/geometry` | ADMIN (GET: INSTRUCTOR) | `version` | R-16-04 | `RingGeometry` | `200` ? `422 GEOMETRY_INVALID` ? `409 RING_GEOMETRY_IN_USE` |
+| GET | `/rings/{id}/setups` | INSTRUCTOR ? ADMIN | ? | historial de muntatges | `page,size` | `200` |
+| GET | `/placements` ? `/placements/{id}` | INSTRUCTOR ? ADMIN | ? | per `ringId` / `courseId` / `activityId` | | `200` (amb `stale`) |
+| POST ? PUT | `/placements` ? `/placements/{id}` | INSTRUCTOR ? ADMIN | s? / `version` | R-16-05 | `{courseId, courseVersion, ringId, transform, resolvedObstacles[], warnings[], activityId?, name?, force?}` | `201/200` ? `422 PLACEMENT_BLOCKED{warnings}` / `RING_WITHOUT_GEOMETRY` / `PLACEMENT_RING_MISMATCH` |
+| POST ? GET | `/placements/{id}/build-sheet` | INSTRUCTOR ? ADMIN | ? | R-16-10 | `{fileKey}` | `200 application/pdf` |
+| POST | `/ring-setups` | INSTRUCTOR (`allowInstructorPublish`) ? ADMIN | s? | R-16-07 | `{ringId, kind, placementId?, courseId?, imageFileKey?, agilityhubLevel?, levelIds[], expectedUntil?, notes}` | `201 {setup, replacedSetupId?}` ? `422 RING_WITHOUT_GEOMETRY` / `PLACEMENT_RING_MISMATCH` / `SETUP_SOURCE_REQUIRED` |
+| GET | `/ring-setups/{id}` | MEMBER (visible) ? INSTRUCTOR ? ADMIN | ? | visor | ? | `200` (projecci? per rol) ? `404` |
+| POST | `/ring-setups/{id}/dismantle` ? `/ring-setups/{id}/renewal` | INSTRUCTOR ? ADMIN | s? | R-16-08 | `{expectedUntil?}` | `200` ? `409 INVALID_STATE` |
+| GET | `/me/ring-setups` | MEMBER ? INSTRUCTOR | ? | R-16-09 | `ringIds?` | `200 [{ringId, setup?}]` |
+| POST | `/build-sessions` | INSTRUCTOR ? ADMIN | s? | R-16-11 | `{placementId, live}` | `201` |
+| GET | `/build-sessions/{id}` ? PATCH `/build-sessions/{id}/obstacles/{obstacleId}` ? POST `/build-sessions/{id}/finish` | INSTRUCTOR ? ADMIN | ? / ? / s? | R-16-11 | `{status}` | `200` ? `409 BUILD_SESSION_FINISHED` |
+| GET | `/build-sessions/{id}/events` | INSTRUCTOR ? ADMIN | ? | SSE | `access_token` (query) | `text/event-stream` |
+| GET ? PUT | `/obstacle-inventories/{scope}` (`club` ? `ring:{ringId}`) | ADMIN (GET: INSTRUCTOR) | ? | R-16-12 | `{items[]}` | `200` ? `422 INVENTORY_INVALID` |
+| GET ? POST ? PATCH | `/platform/courses` | AGILITYHUB_ADMIN | s? | R-16-14 | com `/courses` | `201`/`200` |
+| **R2** GET `/challenges` ? GET `/challenges/{id}` ? POST `/challenges/{id}/attempts` ? GET `/me/challenge-attempts` | tots ? MEMBER | | contracte reservat (S19): `Challenge {id, courseId, title, description, agilityhubLevel, rules, validFrom, validTo, status}`; `Attempt {challengeId, dogId, ringSetupId?, timeMs, faults, videoUrl?, submittedAt, status}` | | `501 NOT_IMPLEMENTED` a R1 |
+
+**Requisits per a l'app AR (R3, S20)**: OIDC natiu (S01 client `ar-app`); `GET /rings/{id}/geometry` (marcadors amb `qrPayload`), `GET /placements/{id}` (`resolvedObstacles` en metres, frame del ring), `GET /build-sessions/{id}/events` + `PATCH` per obstacle; tot ja definit aqu? ? **cap endpoint nou**.
+
+## 7. Esdeveniments
+
+**Emesos**: `CourseCreated{courseId, ownerType, source}` ? `CourseUpdated{courseId, diff}` ? `CourseImported{courseId, source: SMARTER, warnings[]}` ? `RingGeometryChanged{ringId, version}` ? `PlacementCreated{placementId, ringId, courseId, warnings[]}` ? `PlacementUpdated{placementId, stale: false}` ? `RingSetupChanged{ringId, setupId, status, replacedSetupId?, kind, byAccountId}` ? `BuildSessionStarted{sessionId, placementId, live}` ? `BuildSessionProgress{sessionId, obstacleId, status}` ? `BuildSessionFinished{sessionId, setupId}` ? **nous (?13)**: `CourseDeleted`, `CourseCopied{fromCourseId}`, `InventoryChanged{scope}`.
+
+**Consumits**: `RingChanged{deactivated}` (S05) ? muntatge actiu `DISMANTLED{ring_inactive}` ? `ActivityCancelled` (S07) ? col?locacions de l'activitat queden (informatives) ? `AccountErased` (S14) ? `Course.ownerType ACCOUNT` ? `PRIVATE`, `designerName` null.
+
+## 8. Notificacions
+
+| Codi | Moment | P?blic ? canals | Variables |
+|---|---|---|---|
+| N-31 Recorregut nou a la pista | `RingSetupChanged{ACTIVE}` si `messaging.notifyNewRingSetup` i `kind ? EMPTY` | MEMBER amb dret d'entrenament (S09 `TrainingEligibilityService.membersWithRight()`) ? APP, acci? `OPEN_SETUP` | `ring_name`, `setup_kind`, `level` |
+
+Cap altra: els instructors veuen els muntatges als quadres.
+
+## 9. Par?metres i m?duls
+
+Llegeix: `courses.setupAutoExpireDays` (7), `courses.defaultWarningThresholdM` (1.5; substitueix `courses.placementMarginMeters`), `courses.buildSessionMaxHours` (12), `courses.showSetupToMembers` (true), `courses.allowInstructorPublish` (true), `messaging.notifyNewRingSetup` (false), `files.maxSizeMb`, `files.allowedTypes`, `levels.enabled`. El `.txt` de Smarter (`text/plain`) nom?s s'accepta a `/courses/upload-urls`. Les propostes `courses.gateClearanceMeters` i `courses.obstacleClearanceMeters` no s'afegeixen: la dist?ncia a una porta ?s de la porta, i els marges els calcula `course-core` (organitzador 30-09, E77; E9-T01 aplica el cat?leg amb el codi).
+
+| M?dul / variant | Efecte |
+|---|---|
+| `COURSES` off | vertical absent (R-16-15) |
+| `FREE_TRAINING` off | sense bloc a 08 |
+| `ACTIVITIES` off | sense `activityId` |
+| `levels.enabled = false` | nom?s `agilityhubLevel` / text |
+
+## 10. i18n i localitzaci?
+
+- Namespaces `courses` (visor, registre, sessi?), `admin-courses` (D18, geometria, inventari); `enums:obstacleType.*`, `enums:setupKind.*` (?Agility?, ?Jumping?, ?Fun?, ?Treball d'obstacle?, ?Buida?), `enums:placementWarning.*` (?Fora del ring?, ?Massa a prop de la tanca?, ?Porta bloquejada?, ?Zona no permesa?, ?Obstacles massa junts?, ?Falta material?), `enums:buildStatus.*`.
+- `Course.name` LocalizedText (fallback); `builtAgo` amb `fmtRelative` i el fus del club; PDFs en l'idioma de qui els genera; unitats en metres amb `Intl` (decimal segons `locale`).
+
+## 11. Criteris d'acceptaci? i tests obligatoris
+
+**`course-core` (unitaris, Vitest, fixtures)**
+- T-16-01 (R-16-02) `parseSmarter` amb 5 fitxers de mostra (a obtenir del web-planner o de Smarter real): recompte d'obstacles, posicions ? 1 cm, seq??ncia, obstacle desconegut ? `OTHER` + `UNKNOWN_OBSTACLE`, fitxer corrupte ? `errors[]` sense excepci?.
+- T-16-02 (R-16-05) `placeInRing`: translaci?/rotaci?/mirall amb valors coneguts (obstacle (12, 3), `dx 2 dy 1 rot 90` ? (?)); cada codi d'av?s amb un cas positiu i un de negatiu; `INVENTORY_SHORT` amb inventari de ring vs club.
+- T-16-03 (R-16-01) la `CourseData` que `course-core` obt? de cada fixture Smarter valida contra `course-data.v1.schema.json`, i una `BuildSessionExportV1` feta amb els fixtures, contra `build-session-export.v1.schema.json`; una `CourseData` sense un camp obligatori o amb un tipus d'obstacle desconegut, i una exportaci? amb `schemaVersion 2`, ? inv?lides; el `Course` desa `schemaVersion = 1` al costat de `normalizedJson`, i una versi? desconeguda ? inv?lida a R1 (decisi? E84).
+- T-16-04 `course-ui`: snapshots del `CourseViewer2D` i del `BuildSheet` per a 2 fixtures; `PlacementEditor` emet `transform` i avisos en arrossegar (test d'interacci?).
+
+**Integraci? (Testcontainers, S3 doble)**
+- T-16-05 (R-16-03/16) club A crea un `CLUB` ? club B `GET` ? `404`; `PUBLIC` d'AgilityHub visible als dos; `copy-to-club` crea `AGILITYHUB_COPY` editable; MEMBER `GET /courses` ? `403`; `ACCOUNT` `PRIVATE` nom?s per l'autor.
+- T-16-06 (R-16-04/06) geometria v?lida/inv?lida (2 marcadors ? `GEOMETRY_INVALID`); canvi de geometria ? col?locacions `stale`; `DELETE` amb muntatge actiu ? `409`.
+- T-16-07 (R-16-05) `POST /placements` amb `BLOCK` ? `422`; amb `force` (ADMIN) ? `201` i auditoria; INSTRUCTOR amb `force` ? `403`.
+- T-16-08 (R-16-07/08) dos `POST /ring-setups` seguits a la mateixa pista ? el primer `DISMANTLED{replaced}`, `activeSetupId` = segon; `kind EMPTY`; `placementId` d'un altre ring ? `422`; ring sense geometria amb `placementId` ? `422`; `renewal` ? `expiresAt` nou; `dismantle` ? `activeSetupId null`; S15 P5f amb `Clock` ? `EXPIRED` idempotent.
+- T-16-09 (R-16-09) `GET /me/ring-setups` per a MEMBER sense `builtBy`/notes; `showSetupToMembers=false` ? `setup` absent per a MEMBER i present per a INSTRUCTOR (T-09-22 d'S09).
+- T-16-10 (R-16-11) sessi?: dos clients SSE reben `obstacle` en < 2 s (test amb dos subscriptors); `finish` crea el `RingSetup`; `PATCH` despr?s de `finish` ? `409 BUILD_SESSION_FINISHED`; token per query nom?s a `/events`.
+- T-16-11 (R-16-12) inventari de ring preval sobre el del club.
+- T-16-12 (R-16-15) `COURSES` off ? `404` a tot, `placementId` absent a S06/S07, P5f om?s; `levels.enabled=false` ? `levelIds` rebutjats.
+- T-16-13 N-31 nom?s amb `messaging.notifyNewRingSetup` i `kind ? EMPTY`; destinataris = amb dret d'entrenament.
+- T-16-14 fitxers: `.exe` com a Smarter ? `FILE_TYPE_NOT_ALLOWED`; 600 KB ? `FILE_TOO_LARGE`; URLs signades caduquen.
+
+**Front**
+- T-16-15 D18: importaci? Smarter d'un fixture ? vista pr?via ? desar ? llistat amb miniatura; col?locaci? amb avisos en viu; full de muntatge; ?Registra-ho com a muntat?.
+- T-16-16 m?bil: registre en < 5 tocs (pista preseleccionada ? tipus ? foto ? REGISTRA); visor des de 08 i 10; sessi? de muntatge amb dos dispositius (E2E).
+
+**Cobertura addicional (tra?abilitat regla ? test)**
+- T-16-17 (R-16-06) despr?s de `PUT /rings/{id}/geometry`, `GET /placements/{id}` ? `stale: true`; `PUT /placements/{id}` amb `resolvedObstacles` nous ? `stale: false` + `PlacementUpdated`; un `RingSetup` actiu sobre una col?locaci? `stale` mostra l'av?s a instructors.
+- T-16-18 (R-16-08) `renewal` sobre `EXPIRED` ? `409 INVALID_STATE`; `GET /rings/{id}/setups` retorna l'historial ordenat amb `EXPIRED`/`DISMANTLED`.
+- T-16-19 (R-16-10) `POST /placements/{id}/build-sheet {fileKey}` desa el PDF i `GET` en retorna els bytes (`200 application/pdf`); sense fitxer ? `404`.
+- T-16-20 (R-16-13) classe amb `placementId` d'un altre ring ? `422 PLACEMENT_RING_MISMATCH` (S06); l'activitat llista les seves col?locacions (S07); 07 mostra ?A la pista hi ha muntat: ?? nom?s amb `showSetupToMembers`.
+- T-16-21 (R-16-14, R-16-16) `POST /platform/courses` sense `agilityhubLevel` ? `400`; un ADMIN de club sobre `/platform/courses` ? `403`; `PATCH` d'un `PUBLIC` per un club ? `403`; fitxers d'un club en `{clubId}/courses/` i URL signada d'un altre club ? `404`.
+- T-16-22 (R-16-17) `Course.name` amb nom?s `ca` es resol per a un usuari `en` (fallback); `enums:obstacleType.*` i `enums:setupKind.*` presents en ca/es/en; `builtAgo` calculat amb el fus del club (?fa 2 dies? / ?hace 2 d?as? / ?2 days ago?).
+
+## 12. Paquets de feina (per a fils d'IA en paral?lel)
+
+| Paquet | Repo | Dep?n de | Lliurable verificable |
+|---|---|---|---|
+| **WP-16-0 Revisi? del web-planner** (primer de tot) | `@agilityhub/web-planner` (lectura) | acc?s al codi | informe amb la llista de ?13 ?Verificacions? resolta: format real del `CourseModel`, parser Smarter (versions suportades, fixtures), regles de col?locaci? existents, depend?ncies (three.js versi?, Supabase acoblat?), tests existents, llic?ncia; decisi? ?extreure tal qual? vs ?reescriure? per fitxer; ajust d'aquesta spec (v0.2) |
+| WP-16-A `course-core` | `agilityhub-core-web/packages/course-core` | WP-16-0 | package TS pur amb parser, geometria, `placeInRing`, JSON Schema publicat, fixtures i T-16-01?03; `README` amb el format |
+| WP-16-B `course-ui` | `agilityhub-core-web/packages/course-ui` | WP-16-A | `CourseViewer2D/3D`, `PlacementEditor`, `RingGeometryEditor`, `BuildSheet`, `MarkerSheet`; T-16-04 |
+| WP-16-C Back `courses` | `agilityhub-core-api/courses` | WP-16-A (schema), S05 (`Ring`), S14 (audit) | entitats, endpoints de ?6 (sense SSE), validaci? d'esquema, S3, esdeveniments; T-16-05?09, 11?14 |
+| WP-16-D Sessions live | `agilityhub-core-api/courses` | WP-16-C | `BuildSession`, SSE, neteja; T-16-10 |
+| WP-16-E Front admin | `agilityhub-core-web/apps/clubs-admin` | WP-16-B, WP-16-C | D18, bloc geometria de D16, inventari, D7/D3 selectors; T-16-15 |
+| WP-16-F Front m?bil + integracions | `agilityhub-core-web/apps/clubs` | WP-16-B, WP-16-C, S06/S08/S09/S10 | visor, registre, sessi?; blocs a 08/10/23/07/D12; T-16-16 |
+| WP-16-G Biblioteca AgilityHub | core | WP-16-C | `/platform/courses`. Sense migraci? de Supabase: nom?s t? dades de prova (Jordi 30-09, A6) |
+
+Ordre: 0 ? A ? B ? C ? D ? E ? F ? G. Fils: (1) 0+A+B, (2) C+D, (3) E+F.
+
+## 13. Dubtes oberts i verificacions
+
+**Verificacions obligat?ries sobre el web-planner (ADR-013) ? tanquen WP-16-0:**
+1. `course-core` no importa Supabase/Next; t? tests; llic?ncia i autoria.
+2. Format real del model: unitats, origen de coordenades, sentit de rotaci?, tipus d'obstacle, com es representen obstacles amb dos n?meros i la seq??ncia.
+3. Parser Smarter: versions del `.txt` suportades, casos d'error, fixtures disponibles (demanar-ne 5 reals a Jordi, anonimitzats de nom d'autor si cal).
+4. Regles de col?locaci? i avisos existents (marges, portes, no-go, inventari) i com es calculen les dist?ncies als marcadors per al full de muntatge.
+5. Representaci? dels marcadors QR i del calibratge (per a l'AR); llibreria de generaci? de QR.
+6. `three.js` (versi?, pes), estat del visor 3D, si el 2D ?s SVG o canvas.
+7. Persist?ncia a Supabase: quines taules (venues, rings, courses, placements, events, build sessions, judges) tenen **dades reals** que calgui migrar (WP-16-G) i si hi ha usuaris reals (? importaci? de comptes a S01 igual que Learn).
+8. Rols del planner (`is_agilityhub_admin`, venue admin, judge) ? mapatge a `AGILITYHUB_ADMIN`, ADMIN de club i `ACCOUNT` (dissenys personals).
+
+| # | Dubte | Qui | Assumpci? mentrestant |
+|---|---|---|---|
+| 1 | Edici? de recorreguts in-place amb `history` (10) o versions immutables? | Jordi | in-place + `history` |
+| 2 | Generaci? del PDF (full de muntatge, marcadors) al client (`course-ui`) o al servidor? | Jordi | client, pujat a S3 |
+| 3 | Acc?s a ?Registra qu? hi ha muntat? des de 20/23/24 (icona) ? sense mockup | Josep | icona de con a la cap?alera de la pista |
+| 4 | Rols del web-planner (jutges convidats a un event) ? R2 amb activitats? | Jordi | fora de R1 |
+| 5 | Els alumnes poden veure el recorregut sencer (numeraci?) o nom?s tipus/nivell? | Josep | sencer si `showSetupToMembers` |
+| 6 | Format Smarter: descripci? hipot?tica de R-16-02 | WP-16-0 | ? |
+
+**Resolts (organitzador 30-09, E77):** el dubte 1 segons A8a (in-place + `history` de 10), el 2 segons A8b (al client), el 4 a R2 i el 6 pel ?14.3; el 3 i el 5 segueixen amb l'assumpci? (Josep). Les propostes seg?ents les aplica E9-T01 amb el codi (E77), llevat dels dos par?metres de dist?ncia, que no s'afegeixen.
+
+**Propostes**: par?metres `courses.buildSessionMaxHours` (12), `courses.gateClearanceMeters` (1.5), `courses.obstacleClearanceMeters` (0.5); `files.allowedTypes` + `text/plain`; esdeveniments `CourseDeleted`, `CourseCopied`, `InventoryChanged`; errors `COURSE_MODEL_INVALID`, `SCHEMA_VERSION_UNSUPPORTED`, `COURSE_NOT_VISIBLE`, `COURSE_IN_USE`, `GEOMETRY_INVALID`, `RING_GEOMETRY_IN_USE`, `RING_WITHOUT_GEOMETRY`, `PLACEMENT_BLOCKED`, `PLACEMENT_RING_MISMATCH`, `SETUP_SOURCE_REQUIRED`, `BUILD_SESSION_FINISHED`, `INVENTORY_INVALID`, `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `SMARTER_PARSE_ERROR` (client); rutes a afegir a CONVENCIONS ?3: `/courses/upload-urls`, `/rings/{id}/setups`, `/ring-setups/{id}/renewal`, `/build-sessions/{id}/finish`, `/platform/courses`, `/challenges*` (R2); auditoria (S14): `COURSE_FORCED_PLACEMENT`, `RING_GEOMETRY_CHANGED`, `RING_SETUP_REGISTERED`.
+
+## 14. Verificaci? del web-planner (WP-16-0, 05-09-2026) ? fets i ajustos (v0.2)
+
+Codi revisat: `agilityhub-course-builder/apps/web-planner` (Next 15 App Router + React 18 + Tailwind 3 + three 0.160 + `@supabase/supabase-js`, vitest amb 21 fitxers de test, fase 12d d'un pla per fases amb registre de decisions `D-0xx`). **No revisat** (fora de la carpeta muntada): `packages/course-core`, `packages/shared-types`, `packages/ui` (symlinks a `../../../../packages/*`) i les altres apps del monorepo (Unity/Quest). Cal muntar l'arrel del monorepo per tancar-ho (?14.6).
+
+### 14.1 El que ja existeix (i ?s molt m?s que ?col?locaci??)
+
+| Pe?a | Estat real | Decisi? |
+|---|---|---|
+| `@agilityhub/course-core` | API usada pel planner: `parseSmarterTxt`, `summarizeCourse`, `centerCourseInRing`, `IDENTITY_PLACEMENT`, `runWarnings` (regles amb `ruleId`, severitats `critical ? warning ? info`, `thresholdMeters`), `obstacleTypeSchema` (zod), `ObstacleInventory`, `Ring` (`lengthMeters, widthMeters, borderClearanceMeters, doors[], noGoZones[], obstacleInventory`), portes (`inferDoorEdgeFromPolygon`, `normalizeDoorSide`, `doorPolygonFromEdge`), marcadors AprilTag (`buildMarkerUid`, `aprilTagIdFromMarkerUid`, `assignAprilTagIdForMarker`), calibratge (`CalibrationMeasurement`, `gradeCalibration`), unitats (`UnitSystem M/FT`, `formatLength`), paper (`PAPER_PRESETS`) | **Es recupera tal qual** com a `packages/course-core` (?12 WP-16-A passa de ?escriure? a ?copiar + tests?). El `CourseModel` hipot?tic de ?3 queda **substitu?t pel `CourseData` real** (`title, titleRaw, units, designLengthMeters, designWidthMeters, canvasWidth, canvasHeight, origin, metadata, obstacles[], numbers[]`) i `normalized_json` |
+| `@agilityhub/shared-types` | Tipus de fila de la BBDD (`DBVenue, DBRing, DBRingMarker, DBCourse, DBCoursePlacement, DBBuildSession, DBBuildObstacleStatus, DBEvent, DBEventJudge, DBEventAttachment, DBProfile, DBAuditLog, DBCalibrationLog, DBImportLog`) i **`BuildSessionExportV1`** (zod) = el contracte de l'app **Unity** (D-037) | Els noms i camps del core **adopten els del planner** (?14.2). `BuildSessionExportV1` es mant? byte a byte: el core l'exposa a `GET /build-sessions/{id}/export` |
+| `PlannerStore` (`src/lib/storage/types.ts`) amb dues implementacions (`MockStore` en mem?ria amb seed; `SupabaseStore`) | La UI nom?s coneix aquesta interf?cie | **Via de port**: implementar `CoreApiStore` (tercera implementaci?) contra el core; la UI del planner (p?gines React) es trasllada a `apps/clubs-admin` (D18) i a `packages/course-ui` amb canvis m?nims |
+| P?gines: `/plan/{venue,upload,place,details}` (wizard), `/venues`, `/venue/[id]/{markers,calendar,events}`, `/markers/{print,test}`, `/build-sessions/[id]` (+ `/live`), `/calendar`, `/events`, `/designer/*`, `/admin/*` (venues, users, events, build-sessions, logs), `/courses/share`, `/login`; components `PlannerCanvas` (2D, 572 l?nies), `Planner3D` (three, 1.726 l?nies), `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `EventAttachments`, `EventManagePanels`, `PaperSizeToggle`, `UnitsToggle` | Cobreix D18 + geometria de D16 + sessi? de muntatge + calendari + esdeveniments | Les p?gines ?server? de Next (`src/app/api/invites/event`, `api/calibration/log`, `supabase-server.ts`, email via **Resend**) passen a endpoints del core |
+| BBDD Supabase (`bmcahqnybxmnxrdvzzcs`): `venues, venue_members, rings, ring_doors, ring_no_go_zones, ring_markers, ring_obstacle_inventory, courses, course_source_files, course_obstacles, course_numbers, course_no_go_zones, course_themes, course_collaborators, course_placements, events, event_rings, event_judges, event_attachments, build_sessions, build_session_participants, build_obstacle_status, calibration_logs, audit_logs, import_logs, profiles`; RPC `is_agilityhub_admin`, `is_venue_admin`, `link_my_pending_invites`, `rotate_build_session_invite`; buckets `course-source-files`, `event-docs`, `build-session-exports`; Realtime per a `build_obstacle_status` | Esquema madur amb RLS i triggers (`enforce_placement_ring_in_event`) | El model del core (?14.2) el reprodueix; **si hi ha dades reals** (a confirmar per Jordi) s'importen amb un script (WP-16-G) |
+| Rols: `agilityhub_admin` (global), `venue_admin` (per venue via `venue_members`), `judge` (per `event_judges`), rutes `designer`; `profiles.platform_user_id` (enlla? previst amb usuaris de la plataforma) | Coincideix amb ADR-010 | `AGILITYHUB_ADMIN`; `venue_admin` = ADMIN del club quan el venue ?s un club, o **venue sense club** (sales de competici?) ? entitat `Venue` pr?pia (?14.2); `judge`/`designer` i esdeveniments amb jutges ? **R2** (S07/S19) |
+| Feature flags `NEXT_PUBLIC_ENABLE_AR_BUILD_SESSIONS`, `?MANUFACTURER_PROFILES`, `?QUEST_PLACEHOLDER`; export amb `assetProfile generic-fci`, temes (`course_themes`), producer `agilityhub-web-planner@phase8`; sessions amb `join_token/join_code` i participants; estat per obstacle `not_placed ? placed ? ?` escrit per l'AR | **L'AR ja t? direcci?: Unity (AR Foundation) amb marcadors AprilTag; VR = Quest** (S20 s'actualitza) | El core mant? aquests contractes |
+| Fixtures Smarter reals: `route-validation-artifacts/*.txt` (4 fitxers verificats, ?parse with zero warnings?) + skill `smarter-verify-course-txt` | Resol ?13 ?Verificacions? 3 | Fixtures per als tests T-16-01 |
+
+### 14.2 Model del core alineat amb el planner (substitueix ?3 on discrepi)
+
+| Entitat core | Origen al planner | Camps (noms del core en camelCase; a la BBDD del core es conserven els valors) |
+|---|---|---|
+| **`Venue`** (nova, `courses`) | `venues`, `venue_members` | `slug, name, country, city, address, surface, indoorOutdoor, contactEmail, publicNotes, privateNotes, visibility (public_preview?), partnerStatus, partnerSince/Until, defaultPaperSize, clubId?` ? **un club = un venue** (creat autom?ticament amb el club, `clubId`); els venues sense club (sales) queden per a R2 |
+| **`Ring`** (S05) + geometria | `rings` (`venue_id, name, length_m, width_m, border_clearance_m, surface`), `ring_doors` (`label, side, start_m, end_m, flow in?out?both, clearance_m, polygon_points_m, is_active, notes`), `ring_no_go_zones` (`label, polygon_points_m, warning_margin_m`), `ring_markers` (`label A?F, marker_uid, role, x_m, y_m, z_m, rotation_y_deg, physical_width_m, physical_height_m, is_fixed, is_active, april_tag_id, notes`), `ring_obstacle_inventory` (`obstacle_type, quantity`) | `Ring.geometry = {lengthM, widthM, borderClearanceM, doors[], noGoZones[], markers[]}` + `Ring.obstacleInventory[]`; les pistes del C?nic s?n rings del venue del club |
+| **`Course`** | `courses` (`source_file_id, owner_id, title, title_raw, source smarter-agility, source_version, units m?ft, design_length_m, design_width_m, canvas_width, canvas_height, origin, metadata, course_grade, course_type, theme_id, normalized_json`), `course_source_files` (bucket), `course_obstacles`, `course_numbers`, `course_no_go_zones`, `course_themes`, `course_collaborators` | `Course` conserva `normalizedJson` (= `CourseData`) i els camps promoguts; afegim `ownerType/visibility/clubId` (?3) i `sizeCategory GRAND ? GARDEN` (Learn); `course_collaborators` ? R2 |
+| **`Placement`** | `course_placements` (`course_id, venue_id, ring_id, owner_id, name, display_name, placement_mode, offset_x_m, offset_y_m, rotation_deg, flip_x_bool, flip_y_bool, warning_threshold_m, warnings_json, status ready_to_build?, scheduled_at, event_id, course_type Jumping?Agility, grades[], sizes[] (XS/S/M/I/L/ALL), is_training, mode event?training?free-floating`) | `Placement.transform` de ?3 = `{offsetXM, offsetYM, rotationDeg, flipX, flipY}`; `resolvedObstacles` es calcula amb `course-core` (no cal persistir-lo si l'export ho fa) ? decisi?: **es persisteix** per a l'AR/consultes (?13) |
+| **`BuildSession`** | `build_sessions` (`placement_id, judge_id, status not_started?in_progress??, selected_strategy equipment_type, last_known_marker_id, started_at, completed_at, local_cache_version, progress_json, join_token, join_code, join_token_rotated_at`), `build_session_participants`, `build_obstacle_status` (`course_obstacle_id, status not_placed?placed??, updated_by, last_updated_client_session_id`) | S16 R-16-11 adopta `joinCode/joinToken` (unir-se des d'un altre m?bil), `selectedStrategy`, `lastKnownMarkerId`; Realtime ? SSE del core |
+| **Calibratge** | `calibration_logs` (mesures per marcador, `gradeCalibration` amb llindars en cm) | `POST /rings/{id}/calibrations` (nou) ? el resultat es guarda i es mostra a D16 |
+| **Esdeveniments** | `events` (`venue_id, name, start_date, end_date, status draft?, notes`), `event_rings`, `event_judges` (rols), `event_attachments` (bucket `event-docs`), invitacions per correu | **R2**: mapatge amb `Activity` (S07) + jutges convidats (`Account` extern al club) |
+| Auditoria / importacions | `audit_logs`, `import_logs` | `AuditEntry` (S14) + `CourseImported{warnings}` |
+
+### 14.3 Format Smarter (verificat amb els fixtures)
+
+Fitxer `.txt` = una l?nia de text (?Copy the text below and paste it in the Smarter Agility import form?) + `+++++++SAD` + **JSON en base64** (`export_version`, `layout_version`, `settings.version = 10.1.2`). Cap?alera: `course_type` (Agility), `organization` (fci), `units` (M/FT), `length`, `width` (metres), `spacing`, `origin` (LT), `canvasWidth/Height`, `title`, `designer`, `grade`, `category`, `date`. `settings` (JSON dins del JSON): `obstacles` per **codi de tipus** (`jb` salt, `dw` passarel?la, `af` A-frame, `t5s` t?nel amb `cps` (punts de control), ?) ? per n?mero: `x, y` (p?xels de canvas), `angle` (graus), `custom`; `numbers` (etiquetes amb posici? i `cp1d/cp1a/cp2d/cp2a` per als camins), `lines`, `logos`, `config.paths`, `discipline` (AG), `course_type` (A_A). La conversi? p?xel ? metre usa `length/width` i `canvasWidth/Height`. **Tot aix? ja ho fa `parseSmarterTxt`**: R-16-02 passa d'hip?tesi a fet; els fixtures `wald_*`, `burning_dogs_*`, `jg3_*`, `switz-*` s?n els casos de T-16-01.
+
+### 14.4 Regles de col?locaci? i avisos (verificat)
+
+`runWarnings(course, ring, placement, {thresholdMeters})` amb regles identificades per `ruleId` (`door-clearance`, `obstacle-inventory` amb `obstacle-inventory:not-configured`, no-go, marges?) i severitats `critical ? warning ? info`; `warning_threshold_m` es guarda a la col?locaci?; `PlacementControls` fa `NUDGE / ROTATE / FLIP_X / FLIP_Y / CENTER / RESET`; `centerCourseInRing` col?loca per defecte. Els codis de ?4 R-16-05 (`OUT_OF_BOUNDS`, `MARGIN_TOO_SMALL`?) es **substitueixen pels `ruleId` reals** del motor en copiar el package.
+
+### 14.5 Via de port (substitueix WP-16-0/A/B/E de ?12)
+
+1. **WP-16-A?** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests (**fet a E0-W08**, web, 24-09). La publicaci? del JSON Schema de `CourseData`/`BuildSessionExportV1` (zod ? JSON Schema) per a la validaci? al core se'n separa: ?s precondici? de WP-16-C? i ser? la primera tasca web quan s'obri S16 (**E9-W01**: draft-07 amb zod-to-json-schema; la versi? va al nom del fitxer i a `$id`, perqu? `CourseData` no t? cap camp de versi? i afegir-n'hi un trencaria `BuildSessionExportV1`, A9; decisi? E84).
+2. **WP-16-C?** Back `courses`: col?leccions segons ?14.2; endpoints modelats sobre els m?todes de `PlannerStore` (`listVenues, listRings, uploadCourse, savePlacement, createBuildSession, listCalendarPlacements, createMarker/updateMarker, listMarkers, createCalibrationLog, upsertBuildObstacleStatus, subscribeBuildObstacleStatuses ? SSE, listAuditLogs?`) + `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) + `POST /rings/{id}/calibrations`.
+3. **WP-16-B?** `packages/course-ui`: moure `PlannerCanvas`, `Planner3D`, `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `PaperSizeToggle`, `UnitsToggle` (s?n React + Tailwind sense Next); `CoreApiStore implements PlannerStore` a `packages/api-client`.
+4. **WP-16-E?** `apps/clubs-admin`: p?gines del wizard (`/recorreguts/nou` = `plan/*`), biblioteca (D18 = `courses` + calendari), geometria de D16 (`venue/[id]/markers` + `RingDoorEditor` + inventari), sessions (`build-sessions/[id]` i `/live`), impressi? de marcadors (`markers/print`). Next App Router ? React Router: substituir `next/navigation`, `next/link`, `NextResponse` i `supabase-server` pels equivalents.
+5. **WP-16-F?** `apps/clubs`: visor + ?Registra qu? hi ha muntat? (nou, no existia al planner) + sessi? de muntatge m?bil (reutilitza `/live`).
+6. **WP-16-G?** Retirada del planner. No hi ha importaci? de Supabase: nom?s t? dades de prova (Jordi 30-09, A6).
+
+### 14.6 Verificacions pendents (necessiten l'arrel del monorepo)
+
+1. ~~`course-core` i `shared-types`: depend?ncies (nom?s `zod`?), llic?ncia, cobertura de tests, exist?ncia de JSON Schema exportable.~~ **Resolt 24-09 (E0-W08):**
+   - depend?ncies: `course-core` nom?s `zod` (3.25.76), i `shared-types` `zod` + `course-core`;
+   - llic?ncia: cap llic?ncia de paquet, i l'?nic av?s de tercers ?s el BSD-2 d'AprilTag (`LICENSE-apriltag`);
+   - cobertura: 17 fitxers i 317 tests d'origen + 21 de `shared-types`;
+   - JSON Schema: encara no n'hi ha cap d'exportable (cal `zod-to-json-schema`); vegeu WP-16-A? a ?14.5.
+
+   L'origen ?s el commit `65126cf` del 21-09-2026. La p?gina de marcadors imprimible (`marker-svg.ts`) porta colors literals de la impressi?, amb una excepci? aprovada a la regla de colors: WP-16-E? decideix si la cap?alera i el peu prenen els colors del *branding* del club.
+2. Apps Unity/Quest del monorepo: estat real, versi? d'AR Foundation, com llegeixen `BuildSessionExportV1` (`StreamingAssets/`), autenticaci? actual (Supabase?) ? S20.
+3. ~~Dades reals a Supabase (venues, rings, courses, usuaris amb `profiles`) ? WP-16-G? i importaci? de comptes a S01 si hi ha usuaris reals.~~ **Resolt 30-09 (Jordi, A6):** nom?s s?n dades de prova; no s'importa res.
+4. `packages/ui` (design system del planner) vs `packages/ui` del core: fusi? o coexist?ncia.
+
+**Propostes noves**: entitat `Venue` (+ `venue_members` ? membresies/rols de plataforma), `Course.sizeCategory`, `Ring.geometry.markers[].aprilTagId/physicalWidthM/physicalHeightM/zM/rotationYDeg/role/isFixed`, `Placement.mode/scheduledAt/grades/sizes/displayName`, `BuildSession.joinCode/joinToken/selectedStrategy/lastKnownMarkerId`, `CalibrationLog`, endpoints `GET /build-sessions/{id}/export`, `POST /rings/{id}/calibrations`, `POST /build-sessions/join {code}`; par?metre `courses.defaultWarningThresholdM` (substitueix `placementMarginMeters`, 1.5).
+
+## Canvis
+
+- 03-09-2026 ? v0.1 ? esborrany inicial a partir d'ADR-013, PLATAFORMA ?5, IDEA-02 i les specs S05/S06/S07/S09/S15. Pendent de la revisi? del codi del web-planner (WP-16-0) ? v0.2.
+- 05-09-2026 ? v0.2 ? ?14: verificaci? del web-planner (course-core i shared-types reals, esquema Supabase, `PlannerStore`, Unity export, AprilTag, calibratge, fixtures Smarter). El model de ?3 i els paquets de ?12 queden substitu?ts pel ?14 on discrepin; pendent muntar l'arrel del monorepo per a ?14.6.
+- 24-09-2026 ? verificaci? d'E0-W08 (web): WP-16-A? fet (c?pia de `course-core` i `shared-types` des de `65126cf`). La publicaci? del JSON Schema se'n separa com a precondici? de WP-16-C?. ?14.6-1 resolt.
+- 30-09-2026 ? preparaci? d'E9 (decisi? E77): R-16-05 amb els `ruleId` de `course-core` i la pol?tica dels avisos `critical`; ?9, `courses.defaultWarningThresholdM` i `courses.buildSessionMaxHours` (E9-T01 aplica el cat?leg amb el codi); ?13, dubtes resolts.
+- 30-09-2026 ? A6 tancada (Jordi): el Supabase del web-planner nom?s t? dades de prova; WP-16-G? queda sense importaci? (?12, ?14.5, ?14.6-3).
+- 01-10-2026 ? preparaci? d'E9-W01 (decisi? E84): ?3 (`model?`), T-16-03 i ?14.5 WP-16-A?, els esquemes JSON versionats pel nom del fitxer i `$id`, i el `Course` en desa `schemaVersion`.
+- 16-10-2026 ? E9-T03 (decisi? E115): el full de marcadors QR el genera el client (A8b); `GET /rings/{id}/marker-sheet` surt de ?6 i de D16.
+- 16-10-2026 ? E9-T06 (decisi? E118, c?pia de l'api; E109): R-16-11 diu que el `finish` no dep?n de `courses.allowInstructorPublish` (el registre del muntatge s?), que un muntatge refrescat conserva `expectedUntil`, que l'exportaci? exigeix sis marcadors actius (nova regla `TOO_MANY_MARKERS` als `violations` de `GEOMETRY_INVALID`), i el final dels fluxos SSE (sessi? caducada, token caducat).
+- 16-10-2026 ? verificacions d'E9-T05 i E9-W03 (decisions E119 i E120; organitzador): D16 t? sis marcadors per defecte (A?F, els de l'exportaci? per a l'AR) i el full de marcadors porta els marcadors AprilTag; T-16-19: el `GET` del full de muntatge en retorna els bytes (`200 application/pdf`).
+"
+not to contain:
+  "409 BUILD_SESSION_FINISHED"
+
+[ERROR] Tests run: 15, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /home/user/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
