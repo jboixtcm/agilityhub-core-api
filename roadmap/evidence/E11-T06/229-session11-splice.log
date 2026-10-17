@@ -1,0 +1,4 @@
+Delta = git diff e94adcb0 HEAD: 17 classes; 208 session-10 rows of them dropped
+123 not-killed rows of unchanged classes promoted by the targeted survivor-test runs
+276 fresh rows from 3 runs; 15 delta classes have mutants; without mutants: MeResponse, SupportAccessesController
+roadmap/evidence/E11-T06/pit/session11/final-mutations.xml: 6650 mutations

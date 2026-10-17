@@ -1,0 +1,16 @@
+23:  "vulnerabilities": 88,
+24:  "fixableCritical": [],
+25-  "suppressedCritical": [
+--
+27:      "CVE-2026-47884",
+28-      "org.springframework:spring-webmvc",
+--
+35:      "CVE-2026-47890",
+36-      "org.springframework:spring-webmvc",
+--
+43:  "secretRules": [],
+44-  "otherFindings": [
+--
+648:  "expiredSuppressions": [],
+649:  "javaPackages": 180
+650-}

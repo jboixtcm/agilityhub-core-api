@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/session11-test-summary.py --only SupportAccessServiceSurvivors3Test SupportAccessEventsSurvivors3Test DemoPlatformAccountsSeederSurvivors3Test MeControllerSurvivors3Test

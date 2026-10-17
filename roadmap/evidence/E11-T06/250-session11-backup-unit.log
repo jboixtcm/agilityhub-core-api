@@ -1,0 +1,6 @@
+.........BACKUP_OK key=mongo/20261017T093312Z-037b96d4f5a642688272bf67dfe4b6ee.tar collections=1 snapshot=100:1 retention=S3-lifecycle
+.
+----------------------------------------------------------------------
+Ran 10 tests in 0.052s
+
+OK

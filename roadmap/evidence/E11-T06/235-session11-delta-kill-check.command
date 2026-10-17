@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/session10-verify-kills.py check roadmap/evidence/E11-T06/pit/session11/234-session11-targeted-identity-delta-mutations.xml roadmap/evidence/E11-T06/pit/session11/decisions-delta.json

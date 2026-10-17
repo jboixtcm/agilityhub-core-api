@@ -30,7 +30,8 @@ import static org.mockito.Mockito.*;
 /**
  * E11-T06 PIT survivor (session 10) of {@link MeController#me} (S01 R-01-15, T-01-25): the club bootstrap of a club with the BILLING
  * module carries the member's payment method, and a club without it does not. The filter opens the {@link CurrentUser} of the
- * bearer (CurrentUserFilter:42); collaborators are mocks; fictional data.
+ * bearer (CurrentUserFilter:42); collaborators are mocks; fictional data. Session 11 adds the support bootstrap's survivor
+ * (S17 R-17-10, T-17-09): the AgilityHub team account's `hasPassword` is its own.
  */
 class MeControllerSurvivors3Test {
     static final String CLUB = "club-a";
@@ -39,7 +40,8 @@ class MeControllerSurvivors3Test {
     final IdentityService identities = mock(IdentityService.class);
     final ClubConfigService clubs = mock(ClubConfigService.class);
     final MemberIdentityAccess census = mock(MemberIdentityAccess.class);
-    final MeController controller = new MeController(identities, clubs, mock(AccountService.class), mock(PasswordService.class),
+    final AccountService accounts = mock(AccountService.class);
+    final MeController controller = new MeController(identities, clubs, accounts, mock(PasswordService.class),
             mock(TokenService.class), mock(OnboardingService.class), mock(IdentityTransactions.class), mock(RefreshCookies.class), census);
 
     @BeforeEach void setUp() {
@@ -74,5 +76,22 @@ class MeControllerSurvivors3Test {
         when(clubs.get(CLUB)).thenReturn(new ClubConfig(null, Map.of(), Set.of(), null, Map.of()));
 
         assertThat(me().paymentMethod()).isNull();
+    }
+
+    @Test void T_17_09_R_17_10_theSupportBootstrapSaysWhetherThePlatformAccountHasAPassword() {
+        when(clubs.get(CLUB)).thenReturn(new ClubConfig(null, Map.of(), Set.of(), null, Map.of()));
+        var support = new CurrentUser.Support("grant-1", "platform-1", "Pat Support", NOW.plusSeconds(3_600));
+        var jwt = Jwt.withTokenValue("eyJ.fictional.sig").header("alg", "RS256").subject("platform-1").claim("azp", "clubs-admin")
+                .claim("clubId", CLUB).claim("roles", List.of("ADMIN")).claim("support", true).build();
+        for (var hash : new String[] {"fictional-password-hash", null}) {
+            when(accounts.active("platform-1")).thenReturn(new Account("platform-1", "pat.support@example.test", "Pat Support", "ca", hash,
+                    Set.of(Account.PlatformRole.AGILITYHUB_ADMIN), Account.Status.ACTIVE, null, Map.of(), false, NOW));
+            try (var scope = CurrentUser.open(new CurrentUser("platform-1", "Pat Support", null, DomainEvent.Origin.BACKOFFICE, support))) {
+                var me = controller.me(jwt);
+
+                assertThat(me.account().hasPassword()).as("hash " + hash).isEqualTo(hash != null);
+                assertThat(me.support()).isEqualTo(new MeResponse.Support("Pat Support", NOW.plusSeconds(3_600)));
+            }
+        }
     }
 }

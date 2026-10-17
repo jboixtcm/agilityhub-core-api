@@ -1,0 +1,1262 @@
+[
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts|lambda$seatTaken$5|(Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntry;)Z|184|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::lambda$seatTaken$5|13|4",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the mutant skips the early return at BookingNotificationFacts.java:184 only when every live entry has `notifiedAt == null`; such entries are never NOTIFIED (the only NOTIFIED writer, WaitlistTransitions.java:72-73, sets `notifiedAt = now`), so :185 takes no lock and writes nothing and the `lost` filter at :189 (`notifiedAt != null`) is empty: the same Optional.empty() without any write"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts|lambda$seatTaken$7|(Ljava/lang/String;)Ljava/util/List;|186|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/BookingNotificationFacts::lambda$seatTaken$7|12|3",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the lambda's list (the ids `WaitlistTransitions#demoteIfFull` demoted) goes back through BookingTransactions#write to the statement at BookingNotificationFacts.java:186, which drops it; the lock and the demotion still run, and :187 re-reads the entries"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.api.BookingsController|adminOnly|()Z|74|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 `adminOnly()` runs only in `leaveWaitlist` (BookingsController.java:298), an authenticated bearer route (SecurityConfiguration.java:79) where CurrentUserFilter.java:42 always opens a `CurrentUser` (SecurityConfiguration.java:111), so `user` is never null; with a user the mutated `user == null` test differs only for an impersonation, whose authorities are ROLE_MEMBER only (CurrentUserFilter.java:40, SecurityConfiguration.java:88-89), so the ROLE_ADMIN match is false either way"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.api.BookingsController|instructorOnly|()Z|59|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 `instructorOnly()` runs only in `cancelBooking` (BookingsController.java:221), an authenticated bearer route (SecurityConfiguration.java:79) where CurrentUserFilter.java:42 always opens a `CurrentUser` (the filter runs on every request, SecurityConfiguration.java:111; only a request without a bearer skips it, CurrentUserFilter.java:23), so `user` is never null; with a user the mutated `user == null` test differs only for an impersonation, whose authorities are ROLE_MEMBER only (CurrentUserFilter.java:40, SecurityConfiguration.java:88-89), so the ROLE_INSTRUCTOR match is false either way"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.CardPayments|chargeRun|(Ljava/lang/String;)Lcom/agilityhub/core/payments/application/ports/CardChargingPort$Result;|53|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|27|5",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `<=` adds an iteration only when `start == size` (0, 25, 50\u2026), where `subList(size, min(size + 25, size))` is empty, so `execute` is never called and nothing else happens"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PackBalanceService|lambda$refund$9|(Ljava/lang/String;Lcom/agilityhub/core/payments/persistence/PackBalance$Movement;)Z|130|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/PackBalanceService::lambda$refund$9|19|7",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 `refund` finds the pack by `movements.bookingId` (BillingDocuments.java:361-362); only CONSUME (PackBalanceService.java:114) and REFUND (line 131) movements carry a bookingId (OPEN/ADJUST/EXPIRE pass null; MemberPlanChangeService.java:36 copies movements unchanged) and a REFUND returns at line 129, so the found pack always holds the booking's CONSUME and the predicate answering true leaves `noneMatch` false exactly as the real one does"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PackBalanceService|refund|(Ljava/lang/String;)Ljava/lang/String;|130|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/application/PackBalanceService::refund|52|17",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data (NO_COVERAGE) \u2014 the `return null` of line 130 never runs: a pack found by `movements.bookingId` without a REFUND for the booking (line 129) always holds that booking's CONSUME (only CONSUME and REFUND movements carry a bookingId, PackBalanceService.java:114,131)"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|entityType|(Lcom/agilityhub/core/payments/persistence/PaymentOperation;)Ljava/lang/String;|384|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/application/PaymentRefunds::entityType|9|3",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with the current callers: entityType has four call sites (reverse:402, reverse:408, settled:443, settled:448) and each passes only a REFUND_LATE command (lateOperation filters kind REFUND_LATE; the other two are guarded by \"REFUND_LATE\".equals(operation.kind())), so the \"Invoice\" return never runs"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|intervene|(Lcom/agilityhub/core/payments/persistence/UpfrontPayment;J)V|158|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|6|0",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent: owed > 0 vs owed >= 0 differ only for owed == 0 with stripe != null and no interventionAt; every caller passes owed > 0 (compensateRemaining:137, credit:146 and credit:154 run only after the due <= 0 return at :131) except compensateRemaining:130, which calls intervene only when the obligation read from upfront.compensation(id) already has interventionAt (the operations.byKey fallback always has null), so the same read inside intervene makes .map(interventionAt).isEmpty() false"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$compensate$12|(Ljava/lang/String;ZLjava/lang/String;)Ljava/lang/Object;|109|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|26|7",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises a cancellation compensation with admin refunds, webhooks and executions on the payment's intent (upfront.lock(paymentId) already serialises the row) and is not observable single-threaded. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$credited$29|(Lcom/agilityhub/core/payments/persistence/PendingCharge;)Z|293|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|8|2",
+    "status": "NO_COVERAGE",
+    "reason": "reason: equivalent: < 0 vs <= 0 differ only for a zero-amount charge, whose mapped value -0 = 0 equals the orElse(0L) default, so credited() returns 0 either way (and consumption() already stops a zero charge before compensateRemaining)"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$execute$36|(Lcom/agilityhub/core/payments/application/PaymentRetryPolicy$Execution;Lcom/agilityhub/core/payments/persistence/PaymentOperation;Ljava/lang/String;Lcom/agilityhub/core/payments/application/PaymentProvider$RefundResult;)Ljava/lang/Object;|342|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|11|2",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises recording the provider's answer (completed/providerStatus) with a concurrent refund webhook reconcile on the same intent; the claim fence execution.fence() and the resultId == null re-read are unchanged, so single-threaded nothing differs. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$execute$38|(Lcom/agilityhub/core/payments/persistence/PaymentOperation;Ljava/lang/String;)V|350|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|7|1",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises the exhausted command's release with a concurrent reconcile on the same intent, reconsiderCompensation:218 locks the same intent again in this transaction, and single-threaded providerStatus and the recomputation are unchanged. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$intentLedger$26|(Lcom/agilityhub/core/payments/persistence/PendingCharge;)Z|259|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|8|2",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent: < 0 vs <= 0 differ only for a zero-amount charge, which under the mutant becomes a Row with credited = -0 = 0 (billed possibly true); PaymentIntentLedger uses credited/billed only in allocate (protected credit = credited = 0), creditReductions (min(credited, excess) = 0) and balance (adds 0), and reportOverpayment requires credited > 0, so no output changes"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$invoice$4|(Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;Ljava/lang/String;Ljava/lang/String;)Lcom/agilityhub/core/payments/application/PaymentRefunds$Accepted;|46|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|50|13",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: StripeRefundRepository.lockIntent only upserts the fence document stripe_refunds/{clubId}:intent:{intent} (sequence+1), which carries no intent/amount/status so forIntent/pending never read it; it serialises this invoice reservation with concurrent reservations, refund webhooks and command executions on the collection's PaymentIntent (Mongo write conflict) and is not observable single-threaded (the IdempotentOperation lock and the invoice version check are unchanged). Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$lateBooking$34|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;)Ljava/lang/Object;|313|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|12|1",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises lateBooking with compensate/reconcile on the late reference's intent (upfront.lock(paymentId) on the previous line serialises the row) and is not observable single-threaded: the byKey(\"late:\"+reference) and compensated() checks are unchanged. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$reportOverpayment$16|(Lcom/agilityhub/core/payments/domain/PaymentIntentLedger$Row;)Z|206|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|10|3",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent: a row is billed only when its credit is non-null with an invoiceId, and intentLedger:258-261 keeps a credit only if amountMinor < 0, so billed implies credited = -amount > 0; credited() >= 0 and credited() > 0 select the same rows"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$upfront$6|(Ljava/lang/String;Lcom/agilityhub/core/payments/persistence/PaymentOperation;)Z|60|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::lambda$upfront$6|7|2",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with the current caller: the filter differs from true only if byKey(key) returns a command of another target, but the only caller UpfrontPaymentsController:79 builds the key as \"upfront-refund:\" + id + \":\" + idempotencyKey, keys are unique per club (index clubId+key) and payment ids are UUIDs (no ':'), so a command with this key always targets this payment"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$upfront$7|(Lcom/agilityhub/core/payments/persistence/UpfrontPayment$Refund;)J|70|org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator|replaced long return with 0 for com/agilityhub/core/payments/application/PaymentRefunds::lambda$upfront$7|6|2",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent: the refunded sum (and the settled list) only feed remaining = paid - refunded - pending at reserve:82, which for kind REFUND_UPFRONT (the only kind upfront() passes) is unconditionally overwritten at reserve:85 by intentLedger(reference).withoutReservation(id).freeFor(id); the value is never read otherwise"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|lambda$upfront$8|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;Ljava/lang/String;)Lcom/agilityhub/core/payments/application/PaymentRefunds$Accepted;|64|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|83|27",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (no intent/amount/status, never read by forIntent/pending); it serialises this upfront reservation with compensations, refund webhooks and executions on the same PaymentIntent (upfront.lock(id) on the next line serialises the row itself) and is not observable single-threaded. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|late|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;)V|98|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|19|4",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises late() with lateBooking/reconcile on the late capture's intent and is not observable single-threaded (the byKey(\"late:\"+reference) check, backed by the unique key index, is unchanged). Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|reconcile|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;Ljava/lang/String;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/String;)Z|361|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|6|0",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending); it serialises deliveries of different refunds of the same intent with each other and with reservations/executions (refundStates.lock(refundId) on the next line serialises deliveries of the same refund); single-threaded the reconciliation is unchanged. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|reconsiderCompensation|(Ljava/lang/String;)V|218|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|6|0",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending) to serialise writers on the intent, and here it is also redundant: every caller of reconsiderCompensation (upfront:64, compensate:109, execute's exhausted callback:350, reconcile:361) has already locked the same intent in the same transaction. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|reconsiderLate|(Lcom/agilityhub/core/payments/persistence/PaymentOperation;)V|232|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/UpfrontPaymentRepository::lock|34|9",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: UpfrontPaymentRepository.lock only increments paymentSequence, a field nothing reads (only inc(\"paymentSequence\") exists in src/main); it serialises concurrent writers of this upfront row (the late-intervention warning vs compensation/intervention writes) and is not observable single-threaded. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|settled|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/String;)Z|433|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/payments/persistence/StripeRefundRepository::lockIntent|6|0",
+    "status": "SURVIVED",
+    "reason": "reason: lock call: lockIntent only upserts the intent fence document (never read by forIntent/pending) to serialise writers on the intent, and here it is also redundant: settled's only production caller is reconcile (PaymentRefunds:375), which locked the same intent at :361 in the same transaction. Its only other effect is the tenant write counter bump of TenantWriteTracking (R-18-17), which every caller's transaction also makes through its other writes."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.MagicLinkService|lambda$sendAdminInvitation$0|(Lcom/agilityhub/core/identity/persistence/Account;)Z|53|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/identity/application/MagicLinkService::lambda$sendAdminInvitation$0|14|4",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data (defensive filter) \u2014 no production writer stores an Account status other than ACTIVE (Account.Status.BLOCKED/MERGED/ERASED are never assigned in src/main; AccountService, SignupIdentityService and LearnImportService create ACTIVE accounts), so `status()==ACTIVE` is always true."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.domain.InvoicingRules|own|(Lcom/agilityhub/core/payments/domain/InvoicingRules$Member;Ljava/time/YearMonth;Ljava/time/LocalDate;Lcom/agilityhub/core/payments/domain/InvoicingRules$Settings;Lcom/agilityhub/core/payments/domain/InvoicingRules$Sources;Lcom/agilityhub/core/payments/domain/InvoicingRules$Describer;Z)Lcom/agilityhub/core/payments/domain/InvoicingRules$Outcome;|205|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|126|39",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `> 1` and `>= 1` differ only at `cashPeriodMonths = 1`; the block runs only for a due member (`periodic`, so `nextInvoiceDate` \u2264 the end of M), where the semester branch gives `cashMonths(M, next, 1) = [M]` and `invoiceDay(periodEnd(M, 1) + 1 month) = invoiceDay(M + 1)`: the same months and the same next date as the monthly branch"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoScenarioSeeder|offer|(Lcom/agilityhub/core/clubs/bookings/persistence/Booking;Ljava/time/Instant;)I|123|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|57|17",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 with `free == 0` and an ACTIVE entry the mutant calls `waitlist.offerSeats(id, 0)`, which writes nothing and returns 0 (WaitlistService.java:168-169: `WaitlistRules.toNotify` answers 0 for `freeSeats <= 0`, WaitlistRules.java:39; only the class's seat lock is taken), the same 0 the original returns"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|headers|(Ljava/util/List;Ljava/lang/String;F)V|108|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/clubs/bookings/application/WeekAgendaPdf$Pages::page|13|0",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 without the call `stream` is still null and `y` is still 0 when the first `row` runs; every render calls `row` at least once (each start time, or the empty-week row at WeekAgendaPdf.java:64) and its break test `0 \u2212 height \u00b7 9.5 < 48` (line 127) is then true, so that `row` calls `page()` with the same headers, hour label and column width `headers` has just stored, before drawing anything: the document is identical"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|page|()V|120|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont|158|30",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 a redundant `Tf`: line 118 (`stream.setFont(font, 8)` before the hour label of the same page) has just set the same font at the same size in the same content stream and nothing in between changes it; font and size are text-state parameters that persist across `BT`/`ET` (ISO 32000-1 \u00a79.3.1) and PDFBox's `showText` only needs a font on its font stack, so every header renders identically (same argument as line 132)."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|row|(Ljava/lang/String;Ljava/util/List;F)V|127|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|24|5",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `y` never makes `y \u2212 height \u00b7 9.5` equal 48: `page()` sets y = 595.2756 \u2212 64 \u2212 12 \u2212 4 \u2212 9.5 = 505.7756 (landscape A4 height 210 mm in points, WeekAgendaPdf.java:40,117,123) and every later change is a multiple of 0.5 (`height \u00b7 9.5` and 3, line 136), so `y \u2212 height \u00b7 9.5` always has the fraction .2756 or .7756 (accumulated float error is far below 0.27 for the few hundred rows a week has), and `<` and `<=` agree"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createAccountIdentificationSEPAMandate|()Lcom/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate;|57|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createAccountIdentificationSEPAMandate|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createAmendmentInformationDetailsSDD|()Lcom/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD;|81|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createAmendmentInformationDetailsSDD|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createBranchAndFinancialInstitutionIdentificationSEPA2|()Lcom/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA2;|97|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createBranchAndFinancialInstitutionIdentificationSEPA2|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createCashAccountSEPAMandate|()Lcom/agilityhub/core/payments/sepa/generated/CashAccountSEPAMandate;|121|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCashAccountSEPAMandate|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createCategoryPurposeSEPA|()Lcom/agilityhub/core/payments/sepa/generated/CategoryPurposeSEPA;|129|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCategoryPurposeSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createCreditorReferenceInformationSEPA1|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1;|137|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceInformationSEPA1|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createCreditorReferenceTypeCodeSEPA|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeCodeSEPA;|153|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceTypeCodeSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createCreditorReferenceTypeSEPA|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA;|145|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createCreditorReferenceTypeSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createDateAndPlaceOfBirth|()Lcom/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth;|169|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createDateAndPlaceOfBirth|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createFinancialInstitutionIdentificationSEPA2|()Lcom/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA2;|209|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createFinancialInstitutionIdentificationSEPA2|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createGenericAccountIdentificationSEPA|()Lcom/agilityhub/core/payments/sepa/generated/GenericAccountIdentificationSEPA;|65|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createGenericAccountIdentificationSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createGenericPersonIdentification1|()Lcom/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1;|225|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createGenericPersonIdentification1|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createOrganisationIdentificationSchemeName1Choice|()Lcom/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice;|273|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createOrganisationIdentificationSchemeName1Choice|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createPartyIdentificationSEPA4|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4;|321|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPartyIdentificationSEPA4|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createPersonIdentificationSEPA1Choice|()Lcom/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice;|361|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPersonIdentificationSEPA1Choice|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createPersonIdentificationSchemeName1Choice|()Lcom/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice;|377|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPersonIdentificationSchemeName1Choice|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createPostalAddressSEPA|()Lcom/agilityhub/core/payments/sepa/generated/PostalAddressSEPA;|393|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPostalAddressSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createPurposeSEPA|()Lcom/agilityhub/core/payments/sepa/generated/PurposeSEPA;|401|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createPurposeSEPA|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ObjectFactory|createStructuredRemittanceInformationSEPA1|()Lcom/agilityhub/core/payments/sepa/generated/StructuredRemittanceInformationSEPA1;|425|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ObjectFactory::createStructuredRemittanceInformationSEPA1|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.StripeWebhooks|lambda$handle$2|()Lcom/agilityhub/core/shared/domain/ApiException;|100|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$2|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: equivalent (NO_COVERAGE) \u2014 the supplier's null makes `orElseThrow` throw a NullPointerException instead of `ApiException(NOT_FOUND)`; `handle` runs only inside `process`, `BillingTransactions.run` rethrows both (neither is a write conflict) and `process`'s `catch (RuntimeException deferred)` (line 74) treats them identically (failed attempt, FAILED event); the exception type never escapes or is logged"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.StripeWebhooks|lambda$handle$3|()Lcom/agilityhub/core/shared/domain/ApiException;|111|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/StripeWebhooks::lambda$handle$3|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: equivalent (NO_COVERAGE) \u2014 same as line 100: an unknown session for `setup_intent.succeeded` throws NPE instead of `ApiException(NOT_FOUND)`, and `process` takes the same deferred path (line 74) for any RuntimeException"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.LearnImportService|preview|(Lcom/agilityhub/core/identity/persistence/Account;Ljava/util/List;Ljava/lang/String;Z)Lcom/agilityhub/core/identity/persistence/Account;|106|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|63|16",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the preview Account's passwordHash is never read: after a preview row the account carries that row's learnUserId, so a later row with the same email is either already linked (ALREADY_IMPORTED / PLATFORM_ADMIN_GRANTED, lines 79-82) or an EMAIL_CONFLICT (line 70), never the hash-based reason of line 83; the dry-run report is identical."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.ReceiptPdf|wrap|(Lorg/apache/pdfbox/pdmodel/font/PDFont;Ljava/lang/String;F)Ljava/util/List;|110|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|69|15",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 this is the `width \u00d7 SIZE / 1000 > width` boundary (the `line.length() > 0` one is killed by ReceiptPdfSurvivorsTest#T_12_20_aSingleWordWiderThanTheColumnStaysOnOneLineWithItsAmount); `>` and `>=` differ only at exactly 389.27563 (A4 595.2756 \u2212 2\u00d748 \u2212 110), but Liberation Sans advances are multiples of 1000/2048 = 0.48828125 units, so the rendered width moves in steps of ~0.0049 pt (nearest reachable 389.2725 and 389.2773), far above float error: equality cannot occur for any text"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider|lambda$expire$10|(Lcom/stripe/StripeClient;Ljava/util/Optional;Ljava/lang/String;)Lcom/stripe/model/checkout/Session;|149|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$expire$10|15|6",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the lambda's value only flows back through `StripeCalls.call` to `expire`, which is `void` and discards it; the Stripe `expire` call has already run when the null is returned"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.stripe.StripePaymentProvider|lambda$forgetCustomer$9|(Lcom/stripe/StripeClient;Ljava/lang/String;)Lcom/stripe/model/Customer;|137|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/stripe/StripePaymentProvider::lambda$forgetCustomer$9|13|4",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the lambda's value only flows back through `StripeCalls.call` to `forgetCustomer`, which is `void` and discards it; the provider call has already run when the null is returned, so nothing observable changes"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|allocate|(JLjava/util/List;Ljava/util/Map;Ljava/util/Map;)J|143|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|24|4",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the extra tier 3 has `protectedCredit = 0`, like tier 2; after tier 2 either `amount` is 0 or every row's capacity is 0 (each took `min(amount, capacity)`, capacities never go negative), so every tier-3 part is 0 and only merges zeros into keys that already exist"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|claims|()Ljava/util/Map;|42|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|48|11",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 for `owed == 0` the mutant calls `current.withClaims(Map.of(id, 0))`, which removes claims with this id (none: `current` starts `withoutClaims()` and only earlier, distinct interventions \u2014 keys of a LinkedHashMap, PaymentRefunds.java:278 \u2014 were added) and adds nothing for a zero; `current` keeps the same reservations and `claims` the same entries"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.domain.PaymentIntentLedger|reservationShares|(Ljava/lang/String;)Ljava/util/Map;|131|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|97|29",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `>= 0` additionally merges a remaining of 0 into the destination (`merge(id, 0, Long::sum)`); every reader of `reservationShares` (`share`, `settlementShares`) uses `getOrDefault(id, 0L)` and `allocate` has already merged a (possibly 0) part for every row, so the values are unchanged"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingViews|lambda$dog$7|(Ljava/lang/String;)Ljava/lang/IllegalStateException;|151|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingViews::lambda$dog$7|8|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data \u2014 a booking's or a waiting-list entry's dog is read in the same tenant and the census never deletes a dog (no Dog removal in src/main; BookingViews.java:146-149), so the IllegalStateException supplier at BookingViews.java:151 is never called; even then the mutant only turns one internal error (500) into another (NPE)"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.BillingRunService|lambda$rollback$10|(Lcom/agilityhub/core/payments/persistence/Collection;Lcom/agilityhub/core/payments/persistence/Collection;)Lcom/agilityhub/core/payments/persistence/Collection;|211|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$10|4|0",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data (NO_COVERAGE) \u2014 the `(a, b) -> b` accumulator runs only when a COLLECTING receipt has two attempts in the run's remittance R; the run writes exactly one per remitted receipt (lines 117-120, R a fresh UUID at line 102, `forNextRun` lists each receipt once), and R-12-17 (the only other writer of an R attempt) moves the receipt to FAILED, skipped at line 210"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.BillingRunService|lambda$rollback$9|(Lcom/agilityhub/core/payments/persistence/Remittance;Lcom/agilityhub/core/payments/persistence/Collection;)Z|211|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/BillingRunService::lambda$rollback$9|8|3",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 at a rollback past its blockers (lines 186-188) a COLLECTING receipt of the run's remittance R has R's attempt as its latest document (`forInvoice` sorts by attempt, createdAt, BillingDocuments.java:223-226; the remitted attempt is the previous last + 1, `remittedAttempt`); the only later writer that keeps it COLLECTING is `CardPayments.retry`, whose SUBMITTED STRIPE attempt is a rollback blocker (lines 258-261), so dropping the remittance filter picks the same attempt"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookableClassesQuery|lambda$bookable$2|()Lcom/agilityhub/core/shared/domain/ApiException;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookableClassesQuery::lambda$bookable$2|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data \u2014 the chip's dog comes from MemberDogs#chips (BookableClassesQuery.java:46-48): the tenant's dogs of the member and of their ACTIVE family group (BookingMemberAccess.java:61-75); BookingMemberAccess#member (BookingMemberAccess.java:29-31) is empty only for a null, unknown, other-club or erased id, members are never deleted and nothing in src/main writes `Member.erasedAt` (Member.java:66 is only read), so the DOG_NOT_ACCESSIBLE supplier at BookableClassesQuery.java:49 is never called"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookableClassesQuery|lambda$select$9|(Ljava/util/List;)Ljava/util/Optional;|72|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Optional.empty for com/agilityhub/core/clubs/bookings/application/BookableClassesQuery::lambda$select$9|8|3",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 lambda$select$9 is the own-dog fallback `() -> chips.stream().filter(Chip::own).findFirst()` (batch 9 report: $10 is the next `.or`); MemberDogs#chips sorts own dogs first (MemberDogs.java:31, `comparing(c -> !c.own())`), so whenever an own chip exists it is also the first chip and the next fallback `.or(() -> chips.stream().findFirst())` at BookableClassesQuery.java:72 returns the same dog; without an own chip both answer the first chip"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts|reminder|(Lcom/agilityhub/core/clubs/messaging/application/ports/NotificationTrigger;)Ljava/util/Optional;|232|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|89|28",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 the mutant differs only when the booking is missing (then `booking.memberId()` is evaluated eagerly as `requireNonNullElse`'s default \u2192 NPE) or when the trigger has no `memberId`; ReminderDue is published only by RemindersJob.java:71-74, with the `bookingId` of an existing booking (bookings are never deleted) and its `memberId` and `dogId`; training reminders carry `trainingBookingId` instead and stop at BookingNotificationFacts.java:224"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts|reminder|(Lcom/agilityhub/core/clubs/messaging/application/ports/NotificationTrigger;)Ljava/util/Optional;|234|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|114|36",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 the mutant differs only when the booking is missing (then `booking.dogId()` is evaluated eagerly as `requireNonNullElse`'s default \u2192 NPE) or when the trigger has no `dogId`; ReminderDue is published only by RemindersJob.java:71-74, with the `bookingId` of an existing booking (bookings are never deleted) and its `memberId` and `dogId`; training reminders carry `trainingBookingId` instead and stop at BookingNotificationFacts.java:224"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|render|(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B|64|org.pitest.mutationtest.engine.gregor.mutators.MathMutator|Replaced float subtraction with addition|330|90",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 on an empty week the value is only the `width` of the single-column `pages.row` (WeekAgendaPdf.java:64), and `row` uses `width` only as `c * width` for the x of column c (WeekAgendaPdf.java:130) with c = 0, so x is MARGIN + HOUR_WIDTH + 3 = 79 whether the finite width is W \u2212 64 \u2212 44, W + 64 \u2212 44 or W \u2212 64 + 44; nothing else reads it (the row height comes from the line counts)"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|render|(Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/util/Locale;)[B|64|org.pitest.mutationtest.engine.gregor.mutators.MathMutator|Replaced float subtraction with addition|332|90",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 on an empty week the value is only the `width` of the single-column `pages.row` (WeekAgendaPdf.java:64), and `row` uses `width` only as `c * width` for the x of column c (WeekAgendaPdf.java:130) with c = 0, so x is MARGIN + HOUR_WIDTH + 3 = 79 whether the finite width is W \u2212 64 \u2212 44, W + 64 \u2212 44 or W \u2212 64 + 44; nothing else reads it (the row height comes from the line counts)"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf|wrap|(Lorg/apache/pdfbox/pdmodel/font/PDFont;Ljava/lang/String;F)Ljava/util/List;|149|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|56|11",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `getStringWidth` sums the embedded font's `W` widths, which PDFBox's Type0 embedder stores as integers in 1/1000 em (Liberation Sans' 2048-unit advances \u00d7 1000/2048, rounded), so the left side `k \u00b7 7.5/1000` is a multiple of 0.0075 pt; the only call (WeekAgendaPdf.java:58) passes `columnWidth \u2212 6` = (841.8898 \u2212 108)/days \u2212 6 (WeekAgendaPdf.java:40,48), i.e. 116.31496 pt (6 days) or 98.84140 pt (7 days: Monday\u2013Saturday plus Sunday only with items, WeekAgendaQuery.java:86), at least 0.0011 pt from the nearest multiple of 0.0075 (116.3175 / 98.8425), far above the float error of the sum, so `>` and `>=` agree"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder|lambda$history$7|(Ljava/time/LocalDate;)Lcom/agilityhub/core/clubs/bookings/application/NoShowNoticeClaims$Claim;|139|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$history$7|7|1",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the lambda's `NoShowNoticeClaims.Claim` is returned by BookingContext#asOf to the statement at DemoAttendanceSeeder.java:139, which drops it; the claim itself still runs at the same instant"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder|lambda$mark$10|(Lcom/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder$Staff;Ljava/lang/String;Ljava/util/List;)Ljava/util/Map;|157|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$10|36|9",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the lambda's map (`AttendanceSheetService#save`'s sheet) is returned by BookingContext#asOf and DemoSeedActor#as to `mark` (DemoAttendanceSeeder.java:153-159), a void method that drops it; the save itself still runs with the same arguments"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder|lambda$mark$11|(Ljava/time/Instant;Lcom/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder$Staff;Ljava/lang/String;Ljava/util/List;)Ljava/util/Map;|154|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$11|13|1",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the lambda's map (the saved sheet) is returned by DemoSeedActor#as to `mark` (DemoAttendanceSeeder.java:153-159), a void method that drops it; the inner `asOf` work and the save still run"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoAttendanceSeeder|lambda$mark$9|()Lcom/agilityhub/core/shared/domain/ApiException;|156|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/DemoAttendanceSeeder::lambda$mark$9|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable \u2014 the class id comes from `sessions.slot(..)` filtered ACTIVE at DemoAttendanceSeeder.java:111 in the same demo transaction, and InstructorScheduleAccess#find (InstructorScheduleAccess.java:37) is empty only for a null or unknown id, so the NOT_FOUND supplier at DemoAttendanceSeeder.java:156 is never called"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.TeamMembershipService|lambda$requireActive$6|(Lcom/agilityhub/core/identity/persistence/Account;)Z|57|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/identity/application/TeamMembershipService::lambda$requireActive$6|14|4",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data (defensive filter) \u2014 no production writer stores an Account status other than ACTIVE (see MagicLinkService:53), so the filter never removes the account."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.api.BookingsController|memberId|(Lorg/springframework/security/oauth2/jwt/Jwt;)Ljava/lang/String;|65|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent with real data \u2014 every caller of `memberId(jwt)` (BookingsController.java:90-318) is an authenticated bearer route (SecurityConfiguration.java:79) where CurrentUserFilter.java:42 always opens a `CurrentUser` (SecurityConfiguration.java:111), so `user != null` holds and the mutant answers the JWT's `memberId` claim in every case; for an impersonation that claim is the impersonated member: the impersonation JWT carries `memberId = impersonatedMemberId` (ImpersonationService.java:71-72) and `validate` builds the impersonation from that same grant member after checking the claim (ImpersonationService.java:118,128)"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.api.BookingsController|staff|()Z|69|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data \u2014 `staff()` runs only in `booking`, `waitlistEntry` and `leaveWaitlist` (BookingsController.java:198,285,301), authenticated bearer routes (SecurityConfiguration.java:79) where CurrentUserFilter.java:42 always opens a `CurrentUser` (SecurityConfiguration.java:111), so `user` is never null; with a user the mutated `user == null` test differs only for an impersonation, whose authorities are ROLE_MEMBER only (CurrentUserFilter.java:40, SecurityConfiguration.java:88-89), so the ROLE_ADMIN/ROLE_INSTRUCTOR match is false either way"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.MembershipService|suspend|(Ljava/lang/String;)Lcom/agilityhub/core/identity/persistence/Membership;|42|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/identity/application/MembershipService::suspend|7|1",
+    "status": "SURVIVED",
+    "reason": "reason: result discarded \u2014 the only caller, ConsoleAdministrators.remove (line 54), ignores the returned Membership and answers snapshot()."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Map::clear|11|2",
+    "status": "SURVIVED",
+    "reason": "reason: test support in main code \u2014 `FakePaymentProvider` is a `@Profile(\"(local | test) & !staging & !prod\")` bean and `reset()` has no caller in src/main (only PaymentCurlIT, CardPaymentsIT, CapturedPaymentInvariantsIT call it between scenarios); leaving one of its maps un-cleared changes no production behaviour"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Queue::clear|17|3",
+    "status": "SURVIVED",
+    "reason": "reason: test support in main code \u2014 `FakePaymentProvider` is a `@Profile(\"(local | test) & !staging & !prod\")` bean and `reset()` has no caller in src/main (only PaymentCurlIT, CardPaymentsIT, CapturedPaymentInvariantsIT call it between scenarios); leaving one of its queues (`outcomes`, `refundRejections`) un-cleared changes no production behaviour"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Map::clear|20|4",
+    "status": "SURVIVED",
+    "reason": "reason: test support in main code \u2014 `FakePaymentProvider` is a `@Profile(\"(local | test) & !staging & !prod\")` bean and `reset()` has no caller in src/main (only PaymentCurlIT, CardPaymentsIT, CapturedPaymentInvariantsIT call it between scenarios); leaving one of its maps un-cleared changes no production behaviour"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.FakePaymentProvider|reset|()V|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/util/Queue::clear|32|5",
+    "status": "SURVIVED",
+    "reason": "reason: test support in main code \u2014 `FakePaymentProvider` is a `@Profile(\"(local | test) & !staging & !prod\")` bean and `reset()` has no caller in src/main (only PaymentCurlIT, CardPaymentsIT, CapturedPaymentInvariantsIT call it between scenarios); leaving one of its queues (`outcomes`, `refundRejections`) un-cleared changes no production behaviour"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.LearnCsv|read|(Ljava/lang/String;)Ljava/util/List;|26|org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator|Changed increment from 1 to -1|156|37",
+    "status": "MEMORY_ERROR",
+    "reason": "reason: PIT cannot evaluate (MEMORY_ERROR, never credited) \u2014 `i++` -> `i--` on a CRLF steps back onto the CR and loops forever until the minion's heap is exhausted; the CRLF behaviour is asserted by LearnCsvTest.T_01_14_csvSupportsBomCrLfQuotedNamesEscapedQuotesAndMultilineFields, which never ends under this mutant."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.StripeWebhookSignatures|valid|(Ljava/lang/String;[BLjava/lang/String;Ljava/time/Instant;)Z|76|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|47|7",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `separator == 0` gives the part name \"\" (line 77), which is neither `t` nor `v1`, so the part is skipped whether by `continue` or by falling through both branches"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|validate|([B)V|120|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to javax/xml/validation/Validator::setProperty|11|1",
+    "status": "SURVIVED",
+    "reason": "reason: defence-in-depth XML hardening \u2014 duplicates the SchemaFactory's settings (secure processing and `ACCESS_EXTERNAL_DTD = \"\"`, lines 58-59) that the JDK validator inherits, and the only caller (SepaRemittanceWriter.java:103-104) validates the output of `write`, which never emits a DOCTYPE; not observable in-process"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|validate|([B)V|121|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to javax/xml/validation/Validator::setProperty|17|2",
+    "status": "SURVIVED",
+    "reason": "reason: defence-in-depth XML hardening \u2014 duplicates the factory's `ACCESS_EXTERNAL_SCHEMA = \"\"` (line 60), and a Schema built by `newSchema(URL)` validates against its fixed grammar pool only (no `xsi:schemaLocation` fetch); the only caller validates `write`'s own output, so not observable in-process"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.sepa.Pain008Document|write|(Lcom/agilityhub/core/payments/domain/SepaDirectDebits$File;)[B|98|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to jakarta/xml/bind/Marshaller::setProperty|213|66",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the JAXB Marshaller's default `JAXB_ENCODING` is UTF-8 and `JAXB_FRAGMENT` suppresses the declaration (the fixed `DECLARATION` is prepended, line 104), so the marshalled bytes, decoded as UTF-8 at line 103, are identical"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingConsumers|lambda$modulesChanged$0|(Ljava/lang/String;)Ljava/lang/Object;|43|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/clubs/bookings/persistence/SeatLockRepository::lock|6|0",
+    "status": "SURVIVED",
+    "reason": "reason: lock call \u2014 SeatLockRepository.lock only upserts seat_locks/{classId} with version+1, a document nothing reads; it serialises this recount with concurrent bookings of the same class (E5-T08) and is not observable single-threaded: the recount that follows writes the same counters with or without it (its only other effect, the tenant write counter bump, the recount's own write also makes). The loop is reachable: both ClubModulesChanged producers (ClubSettingsService.updateModule and the console's PlatformClubChanges.modules) feed it."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingConsumers|switchedOn|(Ljava/util/Map;Ljava/lang/String;)Z|48|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingConsumers::switchedOn|29|5",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data (defensive check) \u2014 both ClubModulesChanged producers (ClubSettingsService.java:117-118 and PlatformClubChanges.java:85-88) always send `{diff: {modules: {before, after}}}` and the handler is registered only for that type (BookingConsumers.java:108-111), so the missing-diff/modules `return false` at BookingConsumers.java:48 is never reached"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.OidcService|scope|(Ljava/lang/String;)Lcom/agilityhub/core/shared/application/TenantContext$Scope;|231|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/identity/application/OidcService::scope|22|7",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 every caller uses `scope(...)` as a try-with-resources resource (lines 143, 162, 198); Java skips close() on a null resource, and the replaced `() -> { }` closes nothing."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.ConsoleAdministrators|invite|(Ljava/lang/String;Ljava/lang/String;)Lcom/agilityhub/core/platform/application/ConsoleAdministratorAccess$Change;|31|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/shared/application/TeamWriteLock::lock|5|0",
+    "status": "SURVIVED",
+    "reason": "reason: lock call \u2014 TeamWriteLock.lock (InstructorRepository.lock) only upserts team_write_locks with sequence+1, a document nothing reads; it serialises this invitation with the club's other team writers (R-17-09) and is not observable single-threaded (the tenant write counter it bumps is bumped by the invitation's own writes too)."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.domain.SepaText|of|(Ljava/lang/String;I)Ljava/lang/String;|22|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|11|2",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 at `length == max` the mutant returns `clean.substring(0, max).stripTrailing()` = `clean.stripTrailing()` = `clean`, because `transliterate` already ends with `strip()` (line 33)"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.CompromisedPasswords|contains|(Ljava/lang/String;)Z|50|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|98|28",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 index 98 is the null check of the finally copy javac emits on the normal-return path (before the catch handlers at 122+): there pending was assigned before get() returned, so it is never null and already done; the original skips cancel because it is done, the mutant skips it because it is non-null."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.CompromisedPasswords|contains|(Ljava/lang/String;)Z|47|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/identity/application/CompromisedPasswords::warn|122|36",
+    "status": "SURVIVED",
+    "reason": "reason: logging only \u2014 `warn()` only writes the 'check unavailable' WARN line; the fail-open `false` (A2) is unchanged."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.CompromisedPasswords|contains|(Ljava/lang/String;)Z|49|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to com/agilityhub/core/identity/application/CompromisedPasswords::warn|148|43",
+    "status": "SURVIVED",
+    "reason": "reason: logging only \u2014 `warn()` only writes the 'check unavailable' WARN line; the fail-open `false` (A2) is unchanged."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.CompromisedPasswords|contains|(Ljava/lang/String;)Z|47|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator|replaced boolean return with false for com/agilityhub/core/identity/application/CompromisedPasswords::contains|140|42",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the mutant replaces `return false` (InterruptedException branch) with `return false`."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.CompromisedPasswords|contains|(Ljava/lang/String;)Z|49|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator|replaced boolean return with false for com/agilityhub/core/identity/application/CompromisedPasswords::contains|166|49",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the mutant replaces `return false` (unavailable/timeout branch) with `return false`."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistService|offerNext|(Ljava/lang/String;Ljava/lang/String;)I|151|org.pitest.mutationtest.engine.gregor.mutators.returns.PrimitiveReturnsMutator|replaced int return with 0 for com/agilityhub/core/clubs/bookings/application/WaitlistService::offerNext|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the only production caller, the `waitlist.WaitlistExpired` consumer (WaitlistConsumers.java:42), ignores the count, `offerNext` implements no port and no scheduler/CLI/console code calls it (WaitlistIT only asserts the 0 of offers that make none); the offer itself (`transitions.notify` + `WaitlistNotified`) is asserted by WaitlistServiceSurvivorsTest#T_08_34_aWaitlistExpiredDeliveryNeverExpiresTheEntryAgainAndOffersTheSeatToTheNextUnderTheLock"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.ClassBookingsAdapter|lambda$byClass$3|(Ljava/lang/String;)Ljava/util/List;|40|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyList for com/agilityhub/core/clubs/bookings/application/ClassBookingsAdapter::lambda$byClass$3|6|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable \u2014 `byClass` pre-fills an empty list for every requested class (ClassBookingsAdapter.java:39) and its rows come from `forClasses(classIds, ..)`, a `classSessionId $in classIds` query (BookingRepository.java:38-41), so the `computeIfAbsent` supplier at ClassBookingsAdapter.java:40 is never called"
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.HandoffService|exchange|(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/agilityhub/core/identity/application/TokenService$Tokens;|48|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/identity/application/HandoffService::exchange|31|12",
+    "status": "NO_COVERAGE",
+    "reason": "reason: equivalent \u2014 `invalid(...)` records HANDOFF_INVALID and always throws ApiException(HANDOFF_INVALID) (lines 74-77), so the replaced return value is never produced."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.MigrationIdentityService|lambda$preview$0|(Lcom/agilityhub/core/identity/persistence/Membership;)Ljava/lang/Boolean;|21|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced Boolean return with True for com/agilityhub/core/identity/application/MigrationIdentityService::lambda$preview$0|15|5",
+    "status": "SURVIVED",
+    "reason": "reason: unreachable with real data (defensive check) \u2014 Membership.Status.ERASED is only ever read, never written (no ERASED assignment or update in src/main), so `m.status()!=ERASED` is always true."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingContext|asOf|(Ljava/time/Instant;Ljava/util/function/Supplier;)Ljava/lang/Object;|29|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|20,40|3,8",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent with the current callers \u2014 the negated `previous == null` differs only when an `asOf` scope opens inside another; in an outermost scope it does `asOf.set(null)` instead of `remove()` and `now()` reads null either way (BookingContext.java:20,29); no caller nests `asOf`: the only callers (ArchUnit BOOKING_TIME_OVERRIDE) are DemoMembers.java:80,87,90, DemoScenarioSeeder.java:123, DemoAttendanceSeeder.java:119,139,154 and DemoBillingBookingsSeeder.java:39, whose work only calls application services"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingContext|asOf|(Ljava/time/Instant;Ljava/util/function/Supplier;)Ljava/lang/Object;|29|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to java/lang/ThreadLocal::set|50,30|6,11",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with the current callers \u2014 `asOf.set(previous)` runs only when a scope opens inside another (previous != null, BookingContext.java:29); no caller nests `asOf` (the same Demo* callers as the NegateConditionals row of this line, whose work only calls application services)"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WaitlistTransitions|expire|(Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntry;Ljava/time/Instant;)Lcom/agilityhub/core/clubs/bookings/persistence/WaitlistEntry;|80|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/WaitlistTransitions::expire|17|3",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 `expire` is package-private (no port contract) and both callers ignore the returned entry: WaitlistService.java:159 (`ifPresent(e -> transitions.expire(e, now))`) and WaitlistFifoJob.java:51 (it then reads `e`, the entry it passed in); the expiry itself is the `waitlist.update` write, asserted by WaitlistTransitionsSurvivorsTest#T_08_21_aFifoExpiryWritesTheExpiredEntryWithoutItsOfferMark"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingOwners|lambda$checkout$4|(Lcom/agilityhub/core/clubs/bookings/persistence/Booking;)Z|23|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingOwners::lambda$checkout$4|14|4",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 only a PAYMENT_PENDING booking ever carries a `checkoutUrl`: it is written only under the seat lock while PAYMENT_PENDING (BookingConfirmationService.java:133-140), created charges have none (:77,85), and every way out of PAYMENT_PENDING clears it (success: `Charge(.., now, null)` at :176-177; cancellation: `Booking.Charge.settled` at BookingCancellationService.java:133,176), so the state filter at BookingOwners.java:23 adds nothing to the `checkoutUrl != null` filter at :24"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.WeekAgendaPdf$Pages|row|(Ljava/lang/String;Ljava/util/List;F)V|132|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to org/apache/pdfbox/pdmodel/PDPageContentStream::setFont|107|23",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 a redundant `Tf`: line 128 (`stream.setFont(font, SIZE)` before the start time of the same row) has just set the same font at the same size in the same content stream and nothing in between changes it; the text font and size are text-state parameters of the graphics state that persist across `BT`/`ET` (ISO 32000-1 \u00a79.3.1; `BT` only resets the text matrices), and PDFBox's `showText` only needs a font on its `fontStack`, which `endText` does not pop, so every `Tj` renders with the same font and size and the page looks identical"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingChecks|lambda$subject$3|()Lcom/agilityhub/core/shared/domain/ApiException;|35|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingChecks::lambda$subject$3|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data \u2014 `census.member(dog.memberId())` (BookingChecks.java:35) is empty only for a null, unknown, other-club or erased member (BookingMemberAccess.java:29-31); the dog was read in the tenant and names a member of the same club, members are never deleted and nothing in src/main writes `Member.erasedAt` (Member.java:66 is only read), so the DOG_NOT_ACCESSIBLE supplier is never called"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingChecks|lambda$subject$4|()Lcom/agilityhub/core/shared/domain/ApiException;|36|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/clubs/bookings/application/BookingChecks::lambda$subject$4|7|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: unreachable with real data \u2014 the booker is the token's member (non-null, required at BookingChecks.java:32; for an impersonation the impersonated member, ImpersonationService.java:71), a member of the token's club; `census.member` is empty only for an unknown or erased member (BookingMemberAccess.java:29-31), members are never deleted and nothing in src/main writes `Member.erasedAt` (Member.java:66 is only read), so the MEMBER_NOT_ACTIVE supplier at BookingChecks.java:36 is never called"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getCdtr|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA5;|275|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getCdtrAcct|()Lcom/agilityhub/core/payments/sepa/generated/CashAccountSEPA1;|299|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrAcct|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getCdtrAgt|()Lcom/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA3;|323|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrAgt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getCdtrSchmeId|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA3;|395|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCdtrSchmeId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getChrgBr|()Lcom/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode;|371|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getChrgBr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getCtrlSum|()Ljava/math/BigDecimal;|203|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getCtrlSum|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getNbOfTxs|()Ljava/lang/String;|179|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getNbOfTxs|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getPmtInfId|()Ljava/lang/String;|107|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtInfId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getPmtMtd|()Lcom/agilityhub/core/payments/sepa/generated/PaymentMethod2Code;|131|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtMtd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getPmtTpInf|()Lcom/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD;|227|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getPmtTpInf|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getReqdColltnDt|()Ljavax/xml/datatype/XMLGregorianCalendar;|251|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getReqdColltnDt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|getUltmtCdtr|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1;|347|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::getUltmtCdtr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|isBtchBookg|()Ljava/lang/Boolean;|155|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator|replaced Boolean return with False for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::isBtchBookg|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentInstructionInformationSDD|isBtchBookg|()Ljava/lang/Boolean;|155|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced Boolean return with True for com/agilityhub/core/payments/sepa/generated/PaymentInstructionInformationSDD::isBtchBookg|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.AesGcmCipher|decrypt|(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;|49|org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator|changed conditional boundary|17|3",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 `<=` and `<` differ only for exactly 12 decoded bytes; the mutant then decrypts an empty ciphertext, which AES/GCM `doFinal` rejects with `AEADBadTagException` (shorter than the 16-byte tag), a `GeneralSecurityException` caught at line 54 into the same `IllegalStateException(subject + \" decryption failed\")` as the `IllegalArgumentException` of line 49"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingCancellationService|lambda$seatReleased$4|(Lcom/agilityhub/core/clubs/bookings/persistence/Booking;Lcom/agilityhub/core/clubs/bookings/persistence/Booking;)Z|153|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/clubs/bookings/application/BookingCancellationService::lambda$seatReleased$4|16|6",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent \u2014 the cancelled booking is written CANCELLED/CANCELLED_LATE by `bookings.update` (BookingCancellationService.java:133; BookingRepository#update throws STALE_VERSION instead of skipping, BookingRepository.java:130-135) before `seatReleased` reads `forClass(.., LIVE)` (BookingCancellationService.java:144,153), which matches ACTIVE/PAYMENT_PENDING only (BookingRepository.java:20,33-35), so the read never returns it and the `!x.id().equals(b.id())` filter is a no-op"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getChrgBr|()Lcom/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode;|137|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getChrgBr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getDbtr|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2;|233|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getDbtrAcct|()Lcom/agilityhub/core/payments/sepa/generated/CashAccountSEPA2;|257|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtrAcct|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getDbtrAgt|()Lcom/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA3;|209|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDbtrAgt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getDrctDbtTx|()Lcom/agilityhub/core/payments/sepa/generated/DirectDebitTransactionSDD;|161|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getDrctDbtTx|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getInstdAmt|()Lcom/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyAndAmountSEPA;|113|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getInstdAmt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getPmtId|()Lcom/agilityhub/core/payments/sepa/generated/PaymentIdentificationSEPA;|89|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getPmtId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getPurp|()Lcom/agilityhub/core/payments/sepa/generated/PurposeSEPA;|305|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getPurp|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getRmtInf|()Lcom/agilityhub/core/payments/sepa/generated/RemittanceInformationSEPA1Choice;|329|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getRmtInf|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getUltmtCdtr|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1;|185|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getUltmtCdtr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionInformationSDD|getUltmtDbtr|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1;|281|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionInformationSDD::getUltmtDbtr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.AttendanceConsumers|lambda$classUpdated$0|(Ljava/lang/String;Lcom/agilityhub/core/clubs/scheduling/application/InstructorScheduleAccess$ClassView;)Ljava/lang/Long;|41|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced Long return value with 0L for com/agilityhub/core/clubs/bookings/application/AttendanceConsumers::lambda$classUpdated$0|14|5",
+    "status": "NO_COVERAGE",
+    "reason": "reason: discarded result \u2014 the lambda's `Long` (the `AttendanceRepository#refreshClass` count) only travels through BookingTransactions#write into the `ifPresent` consumer at AttendanceConsumers.java:41, a statement that drops it; `refreshClass` itself still runs with the same arguments"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.AttendanceCallers|lambda$resolve$0|(Ljava/lang/String;Lcom/agilityhub/core/clubs/catalogs/application/PlanningCatalogAccess$InstructorRef;)Z|21|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator|replaced boolean return with false for com/agilityhub/core/clubs/bookings/application/AttendanceCallers::lambda$resolve$0|7|2",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent with real data \u2014 the `instructorId` claim (TokenService.java:225, Membership.instructorId) is only assigned by the team role flow on the membership of the instructor's own census member (RoleAssignmentService.java:92-106 resolve it with `instructors.forMember(member.memberId())`; every other Membership writer only copies the old value), so it always comes with that member's `memberId` claim; Instructor.memberId is unique per club (InstructorRepository.java:15), so the member fallback at AttendanceCallers.java:22-23 finds the same instructor the claim names (impersonation tokens carry no `instructorId`, ImpersonationService.java:71-72)"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingEvents|belowMinimum|(Ljava/lang/String;IILcom/agilityhub/core/clubs/bookings/application/BookingActor;)Ljava/lang/String;|26|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/BookingEvents::belowMinimum|47|13",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the only caller, BookingCounters.java:36, calls `events.belowMinimum(..)` as a statement; the ClassBelowMinimum event is still published unchanged, only the returned outbox id is replaced"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.BookingEvents|publish|(Lcom/agilityhub/core/clubs/bookings/domain/BookingEvent$Kind;Ljava/lang/String;Ljava/util/Map;Lcom/agilityhub/core/clubs/bookings/application/BookingActor;)Ljava/lang/String;|21|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/clubs/bookings/application/BookingEvents::publish|37|10",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 every caller of BookingEvents#publish uses it as a statement (BookingConfirmationService.java:97,149, SeatHoldService.java:52,90, BookingCancellationService.java:143,160, WaitlistService.java:69,97,182, WaitlistTransitions.java:37); the event is still published unchanged, only the returned outbox id is replaced"
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.application.DemoBillingBookingsSeeder|lambda$seed$0|(Lcom/agilityhub/core/clubs/scheduling/application/ClassSessionService$Slot;Lcom/agilityhub/core/clubs/bookings/persistence/Booking;Lcom/agilityhub/core/shared/application/DemoSeedStep$Input;)Ljava/util/Map;|39|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyMap for com/agilityhub/core/clubs/bookings/application/DemoBillingBookingsSeeder::lambda$seed$0|28|7",
+    "status": "SURVIVED",
+    "reason": "reason: discarded result \u2014 the lambda's map (`AttendanceSheetService#save`'s sheet) is returned by BookingContext#asOf to the statement at DemoBillingBookingsSeeder.java:39-40, which drops it; the save still runs with the same arguments"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.application.PaymentRefunds|settled|(Ljava/lang/String;Ljava/lang/String;Lcom/agilityhub/core/shared/domain/Money;Ljava/time/Instant;Ljava/lang/String;Ljava/lang/String;)Z|494|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced boolean return with true for com/agilityhub/core/payments/application/PaymentRefunds::settled|587|173",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent: line 494 is reached only with amount > 0 (guard :471) and no row already holding the refund (:477); settlementShares then either throws REFUND_EXCEEDS_PAID or allocates the whole positive amount (its second, tier-2 allocate covers whatever the first left, since the remaining capacity is at least that) across the rows of upfront.forIntent(intent), the same list as payments, so some part > 0 and changed is already true"
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|getAmdmntInfDtls|()Lcom/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD;|138|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getAmdmntInfDtls|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|getDtOfSgntr|()Ljavax/xml/datatype/XMLGregorianCalendar;|90|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getDtOfSgntr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|getElctrncSgntr|()Ljava/lang/String;|162|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getElctrncSgntr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|getMndtId|()Ljava/lang/String;|66|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::getMndtId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|isAmdmntInd|()Ljava/lang/Boolean;|114|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator|replaced Boolean return with False for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::isAmdmntInd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.MandateRelatedInformationSDD|isAmdmntInd|()Ljava/lang/Boolean;|114|org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator|replaced Boolean return with True for com/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD::isAmdmntInd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.application.GrantPlatformAdminCommand|lambda$run$1|(Ljava/lang/String;)Ljava/util/Set;|25|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptySet for com/agilityhub/core/identity/application/GrantPlatformAdminCommand::lambda$run$1|7|1",
+    "status": "SURVIVED",
+    "reason": "reason: result discarded \u2014 the lambda's Set<String> only flows back through IdentityTransactions.run to `run`, which ignores it and prints a fixed line; roles.grant has already run."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD|getCreDtTm|()Ljavax/xml/datatype/XMLGregorianCalendar;|91|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getCreDtTm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD|getCtrlSum|()Ljava/math/BigDecimal;|139|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getCtrlSum|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD|getInitgPty|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1;|163|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getInitgPty|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD|getMsgId|()Ljava/lang/String;|67|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getMsgId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GroupHeaderSDD|getNbOfTxs|()Ljava/lang/String;|115|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GroupHeaderSDD::getNbOfTxs|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD|getCtgyPurp|()Lcom/agilityhub/core/payments/sepa/generated/CategoryPurposeSEPA;|133|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getCtgyPurp|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD|getLclInstrm|()Lcom/agilityhub/core/payments/sepa/generated/LocalInstrumentSEPA;|85|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getLclInstrm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD|getSeqTp|()Lcom/agilityhub/core/payments/sepa/generated/SequenceType1Code;|109|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getSeqTp|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentTypeInformationSDD|getSvcLvl|()Lcom/agilityhub/core/payments/sepa/generated/ServiceLevel;|61|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentTypeInformationSDD::getSvcLvl|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth|getBirthDt|()Ljavax/xml/datatype/XMLGregorianCalendar;|62|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getBirthDt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth|getCityOfBirth|()Ljava/lang/String;|110|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getCityOfBirth|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth|getCtryOfBirth|()Ljava/lang/String;|134|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getCtryOfBirth|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DateAndPlaceOfBirth|getPrvcOfBirth|()Ljava/lang/String;|86|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth::getPrvcOfBirth|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD|getOrgnlCdtrSchmeId|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4;|83|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlCdtrSchmeId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD|getOrgnlDbtrAcct|()Lcom/agilityhub/core/payments/sepa/generated/CashAccountSEPAMandate;|107|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlDbtrAcct|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD|getOrgnlDbtrAgt|()Lcom/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA2;|131|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlDbtrAgt|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AmendmentInformationDetailsSDD|getOrgnlMndtId|()Ljava/lang/String;|59|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AmendmentInformationDetailsSDD::getOrgnlMndtId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.api.CheckoutContracts$CheckoutSessionRequest|extended|()Z|28|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "NO_COVERAGE",
+    "reason": "reason: PIT run error, never credited: the minion exits abnormally on this one mutant in the integration supplement (161) and in the targeted run (197); the behaviour it breaks (both ids null -> not extended) is asserted by CheckoutContractsSurvivors3Test#T_12_16_aCheckoutRequestIsExtendedOnlyByABookingOrUpfrontPayments, which kills the line's other two mutants."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2|getId|()Lcom/agilityhub/core/payments/sepa/generated/PartySEPAChoice;|103|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2|getNm|()Ljava/lang/String;|55|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA2|getPstlAdr|()Lcom/agilityhub/core/payments/sepa/generated/PostalAddressSEPA;|79|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA2::getPstlAdr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CustomerDirectDebitInitiationV02|getGrpHdr|()Lcom/agilityhub/core/payments/sepa/generated/GroupHeaderSDD;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CustomerDirectDebitInitiationV02::getGrpHdr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1|getId|()Ljava/lang/String;|55|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1|getIssr|()Ljava/lang/String;|103|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getIssr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericPersonIdentification1|getSchmeNm|()Lcom/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice;|79|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1::getSchmeNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA|getAdrLine|()Ljava/util/List;|91|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA|getAdrLine|()Ljava/util/List;|94|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Collections.emptyList for com/agilityhub/core/payments/sepa/generated/PostalAddressSEPA::getAdrLine|18|3",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PostalAddressSEPA|getCtry|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PostalAddressSEPA::getCtry|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1|getId|()Ljava/lang/String;|55|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1|getIssr|()Ljava/lang/String;|103|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getIssr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericOrganisationIdentification1|getSchmeNm|()Lcom/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice;|79|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1::getSchmeNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionSDD|getCdtrSchmeId|()Lcom/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA3;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionSDD::getCdtrSchmeId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DirectDebitTransactionSDD|getMndtRltdInf|()Lcom/agilityhub/core/payments/sepa/generated/MandateRelatedInformationSDD;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DirectDebitTransactionSDD::getMndtRltdInf|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.SequenceType1Code|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/SequenceType1Code;|38|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/SequenceType1Code::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.SequenceType1Code|value|()Ljava/lang/String;|34|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/SequenceType1Code::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeSEPA|getCdOrPrtry|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeCodeSEPA;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA::getCdOrPrtry|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeSEPA|getIssr|()Ljava/lang/String;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA::getIssr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentMethod2Code|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/PaymentMethod2Code;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PaymentMethod2Code::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentMethod2Code|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentMethod2Code::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartySEPAChoice|getOrgId|()Lcom/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSEPAChoice;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPAChoice::getOrgId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartySEPAChoice|getPrvtId|()Lcom/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPAChoice::getPrvtId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentIdentificationSEPA|getEndToEndId|()Ljava/lang/String;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentIdentificationSEPA::getEndToEndId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PaymentIdentificationSEPA|getInstrId|()Ljava/lang/String;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PaymentIdentificationSEPA::getInstrId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA4|getId|()Lcom/agilityhub/core/payments/sepa/generated/PartySEPA2;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA4|getNm|()Ljava/lang/String;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA4::getNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA5|getNm|()Ljava/lang/String;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA5::getNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA5|getPstlAdr|()Lcom/agilityhub/core/payments/sepa/generated/PostalAddressSEPA;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA5::getPstlAdr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA1|getId|()Lcom/agilityhub/core/payments/sepa/generated/PartySEPAChoice;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA1|getNm|()Ljava/lang/String;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA1::getNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RestrictedSMNDACode|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RestrictedSMNDACode|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceInformationSEPA1|getRef|()Ljava/lang/String;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1::getRef|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceInformationSEPA1|getTp|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeSEPA;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1::getTp|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ChargeBearerTypeSEPACode|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ChargeBearerTypeSEPACode|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ChargeBearerTypeSEPACode::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSchemeName1Choice|getCd|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSchemeName1Choice|getPrtry|()Ljava/lang/String;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSchemeName1Choice::getPrtry|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSEPA|getId|()Ljava/lang/String;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSEPA::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSEPA|getSchmeNm|()Lcom/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSchemeNameSEPA;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSEPA::getSchmeNm|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.IdentificationSchemeNameSEPA|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.IdentificationSchemeNameSEPA|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA1Choice|getDtAndPlcOfBirth|()Lcom/agilityhub/core/payments/sepa/generated/DateAndPlaceOfBirth;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice::getDtAndPlcOfBirth|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA1Choice|getOthr|()Lcom/agilityhub/core/payments/sepa/generated/GenericPersonIdentification1;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA1Choice::getOthr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSEPAChoice|getBICOrBEI|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSEPAChoice::getBICOrBEI|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OrganisationIdentificationSEPAChoice|getOthr|()Lcom/agilityhub/core/payments/sepa/generated/GenericOrganisationIdentification1;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/OrganisationIdentificationSEPAChoice::getOthr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OthrIdentificationCode|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/OthrIdentificationCode;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/OthrIdentificationCode::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OthrIdentificationCode|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/OthrIdentificationCode::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyCodeEUR|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyCodeEUR|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyAndAmountSEPA|getCcy|()Lcom/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyCodeEUR;|73|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyAndAmountSEPA::getCcy|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ActiveOrHistoricCurrencyAndAmountSEPA|getValue|()Ljava/math/BigDecimal;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/ActiveOrHistoricCurrencyAndAmountSEPA::getValue|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSchemeName1Choice|getCd|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSchemeName1Choice|getPrtry|()Ljava/lang/String;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSchemeName1Choice::getPrtry|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RemittanceInformationSEPA1Choice|getStrd|()Lcom/agilityhub/core/payments/sepa/generated/StructuredRemittanceInformationSEPA1;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/RemittanceInformationSEPA1Choice::getStrd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RemittanceInformationSEPA1Choice|getUstrd|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/RemittanceInformationSEPA1Choice::getUstrd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA1|getCcy|()Ljava/lang/String;|75|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA1::getCcy|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA1|getId|()Lcom/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPA;|51|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA1::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DocumentType3CodeSEPA|fromValue|(Ljava/lang/String;)Lcom/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA;|32|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA::fromValue|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.DocumentType3CodeSEPA|value|()Ljava/lang/String;|28|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA::value|5|1",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA3|getBIC|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA3::getBIC|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA3|getOthr|()Lcom/agilityhub/core/payments/sepa/generated/OthrIdentification;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA3::getOthr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPAMandate|getIBAN|()Ljava/lang/String;|53|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate::getIBAN|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPAMandate|getOthr|()Lcom/agilityhub/core/payments/sepa/generated/GenericAccountIdentificationSEPA;|77|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate::getOthr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.LocalInstrumentSEPA|getCd|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/LocalInstrumentSEPA::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartyIdentificationSEPA3|getId|()Lcom/agilityhub/core/payments/sepa/generated/PartySEPA2;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartyIdentificationSEPA3::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PurposeSEPA|getCd|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/PurposeSEPA::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.RestrictedPersonIdentificationSchemeNameSEPA|getPrtry|()Lcom/agilityhub/core/payments/sepa/generated/IdentificationSchemeNameSEPA;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSchemeNameSEPA::getPrtry|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.GenericAccountIdentificationSEPA|getId|()Lcom/agilityhub/core/payments/sepa/generated/RestrictedSMNDACode;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/GenericAccountIdentificationSEPA::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA3|getFinInstnId|()Lcom/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA3;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA3::getFinInstnId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.BranchAndFinancialInstitutionIdentificationSEPA2|getFinInstnId|()Lcom/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA2;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/BranchAndFinancialInstitutionIdentificationSEPA2::getFinInstnId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CategoryPurposeSEPA|getCd|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/CategoryPurposeSEPA::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CreditorReferenceTypeCodeSEPA|getCd|()Lcom/agilityhub/core/payments/sepa/generated/DocumentType3CodeSEPA;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CreditorReferenceTypeCodeSEPA::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.Document|getCstmrDrctDbtInitn|()Lcom/agilityhub/core/payments/sepa/generated/CustomerDirectDebitInitiationV02;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/Document::getCstmrDrctDbtInitn|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PersonIdentificationSEPA2|getOthr|()Lcom/agilityhub/core/payments/sepa/generated/RestrictedPersonIdentificationSEPA;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA2::getOthr|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPAMandate|getId|()Lcom/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPAMandate;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPAMandate::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.AccountIdentificationSEPA|getIBAN|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPA::getIBAN|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.CashAccountSEPA2|getId|()Lcom/agilityhub/core/payments/sepa/generated/AccountIdentificationSEPA;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/CashAccountSEPA2::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.ServiceLevel|getCd|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/ServiceLevel::getCd|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.StructuredRemittanceInformationSEPA1|getCdtrRefInf|()Lcom/agilityhub/core/payments/sepa/generated/CreditorReferenceInformationSEPA1;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/StructuredRemittanceInformationSEPA1::getCdtrRefInf|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.PartySEPA2|getPrvtId|()Lcom/agilityhub/core/payments/sepa/generated/PersonIdentificationSEPA2;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/PartySEPA2::getPrvtId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.OthrIdentification|getId|()Lcom/agilityhub/core/payments/sepa/generated/OthrIdentificationCode;|49|org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator|replaced return value with null for com/agilityhub/core/payments/sepa/generated/OthrIdentification::getId|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.payments.sepa.generated.FinancialInstitutionIdentificationSEPA2|getBIC|()Ljava/lang/String;|47|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with \"\" for com/agilityhub/core/payments/sepa/generated/FinancialInstitutionIdentificationSEPA2::getBIC|5|0",
+    "status": "NO_COVERAGE",
+    "reason": "Generated JAXB optional factory/accessor not exercised by the supported pain.008 export fixtures; no hand-written business rule here. Retained as uncovered in the full denominator."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.api.MeController|lambda$me$1|(Lcom/agilityhub/core/identity/persistence/Membership;)Ljava/util/Optional;|62|org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator|replaced return value with Optional.empty for com/agilityhub/core/identity/api/MeController::lambda$me$1|8|2",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent (session 10's row at line 61, shifted by E10-T04) \u2014 the token subject is the grant's impersonated account (ImpersonationService.java:116), whose membership memberId equals the grant's impersonatedMemberId (:125), the id `current.impersonation().memberId()` carries (:129); MeController's `membership` is that account's, so the fallback `census.displayName(membership.memberId())` repeats the lookup that just returned empty; Optional.empty gives the same `account.name()`."
+  },
+  {
+    "identity": "com.agilityhub.core.identity.api.CurrentUserFilter|doFilterInternal|(Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Ljakarta/servlet/FilterChain;)V|48|org.pitest.mutationtest.engine.gregor.mutators.VoidMethodCallMutator|removed call to org/springframework/security/core/context/SecurityContext::setAuthentication|163|45",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent (session 10's row at line 40, shifted by E10-T04) \u2014 for an `imp` token SecurityConfiguration's authorities converter (SecurityConfiguration.java:90-92) already yields exactly [ROLE_MEMBER], so the incoming JwtAuthenticationToken has the same Jwt, name and authorities as the one line 48 installs; removing the call changes nothing a downstream check reads."
+  },
+  {
+    "identity": "com.agilityhub.core.clubs.bookings.api.InstructorController|memberId|(Lorg/springframework/security/oauth2/jwt/Jwt;)Ljava/lang/String;|61|org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator|negated conditional|8|1",
+    "status": "SURVIVED",
+    "reason": "reason: equivalent with real data \u2014 `memberId(jwt)` runs only in `memberHistory` (InstructorController.java:182), an authenticated bearer route (SecurityConfiguration.java:79) where CurrentUserFilter.java:42 always opens a `CurrentUser` (SecurityConfiguration.java:111), so `user != null` holds and the mutant answers the JWT's `memberId` claim in every case; for an impersonation that claim is the impersonated member (ImpersonationService.java:71-72, checked and built from the same grant member at :118,128)"
+  }
+]

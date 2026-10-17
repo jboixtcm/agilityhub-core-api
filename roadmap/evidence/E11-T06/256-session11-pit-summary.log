@@ -1,0 +1,6 @@
+| Package | unit 152 | merge 219 | gate 237 | killed by a triage test | not killed: reasons (statuses) |
+|---|---|---|---|---|---|
+| `bookings` | 1,284 / 2,109 (60.88 %) | 2,020 / 2,109 (95.78 %) | 2,069 / 2,109 (98.10 %) | 48 | reason NO_COVERAGE 9, reason SURVIVED 31 |
+| `identity` | 831 / 1,364 (60.92 %) | 1,316 / 1,364 (96.48 %) | 1,415 / 1,432 (98.81 %) | 37 | reason MEMORY_ERROR 1, reason NO_COVERAGE 1, reason SURVIVED 15 |
+| `payments` | 1,881 / 3,109 (60.50 %) | 2,867 / 3,109 (92.22 %) | 2,914 / 3,109 (93.73 %) | 47 | generated JAXB NO_COVERAGE 151, reason NO_COVERAGE 7, reason SURVIVED 37 |
+Not-killed rows by kind: {'reason': 101, 'generated JAXB': 151}

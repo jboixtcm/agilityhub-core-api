@@ -1,0 +1,162 @@
+heavy.sh: 12:20 waiting for the host lock, held by: 12:19 agilityhub-core-web: pnpm e2e:docker E9-W05 --workers=2
+heavy.sh: 12:25 got the host lock after 5 min 0 s
+12:25:33.148 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E8ContractIT]: E8ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:25:33.294 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E8ContractIT
+12:25:33.375 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:25:33.376 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:25:33.380 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+12:25:33.519 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:25:33.677 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:25:33.678 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:25:33.688 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:25:34.016 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+12:25:34.140 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:25:34.227 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 3237c0088a5e5901bb4d678a10612b5a8594dca9cb45349d0437c9fbe4fc44aa
+12:25:34.378 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.362085S
+12:25:34.382 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:25:34.382 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:25:34.382 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:25:34.383 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:25:34.414 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: a236868196da98d4c139b53f2d0d7d4f51ec771123bcf2aa72537bdcc1277eeb
+12:25:34.976 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.593317S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T12:25:35.716+03:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Starting E8ContractIT using Java [redacted] with PID 55623 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-17T12:25:35.718+03:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T12:25:37.080+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T12:25:37.128+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 45 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T12:25:37.556+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@7c215c9d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@4632eae3, com.mongodb.Jep395RecordCodecProvider@2b6693a5, com.mongodb.KotlinCodecProvider@2b2cf103]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:62989], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5d1f854f], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T12:25:37.563+03:00 INFO  [cluster-ClusterId{value='6ad33f111125e5f97c471735', description='null'}-localhost:62989] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:62989, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=14100459, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=a236868196da:27017, hosts=[a236868196da:27017], passives=[], arbiters=[], primary='a236868196da:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad33f0e70ea12861342d77a, counter=6}, lastWriteDate=Sat Oct 17 12:25:35 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T12:25:41.458+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T12:25:41.459+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T12:25:41.459+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 0 ms
+2026-10-17T12:25:41.498+03:00 INFO  [main] c.a.core.configuration.E8ContractIT traceId= clubId= accountId= : Started E8ContractIT in 6.009 seconds (process running for 8.858)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-17T12:25:42.723+03:00 WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/billing/periods/2026-09' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-17T12:25:58.256+03:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=95c19d1b-185b-4ed7-8b1f-3f3f2af30705 clubId=- accountId=- : Init duration for springdoc-openapi is: 2160 ms
+2026-10-17T12:25:59.152+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=53147167-500a-4d1e-bc19-5274f34388e5 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected status=400 code=VALIDATION_ERROR traceId=53147167-500a-4d1e-[redacted]
+2026-10-17T12:25:59.164+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7f78cac5-c40a-4c89-ab05-923c8ec59a6b clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=7f78cac5-c40a-4c89-[redacted]
+2026-10-17T12:25:59.176+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7f84b725-bf53-4bca-b3f2-759fbfafde58 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=7f84b725-[redacted]
+2026-10-17T12:25:59.188+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1c0e3d19-6ac0-477c-9897-266a03970fe7 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=1c0e3d19-6ac0-477c-9897-266a03970fe7
+2026-10-17T12:25:59.193+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f2c7e8f3-88c9-4e85-bf86-e535d1fe30b3 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=f2c7e8f3-88c9-4e85-[redacted]
+2026-10-17T12:25:59.230+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=851d9419-1659-4785-b36c-51e9d6a8577d clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=851d9419-1659-4785-b36c-51e9d6a8577d
+2026-10-17T12:25:59.459+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d9cc7833-21f3-4973-94a6-d012c96de43b clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=d9cc7833-21f3-4973-94a6-d012c96de43b
+2026-10-17T12:25:59.461+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=35f40052-85f1-48dc-8594-751bdaca81b2 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=35f40052-85f1-48dc-8594-751bdaca81b2
+2026-10-17T12:25:59.463+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d9a841e3-af93-47b0-adef-16e58783fa92 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=d9a841e3-[redacted]
+2026-10-17T12:25:59.465+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d0ea2ff4-ae99-4366-b2a0-384a92b9c8a6 clubId=e8-club-a accountId=e8-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=d0ea2ff4-[redacted]
+2026-10-17T12:25:59.486+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=fe1e743c-e072-41b0-8abe-efc3e7e3206a clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=fe1e743c-e072-41b0-8abe-efc3e7e3206a
+2026-10-17T12:25:59.488+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=dc4e12f2-38cd-4785-9fdd-5df185d3160a clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=dc4e12f2-38cd-4785-9fdd-5df185d3160a
+2026-10-17T12:25:59.490+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=40e9a2a9-9cea-4be3-ad9c-8a4ff620ee07 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=40e9a2a9-9cea-4be3-ad9c-8a4ff620ee07
+2026-10-17T12:25:59.492+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=48b0ddfa-d48a-4157-8fe2-c51f7c48a303 clubId=e8-club-a accountId=e8-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=48b0ddfa-d48a-4157-8fe2-c51f7c48a303
+2026-10-17T12:26:00.840+03:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=e7902ad7-e89d-4196-827d-353c6df97a99 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-17T12:26:00.877+03:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=c2e9c03d-47d3-4363-91ec-57eef8ba6520 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-17T12:26:00.888+03:00 WARN  [main] c.a.c.p.a.StripeWebhookSignatures traceId=db2863df-2911-4b59-aab5-f5617ed6b531 clubId=- accountId=- : Stripe webhook secret unusable: clubId=e8-club-b error=Provider secret decryption failed
+2026-10-17T12:26:01.743+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.SecurityInventoryIT]: SecurityInventoryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T12:26:01.744+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.SecurityInventoryIT
+2026-10-17T12:26:02.078+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=fdbc2eb1-3462-4309-9584-29ccf6a9891b clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=fdbc2eb1-3462-4309-9584-29ccf6a9891b
+2026-10-17T12:26:02.089+03:00 WARN  [main] o.s.b.a.a.m.OnlyOnceLoggingDenyMeterFilter traceId= clubId= accountId= : Reached the maximum number of 'uri' tags for 'http.server.requests'.
+2026-10-17T12:26:02.091+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7eb79af7-4732-4f26-b99e-479f0fe1ea4b clubId=security-inventory accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=7eb79af7-4732-4f26-b99e-479f0fe1ea4b
+2026-10-17T12:26:02.194+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7fc4e3aa-6be7-4519-a44b-1055bc9b619b clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=7fc4e3aa-6be7-4519-a44b-1055bc9b619b
+2026-10-17T12:26:02.255+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ff176fa6-05b3-4eca-b291-cd564e0dda72 clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-17T12:26:02.256+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=bbd0c5e2-4fc5-4da5-b15b-00951ae5d929 clubId=security-inventory accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=bbd0c5e2-4fc5-4da5-b15b-00951ae5d929
+2026-10-17T12:26:02.257+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f5a93e34-2733-49c8-a753-9f2e02aa9dcb clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=f5a93e34-2733-49c8-a753-9f2e02aa9dcb
+2026-10-17T12:26:02.262+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=cce19d37-511e-4ee5-a139-b55cab4a8e89 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=cce19d37-511e-4ee5-a139-b55cab4a8e89
+2026-10-17T12:26:02.262+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=b4e43aa4-89e8-4bc8-8eb7-bce19c06591c clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=b4e43aa4-89e8-4bc8-8eb7-bce19c06591c
+2026-10-17T12:26:02.324+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f763c85b-8acd-4ae2-a066-d48bed5ebddd clubId=- accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=f763c85b-8acd-4ae2-a066-d48bed5ebddd
+E11-T06 security inventory: 430 / 430 operations
+2026-10-17T12:26:02.340+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=324fe9e7-a897-4b20-874e-042b712d796b clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=324fe9e7-a897-4b20-874e-042b712d796b
+2026-10-17T12:26:02.341+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=4ee07fa3-d5c9-4c71-9969-0e4117b45ff4 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=4ee07fa3-d5c9-4c71-9969-0e4117b45ff4
+2026-10-17T12:26:02.343+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=a4749705-98dc-4af7-b224-3aaec5aba2b0 clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=a4749705-98dc-4af7-b224-3aaec5aba2b0
+2026-10-17T12:26:02.344+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=fdd814b2-1353-4d93-a198-b9654584fe1c clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=fdd814b2-1353-4d93-a198-b9654584fe1c
+2026-10-17T12:26:02.344+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6e8a229c-291c-47c8-9654-4fb00bff3baa clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=6e8a229c-291c-47c8-9654-4fb00bff3baa
+2026-10-17T12:26:02.345+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=a4735b09-0b50-4f35-bbb9-cd679d0f63cf clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=a4735b09-0b50-4f35-bbb9-cd679d0f63cf
+2026-10-17T12:26:02.346+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=5e36e473-267b-4e3b-8a2e-495498450bea clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=5e36e473-267b-4e3b-8a2e-495498450bea
+2026-10-17T12:26:02.346+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e075b753-b569-478f-beba-188a5369db9b clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=e075b753-b569-478f-beba-188a5369db9b
+2026-10-17T12:26:02.347+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=46a2ad8d-a869-4a2b-8d04-3cb4131240a3 clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=46a2ad8d-a869-4a2b-8d04-3cb4131240a3
+2026-10-17T12:26:02.348+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9a30a7fb-1e27-4dbf-ad0a-a8f4585784f2 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=9a30a7fb-1e27-4dbf-ad0a-a8f4585784f2
+2026-10-17T12:26:02.348+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=c9489ada-34b9-4628-b45f-755fa75d42e7 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=c9489ada-34b9-4628-b45f-755fa75d42e7
+2026-10-17T12:26:02.349+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9ac8d3bd-6d71-4fdd-8287-eb0d67db47bd clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=9ac8d3bd-6d71-4fdd-8287-eb0d67db47bd
+2026-10-17T12:26:02.349+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=22bcef6f-91e8-4570-a403-c10a93a178b3 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=22bcef6f-91e8-4570-a403-c10a93a178b3
+2026-10-17T12:26:02.350+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=35627fc0-b4b8-48d6-816e-0d3f50738c7f clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=35627fc0-b4b8-48d6-816e-0d3f50738c7f
+2026-10-17T12:26:02.351+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=549d8e88-fbaf-4b2e-9895-2b58ecdfed64 clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=549d8e88-fbaf-4b2e-9895-2b58ecdfed64
+PASS 430 published operations; 58 S12/S13 matrix rows
+| Method | Path | Roles | Module | Idempotency |
+|---|---|---|---|---|
+| GET | `/api/v1/billing/periods/{period}` | ADMIN | BILLING | False |
+| POST | `/api/v1/billing/simulations` | ADMIN | BILLING | False |
+| POST | `/api/v1/billing/runs` | ADMIN | BILLING | True |
+| GET | `/api/v1/billing/runs/{id}` | ADMIN | BILLING | False |
+| POST | `/api/v1/billing/runs/{id}/card-charges` | ADMIN | BILLING | True |
+| POST | `/api/v1/billing/runs/{id}/rollback` | ADMIN | BILLING | True |
+| GET | `/api/v1/remittances` | ADMIN | BILLING | False |
+| GET | `/api/v1/remittances/{id}` | ADMIN | BILLING | False |
+| GET | `/api/v1/remittances/{id}/file` | ADMIN | BILLING | False |
+| POST | `/api/v1/remittances/{id}/submission` | ADMIN | BILLING | True |
+| GET | `/api/v1/invoices` | ADMIN | BILLING | False |
+| GET | `/api/v1/invoices/{id}` | ADMIN | BILLING | False |
+| POST | `/api/v1/invoices` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/{id}/payment` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/payments` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/{id}/failure` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/{id}/retry` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/{id}/refund` | ADMIN | BILLING | True |
+| POST | `/api/v1/invoices/{id}/cancellation` | ADMIN | BILLING | True |
+| GET | `/api/v1/invoices/{id}/document` | ADMIN | BILLING | False |
+| GET | `/api/v1/me/invoices` | MEMBER | BILLING | False |
+| GET | `/api/v1/me/invoices/{id}` | MEMBER | BILLING | False |
+| GET | `/api/v1/me/invoices/{id}/document` | MEMBER | BILLING | False |
+| GET | `/api/v1/upfront-payments` | ADMIN | BILLING | False |
+| POST | `/api/v1/upfront-payments` | ADMIN | BILLING | True |
+| POST | `/api/v1/upfront-payments/{id}/refund` | ADMIN | BILLING | True |
+| GET | `/api/v1/checkout-sessions/{id}` | ANON, MEMBER, ADMIN | BILLING | False |
+| POST | `/api/v1/members/{id}/card-setup-link` | ADMIN | BILLING | True |
+| POST | `/api/v1/me/card-setup` | MEMBER | BILLING | True |
+| GET | `/api/v1/pack-balances` | ADMIN | PACKS | False |
+| GET | `/api/v1/me/pack-balances` | MEMBER | PACKS | False |
+| POST | `/api/v1/pack-balances` | ADMIN | PACKS | True |
+| POST | `/api/v1/pack-balances/{id}/adjustments` | ADMIN | PACKS | True |
+| GET | `/api/v1/members/{id}/pending-charges` | ADMIN | SINGLE_CLASS | False |
+| GET | `/api/v1/billing/exports` | ADMIN | BILLING | False |
+| POST | `/webhooks/stripe/{clubId}` | ANON | BILLING | False |
+| GET | `/api/v1/me/inactivity-periods` | MEMBER | INACTIVITY | False |
+| GET | `/api/v1/me/inactivity-periods/preview` | MEMBER | INACTIVITY | False |
+| POST | `/api/v1/me/inactivity-periods` | MEMBER | INACTIVITY | True |
+| PATCH | `/api/v1/me/inactivity-periods/{id}` | MEMBER | INACTIVITY | False |
+| POST | `/api/v1/me/inactivity-periods/{id}/cancellation` | MEMBER | INACTIVITY | False |
+| GET | `/api/v1/me/leave-requests` | MEMBER | none | False |
+| POST | `/api/v1/me/leave-requests` | MEMBER | none | True |
+| POST | `/api/v1/me/leave-requests/{id}/cancellation` | MEMBER | none | False |
+| GET | `/api/v1/inactivity-periods` | ADMIN | INACTIVITY | False |
+| GET | `/api/v1/inactivity-periods/{id}` | ADMIN | INACTIVITY | False |
+| POST | `/api/v1/inactivity-periods` | ADMIN | INACTIVITY | False |
+| POST | `/api/v1/inactivity-periods/{id}/decision` | ADMIN | INACTIVITY | False |
+| PATCH | `/api/v1/inactivity-periods/{id}` | ADMIN | INACTIVITY | False |
+| POST | `/api/v1/inactivity-periods/{id}/termination` | ADMIN | INACTIVITY | False |
+| POST | `/api/v1/inactivity-periods/{id}/cancellation` | ADMIN | INACTIVITY | False |
+| GET | `/api/v1/leave-requests` | ADMIN | none | False |
+| GET | `/api/v1/leave-requests/{id}` | ADMIN | none | False |
+| POST | `/api/v1/leave-requests/{id}/decision` | ADMIN | none | False |
+| POST | `/api/v1/members/{id}/leave` | ADMIN | none | False |
+| DELETE | `/api/v1/members/{id}/planned-leave` | ADMIN | none | True |
+| POST | `/api/v1/members/{id}/reactivation` | ADMIN | none | False |
+| POST | `/api/v1/members/{id}/plan-change` | ADMIN | BILLING | True |

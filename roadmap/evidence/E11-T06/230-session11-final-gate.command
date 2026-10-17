@@ -1,0 +1,1 @@
+python3 bin/mutation-gate --xml roadmap/evidence/E11-T06/pit/session11/final-mutations.xml --output roadmap/evidence/E11-T06/pit/session11/final-gate --minimum-bookings 70 --minimum-identity 75 --minimum-payments 80

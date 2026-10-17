@@ -1,0 +1,1 @@
+python3 roadmap/evidence/E11-T06/session6-triage.py --xml roadmap/evidence/E11-T06/pit/session11/gate-mutations.xml --decisions roadmap/evidence/E11-T06/pit/session11/decisions-all.json --output roadmap/evidence/E11-T06/pit/session11/triage.json

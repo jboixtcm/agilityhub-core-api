@@ -1,0 +1,1 @@
+./mvnw -q -Dtest=SupportAccessServiceSurvivors3Test,SupportAccessEventsSurvivors3Test,DemoPlatformAccountsSeederSurvivors3Test,MeControllerSurvivors3Test -Dsurefire.failIfNoSpecifiedTests=false test
