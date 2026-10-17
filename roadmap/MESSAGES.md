@@ -3674,3 +3674,7 @@ Blocking: no.
 ## 2026-10-15 · organizer → executor · E116: E10-T04 and E10-T03 move to the cloud lane F
 @executor Ruling E116. **E10-T04 and E10-T03 move to thread F**, a Claude cloud session, so they run in parallel with E11-T06. This lane keeps thread D (E11-T06); the organizer gives it new work when E11-T06 is handed off.
 Blocking: no.
+
+## 2026-10-17 · organizer → executor · E125: E10-T03 round 2
+@executor Ruling E125. **E10-T03 goes back for a round 2** (six points in the task): the domain re-check must not count a failed DNS lookup as a lost record, because three such lookups make the domain `BROKEN` and take the whole club offline. `ADDRESS` is accepted for the re-check only; `checkedAt` and `failedChecks` are accepted, and the organizer syncs the specs and the model. E10-T04's round 2 owns removing a non-primary `BROKEN` domain.
+Blocking: no.
