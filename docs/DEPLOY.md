@@ -399,9 +399,13 @@ unconditional `ask` responder. Only the local override uses `ask-stub:8080`, whi
 **Weekly re-check and `BROKEN` (S15 P9, R-17-03).** Every club's daily P9 `cleanup` re-checks the club's verified
 domains whose last check is `platform.domainRecheckDays` (7; `0` turns it off for that club) or more days old. A domain
 passes when its CNAME is still its app's product host or, for an apex domain, when it shares an address with that host.
-The run's trace lists each domain (`ClubDomain`, `RECHECK_DOMAIN`, outcome `CONFIRMED`, `FAILED`, `BROKEN` or `RESTORED`),
-with the counters `domainsRechecked`, `domainsBroken` and `domainsRestored`. On the **third failure in a row** the domain
-becomes `BROKEN`:
+The run's trace lists each domain (`ClubDomain`, `RECHECK_DOMAIN`, outcome `CONFIRMED`, `FAILED`, `BROKEN`, `RESTORED` or
+`SKIPPED`), with the counters `domainsRechecked`, `domainsBroken` and `domainsRestored`. Only an answer without the record
+(NXDOMAIN, no CNAME and no shared address, a CNAME elsewhere) is a failure. A lookup that gets no answer (a timeout,
+SERVFAIL, the `core` container without outbound DNS) is `SKIPPED` with `reason: LOOKUP_FAILED`, and an app's product host
+that resolves to no address is `SKIPPED` with `reason: PRODUCT_HOST_UNRESOLVED`. A skipped domain keeps its failure count
+and stays due, so the next day's run tries again. Many `SKIPPED` items in a row mean our resolver or our own DNS is broken,
+not the club's. On the **third failure in a row** the domain becomes `BROKEN`:
 
 - Caddy's ask refuses it, so no new certificate and no renewal.
 - `GET /branding` and every request with that `Host` answer `404 UNKNOWN_HOST`.
@@ -415,10 +419,23 @@ What to do on an N-43: ask the club to restore the record from step 2. The next 
 `VERIFIED` (`ClubDomainVerified`, audited), or the console's [Verifica] does it at once. A `BROKEN` apex domain also
 passes [Verifica] with its addresses (`method: ADDRESS`), because its TXT challenge is gone. Then repeat step 4.
 
+**Trusted domains before the DNS cutover (E10-T03 round 2).** `club:apply` with `trustedDomains` (the Cànic's
+`app.`/`admin.agilitycanic.cat`, `seeds/club-canic.yaml`) creates the domains `VERIFIED` without asking the DNS. The
+re-check then starts `platform.domainRecheckDays` after the apply, and three weekly failures make them `BROKEN`, which takes
+the club's hosts offline. So, on every environment where those hosts do not point at this droplet yet (before the ADR-008
+cutover, or a staging with another `CLUBS_HOST`), do one of these right after the apply:
+
+- **Verify them** once the records are in place: steps 2 and 3, or check by hand that `dig +short CNAME {host}` gives the
+  app's product host (or, for an apex domain, that `dig +short {host}` shares an address with it).
+- **Or turn the re-check off for that club** until the cutover: set `platform.domainRecheckDays` to `0` from the console
+  (D19 «Paràmetres», `PUT /api/v1/platform/clubs/{id}/parameters/platform.domainRecheckDays` with its `version` and a
+  reason) or with `parameters: {platform.domainRecheckDays: 0}` in the club's definition and `club:apply`. Set it back to
+  `7` on the cutover day, after the records point here; the first re-check then runs at the next P9.
+
 **Local rehearsal.** `bin/e10-smoke` (through `heavy.sh`) runs all of this on a disposable stack, with the fake resolver of
 the `local` profile (`POST /api/v1/test/dns` publishes the records; it exists only under `local`/`test`): a second club
-through the console, a CNAME and a TXT verification, then the re-check with the test clock moved a week at a time,
-through `BROKEN`, N-43 and `RESTORED`.
+through the console, a CNAME and a TXT verification, then the re-check with the test clock moved a week at a time: a
+resolver failure and an unresolved product host (`SKIPPED`, nothing counted), then `BROKEN`, N-43 and `RESTORED`.
 
 ### Environment inventory (source, purpose and rotation)
 

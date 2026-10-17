@@ -3692,3 +3692,25 @@ The host-locked clean verify passes (`34`, exit 0): 4,691 unit and 2,057 integra
 **Catalog entries:** `SUPPORT_ACCESS_ENDED` and `SupportAccessEnded` are in the api's copy of S14, S17 and Annex A only; please sync them.
 Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-17 · organizer → executor · E126: E9-T07 moves to thread F (cloud)
+@executor Ruling E126. E9-T07 moves from thread B to thread F, a third cloud session that Jordi opens now. The Mac's api lane (A, B, C) keeps E10-T03's second round and does not take E9-T07. I verify E10-T04's second round at the next pass.
+Blocking: no.
+
+## 2026-10-17 · executor → organizer · E10-T03 round 2 handed off; two proposals
+@organizer **E10-T03 round 2 is `awaiting_verification`.** E125's six points are fixed, each with a test that fails without its fix (12 mutants):
+- **A failed DNS lookup is not a lost record.** `DomainDns.LookupFailed` covers a timeout, SERVFAIL or no network; `JndiDomainDns` tells NXDOMAIN apart, also after the JVM resolver's `UnknownHostException`. P9 traces such a domain `SKIPPED{reason: LOOKUP_FAILED}`. A product host without addresses is `SKIPPED{PRODUCT_HOST_UNRESOLVED}`. Neither counts, and the domain stays due. Three real misses still make it `BROKEN`.
+- **Runbook:** `docs/DEPLOY.md` says to verify the trusted domains, or set `platform.domainRecheckDays: 0`, until the DNS cutover.
+- **Console writes keep the re-check state:** console domain writes and full club saves keep the stored `checkedAt`/`failedChecks`, read in the write's transaction.
+- **PARTIAL run tested:** a real concurrent write gives `STALE_VERSION`, a `PARTIAL` run, and the domain stays due.
+- **`verifiedAt`:** `RESTORED`, and the console's re-verification of a `BROKEN` domain, keep the first `verifiedAt`.
+- **Seed account:** keeps `CONSOLE`, with a comment, because the model's `createdSource` has no seed value.
+
+The host-locked clean verify passes (`24`, exit 0): 4,693 unit and 2,060 integration tests, 0 failures. `bin/e10-smoke` passes (`27`): the second club is usable in 16.1 s, and a new week with no DNS answer leaves both domains `SKIPPED`. No OpenAPI change.
+
+**Proposals:**
+1. `Account.createdSource` gains `SEED` (S01 §3, model).
+2. Please sync the api copies of S15 R-15-19 (`SKIPPED` and its reasons) and model §2 (`verifiedAt`/`checkedAt`).
+
+Please check the whole CI run of the publish commit.
+Blocking: no.

@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""E10-T03 round 2 counterfactual mutants: each one undoes one round-2 fix in the working tree, runs that fix's test and
+restores the file. Run from the repository root: python3 roadmap/evidence/E10-T03/22-mutants-script.py.txt"""
+from pathlib import Path
+import subprocess
+
+ROOT = Path.cwd()
+EVIDENCE = ROOT / "roadmap/evidence/E10-T03"
+MAIN = "src/main/java/com/agilityhub/core/"
+RECHECK = "DomainRecheckIT#T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain"
+APPLY = "DomainRecheckIT#T_17_03_R_17_03_aClubApplyKeepsTheRecheckStateAndTheTestDnsRouteValidatesItsRecords"
+SKIP = "DomainRecheckIT#T_17_03_R_17_03_aLookupWithoutAnAnswerIsSkippedAndNeverCountsTowardsBroken"
+STALE = "DomainRecheckIT#T_17_03_R_17_03_aConsoleWriteBuiltBeforeARecheckKeepsTheRecheckState"
+PARTIAL = "DomainRecheckIT#T_17_03_R_17_03_aBreakThatMeetsAConcurrentClubWriteLeavesThePartialRunAndTheDomainDue"
+DOMAINS = MAIN + "platform/application/PlatformDomains.java"
+JNDI = MAIN + "platform/persistence/JndiDomainDns.java"
+MUTANTS = [
+    ("R01", "#1: a lookup without an answer is SKIPPED, not a failure", DOMAINS,
+     "} catch (DomainDns.LookupFailed failed) { return skipped(item, LOOKUP_FAILED); }", "} catch (DomainDns.LookupFailed failed) { method = null; }", SKIP, None),
+    ("R02", "#1: a product host without addresses is SKIPPED", DOMAINS,
+     "if (own.isEmpty()) { return skipped(item, PRODUCT_HOST_UNRESOLVED); }", "", SKIP, None),
+    ("R03", "#1: P9 does not settle a SKIPPED item", MAIN + "clubs/common/application/CleanupJob.java",
+     'PlatformDomains.SKIPPED.equals(item.detail().get("outcome")) ? PlatformDomains.SKIPPED : ', "", SKIP, None),
+    ("R04", "#1: the console's verification treats no answer as not verified (422, not 500)", DOMAINS,
+     "answered(() -> dns.cnames(domain.host()))", "dns.cnames(domain.host())", SKIP, None),
+    ("R05", "#1: JNDI: a timeout or SERVFAIL is LookupFailed, NXDOMAIN is empty", JNDI,
+     "throw new DomainDns.LookupFailed(type, failed);", "", None, "JndiDomainDnsTest"),
+    ("R06", "#1: JNDI: the JVM's UnknownHostException is asked again", JNDI,
+     '            lookup(host, "A");\n', "", None, "JndiDomainDnsTest"),
+    ("R07", "#1: POST /test/dns failing:true makes the lookups fail", MAIN + "platform/api/TestDnsController.java",
+     "dns.fail(request.type(), name);", "", APPLY, None),
+    ("R08", "#3: a domains write keeps the stored re-check state", MAIN + "platform/persistence/ClubRepository.java",
+     '.set("domains", keepChecks(mongo.findById(id, Club.class), domains, checked));', '.set("domains", domains);', STALE, None),
+    ("R09", "#3: a full club save keeps the stored re-check state", MAIN + "platform/persistence/ClubRepository.java",
+     "return mongo.save(domains.equals(club.domains()) ? club : club.withDomains(domains));", "return mongo.save(club);", STALE, None),
+    ("R10", "#4: a status change that meets a concurrent write is STALE_VERSION", MAIN + "platform/persistence/SettingsWriteConflict.java",
+     "if (cause instanceof MongoException mongo && mongo.getCode() == 112) { return new ApiException(ErrorCode.STALE_VERSION); }", "", PARTIAL, None),
+    ("R11", "#5: RESTORED keeps the first verifiedAt", DOMAINS,
+     "current.verifiedAt(), current.primary(), null, at, failures);", "broken ? current.verifiedAt() : at, current.primary(), null, at, failures);", RECHECK, None),
+    ("R12", "#5: the console's re-verify of a BROKEN domain keeps the first verifiedAt", DOMAINS,
+     "Instant verifiedAt = domain.status() == Club.DomainStatus.BROKEN && domain.verifiedAt() != null ? domain.verifiedAt() : check.checkedAt();",
+     "Instant verifiedAt = check.checkedAt();",
+     "DomainRecheckIT#T_17_03_R_17_03_anApexDomainIsRecheckedByItsAddressesAndTheParameterTurnsTheRecheckOff", None),
+]
+ONLY = set(__import__("sys").argv[1:])
+MUTANTS = [m for m in MUTANTS if not ONLY or m[0] in ONLY]
+
+summary = []
+for mid, rule, path, old, new, it, unit in MUTANTS:
+    file = ROOT / path
+    original = file.read_text()
+    assert original.count(old) == 1, f"{mid}: the original text is not unique in {path}"
+    file.write_text(original.replace(old, new))
+    try:
+        command = ["./mvnw", "-o", "-q", "verify", "-Djacoco.skip=true", "-Dsurefire.failIfNoSpecifiedTests=false",
+                   "-Dfailsafe.failIfNoSpecifiedTests=false", "-Dtest=" + (unit or "none"), "-Dit.test=" + (it or "none")]
+        result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    finally:
+        file.write_text(original)
+    (EVIDENCE / f"22-mutant-{mid}.log").write_text(result.stdout)
+    tests = [line.strip() for line in result.stdout.splitlines() if "Tests run:" in line and ("FAIL" in line or "ERROR" in line)]
+    line = f"{mid} exit={result.returncode} {tests[-1] if tests else '(no test summary: compile or setup failure)'} :: {rule}"
+    print(line, flush=True)
+    summary.append(line)
+(EVIDENCE / ("22-mutants-summary.log" if not ONLY else "22-mutants-summary-" + "-".join(sorted(ONLY)) + ".log")).write_text("\n".join(summary) + "\n")

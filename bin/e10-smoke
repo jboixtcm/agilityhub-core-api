@@ -11,9 +11,11 @@ invited administrator redeems the invitation, sets a password and signs in on th
 catalogs are there; the run prints how long that took (S17 §1: «segon club operatiu en menys d'una hora»).
 
 Then S15 P9's re-check (R-17-03 «es reverifica setmanalment»): with the club's scheduled P9 switched off, the test clock moves a week
-at a time and the console triggers P9: both domains are confirmed (CNAME, and the address proof for the TXT-verified one), the
-members' record is lost, the third failed re-check makes the domain BROKEN (Caddy's ask and /branding refuse it, N-43 reaches the
-platform account, a SYSTEM audit entry), and the record back restores it. Re-runnable: every run builds its own stack and removes
+at a time and the console triggers P9: both domains are confirmed (CNAME, and the address proof for the TXT-verified one), then
+a week where the resolver gives no answer for the members' host and the back office's product host resolves to nothing (both
+SKIPPED, nothing counted: E10-T03 round 2), then the members' record is lost, the third failed re-check makes the domain
+BROKEN (Caddy's ask and /branding refuse it, N-43 reaches the platform account, a SYSTEM audit entry), and the record back
+restores it. Re-runnable: every run builds its own stack and removes
 it. Never prints a token, a magic link, a challenge value, a password nor an IBAN. Reuses bin/e5-smoke's stack helpers.
 """
 import argparse
@@ -98,6 +100,10 @@ class E10:
 
     def dns(self, kind, name, values):
         self.s.call("POST", "/api/v1/test/dns", body=dict(type=kind, name=name, values=values), host=CONSOLE_HOST, quiet=True)
+
+    def dns_fails(self, kind, name):
+        """The fake resolver gives no answer for that lookup (a timeout or SERVFAIL) until the name is published again."""
+        self.s.call("POST", "/api/v1/test/dns", body=dict(type=kind, name=name, failing=True), host=CONSOLE_HOST, quiet=True)
 
     def mailbox(self):
         """The local mailbox of the API (`LogEmailSender`): one JSON file per accepted e-mail."""
@@ -272,18 +278,37 @@ class E10:
         self.require(run["effects"]["counters"]["domainsRechecked"] == 2 and run["parametersSnapshot"]["platform.domainRecheckDays"] == days, "Week 1 counters")
         self.record("P9 re-check, week 1 (POST …/jobs/cleanup/trigger)", "200 SUCCEEDED", f"platform.domainRecheckDays {days}; {APP_HOST} CONFIRMED by CNAME, "
                     f"{ADMIN_HOST} (TXT-verified, no challenge left) CONFIRMED by ADDRESS; domainsRechecked 2")
+        # Round 2: our side fails, not the club's records. The resolver gives no answer for the members' host, and the back
+        # office's product host resolves to nothing: both SKIPPED with their reason, nothing counted, both still due.
+        before = {host: self.domain(host) for host in (APP_HOST, ADMIN_HOST)}
+        self.dns_fails("CNAME", APP_HOST)
+        self.dns("A", CONSOLE_HOST, [])
+        self.advance(WEEK, "week 2")
+        run, items = self.trigger("week 2")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "SKIPPED" and items[APP_HOST]["detail"].get("reason") == "LOOKUP_FAILED"
+                     and items[ADMIN_HOST]["detail"]["outcome"] == "SKIPPED" and items[ADMIN_HOST]["detail"].get("reason") == "PRODUCT_HOST_UNRESOLVED",
+                     f"Week 2: {items}")
+        self.require(run["effects"]["counters"]["domainsRechecked"] == 0, "Week 2 counted a skipped re-check")
+        for host in (APP_HOST, ADMIN_HOST):
+            after = self.domain(host)
+            self.require(after["status"] == "VERIFIED" and after.get("failedChecks") == before[host].get("failedChecks")
+                         and after.get("checkedAt") == before[host].get("checkedAt"), f"{host} changed on a skipped re-check")
+        self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
+        self.dns("A", CONSOLE_HOST, ["127.0.0.1"])
+        self.record("P9 re-check, week 2 (no DNS answer)", "SKIPPED · SKIPPED", f"{APP_HOST} reason LOOKUP_FAILED, {ADMIN_HOST} reason "
+                    "PRODUCT_HOST_UNRESOLVED; domainsRechecked 0, failedChecks and checkedAt unchanged, Caddy's ask still 200")
         # The members' record is lost: no CNAME and no address any more.
         self.dns("CNAME", APP_HOST, [])
         self.dns("A", APP_HOST, [])
-        for week in (2, 3):
+        for week in (3, 4):
             self.advance(WEEK, f"week {week}")
             _, items = self.trigger(f"week {week}")
             self.require(items[APP_HOST]["detail"]["outcome"] == "FAILED", f"Week {week}: {items[APP_HOST]}")
             self.require(self.domain(APP_HOST)["status"] == "VERIFIED", "The domain changed before its third failure")
         self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
-        self.advance(WEEK, "week 4")
-        run, items = self.trigger("week 4")
-        self.require(items[APP_HOST]["detail"]["outcome"] == "BROKEN" and run["effects"]["counters"]["domainsBroken"] == 1, f"Week 4: {items[APP_HOST]}")
+        self.advance(WEEK, "week 5")
+        run, items = self.trigger("week 5")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "BROKEN" and run["effects"]["counters"]["domainsBroken"] == 1, f"Week 5: {items[APP_HOST]}")
         stored = self.domain(APP_HOST)
         self.require(stored["status"] == "BROKEN" and stored["failedChecks"] == 3, f"Stored: {stored['status']} {stored.get('failedChecks')}")
         self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 404)
@@ -300,18 +325,18 @@ class E10:
         # JSON.stringify leaves out a field Mongo did not store: a platform row has no clubId at all.
         self.require(rows and all(r.get("club") is None for r in rows) and [r.get("account") for r in rows].count(platform_id) == 1,
                      f"N-43 rows: {len(rows)}")
-        self.record("P9 re-check, weeks 2–4 (record lost)", "FAILED · FAILED · BROKEN", f"{APP_HOST}: failedChecks 3 → BROKEN; Caddy's ask 200 → 404, "
+        self.record("P9 re-check, weeks 3–5 (record lost)", "FAILED · FAILED · BROKEN", f"{APP_HOST}: failedChecks 3 → BROKEN; Caddy's ask 200 → 404, "
                     f"GET /branding → 404 UNKNOWN_HOST; audit CLUB_DOMAIN_CHANGED origin SYSTEM, job cleanup; N-43 «{notice['subject']}» to {PLATFORM} "
                     f"({notice['locale']}, platform e-mail, no club)")
         # The record is back: the next re-check restores the domain.
         self.dns("CNAME", APP_HOST, [CLUBS_TARGET])
-        self.advance(WEEK, "week 5")
-        run, items = self.trigger("week 5")
-        self.require(items[APP_HOST]["detail"]["outcome"] == "RESTORED" and run["effects"]["counters"]["domainsRestored"] == 1, f"Week 5: {items[APP_HOST]}")
+        self.advance(WEEK, "week 6")
+        run, items = self.trigger("week 6")
+        self.require(items[APP_HOST]["detail"]["outcome"] == "RESTORED" and run["effects"]["counters"]["domainsRestored"] == 1, f"Week 6: {items[APP_HOST]}")
         self.s.call("GET", f"/internal/domains/allowed?host={APP_HOST}", 200)
         self.require(self.s.call("GET", "/api/v1/branding", host=APP_HOST)["club"]["slug"] == SLUG, "The restored host does not resolve the club")
         skipped = self.mongo('db.job_runs.countDocuments({clubId:' + json.dumps(self.club) + ',job:"CLEANUP",status:"SKIPPED",skipReason:"DISABLED"})')
-        self.record("P9 re-check, week 5 (record back)", "RESTORED", f"{APP_HOST} VERIFIED again, Caddy's ask 200, /branding resolves; "
+        self.record("P9 re-check, week 6 (record back)", "RESTORED", f"{APP_HOST} VERIFIED again, Caddy's ask 200, /branding resolves; "
                     f"the club's {skipped} scheduled P9 run(s) meanwhile SKIPPED{{DISABLED}} (the switch), the console's runs ran anyway (R-15-09)")
 
     def report(self):
@@ -321,7 +346,7 @@ class E10:
             print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
         print(f"PASS E10 backend gate: a second club through the console API, usable in {self.elapsed:.1f} s (definition, theme, modules, "
               "catalogs, SEPA_XML, two domains over the fake DNS, the first admin, activation), and S15 P9's domain re-check "
-              "(confirmed → three failures → BROKEN with N-43 → RESTORED)", flush=True)
+              "(confirmed → no DNS answer, skipped → three failures → BROKEN with N-43 → RESTORED)", flush=True)
 
     def cleanup(self):
         self.s.cleanup()

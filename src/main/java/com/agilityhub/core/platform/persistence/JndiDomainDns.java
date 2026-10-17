@@ -1,9 +1,12 @@
 package com.agilityhub.core.platform.persistence;
 
 import com.agilityhub.core.platform.application.DomainDns;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -12,11 +15,21 @@ import org.springframework.stereotype.Component;
 
 /**
  * S17 R-17-03 in staging and production: the JDK's DNS provider, with the resolvers of the host, a 2-second first timeout and
- * one retry. A lookup that fails (no record, NXDOMAIN, timeout) answers an empty list; it never throws.
+ * one retry. No record of the type, or NXDOMAIN (`NameNotFoundException`), answers an empty list; any other failure (a
+ * timeout, SERVFAIL, a refused query, no network) throws {@link DomainDns.LookupFailed} (E10-T03 round 2).
  */
 @Component @Profile("!((local | test) & !staging & !prod)")
 public class JndiDomainDns implements DomainDns {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(JndiDomainDns.class);
+    /** The records of one type of a name, as the JDK's provider answers them (null: the name has none of that type). */
+    interface Records { Attribute lookup(String name, String type) throws NamingException; }
+    /** The JVM resolver. */
+    interface Addresses { InetAddress[] resolve(String host) throws UnknownHostException; }
+    private final Records records; private final Addresses resolver;
+
+    public JndiDomainDns() { this(JndiDomainDns::query, InetAddress::getAllByName); }
+    JndiDomainDns(Records records, Addresses resolver) { this.records = records; this.resolver = resolver; }
+
     @Override public List<String> cnames(String host) { return lookup(host, "CNAME"); }
     @Override public List<String> txt(String name) { return lookup(name, "TXT").stream().map(JndiDomainDns::joined).toList(); }
     /**
@@ -37,32 +50,39 @@ public class JndiDomainDns implements DomainDns {
     }
     /**
      * E10-T03: the addresses through the JVM's resolver, which follows CNAMEs (a JNDI `A` query answers only the queried name's
-     * own records). A failed lookup is an empty list, as the others.
+     * own records). The JVM's `UnknownHostException` does not tell NXDOMAIN from a failed lookup (round 2), so the name is then
+     * asked once more through JNDI: an answer, or NXDOMAIN, is «no address»; no answer is {@link DomainDns.LookupFailed}.
      */
     @Override public List<String> addresses(String host) {
         try {
-            return java.util.Arrays.stream(java.net.InetAddress.getAllByName(host)).map(java.net.InetAddress::getHostAddress).distinct().toList();
-        } catch (java.net.UnknownHostException | SecurityException missing) {
+            return java.util.Arrays.stream(resolver.resolve(host)).map(InetAddress::getHostAddress).distinct().toList();
+        } catch (UnknownHostException | SecurityException missing) {
+            lookup(host, "A");
             LOG.info("Domain DNS lookup found nothing: type=ADDRESS reason={}", missing.getClass().getSimpleName());
             return List.of();
         }
     }
 
     private List<String> lookup(String name, String type) {
+        var values = new ArrayList<String>();
+        try {
+            Attribute attribute = records.lookup(name, type);
+            if (attribute != null) { for (int i = 0; i < attribute.size(); i++) { values.add(String.valueOf(attribute.get(i))); } }
+        } catch (NameNotFoundException missing) {
+            LOG.info("Domain DNS lookup found nothing: type={} reason=NXDOMAIN", type);
+        } catch (NamingException failed) {
+            LOG.warn("Domain DNS lookup failed: type={} reason={}", type, failed.getClass().getSimpleName());
+            throw new DomainDns.LookupFailed(type, failed);
+        }
+        return values;
+    }
+    private static Attribute query(String name, String type) throws NamingException {
         var environment = new Hashtable<String, String>();
         environment.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
         environment.put("com.sun.jndi.dns.timeout.initial", "2000");
         environment.put("com.sun.jndi.dns.timeout.retries", "1");
-        var values = new ArrayList<String>();
-        try {
-            var context = new InitialDirContext(environment);
-            try {
-                Attribute attribute = context.getAttributes(name, new String[] {type}).get(type);
-                if (attribute != null) { for (int i = 0; i < attribute.size(); i++) { values.add(String.valueOf(attribute.get(i))); } }
-            } finally { context.close(); }
-        } catch (NamingException missing) {
-            LOG.info("Domain DNS lookup found nothing: type={} reason={}", type, missing.getClass().getSimpleName());
-        }
-        return values;
+        var context = new InitialDirContext(environment);
+        try { return context.getAttributes(name, new String[] {type}).get(type); }
+        finally { context.close(); }
     }
 }

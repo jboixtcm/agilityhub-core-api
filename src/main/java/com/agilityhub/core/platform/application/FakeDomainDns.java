@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
  * tests; `127.0.0.1` in the `local` profile, where every host points at the machine, so S15 P9's re-check keeps the seeded
  * clubs' trusted hosts verified on a long-lived stack). {@link #publish} replaces a record set; an empty set is an explicit
  * «no record», which also overrides the default addresses (a lost record). `POST /api/v1/test/dns` drives it on a local stack.
+ * <p>
+ * E10-T03 round 2: {@link #fail} makes the lookups of one type of a name throw {@link DomainDns.LookupFailed}, as the
+ * production adapter does on a timeout or SERVFAIL, until {@link #publish} answers it again.
  */
 @Component @Profile("(local | test) & !staging & !prod")
 public class FakeDomainDns implements DomainDns {
@@ -23,6 +26,7 @@ public class FakeDomainDns implements DomainDns {
     private final Map<String, List<String>> cnames = new ConcurrentHashMap<>();
     private final Map<String, List<String>> txt = new ConcurrentHashMap<>();
     private final Map<String, List<String>> addresses = new ConcurrentHashMap<>();
+    private final java.util.Set<String> failing = ConcurrentHashMap.newKeySet();
     private final List<String> lookups = java.util.Collections.synchronizedList(new ArrayList<>());
     private final List<String> defaultAddresses;
 
@@ -34,16 +38,22 @@ public class FakeDomainDns implements DomainDns {
     public void txt(String name, String value) { txt.computeIfAbsent(key(name), ignored -> new ArrayList<>()).add(value); }
     public void address(String host, String value) { addresses.computeIfAbsent(key(host), ignored -> new ArrayList<>()).add(value); }
     /** Replaces the `type` records of `name` with `values` (none = an explicit «no record»). */
-    public void publish(Type type, String name, List<String> values) { records(type).put(key(name), new ArrayList<>(values)); }
-    public void clear() { cnames.clear(); txt.clear(); addresses.clear(); lookups.clear(); }
+    public void publish(Type type, String name, List<String> values) { failing.remove(type + " " + key(name)); records(type).put(key(name), new ArrayList<>(values)); }
+    /** The `type` lookups of `name` get no answer (a timeout or SERVFAIL) until it is published again. */
+    public void fail(Type type, String name) { failing.add(type + " " + key(name)); }
+    public void clear() { cnames.clear(); txt.clear(); addresses.clear(); failing.clear(); lookups.clear(); }
     /** `CNAME host` / `TXT name` / `A host`, in the order they were asked. */
     public List<String> lookups() { return List.copyOf(lookups); }
 
-    @Override public List<String> cnames(String host) { lookups.add("CNAME " + key(host)); return List.copyOf(cnames.getOrDefault(key(host), List.of())); }
-    @Override public List<String> txt(String name) { lookups.add("TXT " + key(name)); return List.copyOf(txt.getOrDefault(key(name), List.of())); }
+    @Override public List<String> cnames(String host) { ask(Type.CNAME, host); return List.copyOf(cnames.getOrDefault(key(host), List.of())); }
+    @Override public List<String> txt(String name) { ask(Type.TXT, name); return List.copyOf(txt.getOrDefault(key(name), List.of())); }
     @Override public List<String> addresses(String host) {
-        lookups.add("A " + key(host));
+        ask(Type.A, host);
         return List.copyOf(addresses.getOrDefault(key(host), defaultAddresses));
+    }
+    private void ask(Type type, String name) {
+        lookups.add(type + " " + key(name));
+        if (failing.contains(type + " " + key(name))) { throw new DomainDns.LookupFailed(type.name(), null); }
     }
     private Map<String, List<String>> records(Type type) {
         return switch (type) { case CNAME -> cnames; case TXT -> txt; case A -> addresses; };

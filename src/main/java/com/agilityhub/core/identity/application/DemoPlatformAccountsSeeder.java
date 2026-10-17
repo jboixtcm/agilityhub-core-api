@@ -40,6 +40,9 @@ public class DemoPlatformAccountsSeeder implements DemoSeedStep {
         var spec = mapper.convertValue(section, Spec.class);
         for (var seed : spec.accounts()) {
             String password = policy.resolve(seed.password(), false);
+            // E10-T03 round 2 (review #7): `createdSource` is closed by the model (SIGNUP · IMPORT_LEARN · CONSOLE · MIGRATION, S01
+            // §3) and has no seed value. CONSOLE is the closest one: an operator provisions the account, as `club:apply`'s seed
+            // accounts and the demo identities do. A `SEED` value is proposed in the task's report; it changes nothing locally.
             var account = accounts.findByEmail(seed.email()).orElseGet(() -> accountService.getOrCreate(seed.email(), seed.name(), seed.locale(),
                     Account.Source.CONSOLE, password == null ? null : passwords.hash(password), false));
             var held = account.platformRoles() == null ? java.util.Set.<Account.PlatformRole>of() : account.platformRoles();

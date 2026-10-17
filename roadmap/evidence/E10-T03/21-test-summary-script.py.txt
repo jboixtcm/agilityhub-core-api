@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Round 2: totals of the surefire and failsafe reports of the last build, plus one line per test class E10-T03 adds or
+changes. Run from the repository root: python3 roadmap/evidence/E10-T03/21-test-summary-script.py.txt "<command, exit code>"
+"""
+import glob
+import sys
+import xml.etree.ElementTree as ElementTree
+
+MINE = {"com.agilityhub.core.platform.api.DomainRecheckIT", "com.agilityhub.core.identity.application.DemoPlatformAccountsSeedIT",
+        "com.agilityhub.core.configuration.TestDnsProfileGuardTest", "com.agilityhub.core.shared.domain.EventCatalogContractTest",
+        "com.agilityhub.core.platform.api.PlatformDomainsIT", "com.agilityhub.core.clubs.bookings.api.CleanupJobIT",
+        "com.agilityhub.core.platform.persistence.JndiDomainDnsTest"}
+print("Command: " + (sys.argv[1] if len(sys.argv) > 1 else "(not given)") + "; totals read from target/*-reports/TEST-*.xml")
+for label, folder in (("surefire (unit)", "target/surefire-reports"), ("failsafe (integration)", "target/failsafe-reports")):
+    totals = [0, 0, 0, 0]
+    rows = []
+    for path in sorted(glob.glob(folder + "/TEST-*.xml")):
+        root = ElementTree.parse(path).getroot()
+        values = [int(root.get(key, 0)) for key in ("tests", "failures", "errors", "skipped")]
+        totals = [a + b for a, b in zip(totals, values)]
+        if root.get("name") in MINE:
+            rows.append("  %s: tests=%d failures=%d errors=%d skipped=%d" % (root.get("name"), *values))
+            for case in root.iter("testcase"):
+                failed = case.find("failure") is not None or case.find("error") is not None
+                rows.append("    %s %s" % ("FAIL" if failed else "ok  ", case.get("name")))
+    print("%s: tests=%d failures=%d errors=%d skipped=%d" % (label, *totals))
+    for row in rows:
+        print(row)

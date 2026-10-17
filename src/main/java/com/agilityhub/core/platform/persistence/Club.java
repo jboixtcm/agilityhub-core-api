@@ -132,6 +132,14 @@ public record Club(@Id String id, String slug, String name, String legalName, St
         public int failures() { return failedChecks == null ? 0 : failedChecks; }
         /** The same domain as primary or not, everything else kept. */
         public Domain withPrimary(boolean value) { return new Domain(host, app, status, verifiedAt, value, verificationToken, checkedAt, failedChecks); }
+        /** The same domain with the re-check state of `stored` (E10-T03 round 2). */
+        public Domain withChecksOf(Domain stored) { return new Domain(host, app, status, verifiedAt, primary, verificationToken, stored.checkedAt, stored.failedChecks); }
+    }
+    /** The same club with other domains, everything else kept (E10-T03 round 2: a full save keeps the re-check state). */
+    public Club withDomains(List<Domain> value) {
+        return new Club(id, slug, name, legalName, taxId, address, displayCity, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
+                timeZone, currency, countryProfile, value, theme, pwa, modules, paymentProviders, legal, status, onboardingChecklist, usage,
+                version, createdAt, updatedAt, template, publicApiKeyHash, billing, notes, publicApiKeyPreviousHash, publicApiKeyPreviousUntil);
     }
     public record Legal(String privacyPolicyUrl, Map<String, String> imageConsentText, String legalTextsVersion) {
         public Legal { imageConsentText = Map.copyOf(imageConsentText); }

@@ -39,6 +39,8 @@ import org.springframework.stereotype.Component;
  * transaction) and each item settles one domain (`RECHECK_DOMAIN`, `WOULD_RECHECK_DOMAIN` in a dry run, its detail the outcome
  * and the proof): counters `domainsRechecked`, `domainsBroken` (the third failure in a row; `ClubDomainBroken` → N-43) and
  * `domainsRestored`. Like the build sessions, nothing is deleted; the item goes through {@link PlatformDomains} only.
+ * A due domain the DNS gave no answer for (round 2: a failed lookup, or the product host without addresses) is traced
+ * `SKIPPED` with its `reason`, counts in no counter and stays due.
  */
 @Component
 public class CleanupJob implements Job {
@@ -117,7 +119,9 @@ public class CleanupJob implements Job {
         for (var recheck : domains.recheckPlan(now, recheckDays)) {
             var detail = new LinkedHashMap<String, Object>(); detail.put("outcome", recheck.outcome()); detail.put("passed", recheck.passed());
             if (recheck.method() != null) { detail.put("method", recheck.method()); }
-            detail.put("failedChecks", recheck.passed() ? 0 : recheck.failedChecks() + 1);
+            // E10-T03 round 2: a skipped re-check (no DNS answer) counts nothing, so the failures stay as they are.
+            if (recheck.reason() != null) { detail.put("reason", recheck.reason()); }
+            detail.put("failedChecks", recheck.passed() ? 0 : recheck.outcome().equals(PlatformDomains.SKIPPED) ? recheck.failedChecks() : recheck.failedChecks() + 1);
             items.add(new JobItem("ClubDomain", recheck.host(), RECHECK, detail));
         }
         // A dry run only looks (a real run of this occurrence would still get the pass); a real run claims the cycle.
@@ -175,7 +179,8 @@ public class CleanupJob implements Job {
                 yield new JobEffect(ABANDON, Map.of(), Map.of("buildSessionsAbandoned", abandoned));
             }
             case "ClubDomain" -> {
-                String outcome = domains.recheck(item.entityId(), Boolean.TRUE.equals(item.detail().get("passed")), (String) item.detail().get("method"),
+                // Round 2: the plan's SKIPPED (the DNS gave no answer) writes nothing; the domain stays due for the next run.
+                String outcome = PlatformDomains.SKIPPED.equals(item.detail().get("outcome")) ? PlatformDomains.SKIPPED : domains.recheck(item.entityId(), Boolean.TRUE.equals(item.detail().get("passed")), (String) item.detail().get("method"),
                         context.scheduledFor());
                 var detail = new LinkedHashMap<String, Object>(item.detail()); detail.put("outcome", outcome);
                 yield new JobEffect(RECHECK, detail, Map.of("domainsRechecked", outcome.equals(PlatformDomains.SKIPPED) ? 0L : 1L,

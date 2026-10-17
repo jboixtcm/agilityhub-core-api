@@ -1,0 +1,37 @@
+Command: heavy.sh ./mvnw -q clean verify (log 24), exit 0; totals read from target/*-reports/TEST-*.xml
+surefire (unit): tests=4693 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.TestDnsProfileGuardTest: tests=2 failures=0 errors=0 skipped=0
+    ok   E10_T03_stagingOrProdNeverHaveTheTestDnsRouteNorTheFakeResolver
+    ok   E10_T03_localOrTestPublishRecordsAndOnlyLocalResolvesUnpublishedHostsToTheMachine
+  com.agilityhub.core.platform.persistence.JndiDomainDnsTest: tests=3 failures=0 errors=0 skipped=0
+    ok   T_17_03_R_17_03_anAnswerWithoutTheRecordIsEmptyAndALookupWithoutAnAnswerFails
+    ok   T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer
+    ok   T_17_03_R_17_03_aTxtRecordSplitIntoSeveralStringsIsJoinedWithoutSpaces
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=3 failures=0 errors=0 skipped=0
+    ok   T_04_11_T_04_17_T_04_19_T_04_21_signupEventsKeepS04PayloadContracts
+    ok   T_17_02_R_17_02_consoleRejectsUncataloguedEventNames
+    ok   E0_T04_everyEventImplementationEmitsACatalogName
+failsafe (integration): tests=2060 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=6 failures=0 errors=0 skipped=0
+    ok   T_15_27_aRunTheRunnerClosesFailedWhoseHookThrowsDoesNotKeepThePlatformCycle
+    ok   T_15_27_thePlatformPassPurgesRowsWithoutAClubOncePerCycleAndNoClubRow
+    ok   T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns
+    ok   T_15_27_aFailedRunThatClaimedThePlatformCycleReleasesItForAnotherRunOfTheSameDay
+    ok   T_15_27_cleanupIsBoundToItsClubAndKeepsTheLastFiveExecutionsNotDryRunsOrSkips
+    ok   T_15_27_aFailedRunWhoseReleaseNeverHappenedDoesNotKeepThePlatformCycle
+  com.agilityhub.core.identity.application.DemoPlatformAccountsSeedIT: tests=2 failures=0 errors=0 skipped=0
+    ok   T_17_10_R_17_12_anExistingAccountKeepsItsDataAndOnlyGainsThePlatformRole
+    ok   T_17_10_R_17_12_theDemoSeedHasAPlatformAccountWithoutAClubRoleAndRepeatsWithoutWrites
+  com.agilityhub.core.platform.api.DomainRecheckIT: tests=6 failures=0 errors=0 skipped=0
+    ok   T_17_03_R_17_03_aLookupWithoutAnAnswerIsSkippedAndNeverCountsTowardsBroken
+    ok   T_17_03_R_17_03_p9BreaksAVerifiedDomainOnItsThirdFailedRecheckAndRestoresItWhenItAnswersAgain
+    ok   T_17_03_R_17_03_aConsoleWriteBuiltBeforeARecheckKeepsTheRecheckState
+    ok   T_17_03_R_17_03_anApexDomainIsRecheckedByItsAddressesAndTheParameterTurnsTheRecheckOff
+    ok   T_17_03_R_17_03_aClubApplyKeepsTheRecheckStateAndTheTestDnsRouteValidatesItsRecords
+    ok   T_17_03_R_17_03_aBreakThatMeetsAConcurrentClubWriteLeavesThePartialRunAndTheDomainDue
+  com.agilityhub.core.platform.api.PlatformDomainsIT: tests=5 failures=0 errors=0 skipped=0
+    ok   T_17_02_R_17_02_hostsAreUniqueNormalizedAndProductHostsReserved
+    ok   T_17_03_R_17_03_txtChallengeVerifiesAnApexDomainAndIsThenRemoved
+    ok   T_17_03_R_17_03_cnameVerificationOpensCaddyAndBrandingOnlyOnceVerified
+    ok   T_17_03_R_17_03_anyDomainButThePrimaryLeavesAndOnlyVerifiedOnesArePrimary
+    ok   T_17_10_R_17_12_domainRoutesAreForThePlatformOnly

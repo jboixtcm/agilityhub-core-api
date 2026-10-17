@@ -1,0 +1,11 @@
+R01 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: a lookup without an answer is SKIPPED, not a failure
+R02 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: a product host without addresses is SKIPPED
+R03 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: P9 does not settle a SKIPPED item
+R04 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: the console's verification treats no answer as not verified (422, not 500)
+R05 exit=1 [ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0 :: #1: JNDI: a timeout or SERVFAIL is LookupFailed, NXDOMAIN is empty
+R06 exit=1 [ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0 :: #1: JNDI: the JVM's UnknownHostException is asked again
+R07 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: POST /test/dns failing:true makes the lookups fail
+R08 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #3: a domains write keeps the stored re-check state
+R09 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #3: a full club save keeps the stored re-check state
+R10 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #4: a status change that meets a concurrent write is STALE_VERSION
+R11 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #5: RESTORED keeps the first verifiedAt

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E10-T03 round 2 (ruling E125):
+  - S15 P9's domain re-check counts only an answer without the record. A lookup with no answer (a timeout, SERVFAIL, no network; `DomainDns.LookupFailed`) or a product host with no address is traced `SKIPPED` (`reason: LOOKUP_FAILED` / `PRODUCT_HOST_UNRESOLVED`). It counts nothing, and the domain stays due for the next run, so a resolver hiccup can no longer make a club's domain `BROKEN`. `JndiDomainDns` tells NXDOMAIN apart from a failed lookup, also when the JVM resolver finds no address. The console's verification still answers `422 HOST_NOT_VERIFIED` on a failed lookup.
+  - Writes of a club's `domains[]` (console domain writes and full club saves) keep the stored `checkedAt`/`failedChecks`, read in the write's transaction, unless the write itself sets them (a verification, a re-check's status change).
+  - `RESTORED`, and the console's re-verification of a `BROKEN` domain, keep the first `verifiedAt`; `checkedAt` is the last check.
+  - A re-check's status change that meets a concurrent club write fails its item with `STALE_VERSION`: the run is `PARTIAL` and the domain stays due (tested).
+  - `docs/DEPLOY.md`: verify the trusted domains, or set `platform.domainRecheckDays: 0`, until the DNS points at the droplet; what `SKIPPED` means. `POST /api/v1/test/dns` takes `failing: true`, and `bin/e10-smoke` adds a week with no DNS answer (both domains `SKIPPED`).
+
 - E10-T04 round 2 (ruling E123):
   - R-17-10: a support token's restricted routes are matched on the decoded path Spring routes, and their handlers refuse it too (`@SupportRestricted`, 23 handlers, with a test that every restricted route carries it). Before, `GET /members/%65xport` handed the members' export to a support token.
   - R-17-10: the club's ADMIN ends a live support access (`DELETE /support-accesses/{id}`; audited `SUPPORT_ACCESS_ENDED`, also in the platform audit; `SupportAccessEnded`). Actions taken with a support token are audited `actorRole = PLATFORM`.

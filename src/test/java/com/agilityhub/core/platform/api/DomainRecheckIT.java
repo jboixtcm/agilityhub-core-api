@@ -34,6 +34,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -42,6 +44,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * re-checks the club's verified domains every `platform.domainRecheckDays` (7) over the fake resolver: a lost record counts, the
  * third failure in a row makes the domain `BROKEN` (audited as the system's, `ClubDomainBroken` → N-43 to the active platform
  * admins, Caddy's `ask` and `/branding` refuse it at once) and a good re-check restores it; all of it traced in the run.
+ * <p>
+ * Round 2 (E125): a lookup without an answer, or a product host without addresses, is `SKIPPED` and never counts; a console
+ * write built before a re-check keeps its state; a status change that meets a concurrent write leaves the run PARTIAL and the
+ * domain due; `RESTORED` keeps the first `verifiedAt`.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class DomainRecheckIT extends AbstractIntegrationTest {
@@ -52,7 +58,8 @@ class DomainRecheckIT extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired MongoTemplate mongo;
-    @Autowired ClubRepository clubs;
+    /** A spy only to put a real concurrent club write inside a re-check's transaction (round 2, point 4); it calls through otherwise. */
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean ClubRepository clubs;
     @Autowired HostTenantResolver hosts;
     @Autowired ClubConfigService configs;
     @Autowired FakeDomainDns dns;
@@ -64,6 +71,8 @@ class DomainRecheckIT extends AbstractIntegrationTest {
     @BeforeEach void clubs() {
         wipeDatabaseKeepingBootstrap();
         dns.clear();
+        // The product hosts resolve, as in production (round 2: a product host without addresses skips the re-check).
+        dns.address("clubs.agilitydoghub.com", "203.0.113.1"); dns.address("clubsadmin.agilitydoghub.com", "203.0.113.10");
         clubs.save(PlatformFixtures.club(TARGET, HOST));
         clubs.save(PlatformFixtures.club(OTHER, OTHER_HOST));
         hosts.invalidate(); configs.invalidate(TARGET); configs.invalidate(OTHER);
@@ -193,14 +202,15 @@ class DomainRecheckIT extends AbstractIntegrationTest {
         assertThat(audits(TARGET)).hasSize(1);
         assertThat(events(TARGET, "ClubDomainBroken")).hasSize(1);
 
-        // The record is back: RESTORED (VERIFIED again, verifiedAt = the run, no failure), ClubDomainVerified and its audit entry.
+        // The record is back: RESTORED (VERIFIED again, no failure; verifiedAt keeps the first verification, checkedAt is this run),
+        // ClubDomainVerified and its audit entry.
         dns.publish(FakeDomainDns.Type.CNAME, HOST, List.of("clubs.agilitydoghub.com."));
         Instant back = third.plus(Duration.ofDays(14));
         var restored = run(TARGET, false, back);
         assertThat(counters(restored)).containsEntry("domainsRestored", 1L).containsEntry("domainsBroken", 0L);
         domain = stored(TARGET, HOST);
         assertThat(domain.status()).isEqualTo(Club.DomainStatus.VERIFIED);
-        assertThat(domain.verifiedAt()).isEqualTo(back); assertThat(domain.checkedAt()).isEqualTo(back); assertThat(domain.failures()).isZero();
+        assertThat(domain.verifiedAt()).isEqualTo(VERIFIED); assertThat(domain.checkedAt()).isEqualTo(back); assertThat(domain.failures()).isZero();
         assertThat(allowed(HOST)).isEqualTo(200);
         assertThat(branding(HOST)).isEqualTo(200);
         assertThat(events(TARGET, "ClubDomainVerified")).singleElement().satisfies(event -> assertThat(event.getString("origin")).isEqualTo("SYSTEM"));
@@ -233,7 +243,7 @@ class DomainRecheckIT extends AbstractIntegrationTest {
         // A BROKEN apex domain is re-verified from the console with the same address proof (it has no challenge left).
         club = clubs.findById(TARGET).orElseThrow();
         var brokenApex = new Club.Domain("club.example.test", "clubs-admin", Club.DomainStatus.BROKEN, VERIFIED, true, null, at, 3);
-        clubs.updateDomains(TARGET, club.version(), List.of(club.domains().getFirst(), brokenApex), clock.instant());
+        clubs.updateDomains(TARGET, club.version(), List.of(club.domains().getFirst(), brokenApex), clock.instant(), Set.of("club.example.test"));
         var refused = mvc.perform(post("/api/v1/platform/clubs/" + TARGET + "/domains/club.example.test/verification").header("Idempotency-Key", UUID.randomUUID().toString())
                 .header("Host", "unknown.example.test").with(jwt().jwt(j -> j.subject("rc-actor")).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN"))))
                 .andReturn().getResponse();
@@ -247,6 +257,8 @@ class DomainRecheckIT extends AbstractIntegrationTest {
         assertThat(mapper.readTree(verified.getContentAsString()).path("method").asText()).isEqualTo("ADDRESS");
         assertThat(stored(TARGET, "club.example.test").status()).isEqualTo(Club.DomainStatus.VERIFIED);
         assertThat(stored(TARGET, "club.example.test").failures()).isZero();
+        // Round 2 (E125): the console's restore keeps the first verification too.
+        assertThat(stored(TARGET, "club.example.test").verifiedAt()).isEqualTo(VERIFIED);
 
         // `platform.domainRecheckDays = 0` turns the re-check off: no item, no lookup, no counters.
         mongo.insert(new Parameter(UUID.randomUUID().toString(), TARGET, "platform.domainRecheckDays", 0, "unknown", "club", null, List.of(), 0L, clock.instant()));
@@ -282,6 +294,166 @@ class DomainRecheckIT extends AbstractIntegrationTest {
                 .content("{\"type\":\"CNAME\",\"name\":\"" + HOST + "\",\"values\":[\"clubs.agilitydoghub.com\"]}")).andReturn().getResponse();
         assertThat(published.getStatus()).isEqualTo(200);
         assertThat(dns.cnames(HOST)).containsExactly("clubs.agilitydoghub.com");
+        // Round 2: `failing: true` (without values) makes the lookups get no answer, until the name is published again.
+        var failing = mvc.perform(post("/api/v1/test/dns").contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("type", "CNAME", "name", HOST, "failing", true)))).andReturn().getResponse();
+        assertThat(failing.getStatus()).isEqualTo(200);
+        assertThatThrownBy(() -> dns.cnames(HOST)).isInstanceOf(com.agilityhub.core.platform.application.DomainDns.LookupFailed.class);
+        var both = mvc.perform(post("/api/v1/test/dns").contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("type", "CNAME", "name", HOST, "failing", true, "values", List.of())))).andReturn().getResponse();
+        assertThat(both.getStatus()).isEqualTo(400);
+        dns.publish(FakeDomainDns.Type.CNAME, HOST, List.of("clubs.agilitydoghub.com"));
+        assertThat(dns.cnames(HOST)).containsExactly("clubs.agilitydoghub.com");
+    }
+
+    JobRun partialRun(String club, Instant at) {
+        clock.setInstant(at);
+        return runner.manual(club, JobName.CLEANUP, false, "rc-actor");
+    }
+    org.springframework.mock.web.MockHttpServletResponse console(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request) throws Exception {
+        return mvc.perform(request.header("Idempotency-Key", UUID.randomUUID().toString()).header("Host", "unknown.example.test")
+                .with(jwt().jwt(j -> j.subject("rc-actor")).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse();
+    }
+
+    @Test void T_17_03_R_17_03_aLookupWithoutAnAnswerIsSkippedAndNeverCountsTowardsBroken() throws Exception {
+        dns.cname(HOST, "clubs.agilitydoghub.com");
+        Instant first = VERIFIED.plus(Duration.ofDays(7));
+        run(TARGET, false, first);
+        // An apex admin domain, proved by its address (TXT-verified once, no challenge left), and a pending one.
+        var club = clubs.findById(TARGET).orElseThrow();
+        var apex = new Club.Domain("club.example.test", "clubs-admin", Club.DomainStatus.VERIFIED, first, true, null, first, 0);
+        var pending = new Club.Domain("pending.example.test", "clubs", Club.DomainStatus.PENDING, null, false, "0123456789abcdef");
+        clubs.updateDomains(TARGET, club.version(), List.of(club.domains().getFirst(), apex, pending), clock.instant(), Set.of("club.example.test"));
+        dns.address("club.example.test", "203.0.113.10"); dns.address("clubsadmin.agilitydoghub.com", "203.0.113.10");
+        long version = clubs.findById(TARGET).orElseThrow().version();
+
+        // The resolver gives no answer for the CNAME of one and the address of the other: both SKIPPED{LOOKUP_FAILED}, four weeks
+        // in a row, which with real misses would have made them BROKEN. Nothing is counted, nothing is marked checked.
+        dns.fail(FakeDomainDns.Type.CNAME, HOST); dns.fail(FakeDomainDns.Type.A, "club.example.test");
+        var dry = run(TARGET, true, first.plus(Duration.ofDays(7)));
+        assertThat(domainItems(dry)).extracting(item -> item.entityId() + " " + item.action() + " " + detail(item).get("outcome") + " " + detail(item).get("reason"))
+                .containsExactlyInAnyOrder(HOST + " WOULD_RECHECK_DOMAIN SKIPPED LOOKUP_FAILED", "club.example.test WOULD_RECHECK_DOMAIN SKIPPED LOOKUP_FAILED");
+        for (int week = 1; week <= 4; week++) {
+            var skipped = run(TARGET, false, first.plus(Duration.ofDays(7L * week)));
+            assertThat(domainItems(skipped)).hasSize(2).allSatisfy(item -> {
+                assertThat(item.action()).isEqualTo("RECHECK_DOMAIN");
+                assertThat(detail(item)).containsEntry("outcome", "SKIPPED").containsEntry("reason", "LOOKUP_FAILED")
+                        .containsEntry("passed", false).containsEntry("failedChecks", 0).doesNotContainKey("method");
+            });
+            assertThat(counters(skipped)).containsEntry("domainsRechecked", 0L).containsEntry("domainsBroken", 0L);
+            for (String host : List.of(HOST, "club.example.test")) {
+                assertThat(stored(TARGET, host).status()).as(host).isEqualTo(Club.DomainStatus.VERIFIED);
+                assertThat(stored(TARGET, host).failures()).as(host).isZero();
+                assertThat(stored(TARGET, host).checkedAt()).as(host + ": still due").isEqualTo(first);
+            }
+        }
+        assertThat(allowed(HOST)).isEqualTo(200);
+        assertThat(branding(HOST)).isEqualTo(200);
+        assertThat(clubs.findById(TARGET).orElseThrow().version()).isEqualTo(version);
+        assertThat(audits(TARGET)).isEmpty();
+        assertThat(events(TARGET, "ClubDomainBroken")).isEmpty();
+
+        // The console's verification of the pending domain: a lookup without an answer proves nothing, the same 422 (never a 500).
+        dns.fail(FakeDomainDns.Type.CNAME, "pending.example.test"); dns.fail(FakeDomainDns.Type.TXT, "_agilityhub-verify.pending.example.test");
+        var refused = console(post("/api/v1/platform/clubs/" + TARGET + "/domains/pending.example.test/verification"));
+        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(422);
+        assertThat(mapper.readTree(refused.getContentAsString()).path("code").asText()).isEqualTo("HOST_NOT_VERIFIED");
+        assertThat(stored(TARGET, "pending.example.test").status()).isEqualTo(Club.DomainStatus.PENDING);
+
+        // The apex domain's record answers again, but the product host itself resolves to nothing: our DNS, not the club's record.
+        dns.publish(FakeDomainDns.Type.A, "club.example.test", List.of("203.0.113.10"));
+        dns.publish(FakeDomainDns.Type.A, "clubsadmin.agilitydoghub.com", List.of());
+        Instant later = first.plus(Duration.ofDays(35));
+        assertThat(domainItems(run(TARGET, false, later)).stream().filter(item -> item.entityId().equals("club.example.test")))
+                .singleElement().satisfies(item -> assertThat(detail(item)).containsEntry("outcome", "SKIPPED").containsEntry("reason", "PRODUCT_HOST_UNRESOLVED"));
+        assertThat(stored(TARGET, "club.example.test").failures()).isZero();
+
+        // Real misses still count: the CNAME answers without the record three times, and the domain is BROKEN on the third.
+        lose(HOST);
+        for (int week = 1; week <= 3; week++) {
+            int expected = week;
+            var missed = run(TARGET, false, later.plus(Duration.ofDays(7L * week)));
+            assertThat(domainItems(missed).stream().filter(item -> item.entityId().equals(HOST))).singleElement()
+                    .satisfies(item -> assertThat(detail(item)).doesNotContainKey("reason").containsEntry("failedChecks", expected));
+        }
+        assertThat(stored(TARGET, HOST).status()).isEqualTo(Club.DomainStatus.BROKEN);
+        assertThat(allowed(HOST)).isEqualTo(404);
+        assertThat(events(TARGET, "ClubDomainBroken")).hasSize(1);
+    }
+
+    @Test void T_17_03_R_17_03_aConsoleWriteBuiltBeforeARecheckKeepsTheRecheckState() throws Exception {
+        dns.cname(HOST, "clubs.agilitydoghub.com");
+        Instant first = VERIFIED.plus(Duration.ofDays(7));
+        run(TARGET, false, first);
+        // A console write reads the club, then P9 records a failed check (no version bump), then the write lands.
+        var stale = clubs.findById(TARGET).orElseThrow();
+        lose(HOST);
+        Instant second = first.plus(Duration.ofDays(7));
+        run(TARGET, false, second);
+        assertThat(stored(TARGET, HOST).failures()).isEqualTo(1);
+        var added = new Club.Domain("added.example.test", "clubs", Club.DomainStatus.PENDING, null, false, "0123456789abcdef");
+        clubs.updateDomains(TARGET, stale.version(), List.of(stale.domains().getFirst(), added), clock.instant());
+        assertThat(stored(TARGET, HOST).checkedAt()).isEqualTo(second);
+        assertThat(stored(TARGET, HOST).failures()).isEqualTo(1);
+        // The next day the domain is not due again: the week runs from the stored check, not from the stale one.
+        assertThat(domainItems(run(TARGET, false, second.plus(Duration.ofDays(1))))).isEmpty();
+        // A full save (settings, modules, club:apply) built from a stale read keeps it as well.
+        var staleAgain = clubs.findById(TARGET).orElseThrow();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(TARGET).and("domains.host").is(HOST)),
+                new org.springframework.data.mongodb.core.query.Update().set("domains.$.failedChecks", 2), "clubs");
+        clubs.save(staleAgain);
+        assertThat(stored(TARGET, HOST).checkedAt()).isEqualTo(second);
+        assertThat(stored(TARGET, HOST).failures()).isEqualTo(2);
+        // The console's own write over HTTP keeps it too.
+        var response = console(post("/api/v1/platform/clubs/" + TARGET + "/domains").contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("host", "new.example.test", "app", "clubs"))));
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(201);
+        assertThat(stored(TARGET, HOST).failures()).isEqualTo(2);
+        // One more real miss: BROKEN on the third failure in a row, counted across the console writes.
+        run(TARGET, false, second.plus(Duration.ofDays(7)));
+        assertThat(stored(TARGET, HOST).status()).isEqualTo(Club.DomainStatus.BROKEN);
+    }
+
+    @Test void T_17_03_R_17_03_aBreakThatMeetsAConcurrentClubWriteLeavesThePartialRunAndTheDomainDue() throws Exception {
+        dns.cname(HOST, "clubs.agilitydoghub.com");
+        Instant first = VERIFIED.plus(Duration.ofDays(7));
+        run(TARGET, false, first);
+        lose(HOST);
+        run(TARGET, false, first.plus(Duration.ofDays(7)));
+        run(TARGET, false, first.plus(Duration.ofDays(14)));
+        assertThat(stored(TARGET, HOST).failures()).isEqualTo(2);
+        long version = clubs.findById(TARGET).orElseThrow().version();
+        // The third failure's status change: a console write commits on the club from another thread, inside the item's
+        // transaction (after the item read the club, before it writes the domains). The real write then meets it.
+        var raced = new java.util.concurrent.atomic.AtomicBoolean();
+        doAnswer(call -> {
+            if (raced.compareAndSet(false, true)) {
+                java.util.concurrent.CompletableFuture.runAsync(() -> mongo.updateFirst(Query.query(Criteria.where("_id").is(TARGET)),
+                        new org.springframework.data.mongodb.core.query.Update().inc("version", 1L).set("notes", "a concurrent console write"), "clubs")).join();
+            }
+            return call.callRealMethod();
+        }).when(clubs).updateDomains(eq(TARGET), anyLong(), anyList(), any(), eq(Set.of(HOST)));
+        Instant third = first.plus(Duration.ofDays(21));
+        var partial = partialRun(TARGET, third);
+        assertThat(raced).isTrue();
+        assertThat(partial.status()).isEqualTo(JobStatus.PARTIAL);
+        assertThat(partial.errors()).singleElement().satisfies(error -> {
+            assertThat(error.entityId()).isEqualTo(HOST); assertThat(error.code()).isEqualTo("STALE_VERSION");
+        });
+        assertThat(counters(partial)).containsEntry("domainsBroken", 0L);
+        // Nothing of the item was written: still VERIFIED with two failures and the old check, so it is still due.
+        var domain = stored(TARGET, HOST);
+        assertThat(domain.status()).isEqualTo(Club.DomainStatus.VERIFIED);
+        assertThat(domain.failures()).isEqualTo(2);
+        assertThat(domain.checkedAt()).isEqualTo(first.plus(Duration.ofDays(14)));
+        assertThat(clubs.findById(TARGET).orElseThrow().version()).isEqualTo(version + 1);
+        assertThat(events(TARGET, "ClubDomainBroken")).isEmpty();
+        assertThat(audits(TARGET)).isEmpty();
+        // The next day's run finds it due and breaks it.
+        var retried = run(TARGET, false, third.plus(Duration.ofDays(1)));
+        assertThat(domainItems(retried)).singleElement().satisfies(item -> assertThat(detail(item)).containsEntry("outcome", "BROKEN"));
+        assertThat(stored(TARGET, HOST).status()).isEqualTo(Club.DomainStatus.BROKEN);
+        assertThat(events(TARGET, "ClubDomainBroken")).hasSize(1);
     }
 
     @Autowired org.springframework.context.ApplicationContext applicationContext;

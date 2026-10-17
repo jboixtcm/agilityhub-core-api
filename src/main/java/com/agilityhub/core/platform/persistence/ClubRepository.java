@@ -115,7 +115,17 @@ public class ClubRepository extends GlobalRepository<Club> {
      * fails the unique `club_host` index: `409 HOST_ALREADY_USED`, not a version conflict.
      */
     public Club updateDomains(String id, long version, java.util.List<Club.Domain> domains, java.time.Instant now) {
-        var update = new org.springframework.data.mongodb.core.query.Update().inc("version", 1L).set("updatedAt", now).set("domains", domains);
+        return updateDomains(id, version, domains, now, java.util.Set.of());
+    }
+    /**
+     * E10-T03 round 2 (review #3): `checked` are the hosts whose re-check state (`checkedAt`, `failedChecks`) this write sets, a
+     * verification or a re-check's status change. Every other host keeps the state of the stored document, read here, in the
+     * write's transaction: P9's plain check does not bump the version, so a list built before it would otherwise write an older
+     * `checkedAt` back and make the domain due again the next day.
+     */
+    public Club updateDomains(String id, long version, java.util.List<Club.Domain> domains, java.time.Instant now, java.util.Set<String> checked) {
+        var update = new org.springframework.data.mongodb.core.query.Update().inc("version", 1L).set("updatedAt", now)
+                .set("domains", keepChecks(mongo.findById(id, Club.class), domains, checked));
         Club result;
         try {
             result = mongo.findAndModify(Query.query(Criteria.where("_id").is(id).and("version").is(version)), update,
@@ -136,6 +146,17 @@ public class ClubRepository extends GlobalRepository<Club> {
         // By collection name: an update typed with `Club` would increment its `@Version` field.
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("domains.host").is(host)), update, mongo.getCollectionName(Club.class))
                 .getMatchedCount() == 1;
+    }
+    /** A full save of the club (settings, modules, `club:apply`) never sets the re-check state: it keeps the stored one (round 2). */
+    @Override public Club save(Club club) {
+        var stored = club.id() == null ? null : mongo.findById(club.id(), Club.class);
+        var domains = keepChecks(stored, club.domains(), java.util.Set.of());
+        return mongo.save(domains.equals(club.domains()) ? club : club.withDomains(domains));
+    }
+    private static java.util.List<Club.Domain> keepChecks(Club stored, java.util.List<Club.Domain> domains, java.util.Set<String> checked) {
+        if (stored == null) { return domains; }
+        var states = new java.util.HashMap<String, Club.Domain>(); stored.domains().forEach(item -> states.put(item.host(), item));
+        return domains.stream().map(item -> checked.contains(item.host()) || !states.containsKey(item.host()) ? item : item.withChecksOf(states.get(item.host()))).toList();
     }
     /** S17 R-17-11 (E10-T04): the public key's digest, and the replaced one's until the end of its overlap. */
     public Club rotatePublicApiKey(String id, long version, String hash, String previousHash, java.time.Instant previousUntil, java.time.Instant now) {

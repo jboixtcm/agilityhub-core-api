@@ -1,0 +1,44 @@
+11:16:51.091 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=CNAME reason=NXDOMAIN
+11:16:51.092 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=TXT reason=NXDOMAIN
+11:16:51.092 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup failed: type=CNAME reason=CommunicationException
+11:16:51.101 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=A reason=NXDOMAIN
+11:16:51.101 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=ADDRESS reason=UnknownHostException
+11:16:51.101 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=ADDRESS reason=UnknownHostException
+11:16:51.101 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup failed: type=A reason=CommunicationException
+11:16:51.101 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=ADDRESS reason=UnknownHostException
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.054 s <<< FAILURE! -- in com.agilityhub.core.platform.persistence.JndiDomainDnsTest
+[ERROR] com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAnswerWithoutTheRecordIsEmptyAndALookupWithoutAnAnswerFails -- Time elapsed: 0.032 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAnswerWithoutTheRecordIsEmptyAndALookupWithoutAnAnswerFails(JndiDomainDnsTest.java:46)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer -- Time elapsed: 0.004 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer(JndiDomainDnsTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer:62 
+Expecting code to raise a throwable.
+[ERROR]   JndiDomainDnsTest.T_17_03_R_17_03_anAnswerWithoutTheRecordIsEmptyAndALookupWithoutAnAnswerFails:46 
+Expecting code to raise a throwable.
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
