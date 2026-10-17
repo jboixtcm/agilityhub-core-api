@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.8 · 17-10-2026** (v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v4.0 · 17-10-2026** (v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -74,7 +74,10 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe i el d'una col·locació moguda, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | oberta — passada de correccions (E11-T02; la part del web, E11-W02) |
 | INC-63 | 16-10 | api (sessions de muntatge, menors) | Menors de la ronda 2 d'E9-T06: el límit d'enviadors refusa fluxos sans per sobre d'uns 64 subscriptors per instància, la prova del temps d'escriptura només llegeix la configuració, el `connection-timeout` de 20 s és global (també per a les pujades), l'estil del ganxo de proves, la prova dels dos `finish` només cobreix un camí | Baixa | oberta — passada de correccions (E11-T02) |
 | INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — passada de correccions (E11-T02); el pas manual es documenta a la ronda 2 d'E10-T04 |
-| INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | oberta — propera passada de correccions de l'api |
+| INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | oberta — E11-T08 (E131) |
+| INC-66 | 17-10 | api (consola i dominis, menors) | Menors de la ronda 2 d'E10-T03: el reintent per JNDI llença els registres `A` que troba (una fallada de consulta que compta com a absència), el pas a pas de `DEPLOY.md` per als dominis de confiança (la primera opció no funciona i falta com recuperar-ne un de `BROKEN`) i `ClubRepository.save`, que depèn de la transacció de qui el crida | Mitjana | oberta — E11-T08 (E131) |
+| INC-67 | 17-10 | api (seguretat i límits de peticions, menors) | Menors d'E11-T06: cap prova garanteix que cada operació anònima d'escriptura tingui una ruta de límit; el compte de `STRIPE_WEBHOOK` només fa servir la IP (la ràfega d'un club pot endarrerir els esdeveniments de pagament d'un altre, que Stripe reintenta); `CHECKOUT_STATUS` compta per IP i no per compte | Mitjana | oberta — E11-T08 (E131) |
+| INC-68 | 17-10 | api (preus, dades) | Les dates de vigència d'un `Price` es desen com a dates BSON quan s'escriu sencer i com a cadenes quan s'actualitza (informe d'E11-T07); una consulta per data podria no trobar el preu vigent | Alta | oberta — E11-T08 (E131) |
 
 ---
 
@@ -340,6 +343,54 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 **S'espera**: `HEAD` al patró, o un cas `HEAD` a `SupportAccessIT`; la comprovació del club sense obrir cap tenant, o bé un comentari i una prova amb el `Host` d'un club; un `import`.
 
 **On mirar**: `identity/application/SupportAccessService.java:49`, `shared/api/IdempotencyFilter.java:202`, els controladors amb `@SupportRestricted`.
+
+---
+
+## INC-66 · Menors de la ronda 2 d'E10-T03 (api, consola i dominis)
+
+**Gravetat**: mitjana pel punt 1, que és el mateix tipus d'error que va arreglar la ronda 2 (E125: una fallada del nostre resolutor no pot comptar com un registre perdut), en un camí més estret. Els punts 2 i 3 són menors.
+
+**Origen**: `roadmap/reviews/E10-T03-20261017-1203-claude.md` (api), troballes #1, #2 i #3; verificació de l'organitzador del 17-10 (decisió E130).
+
+**El problema**:
+1. `JndiDomainDns`: quan el resolutor de la JVM llança `UnknownHostException`, l'adaptador demana `A` a JNDI però en llença la resposta i sempre retorna `[]`. Si JNDI troba adreces, la recomprovació ho compta com un `FAILED` real i no com a `SKIPPED`.
+2. `docs/DEPLOY.md`, «Trusted domains before the DNS cutover»: la primera opció diu que es verifiquin (passos 2 i 3), però un domini de confiança ja neix `VERIFIED` i `PlatformDomains.check()` el refusa amb `INVALID_STATE`. Tampoc diu com es recupera un domini de confiança que ja és `BROKEN`: amb `platform.domainRecheckDays = 0`, P9 no el restaura mai.
+3. `ClubRepository.save` llegeix el club desat i després el desa. Només és atòmic dins una transacció: les escriptures de la consola ho són, però una crida sense transacció podria trepitjar una recomprovació de P9.
+
+**S'espera**: (1) retornar els valors `A` de JNDI, o llançar `LookupFailed` si els dos resolutors no coincideixen, amb un cas nou a `T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer`; (2) que la primera opció digui «comprova amb `dig` que els registres hi són abans que toqui la primera recomprovació», i una línia per al domini que ja és `BROKEN` (torna amb [Verifica]); (3) documentar que `save` depèn de la transacció de qui el crida, o fer la fusió atòmica.
+
+**On mirar**: `platform/persistence/JndiDomainDns.java:56-63`, `docs/DEPLOY.md`, `platform/persistence/ClubRepository.java:151-155`, `PlatformDomains.java:123`.
+
+---
+
+## INC-67 · Menors d'E11-T06 (api, seguretat i límits de peticions)
+
+**Gravetat**: mitjana. El punt 2 toca els pagaments: no es perd cap esdeveniment, perquè Stripe els reintenta, però un club pot endarrerir els cobraments d'un altre. Cal arreglar-ho abans del llançament.
+
+**Origen**: `roadmap/reviews/E11-T06-20261017-1242-claude.md` (api), troballes #3, #4 i #5; verificació de l'organitzador del 17-10 (decisió E130).
+
+**El problema**:
+1. `AnonymousRateLimitsTest` comprova una llista escrita a mà. `SecurityInventoryIT` recorre les 430 operacions publicades, però només en comprova el 401: una ruta anònima d'escriptura que s'afegeixi més endavant sense quota passaria les proves.
+2. `RateLimitFilter`: el compte de `STRIPE_WEBHOOK` només fa servir la IP. Stripe envia els webhooks de tots els clubs des del mateix grup d'adreces, així que la ràfega d'un club (una remesa, per exemple) pot fer que els esdeveniments de pagament d'un altre rebin un 429.
+3. `RateLimitFilter`: `CHECKOUT_STATUS` també compta per IP per als socis i administradors autenticats, i els socis darrere el mateix NAT del club comparteixen 120 peticions per minut.
+
+**S'espera**: (1) a `SecurityInventoryIT`, cada operació publicada anònima que no sigui `GET` té una `RateLimits.Route`, o és en una llista curta i documentada d'excepcions; (2) la clau del compte és `clubId:ip`, com a les rutes `SIGNUP_*`; (3) amb un token, el subjecte és el compte (`jwt.getName()`), com diu CONVENCIONS_API §9 (per IP i per compte).
+
+**On mirar**: `shared/api/RateLimitFilter.java:51,91,92`, `AnonymousRateLimitsTest`, `SecurityInventoryIT`.
+
+---
+
+## INC-68 · Les dates de vigència d'un `Price` es desen amb tipus diferents segons el camí d'escriptura (api, preus)
+
+**Gravetat**: alta fins que es demostri el contrari. Si alguna consulta filtra per `validFrom` o `validTo` amb un sol tipus, MongoDB no compara dates amb cadenes, i una factura podria agafar un altre preu o cap.
+
+**Origen**: l'informe d'E11-T07 (§ «Found along the way», punt 2); decisió E131.
+
+**El problema**: un `Price` escrit sencer (`PriceRepository.insert` o qualsevol `save`) desa `validFrom` i `validTo` com a dates BSON, tot i el `@Field(targetType = STRING)`; una actualització parcial els desa com a cadenes. Passa igual amb Spring Boot 3.5 i 4.1.
+
+**S'espera**: un sol tipus (el que diu el model), una prova que un preu escrit de cada manera s'aplica bé en una data de facturació, i la conversió del que ja estigui desat de l'altra manera.
+
+**On mirar**: `PriceRepository`, la classe `Price` i les consultes del preu vigent a la facturació.
 
 ---
 

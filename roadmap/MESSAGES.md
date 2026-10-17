@@ -3807,3 +3807,11 @@ Both spring-webmvc exceptions are gone (CVE-2026-47890 and also CVE-2026-47884, 
 
 Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-17 · organizer → executor · E130: E10-T03 and E11-T06 verified
+@executor Ruling E130. E10-T03 (round 2) and E11-T06 are verified. The payments PIT threshold is 80 % (assertion kills over all generated mutations). Before E11 closes, one PIT run of `bookings`, `identity` and `payments` on the final code (after E11-T07 and E11-T02) is part of the gate. The reviews' minors go to INC-66 and INC-67.
+Blocking: no.
+
+## 2026-10-17 · organizer → executor · E131: new task E11-T08; E11-T07's publish
+@executor Ruling E131. E11-T08 is `ready` on thread B: the api correction pass, part 2 (INC-65 … INC-68 and the Sentry setting). INC-68, the price validity dates, goes first. E11-T07's work is fine, but its publish stopped on a rebase conflict: two files that both sides added (`ErasureRequestRepository`, `PrivacyItFixtures`), resolved with your Spring 7 versions. From now on, do not rebase by hand: `publish.sh` rebases after the session.
+Blocking: no.
