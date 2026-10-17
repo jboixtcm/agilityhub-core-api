@@ -1,0 +1,15 @@
+R01 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: the handler does not refuse a support token (interceptor off)
+R02 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: the filter reads the raw, encoded URI again
+R03 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #1: a restricted handler without @SupportRestricted
+R04 exit=0 [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 :: #2: a key claimed for a club that does not exist
+R05 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #2: the club segment read from the raw, encoded path
+R06 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #2: the request hash over the raw URI (two spellings, two requests)
+R07 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #3: the primary domain can be removed
+R08 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #3: only a PENDING domain leaves (round 1 rule)
+R09 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #4: the club's end does not revoke the grant
+R10 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #4: an expired access can still be ended
+R11 exit=1 [ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0 :: #4: no SupportAccessEnded event
+R12 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #4: the platform audit does not list the end
+R13 exit=1 [ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0 :: #4: the end is not audited (not an event action)
+R14 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #5: support actions audited with the token's role
+R15 exit=1 [ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0 :: #7: a split TXT record keeps its separating space

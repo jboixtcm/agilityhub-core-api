@@ -40,6 +40,7 @@ public class ExportsController {
                 .contentType(org.springframework.http.MediaType.parseMediaType(format.equals("pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(result.file());
     }
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/exports")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"kind"}, sortable = {},
@@ -49,6 +50,7 @@ public class ExportsController {
             responses = @ApiResponse(responseCode = "200", description = "List<ExportJob>"))
     public List<ExportJob> exports(@RequestParam(required = false) ExportKind kind) { return jobs.list(kind == null ? null : kind.name()).stream().map(this::view).toList(); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/exports/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER') and principal.claims['imp'] != true")
     @ContractErrors({EXPORT_EXPIRED})
@@ -57,6 +59,7 @@ public class ExportsController {
             responses = @ApiResponse(responseCode = "200", description = "ExportJob"))
     public ExportJob exportJob(@PathVariable String id) { return view(jobs.get(id)); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/exports/{id}/download")
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER') and principal.claims['imp'] != true")
     @ContractErrors({EXPORT_EXPIRED, INVALID_STATE})
@@ -70,6 +73,7 @@ public class ExportsController {
                 .body(new org.springframework.core.io.InputStreamResource(file.stream()));
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/members/{id}/data-export")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
@@ -79,6 +83,7 @@ public class ExportsController {
             responses = @ApiResponse(responseCode = "202", description = "ExportAccepted"))
     public ExportAccepted exportMemberData(@PathVariable String id, @Valid @RequestBody DataExportInput request) { throw new UnsupportedOperationException(); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/me/data-export")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('MEMBER')")
@@ -93,6 +98,7 @@ public class ExportsController {
         throw new UnsupportedOperationException();
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @RequestMapping(path = "/api/v1/members/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate", "signupPending", "pendingDogs", "warnings", "leaveSource", "inactivityUntil", "hasPendingRequest"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city", "signup.submittedAt"},
@@ -111,6 +117,7 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<?> exportMembers(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("members", format, columns, params); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @RequestMapping(path = "/api/v1/dogs/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
@@ -127,6 +134,7 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<?> exportDogs(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("dogs", format, columns, params); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @RequestMapping(path = "/api/v1/audit-entries/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
@@ -144,6 +152,7 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<?> exportAuditEntries(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("audit-entries", format, columns, params); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/invoices/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
@@ -159,6 +168,7 @@ public class ExportsController {
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
     public org.springframework.http.ResponseEntity<byte[]> exportInvoices(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns) { throw new UnsupportedOperationException(); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/activity-registrations/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.ACTIVITIES)
@@ -175,6 +185,7 @@ public class ExportsController {
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
     public org.springframework.http.ResponseEntity<?> exportActivityRegistrations(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) { return export("activity-registrations",format,columns,params); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},

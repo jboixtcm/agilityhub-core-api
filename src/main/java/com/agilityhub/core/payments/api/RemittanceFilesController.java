@@ -23,6 +23,7 @@ public class RemittanceFilesController {
     public RemittanceFilesController(RemittanceService remittances) { this.remittances = remittances; }
 
     @io.swagger.v3.oas.annotations.Hidden
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/remittances/files/{clubId}/{id}")
     public ResponseEntity<InputStreamResource> download(@PathVariable String clubId, @PathVariable String id, @RequestParam long expires,
             @RequestParam String signature) {

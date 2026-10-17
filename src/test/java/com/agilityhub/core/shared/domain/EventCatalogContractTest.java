@@ -132,6 +132,8 @@ class EventCatalogContractTest {
                 () -> new com.agilityhub.core.platform.domain.events.ClubDomainBroken("club-a", "app.example.test", Instant.parse("2030-01-01T00:00:00Z")));
         samples.put(com.agilityhub.core.identity.domain.SupportAccessStarted.class,
                 () -> new com.agilityhub.core.identity.domain.SupportAccessStarted("club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
+        samples.put(com.agilityhub.core.identity.domain.SupportAccessEnded.class,
+                () -> new com.agilityhub.core.identity.domain.SupportAccessEnded("club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a"));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -216,8 +218,9 @@ class EventCatalogContractTest {
                 assertThat(event.payload()).containsOnlyKeys("clubId", "host");
                 assertThat(event.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); assertThat(event.actorAccountId()).isNull(); return;
             }
-            if (event instanceof com.agilityhub.core.identity.domain.SupportAccessStarted) {
-                assertThat(catalog).contains("SupportAccessStarted");
+            // E10-T04 round 2 (E123): `SupportAccessEnded{clubId, actorAccountId}`, the club's ADMIN ending a support access.
+            if (event instanceof com.agilityhub.core.identity.domain.SupportAccessStarted || event instanceof com.agilityhub.core.identity.domain.SupportAccessEnded) {
+                assertThat(catalog).contains(event.type());
                 assertThat(event.aggregateType()).isEqualTo("ImpersonationGrant");
                 assertThat(event.payload()).containsOnly(Map.entry("clubId", "club-a"), Map.entry("actorAccountId", "account-a"));
                 assertThat(event.impersonatedMemberId()).isNull(); return;

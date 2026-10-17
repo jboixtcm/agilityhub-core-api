@@ -1,0 +1,70 @@
+"""E10-T04 round 2 counterfactuals: each mutant undoes one fix in the working tree, runs that fix's test, and restores the file.
+Run from target/ (python3 target/e10t04r2-mutants.py [Rnn ...]); this is the script as run (R13 already in its final form)."""
+import pathlib, subprocess, sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+OUT = ROOT / 'roadmap/evidence/E10-T04'
+J = 'src/main/java/com/agilityhub/core/'
+END = 'SupportAccessIT#T_17_09_R_17_10_theClubsAdminEndsALiveSupportAccess'
+INC49 = 'JobsApiIT#T_15_09_INC_49_aConsoleKeyBelongsToARealClubDecodedAsSpringRoutesIt'
+DOMAINS = 'PlatformDomainsIT#T_17_03_R_17_03_anyDomainButThePrimaryLeavesAndOnlyVerifiedOnesArePrimary'
+MUTANTS = [
+    ('R01', '#1: the handler does not refuse a support token (interceptor off)', J + 'shared/api/SupportRestrictedInterceptor.java',
+     'if (user != null && user.support() != null) {', 'if (false && user != null && user.support() != null) {', END),
+    ('R02', '#1: the filter reads the raw, encoded URI again', J + 'identity/api/CurrentUserFilter.java',
+     'String path = PATHS.getPathWithinApplication(request);', 'String path = request.getRequestURI();', 'CurrentUserFilterSupportTest'),
+    ('R03', '#1: a restricted handler without @SupportRestricted', J + 'clubs/common/api/ExportsController.java',
+     '@com.agilityhub.core.shared.application.SupportRestricted\n    @RequestMapping(path = "/api/v1/members/export"', '@RequestMapping(path = "/api/v1/members/export"',
+     'SupportAccessIT#T_17_09_R_17_10_everyRestrictedRouteRefusesASupportTokenInItsHandler'),
+    ('R04', '#2: a key claimed for a club that does not exist', J + 'shared/api/IdempotencyFilter.java',
+     'if (clubs != null && clubs.settings(clubId).isEmpty()) {', 'if (false) {', INC49),
+    ('R05', '#2: the club segment read from the raw, encoded path', J + 'shared/api/IdempotencyFilter.java',
+     'String path = PATHS.getPathWithinApplication(request);\n        boolean anonymous', 'String path = request.getRequestURI();\n        boolean anonymous', INC49),
+    ('R06', '#2: the request hash over the raw URI (two spellings, two requests)', J + 'shared/api/IdempotencyFilter.java',
+     'request.getMethod() + "\\n" + PATHS.getPathWithinApplication(request) + "\\n"', 'request.getMethod() + "\\n" + request.getRequestURI() + "\\n"', INC49),
+    ('R07', '#3: the primary domain can be removed', J + 'platform/application/PlatformDomains.java',
+     'if (domain.primary()) { throw', 'if (false) { throw', DOMAINS),
+    ('R08', '#3: only a PENDING domain leaves (round 1 rule)', J + 'platform/application/PlatformDomains.java',
+     'if (domain.primary()) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name(), "primary", true)); }',
+     'if (domain.status() != Club.DomainStatus.PENDING) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name())); }', DOMAINS),
+    ('R09', '#4: the club\'s end does not revoke the grant', J + 'identity/application/SupportAccessService.java',
+     'if (!grants.revoke(grant.id(), now)) {', 'if (false) {', END),
+    ('R10', '#4: an expired access can still be ended', J + 'identity/application/SupportAccessService.java',
+     'if (!grant.expiresAt().isAfter(now)) {', 'if (false) {', END),
+    ('R11', '#4: no SupportAccessEnded event', J + 'identity/application/SupportAccessService.java',
+     'events.publish(new com.agilityhub.core.identity.domain.SupportAccessEnded(grant.clubId(), grant.id(), now, grant.actorAccountId()));', '', END),
+    ('R12', '#4: the platform audit does not list the end', J + 'platform/persistence/PlatformConsoleProjection.java',
+     '.in("SUPPORT_ACCESS_STARTED","SUPPORT_ACCESS_ENDED")', '.in("SUPPORT_ACCESS_STARTED")', END),
+    ('R13', '#4: the end is not audited (not an event action)', J + 'platform/application/audit/AuditWriter.java',
+     'AuditAction.SUPPORT_ACCESS_ENDED);', 'AuditAction.WEEK_VALIDATED);', END),
+    ('R14', '#5: support actions audited with the token\'s role', J + 'configuration/AuditConfiguration.java',
+     'if (current != null && current.support() != null) { role = "PLATFORM"; }', '',
+     'SupportAccessIT#T_17_09_R_17_10_supportTokenOpensTheClubAsAnAuditedAdminWithoutPersonalExports'),
+    ('R15', '#7: a split TXT record keeps its separating space', J + 'platform/persistence/JndiDomainDns.java',
+     'else if (quoted || c != \' \') {', 'else if (true) {', 'JndiDomainDnsTest'),
+]
+only = set(sys.argv[1:])
+summary = []
+for ident, label, path, old, new, tests in MUTANTS:
+    if only and ident not in only:
+        continue
+    file = ROOT / path
+    original = file.read_text()
+    if original.count(old) != 1:
+        summary.append(f'{ident} NOT APPLIED (found {original.count(old)} times): {label}')
+        print(summary[-1], flush=True)
+        continue
+    file.write_text(original.replace(old, new))
+    try:
+        command = [str(ROOT / 'mvnw'), '-o', '-Dtest=' + tests, '-Dsurefire.failIfNoSpecifiedTests=false', '-Djacoco.skip=true', 'test']
+        result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+        log = OUT / f'23-mutant-{ident}.log'
+        log.write_text(f'# {ident} {label}\n# file: {path}\n# - {old}\n# + {new}\n# command: {" ".join(command[1:])}\n# exit: {result.returncode}\n' + result.stdout + result.stderr)
+        lines = [line for line in result.stdout.splitlines() if 'Tests run:' in line and ' in ' not in line]
+        errors = [line for line in result.stdout.splitlines() if 'COMPILATION ERROR' in line]
+        summary.append(f'{ident} exit={result.returncode} {lines[-1].strip() if lines else ("COMPILATION ERROR" if errors else "(no tests line)")} :: {label}')
+    finally:
+        file.write_text(original)
+    print(summary[-1], flush=True)
+if not only:
+    (OUT / '23-mutants-summary.log').write_text('\n'.join(summary) + '\n')

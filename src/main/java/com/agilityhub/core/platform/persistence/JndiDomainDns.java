@@ -18,7 +18,23 @@ import org.springframework.stereotype.Component;
 public class JndiDomainDns implements DomainDns {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(JndiDomainDns.class);
     @Override public List<String> cnames(String host) { return lookup(host, "CNAME"); }
-    @Override public List<String> txt(String name) { return lookup(name, "TXT"); }
+    @Override public List<String> txt(String name) { return lookup(name, "TXT").stream().map(JndiDomainDns::joined).toList(); }
+    /**
+     * E10-T04 round 2: the JDK's provider answers a TXT record split into several character strings as those strings separated
+     * by a space, quoting (and backslash-escaping inside) only a string that holds a space, a quote or a backslash, or is empty.
+     * The record's value is its strings joined with nothing in between (RFC 7208 §3.3).
+     */
+    static String joined(String record) {
+        var value = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < record.length(); i++) {
+            char c = record.charAt(i);
+            if (quoted && c == '\\' && i + 1 < record.length()) { value.append(record.charAt(++i)); }
+            else if (c == '"') { quoted = !quoted; }
+            else if (quoted || c != ' ') { value.append(c); }
+        }
+        return value.toString();
+    }
     /**
      * E10-T03: the addresses through the JVM's resolver, which follows CNAMEs (a JNDI `A` query answers only the queried name's
      * own records). A failed lookup is an empty list, as the others.

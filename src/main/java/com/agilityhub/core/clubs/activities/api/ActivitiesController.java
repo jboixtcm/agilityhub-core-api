@@ -75,6 +75,7 @@ public class ActivitiesController {
         return service.facets(field,params);
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/activities/export")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false,

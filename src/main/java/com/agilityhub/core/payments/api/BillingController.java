@@ -156,6 +156,7 @@ public class BillingController {
         catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalStateException(failure); }
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/billing/exports")
     @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportAccounting", description = ROLES + "R-12-26 «Exporta per a comptabilitat» (S14 engine, listKey = accounting): one row "

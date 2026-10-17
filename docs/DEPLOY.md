@@ -380,13 +380,21 @@ unconditional `ask` responder. Only the local override uses `ask-stub:8080`, whi
    certificate. Then check that `GET https://{host}/api/v1/branding` shows the club, its theme and its modules.
 5. **Back-office aliases only** (`app: clubs-admin`): add the host to the space-separated `CLUB_ADMIN_HOSTS` in the
    populated env file and recreate Caddy (`docker compose --env-file … -f deploy/compose.prod.yaml up -d caddy`). Without
-   it, Caddy serves that host the members' SPA. Members' aliases need nothing more.
+   it, Caddy serves that host the members' SPA. Members' aliases need nothing more. **A verified `clubs-admin` domain is not
+   ready until this step is done:** step 3 makes Caddy accept its certificate at once, but the back-office app is chosen
+   from the static `CLUB_ADMIN_HOSTS` list, so the host serves the members' app until the env file has it and Caddy is
+   reloaded (recreated as above). The verify operation's contract says the same. Choosing the app from the domain's `app`
+   (no env edit, no reload) is INC-64.
 6. **Sign-in on the club's host**: a club's apps sign in on their own host with the club-scoped grants (password, magic
    link, handoff). The tenant comes from the `Host`, so test a login, a token refresh (the refresh cookie is host-only)
    and a logout there. The OIDC code flow of `clubs-app`/`clubs-admin` is registered for one redirect URI each
    (`OIDC_CLUBS_APP_REDIRECT_URI`, `OIDC_CLUBS_ADMIN_REDIRECT_URI`) and takes its club from that URI's host. A club alias
    does not get its own code-flow callback today; ask the organizer before registering one.
-7. Only a `PENDING` domain can be removed (`DELETE …/domains/{host}`, S17 §5). A verified one keeps serving its club.
+7. **Remove a domain** (`DELETE …/domains/{host}`, S17 §5; E10-T04 round 2): a `PENDING`, `VERIFIED` or `BROKEN` domain
+   can be removed, so a club can change hosts. Caddy's ask and `GET /branding` refuse it as soon as the write commits; the
+   certificate Caddy already holds simply expires. The **primary** domain of its app answers `409 INVALID_STATE
+   {status, primary: true}`: first make another verified domain primary (`PUT …/domains/{host}/primary`). A removed
+   `clubs-admin` host should also leave `CLUB_ADMIN_HOSTS`.
 
 **Weekly re-check and `BROKEN` (S15 P9, R-17-03).** Every club's daily P9 `cleanup` re-checks the club's verified
 domains whose last check is `platform.domainRecheckDays` (7; `0` turns it off for that club) or more days old. A domain

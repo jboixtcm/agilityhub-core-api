@@ -99,6 +99,36 @@ class JobsApiIT extends BookingFixtures {
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("job").is("CLEANUP").and("trigger").is("MANUAL")), "job_runs")).isEqualTo(1);
     }
 
+    /**
+     * INC-49, round 2 (E123, review #3): the key belongs to the club the handler opens. An encoded club segment is scoped to its
+     * decoded club (the one Spring hands the handler), and a club that does not exist gets no idempotency row at all.
+     */
+    @Test void T_15_09_INC_49_aConsoleKeyBelongsToARealClubDecodedAsSpringRoutesIt() throws Exception {
+        String key = java.util.UUID.randomUUID().toString();
+        String encoded = "%" + Integer.toHexString(CLUB.charAt(0)) + CLUB.substring(1);
+        var first = platform(post(java.net.URI.create("/api/v1/platform/clubs/" + encoded + "/jobs/cleanup/trigger")).header("Idempotency-Key", key)
+                .contentType("application/json").content("{\"dryRun\":true}"), 200);
+        var replay = platform(post("/api/v1/platform/clubs/" + CLUB + "/jobs/cleanup/trigger").header("Idempotency-Key", key)
+                .contentType("application/json").content("{\"dryRun\":true}"), 200);
+        assertThat(replay.path("runId").asText()).isEqualTo(first.path("runId").asText());
+        assertThat(mongo.find(Query.query(Criteria.where("key").is(key)), Document.class, "idempotency_records"))
+                .extracting(record -> record.getString("clubId")).containsExactly(CLUB);
+        String missing = java.util.UUID.randomUUID().toString();
+        platform(post("/api/v1/platform/clubs/s08-missing/jobs/cleanup/trigger").header("Idempotency-Key", missing)
+                .contentType("application/json").content("{\"dryRun\":true}"), 404);
+        assertThat(mongo.count(Query.query(Criteria.where("key").is(missing)), "idempotency_records")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is("s08-missing")), "idempotency_records")).isZero();
+        // A claimed row would be released after the 404, so the end state cannot tell; the replica set's oplog shows whether one
+        // was ever written (the tenant write fence inserts it in a transaction, so it sits in an `applyOps` entry).
+        var oplog = mongo.getMongoDatabaseFactory().getMongoDatabase("local").getCollection("oplog.rs");
+        java.util.function.Function<String, Document> inserted = value -> {
+            var insert = new Document("ns", mongo.getDb().getName() + ".idempotency_records").append("op", "i").append("o.key", value);
+            return new Document("$or", List.of(insert, new Document("o.applyOps", new Document("$elemMatch", insert))));
+        };
+        assertThat(oplog.countDocuments(inserted.apply(key))).as("the encoded request's claim is in the oplog").isEqualTo(1);
+        assertThat(oplog.countDocuments(inserted.apply(missing))).as("no row was ever written for a club that does not exist").isZero();
+    }
+
     @Test void T_15_09_theSwitchWritesTheParameterAndTheListsAreScopedToTheTenant() throws Exception {
         var switched = call(PUT, "/jobs/reminders/switch", Map.of("enabled", false), as("admin"), 200);
         assertThat(switched.path("name").asText()).isEqualTo("reminders");

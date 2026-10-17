@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E10-T04 round 2 (ruling E123):
+  - R-17-10: a support token's restricted routes are matched on the decoded path Spring routes, and their handlers refuse it too (`@SupportRestricted`, 23 handlers, with a test that every restricted route carries it). Before, `GET /members/%65xport` handed the members' export to a support token.
+  - R-17-10: the club's ADMIN ends a live support access (`DELETE /support-accesses/{id}`; audited `SUPPORT_ACCESS_ENDED`, also in the platform audit; `SupportAccessEnded`). Actions taken with a support token are audited `actorRole = PLATFORM`.
+  - INC-49: a console key is scoped to the decoded club, its request hash uses the decoded path, and a club that does not exist gets no idempotency row.
+  - S17 §5: a non-primary `VERIFIED` or `BROKEN` domain can be removed; the primary one cannot until another is primary. `docs/DEPLOY.md` and the verify operation say that a `clubs-admin` domain needs `CLUB_ADMIN_HOSTS` and a Caddy reload (INC-64).
+  - A TXT record split into several strings is joined without spaces (`JndiDomainDns`). `SupportAccessIT` and `ConsoleProviderLockIT` move to `platform.api`.
+
 - E10-T03: E10 integration.
   - S15 P9 re-checks the club's verified domains every `platform.domainRecheckDays` (7; 0 turns it off). The proof is the CNAME, or for an apex domain an address it shares with its app's product host (`DomainDns.addresses`). The run traces each domain (`RECHECK_DOMAIN`; counters `domainsRechecked`, `domainsBroken`, `domainsRestored`). The third failure in a row makes a domain `BROKEN`: Caddy's ask and `/branding` refuse it at once, it is audited `CLUB_DOMAIN_CHANGED` by the system, and `ClubDomainBroken` sends N-43 to every active platform admin. A good re-check restores it (`ClubDomainVerified`). The console re-verifies a `BROKEN` domain with the same address proof (`method: ADDRESS`). The model gains `domains[].checkedAt` and `failedChecks`; a re-apply keeps them.
   - `HOST_NOT_VERIFIED` for a domain without a challenge answers its documented `null` TXT pair. Before, `ApiException` refused null details and it was a `500`.

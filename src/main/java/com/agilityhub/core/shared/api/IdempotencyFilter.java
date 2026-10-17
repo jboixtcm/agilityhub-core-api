@@ -44,6 +44,15 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     public void capabilities(com.agilityhub.core.shared.application.SignupCapabilities capabilities) { this.capabilities = capabilities; }
 
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.SignupCheckoutGuard signupCheckout;
+    /** INC-49 round 2 (E123): a club whose settings load exists; a console key is claimed only in an existing club. */
+    private com.agilityhub.core.shared.application.LocaleSettingsProvider clubs;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void clubs(com.agilityhub.core.shared.application.LocaleSettingsProvider clubs) { this.clubs = clubs; }
+    /**
+     * INC-49 round 2 (E123, review #3): the routes are matched on the path Spring routes (decoded, without `;` parameters), as
+     * `RateLimitFilter` matches them, so an encoded spelling of a route takes the same own-transaction, sealing and club scope.
+     */
+    private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
 
     public IdempotencyFilter(IdempotencyRepository records, TransactionTemplate transactions, Clock clock,
                              ApiExceptionHandler errors, ObjectMapper mapper, KeyedRoutes keyed) {
@@ -117,9 +126,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = PATHS.getPathWithinApplication(request);
         boolean keyedMethod = "POST".equals(request.getMethod()) || keyed.declares(request.getMethod(), path);
-        return HealthRequests.matches(request) || !keyedMethod || (request.getHeader(KeyedRoutes.HEADER) == null && !request.getRequestURI().equals("/api/v1/signup"));
+        return HealthRequests.matches(request) || !keyedMethod || (request.getHeader(KeyedRoutes.HEADER) == null && !path.equals("/api/v1/signup"));
     }
 
     @Override
@@ -137,7 +146,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     private void execute(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = PATHS.getPathWithinApplication(request);
         boolean anonymous = !(authentication instanceof JwtAuthenticationToken jwt && jwt.isAuthenticated());
         boolean publicSignup = path.equals("/api/v1/signup");
         boolean checkout = path.equals("/api/v1/checkout-sessions");
@@ -167,7 +176,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         } else {
             var jwt = (JwtAuthenticationToken) authentication;
             // S16/S17: platform commands have no request tenant. Role and impersonation guards still run before a replay. A
-            // console route's claim uses its path's club (INC-49, {@link #CONSOLE_CLUB}); any other platform claim uses clubId=null.
+            // console route's claim uses its path's club (INC-49, {@link #CONSOLE_CLUB}), decoded as the handler receives it;
+            // any other platform claim uses clubId=null.
             boolean platformCommand = path.startsWith("/api/v1/platform/");
             var console = CONSOLE_CLUB.matcher(path);
             clubId = !platformCommand ? jwt.getToken().getClaimAsString("clubId") : console.matches() ? console.group(1) : null;
@@ -176,6 +186,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 throw new ApiException(ErrorCode.NO_MEMBERSHIP);
             }
             if (platformCommand && clubId != null) {
+                // INC-49 round 2 (E123): idempotency rows are tenant rows, so a club that does not exist gets none; its handler
+                // answers 404 CLUB_NOT_FOUND without one.
+                if (clubs != null && clubs.settings(clubId).isEmpty()) { chain.doFilter(new BufferedRequest(request, body), response); return; }
                 keyed(request, response, chain, path, body, false, clubId, accountId, authentication, new Rows(records, clubId, true));
                 return;
             }
@@ -376,7 +389,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     private String hash(HttpServletRequest request, byte[] body, org.springframework.security.core.Authentication authentication) {
         try {
             var digest = MessageDigest.getInstance("SHA-256");
-            String target = request.getMethod() + "\n" + request.getRequestURI() + "\n"
+            // The route Spring runs (E123): two spellings of one path are one request.
+            String target = request.getMethod() + "\n" + PATHS.getPathWithinApplication(request) + "\n"
                     + request.getQueryString() + "\n" + request.getContentType() + "\n" + authorization(authentication) + "\n";
             digest.update(target.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest.digest(body));

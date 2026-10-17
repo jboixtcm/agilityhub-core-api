@@ -98,6 +98,28 @@ public class SupportAccessService implements ConsoleSupportAccess {
         return new CurrentUser.Support(grant.id(), actor.id(), actor.name(), grant.expiresAt());
     }
 
+    /** The support access a club ended: its grant and the platform account it belonged to. */
+    public record Ended(String grantId, String actorAccountId) { }
+
+    /**
+     * R-17-10 «revocable» (E10-T04 round 2, E123): the club's ADMIN ends a live support access of its club. The grant's token
+     * stops at its next request ({@link #validate}). Another club's grant, a member impersonation or an unknown id is
+     * `404 NOT_FOUND`; an access already ended or expired has nothing to end (`409 INVALID_STATE {status: ENDED | EXPIRED}`).
+     */
+    @Transactional
+    @Audited(action = AuditAction.SUPPORT_ACCESS_ENDED, entityType = "'ImpersonationGrant'", entity = "#result.grantId",
+            details = "T(java.util.Map).of('actorAccountId', #result.actorAccountId)")
+    public Ended end(String grantId) {
+        var grant = grants.findById(grantId).filter(ImpersonationGrant::support).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        Instant now = clock.instant();
+        if (grant.revokedAt() != null) { throw new ApiException(ErrorCode.INVALID_STATE, java.util.Map.of("status", "ENDED")); }
+        if (!grant.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.INVALID_STATE, java.util.Map.of("status", "EXPIRED")); }
+        // A revocation that lands first (the actor's «Surt») leaves nothing to end either.
+        if (!grants.revoke(grant.id(), now)) { throw new ApiException(ErrorCode.INVALID_STATE, java.util.Map.of("status", "ENDED")); }
+        events.publish(new com.agilityhub.core.identity.domain.SupportAccessEnded(grant.clubId(), grant.id(), now, grant.actorAccountId()));
+        return new Ended(grant.id(), grant.actorAccountId());
+    }
+
     /** Whether `method path` is closed to a support token ({@link #RESTRICTED}). */
     public static boolean restricted(String method, String path) { return RESTRICTED.matcher(method + " " + path).matches(); }
 

@@ -35,8 +35,9 @@ public enum AuditAction {
     /**
      * S17 console (E10-T04, S17 §13 proposals entered in R-14-09): a club domain added, verified, made primary or removed
      * (R-17-02/R-17-03), a support access started (R-17-10, in the target club's audit) and the public key rotated (R-17-11).
+     * Round 2 (E123): a live support access ended by the club's ADMIN (R-17-10 «revocable»).
      */
-    CLUB_DOMAIN_CHANGED, SUPPORT_ACCESS_STARTED, PUBLIC_API_KEY_ROTATED,
+    CLUB_DOMAIN_CHANGED, SUPPORT_ACCESS_STARTED, SUPPORT_ACCESS_ENDED, PUBLIC_API_KEY_ROTATED,
     JOB_TRIGGERED,
     /**
      * S12 (E8-T02): the invoice state actions (R-12-16, R-12-17, R-12-19), the manual adjustment invoice (R-12-19, S12 §13)

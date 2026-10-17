@@ -27,8 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * S17 R-17-02/R-17-03 (E10-T04): the console's club domains. A domain is added `PENDING` with its TXT challenge, verified by
- * a CNAME to the product host of its app or by the TXT record, made the primary one of its app, and removed only while
- * `PENDING` (S17 §5). Every change bumps the club's version, is audited `CLUB_DOMAIN_CHANGED` and publishes `ClubUpdated`, which
+ * a CNAME to the product host of its app or by the TXT record, made the primary one of its app, and removed unless it is that
+ * primary one (S17 §5, round 2). Every change bumps the club's version, is audited `CLUB_DOMAIN_CHANGED` and publishes `ClubUpdated`, which
  * evicts the host cache after the commit; a verification publishes `ClubDomainVerified` too.
  */
 @Service
@@ -85,8 +85,9 @@ public class PlatformDomains {
     @Audited(action = AuditAction.CLUB_DOMAIN_CHANGED, entityType = "'Club'", entity = "#result.id", before = "snapshot()", reason = "'Domain removed'")
     public Change remove(String host) {
         var club = changes.club(); var domain = domain(club, host);
-        // S17 §5: only a pending domain leaves (`PENDING --> [*]`); a verified one keeps serving its club.
-        if (domain.status() != Club.DomainStatus.PENDING) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name())); }
+        // S17 §5 (round 2, E123): a pending, verified or broken domain leaves (clubs change hosts), but never the primary one of its
+        // app, which links and e-mails use, until another domain is primary.
+        if (domain.primary()) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", domain.status().name(), "primary", true)); }
         var domains = new ArrayList<>(club.domains()); domains.removeIf(item -> item.host().equals(domain.host()));
         var next = write(club, domains, Map.of("removed", domain.host()));
         return new Change(next.id(), audit(next.domains()), null, null);

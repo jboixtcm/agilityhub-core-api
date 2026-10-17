@@ -1,11 +1,14 @@
-package com.agilityhub.core.payments.api;
+package com.agilityhub.core.platform.api;
 
+import com.agilityhub.core.payments.api.BillingItSupport;
 import com.agilityhub.core.identity.persistence.Account;
 import com.agilityhub.core.identity.persistence.AccountRepository;
+import com.agilityhub.core.identity.persistence.ImpersonationGrant;
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.support.AuditCovers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nimbusds.jwt.SignedJWT;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -104,9 +107,15 @@ class SupportAccessIT extends BillingItSupport {
                 post("/api/v1/members/puig/data-export"), get("/api/v1/exports"), get("/api/v1/exports/some-export/download"),
                 get("/api/v1/remittances/some-remittance/file"), get("/api/v1/billing/exports"), get("/api/v1/invoices/export"),
                 post("/api/v1/members/puig/impersonation-token").contentType("application/json").content("{}"),
-                put("/api/v1/me/password").contentType("application/json").content("{}"))) {
+                put("/api/v1/me/password").contentType("application/json").content("{}"),
+                // Round 2 (E123): Spring routes the decoded path, so an encoded letter reaches the same handler and is refused too.
+                get(URI.create("/api/v1/members/%65xport?format=xlsx")), post(URI.create("/api/v1/members/%65xport?format=xlsx")),
+                get(URI.create("/api/v1/%65xports/some-export/download")), get(URI.create("/api/v1/remittances/some-remittance/%66ile")),
+                post(URI.create("/api/v1/members/puig/%64ata-export")), get(URI.create("/api/v1/billing/%65xports")))) {
             var response = as(token, restricted);
-            assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(403);
+            // The message names what came back, never the body: a leaked export would be a binary file of personal data.
+            assertThat(response.getStatus()).as("%s answered %s", restricted.buildRequest(new org.springframework.mock.web.MockServletContext()).getRequestURI(),
+                    response.getContentType()).isEqualTo(403);
             assertThat(code(response)).isEqualTo("SUPPORT_RESTRICTED");
         }
         // The console itself is not reachable with it: it carries no platform role.
@@ -117,6 +126,8 @@ class SupportAccessIT extends BillingItSupport {
         assertThat(written.getStatus()).as(written.getContentAsString()).isEqualTo(200);
         var change = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PARAMETER_CHANGED")), Document.class, "audit_entries");
         assertThat(change.getString("origin")).isEqualTo("PLATFORM_SUPPORT");
+        // Round 2 (E123, S14 §3): not one of the club's admins, the AgilityHub team.
+        assertThat(change.getString("actorRole")).isEqualTo("PLATFORM");
         assertThat(change.getString("actorAccountId")).isEqualTo(ACTOR);
         assertThat(change.getString("actorName")).isEqualTo("Pat Support");
         assertThat(change.getBoolean("support")).isTrue();
@@ -182,5 +193,85 @@ class SupportAccessIT extends BillingItSupport {
         assertThat(club.getStatus()).isEqualTo(403);
         assertThat(mongo.count(new Query(), "impersonation_grants")).isZero();
         assertThat(mongo.count(Query.query(Criteria.where("action").is("SUPPORT_ACCESS_STARTED")), "audit_entries")).isZero();
+    }
+
+    /**
+     * Round 2 (E123, R-17-10 «revocable»): the club's ADMIN ends a live support access with `DELETE /support-accesses/{id}` (the
+     * grant id, the `entityId` of its `SUPPORT_ACCESS_STARTED` audit entry). Its token stops at once; the end is audited
+     * `SUPPORT_ACCESS_ENDED` in the club's audit and in the platform's, and publishes `SupportAccessEnded`.
+     */
+    @Test @AuditCovers(AuditAction.SUPPORT_ACCESS_ENDED)
+    void T_17_09_R_17_10_theClubsAdminEndsALiveSupportAccess() throws Exception {
+        String token = token();
+        String grant = SignedJWT.parse(token).getJWTClaimsSet().getJWTID();
+        String route = "/api/v1/support-accesses/" + grant;
+        // Only the club's ADMIN: not an INSTRUCTOR or a MEMBER, not the support token itself, not another club's ADMIN.
+        error(as(delete(route), CLUB, "INSTRUCTOR", null), 403, "FORBIDDEN");
+        error(as(delete(route), CLUB, "MEMBER", "puig"), 403, "FORBIDDEN");
+        var itself = as(token, delete(route));
+        assertThat(itself.getStatus()).as(itself.getContentAsString()).isEqualTo(403);
+        assertThat(code(itself)).isEqualTo("SUPPORT_RESTRICTED");
+        error(as(delete(route), OTHER, "ADMIN", null), 404, "NOT_FOUND");
+        error(admin(delete("/api/v1/support-accesses/no-such-grant")), 404, "NOT_FOUND");
+        // A member impersonation is no support access.
+        mongo.insert(new ImpersonationGrant("bill-impersonation", CLUB, "bill-admin", "puig", "puig-account", "Help", NOW.plus(Duration.ofMinutes(30)), null));
+        error(admin(delete("/api/v1/support-accesses/bill-impersonation")), 404, "NOT_FOUND");
+        assertThat(as(token, get("/api/v1/me")).getStatus()).isEqualTo(200);
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("SUPPORT_ACCESS_ENDED")), "audit_entries")).isZero();
+
+        var ended = call(admin(delete(route)));
+        assertThat(ended.getStatus()).as(ended.getContentAsString()).isEqualTo(204);
+        assertThat(as(token, get("/api/v1/me")).getStatus()).isEqualTo(401);
+        assertThat(mongo.findById(grant, Document.class, "impersonation_grants").get("revokedAt")).isNotNull();
+        var entry = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("SUPPORT_ACCESS_ENDED")), Document.class, "audit_entries");
+        assertThat(entry.getString("entityType")).isEqualTo("ImpersonationGrant");
+        assertThat(entry.getString("entityId")).isEqualTo(grant);
+        assertThat(entry.getString("actorAccountId")).isEqualTo("bill-admin");
+        assertThat(entry.getString("actorRole")).isEqualTo("ADMIN");
+        assertThat(entry.getString("origin")).isEqualTo("BACKOFFICE");
+        assertThat(entry.get("details", Document.class).getString("actorAccountId")).isEqualTo(ACTOR);
+        var event = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("SupportAccessEnded")), Document.class, "domain_events");
+        assertThat(event.get("payload", Document.class)).containsEntry("clubId", CLUB).containsEntry("actorAccountId", ACTOR);
+        // The platform sees it as it sees the start.
+        var platform = mvc.perform(console(get("/api/v1/platform/audit-entries").param("filter", "action:eq:SUPPORT_ACCESS_ENDED"), ACTOR)).andReturn().getResponse();
+        assertThat(platform.getStatus()).as(platform.getContentAsString()).isEqualTo(200);
+        assertThat(mapper.readTree(platform.getContentAsString()).path("items")).singleElement()
+                .satisfies(item -> assertThat(item.path("entityId").asText()).isEqualTo(grant));
+        // An ended or an expired access has nothing to end.
+        var again = call(admin(delete(route)));
+        assertThat(again.getStatus()).as(again.getContentAsString()).isEqualTo(409);
+        assertThat(json(again).path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(json(again).path("details").path("status").asText()).isEqualTo("ENDED");
+        String expired = SignedJWT.parse(token()).getJWTClaimsSet().getJWTID();
+        clock.setInstant(NOW.plus(Duration.ofMinutes(60)));
+        var late = call(admin(delete("/api/v1/support-accesses/" + expired)));
+        assertThat(late.getStatus()).as(late.getContentAsString()).isEqualTo(409);
+        assertThat(json(late).path("details").path("status").asText()).isEqualTo("EXPIRED");
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("SUPPORT_ACCESS_ENDED")), "audit_entries")).isEqualTo(1);
+    }
+
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping")
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
+
+    /**
+     * Round 2 (E123): the handler of every route the support restriction names refuses a support token itself
+     * (`@SupportRestricted`), so the rule does not hang on the filter's path matching alone.
+     */
+    @Test void T_17_09_R_17_10_everyRestrictedRouteRefusesASupportTokenInItsHandler() {
+        var unmarked = new java.util.TreeSet<String>();
+        int restricted = 0;
+        for (var entry : mappings.getHandlerMethods().entrySet()) {
+            var methods = entry.getKey().getMethodsCondition().getMethods();
+            for (String pattern : entry.getKey().getPatternValues()) {
+                String sample = pattern.replaceAll("\\{[^}]+}", "x");
+                for (var method : methods.isEmpty() ? Set.of(org.springframework.web.bind.annotation.RequestMethod.GET) : methods) {
+                    if (!com.agilityhub.core.identity.application.SupportAccessService.restricted(method.name(), sample)) { continue; }
+                    restricted++;
+                    if (!entry.getValue().hasMethodAnnotation(com.agilityhub.core.shared.application.SupportRestricted.class)) { unmarked.add(method + " " + pattern); }
+                }
+            }
+        }
+        assertThat(restricted).as("restricted routes found").isGreaterThanOrEqualTo(20);
+        assertThat(unmarked).as("restricted routes whose handler does not refuse a support token").isEmpty();
     }
 }

@@ -88,6 +88,7 @@ public final class AuditContracts {
         CLUB_ADMIN_INVITED,
         CLUB_DOMAIN_CHANGED,
         SUPPORT_ACCESS_STARTED,
+        SUPPORT_ACCESS_ENDED,
         PUBLIC_API_KEY_ROTATED,
         CATALOG_CHANGED,
         MIGRATION_APPLIED,

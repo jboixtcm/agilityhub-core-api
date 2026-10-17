@@ -135,6 +135,6 @@
 | `AccountErasureRequested{accountId?, memberIds[], clubIds[], executeAt, source}` · `AccountErased{…}` · `DataExported{jobId, kind}` | RGPD | S14 |
 | `RemittanceReminderDue{period, pendingMembers}` · `JobFailed{job, runId, status, errorCount}` · `SchedulerRun{trigger, counters}` · `SignupPendingAging{count, oldestDays, memberIds[]}` (N-34) · `WaitlistExpired` (FIFO) · `TrainingCounterReset` | processos | S15 |
 | S16: vegeu el bloc «Recorreguts» (E77, aplicat a E9-T01) | recorreguts | S16 |
-| `ClubDomainVerified{clubId, host}` · `ClubDomainBroken{clubId, host}` (E10-T03: S15 P9, origen `SYSTEM`) · `PlatformRoleChanged` · `ClubPaymentProviderChanged` · `ClubApplied{slug, diffSummary, dryRun}` · `SupportAccessStarted` | consola | S17 |
+| `ClubDomainVerified{clubId, host}` · `ClubDomainBroken{clubId, host}` (E10-T03: S15 P9, origen `SYSTEM`) · `PlatformRoleChanged` · `ClubPaymentProviderChanged` · `ClubApplied{slug, diffSummary, dryRun}` · `SupportAccessStarted` · `SupportAccessEnded{clubId, actorAccountId}` (E10-T04 ronda 2, decisió E123: l'ADMIN del club acaba un accés de suport viu; `actorAccountId` = el compte de plataforma) | consola | S17 |
 | `MigrationRunStarted` · `MigrationRunCompleted{counters}` · `MigrationRunFailed{step}` | migració | S18 |
 | `ChallengePublished` · `ChallengeClosed` · `ChallengeAttemptSubmitted` · `ChallengeAttemptValidated` · `AccountSharingChanged` (R2) | Learn | S19 |

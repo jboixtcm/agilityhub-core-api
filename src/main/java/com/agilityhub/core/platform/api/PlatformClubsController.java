@@ -140,8 +140,10 @@ public class PlatformClubsController {
     @DeleteMapping(value="/api/v1/platform/clubs/{id}/domains/{host}")
     @PreAuthorize(PlatformJobsController.PLATFORM)
     @ContractErrors({VALIDATION_ERROR, FORBIDDEN, IMPERSONATION_DENIED, CLUB_NOT_FOUND, NOT_FOUND, STALE_VERSION, INVALID_STATE})
-    @Operation(summary="deletePlatformDomain", description="S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Only a PENDING domain is removed; "
-            + "a VERIFIED or BROKEN one answers 409 INVALID_STATE {status}. An unknown host of the club is 404 NOT_FOUND. Audited CLUB_DOMAIN_CHANGED.",
+    @Operation(summary="deletePlatformDomain", description="S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. A PENDING, VERIFIED or BROKEN domain is "
+            + "removed, and Caddy's ask and GET /branding stop accepting it once the write commits; the primary domain of its app answers 409 INVALID_STATE "
+            + "{status, primary: true} until another domain is made primary (PUT …/domains/{host}/primary). An unknown host of the club is 404 NOT_FOUND. "
+            + "Audited CLUB_DOMAIN_CHANGED.",
             responses=@ApiResponse(responseCode="204", description="No content", content=@Content))
     @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
     public void deletePlatformDomain(@PathVariable String id,
@@ -160,7 +162,9 @@ public class PlatformClubsController {
             + "{host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, "
             + "so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) "
             + "also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). "
-            + "The DNS lookup runs before the write's transaction.",
+            + "The DNS lookup runs before the write's transaction. A verified clubs-admin domain gets its certificate at once, but Caddy serves the "
+            + "back-office app on it only after the host is added to CLUB_ADMIN_HOSTS and Caddy is reloaded (docs/DEPLOY.md, «Alta d'un domini de club»; "
+            + "choosing the app from the domain is INC-64); until then the host serves the members' app.",
             responses=@ApiResponse(responseCode="200", description="DomainVerification", useReturnTypeSchema=true))
     public DomainVerification verifyPlatformDomain(@PathVariable String id,
             @PathVariable String host,

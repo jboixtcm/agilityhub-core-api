@@ -43,25 +43,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * cash member by half-years, a pack, the maintenance plan and single classes. `bill-b` is the other tenant.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
-abstract class BillingItSupport extends AbstractIntegrationTest {
-    static final String CLUB = "bill-a", OTHER = "bill-b", HOST = "bill-a.example.test", OTHER_HOST = "bill-b.example.test";
-    static final String IBAN = "ES0000000000000000004321";
-    static final Instant NOW = Instant.parse("2026-08-25T08:00:00Z");
-    static final List<String> DATA = List.of("members", "family_groups", "dogs", "plans", "prices", "parameters", "invoices", "collections", "remittances",
+public abstract class BillingItSupport extends AbstractIntegrationTest {
+    protected static final String CLUB = "bill-a", OTHER = "bill-b", HOST = "bill-a.example.test", OTHER_HOST = "bill-b.example.test";
+    protected static final String IBAN = "ES0000000000000000004321";
+    protected static final Instant NOW = Instant.parse("2026-08-25T08:00:00Z");
+    protected static final List<String> DATA = List.of("members", "family_groups", "dogs", "plans", "prices", "parameters", "invoices", "collections", "remittances",
             "billing_runs", "billing_simulations", "billing_locks", "pending_charges", "audit_entries", "idempotency_records", "bookings", "notifications",
             "memberships", "class_sessions", "attendances", "domain_events",
             // E8-T06: the lifecycle and process rows a P5/P10 test leaves would change another class's receipts (an inactivity fee).
             "inactivity_periods", "leave_requests", "pack_balances", "dog_documents", "job_runs", "job_locks", "job_action_marks");
 
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper mapper;
-    @Autowired MongoTemplate mongo;
-    @Autowired ClubRepository clubs;
-    @Autowired ClubConfigService configs;
-    @Autowired HostTenantResolver hosts;
-    @Autowired OutboxDispatcher outbox;
+    @Autowired protected MockMvc mvc;
+    @Autowired protected ObjectMapper mapper;
+    @Autowired protected MongoTemplate mongo;
+    @Autowired protected ClubRepository clubs;
+    @Autowired protected ClubConfigService configs;
+    @Autowired protected HostTenantResolver hosts;
+    @Autowired protected OutboxDispatcher outbox;
 
-    @BeforeEach void billingCensus() {
+    @BeforeEach protected void billingCensus() {
         clock.setInstant(NOW);
         for (String collection : DATA) { mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection); }
         mongo.remove(Query.query(Criteria.where("_id").regex("^bill-")), "accounts");
@@ -109,7 +109,7 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
         configs.invalidate(CLUB); configs.invalidate(OTHER);
     }
 
-    void club(String id, String host, String zone, List<Module> modules, Map<String, Object> providers) {
+    protected void club(String id, String host, String zone, List<Module> modules, Map<String, Object> providers) {
         mongo.remove(Query.query(Criteria.where("_id").is(id)), Club.class);
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(id, host, zone));
         tree.set("modules", mapper.valueToTree(modules));
@@ -119,44 +119,44 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
         tree.set("updatedAt", mapper.valueToTree(NOW.minusSeconds(86_400)));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(id);
     }
-    static Map<String, Object> providers(boolean sepa, boolean manual, boolean stripe) {
+    protected static Map<String, Object> providers(boolean sepa, boolean manual, boolean stripe) {
         var providers = new LinkedHashMap<String, Object>();
         if (sepa) { providers.put("SEPA_XML", Map.of("enabled", true, "creditorName", "Club Agility Facturació", "creditorId", "ES00ZZZB00000000", "iban", IBAN.replace("4321", "9876"))); }
         if (manual) { providers.put("MANUAL", Map.of("enabled", true)); }
         if (stripe) { providers.put("STRIPE", Map.of("enabled", true)); }
         return providers;
     }
-    void modules(String clubId, List<Module> modules) {
+    protected void modules(String clubId, List<Module> modules) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(clubId)), new org.springframework.data.mongodb.core.query.Update().set("modules", modules), Club.class);
         configs.invalidate(clubId);
     }
-    void plan(String code, OfferTerms.PlanType type, OfferTerms.BillingMode mode, String name, int dogs) {
+    protected void plan(String code, OfferTerms.PlanType type, OfferTerms.BillingMode mode, String name, int dogs) {
         var updated = NOW.minusSeconds(86_400 * 30L);
         mongo.insert(new Plan("bill-plan-" + code, CLUB, code, new LocalizedText(Map.of("ca", name), "ca"), type, mode == null ? OfferTerms.BillingMode.MONTHLY_FEE : mode,
                 dogs, null, type == OfferTerms.PlanType.PACK ? new OfferTerms.Pack(10, 5) : null,
                 type == OfferTerms.PlanType.SINGLE_CLASS ? new OfferTerms.SingleClass(OfferTerms.ChargeMode.CHARGE_ON_ATTENDANCE, OfferTerms.CancelPolicy.NONE) : null,
                 null, null, true, true, 1, true, 0, updated, updated, "bill-admin", "bill-admin"));
     }
-    void price(String plan, OfferTerms.PriceConcept concept, long cents, String currency) {
+    protected void price(String plan, OfferTerms.PriceConcept concept, long cents, String currency) {
         var updated = NOW.minusSeconds(86_400 * 30L);
         mongo.insert(new Price("bill-price-" + plan + "-" + concept.name().toLowerCase(Locale.ROOT), CLUB, "bill-plan-" + plan, concept, new Money(cents, currency),
                 BigDecimal.ZERO, LocalDate.of(2026, 1, 1), null, 0, updated, updated, "bill-admin", "bill-admin"));
     }
-    static Map<String, Object> sepa(String iban) {
+    protected static Map<String, Object> sepa(String iban) {
         var method = new LinkedHashMap<String, Object>(); method.put("type", "SEPA_DD"); method.put("holderName", "Titular Example");
         if (iban != null) { method.put("iban", iban); method.put("mandateRef", "bill-a-mandate"); }
         return method;
     }
-    static String debtorIban(int memberNumber) {
+    protected static String debtorIban(int memberNumber) {
         String bban = String.format("%020d", memberNumber);
         int check = 98 - new java.math.BigInteger(bban + "142800").mod(java.math.BigInteger.valueOf(97)).intValue();
         return String.format("ES%02d%s", check, bban);
     }
-    static Map<String, Object> card(boolean invalid) {
+    protected static Map<String, Object> card(boolean invalid) {
         return Map.of("type", "CARD", "card", Map.of("stripeCustomerId", "cus_fixture", "last4", "4242", "invalid", invalid));
     }
-    static Map<String, Object> cash() { return Map.of("type", "MANUAL", "channel", "cash"); }
-    void member(String id, int number, String first, String last, Map<String, Object> payment, String plan) {
+    protected static Map<String, Object> cash() { return Map.of("type", "MANUAL", "channel", "cash"); }
+    protected void member(String id, int number, String first, String last, Map<String, Object> payment, String plan) {
         if (payment != null && payment.containsKey("mandateRef")) {
             // E8-T03: each SEPA member has its own mandate `{clubSlug}-{memberNumber}-1`, signed on 15-06 (R-12-12 `MndtId`, `DtOfSgntr`).
             payment = new LinkedHashMap<>(payment);
@@ -169,54 +169,54 @@ abstract class BillingItSupport extends AbstractIntegrationTest {
                 .append("signup", new Document("locale", "ca")).append("bookingBlock", new Document("active", false)).append("version", 0)
                 .append("createdAt", Date.from(NOW.minusSeconds(86_400))).append("updatedAt", Date.from(NOW.minusSeconds(86_400))), "members");
     }
-    void status(String id, int number, String first, String last, String status) {
+    protected void status(String id, int number, String first, String last, String status) {
         member(id, number, first, last, sepa(IBAN), "abonat");
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new org.springframework.data.mongodb.core.query.Update().set("status", status), "members");
     }
-    void charge(String id, String member, String booking, String description) {
+    protected void charge(String id, String member, String booking, String description) {
         mongo.save(new Document("_id", id).append("clubId", CLUB).append("memberId", member).append("dogId", "bill-dog-" + member).append("bookingId", booking)
                 .append("priceId", "bill-price-single-single_class").append("amount", new Document("amountMinor", 1200L).append("currency", "EUR"))
                 .append("description", description).append("createdAt", Date.from(NOW.minusSeconds(86_400))), "pending_charges");
     }
-    void parameter(String clubId, String key, Object value) {
+    protected void parameter(String clubId, String key, Object value) {
         mongo.remove(Query.query(Criteria.where("clubId").is(clubId).and("key").is(key)), Parameter.class);
         mongo.insert(new Parameter(UUID.randomUUID().toString(), clubId, key, value, "unknown", "club", null, List.of(), 1L, clock.instant()));
         configs.invalidate(clubId);
     }
-    void admin(String accountId, String clubId) {
+    protected void admin(String accountId, String clubId) {
         mongo.save(new com.agilityhub.core.identity.persistence.Account(accountId, accountId + "@example.test", "Admin " + accountId, "ca", null, Set.of(),
                 com.agilityhub.core.identity.persistence.Account.Status.ACTIVE, null, Map.of(), false, NOW));
         mongo.save(new com.agilityhub.core.identity.persistence.Membership(accountId, accountId, clubId, null, Set.of(com.agilityhub.core.identity.domain.Role.ADMIN),
                 com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.ADMIN));
     }
 
-    MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String clubId, String role, String memberId) {
+    protected MockHttpServletRequestBuilder as(MockHttpServletRequestBuilder request, String clubId, String role, String memberId) {
         return request.header("Host", clubId.equals(CLUB) ? HOST : OTHER_HOST).with(jwt().jwt(j -> j.subject("bill-" + role.toLowerCase(Locale.ROOT))
                 .claim("clubId", clubId).claim("memberId", memberId == null ? "none" : memberId)).authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
-    MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return as(request, CLUB, "ADMIN", null); }
-    MockHttpServletRequestBuilder keyed(MockHttpServletRequestBuilder request, Object body) throws Exception {
+    protected MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) { return as(request, CLUB, "ADMIN", null); }
+    protected MockHttpServletRequestBuilder keyed(MockHttpServletRequestBuilder request, Object body) throws Exception {
         return request.header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json").content(mapper.writeValueAsString(body));
     }
-    MockHttpServletResponse call(MockHttpServletRequestBuilder request) throws Exception { return mvc.perform(request).andReturn().getResponse(); }
-    JsonNode json(MockHttpServletResponse response) throws Exception { return mapper.readTree(response.getContentAsString()); }
-    JsonNode ok(MockHttpServletRequestBuilder request, int status) throws Exception {
+    protected MockHttpServletResponse call(MockHttpServletRequestBuilder request) throws Exception { return mvc.perform(request).andReturn().getResponse(); }
+    protected JsonNode json(MockHttpServletResponse response) throws Exception { return mapper.readTree(response.getContentAsString()); }
+    protected JsonNode ok(MockHttpServletRequestBuilder request, int status) throws Exception {
         var response = call(request);
         org.assertj.core.api.Assertions.assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(status);
         return response.getContentLength() == 0 && response.getContentAsByteArray().length == 0 ? null : json(response);
     }
-    void error(MockHttpServletRequestBuilder request, int status, String code) throws Exception {
+    protected void error(MockHttpServletRequestBuilder request, int status, String code) throws Exception {
         var response = call(request);
         org.assertj.core.api.Assertions.assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(status);
         org.assertj.core.api.Assertions.assertThat(json(response).path("code").asText()).isEqualTo(code);
     }
-    JsonNode simulate(String period) throws Exception {
+    protected JsonNode simulate(String period) throws Exception {
         return ok(admin(post("/api/v1/billing/simulations").contentType("application/json").content("{\"period\":\"" + period + "\"}")), 201);
     }
-    JsonNode run(String period, String simulationId) throws Exception {
+    protected JsonNode run(String period, String simulationId) throws Exception {
         return ok(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", period, "simulationId", simulationId))), 201);
     }
-    String member(String id, String field) { return Objects.toString(mongo.findById(id, Document.class, "members").get(field), null); }
-    List<Document> invoices() { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB)).with(org.springframework.data.domain.Sort.by("number")), Document.class, "invoices"); }
-    List<Document> events(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
+    protected String member(String id, String field) { return Objects.toString(mongo.findById(id, Document.class, "members").get(field), null); }
+    protected List<Document> invoices() { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB)).with(org.springframework.data.domain.Sort.by("number")), Document.class, "invoices"); }
+    protected List<Document> events(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
 }

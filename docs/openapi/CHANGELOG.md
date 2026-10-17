@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-17 · E10-T04 round 2 · S17 support access and domains (ruling E123)
+
+**1 operation added (`DELETE /support-accesses/{id}`); 1 enum value added (`AuditAction`: `SUPPORT_ACCESS_ENDED`); 2 descriptions changed; 0 schemas added or removed.**
+
+- New `DELETE /support-accesses/{id}` (club ADMIN, tenant from the host; `204`, no body): ends a live support access of the AgilityHub team (R-17-10 «revocable»). `{id}` is the grant, the `entityId` of its `SUPPORT_ACCESS_STARTED` audit entry. `404 NOT_FOUND` (another club's, a member impersonation, unknown) · `409 INVALID_STATE {status: ENDED | EXPIRED}` · `403 SUPPORT_RESTRICTED` with the support token itself. Audited `SUPPORT_ACCESS_ENDED`, publishes `SupportAccessEnded{clubId, actorAccountId}`.
+- `DELETE /platform/clubs/{id}/domains/{host}`: a `VERIFIED` or `BROKEN` domain can now be removed too; the primary domain of its app answers `409 INVALID_STATE {status, primary: true}` (before: every non-`PENDING` domain answered `409 INVALID_STATE {status}`).
+- `POST …/domains/{host}/verification`: the description says that a verified `clubs-admin` host serves the back office only after `CLUB_ADMIN_HOSTS` and a Caddy reload (INC-64).
+- Behaviour only, no contract change: with a support token, the restricted routes are refused on any spelling of their path (`/members/%65xport` → `403 SUPPORT_RESTRICTED`), by the filter and by the handler; actions taken with it are audited `actorRole: PLATFORM` (was `ADMIN`). A keyed `/platform/clubs/{id}/…` request is scoped to the decoded club, and a club that does not exist gets no idempotency row (its `404 CLUB_NOT_FOUND` is unchanged).
+
 ## 2026-10-17 · E10-T03 · S17 E10 integration: S15 P9's domain re-check
 
 **0 operations or schemas added or removed; 1 enum value added (`DomainVerification.method`: `ADDRESS`); 1 description changed.**

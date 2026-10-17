@@ -1,0 +1,37 @@
+"""E10-T04 round 2 #1: puts @SupportRestricted on the handlers of the 26 restricted routes the red run listed (20-round2-red.log).
+Run once from the repository root as target/e10t04r2-annotate.py; it printed `annotated 23` (three handlers map GET and POST)."""
+B = 'src/main/java/com/agilityhub/core/'
+targets = {
+    'clubs/common/api/ExportsController.java': ['@GetMapping("/api/v1/exports")', '@GetMapping("/api/v1/exports/{id}")', '@GetMapping("/api/v1/exports/{id}/download")',
+        '@PostMapping("/api/v1/members/{id}/data-export")', '@PostMapping("/api/v1/me/data-export")', 'path = "/api/v1/members/export"', 'path = "/api/v1/dogs/export"',
+        'path = "/api/v1/audit-entries/export"', '@GetMapping("/api/v1/invoices/export")', '@GetMapping("/api/v1/activity-registrations/export")', '@GetMapping("/api/v1/notifications/export")'],
+    'payments/api/BillingController.java': ['@GetMapping("/api/v1/billing/exports")'],
+    'payments/api/RemittanceFilesController.java': ['@GetMapping("/api/v1/remittances/files/{clubId}/{id}")'],
+    'payments/api/RemittancesController.java': ['@GetMapping("/api/v1/remittances/{id}/file")'],
+    'clubs/bookings/api/InstructorController.java': ['@GetMapping("/api/v1/instructor/week/export")'],
+    'clubs/training/api/TrainingController.java': ['@GetMapping("/api/v1/training-bookings/export")'],
+    'clubs/activities/api/ActivitiesController.java': ['@GetMapping("/api/v1/activities/export")'],
+    'identity/api/AccountAdministrationController.java': ['@PostMapping("/api/v1/members/{id}/impersonation-token")'],
+    'identity/api/MeController.java': ['@PatchMapping("/api/v1/me")', '@PutMapping("/api/v1/me/password")', '@DeleteMapping("/api/v1/me/sessions/{id}")',
+        '@PutMapping("/api/v1/me/onboarding")', '@PostMapping("/api/v1/me/onboarding/postpone")'],
+}
+n = 0
+for f, marks in targets.items():
+    p = B + f
+    lines = open(p).read().split('\n')
+    out = []
+    for line in lines:
+        stripped = line.strip()
+        hit = [m for m in marks if stripped.startswith('@') and (stripped.startswith(m) or ('path = ' in m and m in stripped))]
+        # an exact mapping match: the mark is followed by the end of the annotation or by its next attribute
+        hit = [m for m in hit if 'path = ' in m or stripped[len(m):len(m) + 1] in ('', ')', ',')]
+        if hit:
+            indent = line[:len(line) - len(line.lstrip())]
+            out.append(indent + '@com.agilityhub.core.shared.application.SupportRestricted')
+            n += 1
+            marks.remove(hit[0])
+        out.append(line)
+    if marks:
+        print('MISSING', f, marks)
+    open(p, 'w').write('\n'.join(out))
+print('annotated', n)

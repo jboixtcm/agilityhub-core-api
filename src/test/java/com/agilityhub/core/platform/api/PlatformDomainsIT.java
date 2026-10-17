@@ -170,10 +170,15 @@ class PlatformDomainsIT extends AbstractIntegrationTest {
         assertThat(verify("other.example.test", UUID.randomUUID().toString(), 404).path("code").asText()).isEqualTo("NOT_FOUND");
     }
 
-    @Test void T_17_03_R_17_03_onlyPendingDomainsLeaveAndOnlyVerifiedOnesArePrimary() throws Exception {
-        // S17 §5: PENDING → [*] only; a verified domain keeps serving its club.
-        assertThat(call(delete(BASE + TARGET + "/domains/target.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 409)
-                .path("details").path("status").asText()).isEqualTo("VERIFIED");
+    /**
+     * S17 §5 (round 2, E123): a pending, verified or broken domain leaves (clubs change hosts), never the primary one of its app,
+     * until another domain is primary; only a verified domain becomes primary.
+     */
+    @Test void T_17_03_R_17_03_anyDomainButThePrimaryLeavesAndOnlyVerifiedOnesArePrimary() throws Exception {
+        assertThat(stored("target.example.test").primary()).isTrue();
+        var refused = call(delete(BASE + TARGET + "/domains/target.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 409);
+        assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(refused.path("details")).isEqualTo(mapper.valueToTree(Map.of("status", "VERIFIED", "primary", true)));
         call(delete(BASE + TARGET + "/domains/pending.target.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 204);
         assertThat(clubs.findById(TARGET).orElseThrow().domains()).extracting(Club.Domain::host).containsExactly("target.example.test");
         assertThat(call(delete(BASE + TARGET + "/domains/pending.target.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 404)
@@ -194,6 +199,27 @@ class PlatformDomainsIT extends AbstractIntegrationTest {
         try (var scope = com.agilityhub.core.shared.application.TenantContext.open(TARGET)) {
             assertThat(urls.login("clubs-app")).startsWith("https://second.example.test");
         }
+        // The old primary is now an ordinary verified domain: it leaves, and Caddy and /branding stop serving it at once.
+        assertThat(allowed("target.example.test")).isEqualTo(200);
+        call(delete(BASE + TARGET + "/domains/target.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 204);
+        assertThat(allowed("target.example.test")).isEqualTo(404);
+        assertThat(branding("target.example.test")).isEqualTo(404);
+        // A broken one leaves too; the new primary still cannot.
+        add("third.example.test", "clubs", 201);
+        dns.cname("third.example.test", "clubs.agilitydoghub.com");
+        verify("third.example.test", UUID.randomUUID().toString(), 200);
+        var club = clubs.findById(TARGET).orElseThrow();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(TARGET).and("domains.host").is("third.example.test")),
+                new org.springframework.data.mongodb.core.query.Update().set("domains.$.status", "BROKEN"), Club.class);
+        hosts.invalidate();
+        assertThat(stored("third.example.test").status()).isEqualTo(Club.DomainStatus.BROKEN);
+        call(delete(BASE + TARGET + "/domains/third.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 204);
+        assertThat(clubs.findById(TARGET).orElseThrow().version()).isGreaterThan(club.version());
+        assertThat(call(delete(BASE + TARGET + "/domains/second.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 409)
+                .path("details").path("primary").asBoolean()).isTrue();
+        assertThat(clubs.findById(TARGET).orElseThrow().domains()).extracting(Club.Domain::host).containsExactly("second.example.test");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(TARGET).and("action").is("CLUB_DOMAIN_CHANGED").and("reason").is("Domain removed")), "audit_entries"))
+                .isEqualTo(3);
     }
     @Autowired com.agilityhub.core.platform.application.ClubAppUrls urls;
 

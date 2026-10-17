@@ -1,5 +1,6 @@
-package com.agilityhub.core.payments.api;
+package com.agilityhub.core.platform.api;
 
+import com.agilityhub.core.payments.api.BillingItSupport;
 import com.agilityhub.core.clubs.census.application.MemberService;
 import com.agilityhub.core.platform.application.PlatformProviders;
 import com.agilityhub.core.shared.application.TenantContext;

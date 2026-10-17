@@ -90,6 +90,7 @@ public class InstructorController {
         return view(weeks.week(date, instructorId, ringId, caller(jwt)), InstructorWeek.class);
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/instructor/week/export")
     @PreAuthorize(STAFF)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})

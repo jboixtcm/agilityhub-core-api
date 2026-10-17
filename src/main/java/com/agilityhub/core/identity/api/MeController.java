@@ -92,6 +92,7 @@ public class MeController {
                 new MeResponse.Support(support.actorName(), support.expiresAt()));
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PatchMapping("/api/v1/me")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Update account language or display name", description = "Any valid account token. R-01-14.",
@@ -103,6 +104,7 @@ public class MeController {
         return me(jwt);
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PutMapping("/api/v1/me/password")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Set or change the current account password",
@@ -137,6 +139,7 @@ public class MeController {
                 token.createdAt(), token.expiresAt(), token.lastUsedAt())).toList();
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @DeleteMapping("/api/v1/me/sessions/{id}")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Revoke one of the current account's sessions", description = "Any valid account token. R-01-10. The session must belong to this account.",
@@ -154,6 +157,7 @@ public class MeController {
             responses = @ApiResponse(responseCode = "200", description = "Pending onboarding and current privacy policy"))
     public OnboardingState onboarding(@AuthenticationPrincipal Jwt jwt) { return onboardingState(onboarding.state(jwt.getSubject())); }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PutMapping("/api/v1/me/onboarding")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Complete first-access privacy consent and optional profile fields",
@@ -168,6 +172,7 @@ public class MeController {
                 fields == null ? null : fields.name(), fields == null ? null : fields.locale(), fields == null ? null : fields.phone(), request.imageConsent())));
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/me/onboarding/postpone")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Postpone the current consent prompt",

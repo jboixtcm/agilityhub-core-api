@@ -1748,7 +1748,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "PAYMENT_REFUND_INTERVENTION", "PACK_ADJUSTED", "INVOICE_CREATED_MANUAL", "REMITTANCE_SUBMITTED", "CARD_CHARGES_STARTED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CLUB_CREATED", "CLUB_PAYMENT_PROVIDER_CHANGED", "CLUB_ADMIN_INVITED", "CLUB_DOMAIN_CHANGED", "SUPPORT_ACCESS_STARTED", "SUPPORT_ACCESS_ENDED", "PUBLIC_API_KEY_ROTATED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED", "COURSE_FORCED_PLACEMENT", "RING_GEOMETRY_CHANGED", "RING_SETUP_REGISTERED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -74493,7 +74493,7 @@
     },
     "/api/v1/platform/clubs/{id}/domains/{host}" : {
       "delete" : {
-        "description" : "S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Only a PENDING domain is removed; a VERIFIED or BROKEN one answers 409 INVALID_STATE {status}. An unknown host of the club is 404 NOT_FOUND. Audited CLUB_DOMAIN_CHANGED.",
+        "description" : "S17 §5. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. A PENDING, VERIFIED or BROKEN domain is removed, and Caddy's ask and GET /branding stop accepting it once the write commits; the primary domain of its app answers 409 INVALID_STATE {status, primary: true} until another domain is made primary (PUT …/domains/{host}/primary). An unknown host of the club is 404 NOT_FOUND. Audited CLUB_DOMAIN_CHANGED.",
         "operationId" : "deletePlatformDomain",
         "parameters" : [ {
           "in" : "path",
@@ -74804,7 +74804,7 @@
     },
     "/api/v1/platform/clubs/{id}/domains/{host}/verification" : {
       "post" : {
-        "description" : "S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). The DNS lookup runs before the write's transaction.",
+        "description" : "S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). The DNS lookup runs before the write's transaction. A verified clubs-admin domain gets its certificate at once, but Caddy serves the back-office app on it only after the host is added to CLUB_ADMIN_HOSTS and Caddy is reloaded (docs/DEPLOY.md, «Alta d'un domini de club»; choosing the app from the domain is INC-64); until then the host serves the members' app.",
         "operationId" : "verifyPlatformDomain",
         "parameters" : [ {
           "in" : "path",
@@ -86433,6 +86433,146 @@
         } ],
         "summary" : "Create signup upload URL",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/support-accesses/{id}" : {
+      "delete" : {
+        "description" : "S17 R-17-10. Roles: ADMIN of the club (MEMBER, INSTRUCTOR → 403; an impersonation token → 403; a support token → 403 SUPPORT_RESTRICTED: the platform ends its own access with POST /oauth2/revoke). No module. Ends a live support access of the AgilityHub team to this club: {id} is the grant, the entityId of its SUPPORT_ACCESS_STARTED audit entry (GET /audit-entries?filter=action:eq:SUPPORT_ACCESS_STARTED; details.expiresAt says until when it lives). Its token answers 401 from its next request. Audited SUPPORT_ACCESS_ENDED (entityType ImpersonationGrant, details.actorAccountId = the platform account), also listed in the platform's audit; publishes SupportAccessEnded{clubId, actorAccountId}. Another club's access, a member impersonation or an unknown id → 404 NOT_FOUND; an access already ended or expired → 409 INVALID_STATE {status: ENDED | EXPIRED}. No body.",
+        "operationId" : "endSupportAccess",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "SUPPORT_RESTRICTED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_STATE"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "endSupportAccess",
+        "tags" : [ "identity" ]
       }
     },
     "/api/v1/tasks" : {

@@ -49,6 +49,7 @@ public class AccountAdministrationController {
     private PlatformRoles platformRoles(java.util.Set<String> values) {
         return new PlatformRoles(values.stream().map(PlatformRole::valueOf).collect(java.util.stream.Collectors.toSet()));
     }
+    @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/members/{id}/impersonation-token")
     @com.agilityhub.core.shared.application.contract.ContractErrors({com.agilityhub.core.shared.domain.ErrorCode.MEMBER_ERASED})
     @ResponseStatus(HttpStatus.CREATED)

@@ -47,6 +47,9 @@ public class AuditConfiguration {
                         role = "ADMIN";
                         impersonated = current.impersonation().memberId();
                     }
+                    // S17 R-17-10, S14 §3 (E10-T04 round 2, E123): an action taken with a validated support access is the
+                    // AgilityHub team's, not one of the club's admins', whatever role the token carries.
+                    if (current != null && current.support() != null) { role = "PLATFORM"; }
                 }
                 if (role.equals("AGILITYHUB_ADMIN")) { role = "PLATFORM"; }
             }

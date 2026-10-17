@@ -65,6 +65,7 @@ public class RemittancesController {
         return BillingViews.remittance(remittances.get(id));
     }
 
+    @com.agilityhub.core.shared.application.SupportRestricted
     @GetMapping("/api/v1/remittances/{id}/file")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED})
     @Operation(summary = "remittanceFile", description = ROLES + "[Descarrega l'XML]: a signed URL of the pain.008 file valid for five minutes (also "

@@ -43,8 +43,9 @@ public class PlatformConsoleProjection extends GlobalRepository<Club> {
                 new Criteria().orOperator(
                     new Criteria().andOperator(Criteria.where("entityType").is("Club"),Criteria.where("action").in("CLUB_UPDATED","CLUB_MODULES_CHANGED","CLUB_STATUS_CHANGED",
                             "CLUB_CREATED","CLUB_PAYMENT_PROVIDER_CHANGED","CLUB_ADMIN_INVITED","CLUB_DOMAIN_CHANGED","PUBLIC_API_KEY_ROTATED")),
-                    // S17 R-17-10 (E10-T04): the platform's own support accesses, never what was done with them inside the club.
-                    new Criteria().andOperator(Criteria.where("entityType").is("ImpersonationGrant"),Criteria.where("action").is("SUPPORT_ACCESS_STARTED")),
+                    // S17 R-17-10 (E10-T04): the platform's own support accesses, never what was done with them inside the club; and
+                    // (round 2, E123) the club's ADMIN ending one.
+                    new Criteria().andOperator(Criteria.where("entityType").is("ImpersonationGrant"),Criteria.where("action").in("SUPPORT_ACCESS_STARTED","SUPPORT_ACCESS_ENDED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Parameter"),Criteria.where("action").is("PARAMETER_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").is("Account"),Criteria.where("action").is("PLATFORM_ROLES_CHANGED")),
                     new Criteria().andOperator(Criteria.where("entityType").in("Level","Ring","Plan","Price","FaqEntry","MessageTemplate"),Criteria.where("action").is("CATALOG_CHANGED"))));

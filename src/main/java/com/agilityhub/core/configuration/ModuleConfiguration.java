@@ -15,7 +15,9 @@ public class ModuleConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
-                registry.addInterceptor(new RequiresModuleInterceptor(guard)).order(Ordered.HIGHEST_PRECEDENCE);
+                // S17 R-17-10 (E10-T04 round 2): a support token is refused by its handler before any module check.
+                registry.addInterceptor(new com.agilityhub.core.shared.api.SupportRestrictedInterceptor()).order(Ordered.HIGHEST_PRECEDENCE);
+                registry.addInterceptor(new RequiresModuleInterceptor(guard)).order(Ordered.HIGHEST_PRECEDENCE + 1);
             }
         };
     }
