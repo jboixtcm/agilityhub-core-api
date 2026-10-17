@@ -51,15 +51,17 @@ public class JndiDomainDns implements DomainDns {
     /**
      * E10-T03: the addresses through the JVM's resolver, which follows CNAMEs (a JNDI `A` query answers only the queried name's
      * own records). The JVM's `UnknownHostException` does not tell NXDOMAIN from a failed lookup (round 2), so the name is then
-     * asked once more through JNDI: an answer, or NXDOMAIN, is «no address»; no answer is {@link DomainDns.LookupFailed}.
+     * asked once more through JNDI: NXDOMAIN or an answer without `A` records is «no address»; no answer is
+     * {@link DomainDns.LookupFailed}; the `A` records it answers (INC-66) are the name's addresses, never «no address».
      */
     @Override public List<String> addresses(String host) {
         try {
             return java.util.Arrays.stream(resolver.resolve(host)).map(InetAddress::getHostAddress).distinct().toList();
         } catch (UnknownHostException | SecurityException missing) {
-            lookup(host, "A");
-            LOG.info("Domain DNS lookup found nothing: type=ADDRESS reason={}", missing.getClass().getSimpleName());
-            return List.of();
+            var answered = lookup(host, "A").stream().distinct().toList();
+            if (answered.isEmpty()) { LOG.info("Domain DNS lookup found nothing: type=ADDRESS reason={}", missing.getClass().getSimpleName()); }
+            else { LOG.warn("Domain DNS resolvers disagree: type=ADDRESS jvm={} jndiAddresses={}", missing.getClass().getSimpleName(), answered.size()); }
+            return answered;
         }
     }
 

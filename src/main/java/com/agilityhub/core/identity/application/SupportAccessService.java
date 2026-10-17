@@ -120,8 +120,13 @@ public class SupportAccessService implements ConsoleSupportAccess {
         return new Ended(grant.id(), grant.actorAccountId());
     }
 
-    /** Whether `method path` is closed to a support token ({@link #RESTRICTED}). */
-    public static boolean restricted(String method, String path) { return RESTRICTED.matcher(method + " " + path).matches(); }
+    /**
+     * Whether `method path` is closed to a support token ({@link #RESTRICTED}). Spring MVC also routes `HEAD` to a `GET` handler,
+     * so a `HEAD` is closed as its `GET` (INC-65).
+     */
+    public static boolean restricted(String method, String path) {
+        return RESTRICTED.matcher(("HEAD".equals(method) ? "GET" : method) + " " + path).matches();
+    }
 
     private static boolean platformAdmin(Account account) {
         return account.status() == Account.Status.ACTIVE && account.platformRoles().contains(Account.PlatformRole.AGILITYHUB_ADMIN);

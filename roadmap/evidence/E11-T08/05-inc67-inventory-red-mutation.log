@@ -1,0 +1,119 @@
+16:55:55.486 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.SecurityInventoryIT]: SecurityInventoryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:55:55.597 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.SecurityInventoryIT
+16:55:55.623 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.SecurityInventoryIT]: SecurityInventoryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:55:55.623 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:55:55.625 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.SecurityInventoryIT
+16:55:55.651 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:55:55.652 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:55:55.655 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:55:55.741 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:55:55.914 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:55:55.914 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:55:55.925 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:55:56.269 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:55:56.327 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:55:56.380 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 1ada63bda5f15963795850f90a016ec3bcef1e4f2b0bf0132e4a101d20f78597
+16:55:56.546 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.277229S
+16:55:56.549 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:55:56.550 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:55:56.550 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:55:56.550 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:55:56.580 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 60c7a064108ca104c059cf39564299d517f9e9d01b4b934969514515e67f7d4b
+16:55:56.971 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.420593S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-17T16:55:57.602+03:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : Starting SecurityInventoryIT using Java [redacted] with PID 94150 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-17T16:55:57.603+03:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T16:55:58.402+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T16:55:58.451+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 45 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T16:55:58.804+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3509f32d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1f9a5d3b, com.mongodb.Jep395RecordCodecProvider@440e2406, com.mongodb.KotlinCodecProvider@56adb75e, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52524], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2cc7b63d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T16:55:58.808+03:00 INFO  [cluster-6ad37e6e4fbbf910dcb5f374-localhost:52524] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52524, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7320167, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=60c7a064108c:27017, hosts=[60c7a064108c:27017], passives=[], arbiters=[], primary='60c7a064108c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad37e6c081854932fc8f1ad, counter=6}, lastWriteDate=Sat Oct 17 16:55:57 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T16:55:59.782+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:55:59.799+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:55:59.818+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:56:00.415+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:56:00.431+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:56:00.449+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:56:00.526+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:56:02.351+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T16:56:02.351+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T16:56:02.356+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 5 ms
+2026-10-17T16:56:02.414+03:00 INFO  [main] c.a.c.configuration.SecurityInventoryIT traceId= clubId= accountId= : Started SecurityInventoryIT in 4.961 seconds (process running for 7.249)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+INC-67 anonymous writes with a rate-limit route: 10
+2026-10-17T16:56:05.148+03:00 INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=8dea8d17-1db4-48ab-ac3f-2ac96f6614af clubId=- accountId=- : Init duration for springdoc-openapi is: 1880 ms
+2026-10-17T16:56:05.425+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=385b493f-f85b-455e-aa28-c3f41ccfb601 clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=385b493f-f85b-455e-[redacted]
+2026-10-17T16:56:05.450+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=0f8a1fda-7dc2-415a-8083-447dc7237cbf clubId=security-inventory accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=0f8a1fda-7dc2-415a-8083-447dc7237cbf
+2026-10-17T16:56:05.550+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=cfaea291-8e76-45d9-b88e-353d000e9e78 clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=cfaea291-8e76-45d9-b88e-353d000e9e78
+2026-10-17T16:56:05.650+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=2504dcda-99b9-4cee-88bf-39fdf7c561a5 clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=2504dcda-99b9-4cee-88bf-39fdf7c561a5
+2026-10-17T16:56:05.652+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=cf22c2fc-919b-4dde-ae27-4663372afb02 clubId=security-inventory accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=[redacted]
+2026-10-17T16:56:05.654+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9a0a5853-1083-498a-bebd-24667b3f90a4 clubId=security-inventory accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=9a0a5853-1083-498a-bebd-24667b3f90a4
+2026-10-17T16:56:05.664+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=96fedd26-4f8b-4502-8bbf-313b134b6c44 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=96fedd26-4f8b-4502-8bbf-313b134b6c44
+2026-10-17T16:56:05.665+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e35967fb-e071-4b6a-8d51-57bbd6014359 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=e35967fb-e071-4b6a-8d51-57bbd6014359
+2026-10-17T16:56:05.722+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9d333d0a-b5c1-4558-894b-cea73ea6c49f clubId=- accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=9d333d0a-b5c1-4558-894b-cea73ea6c49f
+E11-T06 security inventory: 430 / 430 operations
+2026-10-17T16:56:05.749+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=60697ab4-839f-4f78-8b3d-54b585e9bbbd clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=60697ab4-839f-4f78-8b3d-54b585e9bbbd
+2026-10-17T16:56:05.750+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=dc9fbec5-691e-42f4-bf9d-1cfa69372fb9 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=dc9fbec5-691e-42f4-bf9d-1cfa69372fb9
+2026-10-17T16:56:05.757+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e6b446b6-f0ed-45d9-b196-b2bf035e0a2c clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=e6b446b6-f0ed-45d9-b196-b2bf035e0a2c
+2026-10-17T16:56:05.758+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=8e344448-a023-4311-9d91-02079139d6c7 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=8e344448-a023-4311-9d91-02079139d6c7
+2026-10-17T16:56:05.759+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=bd42b818-7c80-4db3-8c65-d318d4a82667 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=[redacted]
+2026-10-17T16:56:05.762+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=68efed15-8459-4881-bdd9-c2b08f706e71 clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=68efed15-8459-4881-bdd9-c2b08f706e71
+2026-10-17T16:56:05.763+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6f38e458-679a-4036-b9c8-4ddd7d2fd538 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=6f38e458-679a-4036-b9c8-4ddd7d2fd538
+2026-10-17T16:56:05.764+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=e3bc07c3-c9e2-47ba-8f8c-4df61fd64932 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=e3bc07c3-c9e2-47ba-8f8c-4df61fd64932
+2026-10-17T16:56:05.767+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d2dd4687-631e-4b22-96b3-7e24bc419e8c clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=d2dd4687-631e-4b22-96b3-7e24bc419e8c
+2026-10-17T16:56:05.768+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=4e472b48-4400-4971-8fe9-82006648bc10 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=4e472b48-4400-4971-8fe9-82006648bc10
+2026-10-17T16:56:05.768+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=4d508730-d9df-4bda-8d50-6aa19f67ddc4 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=4d508730-d9df-4bda-8d50-6aa19f67ddc4
+2026-10-17T16:56:05.771+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=5081607d-3125-4d67-a14e-f31ed5396eaa clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=5081607d-3125-4d67-a14e-f31ed5396eaa
+2026-10-17T16:56:05.772+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=71b14577-a71f-4de8-b8d0-a9b77c3de916 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=71b14577-a71f-4de8-b8d0-a9b77c3de916
+2026-10-17T16:56:05.772+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d6f0ee72-0a9d-498a-adfa-e847dc618125 clubId=- accountId=- : Framework request rejected status=400 code=VALIDATION_ERROR traceId=d6f0ee72-0a9d-498a-adfa-e847dc618125
+2026-10-17T16:56:05.774+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=56889db7-2443-488f-a923-d3b1378c854f clubId=security-inventory accountId=inventory-admin : Framework request rejected status=400 code=VALIDATION_ERROR traceId=56889db7-2443-488f-a923-d3b1378c854f
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.34 s <<< FAILURE! -- in com.agilityhub.core.configuration.SecurityInventoryIT
+[ERROR] com.agilityhub.core.configuration.SecurityInventoryIT.INC_67_everyPublishedAnonymousWriteHasARateLimitRoute -- Time elapsed: 0.493 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+Multiple Failures (1 failure)
+-- failure 1 --
+[POST /api/v1/email-unsubscribes anonymous write has a rate-limit route] 
+Expecting actual not to be null
+at SecurityInventoryIT.INC_67_everyPublishedAnonymousWriteHasARateLimitRoute(SecurityInventoryIT.java:124)
+	at com.agilityhub.core.configuration.SecurityInventoryIT.INC_67_everyPublishedAnonymousWriteHasARateLimitRoute(SecurityInventoryIT.java:129)
+
+[ERROR] Failures: 
+[ERROR]   SecurityInventoryIT.INC_67_everyPublishedAnonymousWriteHasARateLimitRoute:129 
+Multiple Failures (1 failure)
+-- failure 1 --
+[POST /api/v1/email-unsubscribes anonymous write has a rate-limit route] 
+Expecting actual not to be null
+at SecurityInventoryIT.INC_67_everyPublishedAnonymousWriteHasARateLimitRoute(SecurityInventoryIT.java:124)
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

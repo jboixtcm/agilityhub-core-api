@@ -1,0 +1,43 @@
+19:45:20.935 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=CNAME reason=NXDOMAIN
+19:45:20.936 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=TXT reason=NXDOMAIN
+19:45:20.936 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup failed: type=CNAME reason=CommunicationException
+19:45:20.937 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup failed: type=TXT reason=ServiceUnavailableException
+19:45:20.943 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=A reason=NXDOMAIN
+19:45:20.943 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=ADDRESS reason=UnknownHostException
+19:45:20.943 [main] INFO com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup found nothing: type=ADDRESS reason=UnknownHostException
+19:45:20.943 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS lookup failed: type=A reason=CommunicationException
+19:45:20.943 [main] WARN com.agilityhub.core.platform.persistence.JndiDomainDns -- Domain DNS resolvers disagree: type=ADDRESS jvm=UnknownHostException jndiAddresses=2
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.054 s <<< FAILURE! -- in com.agilityhub.core.platform.persistence.JndiDomainDnsTest
+[ERROR] com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer -- Time elapsed: 0.008 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["203.0.113.10", "203.0.113.11"]
+but could not find the following elements:
+  ["203.0.113.10", "203.0.113.11"]
+
+	at com.agilityhub.core.platform.persistence.JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer(JndiDomainDnsTest.java:68)
+
+[ERROR] Failures: 
+[ERROR]   JndiDomainDnsTest.T_17_03_R_17_03_anAddressLookupTellsNoAddressFromNoAnswer:68 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["203.0.113.10", "203.0.113.11"]
+but could not find the following elements:
+  ["203.0.113.10", "203.0.113.11"]
+
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

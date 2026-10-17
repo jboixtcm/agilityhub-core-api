@@ -30,6 +30,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
      * `identity-%63hecks` or `/signup//identity-checks` share the plain route's bucket (M17, R-04-20).
      */
     private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
+    private static final String STRIPE_WEBHOOKS = "/webhooks/stripe/";
     public void signupHosts(com.agilityhub.core.shared.application.TenantHostResolver hosts, boolean local) { this.hosts=hosts;this.local=local; }
     /** R-04-20: the club's `signup.rateLimit` (null: the catalog defaults). */
     public void signupParameter(java.util.function.Function<String, java.util.Map<?, ?>> parameter) { this.signupParameter=parameter; }
@@ -49,6 +50,10 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         Route route = route(request.getMethod(), path, jwt != null);
         if (route != null) {
             String subject = route == Route.ME ? jwt.getName() : request.getRemoteAddr();
+            // INC-67 (E11-T08), CONVENCIONS_API §9: a member's or an administrator's status polls count per account, not per shared NAT.
+            if (route == Route.CHECKOUT_STATUS && jwt != null) { subject = "account:" + jwt.getName(); }
+            // INC-67: Stripe sends every club's webhooks from the same addresses; a club's burst never delays another club's events.
+            if (route == Route.STRIPE_WEBHOOK) { subject = path.substring(STRIPE_WEBHOOKS.length()).split("/", 2)[0] + ":" + request.getRemoteAddr(); }
             String clubId = jwt == null ? null : jwt.getToken().getClaimAsString("clubId");
             if (route.name().startsWith("SIGNUP_")) {
                 if (clubId == null && hosts != null) clubId=hosts.resolve(local && request.getHeader("X-Club-Host")!=null?request.getHeader("X-Club-Host"):request.getHeader("Host")).orElse(null);
@@ -86,10 +91,14 @@ public final class RateLimitFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private Route route(String method, String path, boolean authenticated) {
+    /**
+     * The bucket family of a request ({@code null}: not limited here), on the routed path. Public for the security inventory
+     * (INC-67), which checks that every published anonymous write has one.
+     */
+    public static Route route(String method, String path, boolean authenticated) {
         if (method.equals("OPTIONS") || path.equals("/api/v1/health")) { return null; }
         if (path.startsWith("/api/v1/platform/")) { return authenticated ? Route.ME : Route.ANONYMOUS; }
-        if (path.startsWith("/webhooks/stripe/")) { return Route.STRIPE_WEBHOOK; }
+        if (path.startsWith(STRIPE_WEBHOOKS)) { return Route.STRIPE_WEBHOOK; }
         if (method.equals("GET") && path.matches("/api/v1/checkout-sessions/[^/]+")) { return Route.CHECKOUT_STATUS; }
         if (path.startsWith("/webhooks/")) { return Route.WEBHOOK; }
         if (path.equals("/api/v1/auth/handoff")) { return Route.HANDOFF; }

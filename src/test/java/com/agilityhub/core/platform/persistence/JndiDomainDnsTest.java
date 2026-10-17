@@ -60,5 +60,11 @@ class JndiDomainDnsTest {
         assertThat(new JndiDomainDns((name, type) -> null, NO_ADDRESS).addresses("club.example.test")).isEmpty();
         var timeout = new JndiDomainDns((name, type) -> { throw new CommunicationException("timeout"); }, NO_ADDRESS);
         assertThatThrownBy(() -> timeout.addresses("club.example.test")).isInstanceOf(DomainDns.LookupFailed.class);
+        // INC-66 (E11-T08): the JVM resolver found nothing but JNDI answers the name's own A records: those are its addresses,
+        // never «no address» (a re-check would count our resolver's failure as a lost record).
+        var answered = new JndiDomainDns((name, type) -> {
+            var records = new BasicAttribute(type); records.add("203.0.113.10"); records.add("203.0.113.11"); records.add("203.0.113.10"); return records;
+        }, NO_ADDRESS);
+        assertThat(answered.addresses("club.example.test")).containsExactly("203.0.113.10", "203.0.113.11");
     }
 }

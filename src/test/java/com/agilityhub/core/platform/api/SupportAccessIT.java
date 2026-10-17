@@ -254,6 +254,50 @@ class SupportAccessIT extends BillingItSupport {
     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
 
     /**
+     * INC-65 (E11-T08): a console call sent with another club's `Host` keeps its idempotency in the path's club. `TenantFilter`
+     * opens no request tenant on `/api/v1/platform/**`, so `IdempotencyFilter`'s club check (which reads the club in its own
+     * scope) never meets another club's tenant: never `TENANT_MISMATCH`, for an existing club or a missing one.
+     */
+    @Test void INC_65_aConsoleCallWithAnotherClubsHostKeepsItsIdempotencyAndNeverMismatches() throws Exception {
+        String key = UUID.randomUUID().toString();
+        var request = (java.util.function.Supplier<MockHttpServletRequestBuilder>) () -> post("/api/v1/platform/clubs/" + CLUB + "/support-access")
+                .header("Host", OTHER_HOST).with(jwt().jwt(j -> j.subject(ACTOR)).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))
+                .header("Idempotency-Key", key).contentType("application/json").content("{\"reason\":\"Help with the August receipts\"}");
+        var first = mvc.perform(request.get()).andReturn().getResponse();
+        assertThat(first.getStatus()).as(first.getContentAsString()).isEqualTo(201);
+        assertThat(mvc.perform(request.get()).andReturn().getResponse().getContentAsString()).isEqualTo(first.getContentAsString());
+        assertThat(mongo.count(new Query(), "impersonation_grants")).isEqualTo(1);
+        assertThat(mongo.find(Query.query(Criteria.where("key").is(key)), Document.class, "idempotency_records"))
+                .singleElement().satisfies(record -> assertThat(record.getString("clubId")).isEqualTo(CLUB));
+        var missing = mvc.perform(post("/api/v1/platform/clubs/inc-65-missing-club/support-access").header("Host", OTHER_HOST)
+                .with(jwt().jwt(j -> j.subject(ACTOR)).authorities(new SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))
+                .header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json")
+                .content("{\"reason\":\"Help with the August receipts\"}")).andReturn().getResponse();
+        assertThat(missing.getStatus()).as(missing.getContentAsString()).isEqualTo(404);
+        assertThat(code(missing)).isEqualTo("CLUB_NOT_FOUND");
+    }
+
+    /**
+     * INC-65 (E11-T08): Spring MVC also routes `HEAD` to a `GET` handler, so the filter's pattern closes a `HEAD` as its `GET`,
+     * and a support token's `HEAD` of a personal-data export or a SEPA file is refused like the `GET`.
+     */
+    @Test void INC_65_T_17_09_aHeadRequestIsRestrictedLikeItsGet() throws Exception {
+        for (String path : List.of("/api/v1/members/export", "/api/v1/exports/some-export/download", "/api/v1/remittances/some-remittance/file",
+                "/api/v1/billing/exports", "/api/v1/remittances/files/some-club/some-file")) {
+            assertThat(com.agilityhub.core.identity.application.SupportAccessService.restricted("HEAD", path)).as("HEAD " + path).isTrue();
+        }
+        assertThat(com.agilityhub.core.identity.application.SupportAccessService.restricted("HEAD", "/api/v1/members/puig")).isFalse();
+        String token = token();
+        for (var restricted : List.of(head("/api/v1/members/export").param("format", "xlsx"), head("/api/v1/exports/some-export/download"),
+                head("/api/v1/remittances/some-remittance/file"), head("/api/v1/billing/exports"))) {
+            var response = as(token, restricted);
+            assertThat(response.getStatus()).as("%s answered %s", restricted.buildRequest(new org.springframework.mock.web.MockServletContext()).getRequestURI(),
+                    response.getContentType()).isEqualTo(403);
+        }
+        assertThat(as(token, head("/api/v1/members/puig")).getStatus()).isEqualTo(200);
+    }
+
+    /**
      * Round 2 (E123): the handler of every route the support restriction names refuses a support token itself
      * (`@SupportRestricted`), so the rule does not hang on the filter's path matching alone.
      */

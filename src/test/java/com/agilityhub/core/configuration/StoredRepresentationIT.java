@@ -91,8 +91,9 @@ class StoredRepresentationIT extends AbstractIntegrationTest {
         assertThat(read.amount()).isEqualTo(new Money(4500, "EUR"));
         assertThat(read.validFrom()).isEqualTo(LocalDate.parse("2026-01-01"));
 
+        // INC-68 (E11-T08): the write back stores the day as the `YYYY-MM-DD` string every write path uses; the rest is unchanged.
         mongo.save(read);
-        assertThat(raw("prices").find(eq("_id", "e11-t07-price")).first()).isEqualTo(old);
+        assertThat(raw("prices").find(eq("_id", "e11-t07-price")).first()).isEqualTo(old.clone().append("validFrom", new BsonString("2026-01-01")));
     }
 
     @Test void E11_T07_anInvoiceLineStoredBeforeTheUpgradeKeepsItsStringTaxPercent() {

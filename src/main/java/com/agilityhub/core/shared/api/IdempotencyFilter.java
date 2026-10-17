@@ -187,7 +187,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             }
             if (platformCommand && clubId != null) {
                 // INC-49 round 2 (E123): idempotency rows are tenant rows, so a club that does not exist gets none; its handler
-                // answers 404 CLUB_NOT_FOUND without one.
+                // answers 404 CLUB_NOT_FOUND without one. INC-65 (E11-T08): the check reads the club in its own tenant scope, which
+                // never meets another club's: TenantFilter opens no request tenant on `/api/v1/platform/**`, whatever the Host
+                // (SupportAccessIT, a console call with another club's Host).
                 if (clubs != null && clubs.settings(clubId).isEmpty()) { chain.doFilter(new BufferedRequest(request, body), response); return; }
                 keyed(request, response, chain, path, body, false, clubId, accountId, authentication, new Rows(records, clubId, true));
                 return;

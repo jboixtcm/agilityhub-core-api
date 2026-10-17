@@ -1,0 +1,115 @@
+16:52:03.807 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT]: PriceDatesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:52:03.894 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT
+16:52:03.917 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT]: PriceDatesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:52:03.917 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:52:03.919 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT
+16:52:03.945 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:52:03.946 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:52:03.949 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:52:04.053 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:52:04.228 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:52:04.229 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:52:04.239 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:52:04.550 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:52:04.611 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:52:04.660 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 88cda4a470cfe164e688df914ddffa82b6d11eeb6b0372fcc8fead268ac956de
+16:52:04.840 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.289557S
+16:52:04.843 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:52:04.843 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:52:04.843 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:52:04.843 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:52:04.871 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 718248a14ccb34821a6d560e60514e5a32c24c32bbfb70c8f503222c567c95e7
+16:52:05.399 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.555548S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-17T16:52:06.066+03:00 INFO  [main] c.a.c.c.c.persistence.PriceDatesIT traceId= clubId= accountId= : Starting PriceDatesIT using Java [redacted] with PID 92576 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-17T16:52:06.067+03:00 INFO  [main] c.a.c.c.c.persistence.PriceDatesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T16:52:06.809+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T16:52:06.855+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 42 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T16:52:07.174+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@f0deba2], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1ddf9fd, com.mongodb.Jep395RecordCodecProvider@1297cf8, com.mongodb.KotlinCodecProvider@37e15055, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52439], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@57d1edf0], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T16:52:07.178+03:00 INFO  [cluster-6ad37d87d6bb3926501d6b10-localhost:52439] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52439, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7405209, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=718248a14ccb:27017, hosts=[718248a14ccb:27017], passives=[], arbiters=[], primary='718248a14ccb:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad37d84e3760de3960563b5, counter=6}, lastWriteDate=Sat Oct 17 16:52:05 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T16:52:08.062+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.080+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.099+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.621+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.633+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.645+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:08.695+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-17T16:52:10.384+03:00 INFO  [main] c.a.c.c.c.persistence.PriceDatesIT traceId= clubId= accountId= : Started PriceDatesIT in 4.477 seconds (process running for 6.882)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 7.502 s <<< FAILURE! -- in com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT
+[ERROR] com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_aPriceWrittenWholeOrPatchedIsStoredAsADayStringAndChosenForTheBillingDate -- Time elapsed: 0.434 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"_class"="com.agilityhub.core.clubs.catalogs.persistence.Price", "_id"="inc68-apr", "amount"={"amountMinor"=4500L, "currency"="EUR"}, "clubId"="club-inc-68", "concept"="MONTHLY_FEE", "createdAt"=2026-01-01T11:00:00.000 (java.util.Date), "createdByAccountId"="account-inc-68", "planId"="plan-inc-68", "taxPercent"="21", "updatedAt"=2026-01-01T11:00:00.000 (java.util.Date), "updatedByAccountId"="account-inc-68", "validFrom"=2026-04-01T00:00:00.000 (java.util.Date), "version"=0L}
+to contain entries:
+  ["validFrom"="2026-04-01"]
+but the following map entries had different values:
+  ["validFrom"=2026-04-01T00:00:00.000 (java.util.Date) (expected: "2026-04-01")]
+	at com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_aPriceWrittenWholeOrPatchedIsStoredAsADayStringAndChosenForTheBillingDate(PriceDatesIT.java:48)
+
+[ERROR] com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_pricesStoredAsDatesAreReadWithTheirDayAndConvertedAtStartup -- Time elapsed: 0.018 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  0L
+to be greater than or equal to:
+  2L
+
+	at com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_pricesStoredAsDatesAreReadWithTheirDayAndConvertedAtStartup(PriceDatesIT.java:77)
+
+[ERROR] com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_aSecondPriceStartingOnTheSameDayIsRefusedWhicheverWayTheFirstWasWritten -- Time elapsed: 0.029 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.clubs.catalogs.persistence.PriceDatesIT.INC_68_aSecondPriceStartingOnTheSameDayIsRefusedWhicheverWayTheFirstWasWritten(PriceDatesIT.java:63)
+
+[ERROR] Failures: 
+[ERROR]   PriceDatesIT.INC_68_aPriceWrittenWholeOrPatchedIsStoredAsADayStringAndChosenForTheBillingDate:48 
+Expecting map:
+  {"_class"="com.agilityhub.core.clubs.catalogs.persistence.Price", "_id"="inc68-apr", "amount"={"amountMinor"=4500L, "currency"="EUR"}, "clubId"="club-inc-68", "concept"="MONTHLY_FEE", "createdAt"=2026-01-01T11:00:00.000 (java.util.Date), "createdByAccountId"="account-inc-68", "planId"="plan-inc-68", "taxPercent"="21", "updatedAt"=2026-01-01T11:00:00.000 (java.util.Date), "updatedByAccountId"="account-inc-68", "validFrom"=2026-04-01T00:00:00.000 (java.util.Date), "version"=0L}
+to contain entries:
+  ["validFrom"="2026-04-01"]
+but the following map entries had different values:
+  ["validFrom"=2026-04-01T00:00:00.000 (java.util.Date) (expected: "2026-04-01")]
+[ERROR]   PriceDatesIT.INC_68_aSecondPriceStartingOnTheSameDayIsRefusedWhicheverWayTheFirstWasWritten:63 
+Expecting code to raise a throwable.
+[ERROR]   PriceDatesIT.INC_68_pricesStoredAsDatesAreReadWithTheirDayAndConvertedAtStartup:77 
+Expecting actual:
+  0L
+to be greater than or equal to:
+  2L
+
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

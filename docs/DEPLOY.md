@@ -430,12 +430,17 @@ re-check then starts `platform.domainRecheckDays` after the apply, and three wee
 the club's hosts offline. So, on every environment where those hosts do not point at this droplet yet (before the ADR-008
 cutover, or a staging with another `CLUBS_HOST`), do one of these right after the apply:
 
-- **Verify them** once the records are in place: steps 2 and 3, or check by hand that `dig +short CNAME {host}` gives the
-  app's product host (or, for an apex domain, that `dig +short {host}` shares an address with it).
+- **Check the records with `dig`** before the first re-check is due (`platform.domainRecheckDays` after the apply): a
+  trusted domain is already `VERIFIED`, so step 3 refuses it (`409 INVALID_STATE`). Check by hand that
+  `dig +short CNAME {host}` gives the app's product host (or, for an apex domain, that `dig +short {host}` shares an address
+  with it); the re-check then keeps it `VERIFIED`.
 - **Or turn the re-check off for that club** until the cutover: set `platform.domainRecheckDays` to `0` from the console
   (D19 «Paràmetres», `PUT /api/v1/platform/clubs/{id}/parameters/platform.domainRecheckDays` with its `version` and a
   reason) or with `parameters: {platform.domainRecheckDays: 0}` in the club's definition and `club:apply`. Set it back to
   `7` on the cutover day, after the records point here; the first re-check then runs at the next P9.
+- **A trusted domain that is already `BROKEN`** comes back with [Verifica] (step 3, `POST …/domains/{host}/verification`)
+  once its records point here (a CNAME, or for an apex domain an address it shares with the product host): P9 never
+  restores it while `platform.domainRecheckDays` is `0`.
 
 **Local rehearsal.** `bin/e10-smoke` (through `heavy.sh`) runs all of this on a disposable stack, with the fake resolver of
 the `local` profile (`POST /api/v1/test/dns` publishes the records; it exists only under `local`/`test`): a second club

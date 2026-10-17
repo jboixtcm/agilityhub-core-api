@@ -4,7 +4,9 @@ import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.HostTenantResolver;
 import com.agilityhub.core.platform.persistence.ClubRepository;
 import com.agilityhub.core.platform.support.PlatformFixtures;
+import com.agilityhub.core.shared.api.RateLimitFilter;
 import com.agilityhub.core.shared.api.SignedFileRequests;
+import com.agilityhub.core.shared.application.RateLimits;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,6 +92,40 @@ class SecurityInventoryIT extends AbstractIntegrationTest {
         }
         assertThat(checked).as("every published operation including S12/S13").isEqualTo(publishedCount);
         System.out.println("E11-T06 security inventory: " + checked + " / " + publishedCount + " operations");
+        failures.assertAll();
+    }
+
+    /**
+     * Published anonymous writes that {@link RateLimitFilter} deliberately leaves without a quota. Empty: every one has a route
+     * today. An entry needs its reason here (for instance, a write that another limit already bounds).
+     */
+    private static final Set<String> ANONYMOUS_WRITES_WITHOUT_QUOTA = Set.of();
+
+    /**
+     * INC-67 (E11-T08): every published operation that a caller can reach without a bearer and that is not a `GET` falls in a
+     * rate-limit family of {@link RateLimitFilter} ({@link RateLimits.Route}), or is on the documented exempt list above. A new
+     * anonymous write added without a quota fails here, not only in the hand-written list of `AnonymousRateLimitsTest`.
+     */
+    @Test void INC_67_everyPublishedAnonymousWriteHasARateLimitRoute() throws Exception {
+        var published = mapper.readTree(Files.readString(Path.of("docs/openapi/openapi.json")));
+        var failures = new org.assertj.core.api.SoftAssertions();
+        int anonymousWrites = 0;
+        for (var path : published.path("paths").properties()) {
+            for (var method : path.getValue().properties()) {
+                if (!Set.of("post", "put", "patch", "delete").contains(method.getKey())) { continue; }
+                JsonNode requirement = effective(published, method.getValue());
+                boolean requiresBearer = !requirement.isEmpty();
+                for (var alternative : requirement) { requiresBearer &= alternative.has("bearer") || alternative.has(E9ContractConfiguration.ACCESS_TOKEN_QUERY); }
+                if (requiresBearer) { continue; }
+                String label = method.getKey().toUpperCase() + " " + path.getKey();
+                anonymousWrites++;
+                if (ANONYMOUS_WRITES_WITHOUT_QUOTA.contains(label)) { continue; }
+                RateLimits.Route route = RateLimitFilter.route(method.getKey().toUpperCase(), path.getKey().replaceAll("\\{[^}]+}", "inventory-missing"), false);
+                failures.assertThat(route).as(label + " anonymous write has a rate-limit route").isNotNull();
+            }
+        }
+        assertThat(anonymousWrites).as("the inventory found the anonymous writes").isPositive();
+        System.out.println("INC-67 anonymous writes with a rate-limit route: " + anonymousWrites);
         failures.assertAll();
     }
 

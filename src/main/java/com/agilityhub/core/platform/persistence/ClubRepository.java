@@ -147,7 +147,13 @@ public class ClubRepository extends GlobalRepository<Club> {
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("domains.host").is(host)), update, mongo.getCollectionName(Club.class))
                 .getMatchedCount() == 1;
     }
-    /** A full save of the club (settings, modules, `club:apply`) never sets the re-check state: it keeps the stored one (round 2). */
+    /**
+     * A full save of the club (settings, modules, `club:apply`) never sets the re-check state: it keeps the stored one (round 2).
+     * INC-66 (E11-T08): the read and the write are one step only inside the caller's Mongo transaction, which every production
+     * caller opens (`ClubSettingsService`, `PlatformClubCreation`, `ClubDefinitionWriter`, all `@Transactional`): a P9 re-check
+     * recorded in between then makes the transaction conflict instead of being overwritten. Outside a transaction (the local
+     * demo seed only) such a re-check can be lost; the next P9 records it again.
+     */
     @Override public Club save(Club club) {
         var stored = club.id() == null ? null : mongo.findById(club.id(), Club.class);
         var domains = keepChecks(stored, club.domains(), java.util.Set.of());
