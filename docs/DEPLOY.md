@@ -274,7 +274,12 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   with changing the master key. Restore tests must retain the master key separately.
 - `BILLING_BANK_KEY` is the only bank key (rulings E43 and E85):
   `BankAccountVault` encrypts the members' IBANs with it, `migration:apply`
-  included, and only the SEPA remittance writer decrypts them. No online
+  included, and only the SEPA remittance writer decrypts them. Since E11-T02
+  (INC-31, A37) the signup and D10 store every IBAN sealed too. Before the
+  launch, and once on any database written by an earlier release, run
+  `bin/core census:seal-ibans` (a dry run: it lists the members with an IBAN in
+  clear, never the IBAN) and then `bin/core census:seal-ibans --apply`; a second
+  `--apply` reports `0` (idempotent). No online
   re-encryption tool is provided here: keep it for every retained record and
   backup, and rotate it only with a reviewed re-encryption. Never rotate it by
   just editing env.
@@ -803,6 +808,17 @@ next refresh and clears the cookie on that response.
 No credentialed cross-origin CORS is needed for SPAs. The existing CORS policy for
 other consumers is retained. This section is a recipe for E0-T13/E10; it does not
 publish or change a live Caddy installation.
+
+## Tomcat timeouts (known limit, INC-63)
+
+`server.tomcat.connection-timeout` is `20s` (`application.yml`, E9-T06 round 2) so that a phone that stops reading a
+build-session stream (`GET /build-sessions/{id}/events`) holds its sender thread at most 20 s. The setting is **global**:
+it is also how long Tomcat waits for the next bytes of any request body. An upload sent through the api itself (the local
+storage's `PUT /api/v1/attachments/uploads/{id}` or `PUT /api/v1/signup/uploads`) from a slow mobile network that stalls
+for more than 20 s fails and must be sent again. With S3 storage the browser uploads to the bucket's signed URL, not through
+Tomcat, so production uploads are not affected. Idle keep-alive connections from Caddy keep their 60 s
+(`server.tomcat.keep-alive-timeout`). Do not raise the timeout without reading `BuildSessionStreams` (its `SENDERS` and
+`WRITE_TIMEOUT`); applying it to the streams only needs a connector of their own and is not done in R1.
 
 ## Local Vite proxy (E1-W07)
 

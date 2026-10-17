@@ -265,7 +265,12 @@ public final class CensusResponses {
     public record TaskItem(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String text, @Schema(requiredMode = REQUIRED) Instant createdAt,
             @Schema(requiredMode = REQUIRED) String instructorName, @Schema(requiredMode = REQUIRED) long attachmentsCount,
-            @Schema(requiredMode = NOT_REQUIRED) Instant doneAt) { }
+            @Schema(requiredMode = NOT_REQUIRED) Instant doneAt,
+            @Schema(requiredMode = NOT_REQUIRED, description = "INC-53: «feta per {article}{name} el {date}» of screen 13; only on a done task, never an account id") TaskDoneBy doneBy) { }
+    /** Who completed a task (S10 §6 `Actor` without `accountId`): the member-safe form screen 13 shows. */
+    public enum TaskAuthorRole { MEMBER, INSTRUCTOR, ADMIN }
+    public record TaskDoneBy(@Schema(requiredMode = REQUIRED) TaskAuthorRole role, @Schema(requiredMode = REQUIRED) String displayName,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Personal article of the member (personArticle)") Gender gender) { }
     public record DogTasks(@Schema(requiredMode = REQUIRED) long open, @Schema(requiredMode = REQUIRED) long completed,
             @Schema(requiredMode = REQUIRED) List<TaskItem> items) { }
     public record PlanReference(@Schema(requiredMode = REQUIRED, format = "uuid") String id,

@@ -22,7 +22,7 @@ import java.util.Optional;
 /**
  * S11 §8 and R-11-01, the product seed of the club templates: `seed/message-templates.{ca,es,en}.json`, one entry per
  * `NotificationCatalog` code of stage `R1` whose category is not `SYSTEM` (SYSTEM codes never have a template), each with
- * `title`, `body`, `smsBody` (only on the codes that can send an SMS), `icon`, `color` and the default `matrix` of the
+ * `name` (INC-53, E11-T02: the product name D9 lists, `CATALEG_NOTIFICACIONS` «Nom» in `ca`), `title`, `body`, `smsBody` (only on the codes that can send an SMS), `icon`, `color` and the default `matrix` of the
  * catalog's «Públic → canals per defecte» column. The `ca` texts of N-02, N-04, N-06, N-08a, N-09, N-13, N-15, N-16, N-19
  * and N-28 are S11 §8's; `es` and `en` translate the same content and are reviewed before go-live (`seeds/README.md`).
  * Staff copy (`notif.N-xx.staff.*`) is product copy in `messages_*`, never here. Read once; immutable; product defaults
@@ -34,13 +34,13 @@ public final class MessageTemplateSeed {
     static final String PATH = "/seed/message-templates.%s.json";
 
     /** One seed entry of one code in one locale. */
-    public record Entry(String code, String title, String body, String smsBody, TemplateIcon icon, TemplateColor color,
+    public record Entry(String code, String name, String title, String body, String smsBody, TemplateIcon icon, TemplateColor color,
             Map<NotificationAudience, Map<NotificationChannel, Boolean>> matrix) { }
     record File(String locale, List<Entry> templates) { }
 
     /** The seed texts of one code in every product language, the club-independent part of a `MessageTemplate`. */
-    public record Seeded(String code, Map<String, String> title, Map<String, String> body, Map<String, String> smsBody, TemplateIcon icon, TemplateColor color,
-            Map<NotificationAudience, Map<NotificationChannel, Boolean>> matrix) {
+    public record Seeded(String code, Map<String, String> name, Map<String, String> title, Map<String, String> body, Map<String, String> smsBody, TemplateIcon icon,
+            TemplateColor color, Map<NotificationAudience, Map<NotificationChannel, Boolean>> matrix) {
         /** The texts in the given locales only (a club stores its own languages, R-11-01); all of them when none matches. */
         public LocalizedText title(Collection<String> locales, String defaultLocale) { return localized(title, locales, defaultLocale); }
         public LocalizedText body(Collection<String> locales, String defaultLocale) { return localized(body, locales, defaultLocale); }
@@ -84,19 +84,20 @@ public final class MessageTemplateSeed {
         for (String code : eligible) {
             var spec = NotificationCatalog.byCode(code).orElseThrow();
             var perLocale = entries.get(code);
+            var name = new LinkedHashMap<String, String>();
             var title = new LinkedHashMap<String, String>(); var body = new LinkedHashMap<String, String>(); var sms = new LinkedHashMap<String, String>();
             for (String locale : LOCALES) {
                 var entry = perLocale.get(locale);
                 if (entry == null) { throw new IllegalStateException(code + " has no " + locale + " seed"); }
-                if (blank(entry.title()) || blank(entry.body())) { throw new IllegalStateException(code + " " + locale + ": title and body are required"); }
+                if (blank(entry.name()) || blank(entry.title()) || blank(entry.body())) { throw new IllegalStateException(code + " " + locale + ": name, title and body are required"); }
                 if (entry.icon() != spec.icon() || entry.color() != spec.color()) { throw new IllegalStateException(code + " " + locale + ": icon/colour differ from the catalog"); }
                 if (!matrix(entry.matrix()).equals(spec.defaultMatrix())) { throw new IllegalStateException(code + " " + locale + ": the matrix differs from the catalog"); }
                 if (entry.smsBody() != null && !smsCapable(spec)) { throw new IllegalStateException(code + " cannot send SMS: no smsBody"); }
-                title.put(locale, entry.title()); body.put(locale, entry.body());
+                name.put(locale, entry.name()); title.put(locale, entry.title()); body.put(locale, entry.body());
                 if (entry.smsBody() != null) { sms.put(locale, entry.smsBody()); }
             }
             if (!sms.isEmpty() && sms.size() != LOCALES.size()) { throw new IllegalStateException(code + ": smsBody in some locales only"); }
-            seeded.put(code, new Seeded(code, Collections.unmodifiableMap(title), Collections.unmodifiableMap(body), Collections.unmodifiableMap(sms),
+            seeded.put(code, new Seeded(code, Collections.unmodifiableMap(name), Collections.unmodifiableMap(title), Collections.unmodifiableMap(body), Collections.unmodifiableMap(sms),
                     spec.icon(), spec.color(), spec.defaultMatrix()));
         }
         return new MessageTemplateSeed(seeded);

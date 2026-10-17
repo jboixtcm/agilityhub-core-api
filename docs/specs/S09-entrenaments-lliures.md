@@ -39,6 +39,7 @@ Flux de 08 (seqüència de crides):
 | capacity, bookedCount | int | capacitat R-09-02; `BOOKED` quan `bookedCount ≥ capacity` |
 | bookable | bool | `FREE ∧ startsAt > now ∧ dins la finestra` (per al rol MEMBER) |
 | occupants[], block, classSession | opcionals | només INSTRUCTOR/ADMIN: `{bookingId, memberName, dogName}` · `{id, kind, reason, note, createdByName}` · `{id, description}` |
+| classStartsAtLocal | `HH:mm`, opcional | l'inici de la classe que ocupa la cel·la, en `club.timeZone` («18:50 classe», §13-3), per a tothom (INC-44) |
 
 **`TrainingBooking`** · `training_bookings` (context `clubs/training`). Immutable en el sentit BR-12: mai s'esborra.
 
@@ -107,7 +108,7 @@ Cache recomanada: capa estàtica (passos 1–3 sense reserves) per `{clubId, dat
 
 **R-09-12 Aportació als quadres (10/23/D12/D4).** `TrainingOccupancyService.occupancy(range, ringIds?, viewerRole)` retorna intervals `{ringId, from, to, type: TRAINING|RING_BLOCK, reason, memberName?, dogName?, note?, blockId?/bookingId?}`; per a MEMBER es redacta a `{type, reason}` (cel·la «Ocupada» + «entren.» o el motiu del bloqueig en minúscula: «manteniment», «classe particular»…, mai qui ni la nota); INSTRUCTOR/ADMIN reben noms («Entren. · Pau + Blat»), motiu i nota. Les reserves d'entrenament ocupen `training.slotMinutes` (mitja alçada a D12). S06 fusiona aquests intervals amb les classes.
 
-**R-09-13 Conflictes creuats.** `TrainingConflictService.findActiveBookings(ringId, from, to)` és obligatori per a S05 (desactivar una pista o treure-li `allowsFreeTraining`), S06 (crear/moure una classe a una pista, bloqueig des de D4) i S07 (bloqueig d'activitat). Amb reserves vives: refús `422 RING_HAS_BOOKINGS {bookings: [...]}` llevat que l'ADMIN enviï `cancelBookings: true` → cada reserva passa a `CANCELLED_BY_CLUB` (`cancelReason` segons el cas) dins la mateixa transacció, amb `TrainingCancelled{by: ADMIN, origin: BACKOFFICE}` (avís N-47 proposat; mentrestant N-07). *Exemple*: l'admin bloqueja Carretera dt 16:00–18:00 per manteniment amb la reserva de Sergio + Thai a les 17:00 → llista + confirmació → anul·lada pel club + SMS.
+**R-09-13 Conflictes creuats.** `TrainingConflictService.findActiveBookings(ringId, from, to)` és obligatori per a S05 (desactivar una pista o treure-li `allowsFreeTraining`), S06 (crear/moure una classe a una pista, bloqueig des de D4) i S07 (bloqueig d'activitat). Amb reserves vives: refús `422 RING_HAS_BOOKINGS {bookings: [{bookingId, ringId, from, to, memberName, dogName}]}` (una sola forma per a S05, S06 i S09, `RingBooking` a l'OpenAPI; INC-09, E11-T02) llevat que l'ADMIN enviï `cancelBookings: true` → cada reserva passa a `CANCELLED_BY_CLUB` (`cancelReason` segons el cas) dins la mateixa transacció, amb `TrainingCancelled{by: ADMIN, origin: BACKOFFICE}` (avís N-47 proposat; mentrestant N-07). *Exemple*: l'admin bloqueja Carretera dt 16:00–18:00 per manteniment amb la reserva de Sergio + Thai a les 17:00 → llista + confirmació → anul·lada pel club + SMS.
 
 **R-09-14 Anul·lacions de sistema.** `InactivityResolved{decision: APPROVED}` amb `inactivity.cancelBookingsOnApproval = true` → reserves `ACTIVE` amb `date(startsAt)` dins l'interval → `CANCELLED` (`SYSTEM`, `INACTIVITY`, N-07). `MemberStatusChanged{after ∈ LEFT|SUSPENDED}` → reserves futures de l'abonat → `CANCELLED` (`SYSTEM`, `MEMBER_LEFT`, sense N-07). `DogDeactivated` → idem per al gos. *Exemple*: baixa amb efecte 31-10 → les reserves des de l'01-11 s'anul·len en produir-se l'esdeveniment.
 
@@ -354,3 +355,5 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 - 27-09-2026 · verificació d'E5-W04 (decisió E68): `RING_HAS_BOOKINGS` és **422**, com a S05 (R-09-13, T-09-28).
 - 30-09-2026 · verificació d'E7-T02 (decisió E72): §2, les rutes d'entrenaments són les del web, `/entrenaments` i `/entrenaments/{id}` a l'app i `/entrenaments` al backoffice.
 - 30-09-2026 · verificació d'E5-T29 (decisió E75): §2, el registre d'entrenaments i el de bloquejos cerquen amb `q`.
+- 17-10-2026 · E11-T02 (INC-09, decisió E109): R-09-13, `RING_HAS_BOOKINGS.details.bookings[]` té una sola forma, `{bookingId, ringId, from, to, memberName, dogName}` (`RingBooking`), a totes les rutes (S05, S06, S09).
+- 17-10-2026 · E11-T02 (INC-44, decisió E67): §3, la cel·la ocupada per una classe porta `classStartsAtLocal`, perquè 08, 24 i D12 escriguin «18:50 classe».

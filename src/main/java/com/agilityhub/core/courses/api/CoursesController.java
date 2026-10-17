@@ -32,7 +32,7 @@ public class CoursesController {
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, FORBIDDEN, IMPERSONATION_DENIED, NOT_FOUND, NOT_IMPLEMENTED, MODULE_DISABLED})
     @ListContract(paged = true, filterable = {"owner", "discipline", "agilityhubLevel", "levelId", "source", "tag", "designerName", "obstacleCount", "updatedAt"},
-            sortable = {"name", "updatedAt"}, fields = {"id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings"},
+            sortable = {"name", "updatedAt"}, fields = {"id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt"},
             columns = {"name*", "discipline*", "level*", "designerName*", "source*", "thumbnailUrl*", "stats*", "ownerType*", "activeOnRings*"})
     @Operation(summary = "listCourses", description = "Roles: INSTRUCTOR, ADMIN. Module: COURSES. R-16-03: the club's courses the caller may read (a PRIVATE one only for its author), the AgilityHub library (PUBLIC) and the caller's own account courses; never another club's. Default sort: updatedAt,desc; name sorts by the name in the request's language. owner: CLUB, AGILITYHUB or MINE (the caller's account courses). level: the club levels' codes joined by an en dash, else the agilityhubLevel. activeOnRings: the rings whose active setup shows the course.",
             responses = @ApiResponse(responseCode = "200", description = "S16 CoursePage", useReturnTypeSchema = true))

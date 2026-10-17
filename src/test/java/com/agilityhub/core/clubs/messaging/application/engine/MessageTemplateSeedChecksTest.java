@@ -65,8 +65,10 @@ class MessageTemplateSeedChecksTest {
                 "N-04 ca: the matrix differs from the catalog");
         fails(files -> template(files, "ca", "N-04").put("smsBody", "[[club_name]]"), "N-04 cannot send SMS");
         fails(files -> template(files, "es", "N-08a").remove("smsBody"), "N-08a: smsBody in some locales only");
-        fails(files -> template(files, "ca", "N-09").put("title", " "), "N-09 ca: title and body are required");
-        fails(files -> template(files, "ca", "N-09").remove("body"), "N-09 ca: title and body are required");
+        fails(files -> template(files, "ca", "N-09").put("title", " "), "N-09 ca: name, title and body are required");
+        fails(files -> template(files, "ca", "N-09").remove("body"), "N-09 ca: name, title and body are required");
+        // INC-53 point 13 (E11-T02): every seed entry names its template for D9.
+        fails(files -> template(files, "en", "N-13").remove("name"), "N-13 en: name, title and body are required");
     }
 
     @Test void R_11_01_aClubStoresItsOwnLanguagesOfTheSeed() {

@@ -3,6 +3,7 @@ package com.agilityhub.core.clubs.followup.application;
 import com.agilityhub.core.clubs.followup.domain.AuthorRole;
 import com.agilityhub.core.clubs.followup.domain.FollowupKind;
 import com.agilityhub.core.clubs.followup.domain.FollowupRules;
+import com.agilityhub.core.clubs.followup.persistence.AttachmentRepository;
 import com.agilityhub.core.clubs.followup.persistence.FollowupItem;
 import com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository;
 import com.agilityhub.core.clubs.followup.persistence.FollowupReadMarkRepository;
@@ -38,12 +39,14 @@ import org.springframework.util.MultiValueMap;
 public class FollowupService {
     public record Item(String id, String kind, String taskId, String dogId, String dogName, String levelCode, String memberId, String memberName,
             String authorName, AuthorRole authorRole, String authorGender, String textExcerpt, Instant createdAt, Instant completedAt, Instant activityAt,
-            boolean unread) { }
+            boolean unread, long attachmentCount) { }
     private final FollowupItemRepository items; private final FollowupReadMarkRepository marks; private final TaskRepository tasks;
     private final FollowupCensusAccess census; private final ListEngine lists; private final DashboardQuery dashboard; private final Clock clock;
+    private final com.agilityhub.core.shared.application.IcuMessageSource messages; private final AttachmentRepository attachments;
     public FollowupService(FollowupItemRepository items, FollowupReadMarkRepository marks, TaskRepository tasks, FollowupCensusAccess census, ListEngine lists,
-            DashboardQuery dashboard, Clock clock) {
+            DashboardQuery dashboard, Clock clock, com.agilityhub.core.shared.application.IcuMessageSource messages, AttachmentRepository attachments) {
         this.items = items; this.marks = marks; this.tasks = tasks; this.census = census; this.lists = lists; this.dashboard = dashboard; this.clock = clock;
+        this.messages = messages; this.attachments = attachments;
     }
 
     /** The caller's D14 rows: `unread` computed for {@code me} from their read mark, unread first, `q` as {@link #search}. */
@@ -83,12 +86,16 @@ public class FollowupService {
         var rows = ids.stream().map(byId::get).filter(Objects::nonNull).toList();
         var dogs = census.dogs(rows.stream().map(FollowupItem::dogId).distinct().toList());
         var members = census.members(rows.stream().map(FollowupItem::memberId).distinct().toList());
+        // INC-53 (E11-T02): a row's live attachments: its task's, or the member note's (INSTRUCTOR_NOTE of the dog); two counts per page.
+        var taskFiles = attachments.counts("TASK", rows.stream().filter(item -> item.kind() == FollowupKind.TASK).map(FollowupItem::taskId).filter(Objects::nonNull).toList());
+        var noteFiles = attachments.counts("INSTRUCTOR_NOTE", rows.stream().filter(item -> item.kind() == FollowupKind.MEMBER_NOTE).map(FollowupItem::dogId).distinct().toList());
         var result = rows.stream().map(item -> {
             var dog = dogs.get(item.dogId()); var member = members.get(item.memberId());
+            long files = item.kind() == FollowupKind.TASK ? taskFiles.getOrDefault(item.taskId(), 0L) : noteFiles.getOrDefault(item.dogId(), 0L);
             return new Item(item.id(), item.kind().name(), item.taskId(), item.dogId(), dog == null ? null : dog.name(), dog == null ? null : dog.levelCode(),
                     item.memberId(), member == null ? null : member.fullName(), item.authorName(), item.authorRole(), item.authorGender(), item.textExcerpt(),
                     item.createdAt(), item.completedAt(),
-                    item.activityAt(), FollowupRules.unread(item.id(), item.activityAt(), item.authorAccountId(), readAllAt, read, me));
+                    item.activityAt(), FollowupRules.unread(item.id(), item.activityAt(), item.authorAccountId(), readAllAt, read, me), files);
         }).toList();
         return new ListPage<>(result, page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());
     }
@@ -97,6 +104,7 @@ public class FollowupService {
      * `GET /followup/filter-values` (CONVENCIONS_API §4, S10 §6, E75): the values of {@code field} with their counts over the
      * caller's whole filtered set (`unread` is theirs, R-10-13). Labels: the member's full name, the dog's name and the
      * author's name, read for the (at most 50) values listed; `kind`, `unread` and an id whose record is gone, the value.
+     * INC-51 (E11-T02): a member the census no longer names (erased, R-14-15) is the neutral `lists.erasedMember`, never its id.
      */
     public FilterValues filterValues(String field, MultiValueMap<String, String> params, String me) {
         var mark = marks.find(me).orElse(null);
@@ -105,7 +113,11 @@ public class FollowupService {
         var ids = values.values().stream().map(value -> value.value().toString()).toList();
         Map<String, String> names = new HashMap<>();
         switch (field) {
-            case "memberId" -> census.members(ids).forEach((id, member) -> names.put(id, member.fullName()));
+            case "memberId" -> {
+                census.members(ids).forEach((id, member) -> names.put(id, member.fullName()));
+                String erased = messages.format("lists.erasedMember", Map.of(), com.agilityhub.core.shared.application.LocaleContext.current());
+                ids.forEach(id -> names.merge(id, erased, (name, neutral) -> name == null || name.isBlank() ? neutral : name));
+            }
             case "dogId" -> census.dogs(ids).forEach((id, dog) -> names.put(id, dog.name()));
             case "authorAccountId" -> names.putAll(items.authorNames(ids));
             default -> { }

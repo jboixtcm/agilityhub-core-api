@@ -38,7 +38,8 @@ public class BookingMemberAccess {
     private Member view(com.agilityhub.core.clubs.census.persistence.Member m) {
         var block = map(m.bookingBlock);
         return new Member(m.id, m.accountId, m.firstName,
-                java.util.stream.Stream.of(m.firstName, m.lastName1, m.lastName2).filter(Objects::nonNull).collect(java.util.stream.Collectors.joining(" ")),
+                // INC-53 (E11-T02): an empty name part adds no space («Rita Fictici013», never «Rita Fictici013 »).
+                java.util.stream.Stream.of(m.firstName, m.lastName1, m.lastName2).filter(part -> part != null && !part.isBlank()).collect(java.util.stream.Collectors.joining(" ")),
                 m.status, m.leaveDate, Boolean.TRUE.equals(block.get("active")), string(block.get("reason")), m.planId, m.lastDogForClass,
                 string(map(m.signup).getOrDefault("locale", access.config().club().defaultLocale())),
                 rows(m.contactEmails).stream().map(e -> string(e.get("email"))).filter(Objects::nonNull).findFirst().orElse(null),

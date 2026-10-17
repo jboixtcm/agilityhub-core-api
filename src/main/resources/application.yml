@@ -82,7 +82,7 @@ server:
   forward-headers-strategy: native
   tomcat:
     # E9-T06 round 2: also each socket's write timeout, so a client that stops reading a build-session stream holds its sender
-    # thread (BuildSessionStreams.SENDERS) at most this long.
+    # thread (BuildSessionStreams.SENDERS) at most this long. INC-63: it is global (every request body too): docs/DEPLOY.md «Tomcat timeouts».
     connection-timeout: 20s
     # Idle keep-alive connections from Caddy stay as before (Tomcat's default followed the 60 s connection timeout).
     keep-alive-timeout: 60s

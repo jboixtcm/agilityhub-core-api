@@ -44,8 +44,12 @@ public class NotificationLog implements ListProvider {
         projection.put("channels", new Document("$map", new Document("input", new Document("$ifNull", List.of("$deliveries", List.of())))
                 .append("as", "d").append("in", new Document("channel", "$$d.channel").append("status", "$$d.status"))));
         projection.put("readAt", orNull("$readAt"));
+        // INC-53 (E11-T02): an announcement's rows carry their batch, the first part of their `dedupKey` `{batchId}:{memberId}`.
+        projection.put("batchId", new Document("$cond", Arrays.asList(new Document("$eq", Arrays.asList("$eventType", "AnnouncementSent")),
+                new Document("$arrayElemAt", Arrays.asList(new Document("$split", Arrays.asList(new Document("$ifNull", Arrays.asList("$dedupKey", "")), ":")), 0)),
+                null)));
         return new ListDataset(MessagingContractAccess.NOTIFICATIONS, "notifications", List.of(), projection,
-                Set.of("readAt", "audience", "recipient.memberId", "recipient.email"), this::label).withExportProjection(EXPORT_CELLS);
+                Set.of("readAt", "audience", "recipient.memberId", "recipient.email", "batchId"), this::label).withExportProjection(EXPORT_CELLS);
     }
     /**
      * The export's own cells (S14 R-14-12, E7-T03 round 2): «Destinatari» is the recipient's name — an applicant's address when

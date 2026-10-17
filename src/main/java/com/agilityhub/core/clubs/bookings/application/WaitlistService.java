@@ -183,29 +183,22 @@ public class WaitlistService {
     }
 
     /**
-     * R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): live entries of started classes, silently, one transaction per class. A
-     * class has started when S06's own `startsAt` is reached (E6-T04 round 2, review #1): a waiting entry's `classStartsAt`
-     * is a copy the `ClassSessionUpdated` consumer refreshes later, so a class moved from 18:50 to 19:50 is not swept at
-     * 18:55 before that refresh, and one moved earlier is swept by its new start.
-     */
-    public int sweepStarted(Instant now) {
-        var byClass = startedBy(now).stream().collect(Collectors.groupingBy(WaitlistEntry::classSessionId, LinkedHashMap::new, Collectors.toList()));
-        int count = 0;
-        for (var group : byClass.entrySet()) { count += sweep(group.getKey(), group.getValue(), now); }
-        return count;
-    }
-    /**
-     * The entries {@link #sweepStarted(Instant)} would cancel, by class; nothing written (the P8 plan, E6-T04): the live
-     * entries whose class (S06) has `startsAt ≤ now`. An entry whose class no longer exists keeps its own copy.
+     * R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): the live entries of started classes, by class; nothing written (the P8 plan,
+     * E6-T04), each one swept by {@link #sweepStarted(String, Instant)}. A class has started when S06's own `startsAt` is
+     * reached (E6-T04 round 2, review #1): a waiting entry's `classStartsAt` is a copy the `ClassSessionUpdated` consumer
+     * refreshes later, so a class moved from 18:50 to 19:50 is not swept at 18:55 before that refresh, and one moved earlier
+     * is swept by its new start. An entry whose class no longer exists keeps its own copy. INC-46 (E11-T02): only the entries
+     * of S06's started classes with someone waiting, and those whose copy says started, are read; the bulk sweep without
+     * P8's `WAITLIST` guard is gone.
      */
     public List<WaitlistEntry> startedBy(Instant now) {
-        var live = waitlist.liveAll();
+        var live = waitlist.liveStarted(classes.startedWithWaiting(now), now);
         if (live.isEmpty()) { return List.of(); }
         var starts = classes.startsAt(live.stream().map(WaitlistEntry::classSessionId).distinct().toList());
         return live.stream().filter(e -> !starts.getOrDefault(e.classSessionId(), e.classStartsAt()).isAfter(now)).toList();
     }
     /**
-     * One entry of {@link #sweepStarted(Instant)} (the P8 item, E6-T04), in the caller's transaction when there is one:
+     * One entry of {@link #startedBy(Instant)} (the P8 item, E6-T04), in the caller's transaction when there is one:
      * `CANCELLED{CLASS_STARTED}` with no event and no notification. False when it is no longer live or its class (S06,
      * read inside the transaction) has not started.
      */

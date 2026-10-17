@@ -1,0 +1,15 @@
+..F...
+======================================================================
+FAIL: test_the_card_channels_are_compared_in_any_order (__main__.FeedExpectationTest.test_the_card_channels_are_compared_in_any_order)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02/bin/e7-smoke-test.py", line 118, in test_the_card_channels_are_compared_in_any_order
+    self.assertIsNone(feed_card_problem(log_card, log_detail['deliveries'], real_sms=False))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "channels ['SMS', 'APP'], expected ['APP', 'SMS'] for the SMS ['SENT']" is not None
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.002s
+
+FAILED (failures=1)
+exit=1

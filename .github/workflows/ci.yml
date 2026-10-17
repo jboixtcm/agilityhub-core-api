@@ -92,6 +92,7 @@ jobs:
       - name: Prove the scan policy and audit packaged dependencies
         run: |
           python3 bin/security-scan-test.py
+          python3 bin/e7-smoke-test.py
           bin/security-scan rootfs target
 
   security-image:

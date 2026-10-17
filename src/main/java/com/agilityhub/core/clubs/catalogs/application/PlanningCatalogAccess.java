@@ -15,8 +15,10 @@ public class PlanningCatalogAccess {
     private final CatalogRepository<Level> levels;
     private final CatalogRepository<Ring> rings;
     private final InstructorRepository instructors;
-    public PlanningCatalogAccess(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, InstructorRepository instructors) {
-        this.levels = levels; this.rings = rings; this.instructors = instructors;
+    private final com.agilityhub.core.shared.application.TeamMemberAccess members;
+    public PlanningCatalogAccess(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, InstructorRepository instructors,
+            com.agilityhub.core.shared.application.TeamMemberAccess members) {
+        this.levels = levels; this.rings = rings; this.instructors = instructors; this.members = members;
     }
     public void lockReferences() { levels.lock(); rings.lock(); instructors.lock(); }
     public Snapshot snapshot() {
@@ -49,10 +51,16 @@ public class PlanningCatalogAccess {
     public Map<String, String> ringIdsByShortName() {
         var result = new LinkedHashMap<String, String>(); rings().forEach(r -> result.put(r.shortName(), r.id())); return result;
     }
-    /** Active instructor ids in their census member order, a stable order for deterministic demo rotation. */
+    /**
+     * Active instructor ids in their census member order, a stable order for deterministic demo rotation. INC-53 (E11-T02):
+     * the order is the members' `memberNumber` (then id), not the member id, a name-based UUID of the club id whose text order
+     * changed «instructor 0» from club to club.
+     */
     public List<String> activeInstructorIds() {
-        return instructors.findAll().stream().filter(Instructor::active).sorted(Comparator.comparing(Instructor::memberId).thenComparing(Instructor::id))
-                .map(Instructor::id).toList();
+        var active = instructors.findAll().stream().filter(Instructor::active).toList();
+        var numbers = members.memberNumbers(active.stream().map(Instructor::memberId).filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet()));
+        return active.stream().sorted(Comparator.comparing((Instructor i) -> numbers.getOrDefault(i.memberId(), Integer.MAX_VALUE))
+                .thenComparing(Instructor::memberId, Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(Instructor::id)).map(Instructor::id).toList();
     }
     /** S10: `Level.code` and name of every level (active or not: a past class keeps its level), by id. */
     public record LevelRef(String id, String code, LocalizedText name, boolean active) { }

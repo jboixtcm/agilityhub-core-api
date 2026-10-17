@@ -1,0 +1,196 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 17, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 1.965 s <<< FAILURE! -- in com.agilityhub.core.identity.application.TokenServiceSurvivorsTest
+[ERROR] com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.INC_36_R_01_06_aRotatedTokenInsideTheGraceRotatesTheFamilysLiveTokenInsteadOfRevokingIt -- Time elapsed: 0.058 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: REFRESH_REUSED
+	at com.agilityhub.core.identity.application.TokenService.refresh(TokenService.java:143)
+	at com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.INC_36_R_01_06_aRotatedTokenInsideTheGraceRotatesTheFamilysLiveTokenInsteadOfRevokingIt(TokenServiceSurvivorsTest.java:202)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.INC_36_R_01_06_aRefreshThatLosesItsRotationToARivalTakesTheGraceOfTheRotatedToken -- Time elapsed: 0.015 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: REFRESH_REUSED
+	at com.agilityhub.core.identity.application.TokenService.refresh(TokenService.java:143)
+	at com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.INC_36_R_01_06_aRefreshThatLosesItsRotationToARivalTakesTheGraceOfTheRotatedToken(TokenServiceSurvivorsTest.java:239)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Errors: 
+[ERROR]   TokenServiceSurvivorsTest.INC_36_R_01_06_aRefreshThatLosesItsRotationToARivalTakesTheGraceOfTheRotatedToken:239 ? Api REFRESH_REUSED
+[ERROR]   TokenServiceSurvivorsTest.INC_36_R_01_06_aRotatedTokenInsideTheGraceRotatesTheFamilysLiveTokenInsteadOfRevokingIt:202 ? Api REFRESH_REUSED
+[ERROR] Tests run: 17, Failures: 0, Errors: 2, Skipped: 0
+[ERROR] 
+
+See /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02/target/surefire-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+00:05:31.333 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+00:05:31.734 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+00:05:31.922 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+00:05:31.926 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+00:05:31.936 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+00:05:32.139 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+00:05:32.521 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+00:05:32.523 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+00:05:32.547 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Ubuntu 24.04.5 LTS
+  Total Memory: 16093 MB
+00:05:32.724 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+00:05:32.732 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.12.0, configFile: /root/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /root/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
+00:05:33.065 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: aaffd9fb8c51b81dbd1b3b635474f48c37af242f62f8ce54736b0fff867f788d
+00:05:33.406 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.682504562S
+00:05:33.420 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+00:05:33.420 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+00:05:33.420 [main] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+00:05:33.421 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+00:05:33.489 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 67babb3f79e47ca4c03af9727b4affa9888583a3ca7dc2d4b491f8c200480e7d
+00:05:34.269 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.847514917S
+Integration JVM availableProcessors=4
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T00:05:36.184Z INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Starting IdentityCoreIT using Java [redacted] with PID 23996 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T00:05:36.189Z INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T00:05:40.490Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T00:05:40.691Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 185 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-17T00:05:43.876Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@625430f8], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@627f678d, com.mongodb.Jep395RecordCodecProvider@3fb54673, com.mongodb.KotlinCodecProvider@4b55652a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32832], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@8c54f48], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T00:05:43.987Z INFO  [cluster-ClusterId{value='6ad2bbd7df6acc2a459c3602', description='null'}-localhost:32832] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32832, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=83004040, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=67babb3f79e4:27017, hosts=[67babb3f79e4:27017], passives=[], arbiters=[], primary='67babb3f79e4:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2bbcdd945e87c82304093, counter=6}, lastWriteDate=Sat Oct 17 00:05:35 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T00:05:57.595Z INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T00:05:57.596Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T00:05:57.600Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 3 ms
+2026-10-17T00:05:57.716Z INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 22.058 seconds (process running for 27.658)
+2026-10-17T00:06:10.842Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/oauth2/revoke' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+[ERROR] Tests run: 31, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 47.70 s <<< FAILURE! -- in com.agilityhub.core.identity.api.IdentityCoreIT
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndKeepOneLiveToken -- Time elapsed: 0.428 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["OK", "REFRESH_REUSED"]
+to contain exactly (and in same order):
+  ["OK", "OK"]
+but some elements were not found:
+  ["OK"]
+and others were not expected:
+  ["REFRESH_REUSED"]
+
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndKeepOneLiveToken(IdentityCoreIT.java:211)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-17T00:06:18.910Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.PasswordGrantIT]: PasswordGrantIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T00:06:18.915Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.PasswordGrantIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T00:06:19.019Z INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : Starting PasswordGrantIT using Java [redacted] with PID 23996 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T00:06:19.020Z INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T00:06:20.634Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T00:06:20.727Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 86 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T00:06:21.010Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@8b3c5a0], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@627f678d, com.mongodb.Jep395RecordCodecProvider@3fb54673, com.mongodb.KotlinCodecProvider@4b55652a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32832], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@10e94abd], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T00:06:21.020Z INFO  [cluster-ClusterId{value='6ad2bbfddf6acc2a459c3603', description='null'}-localhost:32832] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32832, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=5067002, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=67babb3f79e4:27017, hosts=[67babb3f79e4:27017], passives=[], arbiters=[], primary='67babb3f79e4:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2bbcdd945e87c82304093, counter=6}, lastWriteDate=Sat Oct 17 00:06:18 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T00:06:24.568Z INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T00:06:24.569Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T00:06:24.571Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-17T00:06:24.617Z INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : Started PasswordGrantIT in 5.697 seconds (process running for 54.559)
+[ERROR] Tests run: 10, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.31 s <<< FAILURE! -- in com.agilityhub.core.identity.api.PasswordGrantIT
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily -- Time elapsed: 0.323 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily(PasswordGrantIT.java:106)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-10-17T00:06:29.230Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCurlIT]: IdentityCurlIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T00:06:29.235Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCurlIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T00:06:29.274Z INFO  [main] c.a.core.identity.api.IdentityCurlIT traceId= clubId= accountId= : Starting IdentityCurlIT using Java [redacted] with PID 23996 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T00:06:29.274Z INFO  [main] c.a.core.identity.api.IdentityCurlIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T00:06:30.182Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T00:06:30.309Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 123 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T00:06:30.692Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T00:06:30.711Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T00:06:30.712Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T00:06:30.812Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T00:06:30.813Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1537 ms
+2026-10-17T00:06:30.915Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@7a04b02a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@627f678d, com.mongodb.Jep395RecordCodecProvider@3fb54673, com.mongodb.KotlinCodecProvider@4b55652a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32832], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3a3189eb], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T00:06:30.918Z INFO  [cluster-ClusterId{value='6ad2bc06df6acc2a459c3604', description='null'}-localhost:32832] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32832, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=3581906, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=67babb3f79e4:27017, hosts=[67babb3f79e4:27017], passives=[], arbiters=[], primary='67babb3f79e4:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2bbcdd945e87c82304093, counter=6}, lastWriteDate=Sat Oct 17 00:06:29 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T00:06:31.532Z INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-17T00:06:33.576Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T00:06:33.578Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T00:06:33.580Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-17T00:06:33.792Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 34635 (http) with context path '/'
+2026-10-17T00:06:34.071Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T00:06:34.072Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T00:06:34.073Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T00:06:34.099Z INFO  [main] o.a.c.c.C.[Tomcat-1].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T00:06:34.099Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 297 ms
+2026-10-17T00:06:34.153Z INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-17T00:06:34.226Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 36863 (http) with context path '/'
+2026-10-17T00:06:34.247Z INFO  [main] c.a.core.identity.api.IdentityCurlIT traceId= clubId= accountId= : Started IdentityCurlIT in 5.008 seconds (process running for 64.19)
+2026-10-17T00:06:34.768Z INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-17T00:06:34.768Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-17T00:06:34.772Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-17T00:06:35.701Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.CookieRefreshIT]: CookieRefreshIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T00:06:35.704Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.CookieRefreshIT
+[ERROR] Failures: 
+[ERROR]   IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndKeepOneLiveToken:211 
+Expecting actual:
+  ["OK", "REFRESH_REUSED"]
+to contain exactly (and in same order):
+  ["OK", "OK"]
+but some elements were not found:
+  ["OK"]
+and others were not expected:
+  ["REFRESH_REUSED"]
+
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily:106 Status expected:<200> but was:<400>
+[ERROR] Tests run: 47, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+exit=0

@@ -49,7 +49,7 @@ def feed_card_problem(card, deliveries, real_sms):
     if not real_sms and not sent:
         return f"the log sender did not send the SMS ({sms})"
     expected = ["APP", "SMS"] if sent else ["APP"]
-    if card["channels"] != expected:
+    if sorted(card["channels"]) != expected:  # INC-54: in any order
         return f"channels {card['channels']}, expected {expected} for the SMS {sms}"
     if card["action"] is None or card["action"]["type"] != "CHANGE_CLASS":
         return f"action {card['action'] and card['action']['type']}, expected CHANGE_CLASS"

@@ -155,6 +155,19 @@ class RemindersJobIT extends BookingFixtures {
     }
     List<Document> remindersOf(String clubId) { return mongo.find(Query.query(Criteria.where("clubId").is(clubId).and("type").is("ReminderDue")), Document.class, "domain_events"); }
 
+    /**
+     * INC-53 point 15 (E11-T02; E7-W03 step 5, decision E89): one set of counter names, as point 3 for P8. A dry run counts the
+     * real run's `classReminders` and `trainingReminders` from its plan beside the runner's `WOULD_REMIND`.
+     */
+    @Test void T_15_17_INC_53_aDryRunCountsClassAndTrainingRemindersByTheirRealNames() throws Exception {
+        lead("s08-m-laura", 120); lead("s08-m-pere", 120);
+        book(as("laura"), "thu", "s08-d-duna");
+        training("s08-t-nit", "s08-d-nit", "s08-m-pere", local("2026-10-08T18:30"), NOW);
+        clock.setInstant(local("2026-10-08T16:50"));
+        assertThat(counters(runner.manual(CLUB, JobName.REMINDERS, true, "s08-admin"))).isEqualTo(Map.of("WOULD_REMIND", 2L, "classReminders", 1L, "trainingReminders", 1L));
+        assertThat(counters(runner.manual(CLUB, JobName.REMINDERS, false, "s08-admin"))).isEqualTo(Map.of("classReminders", 1L, "trainingReminders", 1L));
+    }
+
     @Test void T_15_17_aTrainingBookingIsRemindedWithItsRingOnlyWithFreeTraining() {
         // Pere (his account in English, 2 h) and a free training of Nit on Central, Thursday 08-10 08:00–08:30, booked on Tuesday.
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-pere")), new Update().set("locale", "en"), "accounts");

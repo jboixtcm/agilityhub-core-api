@@ -112,6 +112,8 @@ class OidcIT extends IdentityIntegrationSupport {
                 .andExpect(status().isOk()).andReturn().getResponse());
         assertThat(refreshed.get("scope")).isEqualTo(result.get("scope"));
         assertThat(refreshed.get("id_token").asText()).isNotBlank();
+        // INC-36 (S01 R-01-06): past auth.refreshReuseGraceSeconds (30), reusing the rotated token revokes the family.
+        clock.advance(Duration.ofSeconds(31));
         refresh(refreshValue(result), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
         refresh(refreshValue(refreshed), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
         mvc.perform(exchange("ar-app", code.value(), VERIFIER)).andExpect(status().isBadRequest());

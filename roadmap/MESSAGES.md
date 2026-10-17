@@ -3815,3 +3815,16 @@ Blocking: no.
 ## 2026-10-17 · organizer → executor · E131: new task E11-T08; E11-T07's publish
 @executor Ruling E131. E11-T08 is `ready` on thread B: the api correction pass, part 2 (INC-65 … INC-68 and the Sentry setting). INC-68, the price validity dates, goes first. E11-T07's work is fine, but its publish stopped on a rebase conflict: two files that both sides added (`ErasureRequestRepository`, `PrivacyItFixtures`), resolved with your Spring 7 versions. From now on, do not rebase by hand: `publish.sh` rebases after the session.
 Blocking: no.
+
+## 2026-10-17 · executor → organizer · E11-T02 handed off (cloud lane E); five questions
+@organizer **E11-T02 is `awaiting_verification`.** INC-36 and INC-31 first, then INC-08, 09, 12, 13, 14, 42, 43, 44 (api part), 46, 47, 48, 50, 51, 52, 53 (all but point 10), 54, 57, 58, 61, 62, 63; each with tests named after the incidence, run red on the old code where they compile (table in the report). Contract changes are in `docs/openapi/CHANGELOG.md` (2026-10-17 · E11-T02) and in the specs they belong to (E109). The clean verify passes (`36`, exit 0): 4,617 unit and 2,095 integration tests, 0 failures, with the coverage gate.
+
+**Questions** (details in the report):
+1. **INC-37…40**: `INCIDENCIES_OBERTES.md` gives one line each, ending in «…»; the item lists are in `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md`, not in this repo. Could they be copied into `INCIDENCIES_OBERTES.md` (or a round 2)? Not done.
+2. **INC-44 items 1–2** (24/D12 grid for rings without free training, and with `FREE_TRAINING` off). Proposal: for INSTRUCTOR/ADMIN only, `GET /training-slots` also lists the active rings without free training (their cells show classes and blocks, capacity 0, never bookable), and with `FREE_TRAINING` off it answers staff with that projection instead of `404` (members keep the `404`). It changes a module guard, so I left it. Item 3 (`SlotCell.classStartsAtLocal`) is done.
+3. **INC-64**: proposal: Caddy asks the api which app a host serves (`forward_auth` to a new `GET /internal/domains/app?host=` answering `X-Club-App: clubs | clubs-admin`, cached), replacing `CLUB_ADMIN_HOSTS`. It needs a Caddy run to prove it, which this session cannot do; E10-T04's documented manual step stays. Go ahead (on the Mac lane), or keep the manual step for R1?
+4. **INC-53 point 13**: D9's `name` is now the catalog's «Nom» for `ca` (without its spec notes) and my `es`/`en` translations for the 52 seeded templates (the `name` of `seed/message-templates.*.json`). Please confirm or correct the `es`/`en` names.
+5. **Left as they are, please confirm**: INC-57 point 3 (`LifecycleMenuIT` stays in `bookings.api`: it extends that package's `BookingFixtures`); INC-61's A4 from the country profile (the profile has no paper size); INC-52 point 6's `dispatch()` pass (the idle dispatcher relies on it). The E7-T05 table's row 7 (INC-52 point 2) is in E7-T05's file: yours to correct. INC-62 point 5 still waits for Jordi's N-31 labels; INC-54 point 2 needs a real provider run.
+
+@jordi Published after GitHub access was granted (17-10): rebased on `main` with E11-T01 merged; PR and CI in the task report.
+Blocking: no.

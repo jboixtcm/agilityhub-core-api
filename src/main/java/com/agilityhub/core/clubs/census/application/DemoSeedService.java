@@ -30,6 +30,8 @@ public class DemoSeedService {
     private final ClubConfigService configs; private final ObjectMapper mapper; private final Environment environment;
     private final AttachmentService attachments; private final DocumentService documentService;
     private final DemoSignupSeeder signupSeeder; private final com.agilityhub.core.platform.application.CountryContacts contacts;
+    /** INC-31 (A37): the demo IBANs are sealed like any other (in clear only on a stack without BILLING_BANK_KEY). */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BankAccounts bankAccounts;
     public DemoSeedService(CensusAccess census, CensusRepository<DogDocument> documents, DemoSeedRepository runs,
             MigrationCatalogAccess catalogs, RoleAssignmentService team, DemoIdentityService identity, ClubConfigService configs,
             ObjectMapper mapper, Environment environment, AttachmentService attachments, DocumentService documentService,
@@ -84,9 +86,13 @@ public class DemoSeedService {
                     .map(p -> p.get("_id").toString()).findFirst().orElse(null);
             // E43: a SEPA member carries the api's mandate (`{clubSlug}-{memberNumber}-1`, signed when it joined), so the E8
             // remittance runs on the fictional census. A PENDING row gets its mandate at validation (DemoSignupSeeder).
-            member.paymentMethod = row.number() % 3 == 0 ? Map.of("type", "MANUAL", "channel", "cash")
-                    : Map.of("type", "SEPA_DD", "iban", row.iban(), "holderName", row.firstName() + " " + row.surname(),
-                            "mandateRef", CensusRules.mandateRef(config.club().slug(), row.number(), null), "mandateSignedAt", member.joinedAt);
+            if (row.number() % 3 == 0) { member.paymentMethod = Map.of("type", "MANUAL", "channel", "cash"); }
+            else {
+                var sepa = new java.util.LinkedHashMap<String, Object>(Map.of("type", "SEPA_DD", "holderName", row.firstName() + " " + row.surname(),
+                        "mandateRef", CensusRules.mandateRef(config.club().slug(), row.number(), null), "mandateSignedAt", member.joinedAt));
+                sepa.putAll(bankAccounts.seal(row.iban(), member.clubId, member.id));
+                member.paymentMethod = sepa;
+            }
             member.consents = Map.of("imageRights", Map.of("accepted", row.number() % 2 == 0, "at", reference));
             member.bookingBlock = Map.of("active", false); member.notificationPreferences = Map.of();
             if ("LEFT".equals(row.status())) { member.leftAt = reference.minusSeconds(86400L * 10); member.leftReason = "Fictional demo leave"; }

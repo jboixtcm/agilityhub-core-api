@@ -47,6 +47,8 @@ public class ClassSessionBookingAccess {
         classes.findAllById(new LinkedHashSet<>(ids)).forEach(c -> out.put(c.id(), c.startsAt()));
         return out;
     }
+    /** S15 P8 (INC-46): the `ACTIVE` classes started by `now` that still have someone waiting, by id. */
+    public List<String> startedWithWaiting(Instant now) { return classes.startedWithWaiting(now); }
     /** ACTIVE classes starting in `[from, to)`, by start (S15 P1 warm-up of the bookable-classes base cache). */
     public List<Session> activeBetween(Instant from, Instant to) {
         return classes.findActiveBetween(com.agilityhub.core.shared.application.TenantContext.require(), from, to).stream()

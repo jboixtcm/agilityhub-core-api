@@ -129,6 +129,9 @@ class DemoAttendanceSeedIT extends AbstractIntegrationTest {
         assertThat(dog.getString("handlerName")).isEqualTo("Rita");
         assertThat(mongo.findOne(Query.query(Criteria.where("_id").is(holder.getString("accountId"))), Document.class, "accounts").getString("email")).isEqualTo("member.8@example.test");
         assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("shortName").is("Berta")), Document.class, "instructors")).isNotNull();
+        // INC-53 point 8 (E11-T02): Berta, instructor index 0, is always the first instructor of the seed (`instructor@`), whatever the club id.
+        assertThat(mongo.findOne(Query.query(Criteria.where("_id").is(instructor.getString("accountId"))), Document.class, "accounts").getString("email"))
+                .isEqualTo("instructor@example.test");
 
         // 21/D12: Monday 08:30 on Central, 4 of 5 booked (R-10-02's example) and one waiting.
         String ring = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("shortName").is("CEN")), Document.class, "rings").getString("_id");

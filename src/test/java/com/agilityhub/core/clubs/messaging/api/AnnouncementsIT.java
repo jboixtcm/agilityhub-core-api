@@ -132,6 +132,27 @@ class AnnouncementsIT extends AbstractIntegrationTest {
         return ids;
     }
 
+    /**
+     * INC-53 point 16 (E11-T02; E7-W03 step 5, decision E89): the log rows of an announcement carry its `batchId`, so «one batch»
+     * is not read from the number of rows; another notice's rows carry none.
+     */
+    @Test void T_11_26_INC_53_theLogRowsOfAnAnnouncementCarryItsBatchId() throws Exception {
+        String n24 = templateOf("N-24");
+        String first = send(n24, Map.of("filters", List.of("status:eq:ACTIVE")), false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        String second = send(n24, Map.of("memberIds", List.of("e7t04-ann-laura")), false, UUID.randomUUID().toString(), 202).path("batchId").asText();
+        dispatch();
+        var rows = call(as(get("/api/v1/notifications"), "ADMIN").param("filter", "code:eq:N-24").param("size", "50"), 200).path("items");
+        var batches = new java.util.ArrayList<String>(); rows.forEach(row -> batches.add(row.path("batchId").asText()));
+        assertThat(batches).containsExactlyInAnyOrder(first, first, first, second);
+        mongo.insert(new Document("_id", "e7t04-ann-other-notice").append("clubId", CLUB).append("code", "N-04").append("category", "OPERATIONAL")
+                .append("eventType", "BookingCreated").append("dedupKey", "booking-x:member").append("audience", "MEMBER")
+                .append("recipient", new Document("memberId", "e7t04-ann-laura").append("displayName", "Laura")).append("createdAt", new java.util.Date()), "notifications");
+        var other = call(as(get("/api/v1/notifications"), "ADMIN").param("filter", "code:eq:N-04"), 200).path("items");
+        assertThat(other).singleElement().satisfies(row -> assertThat(row.path("batchId").isNull()).isTrue());
+        assertThat(call(as(get("/api/v1/notifications"), "ADMIN").param("fields", "batchId").param("filter", "code:eq:N-24"), 200).at("/items/0/batchId").asText())
+                .isIn(first, second);
+    }
+
     @Test @AuditCovers(AuditAction.ANNOUNCEMENT_SENT)
     void T_11_18_n24ToTheMembersOfTheListFiltersWithTheirOwnPreferencesAuditedAndReplayedByItsKey() throws Exception {
         String n24 = templateOf("N-24");

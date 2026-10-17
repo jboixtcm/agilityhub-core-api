@@ -121,8 +121,12 @@ public class SchedulingNotificationFacts implements NotificationFactsPort {
     private String ring(String ringId) {
         return context.catalog().rings().stream().filter(r -> r.id().equals(ringId)).map(SchedulingCatalog.Resource::name).findFirst().orElse("");
     }
-    private String display(String field, Object value) {
-        if (field.equals("startTime")) { return Objects.toString(value, ""); }
+    /** INC-54 (E11-T02, R-11-05): a start time goes as a time, so that it is written «9:30» like every other time variable. */
+    private Object display(String field, Object value) {
+        if (field.equals("startTime")) {
+            try { return value == null ? "" : java.time.LocalTime.parse(value.toString()); }
+            catch (java.time.format.DateTimeParseException unreadable) { return value.toString(); }
+        }
         var catalog = context.catalog();
         if (field.equals("ringId")) { return catalog.rings().stream().filter(r -> r.id().equals(value)).map(SchedulingCatalog.Resource::name).findFirst().orElse("—"); }
         if (value instanceof List<?> ids) { return String.join(", ", catalog.instructors().stream().filter(i -> ids.contains(i.id())).map(SchedulingCatalog.Resource::name).toList()); }

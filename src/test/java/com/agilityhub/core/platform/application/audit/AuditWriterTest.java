@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class AuditWriterTest {
-    @Test void T_14_09_round2_point5_webhookProvenanceOverridesCallerAndRestoresScope() {
+    @Test void R_14_09_round2_point5_webhookProvenanceOverridesCallerAndRestoresScope() {
         var repository = mock(AuditRepository.class);
         var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", "member-a", true, "127.0.0.1", "fixture", null),
                 Clock.fixed(Instant.parse("2026-10-08T10:00:00Z"), ZoneOffset.UTC));
@@ -64,7 +64,7 @@ class AuditWriterTest {
      * provider's actor; an unchanged entity still writes nothing. Before the fix `actorName` was the process and there were no
      * details.
      */
-    @Test void E7_T06_aSystemProcessIsTheActorOfItsOwnChange() {
+    @Test void R_14_09_aSystemProcessIsTheActorOfItsOwnChange() {
         var repository = mock(AuditRepository.class); var provider = mock(AuditActorProvider.class);
         var writer = new AuditWriter(repository, provider, Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC));
         writer.writeAsSystem(new AuditCommand(AuditAction.CATALOG_CHANGED, "MessageTemplate", "template-a", null, Map.of("title", "a"),
@@ -87,7 +87,7 @@ class AuditWriterTest {
      * E7-T07 (S14 §3, R-14-10): an announcement's entry has no changes (its template does not change) and is still written,
      * with the batch in `details`; an empty map writes no details. Before the fix the entry was discarded without changes.
      */
-    @Test void E7_T07_anAnnouncementIsAnEventActionWithItsBatchInDetails() {
+    @Test void R_14_09_anAnnouncementIsAnEventActionWithItsBatchInDetails() {
         var repository = mock(AuditRepository.class);
         var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", null, false, null, null, "trace-a"),
                 Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC));
@@ -106,7 +106,7 @@ class AuditWriterTest {
     }
 
     /** A request's entry written without details has none (ruling E83: never the system process's `job`). */
-    @Test void E7_T06_aRequestsEntryHasNoDetails() {
+    @Test void R_14_10_aRequestsEntryHasNoDetails() {
         var repository = mock(AuditRepository.class);
         var writer = new AuditWriter(repository, () -> new AuditActor("account-a", "Example Admin", "ADMIN", null, false, null, null, "trace-a"),
                 Clock.fixed(Instant.parse("2026-10-01T06:00:00Z"), ZoneOffset.UTC));

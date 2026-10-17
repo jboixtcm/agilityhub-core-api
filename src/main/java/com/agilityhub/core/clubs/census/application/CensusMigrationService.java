@@ -14,8 +14,10 @@ public class CensusMigrationService {
     private final CensusMigrationRepository repository;
     private final LeaveRequestRepository leaves;
     private final Clock clock;
-    public CensusMigrationService(CensusMigrationRepository repository, LeaveRequestRepository leaves, Clock clock) {
-        this.repository=repository; this.leaves=leaves; this.clock=clock;
+    private final com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard;
+    public CensusMigrationService(CensusMigrationRepository repository, LeaveRequestRepository leaves, Clock clock,
+            com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard) {
+        this.repository=repository; this.leaves=leaves; this.clock=clock; this.dashboard=dashboard;
     }
     public List<Map<String,Object>> snapshot(String entity) { return repository.snapshot(entity); }
     public void lock() { repository.lock(); }
@@ -25,7 +27,10 @@ public class CensusMigrationService {
     public boolean importedPlannedLeave(String id, String memberId) {
         return leaves.findOwn(id, memberId).filter(r -> r.source() == LeaveSource.MIGRATED && r.state() == LeaveRequestState.APPROVED).isPresent();
     }
-    /** R-18-11: one silent import record, covered by the enclosing MIGRATION_APPLIED audit and census transaction. */
+    /**
+     * R-18-11: one silent import record, covered by the enclosing MIGRATION_APPLIED audit and census transaction. INC-57
+     * (E11-T02): like every leave write, it drops the dashboard's menu counters once it commits.
+     */
     public void plannedLeave(String id, String memberId, String effectiveDate) {
         var old = leaves.findById(id).orElse(null);
         var now = clock.instant();
@@ -39,11 +44,13 @@ public class CensusMigrationService {
                     new LeaveRequest.Decision(now, old.decision().byAccountId(), old.decision().decision(), effectiveDate, old.decision().note()),
                     old.executedAt(), old.cancelledAt(), old.cancelledBy(), old.cancelReason(), old.cancelledBookings(), old.packBalanceId(),
                     old.version() + 1, old.createdAt(), now), old.version());
+            dashboard.invalidateCountersAfterCommit(old.clubId());
             return;
         }
         leaves.insert(new LeaveRequest(id, TenantContext.require(), memberId, LeaveSource.MIGRATED, LifecycleOrigin.SYSTEM, now,
                 null, effectiveDate, null, null, null, LeaveRequestState.APPROVED,
                 new LeaveRequest.Decision(now, null, LifecycleDecision.APPROVED, effectiveDate, null),
                 null, null, null, null, List.of(), null, null, now, now));
+        dashboard.invalidateCountersAfterCommit(TenantContext.require());
     }
 }

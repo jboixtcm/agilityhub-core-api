@@ -171,24 +171,71 @@ class BuildSessionStreamsTest {
     }
 
     /**
-     * Review #5, round 2: the senders are bounded. With every sender held by a stalled client, a new stream is refused at once
-     * (closed: EventSource retries later) and no thread is added; the streams already served keep theirs.
+     * INC-63 point 1 (E11-T02; review of E9-T06 round 2 #1, decision E123): more healthy subscribers than senders is a burst, not
+     * a failure. With two senders busy on slow (not stalled) sends, a third stream waits in the bounded queue instead of being
+     * refused; once the sends return, all three get `:open` and the next heartbeat, and no stream is closed.
+     */
+    @Test void T_16_10_INC_63_aBurstAboveTheSendersWaitsAndClosesNoHealthyStream() throws Exception {
+        var streams = quiet(2);
+        var first = new Stalled(0); var second = new Stalled(0);
+        for (var client : List.of(first, second)) {
+            streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), client);
+            await(client.blocked, "a sender is busy");
+        }
+        var third = new Reader();
+        streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), third);
+        assertThat(third.completed).as("SENDERS + 1 healthy streams: the third waits").isFalse();
+        assertThat(streams.subscribers()).isEqualTo(3);
+        first.release.countDown(); second.release.countDown();
+        for (var client : List.of(first, second, third)) { client.next(":open", WAIT); }
+        streams.heartbeat();
+        for (var client : List.of(first, second, third)) { client.next(":heartbeat", WAIT); }
+        assertThat(streams.subscribers()).isEqualTo(3);
+        assertThat(first.completed || second.completed || third.completed).as("no stream closed").isFalse();
+        assertThat(streams.senderThreads()).isLessThanOrEqualTo(2);
+    }
+
+    /**
+     * INC-63 point 1: a stream is refused, or a waiting one closed, only when every sender is held by a send blocked for longer
+     * than the write timeout (stalled clients whose writes Tomcat has not failed yet).
+     */
+    @Test void T_16_10_INC_63_aStreamWaitingWhileEverySenderIsStalledIsClosed() throws Exception {
+        var streams = quiet(2);
+        streams.writeTimeout(Duration.ofMillis(400));
+        var first = new Stalled(0); var second = new Stalled(0);
+        for (var client : List.of(first, second)) {
+            streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), client);
+            await(client.blocked, "a sender is held");
+        }
+        var waiting = new Reader();
+        streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), waiting);
+        Thread.sleep(500);
+        streams.watch();
+        assertThat(waiting.completed).as("closed (or refused at once on a slow runner)").isTrue();
+        assertThat(waiting.frames).isEmpty();
+        assertThat(streams.senderThreads()).isEqualTo(2);
+    }
+
+    /**
+     * Review #5, round 2: the senders are bounded. With every sender held by a stalled client (a send blocked for longer than
+     * the write timeout, INC-63), a new stream is refused at once (closed: EventSource retries later) and no thread is added.
      */
     @Test void T_16_10_theSendersAreBoundedAndAFullPoolRefusesANewStream() throws Exception {
         var streams = quiet(2);
+        streams.writeTimeout(Duration.ofMillis(100));
         var first = new Stalled(0); var second = new Stalled(0);
         for (var client : List.of(first, second)) {
             // Its first send (`:open`) already blocks, so each of them holds one sender before the next subscribes.
             streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), client);
             await(client.blocked, "a sender is held");
         }
+        Thread.sleep(200);
         var refused = new Reader();
         streams.subscribe(session(0, BuildStatus.NOT_STARTED, ObstacleStatus.NOT_PLACED), refused);
         assertThat(refused.completed).as("refused at once").isTrue();
         assertThat(refused.frames).isEmpty();
-        assertThat(streams.subscribers()).isEqualTo(2);
         assertThat(streams.senderThreads()).isEqualTo(2);
-        assertThat(first.completed || second.completed).isFalse();
+        assertThat(first.completed || second.completed).as("their blocked sends have not returned").isFalse();
     }
 
     /** Review #6: the stream's timeout is the smaller of 30 minutes and what is left of the access token. */

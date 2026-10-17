@@ -24,10 +24,15 @@ import org.springframework.stereotype.Component;
  * to `NO_SHOW` before the run ends (no second claim within a run). A second run with nothing new claims nothing and emits
  * nothing (R-15-04). N-19 is S11's, one per booking (the S11 engine, with
  * {@link com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts}).
+ *
+ * <p>INC-46 (E11-T02; review of E6-T04 round 2 #3): a dry run counts the run's own counters from its plan (`notices`, `late`,
+ * R-15-08 «pla = efectes») beside the runner's `WOULD_NOTIFY: 1`, and the detail lists at most {@link #DETAIL_LIMIT}
+ * attendances with their total in `attendanceCount` (a catch-up after a long stop stays within the trace).
  */
 @Component
 public class NoShowNoticesJob implements Job {
     static final String NOTIFY = "NOTIFY", ENTITY = "NoShowNoticeBatch";
+    static final int DETAIL_LIMIT = 100;
     private final AttendanceRepository attendances; private final NoShowNoticeClaims claims; private final BookingMemberAccess census;
     public NoShowNoticesJob(AttendanceRepository attendances, NoShowNoticeClaims claims, BookingMemberAccess census) {
         this.attendances = attendances; this.claims = claims; this.census = census;
@@ -37,6 +42,10 @@ public class NoShowNoticesJob implements Job {
     @Override public List<JobItem> plan(JobContext context) {
         var due = attendances.dueForNoShowNotice(context.clubId(), context.localDate());
         if (due.isEmpty()) { return List.of(); }
+        if (context.dryRun()) {
+            context.recorder().count("notices", due.size());
+            context.recorder().count("late", due.stream().filter(a -> late(a.classDate(), context.localDate())).count());
+        }
         return List.of(new JobItem(ENTITY, context.localDate().toString(), NOTIFY, detail(context.localDate(), due)));
     }
 
@@ -55,17 +64,18 @@ public class NoShowNoticesJob implements Job {
     public static boolean late(LocalDate classDate, LocalDate runDate) { return classDate.isBefore(runDate.minusDays(1)); }
 
     private Map<String, Object> detail(LocalDate runDate, List<Attendance> batch) {
+        var shown = batch.subList(0, Math.min(batch.size(), DETAIL_LIMIT));
         var names = new HashMap<String, String>();
-        census.dogs(batch.stream().map(Attendance::dogId).filter(Objects::nonNull).distinct().toList()).forEach(dog -> names.put(dog.id(), dog.name()));
+        census.dogs(shown.stream().map(Attendance::dogId).filter(Objects::nonNull).distinct().toList()).forEach(dog -> names.put(dog.id(), dog.name()));
         var rows = new ArrayList<Map<String, Object>>();
-        for (var a : batch) {
+        for (var a : shown) {
             var row = new LinkedHashMap<String, Object>();
             row.put("attendanceId", a.id()); row.put("bookingId", a.bookingId()); row.put("memberId", a.memberId());
             row.put("dogName", names.getOrDefault(a.dogId(), "")); row.put("classDate", a.classDate().toString());
             rows.add(row);
         }
         var detail = new LinkedHashMap<String, Object>();
-        detail.put("date", runDate.toString()); detail.put("attendances", rows);
+        detail.put("date", runDate.toString()); detail.put("attendanceCount", batch.size()); detail.put("attendances", rows);
         return detail;
     }
 }

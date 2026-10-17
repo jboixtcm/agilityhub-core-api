@@ -243,7 +243,11 @@ class CatalogsIT extends AbstractIntegrationTest {
         reference("training_bookings", CLUB, "ringId", id, "ACTIVE", 24);
         // R-05-08 (organizer 2026-09-24, S09 R-09-13 wins): a live training booking is RING_HAS_BOOKINGS, not RING_IN_USE.
         admin(body(patch("/api/v1/rings/" + id), Map.of("allowsFreeTraining", false, "version", 0))).andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").value("RING_HAS_BOOKINGS")).andExpect(jsonPath("$.details.bookings.length()").value(1));
+                .andExpect(jsonPath("$.code").value("RING_HAS_BOOKINGS")).andExpect(jsonPath("$.details.bookings.length()").value(1))
+                // INC-09: the details have the one published shape of the code (S06/S09's routes send the same).
+                .andExpect(result -> assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(
+                        mapper.readTree(result.getResponse().getContentAsString()).path("details"), "RingHasBookingsDetails")).isEmpty())
+                .andExpect(jsonPath("$.details.bookings[0].bookingId").isNotEmpty()).andExpect(jsonPath("$.details.bookings[0].ringId").value(id));
         admin(body(patch("/api/v1/rings/" + id), Map.of("active", false, "version", 0))).andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("RING_HAS_BOOKINGS"));
         mongo.remove(new Query(), "training_bookings");

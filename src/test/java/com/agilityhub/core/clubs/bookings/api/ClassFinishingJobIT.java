@@ -172,7 +172,7 @@ class ClassFinishingJobIT extends BookingFixtures {
         // A plan made from the stale copy is refused inside the sweep's transaction too.
         try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
             assertThat(waitlist.sweepStarted(wednesday, clock.instant())).isFalse();
-            assertThat(waitlist.sweepStarted(clock.instant())).isZero();
+            assertThat(waitlist.startedBy(clock.instant())).isEmpty();
         }
         assertThat(entry(wednesday).getString("state")).isEqualTo("ACTIVE"); assertThat(entry(wednesday).get("cancelReason")).isNull();
 
@@ -190,6 +190,23 @@ class ClassFinishingJobIT extends BookingFixtures {
         var moved = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
         assertThat(moved.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(thursday, "SWEEP"));
         assertThat(entry(thursday).getString("state")).isEqualTo("CANCELLED"); assertThat(entry(thursday).getString("cancelReason")).isEqualTo("CLASS_STARTED");
+    }
+
+    /**
+     * INC-53 point 3 (E11-T02; E7-W05 question 3, decision E82): one set of counter names. Beside the runner's `WOULD_*`, a dry
+     * run counts the real run's own counters from its plan (`swept`, `finished`; R-15-08 «pla = efectes»), so the web reads
+     * the same keys from both.
+     */
+    @Test void T_15_26_INC_53_aDryRunCountsTheRealRunsCounterNames() throws Exception {
+        book(as("laura"), "wed", "s08-d-duna"); book(as("joan"), "wed", "s08-d-toby"); book(as("pere"), "wed", "s08-d-nit");
+        join(as("c0"), "wed", "s08-d-c0", 201); join(as("c1"), "wed", "s08-d-c1", 201);
+        clock.setInstant(local("2026-10-07T18:50"));
+        assertThat(counters(runner.manual(CLUB, JobName.CLASS_FINISHING, true, "s08-admin"))).isEqualTo(Map.of("WOULD_SWEEP", 2L, "swept", 2L));
+        clock.setInstant(local("2026-10-07T20:05"));
+        var dry = runner.manual(CLUB, JobName.CLASS_FINISHING, true, "s08-admin");
+        assertThat(counters(dry)).isEqualTo(Map.of("WOULD_SWEEP", 2L, "swept", 2L, "WOULD_FINISH", 1L, "finished", 1L));
+        var run = runner.manual(CLUB, JobName.CLASS_FINISHING, false, "s08-admin");
+        assertThat(counters(run)).isEqualTo(Map.of("swept", 2L, "finished", 1L));
     }
 
     /**

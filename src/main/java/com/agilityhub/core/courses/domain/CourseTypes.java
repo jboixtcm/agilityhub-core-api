@@ -19,6 +19,8 @@ public final class CourseTypes {
     public enum DogSize { XS, S, M, I, L, ALL }
     public enum SetupKind { AGILITY, JUMPING, FUN, OBSTACLE_DRILL, EMPTY }
     public enum SetupStatus { ACTIVE, EXPIRED, DISMANTLED }
+    /** INC-62 (E11-T02, E119): why a setup is `DISMANTLED` — replaced by another one, by hand, or with its ring deactivated. */
+    public enum DismantledReason { REPLACED, MANUAL, RING_INACTIVE }
     public enum BuildStatus { NOT_STARTED, IN_PROGRESS, COMPLETED, ABANDONED }
     public enum BuildStrategy { EQUIPMENT_TYPE, CLOSER_OBSTACLE_ORDER, FREE_BUILD }
     public enum ObstacleStatus { NOT_PLACED, CURRENT, PLACED, SKIPPED, NEEDS_CHECK }

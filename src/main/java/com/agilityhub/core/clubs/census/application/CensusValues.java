@@ -23,6 +23,12 @@ public final class CensusValues {
     public static Map<String,Object> select(Map<String,Object> source, String... fields) {
         var result = new LinkedHashMap<String,Object>(); for (String key : fields) { if (source.get(key) != null) { result.put(key, source.get(key)); } } return result;
     }
+    /** INC-31: the stored account of a payment method (flat or under `sepa`): its `iban`, or `ibanEncrypted` + `ibanLast4`. */
+    public static Map<String,Object> account(Map<String,Object> paymentMethod) {
+        var method = paymentMethod == null ? Map.<String,Object>of() : paymentMethod;
+        @SuppressWarnings("unchecked") var sepa = method.get("sepa") instanceof Map<?,?> nested ? (Map<String,Object>) nested : method;
+        return select(sepa, com.agilityhub.core.shared.application.BankAccounts.FIELDS.toArray(String[]::new));
+    }
     public static String string(Object raw) { return raw == null ? null : raw.toString(); }
     public static Instant instant(Object raw) { return raw instanceof Date date ? date.toInstant() : raw == null ? null : Instant.parse(raw.toString()); }
     public static LocalDate date(Object raw) {

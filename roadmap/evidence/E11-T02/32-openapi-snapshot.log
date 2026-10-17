@@ -1,0 +1,74 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+02:37:39.284 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.OpenApiSnapshotTest]: OpenApiSnapshotTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+02:37:39.726 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.OpenApiSnapshotTest
+02:37:40.029 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+02:37:40.036 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+02:37:40.049 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+02:37:40.421 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+02:37:41.057 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+02:37:41.060 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+02:37:41.088 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Ubuntu 24.04.5 LTS
+  Total Memory: 16093 MB
+02:37:41.244 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+02:37:41.255 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.12.0, configFile: /root/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /root/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
+02:37:41.493 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 8af6eca070cb849653e19a6b2953da6e1fe7acc969c5e156ba8a981189d5d7e2
+02:37:41.906 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.661939732S
+02:37:41.914 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+02:37:41.914 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+02:37:41.916 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+02:37:41.917 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+02:37:41.976 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 622394457f7076ed83669218b359033c09307e578e1ad846b4b1bb3c3863f549
+02:37:42.750 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.832207846S
+Integration JVM availableProcessors=4
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T02:37:44.967Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : Starting OpenApiSnapshotTest using Java [redacted] with PID 10893 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T02:37:44.974Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T02:37:48.551Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T02:37:48.712Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 148 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T02:37:50.223Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T02:37:50.250Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T02:37:50.251Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T02:37:50.335Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T02:37:50.336Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 5339 ms
+2026-10-17T02:37:50.794Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@fc74fa5], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@626a7259, com.mongodb.Jep395RecordCodecProvider@7aab927b, com.mongodb.KotlinCodecProvider@5ec52444]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32913], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6bcaf25e], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T02:37:50.818Z INFO  [cluster-ClusterId{value='6ad2df7e3ab13fe09226e1ad', description='null'}-localhost:32913] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32913, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=43873431, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=622394457f70:27017, hosts=[622394457f70:27017], passives=[], arbiters=[], primary='622394457f70:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2df76367051c2a2a0241b, counter=6}, lastWriteDate=Sat Oct 17 02:37:43 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T02:37:53.139Z INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-17T02:38:03.318Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T02:38:03.320Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T02:38:03.324Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-17T02:38:03.604Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 38657 (http) with context path '/'
+2026-10-17T02:38:03.747Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T02:38:03.748Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T02:38:03.749Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T02:38:03.773Z INFO  [main] o.a.c.c.C.[Tomcat-1].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T02:38:03.774Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 162 ms
+2026-10-17T02:38:03.803Z INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-17T02:38:03.886Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 36641 (http) with context path '/'
+2026-10-17T02:38:03.905Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : Started OpenApiSnapshotTest in 19.773 seconds (process running for 26.192)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-17T02:38:05.738Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/openapi.json' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-17T02:38:13.705Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=9b43991e-2e6f-4d85-a69e-7b48ebb874b1 clubId=- accountId=user : Init duration for springdoc-openapi is: 7828 ms
+2026-10-17T02:38:16.378Z INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-17T02:38:16.380Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-17T02:38:16.385Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 5 ms
+2026-10-17T02:38:21.372Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=8cd386f5-c366-4ab8-b6ac-37066f270412 clubId=- accountId=- : Init duration for springdoc-openapi is: 4718 ms
+Updated docs/openapi/openapi.json
+exit=0

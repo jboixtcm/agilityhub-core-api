@@ -123,16 +123,16 @@ public class TokenService {
             Instant now = clock.instant();
             var old = refreshTokens.find(digest(value), clientId).orElseThrow(() -> new ApiException(ErrorCode.REFRESH_EXPIRED));
             accounts.touchSessions(old.accountId());
-            if (old.replacedByHash() != null) {
-                refreshTokens.revokeFamily(old.familyId(), now);
-                return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
-            }
+            if (old.replacedByHash() != null) { return reuse(old, clientId, requestedScopes, now); }
             var session = identities.current(old.accountId());
             if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (session.account().familyVersion() != old.tokenFamilyVersion()) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
             String next = opaque();
             if (!refreshTokens.rotate(old.id(), digest(next), now)) {
+                // A rival refresh of the same token rotated it first (outside a transaction conflict): its grace applies.
+                var rotated = refreshTokens.find(digest(value), clientId).filter(token -> token.replacedByHash() != null);
+                if (rotated.isPresent()) { return reuse(rotated.get(), clientId, requestedScopes, now); }
                 refreshTokens.revokeFamily(old.familyId(), now);
                 return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
             }
@@ -143,6 +143,30 @@ public class TokenService {
             throw new ApiException(outcome.error());
         }
         return outcome.tokens();
+    }
+    /**
+     * S01 R-01-06 and INC-36: a token already rotated. Inside `auth.refreshReuseGraceSeconds` of its rotation (a refresh whose
+     * answer never reached the client: an aborted request, a closed tab, two tabs at once) it is accepted once more: the family's
+     * live token is rotated to a new child, which goes to this caller, and nothing is revoked. Otherwise (the grace is over or was
+     * already used, or the family has no live token) it is a reuse: the whole family is revoked (`REFRESH_TOKEN_REUSED`).
+     */
+    private Outcome reuse(RefreshToken old, String clientId, java.util.Set<String> requestedScopes, Instant now) {
+        int grace = settings.integer("auth.refreshReuseGraceSeconds");
+        if (old.revokedAt() == null && old.lastUsedAt() != null && now.isBefore(old.lastUsedAt().plusSeconds(grace))
+                && refreshTokens.useGrace(old.id(), now)) {
+            var session = identities.current(old.accountId());
+            if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
+            if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
+            var live = refreshTokens.activeFamily(old.accountId(), old.familyId(), now);
+            String next = opaque();
+            if (live.isPresent() && refreshTokens.rotate(live.get().id(), digest(next), now)) {
+                var current = live.get();
+                return new Outcome(issue(session, clientId, old.familyId(), next, current.activeProfile(), current.deviceLabel(), old.createdAt(), now,
+                        requestedScopes == null ? current.scopes() : requestedScopes, old.oidc(), old.nonce(), old.authTime(), null), null, old.accountId());
+            }
+        }
+        refreshTokens.revokeFamily(old.familyId(), now);
+        return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
     }
     public Jwt profile(String accountId, String clientId, String familyId, Role profile, boolean remember) {
         return transactions.run(() -> {

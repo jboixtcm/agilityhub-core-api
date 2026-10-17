@@ -12,11 +12,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Each write of the follow-up routes (tasks, attachment registrations and removals, read marks, observations) runs in one Mongo transaction retried
- * whole on a write conflict: two simultaneous completions give
- * one 200 and one TASK_ALREADY_DONE (T-10-25), two edits of one version one 200 and one STALE_VERSION. The text edit is not
- * keyed (its `version` is its idempotency, S10 §6). The keyed writes ({@link #keyed}) are left to this transaction by the
- * idempotency filter (`IdempotencyFilter.FOLLOWUP`, E6-T03 rounds 4 and 5, INC-47), with their idempotency row inside it.
+ * Each write of the follow-up routes (tasks, attachment registrations and removals, read marks, observations) runs in one
+ * Mongo transaction retried whole on a write conflict: two simultaneous completions give one 200 and one TASK_ALREADY_DONE
+ * (T-10-25), two edits of one version one 200 and one STALE_VERSION. The text edit is not keyed (its `version` is its
+ * idempotency, S10 §6). The keyed writes ({@link #keyed}) are left to this transaction by the idempotency filter
+ * (`IdempotencyFilter.FOLLOWUP`, E6-T03 rounds 4 and 5, INC-47), with their idempotency row inside it; the status they store
+ * is the handler's own `@ResponseStatus` (`HandlerStatus`, INC-48).
  */
 @Component
 public class FollowupTransactions {
@@ -55,6 +56,6 @@ public class FollowupTransactions {
             return result;
         });
     }
-    /** A keyed write answered `204` (no body). */
-    public void keyedNoContent(Runnable work) { keyed(204, () -> { work.run(); return null; }, none -> new byte[0]); }
+    /** A keyed write answered without a body (a `204`). */
+    public void keyedWithoutBody(int status, Runnable work) { keyed(status, () -> { work.run(); return null; }, none -> new byte[0]); }
 }

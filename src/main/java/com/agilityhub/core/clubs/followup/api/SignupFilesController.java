@@ -23,7 +23,8 @@ public class SignupFilesController {
     }
     /** The signed download URL of a signup file (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @GetMapping("/api/v1/signup/files")
-    public ResponseEntity<InputStreamResource> download(@RequestParam String fileKey,@RequestParam long expires,@RequestParam String signature) throws IOException {
-        return AttachmentsController.download(attachments.openLocal(fileKey,expires,signature));
+    public ResponseEntity<InputStreamResource> download(@RequestParam String fileKey,@RequestParam long expires,@RequestParam String signature,
+            @RequestHeader HttpHeaders request) throws IOException {
+        return AttachmentsController.download(attachments.openLocal(fileKey,expires,signature),request);
     }
 }

@@ -195,7 +195,7 @@ public class ExportsController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
             columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = false, exportable = false,
-            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
+            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export notifications",
             description = "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T03): the same filter/sort, fields and selected columns, the same rows of the club; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked.",

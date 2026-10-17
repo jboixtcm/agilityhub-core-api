@@ -118,7 +118,7 @@ public final class BillingContracts {
     public record RemittancePage(List<RemittanceListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     @Schema(description = "A short-lived signed URL of the pain.008 XML; its download answers Content-Disposition attachment with fileName")
-    public record RemittanceFile(@Schema(format = "uri") String downloadUrl, String fileName, Instant expiresAt) { }
+    public record RemittanceFile(@Schema(format = "uri-reference") String downloadUrl, String fileName, Instant expiresAt) { }
 
     // ---- Runs and simulations (S12 §3 `BillingRun`, `BillingSimulation`, §6 JSON)
     @Schema(description = "A provider's share of a month: remittanceId only for SEPA_XML, charged/failed only for STRIPE")

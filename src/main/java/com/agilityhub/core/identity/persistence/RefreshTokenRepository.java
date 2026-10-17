@@ -33,6 +33,14 @@ public class RefreshTokenRepository extends TenantRepository<RefreshToken> {
                         .and("replacedByHash").is(null).and("revokedAt").is(null).and("expiresAt").gt(now)),
                 new Update().set("replacedByHash", nextHash).set("lastUsedAt", now).set("status", RefreshToken.Status.ROTATED), RefreshToken.class).getModifiedCount() == 1;
     }
+    /**
+     * INC-36 (S01 R-01-06): takes the one extra use a rotated token gets inside `auth.refreshReuseGraceSeconds`. `graceUsedAt` is
+     * set once, so a third presentation of the token is a reuse again.
+     */
+    public boolean useGrace(String id, Instant now) {
+        return mongo.updateFirst(contextQuery().addCriteria(Criteria.where("_id").is(id).and("replacedByHash").ne(null)
+                .and("revokedAt").is(null).and("graceUsedAt").is(null)), new Update().set("graceUsedAt", now), RefreshToken.class).getModifiedCount() == 1;
+    }
     public void revokeFamily(String familyId, Instant now) {
         mongo.updateMulti(contextQuery().addCriteria(Criteria.where("familyId").is(familyId)), revoked(now), RefreshToken.class);
     }

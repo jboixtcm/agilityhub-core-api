@@ -9,6 +9,8 @@ import org.springframework.test.util.AopTestUtils;
  * write at a named point of one (`join` between its read and its write, `finish` after its checks).
  */
 public final class BuildSessionDraws {
+    /** INC-63 (E11-T02): the service's own point names. */
+    public static final String JOIN = BuildSessionService.JOIN_POINT, FINISH = BuildSessionService.FINISH_POINT;
     private BuildSessionDraws() { }
     public static void set(BuildSessionService service, IntUnaryOperator draws) {
         AopTestUtils.<BuildSessionService>getUltimateTargetObject(service).draws(draws);

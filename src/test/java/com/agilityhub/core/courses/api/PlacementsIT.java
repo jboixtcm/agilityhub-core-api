@@ -267,6 +267,36 @@ class PlacementsIT extends CourseItSupport {
     }
 
     /**
+     * INC-62 points 3 and 4 (E11-T02; R-16-10, decision E121): a second sheet replaces the first, whose file is released (its
+     * upload grant goes, and the stored bytes once the request commits). A `PUT` that keeps the placement where it is keeps
+     * its sheet; one that moves it (another transform) clears `buildSheetFileKey` and releases the sheet, which no longer fits.
+     */
+    @Test void T_16_19_INC_62_aReplacedOrMovedPlacementsBuildSheetIsReleased() throws Exception {
+        String course = createCourse("Jumping 10");
+        drawRing(A1);
+        String id = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        String path = "/api/v1/placements/" + id + "/build-sheet";
+        byte[] pdf = "%PDF-1.4\n% fictional build sheet\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String first = upload(CLUB, "BUILD_SHEET", "application/pdf", pdf, 204, Duration.ZERO), second = upload(CLUB, "BUILD_SHEET", "application/pdf", pdf, 204, Duration.ZERO);
+        ok(as(json(post(path), Map.of("fileKey", first)), CLUB, "INSTRUCTOR"), 200);
+        ok(as(json(post(path), Map.of("fileKey", second)), CLUB, "INSTRUCTOR"), 200);
+        assertThat(placementDocument(id).getString("buildSheetFileKey")).isEqualTo(second);
+        assertThat(grant(first)).as("the replaced sheet's upload is released").isNull();
+        assertThat(grant(second)).isNotNull();
+        assertThat(perform(as(get(path), CLUB, "INSTRUCTOR"), 200).getResponse().getContentAsByteArray()).isEqualTo(pdf);
+        // The same transform: the sheet stays.
+        assertThat(replace("INSTRUCTOR", id, placementBody(course, A1).put("version", 0), 200).path("buildSheetFileKey").asText()).isEqualTo(second);
+        // Moved: the sheet no longer fits it.
+        var moved = placementBody(course, A1).put("version", 1); ((ObjectNode) moved.path("transform")).put("offsetXM", 3);
+        assertThat(replace("INSTRUCTOR", id, moved, 200).path("buildSheetFileKey").isNull()).isTrue();
+        assertThat(placementDocument(id).get("buildSheetFileKey")).isNull();
+        assertThat(grant(second)).as("the moved placement's sheet is released").isNull();
+        error(as(get(path), CLUB, "INSTRUCTOR"), 404, "NOT_FOUND");
+    }
+    /** The upload grant of a scoped course key (`{clubId}/courses/{id}`), or null once it is released. */
+    Document grant(String key) { return mongo.findOne(Query.query(Criteria.where("_id").is(key.substring(key.lastIndexOf('/') + 1))), Document.class, "attachment_uploads"); }
+
+    /**
      * R-16-06 across rings: a placement keeps its ring. Moving it to another drawn ring is `422 PLACEMENT_RING_MISMATCH`
      * (classes and setups of the ring plan it); the list filters by ring, course and activity (R-16-13: the activity's
      * placements, which S07's `ActivityRepository.placementIds` reads too), and `classSessionIds` are S06's classes that plan it.

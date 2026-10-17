@@ -103,6 +103,15 @@ public class ClubDefinitionWriter {
                 null, null, DomainEvent.Origin.SYSTEM));
         return plan.result();
     }
+    /** INC-13: `REQUIRED` without a non-blank default-locale text, `INVALID_VALUE` for a blank text or a locale the club lacks. */
+    private static String instructionsError(Club club) {
+        if (club.paymentProviders() == null || !(club.paymentProviders().get("MANUAL") instanceof Map<?, ?> manual)
+                || !(manual.get("instructions") instanceof Map<?, ?> texts) || texts.isEmpty()) { return null; }
+        if (!(texts.get(club.defaultLocale()) instanceof String text) || text.isBlank()) { return "REQUIRED"; }
+        boolean invalid = texts.entrySet().stream().anyMatch(entry -> !club.locales().contains(String.valueOf(entry.getKey()))
+                || !(entry.getValue() instanceof String value) || value.isBlank());
+        return invalid ? "INVALID_VALUE" : null;
+    }
     /** The club's tax id in its profile's stored form (E5-T17: under `ES` a 7-digit DNI is padded, as its check reads it). */
     private Club canonicalTaxId(Club club) {
         String canonical = countries.get(club.countryProfile()).canonicalTaxId(club.taxId());
@@ -132,11 +141,12 @@ public class ClubDefinitionWriter {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId",
                     "fieldErrors", List.of(Map.of("field", "club.taxId", "code", "INVALID_VALUE"))));
         }
-        // S17 R-17-05 (E5-T23): the cash instructions a definition sets have the club's default locale, as the console's do.
-        var instructions = definition.path("paymentProviders").path("MANUAL").path("instructions");
-        if (instructions.isObject() && !instructions.has(next.defaultLocale())) {
+        // S17 R-17-05 (E5-T23; INC-13): the cash instructions the club ends with — those the definition sets, or the stored ones
+        // it keeps — have a non-blank text in the club's default locale and only the club's locales, as the console's do.
+        String instructionsError = instructionsError(next);
+        if (instructionsError != null) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "paymentProviders.MANUAL.instructions",
-                    "fieldErrors", List.of(Map.of("field", "paymentProviders.MANUAL.instructions", "code", "REQUIRED"))));
+                    "fieldErrors", List.of(Map.of("field", "paymentProviders.MANUAL.instructions", "code", instructionsError))));
         }
         for (var domain : next.domains()) {
             clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {

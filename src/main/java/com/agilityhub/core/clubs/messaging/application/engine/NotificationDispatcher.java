@@ -32,6 +32,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -218,13 +219,15 @@ public class NotificationDispatcher {
     }
     /**
      * R-11-08 at every attempt: the address is suppressed when either mark says so ({@link EmailSuppression#suppressed}) — the
-     * recipient's member contact (by member, else by account; without one, the club's members that have the address, those
-     * the webhook marks) and the recipient account's `emailStatus` on its login address.
+     * recipient's member contact (by member, else by account) and every member of the club that has the address (INC-52,
+     * decision E81: a shared address the webhook marked on another member's contact), and the recipient account's
+     * `emailStatus` on its login address.
      */
     private boolean suppressed(Notification notification, String address) {
         var recipient = notification.recipient();
         var contact = contact(recipient);
-        var holders = contact != null ? List.of(contact) : members.findAll(members.membersWithEmail(address));
+        var holders = new ArrayList<MemberContact>(members.findAll(members.membersWithEmail(address)));
+        if (contact != null && holders.stream().noneMatch(holder -> holder.memberId().equals(contact.memberId()))) { holders.addFirst(contact); }
         String accountId = contact != null && contact.accountId() != null ? contact.accountId() : recipient == null ? null : recipient.accountId();
         var account = accountId == null ? null : accounts.find(accountId).orElse(null);
         return EmailSuppression.suppressed(address, holders, account);
@@ -346,7 +349,8 @@ public class NotificationDispatcher {
     private void record(Settling s) {
         for (int attempt = 1; ; attempt++) {
             try {
-                if (!notifications.markAccepted(s.notification().id(), s.token(), s.outcome().result().providerRef(), s.outcome().acceptedAt(), LEASE)) {
+                if (!notifications.markAccepted(s.notification().clubId(), s.notification().id(), s.token(), s.outcome().result().providerRef(),
+                        s.outcome().acceptedAt(), s.outcome().acceptedAt().plus(LEASE))) {
                     LOG.warn("Notification acceptance found its lease lost notificationId={} channel={}", s.notification().id(), s.delivery().channel());
                 }
                 return;
@@ -375,12 +379,25 @@ public class NotificationDispatcher {
             }
         }
     }
-    /** The settlements with a provider's answer a previous try could not write, once each; those that fail again keep waiting. */
+    /**
+     * The settlements with a provider's answer a previous try could not write, once each; those that fail again keep waiting.
+     * INC-52 (E11-T02): an accepted send writes its acceptance mark first, with the lease renewed from now, so that no claim
+     * sends it again while its settlement keeps failing (also when every write of the mark failed at the send); a lease
+     * already taken leaves the delivery to its new claimant, which settles the stored acceptance.
+     */
     private void settleWaiting() {
         for (int waiting = unsettled.size(); waiting > 0; waiting--) {
             var settling = unsettled.poll();
             if (settling == null) { return; }
-            try (var tenant = TenantContext.open(settling.notification().clubId())) { write(settling); }
+            try (var tenant = TenantContext.open(settling.notification().clubId())) {
+                if (settling.outcome().accepted() && !notifications.markAccepted(settling.notification().clubId(), settling.notification().id(), settling.token(),
+                        settling.outcome().result().providerRef(), settling.outcome().acceptedAt(), clock.instant().plus(LEASE))) {
+                    LOG.warn("Waiting notification settlement found its lease lost notificationId={} channel={}", settling.notification().id(),
+                            settling.delivery().channel());
+                    continue;
+                }
+                write(settling);
+            }
             catch (RuntimeException failure) { unsettled.add(settling); }
         }
     }

@@ -132,7 +132,7 @@ public class RingSetupService {
             var expiresAt = RingSetupRules.expiresAt(instant, current.expectedUntil(), autoExpireDays(), now.getZone());
             var rebuilt = new RingSetup(current.id(), current.clubId(), current.ringId(), current.kind(), current.placementId(), current.courseId(),
                     current.imageFileKey(), current.agilityhubLevel(), current.levelIds(), instant, actor, current.expectedUntil(), expiresAt, current.status(), null, null,
-                    current.notes(), current.createdAt(), current.createdByAccountId(), instant, actor);
+                    null, null, current.notes(), current.createdAt(), current.createdByAccountId(), instant, actor);
             if (!setups.replaceActive(rebuilt)) { throw new ApiException(STALE_VERSION); }
             return current.id();
         }
@@ -153,7 +153,7 @@ public class RingSetupService {
         var instant = now.toInstant();
         var expiresAt = RingSetupRules.expiresAt(instant, in.expectedUntil(), autoExpireDays(), now.getZone());
         var setup = new RingSetup(id, clubId, ring.id(), in.kind(), in.placementId(), in.courseId(), in.imageFileKey(), in.agilityhubLevel(), levelIds,
-                instant, actor, in.expectedUntil(), expiresAt, SetupStatus.ACTIVE, null, null, in.notes(), instant, actor, instant, actor);
+                instant, actor, in.expectedUntil(), expiresAt, SetupStatus.ACTIVE, null, null, null, null, in.notes(), instant, actor, instant, actor);
         String replaced = null;
         // R-16-07: the ring's pointer is written first, so two registrations of one ring meet on the ring document (a write
         // conflict) before either touches a setup; the partial unique index `active_setup` is the last guard.
@@ -166,7 +166,7 @@ public class RingSetupService {
         var previous = setups.activeOn(ring.id()).orElse(null);
         if (previous != null) {
             // The active setup is replaced (`DISMANTLED`) in the same transaction; one ended meanwhile is a conflict too.
-            if (!setups.replaceActive(ended(previous, SetupStatus.DISMANTLED, instant, actor))) { throw new ApiException(STALE_VERSION); }
+            if (!setups.replaceActive(ended(previous, SetupStatus.DISMANTLED, DismantledReason.REPLACED, id, instant, actor))) { throw new ApiException(STALE_VERSION); }
             replaced = previous.id();
         }
         setups.insert(setup);
@@ -255,7 +255,7 @@ public class RingSetupService {
         var now = clocks.now(TenantContext.require()).toInstant(); String actor = CourseAccess.accountId();
         // E117: a race with another write of the setup or of its ring's pointer (P5 f, a replacement, a deactivation) is `409
         // STALE_VERSION`, never a 500. The jobs and consumers that call `end` keep the raw conflict for their own retries.
-        var ended = WriteConflicts.guard(() -> end(setup, SetupStatus.DISMANTLED, now, actor, DomainEvent.Origin.BACKOFFICE));
+        var ended = WriteConflicts.guard(() -> end(setup, SetupStatus.DISMANTLED, DismantledReason.MANUAL, now, actor, DomainEvent.Origin.BACKOFFICE));
         return view(ended.orElseThrow(() -> new ApiException(INVALID_STATE)));
     }
     /** R-16-08: an `ACTIVE` setup gets a new `expiresAt`, counted from today (no event: it stays `ACTIVE`). */
@@ -267,7 +267,7 @@ public class RingSetupService {
         if (!RingSetupRules.expectedUntilValid(expectedUntil, now.toLocalDate())) { throw PlacementService.invalid("expectedUntil", "VALIDATION_ERROR"); }
         var expiresAt = RingSetupRules.expiresAt(now.toInstant(), expectedUntil, autoExpireDays(), now.getZone());
         var renewed = new RingSetup(setup.id(), setup.clubId(), setup.ringId(), setup.kind(), setup.placementId(), setup.courseId(), setup.imageFileKey(),
-                setup.agilityhubLevel(), setup.levelIds(), setup.builtAt(), setup.builtByAccountId(), expectedUntil, expiresAt, setup.status(), null, null,
+                setup.agilityhubLevel(), setup.levelIds(), setup.builtAt(), setup.builtByAccountId(), expectedUntil, expiresAt, setup.status(), null, null, null, null,
                 setup.notes(), setup.createdAt(), setup.createdByAccountId(), now.toInstant(), CourseAccess.accountId());
         if (!WriteConflicts.guard(() -> setups.replaceActive(renewed))) { throw new ApiException(INVALID_STATE); }
         return view(renewed);
@@ -277,25 +277,27 @@ public class RingSetupService {
     /** S15 R-15-15 step f, one item: still `ACTIVE` and lapsed at {@code now} → `EXPIRED` (false when no longer in scope). */
     public boolean expire(String id, Instant now) {
         var setup = setups.findById(id).filter(s -> s.status() == SetupStatus.ACTIVE && !s.expiresAt().isAfter(now)).orElse(null);
-        return setup != null && end(setup, SetupStatus.EXPIRED, now, null, DomainEvent.Origin.SYSTEM).isPresent();
+        return setup != null && end(setup, SetupStatus.EXPIRED, null, now, null, DomainEvent.Origin.SYSTEM).isPresent();
     }
     /** S16 §7: `RingChanged{deactivated}` → the ring's active setup is dismantled by the system. */
     public boolean ringDeactivated(String ringId) {
         var setup = setups.activeOn(ringId).orElse(null);
-        return setup != null && end(setup, SetupStatus.DISMANTLED, clocks.now(TenantContext.require()).toInstant(), null, DomainEvent.Origin.SYSTEM).isPresent();
+        return setup != null && end(setup, SetupStatus.DISMANTLED, DismantledReason.RING_INACTIVE, clocks.now(TenantContext.require()).toInstant(), null,
+                DomainEvent.Origin.SYSTEM).isPresent();
     }
-    private Optional<RingSetup> end(RingSetup setup, SetupStatus status, Instant now, String actor, DomainEvent.Origin origin) {
-        var ended = ended(setup, status, now, actor);
+    private Optional<RingSetup> end(RingSetup setup, SetupStatus status, DismantledReason reason, Instant now, String actor, DomainEvent.Origin origin) {
+        var ended = ended(setup, status, reason, null, now, actor);
         if (!setups.replaceActive(ended)) { return Optional.empty(); }
         rings.releaseActiveSetup(setup.ringId(), setup.id());
         publish(setup, status, null, actor, origin, now);
         return Optional.of(ended);
     }
-    private static RingSetup ended(RingSetup s, SetupStatus status, Instant now, String actor) {
+    /** INC-62 (E11-T02): a dismantled setup keeps why (`reason`) and, when replaced, by which setup; an expired one neither. */
+    private static RingSetup ended(RingSetup s, SetupStatus status, DismantledReason reason, String replacedBy, Instant now, String actor) {
         boolean dismantled = status == SetupStatus.DISMANTLED;
         return new RingSetup(s.id(), s.clubId(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), s.agilityhubLevel(), s.levelIds(),
-                s.builtAt(), s.builtByAccountId(), s.expectedUntil(), s.expiresAt(), status, dismantled ? now : null, dismantled ? actor : null, s.notes(),
-                s.createdAt(), s.createdByAccountId(), now, actor);
+                s.builtAt(), s.builtByAccountId(), s.expectedUntil(), s.expiresAt(), status, dismantled ? now : null, dismantled ? actor : null,
+                dismantled ? reason : null, dismantled ? replacedBy : null, s.notes(), s.createdAt(), s.createdByAccountId(), now, actor);
     }
 
     // ---- other contexts' reads ----
@@ -308,9 +310,19 @@ public class RingSetupService {
     }
     /** S06's `placementId` (R-16-13, T-16-20): the ring of a placement of the club, or empty when the club has no such placement. */
     public Optional<String> placementRing(String placementId) { return placements.findById(placementId).map(Placement::ringId); }
-    /** S06's «Recorregut previst» for members (R-16-13, E117 point 3): the name of the live course of the club's placement, in {@code locale}. */
+    /**
+     * S06's «Recorregut previst» for members (R-16-13, E117 point 3): the name of the live course of the club's placement, in
+     * {@code locale}. INC-62 (E11-T02, R-16-16): only of a course a member may read (`CLUB` or `PUBLIC`), or of the course the
+     * ring's active setup shows; a `PRIVATE` one is not named.
+     */
     public Optional<String> plannedCourseName(String placementId, Locale locale) {
-        return placements.findById(placementId).map(placement -> live(placement.courseId())).map(course -> course.name().resolve(locale).value());
+        return placements.findById(placementId).flatMap(placement -> {
+            var course = live(placement.courseId());
+            if (course == null) { return Optional.empty(); }
+            boolean readable = course.visibility() == Visibility.CLUB || course.visibility() == Visibility.PUBLIC
+                    || setups.activeOn(placement.ringId()).map(this::shownCourse).filter(shown -> shown.id().equals(course.id())).isPresent();
+            return readable ? Optional.of(course.name().resolve(locale).value()) : Optional.empty();
+        });
     }
 
     // ---- helpers ----

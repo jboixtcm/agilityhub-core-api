@@ -87,8 +87,43 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         var records = mongo.findAll(RefreshToken.class);
         assertThat(records).hasSize(2);
         assertThat(records).allMatch(record -> record.expiresAt().equals(originalExpiry.plus(Duration.ofMinutes(2))));
+        // INC-36: past auth.refreshReuseGraceSeconds (30) a reuse is a theft, as before.
+        clock.advance(Duration.ofSeconds(31));
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
+        refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+    }
+    /**
+     * INC-36 (S01 R-01-06, `auth.refreshReuseGraceSeconds` = 30): a client whose refresh answer was lost (an aborted request, a
+     * closed tab) sends the rotated token again. Inside the grace it is accepted once more: it rotates the family's live token to a
+     * new child and nothing is revoked. A second reuse, or one after the grace, still revokes the family.
+     */
+    @Test void INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily() throws Exception {
+        var first = login();
+        clock.advance(Duration.ofMinutes(1));
+        var lost = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofSeconds(29));
+        var again = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(refreshValue(again)).isNotIn(refreshValue(first), refreshValue(lost));
+        assertThat(SignedJWT.parse(again.get("access_token").asText()).getJWTClaimsSet().getStringClaim("sid"))
+                .isEqualTo(SignedJWT.parse(lost.get("access_token").asText()).getJWTClaimsSet().getStringClaim("sid"));
+        var family = mongo.findAll(RefreshToken.class);
+        assertThat(family).hasSize(3).noneMatch(token -> token.revokedAt() != null);
+        assertThat(family).filteredOn(token -> token.status() == RefreshToken.Status.ACTIVE).singleElement()
+                .satisfies(token -> assertThat(token.tokenHash()).isEqualTo(TokenService.digest(refreshValue(again))));
+        assertThat(mongo.findAll(com.agilityhub.core.platform.persistence.SecurityEvent.class)).noneMatch(event -> event.type().name().equals("REFRESH_TOKEN_REUSED"));
+        // The new child works; the grace is spent: the first token a third time is a reuse, and the whole family goes.
+        var next = readTokens(refresh(refreshValue(again), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
+        refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+    }
+    @Test void INC_36_R_01_06_aReuseAfterTheGraceRevokesTheFamily() throws Exception {
+        var first = login();
+        var next = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofSeconds(30));
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        assertThat(mongo.findAll(RefreshToken.class)).hasSize(2).allMatch(token -> token.revokedAt() != null);
         refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
     }
     @Test void T_01_07_refreshRejectsOtherTenantClientUnknownExpiredAndRevokedVersion() throws Exception {

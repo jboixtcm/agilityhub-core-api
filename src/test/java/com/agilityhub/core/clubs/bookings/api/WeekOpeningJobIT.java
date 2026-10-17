@@ -69,6 +69,8 @@ class WeekOpeningJobIT extends BookingFixtures {
         assertThat(run.items()).singleElement().satisfies(item -> {
             assertThat(item.entityId()).isEqualTo("2026-10-11"); assertThat(item.action()).isEqualTo("OPEN");
             assertThat(item.detail()).contains(new JobRun.Entry("activeClasses", 2), new JobRun.Entry("recipients", 23));
+            // INC-53 point 7 (E11-T02, R-15-11): the item names the opened week as `WeekOpened` does, so the web links it without computing it.
+            assertThat(item.detail()).contains(new JobRun.Entry("isoWeekStart", "2026-10-12"));
         });
         assertThat(run.counters()).contains(new JobRun.Entry("opened", 1L), new JobRun.Entry("notified", 23L));
         assertThat(eventsOf("WeekOpened")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))

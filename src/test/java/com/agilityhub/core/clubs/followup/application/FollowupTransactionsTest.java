@@ -53,7 +53,7 @@ class FollowupTransactionsTest {
                 if (attempts.get() < 2) { throw new DuplicateKeyException("fictional conflict"); }
                 return "done";
             }, String::getBytes)).isEqualTo("done");
-            transactions.keyedNoContent(() -> calls.add("read"));
+            transactions.keyedWithoutBody(204, () -> calls.add("read"));
         }
         assertThat(calls).containsExactly("lock", "work 1", "lock", "work 2", "200 [done]", "lock", "read", "204 []");
         calls.clear();

@@ -16,7 +16,7 @@ public final class CourseListContract {
                     "source", new Field("source", Type.TEXT), "tag", new Field("tags", Type.TEXT), "designerName", new Field("designerName", Type.TEXT),
                     "obstacleCount", new Field("stats.obstacleCount", Type.NUMBER), "updatedAt", new Field("updatedAt", Type.INSTANT)),
             Map.of("name", "name", "updatedAt", "updatedAt"), List.of("name", "designerName"),
-            List.of("name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings"),
+            List.of("name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt"),
             List.of("name", "discipline", "level", "designerName", "source"), List.of("updatedAt,desc"),
-            Set.of("id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings"));
+            Set.of("id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt"));
 }

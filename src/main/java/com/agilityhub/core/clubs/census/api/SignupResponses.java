@@ -90,7 +90,7 @@ public final class SignupResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Town(String name, String region) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record UploadUrl(@Schema(format = "uri") String uploadUrl, String fileKey, Instant expiresAt,
+    public record UploadUrl(@Schema(format = "uri-reference", description = "A path of the api on the local store (INC-53), an absolute URL on S3") String uploadUrl, String fileKey, Instant expiresAt,
             @Schema(description = "Headers the storage signed (Content-Type, If-None-Match: *); the PUT must send them unchanged, or S3 answers 403 (R-04-08)") java.util.Map<String, String> headers) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record FamilyGroupLookupResult(FamilyGroupLookupOutcome result, @Schema(requiredMode = NOT_REQUIRED) String holderDisplayName) { }
@@ -111,7 +111,7 @@ public final class SignupResponses {
     public record AddDogSignupResult(@Schema(format = "uuid") String dogId,
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") SignupUpfront upfront, AddDogCheckout checkout) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record SignupDocumentFile(String name, @Schema(format = "uri") String downloadUrl,
+    public record SignupDocumentFile(String name, @Schema(format = "uri-reference") String downloadUrl,
             @Schema(description = "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file "
                     + "with its stored name (the name sent with it is not applied); the type's files it does not send are removed") String fileKey) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)

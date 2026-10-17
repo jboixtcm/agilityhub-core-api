@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
  * caller's catalog transaction.
  */
 public interface RingTrainingBookings {
-    /** The same shape as the `RING_HAS_BOOKINGS{bookings[]}` details of S06/S09. */
-    record Booking(String id, String ringId, Instant from, Instant to, String memberName, String dogName) { }
+    /** INC-09: the one shape of `RING_HAS_BOOKINGS{bookings[]}` (S05/S06/S09), published as `RingBooking`. */
+    record Booking(String bookingId, String ringId, Instant from, Instant to, String memberName, String dogName) { }
     /** ACTIVE bookings of the ring that start after now. */
     List<Booking> futureActive(String ringId);
     /**

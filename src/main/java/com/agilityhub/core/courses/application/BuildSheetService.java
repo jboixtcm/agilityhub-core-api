@@ -14,6 +14,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  * {fileKey}` binds that upload to the placement — the club's own PDF of that purpose, else `404` (R-16-16) — and replaces the previous
  * sheet; `GET` answers the stored PDF, `404` without one. A sheet is not an edit of the placement: its `version` stays, so the
  * client's next `PUT` is not stale (the `PUT` keeps the sheet). A race with another write of the placement is `409 STALE_VERSION`.
+ * INC-62 (E11-T02): the replaced sheet's file is released; a `PUT` that moves the placement clears and releases its sheet.
  */
 @Service
 public class BuildSheetService {
@@ -30,6 +31,8 @@ public class BuildSheetService {
         var placement = placements.findById(placementId).orElseThrow(() -> new ApiException(NOT_FOUND));
         files.claim(fileKey, UploadPurpose.BUILD_SHEET, PlacementService.ENTITY, placement.id());
         WriteConflicts.guard(() -> placements.attachSheet(placement.id(), fileKey, clock.instant(), CourseAccess.accountId()));
+        // INC-62 (E11-T02): the sheet it replaces is released, never left bound to the placement.
+        if (placement.buildSheetFileKey() != null && !placement.buildSheetFileKey().equals(fileKey)) { files.release(placement.buildSheetFileKey()); }
         return views.get(placement.id());
     }
 

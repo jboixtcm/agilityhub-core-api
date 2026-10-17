@@ -60,6 +60,8 @@ class CookieRefreshIT extends IdentityIntegrationSupport {
         assertThat(next).isNotEqualTo(first);
         assertThat(response.getHeader("Set-Cookie")).contains("Max-Age=2592000");
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.expiresAt().equals(clock.instant().plus(Duration.ofDays(30))));
+        // INC-36 (S01 R-01-06): past auth.refreshReuseGraceSeconds (30), reusing the rotated cookie revokes the family.
+        clock.advance(Duration.ofSeconds(31));
         for (String value : List.of(first, next)) {
             mvc.perform(cookieGrant(value).header("Origin", "https://" + HOST)).andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value(value.equals(first) ? "REFRESH_REUSED" : "REFRESH_EXPIRED"))

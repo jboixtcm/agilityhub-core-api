@@ -317,7 +317,8 @@ class E7ContractIT extends AbstractIntegrationTest {
         var log = api.at("/paths/~1api~1v1~1notifications/get");
         assertThat(strings(log.path("x-filterable"))).containsExactly("code", "category", "channel", "status", "memberId", "createdAt");
         assertThat(strings(log.path("x-sortable"))).containsExactly("createdAt");
-        assertThat(strings(log.path("x-fields"))).containsExactly("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt");
+        // INC-53 point 16 (E11-T02): an announcement's rows carry their batchId.
+        assertThat(strings(log.path("x-fields"))).containsExactly("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId");
         assertThat(log.path("x-columns").findValuesAsText("key")).containsExactly("createdAt", "code", "recipient", "channels", "readAt");
         assertThat(log.path("x-exportable").asBoolean()).isTrue();
         var export = api.at("/paths/~1api~1v1~1notifications~1export/get");

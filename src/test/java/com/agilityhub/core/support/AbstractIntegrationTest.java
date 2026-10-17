@@ -27,6 +27,8 @@ public abstract class AbstractIntegrationTest {
     protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
     // E8-T01 round 2: ProviderSecretVault's key, so the ITs store a fixture Stripe webhook secret encrypted as production does.
     protected static final String BILLING_SECRETS = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+    // INC-31 (A37, E11-T02): BILLING_BANK_KEY, as production Compose requires it, so the ITs store the members' IBANs sealed.
+    public static final String BILLING_BANK_KEY = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
     // E11-T06: one local export root per test JVM. PIT's parallel minions share the working directory, and the remittance
     // tests that check "the failed run wrote no file" must see only their own JVM's files.
     public static final java.nio.file.Path EXPORTS = java.nio.file.Path.of("target/test-exports", String.valueOf(ProcessHandle.current().pid()));
@@ -61,6 +63,7 @@ public abstract class AbstractIntegrationTest {
     static void mongoProperties(DynamicPropertyRegistry registry) {
         registry.add("core.oidc.master-key", () -> OIDC_MASTER);
         registry.add("core.billing.secrets-key", () -> BILLING_SECRETS);
+        registry.add("core.billing.bank-key", () -> BILLING_BANK_KEY);
         registry.add("exports.local-directory", EXPORTS::toString);
         registry.add("spring.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
     }

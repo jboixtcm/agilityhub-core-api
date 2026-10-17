@@ -78,12 +78,17 @@ public class ActivityNotificationFacts implements NotificationFactsPort {
         return Optional.of(builder.build());
     }
 
+    private static Object clock(String time) {
+        try { return time == null ? null : java.time.LocalTime.parse(time); }
+        catch (java.time.format.DateTimeParseException unreadable) { return time; }
+    }
     private NotificationValues.Changes changes(Activity activity, Map<String, Object> diff) {
         var items = new ArrayList<NotificationValues.Change>();
         for (String field : CHANGED) {
             if (!diff.containsKey(field)) { continue; }
             Object value = switch (field) {
-                case "date" -> activity.date(); case "startTime" -> activity.startTime(); case "endTime" -> activity.endTime();
+                // INC-54 (E11-T02, R-11-05): the times go as times, written «9:30» like every other time variable.
+                case "date" -> activity.date(); case "startTime" -> clock(activity.startTime()); case "endTime" -> clock(activity.endTime());
                 default -> new NotificationValues.Localized(locale -> { try (var scope = LocaleContext.open(locale)) { return projection.place(activity); } });
             };
             items.add(new NotificationValues.Change("activities.change." + field, Map.of("value", value == null ? "" : value)));

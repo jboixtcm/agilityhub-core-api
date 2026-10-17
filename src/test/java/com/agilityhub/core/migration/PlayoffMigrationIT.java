@@ -17,17 +17,15 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.*;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import static org.assertj.core.api.Assertions.*;
 
 class PlayoffMigrationIT extends AbstractIntegrationTest {
     Path fixture;
     static final MappingConfig MAPPING=MappingConfig.load(null);
     static final String CLUB="playoff-test",OTHER="playoff-other";
-    static final String BANK_KEY=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
-    // Ruling E85: only BILLING_BANK_KEY is set; the migration and S12's vault share it (no MIGRATION_BANK_KEY any more).
-    @DynamicPropertySource static void bank(DynamicPropertyRegistry registry) { registry.add("core.billing.bank-key",() -> BANK_KEY); }
+    // Ruling E85: only BILLING_BANK_KEY is set; the migration and S12's vault share it (no MIGRATION_BANK_KEY any more). Since
+    // INC-31 every IT runs with it (AbstractIntegrationTest).
+    static final String BANK_KEY=BILLING_BANK_KEY;
     @Autowired PlayoffImportService importer; @Autowired PlayoffPlanner planner; @Autowired MongoTemplate mongo;
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired com.agilityhub.core.identity.application.AccountService accounts;
@@ -459,6 +457,22 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var before=snapshot(); var report=importer.importDirectory(directory,MAPPING,CLUB,false,false,false);
         assertThat(report.hasErrors()).isTrue(); assertThat(snapshot()).isEqualTo(before);
         Files.delete(directory.resolve("tipologia.csv")); assertThat(importer.importDirectory(directory,MAPPING,CLUB,true,false,false).hasErrors()).isTrue();
+    }
+    /**
+     * INC-42 (E5-T25's review, minor #1; organizer 26-09): S03 requires a dog's sex, so a migrated dog never lands without one. An
+     * empty or unknown «Sexe del gos» is a blocking `DOG_SEX_UNKNOWN` error of the plan, every such row listed at once, and
+     * nothing is applied until Playoff or the export is fixed.
+     */
+    @Test void INC_42_R_18_04_aDogWithoutAKnownSexBlocksThePlanAndEveryOneIsListed() throws Exception {
+        var directory=copyFixture(); var table=PlayoffTable.read(directory.resolve("socis.csv")); int column=table.get(0).indexOf("Sexe del gos");
+        for (var change:Map.of(1,"",2,"Desconegut",3," mascle ").entrySet()) { var cells=new ArrayList<>(table.get(change.getKey())); cells.set(column,change.getValue()); table.set(change.getKey(),cells); }
+        PlayoffTable.write(directory.resolve("socis.csv"),table);
+        var before=snapshot(); var report=importer.importDirectory(directory,MAPPING,CLUB,false,false,false);
+        assertThat(report.hasErrors()).isTrue(); assertThat(snapshot()).isEqualTo(before);
+        assertThat(report.rows()).filteredOn(r -> r.code().equals("DOG_SEX_UNKNOWN")).extracting(MigrationReport.Entry::row, MigrationReport.Entry::entity, MigrationReport.Entry::outcome)
+                .containsExactlyInAnyOrder(tuple(2,"dogs","ERROR"),tuple(3,"dogs","ERROR"));
+        // A known value in another case or with spaces is read («Mascle» → MALE).
+        assertThat(report.rows()).noneMatch(r -> r.row()==4 && r.code().equals("DOG_SEX_UNKNOWN"));
     }
     @Test void T_18_01_mappingWarningsAndMalformedReferencesDoNotGuessValues() {
         for (var changes:List.of(Map.of("birthDate","bad"),Map.of("joined",""),Map.of("number","bad"),Map.of("id",""),Map.of("status","Simpatizante"),

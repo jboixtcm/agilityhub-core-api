@@ -129,7 +129,7 @@ public class ClassSessionService {
             var booked = config.modules().contains(Module.FREE_TRAINING) ? training.findActiveBookings(edit.ringId, edit.startsAt, edit.endsAt) : List.<TrainingConflictPort.Booking>of();
             if (!booked.isEmpty()) {
                 if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", booked)); }
-                training.cancelByClub(booked.stream().map(TrainingConflictPort.Booking::id).toList(), "CLASS_SESSION");
+                training.cancelByClub(booked.stream().map(TrainingConflictPort.Booking::bookingId).toList(), "CLASS_SESSION");
             }
         }
     }

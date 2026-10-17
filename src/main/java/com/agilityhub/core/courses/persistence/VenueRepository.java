@@ -16,6 +16,16 @@ public class VenueRepository extends CourseTenantRepository<Venue> {
     }
     /** S16 §14.2: the club's own venue (one per club), if it exists yet. */
     public java.util.Optional<Venue> club() { return java.util.Optional.ofNullable(mongo.findOne(tenantQuery(), Venue.class)); }
+    /**
+     * INC-61 (E11-T02): {@code slug} itself when no venue has it yet, otherwise the first free `{slug}-2`, `{slug}-3`… The slug
+     * index is global (a member's or a partner's venue may hold the club's slug), and a duplicate key would abort the geometry's
+     * transaction, so the slug is chosen before the write.
+     */
+    public String freeSlug(String slug) {
+        String candidate = slug;
+        for (int n = 2; mongo.exists(org.springframework.data.mongodb.core.query.Query.query(Criteria.where("slug").is(candidate)), Venue.class); n++) { candidate = slug + "-" + n; }
+        return candidate;
+    }
     /** Creates the club's venue once: an upsert on the club that only inserts, so a second call (or a concurrent one) changes nothing. */
     public void ensure(Venue venue) {
         tenantQuery(venue.clubId());

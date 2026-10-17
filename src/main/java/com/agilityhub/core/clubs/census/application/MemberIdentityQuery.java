@@ -13,6 +13,13 @@ public class MemberIdentityQuery implements com.agilityhub.core.shared.applicati
         var member = members.require(memberId); CensusRules.mutable(member.erasedAt);
         return new TeamMember(member.id, member.accountId, member.status, member.firstName);
     }
+    @Override public java.util.Map<String, Integer> memberNumbers(java.util.Collection<String> memberIds) {
+        var numbers = new java.util.HashMap<String, Integer>();
+        if (memberIds.isEmpty()) { return numbers; }
+        members.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(memberIds), "memberNumber")
+                .forEach(member -> { if (member.memberNumber != null) { numbers.put(member.id, member.memberNumber); } });
+        return numbers;
+    }
     @Override public String impersonationAccount(String memberId) {
         var member = members.require(memberId); CensusRules.mutable(member.erasedAt);
         if (!("ACTIVE".equals(member.status) || "INACTIVE".equals(member.status)) || member.accountId == null) {

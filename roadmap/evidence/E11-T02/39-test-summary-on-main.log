@@ -1,0 +1,4 @@
+# Totals of 38-clean-verify-on-main.log (main 32a4f066 + E11-T01 + E11-T02), from target/*-reports/TEST-*.xml
+surefire-reports: 436 classes, 4745 tests, 0 failures, 0 errors, 0 skipped
+failsafe-reports: 161 classes, 2107 tests, 0 failures, 0 errors, 0 skipped
+exit=0

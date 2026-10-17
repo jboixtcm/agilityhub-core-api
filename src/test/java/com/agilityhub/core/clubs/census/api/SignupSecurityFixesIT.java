@@ -42,6 +42,7 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     @Autowired com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
+    @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
     @Autowired org.springframework.context.ApplicationContext context;
     @Autowired com.agilityhub.core.clubs.census.persistence.CensusRepository<com.agilityhub.core.clubs.census.persistence.Dog> dogs;
@@ -193,6 +194,24 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         return body;
     }
     static final List<String> PERSON=List.of("idDocument","firstName","lastName1","lastName2","gender","birthDate","contactEmails","phones","address","paymentMethod","consents","memberNumber","accountId","leftAt","leftReason","leaveDate");
+    /**
+     * INC-31 (A37, R-04-06): the record's account and the readmission's are both sealed; D2's `changedFields` compares them in the
+     * vault, so sending the same IBAN again is no change and another one is.
+     */
+    @Test void INC_31_R_04_06_aReadmissionComparesTheSealedAccountsInTheVault() throws Exception {
+        var original=request();original.set("payment",mapper.valueToTree(Map.of("type","SEPA_DD","iban",IBAN,"firstMonthOption","TODAY")));
+        String id=leftMember(original);
+        assertThat(member(id).get("paymentMethod",Document.class)).doesNotContainKey("iban").containsKey("ibanEncrypted").containsEntry("ibanLast4","0001");
+        submit(readmission(original));
+        var submitted=member(id).getEmbedded(List.of("readmissionRequest","submitted","paymentMethod"),Document.class);
+        assertThat(submitted).doesNotContainKey("iban").containsKey("ibanEncrypted");
+        assertThat(mapper.convertValue(review(id).at("/readmission/changedFields"),List.class)).contains("phones").doesNotContain("paymentMethod");
+        var other=request();other.set("payment",mapper.valueToTree(Map.of("type","SEPA_DD","iban",IBAN,"firstMonthOption","TODAY")));
+        String second=leftMember(other,215);
+        var changed=readmission(other);changed.set("payment",mapper.valueToTree(Map.of("type","SEPA_DD","iban","ES9121000418450200051332","firstMonthOption","TODAY")));
+        submit(changed);
+        assertThat(mapper.convertValue(review(second).at("/readmission/changedFields"),List.class)).contains("paymentMethod");
+    }
     @AuditCovers(AuditAction.SIGNUP_SUBMITTED)
     @Test void T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues() throws Exception {
         var original=request();String id=leftMember(original);var before=member(id);long consents=before.getList("consents",Document.class).size();
@@ -220,7 +239,10 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(validated.getList("phones",Document.class).getFirst().getString("number")).isEqualTo("600000099");
         assertThat(validated.getList("contactEmails",Document.class).getFirst().getString("email")).startsWith("readmitted");
         assertThat(validated.get("address",Document.class).getString("street")).isEqualTo("New example street");
-        assertThat(validated.get("paymentMethod",Document.class).getString("iban")).isEqualTo(IBAN);
+        // INC-31 (A37): the account was sealed when submitted, and validation applies it as stored.
+        var account=validated.get("paymentMethod",Document.class);
+        assertThat(account).doesNotContainKey("iban").containsEntry("ibanLast4","0001");assertThat(vault.resolve(account,validated.getString("clubId"),id)).isEqualTo(IBAN);
+        assertThat(validated.toJson()).doesNotContain(IBAN);
         var ledger=validated.getList("consents",Document.class);assertThat(ledger).hasSize((int)consents+2);assertThat(ledger.getLast().getBoolean("granted")).isTrue();
         assertThat(validated.get("readmissionRequest")).isNull();assertThat(validated.get("leftAt")).isNull();
         var audit=collection("audit_entries").stream().filter(e->"MEMBER_VALIDATED".equals(e.getString("action"))&&id.equals(e.getString("entityId"))).reduce((a,b)->b).orElseThrow();
@@ -763,6 +785,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
      * E5-T23 step 3 (review E5-T21 #2; R-04-19, R-04-06): a key removed through S03 from the reused dog's own card is refused
      * at submission too. The readmission that sends it back answers 400 FILE_NOT_FOUND and stores nothing, so the file does
      * not come back. Once readmitted, the member's POST /me/dogs/signup gets the same for it: its dog is always a new one.
+     * INC-13 (E5-T23's review, detail #4): that half does not isolate the removed key — any key the reused dog already holds,
+     * the kept one too, is refused for a new dog — so it asserts both.
      */
     @Test void R_04_19_R_04_06_aSubmissionRefusesAKeyRemovedFromTheReusedDogsOwnCard() throws Exception {
         String removed=upload("card-1.pdf"),kept=upload("card-2.pdf");
@@ -778,6 +802,9 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         var addDog=Map.of("dog",Map.of("name","Added Example Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000005"+String.format("%06d",++sequence)),
                 "documents",List.of(card(List.of(file(removed,"card-1.pdf")))));
         assertThat(result(asMember(postJson("/me/dogs/signup",addDog).header("Idempotency-Key",UUID.randomUUID()),id),400).path("code").asText()).isEqualTo("FILE_NOT_FOUND");
+        var addDogWithKept=Map.of("dog",Map.of("name","Second Example Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000005"+String.format("%06d",++sequence)),
+                "documents",List.of(card(List.of(file(kept,"card-2.pdf")))));
+        assertThat(result(asMember(postJson("/me/dogs/signup",addDogWithKept).header("Idempotency-Key",UUID.randomUUID()),id),400).path("code").asText()).isEqualTo("FILE_NOT_FOUND");
         assertThat(fileKeys(storedDocument(dogId,"VACCINATION_CARD"))).as("the reused dog's card after validation").containsExactly(removed,kept);
         assertThat(storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst().get("removedAt")).isNotNull();
     }
@@ -1079,6 +1106,37 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(signupFile.getStatus()).isEqualTo(200);assertThat(signupFile.getContentType()).isEqualTo("application/pdf");
         var signupDisposition=org.springframework.http.ContentDisposition.parse(signupFile.getHeader("Content-Disposition"));
         assertThat(signupDisposition.isAttachment()).isTrue();assertThat(signupDisposition.getFilename()).isEqualTo("card.pdf");
+    }
+
+    /**
+     * INC-43 (E11-T02; review of E5-T26 #3 and #6, CONVENCIONS_API §5): a dog's photo (`DOG_PHOTO`) downloads through
+     * `/attachments/files/{id}` with its stored type, `inline`. Both local routes advertise byte ranges, as S3 does: a single
+     * `Range` answers `206` with that part and its `Content-Range`, and a range beyond the file `416` with the file's length.
+     */
+    @Test void INC_43_CONVENCIONS_API_5_aDogPhotoIsShownInlineAndTheLocalDownloadsAnswerARange() throws Exception {
+        String applicant=upload("card.pdf");
+        String id=submit(sending(request(),card(List.of(file(applicant,"card.pdf"))))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        String photo=attachment("DOG_PHOTO","image/jpeg",this::admin);byte[] bytes="fictional DOG_PHOTO".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String photoUrl=result(admin(json(put("/api/v1/dogs/"+dogId+"/photo"),Map.of("fileKey",photo))),200).path("photoUrl").asText();
+        assertThat(photoUrl).startsWith("/api/v1/attachments/files/"+photo+"?");
+        var shown=getSigned(photoUrl);
+        assertThat(shown.getStatus()).isEqualTo(200);assertThat(shown.getContentAsByteArray()).isEqualTo(bytes);
+        assertThat(shown.getContentType()).isEqualTo("image/jpeg");
+        assertThat(org.springframework.http.ContentDisposition.parse(shown.getHeader("Content-Disposition")).isInline()).as(shown.getHeader("Content-Disposition")).isTrue();
+        assertThat(shown.getHeader("Accept-Ranges")).isEqualTo("bytes");
+        var part=getSigned(photoUrl,"Range","bytes=10-12");
+        assertThat(part.getStatus()).isEqualTo(206);assertThat(part.getContentAsString()).isEqualTo("DOG");
+        assertThat(part.getHeader("Content-Range")).isEqualTo("bytes 10-12/"+bytes.length);assertThat(part.getHeader("Content-Length")).isEqualTo("3");
+        assertThat(part.getContentType()).isEqualTo("image/jpeg");
+        assertThat(part.getHeader("Content-Security-Policy")).isEqualTo(com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD);
+        assertThat(part.getHeader("Cache-Control")).isEqualTo("no-store");
+        var beyond=getSigned(photoUrl,"Range","bytes="+bytes.length+"-");
+        assertThat(beyond.getStatus()).isEqualTo(416);assertThat(beyond.getHeader("Content-Range")).isEqualTo("bytes */"+bytes.length);
+        String signupUrl=document(review(id).at("/dogs/0"),"VACCINATION_CARD").at("/files/0/downloadUrl").asText();
+        assertThat(signupUrl).startsWith("/api/v1/signup/files?");
+        var signupPart=getSigned(signupUrl,"Range","bytes=0-3");
+        assertThat(signupPart.getStatus()).isEqualTo(206);assertThat(signupPart.getContentAsByteArray()).hasSize(4);
+        assertThat(signupPart.getHeader("Content-Range")).startsWith("bytes 0-3/");assertThat(signupPart.getHeader("Accept-Ranges")).isEqualTo("bytes");
     }
 
     /**

@@ -145,6 +145,15 @@ class PaymentIntentLedgerTest {
                 // Lower bound and upper bound at once: neither a stale nor an excessive claim survives the refresh.
                 assertThat(claims.get(id)).as("sample %s, row %s: %s", sample, id, ledger).isEqualTo(Math.max(0, refreshed.withoutReservation(id).freeFor(id)));
             }
+            // INC-58 (E11-T02): an oracle of its own, not a fixed point of the assignment. In the split order, each row owes the
+            // smaller of its own free share and the intent's free money left, both without any claim, and that is subtracted.
+            var unclaimedLedger = ledger.withClaims(order.stream().collect(java.util.stream.Collectors.toMap(id -> id, id -> 0L)));
+            long left = unclaimedLedger.balance().free();
+            for (String id : order) {
+                long owed = Math.max(0, Math.min(unclaimedLedger.share(id).free(), left));
+                assertThat(claims.get(id)).as("oracle, sample %s, row %s: %s", sample, id, ledger).isEqualTo(owed);
+                left -= owed;
+            }
             long unclaimed = ledger.withClaims(order.stream().collect(java.util.stream.Collectors.toMap(id -> id, id -> 0L))).balance().free();
             assertThat(claims.values().stream().mapToLong(Long::longValue).sum()).as("sample %s", sample).isLessThanOrEqualTo(Math.max(0, unclaimed));
             assertThat(refreshed.claims()).as("sample %s", sample).isEqualTo(claims);

@@ -1,0 +1,345 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+02:38:34.237 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.OpenApiSnapshotTest]: OpenApiSnapshotTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+02:38:34.550 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.OpenApiSnapshotTest
+02:38:34.749 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+02:38:34.752 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+02:38:34.761 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+02:38:34.922 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+02:38:35.348 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+02:38:35.350 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+02:38:35.376 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Ubuntu 24.04.5 LTS
+  Total Memory: 16093 MB
+02:38:35.489 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+02:38:35.495 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.12.0, configFile: /root/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /root/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
+02:38:35.628 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: f50e535eab0e314f5cd2b8f53d721b887c40006111d63b5102bf24a7b8710b17
+02:38:35.944 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.455196776S
+02:38:35.950 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+02:38:35.950 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+02:38:35.951 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+02:38:35.951 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+02:38:35.998 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: b9732626fd80768af63c349d00158a8d3937e61d26546ed8d6ad3a68db3b740b
+02:38:36.703 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.751237245S
+Integration JVM availableProcessors=4
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T02:38:38.598Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : Starting OpenApiSnapshotTest using Java [redacted] with PID 11534 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T02:38:38.605Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T02:38:41.164Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T02:38:41.297Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 123 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T02:38:42.472Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T02:38:42.490Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T02:38:42.490Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T02:38:42.555Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T02:38:42.556Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 3931 ms
+2026-10-17T02:38:42.864Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3bdf6d63], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@6d4bb60f, com.mongodb.Jep395RecordCodecProvider@29b61bb, com.mongodb.KotlinCodecProvider@2fe152aa]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32915], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6f959640], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T02:38:42.881Z INFO  [cluster-ClusterId{value='6ad2dfb27d18883d3450b958', description='null'}-localhost:32915] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32915, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=26753373, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b9732626fd80:27017, hosts=[b9732626fd80:27017], passives=[], arbiters=[], primary='b9732626fd80:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2dfac9cfe4b2f2c38bbd6, counter=6}, lastWriteDate=Sat Oct 17 02:38:37 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T02:38:44.616Z INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-17T02:38:51.966Z INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T02:38:51.967Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T02:38:51.971Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 3 ms
+2026-10-17T02:38:52.151Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 42943 (http) with context path '/'
+2026-10-17T02:38:52.248Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-17T02:38:52.249Z INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-17T02:38:52.250Z INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/10.1.60]
+2026-10-17T02:38:52.271Z INFO  [main] o.a.c.c.C.[Tomcat-1].[localhost].[/] traceId= clubId= accountId= : Initializing Spring embedded WebApplicationContext
+2026-10-17T02:38:52.272Z INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 116 ms
+2026-10-17T02:38:52.291Z INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-17T02:38:52.347Z INFO  [main] o.s.b.w.embedded.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 46199 (http) with context path '/'
+2026-10-17T02:38:52.363Z INFO  [main] c.a.c.configuration.OpenApiSnapshotTest traceId= clubId= accountId= : Started OpenApiSnapshotTest in 14.31 seconds (process running for 19.42)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-17T02:38:53.703Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/openapi.json' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-17T02:39:00.210Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=fe0e8b74-ebfe-4721-82ad-e62ae1342997 clubId=- accountId=user : Init duration for springdoc-openapi is: 6394 ms
+2026-10-17T02:39:02.265Z INFO  [tomcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-17T02:39:02.265Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Initializing Servlet 'dispatcherServlet'
+2026-10-17T02:39:02.268Z INFO  [tomcat-handler-0] o.s.web.servlet.DispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-17T02:39:06.716Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=32ae92f0-1c79-49c5-b6e8-20310c213300 clubId=- accountId=- : Init duration for springdoc-openapi is: 4223 ms
+2026-10-17T02:39:07.702Z WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword discriminator - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-17T02:39:07.704Z WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.509 s <<< FAILURE! -- in com.agilityhub.core.configuration.E9ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E9ResponseContractTest.T_16_03_T_16_21_allFortyOneOperationsPublishTypedFormsHeadersAndCanonicalErrors -- Time elapsed: 0.030 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["id",
+    "name",
+    "discipline",
+    "level",
+    "designerName",
+    "source",
+    "thumbnailUrl",
+    "stats",
+    "ownerType",
+    "activeOnRings",
+    "updatedAt"]
+to contain exactly in any order:
+  ["id",
+    "name",
+    "discipline",
+    "level",
+    "designerName",
+    "source",
+    "thumbnailUrl",
+    "stats",
+    "ownerType",
+    "activeOnRings"]
+but the following elements were unexpected:
+  ["updatedAt"]
+
+	at com.agilityhub.core.configuration.E9ResponseContractTest.T_16_03_T_16_21_allFortyOneOperationsPublishTypedFormsHeadersAndCanonicalErrors(E9ResponseContractTest.java:180)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+T-11-05 snapshot ca: 52 seeded codes, 21 staff texts
+T-11-05 snapshot es: 52 seeded codes, 21 staff texts
+T-11-05 snapshot en: 52 seeded codes, 21 staff texts
+2026-10-17T02:39:12.547Z INFO  [junit-timeout-thread-1] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (write timeout) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.549Z INFO  [junit-timeout-thread-1] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (write timeout) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.550Z INFO  [junit-timeout-thread-1] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (no sender) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.608Z INFO  [junit-timeout-thread-2] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.681Z INFO  [junit-timeout-thread-3] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.727Z INFO  [junit-timeout-thread-4] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.759Z INFO  [junit-timeout-thread-5] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.784Z INFO  [junit-timeout-thread-6] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.819Z INFO  [junit-timeout-thread-7] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.857Z INFO  [junit-timeout-thread-8] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.889Z INFO  [junit-timeout-thread-9] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.908Z INFO  [junit-timeout-thread-10] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.928Z INFO  [junit-timeout-thread-11] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.952Z INFO  [junit-timeout-thread-12] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:12.973Z INFO  [junit-timeout-thread-13] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.004Z INFO  [junit-timeout-thread-14] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.031Z INFO  [junit-timeout-thread-15] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.054Z INFO  [junit-timeout-thread-16] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.078Z INFO  [junit-timeout-thread-17] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.128Z INFO  [junit-timeout-thread-18] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.152Z INFO  [junit-timeout-thread-19] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.172Z INFO  [junit-timeout-thread-20] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.196Z INFO  [junit-timeout-thread-21] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.221Z INFO  [junit-timeout-thread-22] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.247Z INFO  [junit-timeout-thread-23] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.274Z INFO  [junit-timeout-thread-24] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.300Z INFO  [junit-timeout-thread-25] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.326Z INFO  [junit-timeout-thread-26] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.359Z INFO  [junit-timeout-thread-27] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.381Z INFO  [junit-timeout-thread-28] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.406Z INFO  [junit-timeout-thread-29] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.431Z INFO  [junit-timeout-thread-30] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.459Z INFO  [junit-timeout-thread-31] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.485Z INFO  [junit-timeout-thread-32] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.510Z INFO  [junit-timeout-thread-33] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.539Z INFO  [junit-timeout-thread-34] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.567Z INFO  [junit-timeout-thread-35] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.591Z INFO  [junit-timeout-thread-36] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.624Z INFO  [junit-timeout-thread-37] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.657Z INFO  [junit-timeout-thread-38] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.686Z INFO  [junit-timeout-thread-39] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.741Z INFO  [junit-timeout-thread-40] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.794Z INFO  [junit-timeout-thread-41] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.822Z INFO  [junit-timeout-thread-42] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.854Z INFO  [junit-timeout-thread-43] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.887Z INFO  [junit-timeout-thread-44] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.917Z INFO  [junit-timeout-thread-45] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.937Z INFO  [junit-timeout-thread-46] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:13.969Z INFO  [junit-timeout-thread-47] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:14.001Z INFO  [junit-timeout-thread-48] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:14.131Z INFO  [junit-timeout-thread-49] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:14.160Z INFO  [junit-timeout-thread-50] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:14.191Z INFO  [junit-timeout-thread-51] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (queue full) sessionId=session-a clubId=club-a
+2026-10-17T02:39:14.432Z INFO  [junit-timeout-thread-53] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (no sender) sessionId=session-a clubId=club-a
+2026-10-17T02:39:15.450Z INFO  [build-session-streams] c.a.core.courses.api.BuildSessionStreams traceId= clubId= accountId= : Build session stream closed (write timeout) sessionId=session-a clubId=club-a
+2026-10-17T02:39:15.482Z INFO  [main] com.tngtech.archunit.core.PluginLoader traceId= clubId= accountId= : Detected Java version [redacted]
+[ERROR] Failures: 
+[ERROR]   E9ResponseContractTest.T_16_03_T_16_21_allFortyOneOperationsPublishTypedFormsHeadersAndCanonicalErrors:180 
+Expecting actual:
+  ["id",
+    "name",
+    "discipline",
+    "level",
+    "designerName",
+    "source",
+    "thumbnailUrl",
+    "stats",
+    "ownerType",
+    "activeOnRings",
+    "updatedAt"]
+to contain exactly in any order:
+  ["id",
+    "name",
+    "discipline",
+    "level",
+    "designerName",
+    "source",
+    "thumbnailUrl",
+    "stats",
+    "ownerType",
+    "activeOnRings"]
+but the following elements were unexpected:
+  ["updatedAt"]
+
+[ERROR] Tests run: 127, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02/target/surefire-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=43937 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+02:39:31.790 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E7ContractIT]: E7ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+02:39:32.162 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E7ContractIT
+02:39:32.381 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+02:39:32.385 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+02:39:32.394 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+02:39:32.585 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+02:39:33.027 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+02:39:33.030 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+02:39:33.055 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Ubuntu 24.04.5 LTS
+  Total Memory: 16093 MB
+02:39:33.202 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+02:39:33.208 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.12.0, configFile: /root/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /root/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
+02:39:33.565 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: e661f4f3d68085abd9339040c003e1f83ade893e77bebfa2ba2305700667ef8a
+02:39:33.935 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.73254323S
+02:39:33.942 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+02:39:33.942 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+02:39:33.943 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+02:39:33.944 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+02:39:34.003 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 7482ad8edffb3d97fa4b3d1b3902a3966af48dafa4c01cc02d880603ab823c1c
+02:39:34.825 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.881245358S
+Integration JVM availableProcessors=4
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T02:39:36.672Z INFO  [main] c.a.core.configuration.E7ContractIT traceId= clubId= accountId= : Starting E7ContractIT using Java [redacted] with PID 14842 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T02:39:36.677Z INFO  [main] c.a.core.configuration.E7ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T02:39:39.421Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T02:39:39.534Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 104 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T02:39:40.746Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@7692c0e9], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@431f8830, com.mongodb.Jep395RecordCodecProvider@75bbe39d, com.mongodb.KotlinCodecProvider@6805415d]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32917], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@870413c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T02:39:40.773Z INFO  [cluster-ClusterId{value='6ad2dfec112548effa8735c5', description='null'}-localhost:32917] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32917, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=27958855, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=7482ad8edffb:27017, hosts=[7482ad8edffb:27017], passives=[], arbiters=[], primary='7482ad8edffb:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2dfe6a59c6eeba1bdca76, counter=6}, lastWriteDate=Sat Oct 17 02:39:35 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T02:39:49.894Z INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T02:39:49.895Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T02:39:49.899Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-17T02:39:49.999Z INFO  [main] c.a.core.configuration.E7ContractIT traceId= clubId= accountId= : Started E7ContractIT in 13.813 seconds (process running for 19.349)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-17T02:39:52.111Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/email-unsubscribes' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-17T02:40:10.257Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=be81500e-1598-459a-86de-4494cfbd5ec4 clubId=- accountId=- : Init duration for springdoc-openapi is: 6058 ms
+2026-10-17T02:40:11.538Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f01e03d3-7535-42da-82d2-346660c915f6 clubId=e7-club-a accountId=e7-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=f01e03d3-7535-42da-82d2-346660c915f6
+2026-10-17T02:40:11.553Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=1ba31f96-51cb-4f99-8df6-a250624d8655 clubId=e7-club-a accountId=e7-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=1ba31f96-51cb-4f99-8df6-a250624d8655
+2026-10-17T02:40:11.562Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d48fa6e1-f163-418e-a7da-e4ec05981210 clubId=e7-club-a accountId=e7-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=d48fa6e1-f163-418e-a7da-e4ec05981210
+2026-10-17T02:40:11.571Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=63228855-cd26-4294-b4cb-6654eca3df42 clubId=e7-club-a accountId=e7-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=63228855-[redacted]
+2026-10-17T02:40:11.584Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=59f62e99-2743-4937-a9a7-3ddfba6813b0 clubId=e7-club-a accountId=e7-MEMBER : Framework request rejected code=VALIDATION_ERROR traceId=59f62e99-2743-4937-a9a7-3ddfba6813b0
+2026-10-17T02:40:11.592Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ab33a6d5-f209-4891-a79d-c4a9c723b832 clubId=e7-club-a accountId=- : Framework request rejected code=VALIDATION_ERROR traceId=[redacted]
+2026-10-17T02:40:11.610Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.ListFieldsContractIT]: ListFieldsContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:40:11.621Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.ListFieldsContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T02:40:11.700Z INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : Starting ListFieldsContractIT using Java [redacted] with PID 14842 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T02:40:11.701Z INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T02:40:12.428Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T02:40:12.488Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 58 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T02:40:12.659Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4334e80a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@431f8830, com.mongodb.Jep395RecordCodecProvider@75bbe39d, com.mongodb.KotlinCodecProvider@6805415d]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32917], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@60de518a], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T02:40:12.667Z INFO  [cluster-ClusterId{value='6ad2e00c112548effa87362c', description='null'}-localhost:32917] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32917, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=3332684, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=7482ad8edffb:27017, hosts=[7482ad8edffb:27017], passives=[], arbiters=[], primary='7482ad8edffb:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2dfe6a59c6eeba1bdca76, counter=6}, lastWriteDate=Sat Oct 17 02:40:11 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T02:40:15.393Z INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T02:40:15.394Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T02:40:15.396Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-17T02:40:15.470Z INFO  [main] c.a.c.c.m.application.TemplateUpgrade traceId= clubId= accountId= : Message templates brought up to date: 1 took the current seed, 0 edited ones corrected, 0 failed, 0 clubs failed
+2026-10-17T02:40:15.487Z INFO  [main] c.a.c.configuration.ListFieldsContractIT traceId= clubId= accountId= : Started ListFieldsContractIT in 3.838 seconds (process running for 44.838)
+2026-10-17T02:40:19.574Z INFO  [main] o.springdoc.api.AbstractOpenApiResource traceId=a2ae4250-16b9-4ad8-80c4-6b4607e37962 clubId=- accountId=- : Init duration for springdoc-openapi is: 3932 ms
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+452 changes (demo seed)
+{platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+402 changes (demo planning, week start 2026-09-14)
+2026-10-17T02:40:50.898Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/jobs/cleanup/trigger' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-10-17T02:40:51.389Z WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-17T02:41:32.701Z WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword example - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+E5-T07 outbox backlog discarded before ListFieldsContractIT: 1001 PENDING records (more than one dispatch() batch)
+2026-10-17T02:41:34.746Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E6ContractIT]: E6ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:41:34.764Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E6ContractIT
+2026-10-17T02:41:35.361Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7801826a-2372-4d71-b24c-6c2993d55cae clubId=e6-club-a accountId=e6-INSTRUCTOR : Framework request rejected code=VALIDATION_ERROR traceId=7801826a-2372-4d71-b24c-6c2993d55cae
+2026-10-17T02:41:59.211Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=5c2c211e-6fd7-424a-a925-699e9178ccb5 clubId=e6-club-a accountId=e6-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=5c2c211e-6fd7-424a-a925-699e9178ccb5
+2026-10-17T02:41:59.243Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=d975a06e-c713-45ad-8458-be50f98c000e clubId=e6-club-a accountId=e6-INSTRUCTOR : Framework request rejected code=VALIDATION_ERROR traceId=d975a06e-c713-45ad-8458-be50f98c000e
+2026-10-17T02:41:59.282Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=5e5e7902-cee6-46c3-aca3-8c5682c5e61e clubId=e6-club-a accountId=e6-INSTRUCTOR : Framework request rejected code=VALIDATION_ERROR traceId=5e5e7902-cee6-46c3-aca3-8c5682c5e61e
+2026-10-17T02:41:59.296Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=6298b4c9-26f3-44a2-9278-61a12bd67473 clubId=e6-club-a accountId=e6-INSTRUCTOR : Framework request rejected status=400 code=VALIDATION_ERROR traceId=6298b4c9-26f3-44a2-9278-61a12bd67473
+2026-10-17T02:41:59.344Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9abc2e24-605a-4dec-b5a1-a10571f2d97f clubId=e6-club-a accountId=e6-ADMIN : Framework request rejected status=400 code=VALIDATION_ERROR traceId=9abc2e24-605a-4dec-b5a1-a10571f2d97f
+2026-10-17T02:41:59.358Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E9ContractIT]: E9ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:41:59.363Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E9ContractIT
+2026-10-17T02:42:00.407Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=ef9a35f2-cc57-424d-9af6-6e2a12adbb05 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=ef9a35f2-[redacted]
+2026-10-17T02:42:00.432Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=8820a096-472d-4991-a424-3cab488a6df8 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=8820a096-472d-4991-a424-3cab488a6df8
+2026-10-17T02:42:23.328Z WARN  [main] c.networknt.schema.UnknownKeywordFactory traceId= clubId= accountId= : Unknown keyword discriminator - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+2026-10-17T02:42:31.050Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=4bf924ba-9af8-4c94-8f2f-654ac95cb6f0 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=4bf924ba-9af8-4c94-8f2f-654ac95cb6f0
+2026-10-17T02:42:31.544Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=838165ed-c3d4-4f9e-b42f-864ffcc42447 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=838165ed-c3d4-4f9e-b42f-864ffcc42447
+2026-10-17T02:42:32.051Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=da6a6288-bacb-4a6b-8cca-eb82bd79bd2e clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=da6a6288-bacb-4a6b-8cca-eb82bd79bd2e
+2026-10-17T02:42:32.572Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=df6a6a7b-ddfa-491f-9a9f-44b0ca11babf clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=df6a6a7b-ddfa-491f-9a9f-44b0ca11babf
+2026-10-17T02:42:33.084Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=8647b70e-b66e-4c72-bb51-32bae09048a5 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=8647b70e-b66e-4c72-[redacted]
+2026-10-17T02:42:33.534Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=da3c8ba4-e0a4-439d-aabb-65b018bc5ebb clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=da3c8ba4-e0a4-439d-aabb-65b018bc5ebb
+2026-10-17T02:42:34.006Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f1b041f3-6a28-48be-8ed6-5bd8e6b7fa34 clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=f1b041f3-6a28-48be-8ed6-5bd8e6b7fa34
+2026-10-17T02:42:34.451Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=f99652c3-e585-4a7a-b3f4-ca01424b951f clubId=e9-club-a accountId=e9-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=f99652c3-e585-4a7a-b3f4-ca01424b951f
+2026-10-17T02:42:36.675Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.training.api.TrainingIT]: TrainingIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:42:36.800Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.training.api.TrainingIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-17T02:42:36.861Z INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : Starting TrainingIT using Java [redacted] with PID 14842 (started by root in /tmp/claude-0/-home-user/9a7682d3-bdbc-5eb0-b2f6-f78abbdddb15/scratchpad/e11t02)
+2026-10-17T02:42:36.862Z INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-17T02:42:37.811Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-17T02:42:37.919Z INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 106 ms. Found 0 MongoDB repository interfaces.
+2026-10-17T02:42:38.140Z INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.18.44-fc-v139"}, "platform": "Java/Ubuntu/[redacted]+1-1-24.04.4-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@359e486d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@431f8830, com.mongodb.Jep395RecordCodecProvider@75bbe39d, com.mongodb.KotlinCodecProvider@6805415d]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:32917], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3533f01d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-17T02:42:38.155Z INFO  [cluster-ClusterId{value='6ad2e09e112548effa873660', description='null'}-localhost:32917] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:32917, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11746955, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=7482ad8edffb:27017, hosts=[7482ad8edffb:27017], passives=[], arbiters=[], primary='7482ad8edffb:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad2dfe6a59c6eeba1bdca76, counter=6}, lastWriteDate=Sat Oct 17 02:42:36 UTC 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-17T02:42:40.712Z INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-17T02:42:40.713Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-17T02:42:40.715Z INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-17T02:42:40.788Z INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : Started TrainingIT in 3.982 seconds (process running for 190.139)
+2026-10-17T02:42:40.834Z INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs
+2026-10-17T02:42:41.774Z WARN  [main] o.s.w.s.h.HandlerMappingIntrospector traceId= clubId= accountId= : Cache miss for REQUEST dispatch to '/api/v1/training-bookings' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+T-09-27 day-grid view=member: {"date":"2026-10-06","dayOfWeek":"TUESDAY","timeZone":"Europe/Madrid","view":"MEMBER","columns":[{"ringId":"s09-r-mun","shortName":"MUN","name":"Muntanya","color":"#8FCE8F"},{"ringId":"s09-r-cen","shortName":"CEN","name":"Central","color":"#8FCE8F"},{"ringId":"s09-r-car","shortName":"CAR","name":"Carretera","color":"#8FCE8F"},{"ringId":"s09-r-cad","shortName":"CAD","name":"Cadells","color":"#8FCE8F"},{"ringId":"s09-r-pet","shortName":"PET","name":"Petita","color":"#8FCE8F"}],"rows":[{"time":"10:00","cells":[{"ringId":"s09-r-mun","kind":"OCCUPIED","endTime":"10:30","reason":"TRAINING"}]},{"time":"18:00","cells":[{"ringId":"s09-r-car","kind":"OCCUPIED","endTime":"19:00","reason":"PRIVATE_CLASS"}]}]}
+T-09-27 day-grid view=instructor: {"date":"2026-10-06","dayOfWeek":"TUESDAY","timeZone":"Europe/Madrid","view":"INSTRUCTOR","columns":[{"ringId":"s09-r-mun","shortName":"MUN","name":"Muntanya","color":"#8FCE8F"},{"ringId":"s09-r-cen","shortName":"CEN","name":"Central","color":"#8FCE8F"},{"ringId":"s09-r-car","shortName":"CAR","name":"Carretera","color":"#8FCE8F"},{"ringId":"s09-r-cad","shortName":"CAD","name":"Cadells","color":"#8FCE8F"},{"ringId":"s09-r-pet","shortName":"PET","name":"Petita","color":"#8FCE8F"}],"rows":[{"time":"10:00","cells":[{"ringId":"s09-r-mun","kind":"TRAINING","endTime":"10:30","who":["Pau + Blat"],"trainingBookingIds":["c545c80a-7329-4421-81f7-9914416d6c2b"],"reason":"TRAINING"}]},{"time":"18:00","cells":[{"ringId":"s09-r-car","kind":"BLOCK","endTime":"19:00","blockId":"s09-private","reason":"PRIVATE_CLASS","note":"Particular","createdByName":"Example estel"}]}]}
+2026-10-17T02:43:25.012Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.AnnouncementsIT]: AnnouncementsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:43:25.083Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.AnnouncementsIT
+2026-10-17T02:43:31.485Z INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.CourseLibraryIT]: CourseLibraryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-17T02:43:31.534Z INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.courses.api.CourseLibraryIT
+2026-10-17T02:43:34.312Z WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7a0a29bd-1a50-4c96-815f-d9f47aee6611 clubId=e9t2-club-a accountId=e9t2-ADMIN : Framework request rejected code=VALIDATION_ERROR traceId=7a0a29bd-1a50-4c96-815f-d9f47aee6611
+exit=0

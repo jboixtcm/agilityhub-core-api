@@ -340,6 +340,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 original.addSuppressed(unreleased);
             }
             if (!held) { throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")); }
+            // INC-47 (E11-T02): a write conflict on the stored answer or at commit rolled the effects back and released the key:
+            // the client retries it (409 STALE_VERSION), never a 500.
+            if (com.agilityhub.core.shared.application.TransactionRetries.retryableConflict(original)) {
+                LOG.warn("Idempotent request hit a transient transaction failure: recordId={} clubId={}", record.id(), record.clubId());
+                throw new ApiException(ErrorCode.STALE_VERSION);
+            }
             if (failure instanceof RequestFailure wrapped) {
                 if (wrapped.getCause() instanceof IOException io) { throw io; }
                 throw (ServletException) wrapped.getCause();

@@ -1,0 +1,4 @@
+# Totals of 36-clean-verify.log, read from target/surefire-reports and target/failsafe-reports (TEST-*.xml)
+surefire-reports: 384 classes, 4617 tests, 0 failures, 0 errors, 0 skipped
+failsafe-reports: 157 classes, 2095 tests, 0 failures, 0 errors, 0 skipped
+exit=0

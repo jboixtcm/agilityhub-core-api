@@ -270,6 +270,27 @@ class ActivityIT extends ActivityFixtures {
         mvc.perform(get(path)).andExpect(status().isNotFound());
     }
     /**
+     * INC-43 (E11-T02; review of E5-T26 #3 and #6): an activity's image (`ACTIVITY_IMAGE`) and video (`ACTIVITY_DOCUMENT`
+     * `video/mp4`) download from the local storage through the public file route's signed URL; the video answers an HTTP
+     * `Range`, so that Safari plays it as it does from S3.
+     */
+    @Test void INC_43_T_07_20_aLocalImageIsShownInlineAndALocalVideoAnswersARange() throws Exception {
+        var a=published(3,false);String id=a.path("id").asText(),slug=a.path("slug").asText();
+        String image=upload("ACTIVITY_IMAGE","image/png"),video=upload("ACTIVITY_DOCUMENT","video/mp4");
+        call("PUT","/activities/"+id+"/image",Map.of("fileKey",image,"name","Example image"),"admin","ADMIN",200);
+        call("POST","/activities/"+id+"/documents",Map.of("fileKey",video,"name","Example video"),"admin","ADMIN",201);
+        String imageUrl=mvc.perform(get("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+image)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
+        String videoUrl=mvc.perform(get("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+video)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
+        assertThat(imageUrl).startsWith("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+image+"?expires=");
+        assertThat(videoUrl).startsWith("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+video+"?expires=");
+        mvc.perform(get(java.net.URI.create(imageUrl))).andExpect(status().isOk()).andExpect(content().contentType("image/png"))
+                .andExpect(header().string("Content-Disposition",org.hamcrest.Matchers.startsWith("inline"))).andExpect(header().string("Accept-Ranges","bytes"));
+        mvc.perform(get(java.net.URI.create(videoUrl)).header("Range","bytes=0-1")).andExpect(status().isPartialContent()).andExpect(content().contentType("video/mp4"))
+                .andExpect(content().bytes(new byte[]{1,2})).andExpect(header().string("Content-Range","bytes 0-1/4")).andExpect(header().string("Content-Length","2"));
+        mvc.perform(get(java.net.URI.create(videoUrl)).header("Range","bytes=2-")).andExpect(status().isPartialContent())
+                .andExpect(content().bytes(new byte[]{3,4})).andExpect(header().string("Content-Range","bytes 2-3/4"));
+    }
+    /**
      * E5-T27 round 2 (review #1, ruling E71, CONVENCIONS_API §5): every public activity file carries `Content-Security-Policy: sandbox`
      * (images and videos `inline`, an SVG as an `attachment`), except a PDF shown `inline`, which the browser's viewer would not render.
      */

@@ -20,6 +20,8 @@ public class MemberService {
     private final CountryContacts countries; private final CensusClubSettings settings; private final ClubConfigService configs;
     private final CensusIdentityService identities; private final Clock clock;
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupService> signups;
+    /** INC-31 (A37, E43): the vault that seals a member's IBAN; the census never stores it in clear. */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BankAccounts bankAccounts;
     public MemberService(CensusAccess access, CensusValidation validation, CensusEvents events, CountryContacts countries,
             CensusClubSettings settings, ClubConfigService configs, CensusIdentityService identities, Clock clock) {
         this.access = access; this.validation = validation; this.events = events; this.countries = countries;
@@ -77,8 +79,11 @@ public class MemberService {
             // send are kept, and so is the mandate signature date (R-04-10: `mandateSignedAt = submittedAt`).
             var current=map(target.paymentMethod);
             boolean sepa="SEPA_DD".equals(payment.get("type"))&&"SEPA_DD".equals(current.get("type"));
-            if(sepa) { for(String key:List.of("iban","holderName","holderTaxId")) { if(!payment.containsKey(key)&&current.get(key)!=null) { payment.put(key,current.get(key)); } } }
+            if(sepa) { for(String key:List.of("holderName","holderTaxId")) { if(!payment.containsKey(key)&&current.get(key)!=null) { payment.put(key,current.get(key)); } } }
+            // INC-31: an account the request does not send is kept as stored (sealed); `payment` seals only an IBAN it receives.
+            boolean keepAccount=sepa&&!payment.containsKey("iban");
             var next=signups.getObject().payment(payment,member,target.firstName+" "+target.lastName1);
+            if(keepAccount&&next!=null) { next=new LinkedHashMap<>(next);next.putAll(account(current)); }
             if(sepa&&next!=null&&current.get("mandateSignedAt")!=null) { next=new LinkedHashMap<>(next);next.put("mandateSignedAt",current.get("mandateSignedAt")); }
             target.paymentMethod=com.agilityhub.core.clubs.census.domain.CensusRules.keepMandateSequence(access.config().club().slug(),target.memberNumber,current,next);
         }
@@ -144,8 +149,13 @@ public class MemberService {
             if (sepa.containsKey("iban") || !kept) {
                 String iban = string(sepa.get("iban")); if (iban != null) { iban = iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT); }
                 if (iban != null && !countries.iban(iban)) { throw new ApiException(ErrorCode.INVALID_IBAN); }
-                payment.putAll(object("iban", iban));
-            } else { payment.putAll(select(current, "iban", "ibanEncrypted", "ibanLast4")); }
+                // INC-31 (A37, E43): sealed for the member. The same IBAN entered again keeps what is stored (and so the mandate).
+                if (iban != null) {
+                    var entered = Map.<String,Object>of("iban", iban);
+                    boolean same = kept && !account(current).isEmpty() && bankAccounts.same(account(current), entered, member.clubId, member.id);
+                    payment.putAll(same ? account(current) : bankAccounts.seal(iban, member.clubId, member.id));
+                }
+            } else { payment.putAll(account(current)); }
             String tax = sepa.containsKey("holderTaxId") || !kept ? text(sepa.get("holderTaxId"), "sepa.holderTaxId", 80, false) : string(current.get("holderTaxId"));
             if (sepa.containsKey("holderTaxId") && tax != null && "ES".equals(countries.countryCode())
                     && !countries.document(tax.startsWith("X") || tax.startsWith("Y") || tax.startsWith("Z") ? "NIE" : "DNI", tax)) { throw invalid("sepa.holderTaxId", "INVALID_VALUE"); }
@@ -156,9 +166,9 @@ public class MemberService {
             // or another account — is a new mandate: the next sequence of the member's reference (`-2`, `-3`…) and today's
             // signature, in this same transaction, so no run can debit the new account under the old mandate. With
             // `billing.sepa.useFrst` its first debit is FRST. A correction of the holder's name or tax id keeps the mandate (R-03-07).
-            var account = select(payment, "iban", "ibanEncrypted");
-            boolean sameMandate = kept && select(current, "iban", "ibanEncrypted").equals(account);
-            if (!sameMandate && !account.isEmpty() && member.memberNumber != null) {
+            var stored = account(payment);
+            boolean sameMandate = kept && account(current).equals(stored);
+            if (!sameMandate && !stored.isEmpty() && member.memberNumber != null) {
                 payment.put("mandateRef", com.agilityhub.core.clubs.census.domain.CensusRules.mandateRef(access.config().club().slug(), member.memberNumber,
                         string(current.get("mandateRef")), lastSequence));
                 payment.put("lastMandateSequence", lastSequence + 1);

@@ -1440,6 +1440,8 @@
             "type" : "string"
           },
           "url" : {
+            "description" : "A path of the api on the local store, an absolute URL on S3 (INC-53)",
+            "format" : "uri-reference",
             "type" : "string"
           }
         },
@@ -2332,7 +2334,7 @@
             "type" : "string"
           },
           "self" : {
-            "description" : "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»)",
+            "description" : "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»). For the member's screens: an ADMIN or INSTRUCTOR reading with their own token a booking they made (also one made impersonating) reads true together with viaClub (INC-42)",
             "type" : "boolean"
           },
           "viaClub" : {
@@ -7558,6 +7560,11 @@
           },
           "thumbnailUrl" : {
             "type" : [ "string", "null" ]
+          },
+          "updatedAt" : {
+            "description" : "The course's last change (D18's date column, S16 §2; INC-62)",
+            "format" : "date-time",
+            "type" : "string"
           }
         },
         "required" : [ "id" ],
@@ -9069,7 +9076,7 @@
             "type" : "string"
           },
           "statusUrl" : {
-            "format" : "uri",
+            "format" : "uri-reference",
             "type" : "string"
           }
         },
@@ -9542,6 +9549,12 @@
             "description" : "Task creation or last note change; completing does not move it",
             "format" : "date-time",
             "type" : "string"
+          },
+          "attachmentCount" : {
+            "description" : "INC-53: the row's live attachments (a task's TASK files; a member note's INSTRUCTOR_NOTE files of the dog)",
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
           },
           "authorGender" : {
             "description" : "Only MEMBER_NOTE rows: the gender of the member who wrote the note, as it was then (never the dog's current owner), for the author label «Laura (alumna)» (S10 §3, §6, §10)",
@@ -13038,6 +13051,44 @@
         "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
         "type" : "object"
       },
+      "ListPagePlatformAuditEntry" : {
+        "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/PlatformAuditEntry"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
       "ListPageRingBlockListItem" : {
         "properties" : {
           "appliedFilters" : {
@@ -15241,7 +15292,7 @@
             "$ref" : "#/components/schemas/ChannelMatrix"
           },
           "name" : {
-            "description" : "The title in the admin's language",
+            "description" : "INC-53: CATALOG → the product name of CATALEG_NOTIFICACIONS («Nom») in the admin's language; CUSTOM → the title the club gave it, in the admin's language",
             "type" : "string"
           },
           "push" : {
@@ -15565,6 +15616,10 @@
               "type" : "null"
             } ],
             "description" : "null on a row written before E7-T02 that does not tell it"
+          },
+          "batchId" : {
+            "description" : "INC-53: the announcement batch of an N-24 or CUSTOM row (AnnouncementSent); null otherwise",
+            "type" : [ "string", "null" ]
           },
           "category" : {
             "$ref" : "#/components/schemas/NotificationCategory"
@@ -16478,8 +16533,9 @@
             "type" : "string"
           },
           "changedByAccountId" : {
+            "description" : "null for a change written by the platform (a club definition, a migration), not by an account (INC-08)",
             "format" : "uuid",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "reason" : {
             "type" : "string"
@@ -17685,6 +17741,75 @@
           }
         },
         "required" : [ "email", "name" ],
+        "type" : "object"
+      },
+      "PlatformAuditEntry" : {
+        "properties" : {
+          "action" : {
+            "$ref" : "#/components/schemas/AuditAction"
+          },
+          "actorAccountId" : {
+            "format" : "uuid",
+            "type" : [ "string", "null" ]
+          },
+          "actorName" : {
+            "type" : [ "string", "null" ]
+          },
+          "actorRole" : {
+            "enum" : [ "ADMIN", "INSTRUCTOR", "MEMBER", "SYSTEM", "PLATFORM", "WEBHOOK" ],
+            "type" : "string"
+          },
+          "at" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "changes" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AuditChange"
+            },
+            "type" : "array"
+          },
+          "clubId" : {
+            "format" : "uuid",
+            "type" : [ "string", "null" ]
+          },
+          "details" : {
+            "additionalProperties" : { },
+            "type" : [ "object", "null" ]
+          },
+          "entityId" : {
+            "type" : "string"
+          },
+          "entityLabel" : {
+            "type" : [ "string", "null" ]
+          },
+          "entityType" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "impersonatedMemberId" : {
+            "format" : "uuid",
+            "type" : [ "string", "null" ]
+          },
+          "impersonatedName" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberId" : {
+            "format" : "uuid",
+            "type" : [ "string", "null" ]
+          },
+          "origin" : {
+            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC", "PLATFORM_SUPPORT" ],
+            "type" : "string"
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "action", "actorRole", "at", "changes", "entityId", "entityType", "id", "origin" ],
         "type" : "object"
       },
       "PlatformClub" : {
@@ -19356,7 +19481,7 @@
         "description" : "A short-lived signed URL of the pain.008 XML; its download answers Content-Disposition attachment with fileName",
         "properties" : {
           "downloadUrl" : {
-            "format" : "uri",
+            "format" : "uri-reference",
             "type" : "string"
           },
           "expiresAt" : {
@@ -19898,6 +20023,32 @@
         "required" : [ "version" ],
         "type" : "object"
       },
+      "RingBooking" : {
+        "properties" : {
+          "bookingId" : {
+            "type" : "string"
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "from" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "ringId" : {
+            "type" : "string"
+          },
+          "to" : {
+            "format" : "date-time",
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookingId", "dogName", "from", "memberName", "ringId", "to" ],
+        "type" : "object"
+      },
       "RingConflicts" : {
         "properties" : {
           "conflicts" : {
@@ -20115,7 +20266,7 @@
         "properties" : {
           "bookings" : {
             "items" : {
-              "$ref" : "#/components/schemas/SlotOccupant"
+              "$ref" : "#/components/schemas/RingBooking"
             },
             "type" : "array"
           }
@@ -20350,6 +20501,11 @@
           "dismantledByAccountId" : {
             "type" : [ "string", "null" ]
           },
+          "dismantledReason" : {
+            "description" : "INC-62: only DISMANTLED — REPLACED (another setup on the ring), MANUAL or RING_INACTIVE",
+            "enum" : [ "REPLACED", "MANUAL", "RING_INACTIVE", null ],
+            "type" : [ "string", "null" ]
+          },
           "expectedUntil" : {
             "format" : "date",
             "type" : [ "string", "null" ]
@@ -20381,6 +20537,11 @@
             "type" : [ "string", "null" ]
           },
           "placementId" : {
+            "type" : [ "string", "null" ]
+          },
+          "replacedBySetupId" : {
+            "description" : "INC-62: the setup that replaced it (dismantledReason REPLACED)",
+            "format" : "uuid",
             "type" : [ "string", "null" ]
           },
           "ringId" : {
@@ -21448,7 +21609,7 @@
       "SignupDocumentFile" : {
         "properties" : {
           "downloadUrl" : {
-            "format" : "uri",
+            "format" : "uri-reference",
             "type" : "string"
           },
           "fileKey" : {
@@ -22527,6 +22688,11 @@
             } ],
             "description" : "Only for INSTRUCTOR and ADMIN; never in the MEMBER projection (R-09-12)."
           },
+          "classStartsAtLocal" : {
+            "description" : "INC-44: the club-local start (HH:mm) of the class that occupies the cell («18:50 classe», S09 §13-3); every viewer",
+            "pattern" : "^\\d{2}:\\d{2}$",
+            "type" : [ "string", "null" ]
+          },
           "occupants" : {
             "description" : "Only for INSTRUCTOR and ADMIN; never in the MEMBER projection (R-09-12).",
             "items" : {
@@ -22794,6 +22960,24 @@
         "required" : [ "dogId", "text" ],
         "type" : "object"
       },
+      "TaskDoneBy" : {
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "description" : "Personal article of the member (personArticle)",
+            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "type" : "string"
+          },
+          "role" : {
+            "enum" : [ "MEMBER", "INSTRUCTOR", "ADMIN" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "role" ],
+        "type" : "object"
+      },
       "TaskItem" : {
         "properties" : {
           "attachmentsCount" : {
@@ -22807,6 +22991,10 @@
           "doneAt" : {
             "format" : "date-time",
             "type" : "string"
+          },
+          "doneBy" : {
+            "$ref" : "#/components/schemas/TaskDoneBy",
+            "description" : "INC-53: «feta per {article}{name} el {date}» of screen 13; only on a done task, never an account id"
           },
           "id" : {
             "format" : "uuid",
@@ -24101,6 +24289,7 @@
             "type" : "object"
           },
           "uploadUrl" : {
+            "format" : "uri-reference",
             "type" : "string"
           }
         },
@@ -24147,7 +24336,8 @@
             "type" : "object"
           },
           "uploadUrl" : {
-            "format" : "uri",
+            "description" : "A path of the api on the local store (INC-53), an absolute URL on S3",
+            "format" : "uri-reference",
             "type" : "string"
           }
         },
@@ -29735,7 +29925,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. Two simultaneous registrations on one entity are serialized: at the limit, the second → ATTACHMENT_LIMIT_REACHED. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. Two simultaneous registrations on one entity are serialized: at the limit, the second → ATTACHMENT_LIMIT_REACHED. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING; an upload whose grant expired before it was registered → 409 INVALID_STATE with details.reason = UPLOAD_EXPIRED.",
         "operationId" : "add",
         "parameters" : [ {
           "in" : "header",
@@ -39753,7 +39943,7 @@
           "key" : "activeOnRings"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings" ],
+        "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "owner", "discipline", "agilityhubLevel", "levelId", "source", "tag", "designerName", "obstacleCount", "updatedAt" ],
         "x-sortable" : [ "name", "updatedAt" ]
@@ -47018,7 +47208,7 @@
           "key" : "completedAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread" ],
+        "x-fields" : [ "id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread", "attachmentCount" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
         "x-sortable" : [ "activityAt" ]
@@ -52577,7 +52767,7 @@
     },
     "/api/v1/jobs/{name}/trigger" : {
       "post" : {
-        "description" : "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). An optional Idempotency-Key answers its own run to a retry whose answer was lost, without running again (CONVENCIONS_API §7, E75). Tenant comes from the JWT.",
         "operationId" : "triggerJob",
         "parameters" : [ {
           "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep",
@@ -52585,6 +52775,14 @@
           "name" : "name",
           "required" : true,
           "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "format" : "uuid",
             "type" : "string"
           }
         } ],
@@ -52657,7 +52855,7 @@
                 }
               }
             },
-            "description" : "JOB_ALREADY_RUNNING"
+            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED"
           },
           "429" : {
             "content" : {
@@ -59001,8 +59199,18 @@
     },
     "/api/v1/me/notifications/read-all" : {
       "post" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. INC-53: the optional upTo (the instant screen 11 was read) marks only those created until then, so a retry sent later never marks read a notice the member has not seen; a bound in the future is now; a value that is not an instant → 400 VALIDATION_ERROR. Tenant comes from the JWT.",
         "operationId" : "readAllNotifications",
+        "parameters" : [ {
+          "description" : "ISO-8601 instant; default now",
+          "in" : "query",
+          "name" : "upTo",
+          "required" : false,
+          "schema" : {
+            "format" : "date-time",
+            "type" : "string"
+          }
+        } ],
         "responses" : {
           "200" : {
             "content" : {
@@ -59022,7 +59230,7 @@
                 }
               }
             },
-            "description" : "Bad Request"
+            "description" : "VALIDATION_ERROR"
           },
           "401" : {
             "content" : {
@@ -67800,7 +68008,7 @@
           "key" : "readAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt" ],
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
         "x-sortable" : [ "createdAt" ]
@@ -68052,7 +68260,7 @@
           "key" : "readAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt" ],
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
         "x-sortable" : [ "createdAt" ]
@@ -72298,11 +72506,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListPageAuditEntryListItem"
+                  "$ref" : "#/components/schemas/ListPagePlatformAuditEntry"
                 }
               }
             },
-            "description" : "ListPage<AuditEntryListItem>"
+            "description" : "ListPage<PlatformAuditEntry>: whole rows (no fields parameter)"
           },
           "400" : {
             "content" : {
@@ -72992,7 +73200,7 @@
     },
     "/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger" : {
       "post" : {
-        "description" : "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED.",
+        "description" : "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED. An optional Idempotency-Key answers its own run to a retry (CONVENCIONS_API §7, E75).",
         "operationId" : "platformTriggerJob",
         "parameters" : [ {
           "in" : "path",
@@ -73007,6 +73215,14 @@
           "name" : "name",
           "required" : true,
           "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "format" : "uuid",
             "type" : "string"
           }
         } ],
@@ -73079,7 +73295,7 @@
                 }
               }
             },
-            "description" : "JOB_ALREADY_RUNNING"
+            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED"
           },
           "429" : {
             "content" : {
@@ -77139,7 +77355,7 @@
           "key" : "activeOnRings"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings" ],
+        "x-fields" : [ "id", "name", "discipline", "level", "designerName", "source", "thumbnailUrl", "stats", "ownerType", "activeOnRings", "updatedAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "owner", "discipline", "agilityhubLevel", "levelId", "source", "tag", "designerName", "obstacleCount", "updatedAt" ],
         "x-sortable" : [ "name", "updatedAt" ]
@@ -86801,7 +87017,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachmentIds are the fileKeys of the caller's TASK uploads, registered in the same Mongo transaction as the task, its D14 row and TaskCreated (→ N-20 to the owner): a refused one (ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, …) leaves no task. Same Idempotency-Key → same 201. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachmentIds are the fileKeys of the caller's TASK uploads, registered in the same Mongo transaction as the task, its D14 row and TaskCreated (→ N-20 to the owner): a refused one (ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, an upload whose grant expired before it was registered → 409 INVALID_STATE with details.reason = UPLOAD_EXPIRED, …) leaves no task. Same Idempotency-Key → same 201. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "createTask",
         "parameters" : [ {
           "in" : "header",
@@ -86881,7 +87097,7 @@
                 }
               }
             },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -89491,8 +89707,17 @@
     },
     "/api/v1/waitlist-entries" : {
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
         "operationId" : "joinWaitlist",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : false,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -89562,7 +89787,7 @@
                 }
               }
             },
-            "description" : "ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT, BOOKING_LIMIT_REACHED"
+            "description" : "ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT, BOOKING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -89934,7 +90159,7 @@
     },
     "/api/v1/waitlist-entries/{id}/claim" : {
       "post" : {
-        "description" : "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: a repeated key returns the same response, also a 409/422. Requires WAITLIST. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: as R-08-08's, one UUID per request body (a swap included); a repeated key returns the same response, also a 409/422 (INC-42). Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "claimSeat",
         "parameters" : [ {
           "in" : "path",

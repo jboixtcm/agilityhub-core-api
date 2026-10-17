@@ -129,7 +129,7 @@ class CourseLibraryIT extends CourseItSupport {
         error(as(json(patch("/api/v1/courses/e9t2-account"), Map.of("version", 0, "visibility", "CLUB")), OTHER, "INSTRUCTOR"), 400, "VALIDATION_ERROR");
     }
 
-    @Test void T_16_03_editsAreInPlaceWithTheLastTenModelsInHistoryAndADiffEvent() throws Exception {
+    @Test void S16_3_editsAreInPlaceWithTheLastTenModelsInHistoryAndADiffEvent() throws Exception {
         String id = create(CLUB, "INSTRUCTOR", course("Versions", model(1, false))).path("id").asText();
         for (int version = 0; version < 11; version++) {
             var body = mapper.createObjectNode().put("version", version).put("schemaVersion", 1);
@@ -154,7 +154,7 @@ class CourseLibraryIT extends CourseItSupport {
         assertThat(events("CourseUpdated", id)).hasSize(11);
     }
 
-    @Test void T_16_03_aCourseShownByAnActiveSetupCannotBeDeletedAndADeletedOneIsGone() throws Exception {
+    @Test void T_16_06_aCourseShownByAnActiveSetupCannotBeDeletedAndADeletedOneIsGone() throws Exception {
         String direct = create(CLUB, "INSTRUCTOR", course("Muntat", model(1, false))).path("id").asText();
         String placed = create(CLUB, "INSTRUCTOR", course("Col·locat", model(1, false))).path("id").asText();
         mongo.insert(new Document("_id", "e9t2-setup-1").append("clubId", CLUB).append("ringId", "e9t2-ring-a1").append("status", "ACTIVE").append("courseId", direct), "ring_setups");
@@ -206,6 +206,9 @@ class CourseLibraryIT extends CourseItSupport {
         var levels = list(CLUB, "ADMIN", "?filter=owner:eq:CLUB&sort=name,asc");
         assertThat(levels.at("/items/0/level").asText()).isEqualTo("A–B");
         assertThat(levels.at("/items/1/level").isNull()).isTrue();
+        // INC-62 (E11-T02, S16 §2): D18's list shows each course's date.
+        assertThat(levels.at("/items/0/updatedAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(list(CLUB, "ADMIN", "?fields=updatedAt&filter=owner:eq:CLUB").at("/items/0/updatedAt").asText()).isEqualTo(clock.instant().toString());
         assertThat(levels.path("totalItems").asLong()).isEqualTo(2);
         var sparse = list(CLUB, "ADMIN", "?fields=name&size=20&page=0&sort=name,asc");
         assertThat(sparse.path("items").get(0).size()).isEqualTo(2);

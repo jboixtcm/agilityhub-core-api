@@ -191,7 +191,12 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         login();
     }
 
-    @Test void T_01_04_simultaneousRefreshOnlyRotatesOnceAndCommitsFamilyRevocationOnReuse() throws Exception {
+    /**
+     * INC-36 (S01 R-01-06): two refreshes of one token at once (two tabs of one browser) both succeed. The loser of the rotation
+     * retries its transaction, finds the token just rotated inside `auth.refreshReuseGraceSeconds` and takes the grace: the
+     * family keeps exactly one live token and nothing is revoked (before: one `REFRESH_REUSED` and the whole session lost).
+     */
+    @Test void T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndKeepOneLiveToken() throws Exception {
         String value = refreshValue(login());
         try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
             var gate = new java.util.concurrent.CyclicBarrier(2);
@@ -203,9 +208,11 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                 }
             };
             var results = pool.invokeAll(List.of(attempt, attempt));
-            assertThat(List.of(results.get(0).get(), results.get(1).get())).containsExactlyInAnyOrder("OK", "REFRESH_REUSED");
+            assertThat(List.of(results.get(0).get(), results.get(1).get())).containsExactly("OK", "OK");
         }
-        assertThat(mongo.findAll(RefreshToken.class)).hasSize(2).allMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+        var family = mongo.findAll(RefreshToken.class);
+        assertThat(family).hasSize(3).noneMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+        assertThat(family).filteredOn(t -> t.status() == RefreshToken.Status.ACTIVE).hasSize(1);
     }
 
     @Test void T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26() throws Exception {

@@ -31,7 +31,7 @@ public class ActivityApiService {
     public Map<String,Object> document(String id,String key,String name) { var file=service.document(id,key,name); return projection.document(service.require(id).documents().stream().filter(d -> d.id().equals(file.id())).findFirst().orElseThrow()); }
     public void deleteFile(String id,String docId) { service.deleteFile(id,docId); }
     public Map<String,Object> conflicts(String id) {
-        var result=lifecycle.conflicts(id); return object("conflicts",result.conflicts(),"trainingBookings",result.bookings().stream().map(b -> object("bookingId",b.id(),"ringId",b.ringId(),"from",b.from(),"to",b.to(),"memberName",b.memberName(),"dogName",b.dogName())).toList());
+        var result=lifecycle.conflicts(id); return object("conflicts",result.conflicts(),"trainingBookings",result.bookings().stream().map(b -> object("bookingId",b.bookingId(),"ringId",b.ringId(),"from",b.from(),"to",b.to(),"memberName",b.memberName(),"dogName",b.dogName())).toList());
     }
     public Map<String,Object> preview(String id) {
         var a=service.require(id); var rows=registrations.registrations.live(id).stream().map(r -> {

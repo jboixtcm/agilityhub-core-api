@@ -7,9 +7,15 @@ import org.springframework.http.MediaType;
 public final class FileDownloads {
     private FileDownloads() { }
 
-    /** The stored MIME type, or `application/octet-stream` when it does not parse. */
+    /**
+     * The stored MIME type, or `application/octet-stream` when it does not parse or is a wildcard (INC-43: `image/*`, which an
+     * upload may declare, cannot be a response's `Content-Type`).
+     */
     public static MediaType type(String stored) {
-        try { return MediaType.parseMediaType(stored); } catch (InvalidMediaTypeException invalid) { return MediaType.APPLICATION_OCTET_STREAM; }
+        try {
+            var type = MediaType.parseMediaType(stored);
+            return type.isWildcardType() || type.isWildcardSubtype() ? MediaType.APPLICATION_OCTET_STREAM : type;
+        } catch (InvalidMediaTypeException invalid) { return MediaType.APPLICATION_OCTET_STREAM; }
     }
 
     /** An SVG can carry script: it is never shown on the api's origin, always an `attachment`. */

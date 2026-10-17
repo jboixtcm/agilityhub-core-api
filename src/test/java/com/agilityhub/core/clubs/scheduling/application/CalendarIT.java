@@ -82,7 +82,14 @@ class CalendarIT extends AbstractIntegrationTest {
         return response.getContentAsByteArray().length == 0 ? mapper.nullNode() : mapper.readTree(response.getContentAsByteArray());
     }
     void error(String method, String path, Object body, ErrorCode code) throws Exception {
-        mvc.perform(call(method, path, body)).andExpect(status().is(code.httpStatus())).andExpect(jsonPath("$.code").value(code.name())).andExpect(jsonPath("$.traceId").isNotEmpty());
+        var response = mvc.perform(call(method, path, body)).andExpect(status().is(code.httpStatus())).andExpect(jsonPath("$.code").value(code.name())).andExpect(jsonPath("$.traceId").isNotEmpty())
+                .andReturn().getResponse();
+        // INC-09: one published shape for RING_HAS_BOOKINGS's details, whichever route answers it.
+        if (code == ErrorCode.RING_HAS_BOOKINGS) {
+            var details = mapper.readTree(response.getContentAsString()).path("details");
+            assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(details, "RingHasBookingsDetails")).as(path).isEmpty();
+            assertThat(details.at("/bookings/0/bookingId").asText()).as(path).isNotBlank();
+        }
     }
     String template(String name, String kind) throws Exception { return ok("POST", "/week-templates", Map.of("name", name, "kind", kind)).path("id").asText(); }
     JsonNode band(String id) throws Exception { return ok("POST", "/week-templates/" + id + "/bands", Map.of("startTime", "18:00", "endTime", "19:00")); }
@@ -301,6 +308,7 @@ class CalendarIT extends AbstractIntegrationTest {
         var event=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("RingBlockCreated")),Document.class,"domain_events");
         assertThat(event).as("the outbox event").isNotNull();assertThat(event.getString("origin")).isEqualTo("INSTRUCTOR");
     }
+    /** T-06-16 and INC-09: the ring-block and the class-session routes answer RING_HAS_BOOKINGS with the published details. */
     @Test void T_06_16_trainingConflictsCancelAtomicallyOnlyForAdmin() throws Exception {
         modules(Module.FREE_TRAINING);var from=Instant.parse("2026-08-25T16:00:00Z");
         doubles.training.add(new TrainingConflictPort.Booking("training-a","plan-ring",from,from.plusSeconds(1800),"Example","Dog"));
@@ -565,13 +573,13 @@ class CalendarIT extends AbstractIntegrationTest {
             if(fail) throw new IllegalStateException("Forced booking failure");return result;
         }
         public List<TrainingConflictPort.Booking> findActiveBookings(String ring,Instant from,Instant to) {return training.stream().filter(b -> b.ringId().equals(ring) && b.from().isBefore(to) && from.isBefore(b.to())).toList();}
-        public void cancelByClub(List<String> ids,String reason) {var removed=training.stream().filter(b -> ids.contains(b.id())).toList();training.removeAll(removed);undo(() -> training.addAll(removed));if(fail) throw new IllegalStateException("Forced training failure");}
+        public void cancelByClub(List<String> ids,String reason) {var removed=training.stream().filter(b -> ids.contains(b.bookingId())).toList();training.removeAll(removed);undo(() -> training.addAll(removed));if(fail) throw new IllegalStateException("Forced training failure");}
         public void lockSlots(String ring,Instant from,Instant to) {
             if(!from.equals(gateAt)) return;
             gateAt=null;gateEntered.countDown();
             try {gateRelease.await(30,TimeUnit.SECONDS);} catch(InterruptedException interrupted) {Thread.currentThread().interrupt();}
         }
-        public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.id())).toList();}
+        public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.bookingId())).toList();}
         public Map<String,String> titles(Collection<String> ids,Locale locale) {var titles=new HashMap<String,String>();ids.forEach(id -> titles.put(id,"Example activity"));return titles;}
         private void undo(Runnable action) {assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {public void afterCompletion(int status) {if(status!=STATUS_COMMITTED) action.run();}});}
     }

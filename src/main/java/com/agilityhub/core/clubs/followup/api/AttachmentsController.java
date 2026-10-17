@@ -8,6 +8,7 @@ import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.application.HandlerStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -53,7 +54,7 @@ public class AttachmentsController {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String name,
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String mimeType,
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long sizeBytes,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String url,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, format = "uri-reference", description = "A path of the api on the local store, an absolute URL on S3 (INC-53)") String url,
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) java.time.Instant uploadedAt) { }
     private static boolean anyRole(String... roles) {
         var granted = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
@@ -72,7 +73,7 @@ public class AttachmentsController {
         // E6-T03 round 5 (INC-47): a new grant each time, but the first grant of a database creates the grants' collection,
         // and a second transaction doing the same meets a write conflict: retried, never a 500.
         if ("CLUB_LOGO".equals(request.purpose())) { throw new ApiException(FORBIDDEN); }
-        return transactions.keyed(201, () -> attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes()),
+        return transactions.keyed(HandlerStatus.current(), () -> attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes()),
                 KeyedAnswers.json(mapper));
     }
     @PostMapping("/api/v1/attachments")
@@ -80,7 +81,7 @@ public class AttachmentsController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED,
             IMPERSONATION_DENIED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE, VALIDATION_ERROR})
-    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. Two simultaneous registrations on one entity are serialized: at the limit, the second → ATTACHMENT_LIMIT_REACHED. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; an account with MEMBER and a staff role that owns the dog too, S01 R-01-07; staff otherwise → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. Two simultaneous registrations on one entity are serialized: at the limit, the second → ATTACHMENT_LIMIT_REACHED. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING; an upload whose grant expired before it was registered → 409 INVALID_STATE with details.reason = UPLOAD_EXPIRED.",
             responses = @ApiResponse(responseCode = "201", description = "Attachment with signed download URL", content = @io.swagger.v3.oas.annotations.media.Content(schema = @Schema(implementation = AttachmentResponse.class))))
     public Map<String,Object> add(@Valid @RequestBody AttachmentRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
@@ -90,7 +91,7 @@ public class AttachmentsController {
         } else if (access.owner(caller, request.entityId()).staff()) { throw new ApiException(FORBIDDEN); }
         // E6-T03 round 5 (INC-47): the registration and its stored 201 commit together, retried whole on a write conflict
         // (the entity's lock): two registrations on one entity never answer 500.
-        return transactions.keyed(201, () -> attachments.add(request.entityType(), request.entityId(), request.fileKey(), request.name()), KeyedAnswers.json(mapper));
+        return transactions.keyed(HandlerStatus.current(), () -> attachments.add(request.entityType(), request.entityId(), request.fileKey(), request.name()), KeyedAnswers.json(mapper));
     }
     @GetMapping("/api/v1/attachments")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
@@ -116,7 +117,7 @@ public class AttachmentsController {
         access.tenant();
         var caller = access.caller(jwt.getClaimAsString("memberId"));
         // Round 5: the second of two removals with different keys re-reads the attachment removed → 404, never a 500.
-        transactions.keyedNoContent(() -> attachments.remove(access.removableAttachment(caller, id)));
+        transactions.keyedWithoutBody(HandlerStatus.current(), () -> attachments.remove(access.removableAttachment(caller, id)));
     }
     /** The §6 `Attachment` of an {@link AttachmentService} view. */
     static AttachmentResponse response(Map<String, Object> view) {
@@ -133,21 +134,25 @@ public class AttachmentsController {
     /** The local storage's signed download URL (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @io.swagger.v3.oas.annotations.Hidden
     @GetMapping("/api/v1/attachments/files/{id}")
-    public ResponseEntity<InputStreamResource> getLocal(@PathVariable String id, @RequestParam long expires, @RequestParam String signature) throws IOException {
-        return download(attachments.openLocal(id, expires, signature));
+    public ResponseEntity<InputStreamResource> getLocal(@PathVariable String id, @RequestParam long expires, @RequestParam String signature,
+            @RequestHeader HttpHeaders request) throws IOException {
+        return download(attachments.openLocal(id, expires, signature), request);
     }
     /**
      * E5-T26: a local download answers like S3, with the file's stored MIME type, so that an `<img>` of another origin shows it.
      * An image is `inline` and any other file an `attachment`, both with the stored name; `nosniff` stays. E5-T27 step 8 (ruling
      * E61, CONVENCIONS_API §5): an SVG, which can carry script, is always an `attachment`, and every download carries the api's
      * policy plus `sandbox`, so nothing opened on the api's origin runs there.
+     * INC-43 (E11-T02): byte ranges ({@link com.agilityhub.core.shared.application.ByteRanges}).
      */
-    static ResponseEntity<InputStreamResource> download(AttachmentService.Download file) {
+    static ResponseEntity<InputStreamResource> download(AttachmentService.Download file, HttpHeaders request) throws IOException {
         var type = com.agilityhub.core.shared.application.FileDownloads.type(file.mimeType());
         var disposition = com.agilityhub.core.shared.application.FileDownloads.shownInline(type) ? ContentDisposition.inline() : ContentDisposition.attachment();
-        return ResponseEntity.ok().contentType(type).contentLength(file.sizeBytes())
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.filename(file.name(), java.nio.charset.StandardCharsets.UTF_8).build().toString())
-                .header("Content-Security-Policy", com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD)
-                .header(HttpHeaders.CACHE_CONTROL, "no-store").body(new InputStreamResource(file.content()));
+        var headers = new HttpHeaders();
+        headers.setContentType(type);
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, disposition.filename(file.name(), java.nio.charset.StandardCharsets.UTF_8).build().toString());
+        headers.set("Content-Security-Policy", com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD);
+        headers.set(HttpHeaders.CACHE_CONTROL, "no-store");
+        return com.agilityhub.core.shared.application.ByteRanges.answer(headers, file.sizeBytes(), file.content(), request);
     }
 }

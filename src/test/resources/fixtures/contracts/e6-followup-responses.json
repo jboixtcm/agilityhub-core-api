@@ -16,11 +16,11 @@
   "Observations": {"text": "Va molt bé amb reforç de pilota…", "updatedAt": "2026-08-01T10:00:00Z", "updatedByName": "Marc", "version": 5},
   "FollowupPage": {"items": [
       {"id": "f1", "kind": "TASK", "taskId": "t1", "dogId": "d1", "dogName": "Duna", "levelCode": "C", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Estel", "authorRole": "INSTRUCTOR",
-       "textExcerpt": "Practiqueu el balancí amb calma: sessions curtes", "createdAt": "2026-08-12T16:00:00Z", "activityAt": "2026-08-12T16:00:00Z", "unread": true},
+       "textExcerpt": "Practiqueu el balancí amb calma: sessions curtes", "createdAt": "2026-08-12T16:00:00Z", "activityAt": "2026-08-12T16:00:00Z", "unread": true, "attachmentCount": 1},
       {"id": "f2", "kind": "MEMBER_NOTE", "dogId": "d1", "dogName": "Duna", "levelCode": "C", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Laura", "authorRole": "MEMBER",
-       "textExcerpt": "A veure si treballem una mica el doble a classe…", "createdAt": "2026-08-19T17:02:00Z", "activityAt": "2026-08-19T17:02:00Z", "unread": false},
+       "textExcerpt": "A veure si treballem una mica el doble a classe…", "createdAt": "2026-08-19T17:02:00Z", "activityAt": "2026-08-19T17:02:00Z", "unread": false, "attachmentCount": 0},
       {"id": "f3", "kind": "TASK", "taskId": "t3", "dogId": "d1", "dogName": "Duna", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Estel", "authorRole": "INSTRUCTOR",
-       "textExcerpt": "Treballar l'«espera» a la línia de sortida", "createdAt": "2026-07-28T16:00:00Z", "completedAt": "2026-08-02T18:30:00Z", "activityAt": "2026-07-28T16:00:00Z", "unread": false}],
+       "textExcerpt": "Treballar l'«espera» a la línia de sortida", "createdAt": "2026-07-28T16:00:00Z", "completedAt": "2026-08-02T18:30:00Z", "activityAt": "2026-07-28T16:00:00Z", "unread": false, "attachmentCount": 2}],
     "page": 0, "size": 50, "totalItems": 3, "totalPages": 1, "appliedFilters": [{"field": "dogId", "op": "eq", "value": "d1"}]},
   "FollowupUnreadCount": {"count": 5}
 }

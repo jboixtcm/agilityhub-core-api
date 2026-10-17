@@ -129,9 +129,9 @@ public class AuditController {
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform audit entries",
             description = "S17 R-17-12. Global platform view. Only configuration audit entries and aggregate-safe security metadata; member audit is excluded regardless of filters.",
-            responses = @ApiResponse(responseCode = "200", description = "ListPage<AuditEntryListItem>"))
-    public ListPage<AuditEntryListItem> platformAuditEntries(@io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
-        var result=platformQueries.audit(params);return new ListPage<>(result.items().stream().map(row->mapper.convertValue(row,AuditEntryListItem.class)).toList(),result.page(),result.size(),result.totalItems(),result.totalPages(),result.appliedFilters());
+            responses = @ApiResponse(responseCode = "200", description = "ListPage<PlatformAuditEntry>: whole rows (no fields parameter)"))
+    public ListPage<PlatformAuditEntry> platformAuditEntries(@io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
+        var result=platformQueries.audit(params);return new ListPage<>(result.items().stream().map(row->mapper.convertValue(row,PlatformAuditEntry.class)).toList(),result.page(),result.size(),result.totalItems(),result.totalPages(),result.appliedFilters());
     }
 
     @GetMapping("/api/v1/platform/erasure-requests")

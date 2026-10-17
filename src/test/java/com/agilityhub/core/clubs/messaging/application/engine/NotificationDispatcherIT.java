@@ -659,7 +659,7 @@ class NotificationDispatcherIT extends EngineFixtures {
      * answers. The first dispatcher's own waiting settlement then finds its lease taken and writes nothing. Before the fix the
      * acceptance lived only in the first dispatcher's memory, and the second one sent the e-mail again.
      */
-    @Test void R_11_09_anAcceptanceWhoseSettlementOutlivesItsLeaseIsSettledByTheNextDispatcherWithoutASecondSend() {
+    @Test void T_11_09_R_11_09_anAcceptanceWhoseSettlementOutlivesItsLeaseIsSettledByTheNextDispatcherWithoutASecondSend() {
         mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
         var n = levelNotice("member-marc", "dog-ares");
         var down = new FailingOutbox(events, "NotificationSent", Integer.MAX_VALUE);
@@ -693,13 +693,116 @@ class NotificationDispatcherIT extends EngineFixtures {
     }
 
     /**
+     * INC-52 point 2 (E11-T02; review of E7-T05 #2, R-11-09): the provider accepts, the five writes of the acceptance mark fail
+     * and so does the settlement. Before the claim's lease runs out, the waiting settlement writes the mark first, with a lease
+     * renewed from now: once the first lease is over, another dispatcher neither sends the e-mail again nor claims it, and the
+     * delivery is settled with the stored acceptance when the database answers. Before the fix the waiting settlement retried
+     * only the settlement, the lease ran out and the e-mail went a second time.
+     */
+    @Test void T_11_09_INC_52_aWaitingSettlementWritesTheAcceptanceFirstSoTheEmailIsNeverSentAgain() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var n = levelNotice("member-marc", "dog-ares");
+        var down = new FailingOutbox(events, "NotificationSent", Integer.MAX_VALUE);
+        var markFailures = new java.util.concurrent.atomic.AtomicInteger(NotificationDispatcher.SETTLE_ATTEMPTS);
+        var flaky = new com.agilityhub.core.clubs.messaging.persistence.NotificationRepository(mongo, clock) {
+            @Override public boolean markAccepted(String clubId, String id, String token, String providerRef, Instant at, Instant claimedUntil) {
+                if (markFailures.getAndDecrement() > 0) { throw new com.mongodb.MongoException("acceptance store unreachable (injected)"); }
+                return super.markAccepted(clubId, id, token, providerRef, at, claimedUntil);
+            }
+        };
+        var first = new NotificationDispatcher(flaky, subscriptions, mail, sms, push, configs, emailSettings, usage, emails, unsubscribes, ports, accounts,
+                down, new org.springframework.transaction.support.TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
+        clock.advance(Duration.ofMinutes(1));
+        Instant acceptedAt = clock.instant();
+        assertThat(dispatch(first, n)).isEqualTo(1);
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        assertThat(storedDelivery(n.id(), "EMAIL")).as("no mark yet").doesNotContainKey("acceptedAt");
+        // Thirty seconds later the first dispatcher's poll writes the mark, with a lease from now; the settlement still fails.
+        clock.advance(Duration.ofSeconds(30));
+        first.poll();
+        assertThat(storedDelivery(n.id(), "EMAIL").getDate("acceptedAt").toInstant()).isEqualTo(acceptedAt);
+        assertThat(storedDelivery(n.id(), "EMAIL").getDate("claimedUntil").toInstant()).isEqualTo(clock.instant().plus(NotificationDispatcher.LEASE));
+        // The first lease is over: another dispatcher sends nothing and claims nothing.
+        clock.advance(NotificationDispatcher.LEASE.minusSeconds(20));
+        var second = dispatcher(sms, ports, usage, down);
+        second.poll();
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        // The database answers: the delivery ends SENT with the acceptance, still one e-mail.
+        down.left.set(0);
+        first.poll();
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.sentAt()).isEqualTo(acceptedAt); assertThat(d.claimToken()).isNull();
+        });
+        clock.advance(Duration.ofHours(2));
+        second.poll(); first.poll();
+        assertThat(mail.to("marc@example.test")).hasSize(1);
+        assertThat(events("NotificationSent", n.id())).hasSize(1);
+    }
+
+    /**
+     * INC-52 point 4 (E11-T02; E7-T05's error path 11): the owner's `sent` hook runs after the settlement's commit, outside it.
+     * When it throws, the failure is logged, the delivery stays `SENT` with its one `NotificationSent`, and nothing is sent or
+     * hooked again: a bookkeeping mark can be missing, the notice went out once.
+     */
+    @Test void T_11_09_INC_52_aFailingSentHookLeavesTheDeliverySentAndNothingIsSentAgain() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        var n = levelNotice("member-marc", "dog-ares");
+        var hooked = new java.util.concurrent.atomic.AtomicInteger();
+        NotificationFactsPort failing = new NotificationFactsPort() {
+            @Override public Set<String> eventTypes() { return Set.of("DogLevelChanged"); }
+            @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) { return Optional.empty(); }
+            @Override public void sent(StoredNotification notification, String channel) {
+                hooked.incrementAndGet(); throw new IllegalStateException("owner hook failed (injected)");
+            }
+        };
+        var withHook = new NotificationDispatcher(notifications, subscriptions, mail, sms, push, configs, emailSettings, usage, emails, unsubscribes, ports, accounts,
+                events, new org.springframework.transaction.support.TransactionTemplate(transactions),
+                java.util.stream.Stream.concat(java.util.stream.Stream.of(failing), owners.stream()).toList(), clock, "no-reply@example.test");
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(dispatch(withHook, n)).isEqualTo(1);
+        assertThat(hooked).hasValue(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SENT); assertThat(d.claimToken()).isNull();
+        });
+        assertThat(events("NotificationSent", n.id())).hasSize(1);
+        clock.advance(Duration.ofHours(2));
+        assertThat(dispatch(withHook, n)).isZero(); withHook.poll();
+        assertThat(mail.to("marc@example.test")).hasSize(1); assertThat(hooked).hasValue(1);
+    }
+
+    /**
+     * INC-52 point 1 (E11-T02; review of E7-T05 #1): the claim of an accepted delivery whose settlement outlived its lease
+     * matches that one delivery with a single predicate, so the positional write takes it, never another accepted delivery of
+     * the same notice whose lease is still live.
+     */
+    @Test void T_11_09_INC_52_theAcceptedClaimTakesTheDeliveryWhoseLeaseExpiredNotAnotherOne() {
+        var n = levelNotice("member-marc", "dog-ares");
+        var stored = mongo.findById(n.id(), Document.class, "notifications");
+        var second = new Document(stored.getList("deliveries", Document.class).getFirst()); second.put("channel", "PUSH");
+        Instant now = clock.instant(), acceptedAt = now.minusSeconds(600);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(n.id())), new Update().push("deliveries", second), "notifications");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(n.id())), new Update()
+                .set("deliveries.0.acceptedAt", acceptedAt).set("deliveries.0.claimToken", "live").set("deliveries.0.claimedUntil", now.plusSeconds(300))
+                .set("deliveries.1.acceptedAt", acceptedAt).set("deliveries.1.claimToken", "expired").set("deliveries.1.claimedUntil", now.minusSeconds(60)), "notifications");
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            assertThat(notifications.claimAccepted(n.id(), now, Duration.ofMinutes(2), "claimant")).isPresent();
+        }
+        var deliveries = mongo.findById(n.id(), Document.class, "notifications").getList("deliveries", Document.class);
+        assertThat(deliveries.get(0).getString("claimToken")).as("the live lease is kept").isEqualTo("live");
+        assertThat(deliveries.get(1).getString("claimToken")).as("the expired one is claimed").isEqualTo("claimant");
+        assertThat(deliveries.get(1).getDate("claimedUntil").toInstant()).isEqualTo(now.plus(Duration.ofMinutes(2)));
+        assertThat(mongo.indexOps("notifications").getIndexInfo()).extracting(org.springframework.data.mongodb.core.index.IndexInfo::getName)
+                .contains("notification_delivery_accepted_sparse").doesNotContain("notification_delivery_accepted");
+    }
+
+    /**
      * E7-T05 step 1: the same after the dispatcher is replaced — a new bean with empty memory, as after a restart. While the
      * first dispatcher's lease holds, the new one claims nothing; once it expired, the new one settles the recorded
      * acceptance without calling the provider: Marc's e-mail ends `SENT` with the acceptance's reference and time. Pau's was
      * delivered (webhook) before any settlement: that state stays and the settlement only adds the acceptance (R-11-08), with
      * no `NotificationSent`. Before the fix the new dispatcher sent Marc's e-mail again.
      */
-    @Test void R_11_09_anAcceptanceSurvivesTheDispatchersReplacement() {
+    @Test void T_11_09_R_11_09_anAcceptanceSurvivesTheDispatchersReplacement() {
         mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
         var marc = levelNotice("member-marc", "dog-ares");
         mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
@@ -742,7 +845,7 @@ class NotificationDispatcherIT extends EngineFixtures {
      * `NotificationSent` nor `NotificationFailed`. The account's mark alone (a SYSTEM e-mail bounced Pau's login address)
      * stops a retry too. Before the fix both were sent to the bounced address.
      */
-    @Test void R_11_08_aHardBounceStopsTheQueuedEmailsAndThePendingRetriesToThatAddress() {
+    @Test void T_11_11_R_11_08_aHardBounceStopsTheQueuedEmailsAndThePendingRetriesToThatAddress() {
         mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
         var retry = levelNotice("member-marc", "dog-ares");
         assertThat(delivery(reload(retry), NotificationChannel.EMAIL)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(1); });
@@ -781,6 +884,32 @@ class NotificationDispatcherIT extends EngineFixtures {
     }
 
     /**
+     * INC-52 point 5 (E11-T02; decision E81, R-11-08): Marc and Pau share one address. Pau's notice is queued, then Marc's
+     * e-mail to that address hard-bounces, which marks Marc's contact only. At its attempt, Pau's e-mail is checked by the
+     * address (every member that has it), not only by Pau's own contact: it ends `SKIPPED_NO_CONTACT` and nothing is sent.
+     */
+    @Test void T_11_11_INC_52_aSharedAddressThatBouncedStopsTheOtherMembersQueuedEmail() {
+        String shared = "shared-family@example.test";
+        for (String member : List.of("member-marc", "member-pau")) {
+            ports.update(member, c -> InMemoryMessagingPorts.with(c, null, null, List.of(new com.agilityhub.core.clubs.messaging.application.ports.MemberContact.Email(shared, false)), null));
+        }
+        var inline = engine;
+        engine = engine(idleDispatcher());
+        var marc = levelNotice("member-marc", "dog-ares"); var pau = levelNotice("member-pau", "dog-nit");
+        engine = inline;
+        assertThat(dispatch(dispatcher, marc)).isEqualTo(1);
+        assertThat(mail.to(shared)).hasSize(1);
+        webhookOverPorts().accept("sg-inc52-shared", "bounce", marc.id(), CLUB, shared, "bounce");
+        assertThat(ports.find("member-marc").orElseThrow().emails()).singleElement().satisfies(e -> assertThat(e.bounced()).isTrue());
+        assertThat(ports.find("member-pau").orElseThrow().emails()).singleElement().satisfies(e -> assertThat(e.bounced()).as("only Marc's contact is marked").isFalse());
+        assertThat(dispatch(dispatcher, pau)).isEqualTo(1);
+        assertThat(delivery(reload(pau), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_NO_CONTACT); assertThat(d.lastError()).isEqualTo("Email address suppressed");
+        });
+        assertThat(mail.to(shared)).hasSize(1);
+    }
+
+    /**
      * E7-T05 step 3 (review #3, R-11-07): on `GONE` the subscription's `EXPIRED` and its `PushUnsubscribed` are written by the
      * settlement's transaction, which keeps the push service's answer. (1) The `PushUnsubscribed` outbox write fails once →
      * the settlement is written again with the same answer: one call to the push service, the delivery `FAILED`, the
@@ -788,7 +917,7 @@ class NotificationDispatcherIT extends EngineFixtures {
      * answer waits in the dispatcher and is written before its next claims: still one call. Before the fix the expiry ran
      * apart and its failure was swallowed: the subscription stayed `ACTIVE`, and nothing would ever expire it.
      */
-    @Test void R_11_07_aGoneAnswersExpiryIsPartOfTheRetriedSettlementAndIsNeverLost() {
+    @Test void T_11_10_R_11_07_aGoneAnswersExpiryIsPartOfTheRetriedSettlementAndIsNeverLost() {
         var startsAt = Instant.parse("2026-10-08T16:50:00Z");
         engine = engine(idleDispatcher());
         java.util.function.IntFunction<Notification> remind = i -> {
@@ -841,15 +970,17 @@ class NotificationDispatcherIT extends EngineFixtures {
      * reservation overwrote November with October/1 (the next November send restarted it again, so the cap no longer held),
      * and the late notice moved the marker back to October.
      */
-    @Test void R_11_06_aSenderLateOnTheOldMonthNeverMovesTheCounterNorTheNoticeMarkerBack() {
+    @Test void T_11_07_R_11_06_aSenderLateOnTheOldMonthNeverMovesTheCounterNorTheNoticeMarkerBack() {
         var october = YearMonth.of(2026, 10); var november = YearMonth.of(2026, 11);
         usageOf(CLUB, 202611, 5);
         assertThat(usage.firstCapNotice(CLUB, november)).isTrue();
         var late = usage.reserve(CLUB, october, 1000);
-        assertThat(late).isEqualTo(new ClubSmsUsage.Reservation(november, true));
+        // INC-52 point 3: what is stored is checked before the answer, so that the test also fails on the stored month with the
+        // code before the fix (whose `reserve` only answered a boolean): November's 5 + 1, never October/1.
         assertThat(usage(CLUB)).containsEntry("smsMonthKey", 202611L).containsEntry("smsSentMonth", 6L).containsEntry("smsCapNoticeMonth", 202611L);
         assertThat(usage.firstCapNotice(CLUB, october)).isFalse(); assertThat(usage.firstCapNotice(CLUB, november)).isFalse();
         assertThat(usage(CLUB)).containsEntry("smsCapNoticeMonth", 202611L);
+        assertThat(late).isEqualTo(new ClubSmsUsage.Reservation(november, true));
         // A failed late send gives back its reservation in the month it was counted in.
         usage.release(CLUB, late.month());
         assertThat(usage.sent(CLUB, november)).isEqualTo(5);
@@ -876,7 +1007,7 @@ class NotificationDispatcherIT extends EngineFixtures {
      * abandons the attempt: one e-mail and, for an SMS, one message counted once (the abandoned reservation is given back).
      * Before the fix the first dispatcher sent a second e-mail and a second SMS.
      */
-    @Test void R_11_09_anAttemptWhoseLeaseRanOutBeforeTheProviderCallNeverSends() {
+    @Test void T_11_09_R_11_09_anAttemptWhoseLeaseRanOutBeforeTheProviderCallNeverSends() {
         mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
         var n = levelNotice("member-marc", "dog-ares");
         classSession(CLUB, "e7t02-class-a", "2026-10-08T18:50", List.of("instructor-marta"));

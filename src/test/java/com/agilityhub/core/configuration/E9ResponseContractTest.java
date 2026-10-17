@@ -109,6 +109,7 @@ class E9ResponseContractTest {
         enums.put(CourseSource.class,"SMARTER,EDITOR,IMAGE,AGILITYHUB_COPY");enums.put(AgilityHubLevel.class,"EASY,MEDIUM,HARD");enums.put(SizeCategory.class,"GRAND,GARDEN");
         enums.put(PlacementMode.class,"PRESERVE_METERS,CENTERED,FIT_TO_RING");enums.put(PlacementStatus.class,"DRAFT,READY_TO_BUILD,ARCHIVED");enums.put(PlacementUse.class,"EVENT,TRAINING,FREE_FLOATING");
         enums.put(DogSize.class,"XS,S,M,I,L,ALL");enums.put(SetupKind.class,"AGILITY,JUMPING,FUN,OBSTACLE_DRILL,EMPTY");enums.put(SetupStatus.class,"ACTIVE,EXPIRED,DISMANTLED");
+        enums.put(DismantledReason.class,"REPLACED,MANUAL,RING_INACTIVE"); // INC-62 (E11-T02)
         enums.put(BuildStatus.class,"NOT_STARTED,IN_PROGRESS,COMPLETED,ABANDONED");enums.put(BuildStrategy.class,"EQUIPMENT_TYPE,CLOSER_OBSTACLE_ORDER,FREE_BUILD");
         enums.put(ObstacleStatus.class,"NOT_PLACED,CURRENT,PLACED,SKIPPED,NEEDS_CHECK");enums.put(JoinedVia.class,"QR,CODE");enums.put(InventoryScope.class,"CLUB,RING");
         enums.put(CalibrationOutcome.class,"GREEN,YELLOW,RED,ABORTED");enums.put(DoorSide.class,"NORTH,SOUTH,EAST,WEST");enums.put(DoorFlow.class,"IN,OUT,BOTH");
@@ -176,7 +177,8 @@ class E9ResponseContractTest {
         }
         for(String path:List.of("/api/v1/courses","/api/v1/platform/courses")) {
             var get=api.path("paths").path(path).path("get");
-            assertThat(strings(get.path("x-fields"))).containsExactlyInAnyOrder("id","name","discipline","level","designerName","source","thumbnailUrl","stats","ownerType","activeOnRings");
+            // INC-62 (E11-T02): `updatedAt`, D18's date column, is a field of the list too.
+            assertThat(strings(get.path("x-fields"))).containsExactlyInAnyOrder("id","name","discipline","level","designerName","source","thumbnailUrl","stats","ownerType","activeOnRings","updatedAt");
             assertThat(strings(get.path("x-sortable"))).containsExactly("name","updatedAt");
             assertThat(get.path("description").asText()).contains("updatedAt,desc");
         }

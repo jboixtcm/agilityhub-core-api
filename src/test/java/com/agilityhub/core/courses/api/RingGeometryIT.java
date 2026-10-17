@@ -62,6 +62,19 @@ class RingGeometryIT extends CourseItSupport {
         error(as(get("/api/v1/rings/" + RING + "/geometry"), OTHER, "ADMIN"), 404, "NOT_FOUND");
     }
 
+    /**
+     * INC-61 (E11-T02; review of E9-T02 #8, S16 §14.2): the club's slug is already another venue's (a member's, without a
+     * club). The first geometry is saved and the club's venue takes the first free slug, `{slug}-2`; before the fix the
+     * unique `venue_slug` index answered 500 and the valid geometry was rolled back.
+     */
+    @Test void T_16_06_INC_61_theFirstGeometryCreatesTheClubsVenueEvenWhenItsSlugIsTaken() throws Exception {
+        mongo.insert(new Document("_id", "e9t2-inc61-member-venue").append("slug", CLUB).append("name", "A member's venue"), "venues");
+        assertThat(putGeometry(CLUB, geometry(0), 200).path("version").asLong()).isEqualTo(1);
+        var venues = mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "venues");
+        assertThat(venues).singleElement().satisfies(venue -> assertThat(venue.getString("slug")).isEqualTo(CLUB + "-2"));
+        assertThat(mongo.findOne(Query.query(Criteria.where("_id").is("e9t2-inc61-member-venue")), Document.class, "venues").getString("slug")).isEqualTo(CLUB);
+    }
+
     @Test void T_16_06_invalidGeometriesAreGeometryInvalidWithEveryFailedCheck() throws Exception {
         var twoMarkers = geometry(0); ((ArrayNode) twoMarkers.path("markers")).remove(3); ((ArrayNode) twoMarkers.path("markers")).remove(2);
         assertThat(rules(error(as(json(put("/api/v1/rings/" + RING + "/geometry"), twoMarkers), CLUB, "ADMIN"), 422, "GEOMETRY_INVALID")))
@@ -107,7 +120,7 @@ class RingGeometryIT extends CourseItSupport {
         assertThat(putGeometry(CLUB, geometry(0), 200).path("version").asLong()).isEqualTo(1);
     }
 
-    @Test void T_16_06_calibrationsAreStoredPerRingAndListedNewestFirst() throws Exception {
+    @Test void R_16_04_calibrationsAreStoredPerRingAndListedNewestFirst() throws Exception {
         var request = Map.of("outcome", "GREEN", "averageErrorCm", 2.5, "maxErrorCm", 4.0, "markerCount", 4, "rawMetadata", Map.of("markers", List.of(Map.of("id", "A", "errorCm", 2))));
         var first = ok(as(json(post("/api/v1/rings/" + RING + "/calibrations"), request), CLUB, "INSTRUCTOR"), 201);
         assertThat(first.path("ringId").asText()).isEqualTo(RING);

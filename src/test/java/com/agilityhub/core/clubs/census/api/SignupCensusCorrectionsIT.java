@@ -58,6 +58,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     @MockitoSpyBean com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
     @MockitoSpyBean com.agilityhub.core.shared.persistence.IdempotencyRepository records;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
+    @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
     @Autowired com.agilityhub.core.platform.application.jobs.JobRunner runner;
     @Autowired com.agilityhub.core.payments.application.FakeProviderCommand provider;
@@ -150,7 +151,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(submit(readmission).path("memberId").asText()).isEqualTo(id);
         validate(id);
         var renewed=member(id).get("paymentMethod",Document.class);
-        assertThat(renewed.getString("iban")).isEqualTo("ES5500000000000000000001");
+        // INC-31 (A37): the readmission's account is sealed for the member.
+        assertThat(renewed.getString("iban")).isNull();assertThat(vault.resolve(renewed,member(id).getString("clubId"),id)).isEqualTo("ES5500000000000000000001");
         assertThat(renewed.getString("mandateRef")).isEqualTo(CensusRules.mandateRef(club,number,payment.getString("mandateRef"))).endsWith("-"+number+"-2").hasSizeLessThanOrEqualTo(35);
     }
 

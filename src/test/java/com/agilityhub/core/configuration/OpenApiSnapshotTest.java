@@ -76,7 +76,8 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
             }
         }
         assertThat(operations).isEqualTo(6);
-        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING");
+        // INC-53 point 11 (E11-T02): the trigger declares its optional Idempotency-Key, and with it IDEMPOTENCY_KEY_REUSED.
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED");
         assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1runs/get/responses/404/description").asText()).isEqualTo("JOB_UNKNOWN, MODULE_DISABLED");
     }
 

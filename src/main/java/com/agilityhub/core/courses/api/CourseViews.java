@@ -36,7 +36,7 @@ final class CourseViews {
     static CourseListItem item(CourseLibrary.CourseView view) {
         var c = view.course();
         return new CourseListItem(c.id(), view.name(), c.discipline(), view.level(), c.designerName(), c.source(), view.thumbnailUrl(), c.stats(), c.ownerType(),
-                view.activeOnRings());
+                view.activeOnRings(), c.updatedAt());
     }
     /**
      * CONVENCIONS_API §4: with `fields`, an item keeps its `id` and the requested keys only. The sparse page is written as a map (its
@@ -97,7 +97,7 @@ final class CourseViews {
         var s = view.setup();
         return new RingSetup(s.id(), s.ringId(), s.kind(), s.placementId(), s.courseId(), s.imageFileKey(), view.imageUrl(), s.agilityhubLevel(), s.levelIds(),
                 s.builtAt(), s.builtByAccountId(), view.builtByName(), s.expectedUntil(), s.expiresAt(), s.status(), s.dismantledAt(), s.dismantledByAccountId(),
-                s.notes(), s.createdAt());
+                s.dismantledReason(), s.replacedBySetupId(), s.notes(), s.createdAt());
     }
     /**
      * R-16-09: a member never sees who built or dismantled the setup, nor its notes. E9-T07 (R-16-16): the course it shows and where its

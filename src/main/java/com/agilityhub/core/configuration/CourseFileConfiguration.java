@@ -23,6 +23,7 @@ public class CourseFileConfiguration {
             @Override public void claim(String fileKey, String purpose, String entity) { attachments.claimScoped(SCOPE, fileKey, PURPOSE_PREFIX + purpose, entity); }
             @Override public byte[] read(String fileKey) { return attachments.readScoped(SCOPE, fileKey); }
             @Override public String downloadUrl(String fileKey) { return attachments.scopedUrl(fileKey); }
+            @Override public void release(String fileKey) { attachments.releaseScoped(SCOPE, fileKey); }
         };
     }
 }

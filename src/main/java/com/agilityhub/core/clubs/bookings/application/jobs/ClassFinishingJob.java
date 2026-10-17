@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component;
  * <b>(c)</b> with ACTIVITIES on, every PUBLISHED activity that has ended → FINISHED (`WOULD_FINISH_ACTIVITY {activityId}`,
  * counter `activitiesFinished`; E65). No business event of its own (only the framework's `SchedulerRun`; step (c) keeps
  * S07's `ActivityFinished`). Each item is one runner transaction; idempotent by state; no rollback (FINISHED is terminal).
- * Counters `{swept, finished, activitiesFinished}`.
+ * Counters `{swept, finished, activitiesFinished}`; INC-53 (E11-T02): a dry run counts them too, from its plan (R-15-08
+ * «pla = efectes»), beside the runner's `WOULD_*`, so both runs carry one set of names.
  */
 @Component
 public class ClassFinishingJob implements Job {
@@ -42,6 +43,7 @@ public class ClassFinishingJob implements Job {
         if (on(context, Module.ACTIVITIES)) {
             for (String activityId : activities.endedBy(now)) { items.add(new JobItem("Activity", activityId, FINISH_ACTIVITY, Map.of("activityId", activityId))); }
         }
+        if (context.dryRun()) { items.forEach(item -> context.recorder().count(counter(item.action()), 1)); }
         return items;
     }
 
@@ -55,8 +57,10 @@ public class ClassFinishingJob implements Job {
             default -> throw new IllegalArgumentException("Unknown class-finishing action " + item.action());
         };
         if (!done) { return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of()); }
-        String counter = switch (item.action()) { case SWEEP -> "swept"; case FINISH -> "finished"; default -> "activitiesFinished"; };
-        return new JobEffect(item.action(), item.detail(), Map.of(counter, 1L));
+        return new JobEffect(item.action(), item.detail(), Map.of(counter(item.action()), 1L));
+    }
+    private static String counter(String action) {
+        return switch (action) { case SWEEP -> "swept"; case FINISH -> "finished"; default -> "activitiesFinished"; };
     }
 
     /** `now − classes.finishGraceMinutes`, recorded in the run's `parametersSnapshot`. */

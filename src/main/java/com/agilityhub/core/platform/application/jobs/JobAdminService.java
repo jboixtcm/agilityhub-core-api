@@ -43,11 +43,11 @@ public class JobAdminService {
             "startedAt", "finishedAt", "durationMs", "counters", "errorCount");
     private final JobRunner runner; private final JobRunRepository runs; private final JobContractAccess access; private final JobTriggerService triggers;
     private final ParameterSettingsService parameters; private final ClubConfigService configs; private final ClubRepository clubs;
-    private final ListEngine lists; private final Clock clock;
+    private final ListEngine lists; private final Clock clock; private final com.agilityhub.core.platform.persistence.audit.AuditRepository audits;
     public JobAdminService(JobRunner runner, JobRunRepository runs, JobContractAccess access, JobTriggerService triggers, ParameterSettingsService parameters,
-            ClubConfigService configs, ClubRepository clubs, ListEngine lists, Clock clock) {
+            ClubConfigService configs, ClubRepository clubs, ListEngine lists, Clock clock, com.agilityhub.core.platform.persistence.audit.AuditRepository audits) {
         this.runner = runner; this.runs = runs; this.access = access; this.triggers = triggers; this.parameters = parameters; this.configs = configs;
-        this.clubs = clubs; this.lists = lists; this.clock = clock;
+        this.clubs = clubs; this.lists = lists; this.clock = clock; this.audits = audits;
     }
 
     /** `GET /jobs`: catalog order, only processes with a registered implementation whose module (and extra guard) is on. */
@@ -120,11 +120,17 @@ public class JobAdminService {
      * E5-T29 round 2 (CONVENCIONS_API §7, S15 R-15-09, ruling E75): the run commits before the key's answer is stored. When that
      * answer is lost (the request's commit fails and the key is released), the retry with the same key and body answers the run
      * the first attempt started, as it is now (its `runId`, state and counters): nothing runs and nothing is audited again.
+     * INC-50 (E11-T02): unless the first attempt lost its JOB_TRIGGERED entry (written after the run committed): the retry
+     * writes it then, once.
      */
     private JobRunView triggered(String routeId, boolean dryRun) {
         var definition = access.job(routeId);
         var earlier = runs.forRequest(definition.name(), IdempotentOperation.reference(), clock.instant().minus(IdempotentOperation.KEY_LIFETIME));
-        if (earlier.isPresent()) { return JobViews.view(earlier.get()); }
+        if (earlier.isPresent()) {
+            boolean audited = audits.lastChange("JobRun", earlier.get().id())
+                    .filter(entry -> entry.action() == com.agilityhub.core.platform.application.audit.AuditAction.JOB_TRIGGERED).isPresent();
+            return audited ? JobViews.view(earlier.get()) : triggers.audited(earlier.get());
+        }
         return triggers.trigger(definition.name(), dryRun);
     }
 

@@ -503,7 +503,7 @@ class TrainingIT extends TrainingFixtures {
         var refused = call(POST, "/class-sessions", classBody, as("admin"), 422);
         assertThat(code(refused)).isEqualTo("RING_HAS_BOOKINGS");
         try (var tenant = TenantContext.open(CLUB)) {
-            assertThat(conflicts.findActiveBookings(CAD, local("2026-10-06T00:00"), local("2026-10-07T00:00"))).extracting(TrainingConflictPort.Booking::id)
+            assertThat(conflicts.findActiveBookings(CAD, local("2026-10-06T00:00"), local("2026-10-07T00:00"))).extracting(TrainingConflictPort.Booking::bookingId)
                     .containsExactly(cadells.path("id").asText());
             assertThatThrownBy(() -> conflicts.cancelByClub(List.of(cadells.path("id").asText()), "RING_NOT_RESERVABLE"))
                     .isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
@@ -513,7 +513,7 @@ class TrainingIT extends TrainingFixtures {
         var ring = call(GET, "/rings/" + CAD, null, as("admin"), 200);
         var withBookings = call(PATCH, "/rings/" + CAD, Map.of("allowsFreeTraining", false, "version", ring.path("version").asLong()), as("admin"), 422);
         assertThat(code(withBookings)).isEqualTo("RING_HAS_BOOKINGS");
-        assertThat(withBookings.at("/details/bookings/0/id").asText()).isEqualTo(cadells.path("id").asText());
+        assertThat(withBookings.at("/details/bookings/0/bookingId").asText()).isEqualTo(cadells.path("id").asText());
         assertThat(withBookings.at("/details/bookings/0/memberName").asText()).isEqualTo("Pau"); assertThat(withBookings.at("/details/bookings/0/dogName").asText()).isEqualTo("Blat");
         assertThat(training(cadells.path("id").asText())).containsEntry("state", "ACTIVE");
         assertThat(call(GET, "/rings/" + CAD, null, as("admin"), 200).path("allowsFreeTraining").asBoolean()).isTrue();
@@ -563,6 +563,24 @@ class TrainingIT extends TrainingFixtures {
         cancel(as("pau"), booking, null, 200);
         assertThat(call(POST, "/weeks/" + week.weekId() + "/validation", Map.of(), as("admin"), 200).path("validatedClassIds")).hasSize(1);
         assertThat(count("class_sessions", Criteria.where("weekId").is(week.weekId()).and("state").is("ACTIVE"))).isEqualTo(1);
+    }
+
+    /**
+     * INC-44 (E11-T02; E5-W02 question 3, decision E67; S09 §13-3): a cell a class occupies says when that class starts, so 24
+     * and D12 write «18:50 classe» instead of the row's own time; for the member and the staff alike, and only on such a cell.
+     */
+    @Test void T_09_06_INC_44_aClassCellCarriesTheClassStartTime() throws Exception {
+        classSession("s09-inc44", MUN, "2026-10-06T18:50", "2026-10-06T19:50", "ACTIVE");
+        for (var viewer : List.of(as("maria"), as("estel"))) {
+            var grid = slots(viewer, "2026-10-06", "2026-10-06", null);
+            for (String time : List.of("18:30", "19:00", "19:30")) {
+                var cell = cell(grid, "2026-10-06T" + time, MUN);
+                assertThat(cell.path("reason").asText()).as(time).isEqualTo("CLASS");
+                assertThat(cell.path("classStartsAtLocal").asText()).as(time).isEqualTo("18:50");
+            }
+            assertThat(cell(grid, "2026-10-06T18:30", CEN).path("classStartsAtLocal").isMissingNode()
+                    || cell(grid, "2026-10-06T18:30", CEN).path("classStartsAtLocal").isNull()).as("a free cell").isTrue();
+        }
     }
 
     @Test void T_09_29_aNewClassInvalidatesTheWarmGridCacheOfItsDay() throws Exception {

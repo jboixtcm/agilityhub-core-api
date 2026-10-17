@@ -24,53 +24,53 @@ email.html.sha256: e65d25875e9c4618
 
 ## N-04 MEMBER
 title: Booking confirmed
-body: B+C class · 12 Wednesday · 18:50 · Central · with Duna.
-email.text: Booking confirmed⏎⏎B+C class · 12 Wednesday · 18:50 · Central · with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎Add it to your calendar: https://app.example.test/calendari/exemple.ics⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 353d77171e0e31f7
+body: B+C class · Wednesday 12 · 18:50 · Central · with Duna.
+email.text: Booking confirmed⏎⏎B+C class · Wednesday 12 · 18:50 · Central · with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎Add it to your calendar: https://app.example.test/calendari/exemple.ics⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8d91078af227d15d
 
 ## N-05 MEMBER
 title: Booking cancelled
-body: 12 Wednesday · 18:50, with Duna. You cancelled it in time.
-email.text: Booking cancelled⏎⏎12 Wednesday · 18:50, with Duna. You cancelled it in time.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 50227ecfa6c3ae5b
+body: Wednesday 12 · 18:50, with Duna. You cancelled it in time.
+email.text: Booking cancelled⏎⏎Wednesday 12 · 18:50, with Duna. You cancelled it in time.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8c498748179e5585
 
 ## N-06 MEMBER
 title: Booking confirmed
-body: Free training · 12 Wed · 8:00–8:30 · Central · with Duna.
-email.text: Booking confirmed⏎⏎Free training · 12 Wed · 8:00–8:30 · Central · with Duna.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: aeb11f1b7d477073
+body: Free training · Wed 12 · 8:00–8:30 · Central · with Duna.
+email.text: Booking confirmed⏎⏎Free training · Wed 12 · 8:00–8:30 · Central · with Duna.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 2f8568cc02617368
 
 ## N-07 MEMBER
 title: Training cancelled
-body: Free training cancelled · 12 Wed · 8:00–8:30 · Central · with Duna.
-email.text: Training cancelled⏎⏎Free training cancelled · 12 Wed · 8:00–8:30 · Central · with Duna.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: dcdad0031a9d4077
+body: Free training cancelled · Wed 12 · 8:00–8:30 · Central · with Duna.
+email.text: Training cancelled⏎⏎Free training cancelled · Wed 12 · 8:00–8:30 · Central · with Duna.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: f6f35857b8121a90
 
 ## N-08a MEMBER
 title: Class cancelled by the club
-body: 12 Wednesday · 18:50 · B+C, with Duna. “The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!” — Club Agility Exemple. This session does not count towards your total.
-sms: Club Agility Exemple: the class on 12 Wednesday at 18:50 (B+C) is cancelled. The class is cancelled because of the rain. You can book another one in the app.... [160]
-email.text: Class cancelled by the club⏎⏎12 Wednesday · 18:50 · B+C, with Duna. “The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!” — Club Agility Exemple. This session does not count towards your total.⏎⏎Open the app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 5867c13ed28d3ed2
+body: Wednesday 12 · 18:50 · B+C, with Duna. “The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!” — Club Agility Exemple. This session does not count towards your total.
+sms: Club Agility Exemple: the class on Wednesday 12 at 18:50 (B+C) is cancelled. The class is cancelled because of the rain. You can book another one in the app.... [160]
+email.text: Class cancelled by the club⏎⏎Wednesday 12 · 18:50 · B+C, with Duna. “The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!” — Club Agility Exemple. This session does not count towards your total.⏎⏎Open the app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 647804f157848fd2
 
 ## N-08a INSTRUCTORS
 title: Class cancelled by the club
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C — class cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C — class cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
 
 ## N-08a ADMINS
 title: Class cancelled by the club
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C — class cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C — class cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
 
 ## N-08b MEMBER
 title: Class changed by the club
-body: 12 Wednesday, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.
-sms: Club Agility Exemple: class 12 Wednesday with Duna changed. Time: 18:50 -> 19:00 . Ring: Central -> Muntanya. [109]
-email.text: Class changed by the club⏎⏎12 Wednesday, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: c70fba992c566640
+body: Wednesday 12, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.
+sms: Club Agility Exemple: class Wednesday 12 with Duna changed. Time: 18:50 -> 19:00 . Ring: Central -> Muntanya. [109]
+email.text: Class changed by the club⏎⏎Wednesday 12, with Duna: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya. Check the app.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 5018b718b4c1ec40
 
 ## N-08b INSTRUCTORS
 title: Class changed by the club
-body: 12 Wednesday · B+C: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya.
+body: Wednesday 12 · B+C: the class has changed. Time: 18:50 → 19:00 · Ring: Central → Muntanya.
 
 ## N-09 MEMBER
 title: Duna moves up a level!
@@ -96,9 +96,9 @@ email.html.sha256: 9a7f25700ef4fa15
 
 ## N-13 MEMBER
 title: Class reminder
-body: 12 Wed at 8:00–8:30 · B+C · Central · with Duna.
-email.text: Class reminder⏎⏎12 Wed at 8:00–8:30 · B+C · Central · with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 87527721b0462615
+body: Wed 12 at 8:00–8:30 · B+C · Central · with Duna.
+email.text: Class reminder⏎⏎Wed 12 at 8:00–8:30 · B+C · Central · with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8c4faac2a0d763a6
 
 ## N-14 ADMINS
 title: Leave request received
@@ -106,29 +106,29 @@ body: Laura Serra Puig has asked to leave on August 31, 2026. Reason: Documentac
 
 ## N-15 MEMBER
 title: A place has been freed up!
-body: B+C class · 12 Wednesday · 18:50. You have until 17:00 to confirm it.
-sms: Club Agility Exemple: a place has been freed up in the class on 12 Wednesday at 18:50 (B+C). You have until 17:00 to confirm it in the app. [139]
-email.text: A place has been freed up!⏎⏎B+C class · 12 Wednesday · 18:50. You have until 17:00 to confirm it.⏎⏎Open the app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-exemple&classSessionId=class-exemple&dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 7a9701e49d91eee6
+body: B+C class · Wednesday 12 · 18:50. You have until 17:00 to confirm it.
+sms: Club Agility Exemple: a place has been freed up in the class on Wednesday 12 at 18:50 (B+C). You have until 17:00 to confirm it in the app. [139]
+email.text: A place has been freed up!⏎⏎B+C class · Wednesday 12 · 18:50. You have until 17:00 to confirm it.⏎⏎Open the app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-exemple&classSessionId=class-exemple&dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 0aac72d5e00981c3
 
 ## N-16 MEMBER
 title: Class may be cancelled
-body: 12 Wednesday · 18:50 · B+C, with Duna: the class does not have enough students yet. If nobody else books before 7:30 Wednesday, the class will be cancelled. We suggest booking another one.
-sms: Club Agility Exemple: the class 12 Wednesday 18:50 does not have enough students yet and may be cancelled. [106]
-email.text: Class may be cancelled⏎⏎12 Wednesday · 18:50 · B+C, with Duna: the class does not have enough students yet. If nobody else books before 7:30 Wednesday, the class will be cancelled. We suggest booking another one.⏎⏎Open the app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 95dced7d419f8204
+body: Wednesday 12 · 18:50 · B+C, with Duna: the class does not have enough students yet. If nobody else books before 7:30 Wednesday, the class will be cancelled. We suggest booking another one.
+sms: Club Agility Exemple: the class Wednesday 12 18:50 does not have enough students yet and may be cancelled. [106]
+email.text: Class may be cancelled⏎⏎Wednesday 12 · 18:50 · B+C, with Duna: the class does not have enough students yet. If nobody else books before 7:30 Wednesday, the class will be cancelled. We suggest booking another one.⏎⏎Open the app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 84241e04cdcaa0f8
 
 ## N-16 ADMINS
 title: Class may be cancelled
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C does not have enough students yet. If nobody else books, it will be cancelled Wednesday at 7:30.
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C does not have enough students yet. If nobody else books, it will be cancelled Wednesday at 7:30.
 
 ## N-17 INSTRUCTORS
 title: Class cancelled for lack of students
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C — class cancelled automatically because it did not reach the minimum (1 dog booked).
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C — class cancelled automatically because it did not reach the minimum (1 dog booked).
 
 ## N-17 ADMINS
 title: Class cancelled for lack of students
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C — class cancelled automatically because it did not reach the minimum (1 dog booked).
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C — class cancelled automatically because it did not reach the minimum (1 dog booked).
 
 ## N-18a ADMINS
 title: Inactivity request received
@@ -148,9 +148,9 @@ email.html.sha256: 7032ea3c22759f97
 
 ## N-19 MEMBER
 title: We missed you
-body: On 12 Wednesday you couldn't make it to the B+C class. Remember you can cancel from the app right up to the last minute, so someone else can use the class. The session still counts towards your total.
-email.text: We missed you⏎⏎On 12 Wednesday you couldn't make it to the B+C class. Remember you can cancel from the app right up to the last minute, so someone else can use the class. The session still counts towards your total.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 8a3f2462d0880066
+body: On Wednesday 12 you couldn't make it to the B+C class. Remember you can cancel from the app right up to the last minute, so someone else can use the class. The session still counts towards your total.
+email.text: We missed you⏎⏎On Wednesday 12 you couldn't make it to the B+C class. Remember you can cancel from the app right up to the last minute, so someone else can use the class. The session still counts towards your total.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 9d0beb1e45373f3e
 
 ## N-20 MEMBER
 title: New task for Duna
@@ -204,21 +204,21 @@ email.html.sha256: 0b8dcd6e121851a4
 
 ## N-32a MEMBER
 title: Activity published
-body: Seminari de canicross · 12 Wed
-email.text: Activity published⏎⏎Seminari de canicross · 12 Wed⏎⏎Open the app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.⏎Stop receiving these messages: https://app.example.test/comunicats/baixa?t=exemple
-email.html.sha256: ac79353192f58717
+body: Seminari de canicross · Wed 12
+email.text: Activity published⏎⏎Seminari de canicross · Wed 12⏎⏎Open the app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.⏎Stop receiving these messages: https://app.example.test/comunicats/baixa?t=exemple
+email.html.sha256: 469e68876fffb873
 
 ## N-32b MEMBER
 title: Activity registration
-body: Seminari de canicross · 12 Wed
-sms: Club Agility Exemple: Seminari de canicross . 12 Wed [52]
-email.text: Activity registration⏎⏎Seminari de canicross · 12 Wed⏎⏎Open the app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: c1d6af358fa4f7f1
+body: Seminari de canicross · Wed 12
+sms: Club Agility Exemple: Seminari de canicross . Wed 12 [52]
+email.text: Activity registration⏎⏎Seminari de canicross · Wed 12⏎⏎Open the app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8e7b2f581d0234d9
 
 ## N-32c MEMBER
 title: Activity cancelled by the club
 body: Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
-sms: Club Agility Exemple: Seminari de canicross (12 Wed) is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for... [160]
+sms: Club Agility Exemple: Seminari de canicross (Wed 12) is cancelled. The class is cancelled because of the rain. You can book another one in the app. Sorry for... [160]
 email.text: Activity cancelled by the club⏎⏎Seminari de canicross: The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
 email.html.sha256: afb9d37b925e5e18
 
@@ -240,10 +240,10 @@ email.html.sha256: f13e345c67ceb520
 
 ## N-36 MEMBER
 title: Booking managed by the club
-body: El club booked a class for you: 12 Wednesday · 18:50, with Duna.
-sms: Club Agility Exemple: el club booked the class 12 Wednesday 18:50 with Duna for you. [84]
-email.text: Booking managed by the club⏎⏎El club booked a class for you: 12 Wednesday · 18:50, with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 68967b28f788f352
+body: El club booked a class for you: Wednesday 12 · 18:50, with Duna.
+sms: Club Agility Exemple: el club booked the class Wednesday 12 18:50 with Duna for you. [84]
+email.text: Booking managed by the club⏎⏎El club booked a class for you: Wednesday 12 · 18:50, with Duna.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 3506ed35e4fa4295
 
 ## N-37 MEMBER
 title: New dog added
@@ -270,9 +270,9 @@ email.html.sha256: eb4365e0b5c03446
 
 ## N-40 MEMBER
 title: Booking not completed
-body: 12 Wednesday · 18:50, with Duna: the payment was not completed in time and the booking was cancelled.
-email.text: Booking not completed⏎⏎12 Wednesday · 18:50, with Duna: the payment was not completed in time and the booking was cancelled.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: d8cea928d44589aa
+body: Wednesday 12 · 18:50, with Duna: the payment was not completed in time and the booking was cancelled.
+email.text: Booking not completed⏎⏎Wednesday 12 · 18:50, with Duna: the payment was not completed in time and the booking was cancelled.⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 0aa7dab33332f57b
 
 ## N-41 ADMINS
 title: This month's direct debit is pending
@@ -284,16 +284,16 @@ body: The process “no-show-notices” finished with 2 errors. Check its run in
 
 ## N-46 MEMBER
 title: The place has been taken
-body: 12 Wednesday · 18:50, with Duna: someone else took the place. You are still on the waiting list: we will let you know if another one is freed up.
-email.text: The place has been taken⏎⏎12 Wednesday · 18:50, with Duna: someone else took the place. You are still on the waiting list: we will let you know if another one is freed up.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 937e596a53063eb6
+body: Wednesday 12 · 18:50, with Duna: someone else took the place. You are still on the waiting list: we will let you know if another one is freed up.
+email.text: The place has been taken⏎⏎Wednesday 12 · 18:50, with Duna: someone else took the place. You are still on the waiting list: we will let you know if another one is freed up.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 107bae1dba4fab5e
 
 ## N-47 MEMBER
 title: Training managed by the club
-body: The club booked a training for you: 12 Wed · 8:00–8:30 · Central, with Duna. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
-sms: Club Agility Exemple: training booked by the club: 12 Wed 8:00-8:30 (Central), with Duna. [89]
-email.text: Training managed by the club⏎⏎The club booked a training for you: 12 Wed · 8:00–8:30 · Central, with Duna. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: db6a8d806c67f643
+body: The club booked a training for you: Wed 12 · 8:00–8:30 · Central, with Duna. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!
+sms: Club Agility Exemple: training booked by the club: Wed 12 8:00-8:30 (Central), with Duna. [89]
+email.text: Training managed by the club⏎⏎The club booked a training for you: Wed 12 · 8:00–8:30 · Central, with Duna. The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!⏎⏎Open the app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 8707ba4a74e0271f
 
 ## N-49 ADMINS
 title: Monthly SMS limit reached
@@ -311,11 +311,11 @@ body: Laura Serra Puig's email laura@example.test bounced: no more emails will r
 
 ## N-54 INSTRUCTORS
 title: Class with few students
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C (Central) is below the minimum: 1 dog booked.
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C (Central) is below the minimum: 1 dog booked.
 
 ## N-54 ADMINS
 title: Class with few students
-body: Club Agility Exemple: 12 Wednesday · 18:50 · B+C (Central) is below the minimum: 1 dog booked.
+body: Club Agility Exemple: Wednesday 12 · 18:50 · B+C (Central) is below the minimum: 1 dog booked.
 
 ## N-55 ADMINS
 title: Manual refund required

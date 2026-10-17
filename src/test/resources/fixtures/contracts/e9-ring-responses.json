@@ -243,6 +243,8 @@
     "status": "ACTIVE",
     "dismantledAt": null,
     "dismantledByAccountId": null,
+    "dismantledReason": null,
+    "replacedBySetupId": null,
     "notes": null,
     "createdAt": "2026-10-08T08:00:00Z",
     "view": "STAFF"
@@ -326,6 +328,8 @@
       "status": "ACTIVE",
       "dismantledAt": null,
       "dismantledByAccountId": null,
+      "dismantledReason": null,
+      "replacedBySetupId": null,
       "notes": null,
       "createdAt": "2026-10-08T08:00:00Z",
       "view": "STAFF"
@@ -352,6 +356,8 @@
         "status": "ACTIVE",
         "dismantledAt": null,
         "dismantledByAccountId": null,
+        "dismantledReason": null,
+        "replacedBySetupId": null,
         "notes": null,
         "createdAt": "2026-10-08T08:00:00Z",
         "view": "STAFF"

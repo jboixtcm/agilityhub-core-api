@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.*;
 
 /** S09 mutations join the caller's transaction and use the shared catalog reference lock. */
 public interface TrainingConflictPort {
-    record Booking(String id, String ringId, Instant from, Instant to, String memberName, String dogName) { }
+    /** INC-09: the one shape of `RING_HAS_BOOKINGS{bookings[]}` (S05/S06/S09), published as `RingBooking`. */
+    record Booking(String bookingId, String ringId, Instant from, Instant to, String memberName, String dogName) { }
     List<Booking> findActiveBookings(String ringId, Instant from, Instant to);
     @Transactional(propagation = Propagation.MANDATORY)
     void cancelByClub(List<String> bookingIds, String cancelReason);

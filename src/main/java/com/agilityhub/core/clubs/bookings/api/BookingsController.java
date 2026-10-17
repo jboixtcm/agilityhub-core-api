@@ -264,10 +264,11 @@ public class BookingsController {
     @RequiresModule(Module.WAITLIST)
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED, CLASS_NOT_FULL, ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT,
-            BOOKING_LIMIT_REACHED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE})
-    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Tenant comes from the JWT.",
+            BOOKING_LIMIT_REACHED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE, IDEMPOTENCY_KEY_REUSED})
+    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "WaitlistEntry", useReturnTypeSchema = true))
-    public WaitlistEntry joinWaitlist(@Valid @RequestBody WaitlistEntryRequest request, @AuthenticationPrincipal Jwt jwt) {
+    public WaitlistEntry joinWaitlist(@Valid @RequestBody WaitlistEntryRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         var entry = waitlist.join(actors.member(memberId(jwt)), request.classSessionId(), request.dogId());
         return view(views.waitlistEntry(entry, false), WaitlistEntry.class);
@@ -308,7 +309,7 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, SEAT_TAKEN, SEAT_HOLD_EXPIRED, WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED,
             BOOKING_LIMIT_REACHED, INACTIVITY_PERIOD, MEMBER_LEAVING, SWAP_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: a repeated key returns the same response, also a 409/422. Requires WAITLIST. Tenant comes from the JWT.",
+    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: as R-08-08's, one UUID per request body (a swap included); a repeated key returns the same response, also a 409/422 (INC-42). Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking claimSeat(@PathVariable String id, @Valid @RequestBody ClaimRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {

@@ -37,8 +37,11 @@ class S08MemberFlowContractTest {
         assertThat(texts(schema("HoldDog").at("/properties/sex/enum"))).containsExactlyInAnyOrder("MALE", "FEMALE");
     }
 
-    /** Step 2 (R-08-10): the threshold and the in-time deadline, computed by the api, on every `Booking`. */
-    @Test void R_08_10_T_08_42_aBookingCarriesTheThresholdAndTheInTimeDeadline() {
+    /**
+     * Step 2 (R-08-10): the threshold and the in-time deadline, computed by the api, on every `Booking`. INC-42: named after its
+     * rule only; T-08-42 is the DST scenario (`BookingRulesTest`, `MemberFlowContractIT`).
+     */
+    @Test void R_08_10_aBookingCarriesTheThresholdAndTheInTimeDeadline() {
         assertThat(texts(schema("Booking").path("required"))).contains("lateCancelThresholdMinutes", "cancellableInTimeUntil");
         var threshold = schema("Booking").at("/properties/lateCancelThresholdMinutes");
         assertThat(threshold.path("type").asText()).isEqualTo("integer");
@@ -65,8 +68,8 @@ class S08MemberFlowContractTest {
         assertThat(schema("ReservationRow").at("/properties/activityId/description").asText()).contains("ACTIVITY rows only");
     }
 
-    /** Step 5 (S08 §2 row 07): `BookedBy.self`; `displayName` and `viaClub` are unchanged. */
-    @Test void S08_07_T_08_27_bookedBySaysWhetherTheReaderMadeTheBooking() {
+    /** Step 5 (S08 §2 row 07): `BookedBy.self`; `displayName` and `viaClub` are unchanged. INC-42: T-08-27 (impersonation) is not this check. */
+    @Test void S08_07_bookedBySaysWhetherTheReaderMadeTheBooking() {
         assertThat(texts(schema("BookedBy").path("required"))).containsExactlyInAnyOrder("displayName", "viaClub", "self");
         assertThat(schema("BookedBy").at("/properties/self/type").asText()).isEqualTo("boolean");
         assertThat(schema("BookedBy").at("/properties/viaClub/type").asText()).isEqualTo("boolean");

@@ -56,11 +56,14 @@ public class NotificationFeedService {
         return notifications.unreadApp(account);
     }
 
-    /** Entering screen 11 (part C S11): every notice of the caller created until now is read. */
-    public long readAll() {
+    /**
+     * Entering screen 11 (part C S11): every notice of the caller created until now is read. INC-53 (E11-T02): {@code upTo},
+     * when given, is the instant the screen was read; a later one (or a future bound) is capped at now.
+     */
+    public long readAll(java.time.Instant upTo) {
         String account = access.account();
         var now = clock.instant();
-        notifications.markAllRead(account, now, now);
+        notifications.markAllRead(account, upTo == null || upTo.isAfter(now) ? now : upTo, now);
         return notifications.unreadApp(account);
     }
 

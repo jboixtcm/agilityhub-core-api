@@ -27,6 +27,7 @@ import static org.springframework.http.HttpMethod.*;
  */
 class JobTriggerRetryIT extends BookingFixtures {
     @MockitoSpyBean IdempotencyRepository records;
+    @MockitoSpyBean com.agilityhub.core.platform.persistence.audit.AuditRepository audits;
 
     @BeforeEach void runs() {
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
@@ -77,6 +78,43 @@ class JobTriggerRetryIT extends BookingFixtures {
         // A run without a key keeps no reference.
         var plain = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", true), as("admin"), 200);
         assertThat(requestRef(plain.path("runId").asText())).isNull();
+    }
+
+    /**
+     * INC-50 (E11-T02; review of E5-T29 round 2 #1): the run commits outside the request's transaction, then its JOB_TRIGGERED
+     * entry is written. When that write fails, the client gets an error and the key is released; the retry answers the run and
+     * writes the missing entry, once.
+     */
+    @Test void T_15_08_R_15_09_aRetryWritesTheJobTriggeredEntryTheFirstAttemptLost() throws Exception {
+        String key = UUID.randomUUID().toString();
+        var failed = new java.util.concurrent.atomic.AtomicBoolean();
+        org.mockito.Mockito.doAnswer(call -> {
+            if (call.<com.agilityhub.core.platform.persistence.audit.AuditEntry>getArgument(0).action() == com.agilityhub.core.platform.application.audit.AuditAction.JOB_TRIGGERED
+                    && failed.compareAndSet(false, true)) { throw new com.mongodb.MongoException("audit store unreachable (injected)"); }
+            return call.callRealMethod();
+        }).when(audits).append(any());
+        var before = cleanupRuns().stream().map(JobRun::id).toList();
+        assertThat(code(call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 500, key))).isEqualTo("INTERNAL_ERROR");
+        var started = cleanupRuns().stream().filter(run -> !before.contains(run.id())).toList();
+        assertThat(started).as("the run committed").hasSize(1);
+        assertThat(triggered()).as("its entry was lost").isZero();
+        var retry = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 200, key);
+        assertThat(retry.path("runId").asText()).isEqualTo(started.getFirst().id());
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("JOB_TRIGGERED")), org.bson.Document.class, "audit_entries"))
+                .singleElement().satisfies(entry -> assertThat(entry.getString("entityId")).isEqualTo(started.getFirst().id()));
+        assertThat(call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 200, key)).isEqualTo(retry);
+        assertThat(cleanupRuns()).hasSize(1); assertThat(triggered()).isEqualTo(1);
+    }
+
+    /** INC-53 point 11 (E11-T02; S15 §6, CONVENCIONS_API §7): both trigger routes declare the optional `Idempotency-Key` the web sends. */
+    @Test void T_15_08_INC_53_theTriggersDeclareTheirOptionalIdempotencyKey() throws Exception {
+        var api = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        for (String path : List.of("/api/v1/jobs/{name}/trigger", "/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger")) {
+            JsonNode key = null;
+            for (var parameter : api.path("paths").path(path).path("post").path("parameters")) { if ("Idempotency-Key".equals(parameter.path("name").asText())) { key = parameter; } }
+            assertThat(key).as(path).isNotNull();
+            assertThat(key.path("in").asText()).isEqualTo("header"); assertThat(key.path("required").asBoolean()).as(path).isFalse();
+        }
     }
 
     /** The key lives 24 h (CONVENCIONS_API §7): once it has expired, the same key and body are a new request and run again. */

@@ -111,6 +111,12 @@ class FeedExpectationTest(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "expected \\['APP'\\]"):
             E7.feed(Feed((log_card, allow_detail), real_sms=True))
 
+    def test_the_card_channels_are_compared_in_any_order(self):
+        # INC-54 point 3 (E11-T02): the card's `channels` are a set for the smoke; ['SMS', 'APP'] is the same card.
+        log_card, log_detail = copy.deepcopy(LOG_SENDER)
+        log_card['channels'] = ['SMS', 'APP']
+        self.assertIsNone(feed_card_problem(log_card, log_detail['deliveries'], real_sms=False))
+
     def test_the_log_sender_must_send_and_the_action_stays_change_class(self):
         allow_card, allow_detail = copy.deepcopy(ALLOW_LIST)
         self.assertIn('the log sender did not send the SMS', feed_card_problem(allow_card, allow_detail['deliveries'], real_sms=False))
