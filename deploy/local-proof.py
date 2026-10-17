@@ -308,6 +308,9 @@ def main():
                                     {'grant_type': 'refresh_token', 'client_id': 'clubs-app'}, initial)
             assert refresh_cookie(headers) != initial and 'refresh_token' not in json.loads(body)
             print('PASS proxy refresh rotates host-only ah_refresh; Secure HttpOnly SameSite=Strict Path=/oauth2/token', flush=True)
+            # INC-36 (S01 R-01-06): a rotated cookie reused inside auth.refreshReuseGraceSeconds (30) is a lost answer, accepted
+            # once; past the grace it is a theft and is rejected.
+            time.sleep(31)
             request('clubs.localhost', '/oauth2/token', {'grant_type': 'refresh_token', 'client_id': 'clubs-app'}, initial, expected=400)
             print('PASS old refresh cookie rejected through Caddy', flush=True)
             request('core.localhost', '/internal/domains/allowed?host=unknown.invalid', expected=404)
