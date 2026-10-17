@@ -119,7 +119,7 @@ public class RingBlockService {
         if(!remaining.isEmpty()) throw new ApiException(ErrorCode.RING_BLOCK_CONFLICT,Map.of("conflicts",remaining));
         if(!conflicts.bookings().isEmpty() && !options.cancelBookings()) throw new ApiException(ErrorCode.RING_HAS_BOOKINGS,Map.of("bookings",conflicts.bookings()));
         for(var c:conflicts.conflicts()) cancellations.cancel(c.id(),classes.findById(c.id()).orElseThrow().state()==ClassState.DRAFT ? ClassCancellationReason.DELETED : ClassCancellationReason.ACTIVITY,options.adminText(),actor);
-        if(!conflicts.bookings().isEmpty()) training.cancelByClub(conflicts.bookings().stream().map(TrainingConflictPort.Booking::id).toList(),"RING_BLOCK");
+        if(!conflicts.bookings().isEmpty()) training.cancelByClub(conflicts.bookings().stream().map(TrainingConflictPort.Booking::bookingId).toList(),"RING_BLOCK");
     }
     public Conflicts conflictsFor(ActivityBlockRequest request) {
         var conflicts=new ArrayList<Conflict>(); var bookings=new ArrayList<TrainingConflictPort.Booking>();

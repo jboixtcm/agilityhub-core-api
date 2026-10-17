@@ -37,8 +37,10 @@ public class CensusReferences extends TenantRepository<Member> {
                     if (name == null) { name = string(one("instructors", "_id", string(row.get("instructorId"))).get("shortName")); }
                     long attachments = mongo.count(tenantQuery().addCriteria(Criteria.where("entityType").is("TASK")
                             .and("entityId").is(row.get("_id")).and("removedAt").is(null)), "attachments");
+                    var doneBy = map(row.get("doneBy"));
                     return object("id", row.get("_id"), "text", row.get("text"), "createdAt", instant(row.get("createdAt")),
-                            "instructorName", name == null ? "" : name, "attachmentsCount", attachments, "doneAt", instant(row.get("doneAt")));
+                            "instructorName", name == null ? "" : name, "attachmentsCount", attachments, "doneAt", instant(row.get("doneAt")),
+                            "doneBy", doneBy.isEmpty() ? null : object("role", doneBy.get("role"), "displayName", doneBy.get("displayName"), "gender", doneBy.get("gender")));
                 }).toList();
     }
     public List<Map<String,Object>> approvedInactivity(String memberId) {

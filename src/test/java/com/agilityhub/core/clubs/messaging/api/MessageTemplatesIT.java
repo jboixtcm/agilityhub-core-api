@@ -158,6 +158,34 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER)), MessageTemplate.class)).isZero();
     }
 
+    /**
+     * INC-53 point 13 (E11-T02; E7-W03 step 5, decision E89): D9 writes `name` as it comes, so a catalog template's name is the
+     * product name of `CATALEG_NOTIFICACIONS` («Nom»), in the admin's language, never its title (ICU and `[[variables]]`); a
+     * `CUSTOM` one's is the title the club gave it. An edited title leaves the name as it was.
+     */
+    @Test void T_11_12_INC_53_aCatalogTemplatesNameIsItsProductNameAndACustomOnesItsOwnTitle() throws Exception {
+        var list = list();
+        assertThat(item(list, "N-13").path("name").asText()).isEqualTo("Recordatori de classe/entrenament");
+        assertThat(item(list, "N-09").path("name").asText()).isEqualTo("Canvi de nivell");
+        assertThat(item(list, "N-02").path("name").asText()).isEqualTo("Benvinguda i accés");
+        list.path("items").forEach(row -> assertThat(row.path("name").asText()).as(row.path("code").asText()).doesNotContain("[[", "{"));
+        var english = ok(as(get("/api/v1/message-templates"), "ADMIN", CLUB, "en"), 200);
+        assertThat(item(english, "N-13").path("name").asText()).isEqualTo("Class/training reminder");
+        var n09 = detail(item(list, "N-09").path("id").asText());
+        assertThat(n09.path("name").asText()).isEqualTo("Canvi de nivell");
+        var edited = save(n09); ((ObjectNode) edited.path("title")).put("ca", "Nou nivell per a [[dog_name]]");
+        ok(as(put("/api/v1/message-templates/" + n09.path("id").asText()).content(edited.toString()), "ADMIN"), 200);
+        assertThat(item(list(), "N-09").path("name").asText()).isEqualTo("Canvi de nivell");
+        var body = mapper.readTree("""
+                {"category": "CLUB_NEWS", "title": {"ca": "Festa del club", "es": "Fiesta del club"}, "body": {"ca": "Hola [[member_first_name]], us esperem!"},
+                 "icon": "flag", "color": "ACCENT", "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": false},
+                 "INSTRUCTORS": {"APP": false, "EMAIL": false, "SMS": false}, "ADMINS": {"APP": false, "EMAIL": false, "SMS": false}}}""");
+        String custom = ok(as(post("/api/v1/message-templates").content(body.toString()), "ADMIN"), 201).path("id").asText();
+        var customs = ok(as(get("/api/v1/message-templates").param("kind", "CUSTOM"), "ADMIN"), 200).path("items");
+        assertThat(customs).filteredOn(row -> row.path("id").asText().equals(custom)).singleElement()
+                .satisfies(row -> assertThat(row.path("name").asText()).isEqualTo("Festa del club"));
+    }
+
     @Test @AuditCovers(AuditAction.CATALOG_CHANGED)
     void T_11_16_aCustomTemplateIsCreatedSavedWithItsVersionAndArchived() throws Exception {
         var body = mapper.readTree("""
@@ -284,7 +312,7 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         assertThat(ca.at("/sms/truncated").asBoolean()).isTrue(); assertThat(ca.at("/sms/length").asInt()).isLessThanOrEqualTo(160);
         assertThat(ca.at("/sms/segments").asInt()).isEqualTo(1); assertThat(ca.at("/sms/text").asText()).startsWith("Example Agility Club: la classe de dimecres 12 a les 18:50");
         assertThat(ca.path("warnings")).singleElement().satisfies(w -> assertThat(w.path("code").asText()).isEqualTo("SMS_BODY_TOO_LONG"));
-        for (var language : List.of(List.of("es", "Clase cancelada por el club", "Miércoles 12 · 18:50"), List.of("en", "Class cancelled by the club", "12 Wednesday · 18:50"))) {
+        for (var language : List.of(List.of("es", "Clase cancelada por el club", "Miércoles 12 · 18:50"), List.of("en", "Class cancelled by the club", "Wednesday 12 · 18:50"))) {
             var draft = mapper.createObjectNode().put("locale", language.get(0));
             draft.putObject("draft").put("title", language.get(1)).put("body", "[[class_date]] · [[class_time]] · [[apodo]] · [[dog_name]]").put("smsBody", "[[club_name]]: [[class_date]]");
             var preview = ok(as(post("/api/v1/message-templates/" + id + "/preview").content(draft.toString()), "ADMIN"), 200);

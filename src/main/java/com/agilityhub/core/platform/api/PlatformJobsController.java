@@ -29,11 +29,12 @@ public class PlatformJobsController {
 
     @PostMapping("/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger")
     @PreAuthorize(PLATFORM)
-    @ContractErrors(value = {VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING}, omit = 422)
-    @Operation(summary = "platformTriggerJob", description = "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED.",
+    @ContractErrors(value = {VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED}, omit = 422)
+    @Operation(summary = "platformTriggerJob", description = "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED. An optional Idempotency-Key answers its own run to a retry (CONVENCIONS_API §7, E75).",
             responses = @ApiResponse(responseCode = "200", description = "JobRun", useReturnTypeSchema = true))
     public JobRunView platformTriggerJob(@PathVariable String clubId, @PathVariable @Parameter(description = "R-15-01 route id") String name,
-            @Valid @RequestBody JobTriggerRequest request) {
+            @Valid @RequestBody JobTriggerRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) @io.swagger.v3.oas.annotations.media.Schema(format = "uuid") java.util.UUID idempotencyKey) {
         return jobs.platformTrigger(clubId, name, request.dryRun());
     }
 }

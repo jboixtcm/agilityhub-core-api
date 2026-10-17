@@ -45,7 +45,7 @@ class AuditedAspectTest {
      * `details` next to its changes (none here: the result has no audited field); a null map writes none, anything else
      * than a map is a programming error.
      */
-    @Test void E7_T07_theDetailsExpressionIsTheEntrysDetails() {
+    @Test void R_14_10_theDetailsExpressionIsTheEntrysDetails() {
         AuditWriter writer = mock(AuditWriter.class);
         var proxy = proxy(writer, new DetachedService());
         proxy.send("template-a", 3);

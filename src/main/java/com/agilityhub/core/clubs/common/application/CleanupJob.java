@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * S15 R-15-19 P9 `cleanup` (daily at `jobs.dailyTime`, unlimited catch-up): the only process that deletes documents,
  * and only technical ones. It reports (never deletes) the TTL-managed documents Mongo has not removed yet
- * (`ttlPending*`), deletes orphan signup uploads (`orphanUploadsDeleted`), purges finished exports (`exportsPurged`), and
+ * (`ttlPending*`), deletes orphan uploads — the signup's and, since INC-14, the ADMIN's unsaved dog documents (`orphanUploadsDeleted`), purges finished exports (`exportsPurged`), and
  * deletes processed `domain_events` (`domainEventsDeleted`), `stripe_events` once S12 creates them (`stripeEventsDeleted`)
  * and `job_runs` except the last five of each process (`jobRunsDeleted`). No business event. Every item is a `DELETE`;
  * a dry run records the same totals as `WOULD_DELETE_*` counters. Counter keys carry no dots (they are Mongo map keys).

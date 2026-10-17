@@ -13,6 +13,7 @@ import com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.application.contract.ListContract;
 import com.agilityhub.core.shared.application.lists.SparseItems;
+import com.agilityhub.core.shared.application.HandlerStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,7 +60,7 @@ public class FollowupController {
         // E6-T03 round 4 (R-10-12): the save, its audit and outbox rows and the stored 200 of the key commit together, in a
         // transaction retried whole on a write conflict. Two saves of one version: the loser's retry re-reads
         // remarksMeta.version and answers 409 STALE_VERSION, never a 500.
-        return transactions.keyed(200, () -> {
+        return transactions.keyed(HandlerStatus.current(), () -> {
             var saved = observations.save(id, request.text(), request.version(), by);
             return new Observations(saved.text() == null ? "" : saved.text(), saved.updatedAt(), saved.updatedByName(), saved.version());
         }, KeyedAnswers.json(mapper));
@@ -70,7 +71,7 @@ public class FollowupController {
             columns = {"memberName*", "dogName*", "levelCode*", "activityAt*", "authorName*", "textExcerpt*", "createdAt*", "completedAt*"}, paged = true, exportable = false,
             maxSize = FollowupContractAccess.FOLLOWUP_MAX_SIZE,
             fields = {"id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt",
-                    "completedAt", "activityAt", "unread"})
+                    "completedAt", "activityAt", "unread", "attachmentCount"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
     @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER. q searches the member's full name, the dog's name, the author's name and the text (the task's or the note's whole text, not only textExcerpt), any case, taken literally (CONVENCIONS_API §4, E75); GET /followup/filter-values gives the filter's values." + GUARDS,
             responses = @ApiResponse(responseCode = "200", description = "FollowupPage",
@@ -81,7 +82,7 @@ public class FollowupController {
         var page = followup.list(params, me());
         var items = page.items().stream().map(item -> new FollowupItem(item.id(), FollowupKind.valueOf(item.kind()), item.taskId(), item.dogId(), item.dogName(),
                 item.levelCode(), item.memberId(), item.memberName(), item.authorName(), item.authorRole(), item.authorGender(), item.textExcerpt(), item.createdAt(),
-                item.completedAt(), item.activityAt(), item.unread())).toList();
+                item.completedAt(), item.activityAt(), item.unread(), item.attachmentCount())).toList();
         var whole = new FollowupPage(items, page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());
         // With `fields`, the items are cut to the row id and the requested keys (CONVENCIONS_API §4), so the page is no longer typed.
         return params.containsKey("fields") ? SparseItems.apply(mapper, new com.agilityhub.core.shared.application.contract.ApiContracts.ListPage<>(items, page.page(),
@@ -121,7 +122,7 @@ public class FollowupController {
         access.tenant();
         // E6-T03 round 5 (INC-47): the caller's read mark is one document; two clicks at once (different keys) both answer 204,
         // the second one's transaction running again on the first one's write.
-        transactions.keyedNoContent(() -> { access.followupItem(id); followup.read(id, me()); });
+        transactions.keyedWithoutBody(HandlerStatus.current(), () -> { access.followupItem(id); followup.read(id, me()); });
     }
 
     @PostMapping("/api/v1/followup/read-all")
@@ -131,6 +132,6 @@ public class FollowupController {
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void readAllFollowup(@RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
-        transactions.keyedNoContent(() -> followup.readAll(me()));
+        transactions.keyedWithoutBody(HandlerStatus.current(), () -> followup.readAll(me()));
     }
 }

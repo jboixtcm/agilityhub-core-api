@@ -64,6 +64,9 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         assertThat(entries.get("waitlist_club_class_state").get("key")).isEqualTo(keys("clubId", "classSessionId", "state"));
         assertThat(entries.get("waitlist_club_dog_week_state").get("key")).isEqualTo(keys("clubId", "dogId", "bookingWeekKey", "state"));
         assertThat(entries.get("waitlist_club_state_confirm").get("key")).isEqualTo(keys("clubId", "state", "confirmBy"));
+        // INC-46 (E11-T02): P8 reads the live entries whose copy says the class started, and the started classes with someone waiting.
+        assertThat(entries.get("waitlist_club_state_starts").get("key")).isEqualTo(keys("clubId", "state", "classStartsAt"));
+        assertThat(indexes("class_sessions").get("class_club_state_start").get("key")).isEqualTo(keys("clubId", "state", "startsAt"));
         var trainings = indexes("training_bookings");
         var seat = trainings.get("training_active_seat");
         assertThat(seat.get("key")).isEqualTo(keys("clubId", "ringId", "startsAt", "seatIndex"));

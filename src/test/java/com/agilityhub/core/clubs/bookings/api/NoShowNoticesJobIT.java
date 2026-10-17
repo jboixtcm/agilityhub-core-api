@@ -108,7 +108,9 @@ class NoShowNoticesJobIT extends BookingFixtures {
         // The claim's order: class date, then id — Tuesday's late mark first.
         assertThat(planned.getFirst()).containsOnlyKeys("attendanceId", "bookingId", "memberId", "dogName", "classDate").containsEntry("bookingId", tue)
                 .containsEntry("memberId", "s08-m-c2").containsEntry("dogName", "Dog2").containsEntry("classDate", "2026-10-06");
-        assertThat(counters(dry)).isEqualTo(Map.of("WOULD_NOTIFY", 1L));
+        // INC-46: the plan counts what the run will count (R-15-08 «pla = efectes»), beside the runner's one item.
+        assertThat(counters(dry)).isEqualTo(Map.of("WOULD_NOTIFY", 1L, "notices", 4L, "late", 1L));
+        assertThat(dry.items().getFirst().detail()).contains(new JobRun.Entry("attendanceCount", 4));
         // R-15-08: the dry run wrote nothing but its JobRun.
         assertThat(allEvents()).isEqualTo(eventsBefore);
         assertThat(attendance(duna).get("noShowNotice")).isNull();

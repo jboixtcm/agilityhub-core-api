@@ -237,6 +237,34 @@ class CleanupJobIT extends BookingFixtures {
     }
     private long count(String collection) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), collection); }
 
+    /**
+     * INC-14 (E5-T24's review, detail #5; R-15-19): a DOG_DOCUMENT upload the ADMIN started on D2/D10 and never saved (or that of
+     * a rejected readmission) is an orphan too, cleaned with the signup ones after `jobs.retention.orphanUploadsHours`; one a
+     * DogDocument references, or a recent one, stays.
+     */
+    @Test void INC_14_R_15_19_theAdminsUnsavedDogDocumentUploadsAreCleanedLikeTheSignupOnes() throws Exception {
+        String orphan = UUID.randomUUID().toString(), saved = UUID.randomUUID().toString(), recent = UUID.randomUUID().toString();
+        for (var upload : List.of(java.util.Map.entry(orphan, 50), java.util.Map.entry(saved, 50), java.util.Map.entry(recent, 10))) {
+            mongo.insert(new Document("_id", upload.getKey()).append("clubId", CLUB).append("accountId", "s08-admin").append("purpose", "DOG_DOCUMENT").append("fileName", "card.pdf")
+                    .append("mimeType", "application/pdf").append("sizeBytes", 3L).append("createdAt", Date.from(RUN.minus(Duration.ofHours(upload.getValue()))))
+                    .append("expiresAt", Date.from(RUN.minus(Duration.ofHours(upload.getValue())).plusSeconds(300))), "attachment_uploads");
+            ((com.agilityhub.core.clubs.followup.persistence.LocalAttachmentStorage) storage).put(upload.getKey(), "application/pdf", 3, new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        }
+        mongo.insert(new Document("_id", "inc14-doc").append("clubId", CLUB).append("dogId", "s08-d-duna").append("type", "INSURANCE").append("state", "RECEIVED")
+                .append("files", List.of(new Document("fileKey", saved).append("name", "card.pdf"))), "dog_documents");
+        var dry = runner.manual(CLUB, JobName.CLEANUP, true, "s08-admin");
+        assertThat(counters(dry)).containsEntry("WOULD_DELETE_orphanUploads", 4L);
+        assertThat(dry.items()).extracting(JobRun.Item::entityId).contains(orphan).doesNotContain(saved, recent);
+        var real = runner.manual(CLUB, JobName.CLEANUP, false, "s08-admin");
+        assertThat(counters(real)).containsEntry("orphanUploadsDeleted", 4L);
+        assertThat(mongo.findById(orphan, Document.class, "attachment_uploads")).isNull();
+        assertThatThrownBy(() -> storage.metadata(orphan)).isInstanceOf(ApiException.class);
+        for (String kept : List.of(saved, recent)) {
+            assertThat(mongo.findById(kept, Document.class, "attachment_uploads")).as(kept).isNotNull();
+            assertThat(storage.metadata(kept).sizeBytes()).isEqualTo(3L);
+        }
+    }
+
     @Test void T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns() {
         var before = new TreeMap<String, Long>();
         for (String c : List.of("attachment_uploads", "domain_events", "export_jobs", "seat_holds", "magic_link_tokens", "idempotency_records", "signup_notification_admissions")) { before.put(c, count(c)); }

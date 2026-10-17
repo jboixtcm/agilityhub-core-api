@@ -33,8 +33,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * reconnection; a session that has outlived `courses.buildSessionMaxHours` gets `finished {ABANDONED}` at the next poll.
  * <p>
  * E9-T06 round 2 (known limit): a blocked servlet write cannot be cancelled, so a stalled client keeps its sender thread until
- * Tomcat's write timeout (`server.tomcat.connection-timeout`, 20 s) fails the write. At most {@link #SENDERS} sends run at once:
- * while every sender is held, a stream that needs one is closed instead (a new one is refused at once) and EventSource retries.
+ * Tomcat's write timeout (`server.tomcat.connection-timeout`, 20 s) fails the write. At most {@link #SENDERS} sends run at once.
+ * INC-63 (E11-T02): a stream that needs a sender while they are all busy waits for one in a bounded queue ({@link #PENDING}
+ * streams), so a burst of healthy subscribers (a heartbeat to more than {@link #SENDERS} of them) closes none. Only when every
+ * sender is held by a send blocked for longer than {@link #WRITE_TIMEOUT} (stalled clients) is a new stream refused at once and
+ * a waiting one closed by the watchdog; EventSource retries. A full queue refuses too.
  */
 @Component
 class BuildSessionStreams implements DisposableBean {
@@ -46,8 +49,10 @@ class BuildSessionStreams implements DisposableBean {
     static final Duration WRITE_TIMEOUT = Duration.ofSeconds(10);
     /** The frames one subscriber may have waiting; one more closes its stream. */
     static final int QUEUE = 64;
-    /** The sends running at once (one per subscriber at most); a stream that finds them all busy is closed. */
+    /** The sends running at once (one per subscriber at most); a stream that finds them all busy waits ({@link #PENDING}). */
     static final int SENDERS = 64;
+    /** INC-63: the streams that may wait for a sender (one entry per stream at most); one more is refused. */
+    static final int PENDING = 1024;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BuildSessionStreams.class);
     record Key(String clubId, String sessionId) { }
 
@@ -59,16 +64,20 @@ class BuildSessionStreams implements DisposableBean {
     /** The writes: each subscriber has at most one send running here, so a blocked client holds only its own thread. */
     private final ThreadPoolExecutor senders;
     private final Map<Key, Set<Subscriber>> topics = new ConcurrentHashMap<>();
+    /** INC-63: the subscribers whose send is in progress, dropped ones included (their thread is held until the write returns). */
+    private final Set<Subscriber> sendingNow = ConcurrentHashMap.newKeySet();
+    private final int maxSenders;
     private volatile Duration writeTimeout = WRITE_TIMEOUT;
 
     @org.springframework.beans.factory.annotation.Autowired
     BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock) { this(sessions, mapper, clock, SENDERS, true); }
     /** Tests: {@code senders} sends at once, and with {@code scheduled} false no heartbeat or poll runs unless called. */
     BuildSessionStreams(BuildSessionService sessions, ObjectMapper mapper, Clock clock, int senders, boolean scheduled) {
-        this.sessions = sessions; this.mapper = mapper; this.clock = clock;
+        this.sessions = sessions; this.mapper = mapper; this.clock = clock; this.maxSenders = senders;
         timer = Executors.newSingleThreadScheduledExecutor(task -> daemon(task, "build-session-streams"));
-        // No queue: a send starts on an idle or new thread up to the cap, else it is refused (and its stream closed).
-        this.senders = new ThreadPoolExecutor(0, senders, 60, TimeUnit.SECONDS, new SynchronousQueue<>(), task -> daemon(task, "build-session-sender"));
+        // INC-63: up to the cap a send starts on its own thread; beyond it the stream waits in a bounded queue (a full one refuses).
+        this.senders = new ThreadPoolExecutor(senders, senders, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(PENDING), task -> daemon(task, "build-session-sender"));
+        this.senders.allowCoreThreadTimeOut(true);
         if (scheduled) {
             timer.scheduleWithFixedDelay(this::heartbeat, HEARTBEAT.toMillis(), HEARTBEAT.toMillis(), TimeUnit.MILLISECONDS);
             timer.scheduleWithFixedDelay(this::poll, POLL.toMillis(), POLL.toMillis(), TimeUnit.MILLISECONDS);
@@ -116,9 +125,26 @@ class BuildSessionStreams implements DisposableBean {
 
     void poll() {
         for (var key : List.copyOf(topics.keySet())) { refresh(key); }
+        watch();
+    }
+    /**
+     * The watchdog: a send blocked for longer than the write timeout drops its stream; when every sender is held by such a send,
+     * the streams waiting for one are closed too (INC-63), since none can be served before Tomcat fails a stalled write.
+     */
+    void watch() {
         long now = System.nanoTime();
         topics.values().forEach(set -> List.copyOf(set).forEach(subscriber -> subscriber.watch(now)));
+        if (stalled(now) < maxSenders) { return; }
+        var waiting = new ArrayList<Runnable>(); senders.getQueue().drainTo(waiting);
+        waiting.forEach(task -> { if (task instanceof Drain drain) { drain.subscriber().unserved(); } });
     }
+    /** The senders held by a send blocked for longer than the write timeout. */
+    private long stalled(long now) {
+        long limit = writeTimeout.toNanos();
+        return sendingNow.stream().filter(subscriber -> { long since = subscriber.sending; return since != 0 && now - since > limit; }).count();
+    }
+    /** A queued send of one subscriber (INC-63), so the watchdog can tell whose stream to close. */
+    private record Drain(Subscriber subscriber) implements Runnable { @Override public void run() { subscriber.drain(); } }
     void heartbeat() { topics.values().forEach(set -> List.copyOf(set).forEach(subscriber -> subscriber.comment("heartbeat"))); }
 
     void refresh(Key key) {
@@ -210,6 +236,8 @@ class BuildSessionStreams implements DisposableBean {
             queue.clear();
             close();
         }
+        /** INC-63: its queued send was taken back while every sender is stalled: the stream ends; EventSource retries. */
+        synchronized void unserved() { draining = false; drop("no sender"); }
         /** The watchdog: a send blocked for longer than the write timeout drops the stream. */
         void watch(long now) {
             long since = sending;
@@ -229,9 +257,11 @@ class BuildSessionStreams implements DisposableBean {
             if (queue.size() >= QUEUE) { drop("queue full"); return; }
             queue.add(frame);
             if (draining) { return; }
+            // INC-63: every sender stalled (no send can start before Tomcat fails one): refused at once; EventSource reconnects later.
+            if (stalled(System.nanoTime()) >= maxSenders) { drop("no sender"); return; }
             draining = true;
-            try { senders.execute(this::drain); }
-            // Every sender is held (stalled clients) or the server stops: the stream ends; EventSource reconnects later.
+            try { senders.execute(new Drain(this)); }
+            // The waiting queue is full or the server stops: the stream ends; EventSource reconnects later.
             catch (RejectedExecutionException busy) { draining = false; drop("no sender"); }
         }
         /** On a pool thread: the queued frames in order, one send at a time, outside the monitor; then the end, when closing. */
@@ -243,9 +273,10 @@ class BuildSessionStreams implements DisposableBean {
                     if (frame == null) { draining = false; if (closing) { complete(); } return; }
                     sending = System.nanoTime();
                 }
+                sendingNow.add(this);
                 try { emitter.send(frame); }
                 catch (java.io.IOException | IllegalStateException gone) { synchronized (this) { queue.clear(); closing = true; remove(key, this); } }
-                finally { sending = 0; }
+                finally { sending = 0; sendingNow.remove(this); }
             }
         }
         /** Under the monitor, with no send in progress. */

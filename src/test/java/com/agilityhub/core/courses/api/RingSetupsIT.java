@@ -427,6 +427,38 @@ class RingSetupsIT extends CourseItSupport {
      * S16 §7 (consumed): S05's `RingChanged` that deactivates a ring dismantles its active setup by the system
      * (`RingSetupChanged{DISMANTLED}`, `Ring.activeSetupId = null`); any other ring change leaves it.
      */
+    /**
+     * INC-62 point 9 (E11-T02; E9-W03 request, decision E119): a dismantled setup says why — `REPLACED` (with `replacedBySetupId`),
+     * `MANUAL` or `RING_INACTIVE` — so D16 does not infer «Substituït» from the instants; an expired or active one says nothing.
+     */
+    @Test void T_16_08_INC_62_aDismantledSetupTellsWhyAndWhichSetupReplacedIt() throws Exception {
+        clock.setInstant(MONDAY);
+        String course = createCourse("Agility R");
+        String first = id(register("INSTRUCTOR", course(A1, "AGILITY", course)));
+        assertThat(setupDocument(first).get("dismantledReason")).isNull();
+        clock.advance(Duration.ofMinutes(5));
+        String second = id(register("INSTRUCTOR", course(A1, "JUMPING", course)));
+        var replaced = ok(as(get("/api/v1/ring-setups/" + first), CLUB, "INSTRUCTOR"), 200);
+        assertThat(replaced.path("status").asText()).isEqualTo("DISMANTLED");
+        assertThat(replaced.path("dismantledReason").asText()).isEqualTo("REPLACED");
+        assertThat(replaced.path("replacedBySetupId").asText()).isEqualTo(second);
+        assertThat(ok(as(get("/api/v1/ring-setups/" + second), CLUB, "INSTRUCTOR"), 200).path("dismantledReason").isNull()).isTrue();
+        clock.advance(Duration.ofMinutes(5));
+        var manual = act("ADMIN", second, "dismantle", null, 200);
+        assertThat(manual.path("dismantledReason").asText()).isEqualTo("MANUAL"); assertThat(manual.path("replacedBySetupId").isNull()).isTrue();
+        clock.advance(Duration.ofMinutes(5));
+        String third = id(register("INSTRUCTOR", course(A1, "AGILITY", course)));
+        outbox.dispatch();
+        clock.advance(Duration.ofMinutes(1));
+        ok(as(json(patch("/api/v1/rings/" + A1), Map.of("version", ringDocument(A1).get("version"), "active", false)), CLUB, "ADMIN"), 200);
+        outbox.dispatch(); outbox.dispatch();
+        assertThat(setupDocument(third).getString("dismantledReason")).isEqualTo("RING_INACTIVE");
+        assertThat(setupDocument(third).get("replacedBySetupId")).isNull();
+        var history = ok(as(get("/api/v1/rings/" + A1 + "/setups"), CLUB, "INSTRUCTOR"), 200).path("items");
+        var reasons = new java.util.ArrayList<String>(); history.forEach(item -> reasons.add(item.path("id").asText() + ":" + item.path("dismantledReason").asText()));
+        assertThat(reasons).containsExactly(third + ":RING_INACTIVE", second + ":MANUAL", first + ":REPLACED");
+    }
+
     @Test void T_16_08_deactivatingARingDismantlesItsActiveSetup() throws Exception {
         clock.setInstant(MONDAY);
         String course = createCourse("Agility I");
@@ -495,6 +527,23 @@ class RingSetupsIT extends CourseItSupport {
         // The active setup's own course deleted behind the api's back: the member's summary no longer offers the viewer.
         mongo.updateFirst(Query.query(Criteria.where("_id").is(shown)), new Update().set("deletedAt", java.util.Date.from(MONDAY)), "courses");
         assertThat(mine("MEMBER", A1).at("/0/setup/hasViewer").asBoolean()).isFalse();
+    }
+
+    /**
+     * INC-62 point 2 (E11-T02; decision E119, R-16-16): registering a setup from a placement checks that the caller may read its
+     * course, as a build session's start does. An INSTRUCTOR who cannot read a colleague's `PRIVATE` course gets `404
+     * COURSE_NOT_VISIBLE` and no setup; its author registers it.
+     */
+    @Test void T_16_08_INC_62_aSetupFromAColleaguesPrivateCourseIsCourseNotVisible() throws Exception {
+        clock.setInstant(MONDAY);
+        drawRing(A1);
+        var body = course("Agility privat", model(3, false)).put("visibility", "PRIVATE");
+        String course = ok(as(json(post("/api/v1/courses"), body), CLUB, "INSTRUCTOR"), 201).path("id").asText();
+        String placed = createPlacement("INSTRUCTOR", placementBody(course, A1), 201).path("id").asText();
+        error(as(json(post("/api/v1/ring-setups"), setupBody(A1, "AGILITY").put("placementId", placed)), CLUB, "INSTRUCTOR", "e9t2-colleague")
+                .header("Idempotency-Key", UUID.randomUUID().toString()), 404, "COURSE_NOT_VISIBLE");
+        assertThat(active(A1)).isEmpty();
+        assertThat(id(register("INSTRUCTOR", setupBody(A1, "AGILITY").put("placementId", placed)))).isNotBlank();
     }
 
     /**

@@ -17,6 +17,8 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -40,6 +42,29 @@ class BookingJobsTest {
     }
     @SuppressWarnings("unchecked")
     private static List<Map<String, Object>> rows(Map<String, Object> detail) { return (List<Map<String, Object>>) detail.get("attendances"); }
+
+    /**
+     * INC-46 (E11-T02; review of E6-T04 round 2 #3): P3's dry run counts what the run will count (`notices`, `late`; R-15-08
+     * «pla = efectes»), a real run's plan counts nothing (its claim does), and the detail of a long catch-up stays bounded:
+     * at most {@link NoShowNoticesJob#DETAIL_LIMIT} attendances, with their total in `attendanceCount`.
+     */
+    @Test void T_15_16_R_15_08_p3sDryRunCountsItsPlanAndItsDetailIsBounded() {
+        var repository = mock(AttendanceRepository.class); var census = mock(BookingMemberAccess.class);
+        var job = new NoShowNoticesJob(repository, mock(NoShowNoticeClaims.class), census);
+        int due = NoShowNoticesJob.DETAIL_LIMIT + 5;
+        var attendances = new ArrayList<Attendance>();
+        for (int i = 0; i < due; i++) { attendances.add(attendance("a" + i, AttendanceState.NO_SHOW, i < 3 ? RUN.minusDays(3) : RUN.minusDays(1), null)); }
+        when(repository.dueForNoShowNotice("club", RUN)).thenReturn(attendances);
+        when(census.dogs(any())).thenReturn(List.of());
+        var dry = new JobContext("club", ZoneId.of("Europe/Madrid"), AT, RUN, true, mock(ClubConfig.class), recorder, "run");
+        var detail = job.plan(dry).getFirst().detail();
+        verify(recorder).count("notices", due); verify(recorder).count("late", 3L);
+        assertThat(detail).containsEntry("attendanceCount", due);
+        assertThat(rows(detail)).hasSize(NoShowNoticesJob.DETAIL_LIMIT).first().satisfies(row -> assertThat(row).containsEntry("attendanceId", "a0"));
+        clearInvocations(recorder);
+        job.plan(context(Set.of()));
+        verify(recorder, never()).count(anyString(), anyLong());
+    }
 
     @Test void T_15_16_p3PlansOneItemPerClubAndDayAndTracesWhatItsSingleClaimTook() {
         var repository = mock(AttendanceRepository.class); var claims = mock(NoShowNoticeClaims.class); var census = mock(BookingMemberAccess.class);

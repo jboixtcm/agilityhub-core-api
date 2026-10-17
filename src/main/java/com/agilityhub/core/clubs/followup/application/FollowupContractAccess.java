@@ -34,7 +34,9 @@ public class FollowupContractAccess {
     /**
      * `GET /followup` (S10 §6, R-10-13): the universal list allowlist of CONVENCIONS_API §4, pages of 20 or 50 rows. It searches
      * (E75) the member's and the dog's names, the author's name and the text: {@link FollowupService}'s dataset matches them,
-     * the names through the census port.
+     * the names through the census port. INC-51 (E11-T02): its searchable entries are labels, not paths of `followup_items`
+     * (which keeps no names): a dataset of this definition must bring its own search (`ListDataset.withSearch`), or a `q` would
+     * look for fields that do not exist and match nothing.
      */
     public static final ListDefinition FOLLOWUP = new ListDefinition("followup",
             Map.of("kind", new Field("kind", Type.TEXT), "memberId", new Field("memberId", Type.TEXT), "dogId", new Field("dogId", Type.TEXT),
@@ -44,7 +46,7 @@ public class FollowupContractAccess {
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("activityAt,desc"),
             Set.of("id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt",
-                    "createdAt", "completedAt", "activityAt", "unread"), FOLLOWUP_MAX_SIZE);
+                    "createdAt", "completedAt", "activityAt", "unread", "attachmentCount"), FOLLOWUP_MAX_SIZE);
     /** The caller: `memberId` of the member (or of the impersonated member); `staff` = INSTRUCTOR/ADMIN without impersonation. */
     public record Caller(String memberId, boolean staff, boolean impersonated) { }
 

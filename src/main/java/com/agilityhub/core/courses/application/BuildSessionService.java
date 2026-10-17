@@ -22,6 +22,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import org.springframework.context.ApplicationEventPublisher;
@@ -53,8 +54,10 @@ public class BuildSessionService {
     private static final SecureRandom RANDOM = new SecureRandom();
     /** An index below its bound per join-code character; a test makes a draw meet a code already taken. */
     private IntUnaryOperator draws = RANDOM::nextInt;
+    /** INC-63 (E11-T02): the named points of {@link #pauses}, shared with the tests (`BuildSessionDraws`). */
+    static final String JOIN_POINT = "join", FINISH_POINT = "finish";
     /** Called at a named point of a write (`join` between its read and its write, `finish` after its checks); a test commits another write there. */
-    private java.util.function.Consumer<String> pauses = point -> { };
+    private Consumer<String> pauses = point -> { };
 
     private final BuildSessionRepository sessions;
     private final PlacementRepository placements;
@@ -160,7 +163,7 @@ public class BuildSessionService {
         var placement = placement(session.placementId());
         var course = access.course(placement.courseId(), false);
         String actor = CourseAccess.accountId();
-        pauses.accept("finish");
+        pauses.accept(FINISH_POINT);
         boolean registers = CourseAccess.role("ADMIN") || access.enabled("courses.allowInstructorPublish");
         String setupId = registers ? setups.built(placement, course, actor) : null;
         var finished = sessions.close(id, setupId, actor, now).orElseThrow(() -> new ApiException(BUILD_SESSION_FINISHED));
@@ -185,7 +188,7 @@ public class BuildSessionService {
         if (BuildSessionRules.outlived(session.status(), session.startedAt(), session.createdAt(), maxHours(), now)) { throw new ApiException(NOT_FOUND); }
         if (session.participants().stream().anyMatch(p -> p.accountId().equals(actor))) { return session; }
         var joined = new BuildParticipant(actor, now, byCode.isPresent() ? JoinedVia.CODE : JoinedVia.QR);
-        pauses.accept("join");
+        pauses.accept(JOIN_POINT);
         var updated = sessions.join(session.id(), joined, now);
         if (updated.isEmpty()) { return get(session.id()); }
         signal(updated.get());
@@ -271,7 +274,7 @@ public class BuildSessionService {
     /** Tests only: the join-code draws. */
     void draws(IntUnaryOperator draws) { this.draws = draws; }
     /** Tests only: what runs at each named point of a write. */
-    void pauses(java.util.function.Consumer<String> pauses) { this.pauses = pauses; }
+    void pauses(Consumer<String> pauses) { this.pauses = pauses; }
     private int maxHours() { return configs.get(TenantContext.require()).get(MAX_HOURS, Integer.class); }
     private static String token() {
         var bytes = new byte[32]; RANDOM.nextBytes(bytes);

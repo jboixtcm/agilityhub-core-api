@@ -18,6 +18,15 @@ public class AttachmentRepository extends TenantRepository<Attachment> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("entityType").is(type).and("entityId").in(ids).and("removedAt").is(null))
                 .with(org.springframework.data.domain.Sort.by("createdAt", "_id")), Attachment.class);
     }
+    /** INC-53 (E11-T02): the live attachment count of each entity of one type (D14's `attachmentCount`), reading only `entityId`. */
+    public Map<String, Long> counts(String type, Collection<String> ids) {
+        if (ids.isEmpty()) { return Map.of(); }
+        var query = tenantQuery().addCriteria(Criteria.where("entityType").is(type).and("entityId").in(ids).and("removedAt").is(null));
+        query.fields().include("entityId");
+        var counts = new HashMap<String, Long>();
+        mongo.find(query, org.bson.Document.class, mongo.getCollectionName(Attachment.class)).forEach(row -> counts.merge(row.getString("entityId"), 1L, Long::sum));
+        return counts;
+    }
     /** R-10-11 removal: `removedAt` + `removedByAccountId` on a live attachment (the file stays until the S14 erasure); false if it was removed already. */
     public boolean remove(String id, String accountId, java.time.Instant now) {
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("removedAt").is(null)),

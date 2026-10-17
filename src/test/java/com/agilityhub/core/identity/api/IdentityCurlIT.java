@@ -52,6 +52,8 @@ class IdentityCurlIT extends IdentityIntegrationSupport {
             assertThat(rotated.status()).isEqualTo(200);
             String next = rotated.cookie();
             assertThat(first.equals(next)).isFalse();
+            // INC-36 (S01 R-01-06): a reuse inside auth.refreshReuseGraceSeconds (30) is accepted once; this one comes later.
+            clock.advance(java.time.Duration.ofSeconds(31));
             var reused = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
                     "grant_type=refresh_token&client_id=clubs-app", null, first);
             // The closed catalog assigns 400 to REFRESH_REUSED (the task's curl line says 401).

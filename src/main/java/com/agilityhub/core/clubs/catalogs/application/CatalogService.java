@@ -207,7 +207,7 @@ public class CatalogService {
         var live = port.futureActive(before.id());
         if (live.isEmpty()) { return; }
         if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", live)); }
-        port.cancelNotReservable(live.stream().map(RingTrainingBookings.Booking::id).toList());
+        port.cancelNotReservable(live.stream().map(RingTrainingBookings.Booking::bookingId).toList());
     }
 
     private CatalogEntity build(CatalogKind kind, String id, Map<String, Object> values, CatalogEntity before) {

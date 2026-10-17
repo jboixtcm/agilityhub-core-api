@@ -93,6 +93,7 @@ public class WeekOpeningJob implements Job {
         return new SchedulerEvent(kind, clubId, aggregateId, clock.instant(), payload, null, null, DomainEvent.Origin.SYSTEM);
     }
     private static Map<String, Object> detail(Opening opening, int active, int audience) {
-        return Map.of("weekKey", opening.openedWeekKey().toString(), "activeClasses", active, "recipients", audience);
+        // INC-53 (E11-T02, R-15-11): the opened week's ISO Monday too, as `WeekOpened` carries it, so the web links the week it names.
+        return Map.of("weekKey", opening.openedWeekKey().toString(), "isoWeekStart", opening.isoWeekStart().toString(), "activeClasses", active, "recipients", audience);
     }
 }

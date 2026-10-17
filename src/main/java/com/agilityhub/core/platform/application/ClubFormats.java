@@ -47,19 +47,23 @@ public final class ClubFormats {
     public String formatClock(LocalTime time) { return time.format(DateTimeFormatter.ofPattern("H:mm", Locale.ROOT)); }
     /**
      * S11 R-11-05 `class_date`: «ahir» · «avui» · «demà» within one day of `today` (club-local), otherwise the weekday and
-     * the day («dimecres 12»), with the month when the day is more than six days away («dimecres 12 d’octubre»).
+     * the day («dimecres 12»), with the month when the day is more than six days away («dimecres 12 d’octubre»). INC-54
+     * (E11-T02): English puts the weekday first too («Thursday 8»), where CLDR writes «8 Thursday».
      */
     public String formatDay(LocalDate day, LocalDate today, Locale locale) {
         String relative = relativeDay(day, today, locale);
         if (relative != null) { return relative; }
         boolean far = Math.abs(java.time.temporal.ChronoUnit.DAYS.between(today, day)) > 6;
+        if (!far && english(locale)) { return day.format(DateTimeFormatter.ofPattern("EEEE d", locale)); }
         return withoutWeekdayComma(skeleton(far ? "MMMMEEEEd" : "EEEEd", day, locale), locale);
     }
-    /** S11 R-11-05 `date`: the relative day, otherwise the short weekday and the day («dt 4»). */
+    /** S11 R-11-05 `date`: the relative day, otherwise the short weekday and the day («dt 4», «Sat 17» in English, INC-54). */
     public String formatShortDay(LocalDate day, LocalDate today, Locale locale) {
         String relative = relativeDay(day, today, locale);
-        return relative != null ? relative : skeleton("EEEd", day, locale).replace(".", "");
+        if (relative != null) { return relative; }
+        return english(locale) ? day.format(DateTimeFormatter.ofPattern("EEE d", locale)) : skeleton("EEEd", day, locale).replace(".", "");
     }
+    private static boolean english(Locale locale) { return "en".equals(locale.getLanguage()); }
     /** S11 R-11-05 `review_day`: the relative day, otherwise the weekday («dijous»). */
     public String formatWeekday(LocalDate day, LocalDate today, Locale locale) {
         String relative = relativeDay(day, today, locale);

@@ -123,7 +123,9 @@ public final class BookingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant instructorVisibleAt) { }
     public record BookedBy(String displayName, @Schema(description = "True when booked by the club (BACKOFFICE)") boolean viaClub,
-            @Schema(description = "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»)") boolean self) { }
+            @Schema(description = "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»). "
+                    + "For the member's screens: an ADMIN or INSTRUCTOR reading with their own token a booking they made (also one made impersonating) "
+                    + "reads true together with viaClub (INC-42)") boolean self) { }
     public record BookingCharge(ChargeMode mode, Money price, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt) { }
     public record CalendarLinks(@Schema(format = "uri") String google, @Schema(format = "uri") String outlook,
             @Schema(format = "uri", description = "Signed token valid until classEndsAt") String ics) { }

@@ -42,8 +42,12 @@ public class NotificationRepository extends TenantRepository<Notification> {
         indexes.createIndex(new Index().on("clubId", ASC).on("recipient.accountId", ASC).on("readAt", ASC).named("notification_club_recipient_read"));
         indexes.createIndex(new Index().on("clubId", ASC).on("createdAt", DESC).named("notification_club_created"));
         indexes.createIndex(new Index().on("deliveries.status", ASC).on("deliveries.nextAttemptAt", ASC).named("notification_delivery_due"));
-        indexes.createIndex(new Index().on("deliveries.acceptedAt", ASC).named("notification_delivery_accepted")
-                .partial(PartialIndexFilter.of(Criteria.where("deliveries.acceptedAt").exists(true))));
+        // INC-52 (E11-T02): the accepted claim matches with one `$elemMatch`, which a partial index on `deliveries.acceptedAt`
+        // (its filter outside the query) cannot serve: a sparse index instead, the earlier partial one dropped where it exists.
+        if (indexes.getIndexInfo().stream().anyMatch(index -> "notification_delivery_accepted".equals(index.getName()))) {
+            indexes.dropIndex("notification_delivery_accepted");
+        }
+        indexes.createIndex(new Index().on("deliveries.acceptedAt", ASC).sparse().named("notification_delivery_accepted_sparse"));
     }
 
     // Explicit SYSTEM operations allow null clubId; ordinary inherited methods always require a tenant.
@@ -139,12 +143,12 @@ public class NotificationRepository extends TenantRepository<Notification> {
      * E7-T05 (R-11-09): the claim of a delivery the provider accepted whose settlement never completed — its sender's
      * settlement kept failing, or the sender stopped — once its lease expired. The claimant settles it with the stored
      * acceptance and never calls the provider again. Any status: a webhook may have moved it meanwhile (the settlement then
-     * keeps that state).
+     * keeps that state). INC-52 (E11-T02): one predicate on the deliveries, so the positional write takes the delivery it
+     * matched, never another accepted one of the same notice whose lease is still live.
      */
     public Optional<Notification> claimAccepted(String notificationId, Instant now, java.time.Duration lease, String token) {
         var accepted = Criteria.where("acceptedAt").ne(null).and("claimToken").ne(null).and("claimedUntil").lte(now);
-        return claim(Query.query(Criteria.where("deliveries.acceptedAt").exists(true).and("deliveries").elemMatch(accepted).and("category").ne("SYSTEM")),
-                notificationId, now, lease, token);
+        return claim(Query.query(Criteria.where("deliveries").elemMatch(accepted).and("category").ne("SYSTEM")), notificationId, now, lease, token);
     }
     private Optional<Notification> claim(Query query, String notificationId, Instant now, java.time.Duration lease, String token) {
         if (notificationId != null) { query.addCriteria(Criteria.where("_id").is(notificationId).and("clubId").is(TenantContext.require())); }
@@ -157,14 +161,17 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     /**
      * E7-T05 (R-11-09): the provider accepted the claimed delivery's attempt. One small update, outside the settlement's
-     * transaction and before it: `acceptedAt`, the `providerRef` when there is one, and the lease renewed from `at`. From then
-     * on {@link #claimDue} never claims the delivery again; `false` when the lease is no longer this token's.
+     * transaction and before it: `acceptedAt`, the `providerRef` when there is one, and the lease renewed to `claimedUntil`.
+     * From then on {@link #claimDue} never claims the delivery again; `false` when the lease is no longer this token's. INC-52
+     * (E11-T02): the notice's club is part of the match, and a waiting settlement writes the mark again with a lease renewed
+     * from its own attempt.
      */
-    public boolean markAccepted(String id, String token, String providerRef, Instant at, java.time.Duration lease) {
-        var update = new Update().set("deliveries.$.acceptedAt", at).set("deliveries.$.claimedUntil", at.plus(lease));
+    public boolean markAccepted(String clubId, String id, String token, String providerRef, Instant at, Instant claimedUntil) {
+        var update = new Update().set("deliveries.$.acceptedAt", at).set("deliveries.$.claimedUntil", claimedUntil);
         if (providerRef != null) { update.set("deliveries.$.providerRef", providerRef); }
-        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("deliveries").elemMatch(Criteria.where("claimToken").is(token))), update, Notification.class)
-                .getModifiedCount() == 1;
+        // Matched, not modified: writing the same mark again (a waiting settlement in the same instant) still holds the lease.
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("clubId").is(clubId).and("deliveries").elemMatch(Criteria.where("claimToken").is(token))),
+                update, Notification.class).getMatchedCount() == 1;
     }
     /** Writes the outcome of a claimed delivery (found by its lease token) and releases the lease and any acceptance mark; `false` if the lease was lost. */
     public boolean settle(String id, String token, Consumer<Update> outcome) {

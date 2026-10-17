@@ -122,6 +122,8 @@ public class PaymentRefunds {
      */
     private void compensateRemaining(UpfrontPayment payment) {
         String key = "refund:" + payment.id();
+        // INC-58 (E11-T02): an obligation without a stored compensation comes only from the booking path, whose refund command
+        // (`refund:{id}`) exists before any compensation was recorded; it is never in intervention.
         var obligation = upfront.compensation(payment.id())
                 .or(() -> operations.byKey(key).map(op -> new UpfrontPaymentRepository.Compensation("REFUND", op.reason(), null)));
         if (obligation.isEmpty() || consumption(payment)) { return; }
@@ -156,9 +158,11 @@ public class PaymentRefunds {
     /** E101: keep the outstanding balance current; only a changed positive total emits another audit and admin notification. */
     private void intervene(UpfrontPayment payment, long owed) {
         if (owed > 0 && payment.stripe() != null && upfront.compensation(payment.id()).map(UpfrontPaymentRepository.Compensation::interventionAt).isEmpty()) {
-            if (upfront.intervention(payment.id(), clock.instant())) { retries.warnIntervention(payment.id()); }
+            boolean marked = upfront.intervention(payment.id(), clock.instant());
             // E111: the row now takes its place in the split, and unlinked pending refunds repay it first: owe what that view says.
             owed = intentLedger(payment.stripe().paymentIntentId()).claims().getOrDefault(payment.id(), 0L);
+            // INC-58 (E11-T02): an admin is asked only for a debt that view still has; a pending dashboard refund may cover it all.
+            if (marked && owed > 0) { retries.warnIntervention(payment.id()); }
         }
         var amount = new Money(owed, payment.amountPaid().currency());
         if (!upfront.interventionOwed(payment.id(), amount) || owed <= 0) { return; }
@@ -252,9 +256,10 @@ public class PaymentRefunds {
         var rows = new ArrayList<PaymentIntentLedger.Row>();
         var settled = new HashSet<String>();
         var failedAt = new LinkedHashMap<String, Instant>();
+        // INC-58 (E11-T02): the rows' intervention instants in one read, not one per row.
+        var interventionsAt = upfront.interventionsAt(payments.stream().map(UpfrontPayment::id).toList());
         for (var payment : payments) {
-            upfront.compensation(payment.id()).map(UpfrontPaymentRepository.Compensation::interventionAt)
-                    .ifPresent(at -> failedAt.put(payment.id(), at));
+            if (interventionsAt.containsKey(payment.id())) { failedAt.put(payment.id(), interventionsAt.get(payment.id())); }
             var credit = payment.bookingId() == null ? null : charges.forBooking(payment.bookingId())
                     .filter(c -> c.amount().amountMinor() < 0 && c.voidedAt() == null).orElse(null);
             rows.add(new PaymentIntentLedger.Row(payment.id(), captured(payment), refunded(payment),

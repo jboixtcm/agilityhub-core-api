@@ -49,7 +49,8 @@ public final class MessagingContracts {
             @JsonProperty("CLUB_CHANGES") int clubChanges, @JsonProperty("CLUB_NEWS") int clubNews) { }
     public record MessageTemplateListItem(String id,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "N-xx of a CATALOG template; null for CUSTOM") String code,
-            TemplateKind kind, NotificationCategory category, @Schema(description = "The title in the admin's language") String name,
+            TemplateKind kind, NotificationCategory category,
+            @Schema(description = "INC-53: CATALOG → the product name of CATALEG_NOTIFICACIONS («Nom») in the admin's language; CUSTOM → the title the club gave it, in the admin's language") String name,
             TemplateIcon icon, TemplateColor color, boolean enabled, boolean customized, ChannelMatrix matrix, ChannelCaps caps,
             @Schema(description = "Audiences with a web push (fixed by the code; the Push column of D9 is informative, PUSH module)") List<NotificationAudience> push,
             @Schema(description = "The code's variables only (CUSTOM: the member ones, R-11-12)") List<TemplateVariable> variables,
@@ -122,7 +123,8 @@ public final class MessagingContracts {
     public record NotificationListItem(String id, Instant createdAt, String code, NotificationCategory category,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on a row written before E7-T02 that does not tell it") NotificationAudience audience,
             NotificationRecipient recipient, @Schema(description = "One per delivery") List<ChannelState> channels,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "INC-53: the announcement batch of an N-24 or CUSTOM row (AnnouncementSent); null otherwise") String batchId) { }
     @Schema(description = "Universal list page (CONVENCIONS_API §4) of the notification log, createdAt desc by default")
     public record NotificationPage(List<NotificationListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }

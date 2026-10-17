@@ -294,6 +294,34 @@ class IdempotencyIT extends AbstractIntegrationTest {
         assertThat(controller.calls).hasValue(4);
         assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(2);
     }
+    /**
+     * INC-47 (E11-T02): a transient transaction failure is never a 500. A write conflict thrown by the work inside the filter's
+     * request transaction, or while its answer is stored (as one at commit would be), answers `409 STALE_VERSION`, which the
+     * client retries: the effects roll back and the key is released, so the retry runs the work once.
+     */
+    @Test void INC_47_aWriteConflictInTheRequestTransactionAnswersStaleVersionAndReleasesTheKey() throws Exception {
+        String key = UUID.randomUUID().toString();
+        mvc.perform(request(key, "conflict", "club-a", "account-a"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("STALE_VERSION")).andExpect(jsonPath("$.traceId").isNotEmpty());
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isZero();
+        assertThat(mongo.findAll(IdempotencyRecord.class)).isEmpty();
+        var transientFailure = new com.mongodb.MongoException("transient failure (injected)"); transientFailure.addLabel("TransientTransactionError");
+        org.mockito.Mockito.doThrow(transientFailure).doCallRealMethod()
+                .when(repository).complete(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        mvc.perform(request(key, "original", "club-a", "account-a"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("STALE_VERSION"));
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isZero();
+        assertThat(mongo.findAll(IdempotencyRecord.class)).as("the key was released").isEmpty();
+        mvc.perform(request(key, "original", "club-a", "account-a")).andExpect(status().isCreated());
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(1);
+        assertThat(controller.calls).hasValue(3);
+    }
+    /** INC-50 (E11-T02; review of E5-T29 round 2 #2): the stored keys expire after the key's single lifetime (CONVENCIONS_API §7). */
+    @Test void INC_50_theStoredKeysExpireAfterTheKeysLifetime() {
+        assertThat(mongo.indexOps(IdempotencyRecord.class).getIndexInfo()).filteredOn(index -> index.getName().equals("idempotency_retention")).singleElement()
+                .satisfies(index -> assertThat(index.getExpireAfter()).contains(com.agilityhub.core.shared.application.IdempotentOperation.KEY_LIFETIME));
+    }
+
     /** The failure that leaves the filter: MockMvc rethrows what no handler answered. */
     private Throwable surfaced(String key) {
         var thrown = catchThrowable(() -> mvc.perform(request(key, "original", "club-a", "account-a")));
@@ -345,6 +373,8 @@ class IdempotencyIT extends AbstractIntegrationTest {
             int count = calls.incrementAndGet();
             mongo.insert(new Document("_id", UUID.randomUUID().toString()).append("value", body), "idempotency_effects");
             if (body.equals("throw")) { throw new IllegalStateException("Simulated failure"); }
+            if (body.equals("conflict")) { throw new org.springframework.data.mongodb.UncategorizedMongoDbException("write conflict (injected)",
+                    new com.mongodb.MongoException(112, "write conflict (injected)")); }
             if (entered != null) { entered.countDown(); if (!release.await(10, TimeUnit.SECONDS)) {
                 throw new IllegalStateException("Test release timed out");
             } }

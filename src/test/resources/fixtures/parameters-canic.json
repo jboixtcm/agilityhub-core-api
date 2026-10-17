@@ -225,6 +225,7 @@
   "auth.lockoutMinutes": 15,
   "auth.lockoutMaxAttempts": 5,
   "auth.checkCompromisedPasswords": true,
+  "auth.refreshReuseGraceSeconds": 30,
   "census.dogDocumentTypes": [
     {
       "key": "VACCINATION_CARD",

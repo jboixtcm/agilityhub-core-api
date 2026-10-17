@@ -47,7 +47,9 @@ class VariableFormatterTest {
         assertThat(f.format("class_date", at("2026-09-30T18:50"), CA)).isEqualTo("dimecres 30 de setembre");
         assertThat(f.format("class_date", at("2026-10-09T18:50"), ES)).isEqualTo("viernes 9");
         assertThat(f.format("class_date", at("2026-10-14T18:50"), ES)).isEqualTo("miércoles 14 de octubre");
-        assertThat(f.format("class_date", at("2026-10-09T18:50"), EN)).isEqualTo("9 Friday"); // CLDR `EEEEd` in English, as the front's Intl
+        // INC-54 (E11-T02, R-11-05): English too puts the weekday before the day, as `ca` and `es` do.
+        assertThat(f.format("class_date", at("2026-10-09T18:50"), EN)).isEqualTo("Friday 9");
+        assertThat(f.format("class_date", at("2026-10-14T18:50"), EN)).isEqualTo("Wednesday, October 14");
         // N-19's own date (S10 §8, decision E65): always in full, never relative.
         assertThat(f.format("class_date", new NotificationValues.AbsoluteDate(LocalDate.parse("2026-10-06")), CA)).isEqualTo("dimarts, 6 d’octubre de 2026");
         // Something that is not a date is written as it is.
@@ -58,6 +60,7 @@ class VariableFormatterTest {
         var f = madrid();
         assertThat(f.format("date", at("2026-10-04T08:00"), CA)).isEqualTo("dg 4");
         assertThat(f.format("date", at("2026-10-13T08:00"), CA)).isEqualTo("dt 13");
+        assertThat(f.format("date", at("2026-10-17T08:00"), EN)).isEqualTo("Sat 17");
         assertThat(f.format("date", at("2026-10-08T08:00"), CA)).isEqualTo("demà");
         assertThat(f.format("date", "tomorrow-ish", CA)).isEqualTo("tomorrow-ish");
         assertThat(f.format("time", new NotificationValues.TimeRange(at("2026-10-08T08:00"), at("2026-10-08T08:30")), CA)).isEqualTo("8:00–8:30");

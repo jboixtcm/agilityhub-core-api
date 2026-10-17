@@ -89,7 +89,9 @@ class AttachmentServiceTest {
         grant("example-account", "DOG_DOCUMENT", "another-dog", now.plusSeconds(300));
         assertThatThrownBy(() -> service.claim(key, "DOG_DOCUMENT", "dog:VACCINATION_CARD")).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
         grant("example-account", "DOG_DOCUMENT", null, now);
-        assertThatThrownBy(() -> service.claim(key, "DOG_DOCUMENT", "dog:VACCINATION_CARD")).hasMessage("INVALID_STATE");
+        // INC-51 point 6: an expired upload says so (`details.reason`), unlike a frozen dog's READMISSION_PENDING.
+        assertThatThrownBy(() -> service.claim(key, "DOG_DOCUMENT", "dog:VACCINATION_CARD")).hasMessage("INVALID_STATE")
+                .isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class, error -> assertThat(error.details()).containsEntry("reason", "UPLOAD_EXPIRED"));
         verify(grants, never()).bind(anyString(), anyString());
         grant("example-account", "DOG_DOCUMENT", "dog:VACCINATION_CARD", now);
         assertThat(service.claim(key, "DOG_DOCUMENT", "dog:VACCINATION_CARD").fileKey()).isEqualTo(key);

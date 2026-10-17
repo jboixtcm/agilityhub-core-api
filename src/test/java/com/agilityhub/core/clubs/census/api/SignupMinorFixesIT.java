@@ -39,6 +39,13 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.shared.application.OutboxDispatcher dispatcher;
     @Autowired com.agilityhub.core.clubs.messaging.application.EmailSender sender;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
+    @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
+    /** INC-31 (A37): the member's account as the vault reads it back; the document itself holds it sealed, never in clear. */
+    String account(String id) {
+        var member=member(id);var payment=member.get("paymentMethod",Document.class);
+        assertThat(payment.get("iban")).as("sealed").isNull();
+        return vault.resolve(payment,member.getString("clubId"),id);
+    }
     String club,host,plan,level;
     int sequence;
     @BeforeEach void fixtureClub() {
@@ -181,11 +188,11 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         // A fictional account number with a valid mod-97 checksum; no live account is contacted.
         result(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",Map.of("type","SEPA_DD","sepa",Map.of("iban","ES5500000000000000000001"))))),200);
         var payment=member(id).get("paymentMethod",Document.class);
-        assertThat(payment.getString("iban")).isEqualTo("ES5500000000000000000001");assertThat(payment.getString("holderName")).isEqualTo("Custom Holder");
+        assertThat(account(id)).isEqualTo("ES5500000000000000000001");assertThat(payment.getString("holderName")).isEqualTo("Custom Holder");
         assertThat(payment.getString("holderTaxId")).isEqualTo("12345678Z");assertThat(payment.get("mandateSignedAt")).isEqualTo(signed);
         result(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",Map.of("type","SEPA_DD","sepa",Map.of("holderName","Second Holder"))))),200);
         payment=member(id).get("paymentMethod",Document.class);
-        assertThat(payment.getString("holderName")).isEqualTo("Second Holder");assertThat(payment.getString("iban")).isEqualTo("ES5500000000000000000001");
+        assertThat(payment.getString("holderName")).isEqualTo("Second Holder");assertThat(account(id)).isEqualTo("ES5500000000000000000001");
         assertThat(payment.getString("holderTaxId")).isEqualTo("12345678Z");assertThat(payment.get("mandateSignedAt")).isEqualTo(signed);
         // An explicit null clears the tax id; a switch to MANUAL and back is a new mandate.
         var cleared=new HashMap<String,Object>();cleared.put("holderTaxId",null);
@@ -194,7 +201,7 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         result(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",Map.of("type","MANUAL")))),200);
         result(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",Map.of("type","SEPA_DD")))),200);
         payment=member(id).get("paymentMethod",Document.class);
-        assertThat(payment.get("iban")).isNull();assertThat(payment.getString("holderName")).isEqualTo("Example "+member(id).getString("lastName1"));
+        assertThat(payment.get("iban")).isNull();assertThat(payment.get("ibanEncrypted")).isNull();assertThat(payment.getString("holderName")).isEqualTo("Example "+member(id).getString("lastName1"));
         assertThat(payment.get("holderTaxId")).isNull();assertThat(payment.get("mandateSignedAt")).isNotEqualTo(signed);
     }
 

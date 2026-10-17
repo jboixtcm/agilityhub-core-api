@@ -37,6 +37,33 @@ class BankAccountVaultTest {
         assertThat(new BankAccountVault("").resolve(Map.of("iban", IBAN), "club-a", "member-a")).isEqualTo(IBAN);
     }
 
+    /** INC-31 (A37): the census seals what it stores; the stored fields never carry the IBAN, and only this vault reads it back. */
+    @Test void INC_31_E43_aSealedAccountKeepsOnlyItsCiphertextAndLastFourAndTheVaultReadsItBack() {
+        var vault = new BankAccountVault(KEY);
+        var stored = vault.seal(IBAN, "club-a", "member-a");
+        assertThat(stored).containsOnlyKeys("ibanEncrypted", "ibanLast4").containsEntry("ibanLast4", "1234");
+        assertThat(stored.toString()).doesNotContain(IBAN);
+        assertThat(vault.resolve(stored, "club-a", "member-a")).isEqualTo(IBAN);
+        assertThatThrownBy(() -> vault.resolve(stored, "club-a", "member-b")).isInstanceOf(IllegalStateException.class);
+        assertThat(vault.configured()).isTrue();
+        // A stack without BILLING_BANK_KEY (local only: production Compose requires it) keeps the clear shape.
+        var local = new BankAccountVault("");
+        assertThat(local.configured()).isFalse();
+        assertThat(local.seal(IBAN, "club-a", "member-a")).containsExactly(Map.entry("iban", IBAN));
+    }
+
+    /** INC-31: two stored accounts of a member are compared in the vault, across both shapes and two seals of one IBAN. */
+    @Test void INC_31_E43_sameAnswersWhetherTwoStoredAccountsHoldOneIban() {
+        var vault = new BankAccountVault(KEY);
+        var first = vault.seal(IBAN, "club-a", "member-a");
+        var again = vault.seal(IBAN, "club-a", "member-a");
+        assertThat(first).isNotEqualTo(again);
+        assertThat(vault.same(first, again, "club-a", "member-a")).isTrue();
+        assertThat(vault.same(first, Map.of("iban", IBAN), "club-a", "member-a")).isTrue();
+        assertThat(vault.same(first, vault.seal("ES0000000000000000005678", "club-a", "member-a"), "club-a", "member-a")).isFalse();
+        assertThat(vault.same(Map.of(), Map.of(), "club-a", "member-a")).isFalse();
+    }
+
     @Test void E43_aWrongKeyAnotherMembersDataATamperedValueOrAMissingKeyFailWithoutLeakingAnything() {
         String encrypted = new BankAccountVault(KEY).encrypt(IBAN, "club-a", "member-a");
         for (var failure : java.util.List.<org.assertj.core.api.ThrowableAssert.ThrowingCallable>of(

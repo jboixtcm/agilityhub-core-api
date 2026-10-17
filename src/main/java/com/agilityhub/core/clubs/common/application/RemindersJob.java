@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * now — a preference changed after the plan applies at once), `reminderSentAt` is set once and `ReminderDue{bookingId |
  * trainingBookingId, memberId, dogId, startsAt}` goes to the outbox in the same transaction. The S11 engine turns it into
  * N-13 (R-11-16 `stillRelevant`). Counters `{classReminders, trainingReminders}`; a dry run traces `WOULD_REMIND {bookingId |
- * trainingBookingId, memberId, startsAt, lead}`. Nothing to roll back. A training reminder planned while `FREE_TRAINING` was
+ * trainingBookingId, memberId, startsAt, lead}` and, INC-53 (E11-T02), counts the same two counters from its plan. Nothing to roll back. A training reminder planned while `FREE_TRAINING` was
  * on is not applied once it is off.</p>
  */
 @Component
@@ -56,6 +56,7 @@ public class RemindersJob implements Job {
                 if (due(candidate.startsAt(), candidate.bookedAt(), lead, now)) { items.add(item(source.kind(), candidate, lead)); }
             }
         }
+        if (context.dryRun()) { items.forEach(item -> context.recorder().count(CLASS_ENTITY.equals(item.entityType()) ? CLASS_COUNTER : TRAINING_COUNTER, 1)); }
         return items;
     }
 

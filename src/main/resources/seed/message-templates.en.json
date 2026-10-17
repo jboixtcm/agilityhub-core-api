@@ -3,6 +3,7 @@
   "templates": [
     {
       "code": "N-01",
+      "name": "Signup request received",
       "title": "Signup received",
       "body": "We have received your signup request for [[dogs]]. [[club_name]] will review it.{has_upfront, select, true { Amount to pay to the club: [[upfront_total]]. [[payment_instructions]] [[pay_link]]} other {}}",
       "icon": "bell",
@@ -17,6 +18,7 @@
     },
     {
       "code": "N-02",
+      "name": "Welcome and access",
       "title": "Welcome to [[club_name]], [[member_first_name]]!",
       "body": "You now have access to the club's app.",
       "icon": "mail",
@@ -31,6 +33,7 @@
     },
     {
       "code": "N-03",
+      "name": "Signup request declined",
       "title": "Signup request declined",
       "body": "[[member_name]], your request was declined. Reason: [[reason]].",
       "icon": "bell",
@@ -39,6 +42,7 @@
     },
     {
       "code": "N-04",
+      "name": "Booking confirmed",
       "title": "Booking confirmed",
       "body": "[[class_description]] class · [[class_date]] · [[class_time]] · [[ring_name]] · with [[dog_name]].",
       "icon": "check",
@@ -53,6 +57,7 @@
     },
     {
       "code": "N-05",
+      "name": "Booking cancelled (by you)",
       "title": "Booking cancelled",
       "body": "[[class_date]] · [[class_time]], with [[dog_name]]. {late, select, true {You cancelled it late: it counts towards your classes.} other {You cancelled it in time.}}",
       "icon": "bell",
@@ -67,6 +72,7 @@
     },
     {
       "code": "N-06",
+      "name": "Training booked",
       "title": "Booking confirmed",
       "body": "Free training · [[date]] · [[time]] · [[ring_name]] · with [[dog_name]].",
       "icon": "check",
@@ -81,6 +87,7 @@
     },
     {
       "code": "N-07",
+      "name": "Training cancelled",
       "title": "Training cancelled",
       "body": "Free training cancelled · [[date]] · [[time]] · [[ring_name]] · with [[dog_name]].",
       "icon": "bell",
@@ -95,6 +102,7 @@
     },
     {
       "code": "N-08a",
+      "name": "Class cancelled by the club",
       "title": "Class cancelled by the club",
       "body": "[[class_date]] · [[class_time]] · [[class_description]], with [[dog_name]]. “[[admin_text]]” — [[club_name]]. This session does not count towards your total.",
       "smsBody": "[[club_name]]: the class on [[class_date]] at [[class_time]] ([[class_description]]) is cancelled. [[admin_text]]",
@@ -120,6 +128,7 @@
     },
     {
       "code": "N-08b",
+      "name": "Class changed by the club (time/ring/instructor)",
       "title": "Class changed by the club",
       "body": "[[class_date]], with [[dog_name]]: the class has changed. [[changes]]. Check the app.",
       "smsBody": "[[club_name]]: class [[class_date]] with [[dog_name]] changed. [[changes]].",
@@ -140,6 +149,7 @@
     },
     {
       "code": "N-09",
+      "name": "Level change",
       "title": "[[dog_name_article]] moves up a level!",
       "body": "Thanks to your progress, [[dog_name_article]] is now at level [[level_name]]. You can now book classes at this new level; the classes you had already booked remain valid even if they are not at this level.",
       "icon": "up",
@@ -154,6 +164,7 @@
     },
     {
       "code": "N-10",
+      "name": "Unpaid receipt / failed collection",
       "title": "Unpaid receipt",
       "body": "Receipt [[invoice_number]] of [[member_name]] ([[amount]]) could not be collected: [[reason]].",
       "icon": "bell",
@@ -168,6 +179,7 @@
     },
     {
       "code": "N-11a",
+      "name": "Pack running out",
       "title": "Your pack is running out",
       "body": "[[dog_name]]'s pack has [[pack_remaining]] sessions left.",
       "icon": "bell",
@@ -182,6 +194,7 @@
     },
     {
       "code": "N-11b",
+      "name": "Pack about to expire / expired",
       "title": "Pack expiry",
       "body": "[[dog_name]]'s pack expiry: [[pack_expiry]]. Remaining sessions: [[pack_remaining]].",
       "icon": "bell",
@@ -196,6 +209,7 @@
     },
     {
       "code": "N-13",
+      "name": "Class/training reminder",
       "title": "{kind, select, TRAINING {Training reminder} other {Class reminder}}",
       "body": "[[date]] at [[time]] · {kind, select, TRAINING {Free training} other {[[class_description]]}} · [[ring_name]] · with [[dog_name]].",
       "icon": "clock",
@@ -210,6 +224,7 @@
     },
     {
       "code": "N-14",
+      "name": "Leave request received",
       "title": "Leave request received",
       "body": "[[member_name]] has asked to leave on [[requested_date]]. Reason: [[reason]].",
       "icon": "bell",
@@ -224,6 +239,7 @@
     },
     {
       "code": "N-15",
+      "name": "A place has been freed up!",
       "title": "A place has been freed up!",
       "body": "[[class_description]] class · [[class_date]] · [[class_time]]. {mode, select, FIFO {You have until [[confirm_by]] to confirm it.} other {You are on the waiting list: the place goes to whoever confirms first.}}",
       "smsBody": "[[club_name]]: a place has been freed up in the class on [[class_date]] at [[class_time]] ([[class_description]]). {mode, select, FIFO {You have until [[confirm_by]] to confirm it in the app.} other {Open the app to take it.}}",
@@ -239,6 +255,7 @@
     },
     {
       "code": "N-16",
+      "name": "Class may be cancelled",
       "title": "Class may be cancelled",
       "body": "[[class_date]] · [[class_time]] · [[class_description]], with [[dog_name]]: the class does not have enough students yet. {auto_cancel, select, true {If nobody else books before [[review_time]] [[review_day]], the class will be cancelled. We suggest booking another one.} other {[[review_day]] at [[review_time]] the club will decide whether it goes ahead.}}",
       "smsBody": "[[club_name]]: the class [[class_date]] [[class_time]] does not have enough students yet and may be cancelled.",
@@ -259,6 +276,7 @@
     },
     {
       "code": "N-17",
+      "name": "Class cancelled for lack of students",
       "title": "Class cancelled for lack of students",
       "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] — class cancelled automatically because it did not reach the minimum ({dogs_count, plural, =0 {no dogs booked} one {# dog booked} other {# dogs booked}}).",
       "icon": "bell",
@@ -278,6 +296,7 @@
     },
     {
       "code": "N-18a",
+      "name": "Inactivity request received",
       "title": "Inactivity request received",
       "body": "[[member_name]] has asked for an inactivity period from [[from_month]] to [[to_month]].",
       "icon": "bell",
@@ -292,6 +311,7 @@
     },
     {
       "code": "N-18b",
+      "name": "Inactivity approved/declined",
       "title": "{decision, select, APPROVED {Inactivity approved} other {Inactivity refused}}",
       "body": "{decision, select, APPROVED {The club has approved your inactivity period} other {The club has not approved your inactivity period}} from [[from_month]]{open_ended, select, true {, with no end date} other { to [[to_month]]}}. [[fee]] [[admin_text]] {cancelled_count, plural, =0 {} one { # booking cancelled.} other { # bookings cancelled.}}",
       "icon": "bell",
@@ -306,6 +326,7 @@
     },
     {
       "code": "N-18c",
+      "name": "Back to activity",
       "title": "You are active again",
       "body": "Your inactivity period is over: you can book classes again.",
       "icon": "bell",
@@ -320,6 +341,7 @@
     },
     {
       "code": "N-19",
+      "name": "We missed you (no-show)",
       "title": "We missed you",
       "body": "On [[class_date]] you couldn't make it to the [[class_description]] class. Remember you can cancel from the app right up to the last minute, so someone else can use the class. The session still counts towards your total.",
       "icon": "heart",
@@ -334,6 +356,7 @@
     },
     {
       "code": "N-20",
+      "name": "New task",
       "title": "New task for [[dog_name]]",
       "body": "[[instructor_name]] set you a task for [[dog_name]]: “[[task_excerpt]]”",
       "icon": "bell",
@@ -348,6 +371,7 @@
     },
     {
       "code": "N-21",
+      "name": "Task completed",
       "title": "Task completed",
       "body": "The task for [[dog_name]] ([[member_name]], student) is done: “[[task_excerpt]]”",
       "icon": "bell",
@@ -362,6 +386,7 @@
     },
     {
       "code": "N-22",
+      "name": "Student note new/changed",
       "title": "New note from a student",
       "body": "[[member_name]] (student) wrote or changed the note to the instructors about [[dog_name]].",
       "icon": "bell",
@@ -376,6 +401,7 @@
     },
     {
       "code": "N-23",
+      "name": "Vaccination card pending (reminder)",
       "title": "Documents pending",
       "body": "[[dog_name]]'s “[[document_type]]” is missing. You can upload it from the dog's page in the app.",
       "icon": "bell",
@@ -390,6 +416,7 @@
     },
     {
       "code": "N-24",
+      "name": "Message from the club",
       "title": "Message from the club",
       "body": "[[club_name]] has sent you a message.",
       "icon": "bell",
@@ -404,6 +431,7 @@
     },
     {
       "code": "N-28",
+      "name": "Leave confirmed (effective date)",
       "title": "{decision, select, CANCELLED {Planned leave cancelled} DENIED {Leave request refused} APPROVED {Planned leave confirmed} other {Confirmation of your leaving}}",
       "body": "{decision, select, APPROVED {{decision, select, CANCELLED {Your planned leave has been cancelled. Cancelled bookings are not restored.} DENIED {The club has refused your leave request.} other {{source, select, PACK_EXPIRED {Your pack has expired. Your leave is scheduled for [[effective_date]].} other {Your leave is scheduled for [[effective_date]]. You can remain active through that date.}}}} [[admin_text]] {cancelled_count, plural, =0 {} one {# later booking cancelled.} other {# later bookings cancelled.}}} CANCELLED {Your planned leave has been cancelled. Cancelled bookings are not restored.} DENIED {The club has refused your leave request. [[admin_text]]} other {Hello [[member_first_name]], we confirm that your membership of [[club_name]] ended on [[effective_date]]. Thank you for the time we have shared — the doors will always be open for you and for [[dog_name]]. See you soon!}}",
       "icon": "doc",
@@ -418,6 +446,7 @@
     },
     {
       "code": "N-29",
+      "name": "Bookings blocked / unblocked",
       "title": "{active, select, false {Bookings unblocked} other {Bookings blocked}}",
       "body": "{active, select, false {You can book classes again.} other {The club has blocked your bookings. Reason: [[reason]].}}",
       "icon": "bell",
@@ -432,6 +461,7 @@
     },
     {
       "code": "N-30",
+      "name": "Payment collected (Stripe) / receipt issued",
       "title": "Payment received",
       "body": "We have received your payment of [[amount]] ([[concept]]).",
       "icon": "bell",
@@ -446,6 +476,7 @@
     },
     {
       "code": "N-31",
+      "name": "New course on the ring",
       "title": "New course on the ring",
       "body": "There is a new course on the [[ring_name]] ring.",
       "icon": "bell",
@@ -460,6 +491,7 @@
     },
     {
       "code": "N-32a",
+      "name": "Activity published",
       "title": "Activity published",
       "body": "[[activity_title]] · [[date]]",
       "icon": "bell",
@@ -474,6 +506,7 @@
     },
     {
       "code": "N-32b",
+      "name": "Activity registration confirmed / cancelled",
       "title": "Activity registration",
       "body": "{state, select, ACTIVE {Registration confirmed for [[activity_title]] · [[date]]} WAITLISTED {You are on the waiting list for [[activity_title]] · [[date]]} CANCELLED {Registration cancelled for [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
       "smsBody": "[[club_name]]: {state, select, ACTIVE {Registration confirmed for [[activity_title]] · [[date]]} WAITLISTED {You are on the waiting list for [[activity_title]] · [[date]]} CANCELLED {Registration cancelled for [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
@@ -489,6 +522,7 @@
     },
     {
       "code": "N-32c",
+      "name": "Activity cancelled by the club",
       "title": "Activity cancelled by the club",
       "body": "[[activity_title]]: [[admin_text]]",
       "smsBody": "[[club_name]]: [[activity_title]] ([[date]]) is cancelled. [[admin_text]]",
@@ -504,6 +538,7 @@
     },
     {
       "code": "N-33",
+      "name": "Next week is open for booking",
       "title": "Next week is open for booking",
       "body": "[[club_name]]: you can now book the classes of the week of [[week_start]].",
       "icon": "bell",
@@ -518,6 +553,7 @@
     },
     {
       "code": "N-34",
+      "name": "Signup requests pending for days",
       "title": "Pending signup requests",
       "body": "{count, plural, one {There is # pending signup request} other {There are # pending signup requests}}; the oldest has been waiting for [[oldest_days]] days.",
       "icon": "bell",
@@ -532,6 +568,7 @@
     },
     {
       "code": "N-35",
+      "name": "Card payment failed",
       "title": "Your card could not be charged",
       "body": "We could not charge [[amount]]: [[reason]]. Check your card in the app: [[retry_link]]",
       "icon": "bell",
@@ -546,6 +583,7 @@
     },
     {
       "code": "N-36",
+      "name": "Booking made/cancelled by the club on your behalf",
       "title": "Booking managed by the club",
       "body": "{change, select, BOOKED {[[actor]] booked a class for you: [[class_date]] · [[class_time]], with [[dog_name]].} other {[[actor]] cancelled a class for you: [[class_date]] · [[class_time]], with [[dog_name]].}}",
       "smsBody": "[[club_name]]: {change, select, BOOKED {[[actor]] booked the class [[class_date]] [[class_time]] with [[dog_name]] for you.} other {[[actor]] cancelled the class [[class_date]] [[class_time]] with [[dog_name]] for you.}}",
@@ -561,6 +599,7 @@
     },
     {
       "code": "N-37",
+      "name": "New dog added / dog removed",
       "title": "{change, select, DogDeactivated {Dog removed} other {New dog added}}",
       "body": "{change, select, DogDeactivated {[[dog_name]] has left the club.} other {[[dog_name]] is now part of the club.}}",
       "icon": "bell",
@@ -575,6 +614,7 @@
     },
     {
       "code": "N-38",
+      "name": "Payment method / IBAN changed",
       "title": "Payment method changed",
       "body": "The payment method of your membership has changed. Account: [[masked_account]].",
       "icon": "bell",
@@ -589,6 +629,7 @@
     },
     {
       "code": "N-18d",
+      "name": "Change in an inactivity period",
       "title": "Change in an inactivity period",
       "body": "[[member_name]]'s inactivity period ([[from_month]] – [[to_month]]) has changed.",
       "icon": "bell",
@@ -603,6 +644,7 @@
     },
     {
       "code": "N-32d",
+      "name": "Activity changed by the club",
       "title": "Activity changed by the club",
       "body": "[[activity_title]]: [[changes]]",
       "smsBody": "[[club_name]]: [[activity_title]]: [[changes]]",
@@ -618,6 +660,7 @@
     },
     {
       "code": "N-40",
+      "name": "Booking not completed (payment expired)",
       "title": "Booking not completed",
       "body": "[[class_date]] · [[class_time]], with [[dog_name]]: the payment was not completed in time and the booking was cancelled.",
       "icon": "bell",
@@ -632,6 +675,7 @@
     },
     {
       "code": "N-41",
+      "name": "This month's direct debit pending",
       "title": "This month's direct debit is pending",
       "body": "The [[period]] direct debit has [[pending_count]] receipts still to generate.",
       "icon": "bell",
@@ -646,6 +690,7 @@
     },
     {
       "code": "N-42",
+      "name": "Automatic process with errors",
       "title": "Automatic process with errors",
       "body": "The process “[[job_name]]” finished with {error_count, plural, =0 {an incident} one {# error} other {# errors}}. Check its run in Settings › Automatic processes.",
       "icon": "bell",
@@ -660,6 +705,7 @@
     },
     {
       "code": "N-46",
+      "name": "The place has been taken",
       "title": "The place has been taken",
       "body": "[[class_date]] · [[class_time]], with [[dog_name]]: someone else took the place. You are still on the waiting list: we will let you know if another one is freed up.",
       "icon": "bell",
@@ -674,6 +720,7 @@
     },
     {
       "code": "N-47",
+      "name": "Training booked / cancelled by the club on your behalf",
       "title": "Training managed by the club",
       "body": "{change, select, BOOKED {The club booked a training for you: [[date]] · [[time]] · [[ring_name]], with [[dog_name]].} other {The club cancelled a training for you: [[date]] · [[time]] · [[ring_name]], with [[dog_name]].}}{has_admin_text, select, true { [[admin_text]]} other {}}",
       "smsBody": "[[club_name]]: {change, select, BOOKED {training booked by the club: [[date]] [[time]] ([[ring_name]]), with [[dog_name]].} other {training cancelled by the club: [[date]] [[time]] ([[ring_name]]), with [[dog_name]].}}",
@@ -689,6 +736,7 @@
     },
     {
       "code": "N-49",
+      "name": "Monthly SMS limit reached",
       "title": "Monthly SMS limit reached",
       "body": "The limit of [[cap]] SMS for [[month]] has been reached. Until next month, notices that went by SMS are sent by email.",
       "icon": "bell",
@@ -703,6 +751,7 @@
     },
     {
       "code": "N-50",
+      "name": "Your data is ready",
       "title": "Your data is ready",
       "body": "You can download your data from the app for [[expires_days]] days.",
       "icon": "bell",
@@ -717,6 +766,7 @@
     },
     {
       "code": "N-51",
+      "name": "Email bounced",
       "title": "Email bounced",
       "body": "[[member_name]]'s email [[email]] bounced: no more emails will reach that address until it is corrected.",
       "icon": "bell",
@@ -731,6 +781,7 @@
     },
     {
       "code": "N-54",
+      "name": "Class with few students (below the minimum)",
       "title": "Class with few students",
       "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] ([[ring_name]]) is below the minimum: {dogs_count, plural, =0 {no dogs booked} one {# dog booked} other {# dogs booked}}.",
       "icon": "bell",
@@ -750,6 +801,7 @@
     },
     {
       "code": "N-55",
+      "name": "Refund to make by hand",
       "title": "Manual refund required",
       "body": "{reason, select, COMPENSATION_INTERVENTION {Return {amount} to {member_name}. This is the outstanding total, excluding refunds in progress.} REFUND_OVER_CREDIT {{member_name} received an extra {amount} after a credit was already billed. Review this overpayment.} other {Review the refund for {member_name}: {amount}.}}",
       "icon": "bell",

@@ -71,10 +71,11 @@ public class JobsController {
 
     @PostMapping("/api/v1/jobs/{name}/trigger")
     @PreAuthorize(ADMIN)
-    @ContractErrors(value = {VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING, IMPERSONATION_DENIED}, omit = 422)
-    @Operation(summary = "triggerJob", description = "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). Tenant comes from the JWT.",
+    @ContractErrors(value = {VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING, IMPERSONATION_DENIED, IDEMPOTENCY_KEY_REUSED}, omit = 422)
+    @Operation(summary = "triggerJob", description = "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). An optional Idempotency-Key answers its own run to a retry whose answer was lost, without running again (CONVENCIONS_API §7, E75). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobRun", useReturnTypeSchema = true))
-    public JobRunView triggerJob(@PathVariable @Parameter(description = NAME) String name, @Valid @RequestBody JobTriggerRequest request) {
+    public JobRunView triggerJob(@PathVariable @Parameter(description = NAME) String name, @Valid @RequestBody JobTriggerRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
         return jobs.trigger(name, request.dryRun());
     }

@@ -37,11 +37,11 @@ public class TrainingQueryService implements ListProvider {
             "memberNumber", "dogId", "dogName", "state", "origin", "createdAt");
     private final TrainingContext context; private final TrainingBookingRepository bookings; private final TrainingMemberAccess census;
     private final TrainingEligibilityService eligibility; private final TrainingBookingService service; private final InactivityPort inactivity;
-    private final CensusIdentityService identities;
+    private final CensusIdentityService identities; private final com.agilityhub.core.shared.application.IcuMessageSource messages;
     public TrainingQueryService(TrainingContext context, TrainingBookingRepository bookings, TrainingMemberAccess census, TrainingEligibilityService eligibility,
-            TrainingBookingService service, InactivityPort inactivity, CensusIdentityService identities) {
+            TrainingBookingService service, InactivityPort inactivity, CensusIdentityService identities, com.agilityhub.core.shared.application.IcuMessageSource messages) {
         this.context = context; this.bookings = bookings; this.census = census; this.eligibility = eligibility; this.service = service;
-        this.inactivity = inactivity; this.identities = identities;
+        this.inactivity = inactivity; this.identities = identities; this.messages = messages;
     }
 
     /** R-09-05/09: eligible dogs, default dog, and the counter of the training week of `date` (today: the week of now). */
@@ -141,12 +141,14 @@ public class TrainingQueryService implements ListProvider {
     /**
      * `GET /training-bookings/filter-values` labels (E5-T29, CONVENCIONS_API §4): the ring's name (a deactivated ring's too), the
      * member's and the dog's names, read for the (at most 50) values listed; any other field, or a record that is gone, is its value.
+     * INC-51 (E11-T02): a member the census no longer names (erased, R-14-15) is the neutral `lists.erasedMember`, never its id.
      */
     private String label(String field, Object value) {
         String id = Objects.toString(value, "");
         return switch (field) {
             case "ringId" -> Objects.toString(service.ringNames().get(id), id);
-            case "memberId" -> census.member(id).map(TrainingMemberAccess.Member::displayName).filter(name -> !name.isBlank()).orElse(id);
+            case "memberId" -> census.member(id).map(TrainingMemberAccess.Member::displayName).filter(name -> !name.isBlank())
+                    .orElseGet(() -> messages.format("lists.erasedMember", Map.of(), com.agilityhub.core.shared.application.LocaleContext.current()));
             case "dogId" -> census.dog(id).map(TrainingMemberAccess.Dog::name).orElse(id);
             default -> id;
         };

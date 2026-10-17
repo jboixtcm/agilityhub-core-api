@@ -94,6 +94,8 @@ brings the seed back), so re-applying changes nothing. A code the definition lea
 when D9 lists the templates. An unknown, `SYSTEM` or later-stage code is `VALIDATION_ERROR`. The export lists the club's
 catalog templates. The Cànic lists all 51 (its CANIC preset has `SMS` and `PUSH` on); the other definitions list none.
 The `ca` texts of N-02, N-04, N-06, N-08a, N-09, N-13, N-15, N-16, N-19 and N-28 are S11 §8's; the rest are product copy.
+Each entry's `name` is the product name D9 lists (INC-53): `ca` is `CATALEG_NOTIFICACIONS`' «Nom» column (without its
+spec notes), `es` and `en` translate it and are reviewed with the other texts.
 N-02's template is its APP copy, without the sign-in link (E76): the welcome e-mail, product copy of `messages_*`, carries it.
 A template uses only its code's variables (D9's «Variables:»); a template stored with other languages than the club's is
 shown and saved in the club's languages. A seed text prints only its code's variables; its other ICU arguments are the
@@ -412,7 +414,7 @@ the T-06-28 guard keeps the mockups' first names out of every seed source, so ea
 | Alba + Pinya (B) | Anna + Nass: «ha avisat» | ordinal 75 |
 | Nil + Trufa (B) | Eva + Fish: «no presentat» → N-19 | ordinal 80 |
 | Iu + Gira (B) | Pau + Blat: the waiting one → N-15 | ordinal 85 |
-| Berta | Estel, the class instructor (instructor index 0: its login varies with the club id; find it by `shortName`) | an `instructor*@example.test` |
+| Berta | Estel, the class instructor (instructor index 0: the first of `instructors`, by member number, INC-53) | `instructor@example.test` |
 
 At `demoNow` (Monday 07:00 of week 0):
 
@@ -465,7 +467,7 @@ neither the module nor the section). A second `seed:demo` changes nothing.
 | Obstacle inventory | the club's (`PUT /obstacle-inventories/club`) | R-16-12's effective inventory of every ring |
 | Ring geometry | Central 40 × 22 m (door N, the «Bassa» no-go zone) and Carretera 30 × 20 m (door S), each with six markers A–F | D16's geometry block; the Unity export needs exactly six markers. Muntanya stays without one (R-16-07: a course setup still fits) |
 | Courses | «Jumping C–D de dimarts» (JUMPING, C–D, MEDIUM), «Agility A–B d'iniciació» (AGILITY, A–B, EASY), «Joc de túnels» (OTHER, EASY) | D18's library: fictional Smarter models (`[type, x, y, rotation]` rows written as course-core v1 `CourseData`), `pathLengthM` as course-core sends it, names in the club's languages |
-| Placements | Jumping on Central and Agility on Carretera, offset (1, 1) m, `READY_TO_BUILD` | D7/D18's placements; translations, so their resolved obstacles are the model's plus the offset |
+| Placements | Jumping on Central and Agility on Carretera, offset (1, 1) m, `READY_TO_BUILD` | D7/D18's placements; translations, so their resolved obstacles are the model's plus the offset. They carry none of the client's warnings (`warnings: []`): course-core computes those in the browser (INC-62) |
 | Ring setups | Carretera from its placement (A–B, expected until the run date + 3 days), Muntanya from «Joc de túnels» (FUN, EASY) | 08/10/23 «Recorregut muntat» and the mobile viewer |
 | Build session | on Central's placement: every obstacle placed, then finished | R-16-11: `finish` registers Central's setup (JUMPING, C–D); its export is a valid `BuildSessionExportV1` |
 

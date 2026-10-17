@@ -126,7 +126,8 @@
       }
     },
     "ownerType": "AGILITYHUB",
-    "activeOnRings": []
+    "activeOnRings": [],
+    "updatedAt": "2026-10-08T08:00:00Z"
   },
   "CoursePage": {
     "items": [
@@ -147,7 +148,8 @@
           }
         },
         "ownerType": "AGILITYHUB",
-        "activeOnRings": []
+        "activeOnRings": [],
+        "updatedAt": "2026-10-08T08:00:00Z"
       }
     ],
     "page": 1,

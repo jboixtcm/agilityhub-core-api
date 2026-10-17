@@ -799,9 +799,31 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
         sharedSequences(true, false, true);
     }
 
+    /**
+     * INC-58 point 2 (E11-T02; review of E8-T12 round 6 #3): a dashboard refund, still pending, is placed on row A while no row
+     * is in intervention. Row B's compensation fails: B owes its whole share by that view, so it takes its place in the split,
+     * and then the dashboard refund repays B first (E111), which owes nothing. No admin warning in the log, no intervention
+     * entry, no `UpfrontRefundIntervention` (N-55). Before the fix the warning came before the claim was recomputed.
+     */
+    @Test @ExtendWith(OutputCaptureExtension.class)
+    void T_12_17_INC_58_aCompensationFailingAfterAPendingDashboardRefundCoveredItAsksNoAdmin(CapturedOutput output) throws Exception {
+        sharedCapture();
+        notificationRecipients("ca");
+        tenant(() -> refunds.compensate("inv-payment-b", "REFUND", false));
+        String command = pendingCommands().getFirst().getString("_id");
+        execute(command, "pending");
+        dashboardRefund(CAPTURED, "pending");
+        terminate(stripe.get(operation(command).getString("resultId")), "failed", "evt_inc58_compensation_failed");
+        sharedInvariants(true);
+        assertThat(interventionOwed("inv-payment-b")).isZero();
+        assertThat(interventions()).isEmpty();
+        assertThat(events("UpfrontRefundIntervention")).isEmpty();
+        assertThat(output.getOut().lines().filter(line -> line.contains("Refund compensation needs an admin:")).toList()).isEmpty();
+    }
+
     @ParameterizedTest(name = "dashboard refund {0} for row {1}, first {2}")
     @org.junit.jupiter.params.provider.CsvSource({"1200,a,succeeded", "500,a,succeeded", "1200,b,succeeded", "500,b,succeeded",
-            "1200,b,pending", "500,b,pending", "500,a,pending"})
+            "1200,b,pending", "500,b,pending", "500,a,pending", "1200,a,pending"})
     void T_12_17_e8t12_round6_point1_dashboardRefundRepaysTheIntervention(long amount, String row, String first) throws Exception {
         sharedCapture();
         notificationRecipients("ca");
@@ -1288,14 +1310,24 @@ class CapturedPaymentInvariantsIT extends BillingItSupport {
                 reservations.add(new PaymentIntentLedger.Reservation(pending.getString("_id"), null, amount(pending)));
             }
         }
-        reservations.addAll(claims);
         // Point 4's split order: the order in which the compensations failed, then row order.
         intervening.sort(Comparator.comparing((Document row) -> row.getDate("compensationInterventionAt")).thenComparing(row -> row.getString("_id")));
-        var ledger = new PaymentIntentLedger(ledgerRows, reservations, intervening.stream().map(row -> row.getString("_id")).toList());
+        var withClaims = new ArrayList<>(reservations); withClaims.addAll(claims);
+        var ledger = new PaymentIntentLedger(ledgerRows, withClaims, intervening.stream().map(row -> row.getString("_id")).toList());
         for (var row : intervening) {
             String id = row.getString("_id");
             assertThat(interventionOwed(row)).as("current claim of %s, recomputed from the intent ledger %s", id, ledger)
                     .isEqualTo(Math.max(0, ledger.withoutReservation(id).freeFor(id)));
+        }
+        // INC-58 (E11-T02): an oracle of its own, not a fixed point of the stored claims. Without any claim, in the split order,
+        // each row owes the smaller of its own free share and the intent's free money left; that is subtracted, row by row.
+        var unclaimed = new PaymentIntentLedger(ledgerRows, reservations, intervening.stream().map(row -> row.getString("_id")).toList());
+        long left = unclaimed.balance().free();
+        for (var row : intervening) {
+            String id = row.getString("_id");
+            long owed = Math.max(0, Math.min(unclaimed.share(id).free(), left));
+            assertThat(interventionOwed(row)).as("claim of %s in the split order, from the intent ledger without claims %s", id, unclaimed).isEqualTo(owed);
+            left -= owed;
         }
     }
     void sharedInvariants() { sharedInvariants(false); }

@@ -27,6 +27,10 @@ public class JobTriggerService {
         return JobViews.view(runner.manual(TenantContext.require(), name, dryRun, actor(), IdempotentOperation.reference()));
     }
 
+    /** INC-50 (E11-T02): the JOB_TRIGGERED entry of a run whose first attempt lost it ({@code JobAdminService} decides). */
+    @Audited(action = AuditAction.JOB_TRIGGERED, entityType = "'JobRun'", entity = "#result.runId()")
+    public JobViews.JobRunView audited(com.agilityhub.core.platform.persistence.jobs.JobRun run) { return JobViews.view(run); }
+
     private static String actor() {
         var user = CurrentUser.current();
         if (user != null && user.impersonation() != null) { return user.impersonation().actorAccountId(); }

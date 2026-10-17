@@ -114,8 +114,13 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         throw new AssertionError("No TODAY option in "+quote);
     }
 
-    /** Step 1 (E4-W12 question 1): every plan with `texts.priceLabel` carries it in the reader's locale; the others have none. */
-    @Test void R_05_19_T_05_07_eachPlanCarriesItsPriceLabelInTheReadersLocale() throws Exception {
+    /**
+     * Step 1 (E4-W12 question 1): every plan with `texts.priceLabel` carries it in the reader's locale; the others have none.
+     * This is R-05-19's «sense preu» line on screen 17 for the Cànic (ca/es). T-05-07 as a whole — the lines of the three plan
+     * types and «sense preu» in ca, es and en — is {@code OfferCalculatorsTest.T_05_07_localizedPriceLinesForEveryTypeAndNoCurrentPrice}
+     * (INC-14, E5-T24's review detail #6).
+     */
+    @Test void R_05_19_eachPlanCarriesItsPriceLabelInTheReadersLocale() throws Exception {
         var catalan=anonymous("ca");
         assertThat(plan(catalan,planId("TERAPIA")).path("priceLabel").asText()).isEqualTo("condicions i cost segons cada cas");
         assertThat(plan(anonymous("es"),planId("TERAPIA")).path("priceLabel").asText()).isEqualTo("condiciones y coste según cada caso");

@@ -24,11 +24,14 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) String help,
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) boolean isOverride,
+            // INC-08: an optional property without a value is left out, never sent as null.
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
             @Schema(requiredMode = NOT_REQUIRED) String scopeRef,
             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) Map<String, Object> constraints,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
             @Schema(requiredMode = NOT_REQUIRED) String module,
             @Schema(requiredMode = REQUIRED) long version,
             @Schema(requiredMode = REQUIRED) @com.fasterxml.jackson.annotation.JsonProperty("default") Object defaultValue,
@@ -37,7 +40,8 @@ public final class SettingsContracts {
     public record ParameterHistoryEntry(
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) Instant changedAt,
-            @Schema(requiredMode = REQUIRED, format = "uuid") String changedByAccountId,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, format = "uuid",
+                    description = "null for a change written by the platform (a club definition, a migration), not by an account (INC-08)") String changedByAccountId,
             @Schema(requiredMode = NOT_REQUIRED) String reason) { }
     public record ParameterBlock(
             @Schema(requiredMode = REQUIRED) String key,

@@ -78,6 +78,23 @@ class WaitlistIT extends BookingFixtures {
         assertThat(booking(id(pere))).containsEntry("state", "ACTIVE");
     }
 
+    /**
+     * INC-53 point 12 (E11-T02; S08 R-08-12, CONVENCIONS_API §7): `POST /waitlist-entries` declares an optional `Idempotency-Key`.
+     * A retry with the same key after a lost `201` gets that same `201` (one entry, one `WaitlistJoined`), never `409
+     * ALREADY_ON_WAITLIST`; without a key, a second join of the dog is refused (the class's seat lock serialises joins).
+     */
+    @Test void T_08_19_INC_53_aRetriedJoinWithItsKeyGetsTheSame201() throws Exception {
+        book(as("pere"), "last", "s08-d-nit");
+        String key = java.util.UUID.randomUUID().toString();
+        var body = Map.of("classSessionId", "s08-last", "dogId", "s08-d-duna");
+        var first = call(POST, "/waitlist-entries", body, as("laura"), 201, key);
+        assertThat(call(POST, "/waitlist-entries", body, as("laura"), 201, key)).isEqualTo(first);
+        assertThat(eventsOf("WaitlistJoined")).hasSize(1);
+        assertThat(code(call(POST, "/waitlist-entries", body, as("laura"), 409))).isEqualTo("ALREADY_ON_WAITLIST");
+        var api = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        assertThat(api.at("/paths/~1api~1v1~1waitlist-entries/post/parameters").findValuesAsText("name")).contains("Idempotency-Key");
+    }
+
     @Test void T_08_19_joinLeaveAndADirectBookingConsolidatesTheEntry() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         var duna = join(as("laura"), "last", "s08-d-duna", 201);
@@ -287,6 +304,9 @@ class WaitlistIT extends BookingFixtures {
         assertThat(events("WaitlistNotified")).isEqualTo(3);
     }
 
+    /** P8's plan and its items (S15 R-15-18a), as `ClassFinishingJob` runs them; the bulk sweep is gone (INC-46). */
+    long sweep(java.time.Instant now) { return waitlist.startedBy(now).stream().filter(entry -> waitlist.sweepStarted(entry.id(), now)).count(); }
+
     @Test void R_08_16_R_08_21_silentCancellationsSweepStartedClassesMembersWhoLeaveAndClassCancellations() throws Exception {
         book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
@@ -295,7 +315,7 @@ class WaitlistIT extends BookingFixtures {
         long events = count("domain_events", new Criteria());
         // S15 P8 sweep (scheduled by E6): only the started class, silently.
         clock.setInstant(local("2026-10-06T12:00"));
-        try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.sweepStarted(clock.instant())).isEqualTo(1); assertThat(waitlist.sweepStarted(clock.instant())).isZero(); }
+        try (var t = TenantContext.open(CLUB)) { assertThat(sweep(clock.instant())).isEqualTo(1); assertThat(sweep(clock.instant())).isZero(); }
         assertThat(entry(toby)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "CLASS_STARTED");
         assertThat(entry(duna)).containsEntry("state", "ACTIVE");
         assertThat(session("early").get("counters", Document.class)).containsEntry("waiting", 0);
@@ -316,6 +336,17 @@ class WaitlistIT extends BookingFixtures {
         assertThat(eventsOf("ClassCancelledByClub").getFirst().get("payload", Document.class).getList("waitlistIds", String.class)).containsExactly(c0);
     }
 
+    /**
+     * INC-42 (E5-T25's review, detail #2): the census never deletes a dog, but if a waiting-list entry's dog went missing, D4/D12's
+     * list leaves that entry out (and logs it) instead of failing for every other entry with a 500 outside the catalog.
+     */
+    @Test void INC_42_R_08_26_aStaffListLeavesOutAnEntryWhoseDogIsMissing() throws Exception {
+        book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)); String rock = id(join(as("laura"), "last", "s08-d-rock", 201));
+        mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is("s08-d-rock")), "dogs");
+        var list = call(GET, "/class-sessions/s08-last/waitlist-entries", null, as("admin"), 200).path("items");
+        assertThat(list).extracting(e -> e.path("id").asText()).containsExactly(duna).doesNotContain(rock);
+    }
     @Test void T_08_26_waitlistRolesTenantImpersonationAndModuleOff() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201));

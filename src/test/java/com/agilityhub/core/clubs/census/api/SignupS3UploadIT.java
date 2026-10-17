@@ -96,6 +96,21 @@ class SignupS3UploadIT extends AbstractIntegrationTest {
         return http.send(request.build(),HttpResponse.BodyHandlers.ofString());
     }
 
+    @Autowired AttachmentStorage storage;
+
+    /**
+     * INC-62 point 6 (E11-T02; review of E9-T05, «Not checked»): `S3AttachmentStorage.read`, which serves a build sheet (S16
+     * R-16-10), against the S3-compatible store: the stored bytes come back as written, and a missing key is `404 NOT_FOUND`.
+     */
+    @Test void R_16_10_INC_62_theS3StoreReadsBackAStoredFileAndAMissingOneIsNotFound() throws Exception {
+        byte[] bytes="%PDF-1.4\n% fictional build sheet\n%%EOF\n".getBytes(StandardCharsets.UTF_8);
+        String key=club+"/courses/"+UUID.randomUUID();
+        storage.put(key,"application/pdf",bytes.length,new java.io.ByteArrayInputStream(bytes));
+        assertThat(storage.read(key)).isEqualTo(bytes);
+        assertThatThrownBy(()->storage.read(club+"/courses/"+UUID.randomUUID())).isInstanceOfSatisfying(com.agilityhub.core.shared.domain.ApiException.class,
+                error->assertThat(error.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND));
+    }
+
     @Test void R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce() throws Exception {
         byte[] bytes="fictional vaccination card".getBytes(StandardCharsets.UTF_8);
         var upload=result(postJson("/signup/upload-urls",Map.of("fileName","vaccination.pdf","contentType","application/pdf","sizeBytes",bytes.length)),200);

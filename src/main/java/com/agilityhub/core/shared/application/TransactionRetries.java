@@ -92,6 +92,21 @@ public class TransactionRetries {
         return false;
     }
 
+    /**
+     * INC-47 (E11-T02): a transient failure the client may retry (`409 STALE_VERSION`): a write conflict or a transaction the
+     * server aborted, but not one that ran out of time. A request past its database deadline (E85: `TimeoutPolicy`, the HTTP
+     * budget) is a server error, `500`, even though the server labels its aborted transaction transient too.
+     */
+    public static boolean retryableConflict(Throwable failure) {
+        if (!transientFailure(failure)) { return false; }
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof com.mongodb.MongoTimeoutException || cause instanceof com.mongodb.MongoExecutionTimeoutException
+                    || cause instanceof org.springframework.dao.QueryTimeoutException) { return false; }
+            if (cause instanceof com.mongodb.MongoException mongo && (mongo.getCode() == 50 || mongo.getCode() == 262)) { return false; }
+        }
+        return true;
+    }
+
     static String cause(Throwable failure) {
         for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
             if (cause instanceof org.springframework.dao.DuplicateKeyException) { return "duplicate_key"; }

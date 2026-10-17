@@ -24,7 +24,7 @@ public class CalendarQuery {
         var from=week.startDate().atStartOfDay(zone).toInstant(); var to=week.endDate().plusDays(1).atStartOfDay(zone).toInstant();
         blocks.between(from,to).forEach(b -> intervals(items,b.id(),InconsistencyDetector.Kind.BLOCK,b.ringId(),b.from(),b.to(),week));
         boolean free=projection.enabled(Module.FREE_TRAINING);
-        if(free) for(var ring:context.catalog().rings()) training.findActiveBookings(ring.id(),from,to).forEach(b -> intervals(items,b.id(),InconsistencyDetector.Kind.TRAINING,b.ringId(),b.from(),b.to(),week));
+        if(free) for(var ring:context.catalog().rings()) training.findActiveBookings(ring.id(),from,to).forEach(b -> intervals(items,b.bookingId(),InconsistencyDetector.Kind.TRAINING,b.ringId(),b.from(),b.to(),week));
         return context.detector().detect(items,context.catalog(),free,LocaleContext.current());
     }
     private void intervals(List<InconsistencyDetector.ScheduledItem> items,String id,InconsistencyDetector.Kind kind,String ring,Instant from,Instant to,Week week) {

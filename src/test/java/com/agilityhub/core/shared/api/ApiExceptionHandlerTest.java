@@ -138,6 +138,23 @@ class ApiExceptionHandlerTest {
         } finally { MDC.remove("traceId"); }
     }
 
+    /**
+     * INC-47 (E11-T02): a transient Mongo transaction failure (a write conflict, or any error labelled `TransientTransactionError`)
+     * that reaches the handler answers `409 STALE_VERSION`, which the client may retry, never a 500. A duplicate key is not
+     * transient: it stays an internal error.
+     */
+    @Test void INC_47_aTransientTransactionFailureAnswersStaleVersion() throws Exception {
+        for (String path : java.util.List.of("/write-conflict", "/transient-transaction")) {
+            mvc.perform(get(path)).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("STALE_VERSION"))
+                    .andExpect(jsonPath("$.traceId").isNotEmpty());
+        }
+        mvc.perform(get("/duplicate-key")).andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+        // E85: a transaction the server aborted because the request ran out of its database time is a server error, not a conflict.
+        for (String path : java.util.List.of("/timed-out-transaction", "/max-time-transaction")) {
+            mvc.perform(get(path)).andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+        }
+    }
+
     @RestController static class TestController {
         @GetMapping("/page") int page(@RequestParam int page) { return page; }
         @GetMapping(value = "/json", produces = "application/json") Map<String, String> json() { return Map.of("value", "ok"); }
@@ -147,6 +164,23 @@ class ApiExceptionHandlerTest {
         @GetMapping("/unexpected") void unexpected() {
             throw new IllegalStateException("fictional failure", new IllegalArgumentException("fictional cause"));
         }
+        @GetMapping("/write-conflict") void writeConflict() {
+            throw new org.springframework.data.mongodb.UncategorizedMongoDbException("fictional write conflict",
+                    new com.mongodb.MongoException(112, "fictional write conflict"));
+        }
+        @GetMapping("/transient-transaction") void transientTransaction() {
+            var failure = new com.mongodb.MongoException("fictional transient failure"); failure.addLabel("TransientTransactionError");
+            throw new IllegalStateException("fictional wrapper", failure);
+        }
+        @GetMapping("/timed-out-transaction") void timedOutTransaction() {
+            var failure = new com.mongodb.MongoOperationTimeoutException("fictional deadline"); failure.addLabel("TransientTransactionError");
+            throw new org.springframework.dao.DataAccessResourceFailureException("fictional wrapper", failure);
+        }
+        @GetMapping("/max-time-transaction") void maxTimeTransaction() {
+            var failure = new com.mongodb.MongoException(50, "fictional MaxTimeMSExpired"); failure.addLabel("TransientTransactionError");
+            throw new IllegalStateException("fictional wrapper", failure);
+        }
+        @GetMapping("/duplicate-key") void duplicateKey() { throw new org.springframework.dao.DuplicateKeyException("fictional duplicate key"); }
         @GetMapping("/denied") void denied() { throw new org.springframework.security.access.AccessDeniedException("denied"); }
         @GetMapping("/stub") void stub() { throw new UnsupportedOperationException(); }
         @GetMapping("/business") void business() {

@@ -111,7 +111,7 @@ public class TrainingSlotService {
                 for (var ring : rings) {
                     var cell = TrainingGrid.cell(ring, slot, classes, blocks, seats, dogId);
                     anyFree |= cell.free();
-                    cells.put(ring.id(), cell(cell, viewer, descriptions, staffBlocks, memberNames, dogNames));
+                    cells.put(ring.id(), cell(cell, viewer, descriptions, staffBlocks, memberNames, dogNames, zone));
                 }
                 var view = new LinkedHashMap<String, Object>();
                 view.put("startsAt", slot.startsAt()); view.put("startsAtLocal", hhmm(slot.startsAt(), zone)); view.put("endsAtLocal", hhmm(slot.endsAt(), zone));
@@ -140,9 +140,11 @@ public class TrainingSlotService {
         return out;
     }
     private static Map<String, Object> cell(TrainingGrid.Cell cell, Viewer viewer, Map<String, String> descriptions, Map<String, RingScheduleAccess.BlockInterval> blocks,
-            Map<String, String> members, Map<String, String> dogs) {
+            Map<String, String> members, Map<String, String> dogs, ZoneId zone) {
         var out = new LinkedHashMap<String, Object>(); out.put("state", cell.state()); out.put("reason", cell.reason());
         if (cell.ownBookingId() != null) { out.put("bookingId", cell.ownBookingId()); }
+        // INC-44 (E11-T02, S09 §13-3): «18:50 classe», the start of the class the cell shows, for every viewer.
+        cell.classes().stream().findFirst().ifPresent(c -> out.put("classStartsAtLocal", hhmm(c.from(), zone)));
         if (viewer.staff()) {
             out.put("occupants", cell.seats().stream().map(s -> occupant(s, members, dogs)).toList());
             cell.blocks().stream().findFirst().map(b -> blocks.get(b.id())).ifPresent(b -> {

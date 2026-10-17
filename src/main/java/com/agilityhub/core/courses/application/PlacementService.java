@@ -52,10 +52,11 @@ public class PlacementService {
     private final EventPublisher events;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final CourseFiles files;
     public PlacementService(PlacementRepository placements, RingGeometryRepository rings, CourseAccess access, CourseReferencePort references,
-            ClubConfigService configs, AuditWriter audit, EventPublisher events, ObjectMapper mapper, Clock clock) {
+            ClubConfigService configs, AuditWriter audit, EventPublisher events, ObjectMapper mapper, Clock clock, CourseFiles files) {
         this.placements = placements; this.rings = rings; this.access = access; this.references = references; this.configs = configs;
-        this.audit = audit; this.events = events; this.mapper = mapper; this.clock = clock;
+        this.audit = audit; this.events = events; this.mapper = mapper; this.clock = clock; this.files = files;
     }
 
     /** `GET /placements?ringId=&courseId=&activityId=`: each reference must be the club's (a course the caller can read). */
@@ -90,8 +91,12 @@ public class PlacementService {
         // E117 point 5: a stale `PUT` is `409 STALE_VERSION` before R-16-05's policy, even when it carries a critical warning.
         var checked = check(in, () -> { if (before.version() != version) { throw new ApiException(STALE_VERSION); } });
         // R-16-06: the client recalculated the placement against the current geometry, so it is no longer stale.
-        var stored = build(before.id(), in, checked, before.createdAt(), before.createdByAccountId(), clock.instant(), before.version() + 1, before.buildSheetFileKey());
+        // INC-62 (E11-T02, decision E121): a placement moved (another transform) loses its build sheet, which no longer fits it.
+        boolean moved = !java.util.Objects.equals(before.transform(), in.transform());
+        var stored = build(before.id(), in, checked, before.createdAt(), before.createdByAccountId(), clock.instant(), before.version() + 1,
+                moved ? null : before.buildSheetFileKey());
         WriteConflicts.guard(() -> { reference(checked); placements.update(stored, version); });
+        if (moved) { files.release(before.buildSheetFileKey()); }
         var payload = new LinkedHashMap<String, Object>(); payload.put("placementId", stored.id()); payload.put("stale", false);
         publish(CourseEvent.Kind.PlacementUpdated, stored, payload);
         forced(checked, stored);

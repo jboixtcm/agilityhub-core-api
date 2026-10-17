@@ -823,6 +823,19 @@ class FollowupIT extends AbstractIntegrationTest {
         return out;
     }
     static List<String> ids(JsonNode page) { return page.path("items").findValuesAsText("id"); }
+    /**
+     * INC-51 point 2 (AGENTS rule 4): a copy of every D14 row and task of this club in the other club `s10f-b`, with the same dogs,
+     * members, authors and texts. A search or a count that ever left its tenant would find them.
+     */
+    void foreignCopies() {
+        for (String collection : List.of("followup_items", "tasks")) {
+            for (var row : mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, collection)) {
+                row.put("_id", "foreign-" + row.get("_id")); row.put("clubId", OTHER);
+                if (row.get("taskId") != null) { row.put("taskId", "foreign-" + row.get("taskId")); }
+                mongo.insert(row, collection);
+            }
+        }
+    }
 
     /**
      * E6-T06 step 1 (S10 §6 amended 30-09, CONVENCIONS_API §4, ruling E75): `GET /followup/filter-values` lists each value with
@@ -838,6 +851,7 @@ class FollowupIT extends AbstractIntegrationTest {
         clock.setInstant(NOW.plusSeconds(60));
         createTask("marc", "s10f-d-toby", "Pujar la rampa a poc a poc", null, 201);
         for (int i = 1; i <= 20; i++) { clock.setInstant(NOW.plusSeconds(60 + 60L * i)); createTask("estel", "s10f-d-duna", "Tasca " + i + " de l'Estel", null, 201); }
+        foreignCopies();
         // Núria has read nothing: her first page of 20 is Estel's tasks only.
         var first = followup("nuria", "size", "20");
         assertThat(first.path("totalItems").asInt()).isEqualTo(22);
@@ -892,6 +906,7 @@ class FollowupIT extends AbstractIntegrationTest {
         call(HttpMethod.PUT, "/me/dogs/s10f-d-toby/instructor-note", Map.of("text", "En Toby s'espanta dels túnels"), as("joan"), 200);
         dispatch();
         String note = com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, "s10f-d-toby");
+        foreignCopies();
         assertThat(ids(followup("nuria"))).containsExactly(note, toby, duna);
         assertThat(mongo.findById(duna, Document.class, "followup_items").getString("textExcerpt")).doesNotContain("trampolí");
 
@@ -915,6 +930,54 @@ class FollowupIT extends AbstractIntegrationTest {
         soft.assertThat(ids(followup("nuria", "q", "tobias"))).as("renamed dog").containsExactly(note, toby);
         soft.assertThat(ids(followup("nuria", "q", "Nobody at all"))).as("no match").isEmpty();
         soft.assertAll();
+    }
+
+    /**
+     * INC-53 point 4 (E11-T02; S10 §6, decision E82): each D14 row carries the live attachments of its task (D14's clip), or of
+     * the dog's member note; a removed one is not counted.
+     */
+    @Test void T_10_18_INC_53_d14RowsCarryTheirLiveAttachmentCount() throws Exception {
+        byte[] bytes = "fictional plan".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String first = upload(as("estel"), "TASK", "pla-1.pdf", "application/pdf", bytes), second = upload(as("estel"), "TASK", "pla-2.pdf", "application/pdf", bytes);
+        var task = createTask("estel", "s10f-d-duna", "Amb dos adjunts", List.of(first, second), 201);
+        clock.setInstant(NOW.plusSeconds(60));
+        createTask("estel", "s10f-d-toby", "Sense adjunts", null, 201);
+        var rows = followup("nuria").path("items");
+        assertThat(rows).extracting(row -> row.path("textExcerpt").asText() + ":" + row.path("attachmentCount").asLong())
+                .containsExactlyInAnyOrder("Amb dos adjunts:2", "Sense adjunts:0");
+        String removed = task.at("/attachments/0/id").asText();
+        call(HttpMethod.DELETE, "/attachments/" + removed, null, as("estel"), 204, key());
+        assertThat(followup("nuria").path("items")).filteredOn(row -> row.path("textExcerpt").asText().equals("Amb dos adjunts")).singleElement()
+                .satisfies(row -> assertThat(row.path("attachmentCount").asLong()).isEqualTo(1));
+        assertThat(followup("nuria", "fields", "attachmentCount").at("/items/0/attachmentCount").isNumber()).isTrue();
+    }
+
+    /**
+     * INC-51 point 4 (E11-T02; review of E6-T06, decision E80): an erased member's value in D14's `memberId` filter values is
+     * labelled with a neutral, translated text, never the member's internal id.
+     */
+    @Test void T_10_18_INC_51_anErasedMembersFilterValueHasANeutralLabel() throws Exception {
+        createTask("estel", "s10f-d-duna", "Tasca d'un abonat que se suprimirà", null, 201);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s10f-m-laura")), new Update().set("erasedAt", NOW), "members");
+        assertThat(entries(filterValues("nuria", "memberId"))).containsExactly("s10f-m-laura → Abonat suprimit (1)");
+        var spanish = mvc.perform(request(HttpMethod.GET, "/api/v1/followup/filter-values").header("Host", HOST).header("Accept-Language", "es")
+                .with(as("nuria")).param("field", "memberId")).andReturn().getResponse();
+        assertThat(mapper.readTree(spanish.getContentAsString()).at("/values/0/label").asText()).isEqualTo("Socio suprimido");
+    }
+
+    /**
+     * INC-51 point 6 (E11-T02; E6-W05 question 1, decision E80): a task naming an upload whose grant expired before it was
+     * registered answers `409 INVALID_STATE` with `details.reason = UPLOAD_EXPIRED`, declared on the route and distinct from a
+     * frozen dog's `READMISSION_PENDING`, and leaves no task.
+     */
+    @Test void T_10_15_INC_51_aTaskNamingAnExpiredUploadAnswers409UploadExpired() throws Exception {
+        String file = upload(as("estel"), "TASK", "pla.pdf", "application/pdf", "fictional plan".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        clock.setInstant(NOW.plusSeconds(301));
+        var refused = createTask("estel", "s10f-d-duna", "Amb una pujada caducada", List.of(file), 409);
+        assertThat(code(refused)).isEqualTo("INVALID_STATE"); assertThat(refused.at("/details/reason").asText()).isEqualTo("UPLOAD_EXPIRED");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("text").is("Amb una pujada caducada")), "tasks")).isZero();
+        var api = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        assertThat(api.at("/paths/~1api~1v1~1tasks/post/responses/409/description").asText()).contains("INVALID_STATE");
     }
 
     // ---------------------------------------------------------------- round 3 (review of 27-09 21:19): every attempt, the author as written

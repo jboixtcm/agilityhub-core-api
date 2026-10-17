@@ -21,6 +21,8 @@ class DemoSignupSeeder {
     private final CensusClubSettings settings;
     private final UpfrontPayments payments;
     private final DocumentService documentService;
+    /** INC-31 (A37): the demo IBANs are sealed like any other (in clear only on a stack without BILLING_BANK_KEY). */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BankAccounts bankAccounts;
 
     DemoSignupSeeder(CensusAccess census, CensusRepository<DogDocument> documents, SignupPolicy policy,
             MigrationCatalogAccess catalogs, CensusClubSettings settings, UpfrontPayments payments, DocumentService documentService) {
@@ -41,11 +43,15 @@ class DemoSignupSeeder {
         member.gender = "FEMALE";
         member.idDocument = object("type", "PASSPORT", "number", "DEMO" + (ordinal + 1));
         member.familyGroupClaim = object("status", "NONE");
+        // INC-08: a public signup always carries an address (S04); the demo's pending ones too, fictional.
+        if (member.address == null || member.address.isEmpty()) {
+            member.address = object("street", "Carrer de l'Exemple, " + (ordinal + 1), "postalCode", "08392", "city", "Sant Andreu de Llavaneres", "country", "ES");
+        }
         String submission = DemoDataset.id(member.clubId, "pending-submission", ordinal);
         member.signup = object("submittedAt", at, "locale", locale, "source", "PUBLIC", "readmission", false,
                 "planIdRequested", planId, "firstMonthOption", "TODAY", "submissionId", submission);
-        member.paymentMethod = object("type", "SEPA_DD", "holderName", member.firstName + " " + member.lastName1,
-                "iban", row.accountProvided() ? DemoDataset.iban(ordinal + 1) : null, "mandateSignedAt", at);
+        member.paymentMethod = object("type", "SEPA_DD", "holderName", member.firstName + " " + member.lastName1, "mandateSignedAt", at);
+        if (row.accountProvided()) { member.paymentMethod.putAll(bankAccounts.seal(DemoDataset.iban(ordinal + 1), member.clubId, member.id)); }
         member.consents = new ConsentLedgerConverter().read(List.of(
                 object("type", "PRIVACY_POLICY", "granted", true, "version", version, "acceptedAt", at, "locale", locale, "source", "DEMO_SEED"),
                 object("type", "IMAGE_USE", "granted", true, "version", version, "acceptedAt", at, "locale", locale, "source", "DEMO_SEED")), null);

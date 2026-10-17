@@ -17,6 +17,8 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
         mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("weekId", ASC).named("class_club_week"));
         mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("ringId", ASC).on("startsAt", ASC).named("class_club_ring_start"));
         mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("state", ASC).on("endsAt", ASC).named("class_club_state_end"));
+        // INC-46 (E11-T02): S15 P8 reads the started ACTIVE classes each minute.
+        mongo.indexOps(ClassSession.class).createIndex(new Index().on("clubId", ASC).on("state", ASC).on("startsAt", ASC).named("class_club_state_start"));
     }
     /** Serialize lifecycle cancellation decisions with planning edits, inside the caller's transaction. */
     public ClassSession lock(String id) {
@@ -46,6 +48,11 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     }
     public java.util.List<ClassSession> findActiveBetween(String clubId, java.time.Instant from, java.time.Instant to) {
         return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("state").is("ACTIVE").and("startsAt").gte(from).lt(to)), ClassSession.class);
+    }
+    /** The ids of the club's `ACTIVE` classes started by `now` with someone waiting (`counters.waiting > 0`; S15 P8, INC-46). */
+    public java.util.List<String> startedWithWaiting(java.time.Instant now) {
+        return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("state").is("ACTIVE").and("startsAt").lte(now).and("counters.waiting").gt(0)),
+                "_id", ClassSession.class, String.class);
     }
     /** Classes of any state starting in `[from, to)`, by start (S15 §6 `GET /risk-review`). */
     public java.util.List<ClassSession> startingBetween(java.time.Instant from, java.time.Instant to) {

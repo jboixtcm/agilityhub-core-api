@@ -138,6 +138,29 @@ public final class AuditContracts {
             @Schema(requiredMode = REQUIRED) List<AuditChange> changes,
             @Schema(requiredMode = NOT_REQUIRED) String reason,
             @Schema(requiredMode = NOT_REQUIRED) Map<String, Object> details) { }
+    /**
+     * INC-12 (E11-T02): the item of `GET /platform/audit-entries`, which takes no `fields` and always sends the whole row, so its
+     * required properties are those of an entry (unlike the sparse {@link AuditEntryListItem}); no `ip`, `userAgent` or trace.
+     */
+    @Schema(name = "PlatformAuditEntry")
+    public record PlatformAuditEntry(
+            @Schema(requiredMode = REQUIRED, format = "uuid") String id,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String clubId,
+            @Schema(requiredMode = REQUIRED) Instant at,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String actorAccountId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String actorName,
+            @Schema(requiredMode = REQUIRED) AuditActorRole actorRole,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String impersonatedMemberId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String impersonatedName,
+            @Schema(requiredMode = REQUIRED) AuditOrigin origin,
+            @Schema(requiredMode = REQUIRED) String entityType,
+            @Schema(requiredMode = REQUIRED) String entityId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String entityLabel,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String memberId,
+            @Schema(requiredMode = REQUIRED) AuditActionName action,
+            @Schema(requiredMode = REQUIRED) List<AuditChange> changes,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String reason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Map<String, Object> details) { }
     public record AuditEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,

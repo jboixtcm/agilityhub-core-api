@@ -20,6 +20,11 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     }
     public T require(String id) { return findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public List<T> matching(Criteria criteria) { return mongo.find(tenantQuery().addCriteria(criteria), type); }
+    /** {@link #matching} with only {@code fields} read (and `_id`): the other fields of each entity are left null (INC-51). */
+    public List<T> matching(Criteria criteria, String... fields) {
+        var query = tenantQuery().addCriteria(criteria); query.fields().include(fields);
+        return mongo.find(query, type);
+    }
     /** Case- and accent-insensitive comparison (primary strength), the collation of {@link #ensureNameIndex}. */
     public static final Collation NAME_COLLATION = Collation.of("en").strength(Collation.ComparisonLevel.primary());
     /** {@link #matching} compared with {@link #NAME_COLLATION}, so the `{clubId, nameKey}` index of that collation serves it. */

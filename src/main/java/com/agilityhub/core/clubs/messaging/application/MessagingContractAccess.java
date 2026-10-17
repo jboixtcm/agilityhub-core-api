@@ -36,7 +36,7 @@ public class MessagingContractAccess {
                     "createdAt", new Field("createdAt", Type.INSTANT)),
             Map.of("createdAt", "createdAt"), List.of(),
             List.of("createdAt", "code", "recipient", "channels", "readAt"), List.of("createdAt", "code", "recipient", "channels"),
-            List.of("createdAt,desc"), Set.of("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"));
+            List.of("createdAt,desc"), Set.of("id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId"));
 
     private final MessageTemplateRepository templates; private final NotificationRepository notifications; private final PushSubscriptionRepository subscriptions;
     private final TeamMemberAccess members; private final MemberIdentityAccess identities;

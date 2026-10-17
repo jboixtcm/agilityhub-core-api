@@ -76,10 +76,10 @@
       {"id": "notification-a", "createdAt": "2026-08-10T15:58:00Z", "code": "N-08a", "category": "CLUB_CHANGES", "audience": "MEMBER",
        "recipient": {"displayName": "Laura Example", "memberId": "member-a", "email": null},
        "channels": [{"channel": "APP", "status": "DELIVERED"}, {"channel": "EMAIL", "status": "SENT"}, {"channel": "SMS", "status": "SENT"}, {"channel": "SMS", "status": "SKIPPED_CAP"}],
-       "readAt": null},
+       "readAt": null, "batchId": null},
       {"id": "notification-b", "createdAt": "2026-08-10T15:00:00Z", "code": "N-03", "category": "PERSONAL", "audience": "APPLICANT",
        "recipient": {"displayName": "applicant@example.test", "memberId": null, "email": "applicant@example.test"},
-       "channels": [{"channel": "EMAIL", "status": "DELIVERED"}], "readAt": null}
+       "channels": [{"channel": "EMAIL", "status": "DELIVERED"}], "readAt": null, "batchId": null}
     ],
     "page": 0, "size": 50, "totalItems": 2, "totalPages": 1, "appliedFilters": [{"field": "createdAt", "op": "between", "value": ["2026-08-01T00:00:00Z", "2026-08-31T23:59:59Z"]}]
   },

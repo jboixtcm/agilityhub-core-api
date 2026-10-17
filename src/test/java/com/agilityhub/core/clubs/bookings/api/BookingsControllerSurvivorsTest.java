@@ -91,7 +91,7 @@ class BookingsControllerSurvivorsTest {
             assertCode(() -> controller.cancelBooking("booking-1", null, jwt));
             assertCode(() -> controller.bookings(params));
             assertCode(() -> controller.bookingFilterValues("state", null, params));
-            assertCode(() -> controller.joinWaitlist(new BookingRequests.WaitlistEntryRequest("class-1", "dog-1"), jwt));
+            assertCode(() -> controller.joinWaitlist(new BookingRequests.WaitlistEntryRequest("class-1", "dog-1"), null, jwt));
             assertCode(() -> controller.waitlistEntry("entry-1", jwt));
             assertCode(() -> controller.leaveWaitlist("entry-1", jwt));
             assertCode(() -> controller.claimSeat("entry-1", new BookingRequests.ClaimRequest("hold-1", null), UUID.randomUUID(), jwt));

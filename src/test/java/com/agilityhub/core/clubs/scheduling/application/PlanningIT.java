@@ -231,6 +231,14 @@ class PlanningIT extends AbstractIntegrationTest {
         var none = member(plain, "ca");
         assertThat(none.has("plannedPlacement")).isTrue(); assertThat(none.get("plannedPlacement").isNull()).isTrue();
         assertThat(ok("GET", "/class-sessions/" + planned, null).has("plannedPlacement")).isFalse();
+        // INC-62 (E11-T02, R-16-16): a PRIVATE course's name never reaches a member, unless the ring's active setup shows it.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-course")), new Update().set("visibility", "PRIVATE"), "courses");
+        assertThat(member(planned, "en").get("plannedPlacement").isNull()).as("a private course is not named").isTrue();
+        mongo.insert(new Document("_id", "plan-setup").append("clubId", CLUB).append("ringId", "plan-ring").append("kind", "JUMPING")
+                .append("placementId", "plan-placement").append("status", "ACTIVE"), "ring_setups");
+        assertThat(member(planned, "en").at("/plannedPlacement/courseName").asText()).as("shown by the active setup").isEqualTo("Practice jumping");
+        mongo.remove(Query.query(Criteria.where("_id").is("plan-setup")), "ring_setups");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-course")), new Update().set("visibility", "CLUB"), "courses");
         // The course deleted: no course to name.
         mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-course")), new Update().set("deletedAt", java.util.Date.from(now)), "courses");
         assertThat(member(planned, "ca").get("plannedPlacement").isNull()).isTrue();

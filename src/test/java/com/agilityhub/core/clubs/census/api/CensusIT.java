@@ -42,6 +42,8 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.object;
 class CensusIT extends AbstractIntegrationTest {
     static final String CLUB = "census-a", OTHER = "census-b";
     static final String IBAN = "ES9121000418450200051332";
+    /** INC-31: another valid fictional IBAN with the same last four digits. */
+    static final String OTHER_IBAN = "ES6800490001502611001332";
     @org.springframework.boot.test.web.server.LocalServerPort int port;
     @Autowired TokenService tokens; @Autowired PasswordHasher passwords;
     @Autowired ImpersonationService impersonation;
@@ -52,6 +54,7 @@ class CensusIT extends AbstractIntegrationTest {
     @Autowired MemberBookingEligibility eligibility; @Autowired MemberStatusService statuses;
     @Autowired IdentityTransactions transactions; @Autowired EventPublisher publisher; @Autowired OutboxDispatcher dispatcher;
     @Autowired CountryContacts countries; @Autowired AttachmentService attachments; @Autowired MemberIdentityAccess identityAccess;
+    @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
 
     @BeforeEach void seed() {
         TenantContext.clear();
@@ -184,11 +187,14 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(events("MemberPaymentMethodChanged")).singleElement().satisfies(event -> assertThat(event.payload()).containsEntry("masked", "···· ···· ···· ···· 1332"));
         // E42: a SEPA → SEPA PATCH without `iban` keeps the stored account; only an explicit `"iban": null` clears it.
         change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Holder")));
-        assertThat(member("one").paymentMethod).containsEntry("iban", IBAN).containsEntry("holderName", "Example Holder");
+        // INC-31: the account is stored sealed, never in clear.
+        assertThat(member("one").paymentMethod).doesNotContainKey("iban").containsEntry("ibanLast4", "1332").containsKey("ibanEncrypted")
+                .containsEntry("holderName", "Example Holder");
+        assertThat(vault.resolve(member("one").paymentMethod, CLUB, "one")).isEqualTo(IBAN);
         assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isFalse();
         var cleared = new HashMap<String,Object>(); cleared.put("iban", null);
         change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", cleared));
-        assertThat(member("one").paymentMethod).doesNotContainKey("iban").containsEntry("holderName", "Example Holder");
+        assertThat(member("one").paymentMethod).doesNotContainKeys("iban", "ibanEncrypted", "ibanLast4").containsEntry("holderName", "Example Holder");
         assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isTrue();
         change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer")));
         var count = events("MemberPaymentMethodChanged").size(); change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer")));
@@ -212,27 +218,53 @@ class CensusIT extends AbstractIntegrationTest {
     }
     /** E42 (INC-17): the encrypted account of a migrated member survives a SEPA → SEPA PATCH that does not send `iban`. */
     @Test void T_03_13_sepaPatchKeepsTheMigratedEncryptedAccount() throws Exception {
-        field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332")
+        String migrated = vault.encrypt(OTHER_IBAN, CLUB, "one");
+        field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", migrated).append("ibanLast4", "1332")
                 .append("holderName", "Example Holder").append("holderTaxId", "12345678Z").append("mandateRef", "census-a-1-1").append("mandateSignedAt", Date.from(Instant.parse("2020-01-01T00:00:00Z"))));
         var payment = change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Renamed")));
         assertThat(payment.path("maskedAccount").asText()).isEqualTo("···· ···· ···· ···· 1332");
-        assertThat(member("one").paymentMethod).containsEntry("ibanEncrypted", "v1:example-ciphertext").containsEntry("ibanLast4", "1332")
+        assertThat(member("one").paymentMethod).containsEntry("ibanEncrypted", migrated).containsEntry("ibanLast4", "1332")
                 .containsEntry("holderName", "Example Renamed").containsEntry("holderTaxId", "12345678Z").containsEntry("mandateRef", "census-a-1-1")
                 .containsKey("mandateSignedAt").doesNotContainKey("iban");
         assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isFalse();
         assertThat(events("MemberPaymentMethodChanged")).singleElement().satisfies(event -> assertThat(event.payload()).containsEntry("masked", "···· ···· ···· ···· 1332"));
-        // A new IBAN replaces the encrypted one; an explicit null clears the account.
+        // A new IBAN (here with the same last digits) replaces the encrypted one, sealed in turn (INC-31); an explicit null clears the account.
         change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("iban", IBAN)));
-        assertThat(member("one").paymentMethod).containsEntry("iban", IBAN).doesNotContainKeys("ibanEncrypted", "ibanLast4").containsEntry("holderName", "Example Renamed");
+        assertThat(member("one").paymentMethod).doesNotContainKey("iban").containsEntry("ibanLast4", "1332").containsEntry("holderName", "Example Renamed")
+                .extractingByKey("ibanEncrypted").isNotEqualTo(migrated);
+        assertThat(vault.resolve(member("one").paymentMethod, CLUB, "one")).isEqualTo(IBAN);
         field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332").append("holderName", "Example Holder"));
         var cleared = new HashMap<String,Object>(); cleared.put("iban", null);
         change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", cleared));
         assertThat(member("one").paymentMethod).doesNotContainKeys("iban", "ibanEncrypted", "ibanLast4").containsEntry("holderName", "Example Holder");
         assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isTrue();
-        assertThat(mapper.writeValueAsString(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED))).doesNotContain("example-ciphertext", IBAN);
+        assertThat(mapper.writeValueAsString(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED))).doesNotContain("example-ciphertext", migrated, IBAN, OTHER_IBAN);
         // A change of type replaces the method: nothing of the SEPA account is kept.
         change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "cash")));
         assertThat(member("one").paymentMethod).containsOnlyKeys("type", "channel");
+    }
+    /**
+     * INC-31 (A37, E43): D10 stores the account sealed (nothing of the IBAN in the document but its last four digits); the same
+     * IBAN entered again, in any spacing or case, keeps what is stored and the mandate; another account is a new mandate (S12 §7).
+     */
+    @Test void INC_31_E43_d10StoresTheAccountSealedAndTheSameIbanAgainKeepsTheMandate() throws Exception {
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("iban", IBAN, "holderName", "Example")));
+        var stored = member("one").paymentMethod;
+        assertThat(stored).doesNotContainKey("iban").containsEntry("ibanLast4", "1332").containsKey("ibanEncrypted").containsKey("mandateRef");
+        assertThat(mongo.findById("one", Document.class, "members").toJson()).doesNotContain(IBAN, IBAN.substring(4, 20));
+        assertThat(vault.resolve(stored, CLUB, "one")).isEqualTo(IBAN);
+        int changes = events("MemberPaymentMethodChanged").size();
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("iban", "es91 2100 0418 4502 0005 1332")));
+        assertThat(member("one").paymentMethod).isEqualTo(stored);
+        assertThat(events("MemberPaymentMethodChanged")).hasSize(changes);
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("iban", OTHER_IBAN)));
+        var other = member("one").paymentMethod;
+        assertThat(other.get("mandateRef")).isNotEqualTo(stored.get("mandateRef"));
+        assertThat(other.get("ibanEncrypted")).isNotEqualTo(stored.get("ibanEncrypted"));
+        assertThat(vault.resolve(other, CLUB, "one")).isEqualTo(OTHER_IBAN);
+        // The audit shows that the account changed, never its value nor its ciphertext.
+        assertThat(mapper.writeValueAsString(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED))).doesNotContain(IBAN, OTHER_IBAN, other.get("ibanEncrypted").toString())
+                .contains("[ocult]");
     }
     @Test @AuditCovers({AuditAction.BOOKING_BLOCK_SET, AuditAction.BOOKING_BLOCK_CLEARED})
     void T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges() throws Exception {
@@ -369,6 +401,11 @@ class CensusIT extends AbstractIntegrationTest {
         var response = json(own(get("/api/v1/me/dogs")), 200); assertThat(response.path("dogs")).hasSize(2); assertThat(response.toString()).doesNotContain("chip", "handlerName", "passwordHash", "dog-family");
         assertThat(response.path("dogs").get(0).path("tasks").path("items")).hasSize(2);
         assertThat(response.path("dogs").get(0).path("tasks").path("open").asInt()).isEqualTo(1);
+        // INC-53 point 1 (E11-T02): screen 13 says «feta per {nom} el {data}», as 26 does: a done task carries `doneBy`, never an account id.
+        var done = response.path("dogs").get(0).path("tasks").path("items").findParents("id").stream().filter(item -> item.path("id").asText().equals("recent")).findFirst().orElseThrow();
+        assertThat(done.path("doneBy")).isEqualTo(mapper.readTree("{\"role\":\"INSTRUCTOR\",\"displayName\":\"Estel\",\"gender\":\"FEMALE\"}"));
+        var pending = response.path("dogs").get(0).path("tasks").path("items").findParents("id").stream().filter(item -> item.path("id").asText().equals("pending")).findFirst().orElseThrow();
+        assertThat(pending.has("doneBy")).isFalse();
         assertThat(response.path("dogs").get(1).path("pack").path("remaining").asInt()).isEqualTo(4);
         assertThat(response.path("dogs").get(1).path("licenses").get(0).path("division").asText()).isEqualTo("2D");
         // E3-T16 (R-03-15, R-03-32): the club's document types for «＋ DOC.», in catalog order and the reader's language (`en` here).
@@ -441,7 +478,9 @@ class CensusIT extends AbstractIntegrationTest {
     void task(String id, String state, Instant done) {
         mongo.insert(new Document("_id", id).append("clubId", CLUB).append("dogId", "dog-one").append("state", state).append("text", "Example task")
                 .append("createdAt", Date.from(clock.instant().minus(Duration.ofDays(40)))).append("doneAt", done == null ? null : Date.from(done))
-                .append("createdBy", new Document("displayName", "Example Instructor")), "tasks");
+                .append("createdBy", new Document("displayName", "Example Instructor"))
+                .append("doneBy", done == null ? null : new Document("accountId", "instructor-account").append("role", "INSTRUCTOR").append("displayName", "Estel")
+                        .append("gender", "FEMALE")), "tasks");
     }
     @Test void T_03_27_selfProfileAllowsContactsOnlyAndDoesNotChangeLoginEmail() throws Exception {
         error(own(body(patch("/api/v1/me/profile"), Map.of("firstName", "No"))), ErrorCode.VALIDATION_ERROR);

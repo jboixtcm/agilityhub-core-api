@@ -24,9 +24,12 @@ public final class CatalogResponses {
     public enum EntryFeeMode { STANDARD, AMOUNT, PERCENT, NONE }
     public enum ChargeMode { CHARGE_ON_ATTENDANCE, PAY_TO_BOOK }
     public enum CancelPolicy { REFUND, CREDIT, NONE }
+    /** INC-08: `amount` only with `AMOUNT`, `percent` only with `PERCENT`; otherwise left out, never sent as null. */
     public record EntryFee(
             @Schema(requiredMode = REQUIRED) EntryFeeMode mode,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
             @Schema(requiredMode = NOT_REQUIRED) Money amount,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
             @Schema(requiredMode = NOT_REQUIRED) Integer percent) { }
     public record PackSettings(
             @Schema(requiredMode = REQUIRED) int sessions,

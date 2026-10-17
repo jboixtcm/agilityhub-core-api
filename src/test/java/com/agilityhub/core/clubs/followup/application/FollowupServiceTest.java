@@ -36,7 +36,9 @@ class FollowupServiceTest {
     private final ListEngine lists = mock(ListEngine.class);
     private final DashboardQuery dashboard = mock(DashboardQuery.class);
     private final TaskRepository tasks = mock(TaskRepository.class);
-    private final FollowupService service = new FollowupService(items, marks, tasks, census, lists, dashboard, Clock.fixed(NOW, ZoneOffset.UTC));
+    private final AttachmentRepository attachments = mock(AttachmentRepository.class);
+    private final FollowupService service = new FollowupService(items, marks, tasks, census, lists, dashboard, Clock.fixed(NOW, ZoneOffset.UTC),
+            mock(com.agilityhub.core.shared.application.IcuMessageSource.class, call -> "lists.erasedMember".equals(call.getArgument(0)) ? "Erased member" : null), attachments);
     private TenantContext.Scope tenant;
     @BeforeEach void open() { tenant = TenantContext.open("club-a"); }
     @AfterEach void close() { tenant.close(); }
@@ -57,8 +59,12 @@ class FollowupServiceTest {
         when(census.dogs(List.of("dog-a", "dog-x"))).thenReturn(Map.of("dog-a", new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", null)));
         when(census.members(List.of("member-a", "member-x"))).thenReturn(Map.of("member-a",
                 new FollowupCensusAccess.Member("member-a", "Laura", "Laura Example", "FEMALE", "account-m", null, "ca")));
+        when(attachments.counts("TASK", List.of("task-f2", "task-f3"))).thenReturn(Map.of("task-f2", 2L));
+        when(attachments.counts("INSTRUCTOR_NOTE", List.of("dog-a"))).thenReturn(Map.of("dog-a", 1L));
         var page = service.list(new LinkedMultiValueMap<>(), "me");
         assertThat(page.items()).extracting(FollowupService.Item::id).containsExactly("f1", "f2", "f3");
+        // INC-53 (E11-T02): the note counts the dog's INSTRUCTOR_NOTE files, a task its own; none is 0.
+        assertThat(page.items()).extracting(FollowupService.Item::attachmentCount).containsExactly(1L, 2L, 0L);
         var note = page.items().get(0);
         // Round 2 (review #4): the note's author is its writer as stored (Joan, MALE), never the dog's current owner (Laura, FEMALE).
         assertThat(note.unread()).isTrue(); assertThat(note.authorName()).isEqualTo("Joan"); assertThat(note.authorGender()).isEqualTo("MALE");
@@ -107,7 +113,7 @@ class FollowupServiceTest {
     /**
      * E6-T06 step 1 (E75): the filter values are the engine's facets over the caller's rows, relabelled in one read per field:
      * the member's full name, the dog's name, the author's name; a value whose record is gone (or has no name) keeps its label,
-     * and `kind`/`unread` are their values.
+     * except a member's, which is the neutral `lists.erasedMember` (INC-51), and `kind`/`unread` are their values.
      */
     @Test void T_10_18_filterValuesAreTheCallersFacetsWithTheirNames() {
         when(marks.find("me")).thenReturn(Optional.of(new FollowupReadMark("m", "club-a", "me", READ_ALL, List.of("f2"), NOW, NOW)));
@@ -124,7 +130,8 @@ class FollowupServiceTest {
         for (String field : List.of("memberId", "dogId", "authorAccountId", "kind")) {
             labels.put(field, service.filterValues(field, new LinkedMultiValueMap<>(), "me").values().stream().map(v -> v.label() + "/" + v.count()).toList());
         }
-        assertThat(labels).containsExactly(Map.entry("memberId", List.of("Laura Example/3", "gone/1", "blank/1")), Map.entry("dogId", List.of("Duna/3", "gone/1", "blank/1")),
+        // INC-51 (E11-T02): a member the census no longer names (erased) gets the neutral `lists.erasedMember`, never its id.
+        assertThat(labels).containsExactly(Map.entry("memberId", List.of("Laura Example/3", "Erased member/1", "Erased member/1")), Map.entry("dogId", List.of("Duna/3", "gone/1", "blank/1")),
                 Map.entry("authorAccountId", List.of("Estel/3", "gone/1", "blank/1")), Map.entry("kind", List.of("a/3", "gone/1", "blank/1")));
         // The caller's own unread: the facets run over the dataset built from their read mark.
         var dataset = ArgumentCaptor.forClass(ListDataset.class);

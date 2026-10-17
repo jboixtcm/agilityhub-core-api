@@ -32,14 +32,14 @@ public class IdempotencyRepository extends TenantRepository<IdempotencyRecord> {
         mongo.indexOps(IdempotencyRecord.class).createIndex(new Index().on("clubId", Direction.ASC)
                 .on("accountId", Direction.ASC).on("key", Direction.ASC).unique().named("scope_key"));
         mongo.indexOps(IdempotencyRecord.class).createIndex(new Index().on("createdAt", Direction.ASC)
-                .expire(Duration.ofHours(24)).named("idempotency_retention"));
+                .expire(com.agilityhub.core.shared.application.IdempotentOperation.KEY_LIFETIME).named("idempotency_retention"));
     }
 
     public Claim claim(String clubId, String accountId, String key, String hash, Instant now) {
         Query scope = scopeQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key));
         // TTL cleanup is asynchronous, so expired keys must also be reusable before the next TTL sweep.
         mongo.remove(scopeQuery(clubId).addCriteria(Criteria.where("accountId").is(accountId).and("key").is(key)
-                .and("createdAt").lte(now.minus(Duration.ofHours(24)))), IdempotencyRecord.class);
+                .and("createdAt").lte(now.minus(com.agilityhub.core.shared.application.IdempotentOperation.KEY_LIFETIME))), IdempotencyRecord.class);
         // CONVENCIONS_API §7 (E79): a claim still IN_PROGRESS past its lease belongs to a request that stopped before its answer
         // or its clean-up (the process died). The same request (same key, scope and body) takes it over; another body never
         // does. The new record fences the old request out: its lock and its answer find no record and fail ({@link #taken}).

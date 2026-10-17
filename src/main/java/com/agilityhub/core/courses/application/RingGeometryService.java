@@ -103,11 +103,15 @@ public class RingGeometryService {
         }
     }
 
-    /** S16 §14.2: the club's venue, created with the club's name and slug the first time the club draws a ring. */
+    /**
+     * S16 §14.2: the club's venue, created with the club's name and slug the first time the club draws a ring. INC-61
+     * (E11-T02): a slug another venue already holds takes the first free suffix, never a duplicate key.
+     */
     private void ensureVenue() {
+        if (venues.club().isPresent()) { return; }
         var club = configs.get(TenantContext.require()).club();
         var now = clock.instant(); String actor = CourseAccess.accountId();
-        venues.ensure(new Venue(UUID.randomUUID().toString(), club.id(), club.slug(), club.name(), null, club.city(), null, null, IndoorOutdoor.MIXED,
+        venues.ensure(new Venue(UUID.randomUUID().toString(), club.id(), venues.freeSlug(club.slug()), club.name(), null, club.city(), null, null, IndoorOutdoor.MIXED,
                 null, null, null, VenueVisibility.MEMBERS_ONLY, PartnerStatus.INACTIVE, null, null, PaperSize.A4, now, actor, now, actor));
     }
 

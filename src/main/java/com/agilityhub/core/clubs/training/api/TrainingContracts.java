@@ -38,7 +38,9 @@ public final class TrainingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Own booking (OWN_TRAINING)") String bookingId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = STAFF) List<SlotOccupant> occupants,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = STAFF) SlotBlock block,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = STAFF) SlotClassSession classSession) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = STAFF) SlotClassSession classSession,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, pattern = "^\\d{2}:\\d{2}$",
+                    description = "INC-44: the club-local start (HH:mm) of the class that occupies the cell («18:50 classe», S09 §13-3); every viewer") String classStartsAtLocal) { }
     public record SlotOccupant(String bookingId, String memberName, String dogName) { }
     public record SlotBlock(String id, @Schema(allowableValues = {"BLOCK", "RESERVATION"}) String kind,
             @Schema(allowableValues = {"MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER"}) String reason,
@@ -90,5 +92,10 @@ public final class TrainingContracts {
     @Schema(description = "details of 422 TRAINING_CANCEL_TOO_LATE")
     public record TrainingCancelTooLateDetails(int thresholdMinutes, int minutesBefore) { }
     @Schema(description = "details of 422 RING_HAS_BOOKINGS")
-    public record RingHasBookingsDetails(List<SlotOccupant> bookings) { }
+    public record RingHasBookingsDetails(List<RingBooking> bookings) { }
+    /**
+     * INC-09: a live training booking that stops a ring change (S05 R-05-08, S06 R-06-16, S09 R-09-13): the one shape of
+     * `RING_HAS_BOOKINGS{bookings[]}` on every route that answers it.
+     */
+    public record RingBooking(String bookingId, String ringId, java.time.Instant from, java.time.Instant to, String memberName, String dogName) { }
 }

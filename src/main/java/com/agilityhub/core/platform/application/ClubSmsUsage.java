@@ -44,16 +44,18 @@ public class ClubSmsUsage {
         long key = key(month);
         for (int round = 0; round < 2; round++) {
             // The stored month when it is this one or a later one: a sender late on its month never moves the counter back.
-            var counted = mongo.findAndModify(Query.query(Criteria.where("_id").is(clubId).and(MONTH).gte(key).and(SENT).lt(cap)), new Update().inc(SENT, 1L),
-                    FindAndModifyOptions.options().returnNew(true), Document.class, mongo.getCollectionName(Club.class));
+            // INC-52 (E11-T02): only the stored month comes back, never the whole club document.
+            var counting = Query.query(Criteria.where("_id").is(clubId).and(MONTH).gte(key).and(SENT).lt(cap)); counting.fields().include(MONTH);
+            var counted = mongo.findAndModify(counting, new Update().inc(SENT, 1L), FindAndModifyOptions.options().returnNew(true), Document.class,
+                    mongo.getCollectionName(Club.class));
             if (counted != null) { return new Reservation(storedMonth(counted).orElse(month), true); }
             // The first SMS of a later month restarts the count; an earlier or missing month only.
             var earlier = Query.query(Criteria.where("_id").is(clubId).orOperator(Criteria.where(MONTH).is(null), Criteria.where(MONTH).lt(key)));
             if (mongo.updateFirst(earlier, new Update().set(MONTH, key).set(SENT, 1L), Club.class).getModifiedCount() == 1) { return new Reservation(month, true); }
             // Another sender began this month (or a later one) between both updates: count in it, still below the cap.
         }
-        var stored = Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("_id").is(clubId)), Document.class, mongo.getCollectionName(Club.class)))
-                .flatMap(ClubSmsUsage::storedMonth);
+        var reading = Query.query(Criteria.where("_id").is(clubId)); reading.fields().include(MONTH);
+        var stored = Optional.ofNullable(mongo.findOne(reading, Document.class, mongo.getCollectionName(Club.class))).flatMap(ClubSmsUsage::storedMonth);
         return new Reservation(stored.filter(later -> later.isAfter(month)).orElse(month), false);
     }
     /** Gives back one reservation of `month` (the provider refused or failed the SMS); nothing once a later month began. */

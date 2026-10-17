@@ -14,10 +14,12 @@ import java.util.regex.Pattern;
 public final class SignedFileRequests {
     private static final Pattern UPLOAD = Pattern.compile("/api/v1/attachments/uploads/[^/]+");
     private static final Pattern DOWNLOAD = Pattern.compile("/api/v1/attachments/files/[^/]+|/api/v1/remittances/files/[^/]+/[^/]+");
+    /** INC-14: the path Spring routes (decoded, without `;` parameters), as {@code RateLimitFilter} reads it. */
+    private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
     private SignedFileRequests() { }
 
     public static boolean matches(HttpServletRequest request) {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = PATHS.getPathWithinApplication(request);
         return switch (request.getMethod()) {
             case "PUT" -> UPLOAD.matcher(path).matches() || path.equals("/api/v1/signup/uploads");
             case "GET" -> DOWNLOAD.matcher(path).matches() || path.equals("/api/v1/signup/files");

@@ -650,7 +650,7 @@ class BuildSessionsIT extends CourseItSupport {
         double before = retries.retries("build-sessions");
         BuildSessionDraws.pauses(service, point -> {
             // Another phone's finish of the same session commits while this one is between its read and its writes.
-            if (point.equals("finish") && pauses.incrementAndGet() == 1) { other.set(elsewhere(as(finish(id), CLUB, "ADMIN", "e9t2-other-finisher"))); }
+            if (point.equals(BuildSessionDraws.FINISH) && pauses.incrementAndGet() == 1) { other.set(elsewhere(as(finish(id), CLUB, "ADMIN", "e9t2-other-finisher"))); }
         });
         try {
             var first = mvc.perform(as(finish(id), CLUB, "ADMIN")).andReturn().getResponse();
@@ -668,6 +668,41 @@ class BuildSessionsIT extends CourseItSupport {
     }
 
     /**
+     * INC-63 point 5 (E11-T02; review of E9-T06 round 2 #5, decision E123): the same race on the refresh path. The placement's
+     * setup is already the ring's active one, so both finishes refresh it: the first one's write on that setup conflicts, it is
+     * retried and sees the session closed. One `200`, one `422 BUILD_SESSION_FINISHED`, the one setup refreshed by the winner,
+     * no `RingSetupChanged` (a refresh publishes none) and one `BuildSessionFinished`.
+     */
+    @Test void T_16_10_INC_63_twoKeyedFinishesRefreshingTheActiveSetupGiveOne200AndOne422() throws Exception {
+        String placementId = placement(A1, true);
+        ok(as(finish(start(placementId, "ADMIN", 201).path("id").asText()), CLUB, "ADMIN"), 200);
+        String setupId = ringDocument(A1).getString("activeSetupId");
+        int changes = clubEvents("RingSetupChanged").size();
+        clock.advance(Duration.ofDays(1));
+        String id = start(placementId, "ADMIN", 201).path("id").asText();
+        var pauses = new java.util.concurrent.atomic.AtomicInteger();
+        var other = new java.util.concurrent.atomic.AtomicReference<org.springframework.mock.web.MockHttpServletResponse>();
+        double before = retries.retries("build-sessions");
+        BuildSessionDraws.pauses(service, point -> {
+            if (point.equals(BuildSessionDraws.FINISH) && pauses.incrementAndGet() == 1) { other.set(elsewhere(as(finish(id), CLUB, "ADMIN", "e9t2-other-finisher"))); }
+        });
+        try {
+            var first = mvc.perform(as(finish(id), CLUB, "ADMIN")).andReturn().getResponse();
+            assertThat(other.get().getStatus()).as(other.get().getContentAsString()).isEqualTo(200);
+            assertThat(first.getStatus() + ":" + code(first)).as(first.getContentAsString()).isEqualTo("422:BUILD_SESSION_FINISHED");
+            assertThat(pauses.get()).isEqualTo(2);
+            assertThat(retries.retries("build-sessions")).isGreaterThan(before);
+        } finally { BuildSessionDraws.pauses(service, point -> { }); }
+        assertThat(mapper.readTree(other.get().getContentAsString()).path("setupId").asText()).isEqualTo(setupId);
+        assertThat(ringDocument(A1).getString("activeSetupId")).isEqualTo(setupId);
+        assertThat(setupDocument(setupId).getString("builtByAccountId")).isEqualTo("e9t2-other-finisher");
+        assertThat(setupDocument(setupId).getDate("builtAt").toInstant()).isEqualTo(clock.instant());
+        assertThat(count("ring_setups", Query.query(Criteria.where("clubId").is(CLUB)))).isEqualTo(1);
+        assertThat(clubEvents("RingSetupChanged")).hasSize(changes);
+        assertThat(clubEvents("BuildSessionFinished")).filteredOn(e -> id.equals(e.get("payload", Document.class).getString("sessionId"))).hasSize(1);
+    }
+
+    /**
      * Round 2 (E120, review #2): two keyed joins at once, forced: the first has read the session when the second phone's join
      * commits its participant (a hook between the join's read and its write). The first one's push conflicts on the session
      * document and the whole request is retried: both answer `200`, both are participants once, never a 500.
@@ -681,7 +716,7 @@ class BuildSessionsIT extends CourseItSupport {
         var second = as(join(code), CLUB, "INSTRUCTOR", "e9t2-joiner-b").header("Idempotency-Key", UUID.randomUUID().toString());
         BuildSessionDraws.pauses(service, point -> {
             // Another phone's keyed join commits its participant while this join is between its read and its write.
-            if (point.equals("join") && pauses.incrementAndGet() == 1) { other.set(elsewhere(second)); }
+            if (point.equals(BuildSessionDraws.JOIN) && pauses.incrementAndGet() == 1) { other.set(elsewhere(second)); }
         });
         org.springframework.mock.web.MockHttpServletResponse first;
         try {
@@ -701,8 +736,9 @@ class BuildSessionsIT extends CourseItSupport {
     /**
      * Round 2 (review #5): a client that stops reading holds its sender thread only until Tomcat's write timeout fails the write:
      * `server.tomcat.connection-timeout` is set explicitly (20 s) instead of Tomcat's default (60 s); idle keep-alive stays 60 s.
+     * INC-63 point 2 (E11-T02): named for what it checks, the connector's configuration (the write itself is Tomcat's).
      */
-    @Test void T_16_10_aStalledStreamHoldsItsSenderNoLongerThanTheWriteTimeout(
+    @Test void T_16_10_INC_63_theConnectorFailsAWriteAfter20sAndKeepsIdleKeepAliveAt60s(
             @Autowired org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext context) {
         var tomcat = (org.springframework.boot.tomcat.TomcatWebServer) context.getWebServer();
         var connector = tomcat.getTomcat().getConnector();

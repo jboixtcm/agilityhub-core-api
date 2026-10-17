@@ -15,6 +15,11 @@ import static org.springframework.http.HttpMethod.*;
  * Every answer is checked against the committed snapshot's schema.
  */
 class TrainingRegisterContractIT extends TrainingFixtures {
+    /** A copy of {@code id} that belongs to the other club, with the same members, dogs, rings and texts (INC-50). */
+    void foreign(String collection, String id) {
+        var copy = mongo.findOne(Query.query(Criteria.where("_id").is(id)), Document.class, collection);
+        copy.put("_id", "foreign-" + id); copy.put("clubId", OTHER); mongo.insert(copy, collection);
+    }
     static JsonNode row(JsonNode items, String id) {
         for (var item : items) { if (item.path("id").asText().equals(id)) { return item; } }
         throw new AssertionError("no row " + id + " in " + items);
@@ -159,6 +164,8 @@ class TrainingRegisterContractIT extends TrainingFixtures {
         String rock = book(as("maria"), "s09-d-rock", "2026-10-06T09:30", CEN, 201).path("id").asText();
         String blat = book(as("pau"), "s09-d-blat", "2026-10-05T09:00", MUN, 201).path("id").asText();
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("lastName2", "Serrallonga"), "members");
+        // INC-50 (AGENTS rule 4): another club's bookings that match every q (copies with the same member, dog and ring) are never found.
+        foreign("training_bookings", rock); foreign("training_bookings", blat);
         var searches = new LinkedHashMap<String, List<String>>();
         searches.put("serrallonga", List.of(rock)); searches.put("MARIA", List.of(rock)); searches.put("pau", List.of(blat));
         searches.put("rock", List.of(rock)); searches.put("Bla", List.of(blat)); searches.put("centr", List.of(rock)); searches.put("muntanya", List.of(blat));
@@ -175,6 +182,14 @@ class TrainingRegisterContractIT extends TrainingFixtures {
         assertThat(rows).hasSize(2); assertThat(rows.get(1)).containsExactly("Rock");
     }
 
+    /** INC-51 point 4 (E11-T02; decision E80): an erased member's `memberId` value in the register's filter values has a neutral, translated label. */
+    @Test void CONVENCIONS_API_4_T_09_30_INC_51_anErasedMembersFilterValueHasANeutralLabel() throws Exception {
+        book(as("maria"), "s09-d-rock", "2026-10-06T09:30", CEN, 201);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("erasedAt", new Date()), "members");
+        assertThat(call(GET, "/training-bookings/filter-values?field=memberId", null, as("admin"), 200).path("values"))
+                .extracting(v -> v.path("value").asText() + ":" + v.path("label").asText()).contains("s09-m-maria:Abonat suprimit");
+    }
+
     /**
      * Round 2 (ruling E75; CONVENCIONS_API §4, S09 §2): `q` on the ring blocks matches the ring's name (a deactivated ring's too) and
      * the block's note. A member never reads a note, so a member's `q` never matches one; the filter values search the same way.
@@ -184,6 +199,8 @@ class TrainingRegisterContractIT extends TrainingFixtures {
         block("s09-block-pet", PET, "2026-10-07T16:00", "2026-10-07T17:00", "BLOCK", "MAINTENANCE", null, null);
         block("s09-block-cen", CEN, "2026-10-08T16:00", "2026-10-08T17:00", "BLOCK", "PRIVATE_CLASS", "Classe particular", null);
         mongo.updateFirst(Query.query(Criteria.where("_id").is(PET)), new Update().set("active", false), "rings");
+        // INC-50 (AGENTS rule 4): another club's blocks with the same rings and notes are never found.
+        foreign("ring_blocks", "s09-block-car"); foreign("ring_blocks", "s09-block-cen");
         var searches = new LinkedHashMap<String, List<String>>();
         searches.put("CARRET", List.of("s09-block-car")); searches.put("petita", List.of("s09-block-pet")); searches.put("REG", List.of("s09-block-car"));
         searches.put("particular", List.of("s09-block-cen")); searches.put("nowhere", List.of());

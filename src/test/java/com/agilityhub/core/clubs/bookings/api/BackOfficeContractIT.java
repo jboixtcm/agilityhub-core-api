@@ -125,6 +125,8 @@ class BackOfficeContractIT extends BookingFixtures {
         assertThat(dogs.path("values")).extracting(v -> v.path("value").asText() + ":" + v.path("label").asText() + ":" + v.path("count").asLong())
                 .containsExactly("s08-d-duna:Duna:1000", "s08-d-nit:Nit:1");
         SnapshotSchemas.assertConforms(dogs, "FilterValues");
+        // INC-53 point 6 (E11-T02): an empty second last name adds no trailing space to the label.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-pere")), new org.springframework.data.mongodb.core.query.Update().set("lastName2", ""), "members");
         var members = call(GET, "/bookings/filter-values?field=memberId&filter=dogId:eq:s08-d-nit", null, as("inst"), 200).path("values");
         assertThat(members).extracting(v -> v.path("label").asText() + ":" + v.path("count").asLong()).containsExactly("Pere Example:1");
         assertThat(code(call(GET, "/bookings/filter-values?field=dogName", null, as("admin"), 400))).isEqualTo("INVALID_FILTER");

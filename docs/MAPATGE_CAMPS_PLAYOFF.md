@@ -55,7 +55,7 @@ Ompliment = files informades **sobre les 184 altes** (entre parèntesis, sobre l
 | 37 | Mètode pagament | 184 | `Member.paymentMethod.type` | `Domiciliació bancària → SEPA_DD` (177) · `Transferència → MANUAL{TRANSFER}` (1) · `Paga en efectiu → MANUAL{CASH}` (6) |
 | 38 | Adjunts | 0 | — | |
 | 39 | Nom del gos | 175 | `Dog.name` | 9 altes sense gos → `DOG_INFERRED` (R-18-04b) |
-| 40 | Sexe del gos | 175 | `Dog.sex` | `Femella → FEMALE` · `Mascle → MALE` |
+| 40 | Sexe del gos | 175 | `Dog.sex` | `Femella → FEMALE` · `Mascle → MALE` (sense distingir majúscules ni espais); buit o un altre valor → error `DOG_SEX_UNKNOWN` que bloqueja el pla (INC-42, organitzador 26-09) |
 | 41 | Data naixement (2a) | 175 | `Dog.birthDate` | vegeu l'avís de la fila 11 |
 | 42 | Raça del gos | 173 | `Dog.breed` | 473 valors diferents a tot l'export: text lliure, no catàleg |
 | 43 | Numero de xip | 159 | `Dog.chip` | **16 gossos sense xip**; el model el fa obligatori → es carrega buit amb avís `CHIP_MISSING` i D15 el filtra |

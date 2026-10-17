@@ -23,7 +23,7 @@ public class SavedViewService {
     }
     @Transactional public void seedPlannedLeaves() {
         String id = TenantContext.require() + ":planned-leaves";
-        var data = new SavedViewData(id, "SYSTEM", "members", "Baixes previstes", List.of("fullName", "dogs", "plan", "leaveDate", "leaveSource"),
+        var data = new SavedViewData(id, SavedViewData.SYSTEM_OWNER, "members", "Baixes previstes", List.of("fullName", "dogs", "plan", "leaveDate", "leaveSource"),
                 List.of(new Filter("displayStatus", com.agilityhub.core.shared.application.contract.ApiContracts.FilterOperator.eq, "LEAVE_SCHEDULED")), List.of("leaveDate,asc"), true, 0);
         repository.insertIfAbsent(new SavedView(id, TenantContext.require(), data, clock.instant(), clock.instant()));
     }

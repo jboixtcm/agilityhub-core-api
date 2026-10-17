@@ -3,6 +3,7 @@
   "templates": [
     {
       "code": "N-01",
+      "name": "Sol·licitud d'alta rebuda",
       "title": "Sol·licitud rebuda",
       "body": "Hem rebut la teva sol·licitud per a [[dogs]]. [[club_name]] la revisarà.{has_upfront, select, true { Import a pagar al club: [[upfront_total]]. [[payment_instructions]] [[pay_link]]} other {}}",
       "icon": "bell",
@@ -17,6 +18,7 @@
     },
     {
       "code": "N-02",
+      "name": "Benvinguda i accés",
       "title": "{gender, select, female {Benvinguda} other {Benvingut}} a [[club_name]], [[member_first_name]]!",
       "body": "Ja tens accés a l'app del club.",
       "icon": "mail",
@@ -31,6 +33,7 @@
     },
     {
       "code": "N-03",
+      "name": "Sol·licitud rebutjada",
       "title": "Sol·licitud rebutjada",
       "body": "[[member_name]], la teva sol·licitud ha estat rebutjada. Motiu: [[reason]].",
       "icon": "bell",
@@ -39,6 +42,7 @@
     },
     {
       "code": "N-04",
+      "name": "Reserva confirmada",
       "title": "Reserva confirmada",
       "body": "Classe [[class_description]] · [[class_date]] · [[class_time]] · [[ring_name]] · amb [[dog_name]].",
       "icon": "check",
@@ -53,6 +57,7 @@
     },
     {
       "code": "N-05",
+      "name": "Reserva anul·lada (per tu)",
       "title": "Reserva anul·lada",
       "body": "[[class_date]] · [[class_time]], amb [[dog_name]]. {late, select, true {L'has anul·lada fora de termini: compta dins el teu còmput de classes.} other {L'has anul·lada dins el termini.}}",
       "icon": "bell",
@@ -67,6 +72,7 @@
     },
     {
       "code": "N-06",
+      "name": "Entrenament reservat",
       "title": "Reserva confirmada",
       "body": "Entrenament lliure · [[date]] · [[time]] · [[ring_name]] · amb [[dog_name]].",
       "icon": "check",
@@ -81,6 +87,7 @@
     },
     {
       "code": "N-07",
+      "name": "Entrenament anul·lat",
       "title": "Entrenament anul·lat",
       "body": "Entrenament lliure anul·lat · [[date]] · [[time]] · [[ring_name]] · amb [[dog_name]].",
       "icon": "bell",
@@ -95,6 +102,7 @@
     },
     {
       "code": "N-08a",
+      "name": "Classe anul·lada pel club",
       "title": "Classe anul·lada pel club",
       "body": "[[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]. «[[admin_text]]» — [[club_name]]. Aquesta sessió no compta al teu còmput.",
       "smsBody": "[[club_name]]: la classe de [[class_date]] a les [[class_time]] ([[class_description]]) queda anul·lada. [[admin_text]]",
@@ -120,6 +128,7 @@
     },
     {
       "code": "N-08b",
+      "name": "Classe modificada pel club (hora/pista/instructor)",
       "title": "Classe modificada pel club",
       "body": "[[class_date]], amb [[dog_name]]: la classe ha canviat. [[changes]]. Mira-ho a l'app.",
       "smsBody": "[[club_name]]: classe [[class_date]] amb [[dog_name]] modificada. [[changes]].",
@@ -140,6 +149,7 @@
     },
     {
       "code": "N-09",
+      "name": "Canvi de nivell",
       "title": "[[dog_name_article]] puja de nivell!",
       "body": "Per la vostra evolució, [[dog_name_article]] ja ha pujat a nivell [[level_name]]. Ja podeu reservar classes en aquest nou nivell; les classes que ja teníeu reservades, encara que no siguin d'aquest nivell, segueixen sent vàlides.",
       "icon": "up",
@@ -154,6 +164,7 @@
     },
     {
       "code": "N-10",
+      "name": "Rebut impagat / cobrament fallit",
       "title": "Rebut impagat",
       "body": "El rebut [[invoice_number]] de [[member_name]] ([[amount]]) no s'ha pogut cobrar: [[reason]].",
       "icon": "bell",
@@ -168,6 +179,7 @@
     },
     {
       "code": "N-11a",
+      "name": "Pack a punt d'esgotar-se",
       "title": "El bo s'està acabant",
       "body": "Al bo de [[dog_name]] li queden [[pack_remaining]] sessions.",
       "icon": "bell",
@@ -182,6 +194,7 @@
     },
     {
       "code": "N-11b",
+      "name": "Pack a punt de caducar / caducat",
       "title": "Caducitat del bo",
       "body": "Caducitat del pack de [[dog_name]]: [[pack_expiry]]. Sessions restants: [[pack_remaining]].",
       "icon": "bell",
@@ -196,6 +209,7 @@
     },
     {
       "code": "N-13",
+      "name": "Recordatori de classe/entrenament",
       "title": "{kind, select, TRAINING {Recordatori d'entrenament} other {Recordatori de classe}}",
       "body": "[[date]] a les [[time]] · {kind, select, TRAINING {Entrenament lliure} other {[[class_description]]}} · [[ring_name]] · amb [[dog_name]].",
       "icon": "clock",
@@ -210,6 +224,7 @@
     },
     {
       "code": "N-14",
+      "name": "Sol·licitud de baixa rebuda",
       "title": "Sol·licitud de baixa rebuda",
       "body": "[[member_name]] ha demanat la baixa amb data [[requested_date]]. Motiu: [[reason]].",
       "icon": "bell",
@@ -224,6 +239,7 @@
     },
     {
       "code": "N-15",
+      "name": "S'ha alliberat una plaça!",
       "title": "S'ha alliberat una plaça!",
       "body": "Classe [[class_description]] · [[class_date]] · [[class_time]]. {mode, select, FIFO {Tens fins a les [[confirm_by]] per confirmar-la.} other {Estàs a la llista d'espera — la plaça és per a qui confirmi primer.}}",
       "smsBody": "[[club_name]]: s'ha alliberat una plaça a la classe de [[class_date]] a les [[class_time]] ([[class_description]]). {mode, select, FIFO {Tens fins a les [[confirm_by]] per confirmar-la a l'app.} other {Entra a l'app per agafar-la.}}",
@@ -239,6 +255,7 @@
     },
     {
       "code": "N-16",
+      "name": "Possible anul·lació de classe",
       "title": "Possible anul·lació de classe",
       "body": "[[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]: la classe encara no té prou alumnes. {auto_cancel, select, true {Si ningú més no s'hi apunta abans de les [[review_time]] de [[review_day]], la classe es cancel·larà. Et proposem reservar-ne una altra.} other {[[review_day]] a les [[review_time]] el club decidirà si es fa.}}",
       "smsBody": "[[club_name]]: la classe [[class_date]] [[class_time]] encara no té prou alumnes i es pot anul·lar.",
@@ -259,6 +276,7 @@
     },
     {
       "code": "N-17",
+      "name": "Classe anul·lada per manca d'alumnes",
       "title": "Classe anul·lada per manca d'alumnes",
       "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] — classe anul·lada automàticament perquè no ha arribat al mínim ({dogs_count, plural, =0 {cap gos inscrit} one {# gos inscrit} other {# gossos inscrits}}).",
       "icon": "bell",
@@ -278,6 +296,7 @@
     },
     {
       "code": "N-18a",
+      "name": "Sol·licitud d'inactivitat rebuda",
       "title": "Sol·licitud d'inactivitat rebuda",
       "body": "[[member_name]] ha demanat un període d'inactivitat de [[from_month]] a [[to_month]].",
       "icon": "bell",
@@ -292,6 +311,7 @@
     },
     {
       "code": "N-18b",
+      "name": "Inactivitat aprovada/denegada",
       "title": "{decision, select, APPROVED {Inactivitat aprovada} other {Inactivitat denegada}}",
       "body": "{decision, select, APPROVED {El club ha aprovat el teu període d’inactivitat} other {El club no ha aprovat el teu període d’inactivitat}} des de [[from_month]]{open_ended, select, true {, sense data de finalització} other { fins a [[to_month]]}}. [[fee]] [[admin_text]] {cancelled_count, plural, =0 {} one { # reserva anul·lada.} other { # reserves anul·lades.}}",
       "icon": "bell",
@@ -306,6 +326,7 @@
     },
     {
       "code": "N-18c",
+      "name": "Represa d'activitat",
       "title": "Tornes a estar en actiu",
       "body": "El teu període d'inactivitat s'ha acabat: ja pots tornar a reservar classes.",
       "icon": "bell",
@@ -320,6 +341,7 @@
     },
     {
       "code": "N-19",
+      "name": "T'hem trobat a faltar (no presentat)",
       "title": "T'hem trobat a faltar",
       "body": "[[class_date]] no vas poder venir a la classe de [[class_description]]. Recorda que pots anul·lar des de l'app fins a última hora: així pot aprofitar la classe algú altre. La sessió compta dins el teu còmput.",
       "icon": "heart",
@@ -334,6 +356,7 @@
     },
     {
       "code": "N-20",
+      "name": "Tasca nova",
       "title": "Tasca nova per a [[dog_name]]",
       "body": "[[instructor_name]] t'ha posat una tasca per a [[dog_name]]: «[[task_excerpt]]»",
       "icon": "bell",
@@ -348,6 +371,7 @@
     },
     {
       "code": "N-21",
+      "name": "Tasca completada",
       "title": "Tasca completada",
       "body": "La tasca de [[dog_name]] ([[member_name]], {gender, select, female {alumna} other {alumne}}) ja és feta: «[[task_excerpt]]»",
       "icon": "bell",
@@ -362,6 +386,7 @@
     },
     {
       "code": "N-22",
+      "name": "Nota de l'alumne nova/canviada",
       "title": "{gender, select, female {Nota nova de l'alumna} other {Nota nova de l'alumne}}",
       "body": "[[member_name]] ({gender, select, female {alumna} other {alumne}}) ha escrit o canviat la nota als instructors de [[dog_name]].",
       "icon": "bell",
@@ -376,6 +401,7 @@
     },
     {
       "code": "N-23",
+      "name": "Cartilla pendent (recordatori)",
       "title": "Documentació pendent",
       "body": "Falta la documentació «[[document_type]]» de [[dog_name]]. Pots pujar-la des de la fitxa del gos a l'app.",
       "icon": "bell",
@@ -390,6 +416,7 @@
     },
     {
       "code": "N-24",
+      "name": "Comunicat del club",
       "title": "Comunicat del club",
       "body": "[[club_name]] t'ha enviat un comunicat.",
       "icon": "bell",
@@ -404,6 +431,7 @@
     },
     {
       "code": "N-28",
+      "name": "Baixa confirmada (data d'efecte)",
       "title": "{decision, select, CANCELLED {Baixa prevista anul·lada} DENIED {Sol·licitud de baixa denegada} APPROVED {Baixa prevista confirmada} other {Comunicació de baixa com a associat}}",
       "body": "{decision, select, APPROVED {{decision, select, CANCELLED {La teva baixa prevista s’ha anul·lat. Les reserves anul·lades no es recuperen.} DENIED {El club ha denegat la teva sol·licitud de baixa.} other {{source, select, PACK_EXPIRED {El teu pack ha caducat. La baixa està prevista per al [[effective_date]].} other {La baixa està prevista per al [[effective_date]]. Pots continuar en actiu fins aquell dia inclòs.}}}} [[admin_text]] {cancelled_count, plural, =0 {} one {# reserva posterior anul·lada.} other {# reserves posteriors anul·lades.}}} CANCELLED {La teva baixa prevista s’ha anul·lat. Les reserves anul·lades no es recuperen.} DENIED {El club ha denegat la teva sol·licitud de baixa. [[admin_text]]} other {Hola [[member_first_name]], et comuniquem que en data [[effective_date]] s'ha fet efectiva la teva baixa com a associat de [[club_name]]. T'agraïm el temps que hem compartit — les portes sempre seran obertes per a tu i per a [[dog_name]]. Fins aviat!}}",
       "icon": "doc",
@@ -418,6 +446,7 @@
     },
     {
       "code": "N-29",
+      "name": "Reserves bloquejades / desbloquejades",
       "title": "{active, select, false {Reserves desbloquejades} other {Reserves bloquejades}}",
       "body": "{active, select, false {Ja pots tornar a reservar classes.} other {El club ha bloquejat les teves reserves. Motiu: [[reason]].}}",
       "icon": "bell",
@@ -432,6 +461,7 @@
     },
     {
       "code": "N-30",
+      "name": "Cobrament realitzat (Stripe) / rebut emès",
       "title": "Pagament rebut",
       "body": "Hem rebut el pagament de [[amount]] ([[concept]]).",
       "icon": "bell",
@@ -446,6 +476,7 @@
     },
     {
       "code": "N-31",
+      "name": "Recorregut nou a la pista",
       "title": "Recorregut nou a la pista",
       "body": "Hi ha un recorregut nou a la pista [[ring_name]].",
       "icon": "bell",
@@ -460,6 +491,7 @@
     },
     {
       "code": "N-32a",
+      "name": "Activitat publicada",
       "title": "Activitat publicada",
       "body": "[[activity_title]] · [[date]]",
       "icon": "bell",
@@ -474,6 +506,7 @@
     },
     {
       "code": "N-32b",
+      "name": "Inscripció a activitat confirmada / anul·lada",
       "title": "Inscripció a una activitat",
       "body": "{state, select, ACTIVE {Inscripció confirmada a [[activity_title]] · [[date]]} WAITLISTED {Ets a la llista d’espera de [[activity_title]] · [[date]]} CANCELLED {Inscripció anul·lada a [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
       "smsBody": "[[club_name]]: {state, select, ACTIVE {Inscripció confirmada a [[activity_title]] · [[date]]} WAITLISTED {Ets a la llista d’espera de [[activity_title]] · [[date]]} CANCELLED {Inscripció anul·lada a [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
@@ -489,6 +522,7 @@
     },
     {
       "code": "N-32c",
+      "name": "Activitat cancel·lada pel club",
       "title": "Activitat cancel·lada pel club",
       "body": "[[activity_title]]: [[admin_text]]",
       "smsBody": "[[club_name]]: l’activitat [[activity_title]] ([[date]]) queda cancel·lada. [[admin_text]]",
@@ -504,6 +538,7 @@
     },
     {
       "code": "N-33",
+      "name": "Ja pots reservar la setmana vinent",
       "title": "Ja pots reservar la setmana vinent",
       "body": "[[club_name]]: ja pots reservar les classes de la setmana del [[week_start]].",
       "icon": "bell",
@@ -518,6 +553,7 @@
     },
     {
       "code": "N-34",
+      "name": "Sol·licituds d'alta pendents des de fa dies",
       "title": "Sol·licituds d'alta pendents",
       "body": "{count, plural, one {Hi ha # sol·licitud d'alta pendent} other {Hi ha # sol·licituds d'alta pendents}}; la més antiga fa [[oldest_days]] dies que espera.",
       "icon": "bell",
@@ -532,6 +568,7 @@
     },
     {
       "code": "N-35",
+      "name": "Cobrament fallit (targeta)",
       "title": "No s'ha pogut cobrar la targeta",
       "body": "No hem pogut cobrar [[amount]]: [[reason]]. Revisa la targeta des de l'app: [[retry_link]]",
       "icon": "bell",
@@ -546,6 +583,7 @@
     },
     {
       "code": "N-36",
+      "name": "Reserva feta/anul·lada pel club en nom teu",
       "title": "Reserva gestionada pel club",
       "body": "{change, select, BOOKED {[[actor]] t'ha reservat una classe: [[class_date]] · [[class_time]], amb [[dog_name]].} other {[[actor]] t'ha anul·lat una classe: [[class_date]] · [[class_time]], amb [[dog_name]].}}",
       "smsBody": "[[club_name]]: {change, select, BOOKED {[[actor]] t'ha reservat la classe [[class_date]] [[class_time]] amb [[dog_name]].} other {[[actor]] t'ha anul·lat la classe [[class_date]] [[class_time]] amb [[dog_name]].}}",
@@ -561,6 +599,7 @@
     },
     {
       "code": "N-37",
+      "name": "Nou gos afegit / gos donat de baixa",
       "title": "{change, select, DogDeactivated {Gos donat de baixa} other {Gos nou afegit}}",
       "body": "{change, select, DogDeactivated {[[dog_name]] s'ha donat de baixa del club.} other {[[dog_name]] ja forma part del club.}}",
       "icon": "bell",
@@ -575,6 +614,7 @@
     },
     {
       "code": "N-38",
+      "name": "Canvi de mètode de pagament / IBAN",
       "title": "Mètode de pagament canviat",
       "body": "S'ha canviat el mètode de pagament del teu abonament. Compte: [[masked_account]].",
       "icon": "bell",
@@ -589,6 +629,7 @@
     },
     {
       "code": "N-18d",
+      "name": "Canvi en un període d'inactivitat",
       "title": "Canvi en un període d'inactivitat",
       "body": "El període d'inactivitat de [[member_name]] ([[from_month]] – [[to_month]]) ha canviat.",
       "icon": "bell",
@@ -603,6 +644,7 @@
     },
     {
       "code": "N-32d",
+      "name": "Activitat modificada pel club",
       "title": "Activitat modificada pel club",
       "body": "[[activity_title]]: [[changes]]",
       "smsBody": "[[club_name]]: [[activity_title]]: [[changes]]",
@@ -618,6 +660,7 @@
     },
     {
       "code": "N-40",
+      "name": "Reserva no completada (pagament caducat)",
       "title": "Reserva no completada",
       "body": "[[class_date]] · [[class_time]], amb [[dog_name]]: el pagament no s'ha completat a temps i la reserva s'ha anul·lat.",
       "icon": "bell",
@@ -632,6 +675,7 @@
     },
     {
       "code": "N-41",
+      "name": "Remesa del mes pendent",
       "title": "Remesa del mes pendent",
       "body": "La remesa corresponent a [[period]] té [[pending_count]] rebuts pendents de generar.",
       "icon": "bell",
@@ -646,6 +690,7 @@
     },
     {
       "code": "N-42",
+      "name": "Procés automàtic amb errors",
       "title": "Procés automàtic amb errors",
       "body": "El procés «[[job_name]]» ha acabat amb {error_count, plural, =0 {una incidència} one {# error} other {# errors}}. Revisa'n l'execució a Paràmetres › Processos automàtics.",
       "icon": "bell",
@@ -660,6 +705,7 @@
     },
     {
       "code": "N-46",
+      "name": "La plaça ja s'ha ocupat",
       "title": "La plaça ja s'ha ocupat",
       "body": "[[class_date]] · [[class_time]], amb [[dog_name]]: una altra persona ha agafat la plaça. Continues a la llista d'espera: t'avisarem si se n'allibera una altra.",
       "icon": "bell",
@@ -674,6 +720,7 @@
     },
     {
       "code": "N-47",
+      "name": "Entrenament reservat / anul·lat pel club en nom teu",
       "title": "Entrenament gestionat pel club",
       "body": "{change, select, BOOKED {El club t'ha reservat un entrenament: [[date]] · [[time]] · [[ring_name]], amb [[dog_name]].} other {El club t'ha anul·lat un entrenament: [[date]] · [[time]] · [[ring_name]], amb [[dog_name]].}}{has_admin_text, select, true { [[admin_text]]} other {}}",
       "smsBody": "[[club_name]]: {change, select, BOOKED {entrenament reservat pel club: [[date]] [[time]] ([[ring_name]]), amb [[dog_name]].} other {entrenament anul·lat pel club: [[date]] [[time]] ([[ring_name]]), amb [[dog_name]].}}",
@@ -689,6 +736,7 @@
     },
     {
       "code": "N-49",
+      "name": "Límit mensual d'SMS assolit",
       "title": "Límit mensual d'SMS assolit",
       "body": "S'ha arribat al límit mensual de [[cap]] SMS ([[month]]). Fins al mes vinent, els avisos que anaven per SMS s'envien per correu.",
       "icon": "bell",
@@ -703,6 +751,7 @@
     },
     {
       "code": "N-50",
+      "name": "Les teves dades estan a punt",
       "title": "Les teves dades estan a punt",
       "body": "Pots descarregar les teves dades des de l'app durant [[expires_days]] dies.",
       "icon": "bell",
@@ -717,6 +766,7 @@
     },
     {
       "code": "N-51",
+      "name": "Correu rebotat",
       "title": "Correu rebotat",
       "body": "El correu [[email]] de [[member_name]] ha rebotat: no li arribaran més correus a aquesta adreça fins que es corregeixi.",
       "icon": "bell",
@@ -731,6 +781,7 @@
     },
     {
       "code": "N-54",
+      "name": "Classe amb pocs alumnes (per sota del mínim)",
       "title": "Classe amb pocs alumnes",
       "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] ([[ring_name]]) ha quedat per sota del mínim: {dogs_count, plural, =0 {cap gos inscrit} one {# gos inscrit} other {# gossos inscrits}}.",
       "icon": "bell",
@@ -750,6 +801,7 @@
     },
     {
       "code": "N-55",
+      "name": "Reemborsament a fer a mà",
       "title": "Reemborsament a fer a mà",
       "body": "{reason, select, COMPENSATION_INTERVENTION {Cal retornar {amount} a {member_name}. Aquest és el total pendent, sense els reemborsaments en curs.} REFUND_OVER_CREDIT {{member_name} ha rebut {amount} de més després d’un abonament ja facturat. Cal revisar-ho.} other {Cal revisar el reemborsament de {member_name}: {amount}.}}",
       "icon": "bell",

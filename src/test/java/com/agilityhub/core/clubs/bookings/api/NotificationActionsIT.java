@@ -99,14 +99,14 @@ class NotificationActionsIT extends BookingFixtures {
             case MEMBER_BOOKS -> {
                 act(() -> book("s08-pere", "s08-m-pere", "Pere", "thu", "s08-d-nit"));
                 // N-04 «[[class_description]] class · [[class_date]] · [[class_time]] · [[ring_name]] · with [[dog_name]].»; Thursday is two days away.
-                expect(notice("N-04", "MEMBER", "s08-pere", "en", "Booking confirmed", "Classe thu class · 8 Thursday · 18:50 · Central · with Nit.", APP));
+                expect(notice("N-04", "MEMBER", "s08-pere", "en", "Booking confirmed", "Classe thu class · Thursday 8 · 18:50 · Central · with Nit.", APP));
             }
             case MEMBER_CANCELS -> {
                 exempt("thu");
                 String nit = prepare(() -> book("s08-pere", "s08-m-pere", "Pere", "thu", "s08-d-nit"));
                 act(() -> cancel(member("s08-pere", "s08-m-pere", "Pere"), nit));
                 // On time (`late` = false), and the class is exempt from the minimum: no N-54.
-                expect(notice("N-05", "MEMBER", "s08-pere", "en", "Booking cancelled", "8 Thursday · 18:50, with Nit. You cancelled it in time.", APP));
+                expect(notice("N-05", "MEMBER", "s08-pere", "en", "Booking cancelled", "Thursday 8 · 18:50, with Nit. You cancelled it in time.", APP));
             }
             case CLUB_BOOKS_AND_CANCELS -> {
                 exempt("thu");
@@ -143,7 +143,7 @@ class NotificationActionsIT extends BookingFixtures {
                 act(() -> cancel(member("s08-laura", "s08-m-laura", "Laura"), duna));
                 // The club's waitlist mode is ALL_AT_ONCE: no `confirm_by`.
                 expect(notice("N-15", "MEMBER", "s08-pere", "en", "A place has been freed up!",
-                                "Classe last class · 8 Thursday · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP, PUSH, SMS),
+                                "Classe last class · Thursday 8 · 20:00. You are on the waiting list: the place goes to whoever confirms first.", APP, PUSH, SMS),
                         notice("N-05", "MEMBER", "s08-laura", "ca", "Reserva anul·lada", "Dijous 8 · 20:00, amb Duna. L'has anul·lada dins el termini.", APP));
                 assertThat(only("N-15").action().type().name()).isEqualTo("CLAIM_SEAT");
             }
@@ -170,9 +170,9 @@ class NotificationActionsIT extends BookingFixtures {
                 // With levels on, a saved class names its levels (LEVEL_REQUIRED): C, Nit's. Only the start time is a change N-08b tells.
                 act(() -> as("s08-admin", "ADMIN", () -> classes.patch("s08-sat", version, Map.of("startTime", "09:30", "levelIds", List.of("s08-lv-C")), false)));
                 // `[[changes]]` = scheduling.change.startTime; the instructor reads the staff copy (notif.N-08b.staff.body).
-                expect(notice("N-08b", "INSTRUCTORS", "s08-inst", "es", "Clase modificada por el club", "Sábado 10 · Classe sat: la clase ha cambiado. Hora: 09:00 → 09:30.", APP),
+                expect(notice("N-08b", "INSTRUCTORS", "s08-inst", "es", "Clase modificada por el club", "Sábado 10 · Classe sat: la clase ha cambiado. Hora: 9:00 → 9:30.", APP),
                         notice("N-08b", "MEMBER", "s08-pere", "en", "Class changed by the club",
-                                "10 Saturday, with Nit: the class has changed. Time: 09:00 → 09:30. Check the app.", APP, EMAIL, SMS));
+                                "Saturday 10, with Nit: the class has changed. Time: 9:00 → 9:30. Check the app.", APP, EMAIL, SMS));
             }
             case CLASS_AT_RISK_AND_AUTO_CANCELLED -> {
                 prepare(() -> book("s08-joan", "s08-m-joan", "Joan", "wed", "s08-d-toby"));
@@ -202,7 +202,7 @@ class NotificationActionsIT extends BookingFixtures {
                                 "Example Agility Club: dijous 8 · 18:50 · Classe thu (Central) ha quedat per sota del mínim: 1 gos inscrit.", APP, EMAIL),
                         notice("N-54", "INSTRUCTORS", "s08-inst", "es", "Clase con pocos alumnos",
                                 "Example Agility Club: jueves 8 · 18:50 · Classe thu (Central) ha quedado por debajo del mínimo: 1 perro inscrito.", APP, EMAIL),
-                        notice("N-05", "MEMBER", "s08-pere", "en", "Booking cancelled", "8 Thursday · 18:50, with Nit. You cancelled it in time.", APP));
+                        notice("N-05", "MEMBER", "s08-pere", "en", "Booking cancelled", "Thursday 8 · 18:50, with Nit. You cancelled it in time.", APP));
                 assertThat(session("thu").getString("state")).isEqualTo("ACTIVE");
             }
             case NO_SHOW -> {
@@ -251,10 +251,10 @@ class NotificationActionsIT extends BookingFixtures {
                 var expected = new ArrayList<>(List.of(
                         notice("N-32a", "MEMBER", "s08-laura", "ca", "Activitat publicada", "Seminari de salts · ds 17", APP, EMAIL),
                         notice("N-32a", "MEMBER", "s08-joan", "es", "Actividad publicada", "Seminario de saltos · sáb 17", APP, EMAIL),
-                        notice("N-32a", "MEMBER", "s08-pere", "en", "Activity published", "Jumping seminar · 17 Sat", APP, EMAIL),
+                        notice("N-32a", "MEMBER", "s08-pere", "en", "Activity published", "Jumping seminar · Sat 17", APP, EMAIL),
                         notice("N-32a", "MEMBER", "s08-admin", "ca", "Activitat publicada", "Seminari de salts · ds 17", APP, EMAIL),
                         notice("N-32a", "MEMBER", "s08-inst", "es", "Actividad publicada", "Seminario de saltos · sáb 17", APP, EMAIL),
-                        notice("N-32b", "MEMBER", "s08-pere", "en", "Activity registration", "Registration confirmed for Jumping seminar · 17 Sat", APP),
+                        notice("N-32b", "MEMBER", "s08-pere", "en", "Activity registration", "Registration confirmed for Jumping seminar · Sat 17", APP),
                         notice("N-32d", "MEMBER", "s08-pere", "en", "Activity changed by the club", "Jumping seminar: Start time: 10:30", APP, EMAIL, SMS),
                         notice("N-32c", "MEMBER", "s08-pere", "en", "Activity cancelled by the club", "Jumping seminar: Suspès per la pluja.", APP, EMAIL, SMS)));
                 IntStream.range(0, 20).forEach(i -> expected.add(notice("N-32a", "MEMBER", "s08-c" + i, "ca", "Activitat publicada", "Seminari de salts · ds 17", APP, EMAIL)));

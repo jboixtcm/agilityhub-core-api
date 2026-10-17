@@ -157,6 +157,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 |---|---|---|---|---|
 | `auth.welcomeLinkDays` | int | 7 | sistema | S01/S04 |
 | `auth.maxSessions` | int | 10 | sistema | S01 |
+| `auth.refreshReuseGraceSeconds` | int | 30 | sistema | S01 R-01-06 (INC-36, E11-T02; 0–120 s, 0 = sense marge) |
 | `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 |
 | `auth.checkCompromisedPasswords` | bool | true | sistema | S01 |
 | `census.dogDocumentTypes` | json `[{key, label: localizedText, required}]` | `[{"key": "VACCINATION_CARD", "label": {"ca": "Cartilla de vacunes", "es": "Cartilla de vacunas", "en": "Vaccination card"}, "required": true}, {"key": "INSURANCE", "label": {"ca": "Assegurança", "es": "Seguro", "en": "Insurance"}, "required": false}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "required": false}]` | Alta i consentiments | S03 |

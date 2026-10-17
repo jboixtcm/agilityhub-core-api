@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AttachmentService {
-    public record Upload(String uploadUrl, String fileKey, Instant expiresAt, Map<String,String> headers) { }
+    /** INC-53 (E11-T02): `uploadUrl` is a path of the api on the local store, an absolute URL on S3: a `uri-reference`. */
+    public record Upload(@io.swagger.v3.oas.annotations.media.Schema(format = "uri-reference") String uploadUrl, String fileKey, Instant expiresAt, Map<String,String> headers) { }
     public record File(String id, String name, String fileKey, String mimeType, long sizeBytes, Instant uploadedAt, String uploadedByAccountId) { }
     /** A local signed download (E5-T26): the stored file with its stored name and MIME type, as S3 answers its object. */
     public record Download(String name, String mimeType, long sizeBytes, InputStream content) { }
@@ -154,7 +155,8 @@ public class AttachmentService {
         var grant = grant(key);
         if (!grant.accountId().equals(account()) || !grant.purpose().equals(purpose)
                 || (grant.boundEntity() != null && !grant.boundEntity().equals(entity))) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
-        if (grant.boundEntity() == null && !grant.expiresAt().isAfter(clock.instant())) { throw new ApiException(ErrorCode.INVALID_STATE); }
+        // INC-51 (E11-T02): an upload registered after its grant expired says so, unlike a frozen dog's READMISSION_PENDING.
+        if (grant.boundEntity() == null && !grant.expiresAt().isAfter(clock.instant())) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "UPLOAD_EXPIRED")); }
         validate(purpose, grant.mimeType(), grant.sizeBytes());
         var actual = storage.metadata(key);
         if (actual.sizeBytes() != grant.sizeBytes()) { throw new ApiException(ErrorCode.FILE_TOO_LARGE); }
@@ -200,6 +202,22 @@ public class AttachmentService {
     public byte[] readScoped(String scope, String key) {
         if (key == null || !key.startsWith(TenantContext.require() + "/" + scope + "/")) { throw new ApiException(ErrorCode.NOT_FOUND); }
         try { return storage.read(key); } catch (IOException failure) { throw new UncheckedIOException(failure); }
+    }
+    /**
+     * INC-62 (E11-T02, S16 R-16-10): a scoped key of the current club that its entity no longer shows. Its upload grant is
+     * deleted in the caller's transaction and the stored bytes once that commits (never before: a rollback keeps the sheet).
+     * Another club's key, or one that is not a scoped upload, is ignored.
+     */
+    @Transactional
+    public void releaseScoped(String scope, String key) {
+        String prefix = TenantContext.require() + "/" + scope + "/";
+        String id = key != null && key.startsWith(prefix) ? key.substring(prefix.length()) : "";
+        if (!UUID_PATTERN.matcher(id).matches() || !grants.deleteById(id)) { return; }
+        Runnable delete = () -> storage.delete(key);
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() { @Override public void afterCommit() { delete.run(); } });
+        } else { delete.run(); }
     }
     /** A short-lived signed download URL of a scoped key (see {@link #scopedUpload}). */
     public String scopedUrl(String key) { return storage.downloadUrl(key, key.substring(key.lastIndexOf('/') + 1), clock.instant().plusSeconds(300)); }

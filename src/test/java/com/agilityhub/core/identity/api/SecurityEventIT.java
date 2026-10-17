@@ -61,6 +61,8 @@ class SecurityEventIT extends IdentityIntegrationSupport {
     @Test void T_01_15_refreshReuseEventSurvivesCommittedFamilyRevocationAndTestProfileDisablesLimits() throws Exception {
         String first = refreshValue(login());
         refresh(first, HOST, "clubs-app").andExpect(status().isOk());
+        // INC-36 (S01 R-01-06): past auth.refreshReuseGraceSeconds (30) the reuse is a theft.
+        clock.advance(Duration.ofSeconds(31));
         refresh(first, HOST, "clubs-app").andExpect(status().isBadRequest());
         assertThat(mongo.findAll(SecurityEvent.class)).singleElement().satisfies(event -> {
             assertThat(event.type()).isEqualTo(SecurityEvents.Type.REFRESH_TOKEN_REUSED);

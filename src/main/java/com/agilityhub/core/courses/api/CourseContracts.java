@@ -64,7 +64,8 @@ public final class CourseContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String thumbnailUrl,
             @Schema(requiredMode = NOT_REQUIRED) CourseStats stats,
             @Schema(requiredMode = NOT_REQUIRED) OwnerType ownerType,
-            @Schema(requiredMode = NOT_REQUIRED) List<ActiveRing> activeOnRings) { }
+            @Schema(requiredMode = NOT_REQUIRED) List<ActiveRing> activeOnRings,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The course's last change (D18's date column, S16 §2; INC-62)") Instant updatedAt) { }
 
     public record CoursePage(List<CourseListItem> items,
             int page,
@@ -135,6 +136,8 @@ public final class CourseContracts {
             SetupStatus status,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant dismantledAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dismantledByAccountId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "INC-62: only DISMANTLED — REPLACED (another setup on the ring), MANUAL or RING_INACTIVE") DismantledReason dismantledReason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid", description = "INC-62: the setup that replaced it (dismantledReason REPLACED)") String replacedBySetupId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String notes,
             Instant createdAt) {
         @JsonProperty(value = "view", access = JsonProperty.Access.READ_ONLY)

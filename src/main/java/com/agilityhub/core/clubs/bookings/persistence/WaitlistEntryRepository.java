@@ -21,6 +21,8 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         indexes.createIndex(new Index().on("clubId", ASC).on("dogId", ASC).on("bookingWeekKey", ASC).on("state", ASC).named("waitlist_club_dog_week_state"));
         // S15 P6 expires NOTIFIED entries whose confirmBy has passed.
         indexes.createIndex(new Index().on("clubId", ASC).on("state", ASC).on("confirmBy", ASC).named("waitlist_club_state_confirm"));
+        // INC-46 (E11-T02): S15 P8 reads the live entries whose copy says the class started.
+        indexes.createIndex(new Index().on("clubId", ASC).on("state", ASC).on("classStartsAt", ASC).named("waitlist_club_state_starts"));
     }
     /** Live (ACTIVE or NOTIFIED) entries of a class in FIFO order. */
     public List<WaitlistEntry> live(String classSessionId) {
@@ -59,11 +61,15 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").gt(after)), "classSessionId", WaitlistEntry.class, String.class);
     }
     /**
-     * Every live entry of the club, by class (S15 P8 sweep, R-15-18a). The caller decides with the class's own start:
-     * `classStartsAt` is a copy a consumer refreshes after a class moves, so it can be stale either way.
+     * The live entries the S15 P8 sweep may cancel (R-15-18a; INC-46, E11-T02), by class: those of {@code startedClassIds}
+     * (S06's started classes with someone waiting) and those whose own `classStartsAt` is reached (a class that no longer
+     * exists). The caller decides with the class's own start: the copy a consumer refreshes after a class moves can be stale
+     * either way. Never every live entry of the club: a week ahead's are not read each minute.
      */
-    public List<WaitlistEntry> liveAll() {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
+    public List<WaitlistEntry> liveStarted(java.util.Collection<String> startedClassIds, java.time.Instant now) {
+        var started = Criteria.where("classStartsAt").lte(now);
+        var scope = startedClassIds.isEmpty() ? started : new Criteria().orOperator(Criteria.where("classSessionId").in(startedClassIds), started);
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE)).addCriteria(scope).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
     }
     /** S15 P6: NOTIFIED (FIFO) entries whose `confirmBy` has passed, oldest offer first. */
     public List<WaitlistEntry> notifiedDue(java.time.Instant now) {

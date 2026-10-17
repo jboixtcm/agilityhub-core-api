@@ -46,10 +46,12 @@ public class MessageTemplatesController {
     static final String GENDER_KEYS = "The keys of a {gender, select, …} are stored in lower case (female, male, other: the gender the engine renders). ";
     private final MessagingContractAccess access; private final MessageTemplateService templates; private final TemplatePreviewService previews;
     private final IcuMessageSource messages; private final AnnouncementService announcements;
+    private final com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed;
 
     public MessageTemplatesController(MessagingContractAccess access, MessageTemplateService templates, TemplatePreviewService previews, IcuMessageSource messages,
-            AnnouncementService announcements) {
+            AnnouncementService announcements, com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed) {
         this.access = access; this.templates = templates; this.previews = previews; this.messages = messages; this.announcements = announcements;
+        this.seed = seed;
     }
 
     @GetMapping("/api/v1/message-templates")
@@ -176,7 +178,16 @@ public class MessageTemplatesController {
                 caps(view.caps()), List.copyOf(view.push()), variables(view.variables()), lastChange(view), t.title().values(), t.body().values(),
                 t.smsBody() == null ? null : t.smsBody().values(), seed, t.mandatory(), t.status(), t.version() == null ? 0 : t.version());
     }
+    /**
+     * D9's `name`. INC-53 (E11-T02; decision E89): a catalog template's is the product name of its seed (`CATALEG_NOTIFICACIONS`
+     * «Nom»), in the admin's language or the club's default one; a `CUSTOM` one's is the title the club gave it.
+     */
     private String name(MessageTemplateService.View view) {
+        var seeded = view.template().code() == null ? null : seed.of(view.template().code()).orElse(null);
+        if (seeded != null) {
+            String own = seeded.name().get(LocaleContext.current().getLanguage());
+            return own != null ? own : seeded.name().getOrDefault(templates.config().club().defaultLocale(), seeded.name().get("ca"));
+        }
         var title = view.template().title();
         String own = title.values().get(LocaleContext.current().getLanguage());
         return own != null ? own : title.withDefaultLocale(templates.config().club().defaultLocale()).resolve(templates.config().club().defaultLocale()).value();

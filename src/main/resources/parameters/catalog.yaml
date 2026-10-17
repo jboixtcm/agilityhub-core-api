@@ -1080,6 +1080,19 @@ parameters:
     restartRequired: false
     documentType: "int"
     documentDefault: "10"
+  - key: "auth.refreshReuseGraceSeconds"
+    type: "int"
+    default: 30
+    block: "system"
+    labelKey: "admin-settings:param.auth.refreshReuseGraceSeconds.label"
+    helpKey: "admin-settings:param.auth.refreshReuseGraceSeconds.help"
+    constraints: {"min": 0, "max": 120}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
   - key: "auth.lockoutMinutes"
     type: "int"
     default: 15

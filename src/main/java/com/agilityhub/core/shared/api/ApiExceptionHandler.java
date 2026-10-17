@@ -77,6 +77,13 @@ public class ApiExceptionHandler {
                     .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                     .body(body(new ApiException(code), request));
         }
+        if (com.agilityhub.core.shared.application.TransactionRetries.retryableConflict(exception)) {
+            // INC-47 (E11-T02): a transient transaction failure no writer retried (for example, in a request that joined the
+            // idempotency filter's transaction) is the client's to retry: 409 STALE_VERSION, never a 500. A request that ran out
+            // of its database time stays a 500 (E85).
+            LOG.warn("Transient transaction failure answered STALE_VERSION traceId={}", RequestTraceFilter.traceId(request));
+            return respond(new ApiException(ErrorCode.STALE_VERSION), request);
+        }
         captureInternalError(exception, request);
         LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
         return respond(new ApiException(ErrorCode.INTERNAL_ERROR), request);

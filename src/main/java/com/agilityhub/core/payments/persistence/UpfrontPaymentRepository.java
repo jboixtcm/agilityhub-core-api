@@ -33,6 +33,19 @@ public class UpfrontPaymentRepository extends TenantRepository<UpfrontPayment> {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("refundCompensationReason").is(null).and("creditCompensationReason").is(null)),
                 new Update().set("REFUND".equals(policy) ? "refundCompensationReason" : "creditCompensationReason", reason), UpfrontPayment.class);
     }
+    /**
+     * INC-58 (E11-T02): the intervention instant of each of these rows that has one, with its obligation (as
+     * {@link #compensation(String)} reads them), in one read.
+     */
+    public java.util.Map<String, java.time.Instant> interventionsAt(java.util.Collection<String> ids) {
+        var result = new java.util.LinkedHashMap<String, java.time.Instant>();
+        if (ids.isEmpty()) { return result; }
+        var query = tenantQuery().addCriteria(Criteria.where("_id").in(ids).and("compensationInterventionAt").ne(null)
+                .orOperator(Criteria.where("refundCompensationReason").ne(null), Criteria.where("creditCompensationReason").ne(null)));
+        query.fields().include("_id", "compensationInterventionAt");
+        for (var row : mongo.find(query, org.bson.Document.class, "upfront_payments")) { result.put(row.get("_id").toString(), row.getDate("compensationInterventionAt").toInstant()); }
+        return result;
+    }
     public java.util.Optional<Compensation> compensation(String id) {
         var row = mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id)), org.bson.Document.class, "upfront_payments");
         if (row == null) { return java.util.Optional.empty(); }

@@ -17,4 +17,9 @@ public interface CourseFileStore {
     byte[] read(String fileKey);
     /** A short-lived signed download URL of a stored key. */
     String downloadUrl(String fileKey);
+    /**
+     * INC-62 (E11-T02): a stored key of the current club that its entity no longer shows (a replaced or moved placement's build
+     * sheet): its upload goes with the caller's transaction, its bytes once that commits. Another club's key is ignored.
+     */
+    void release(String fileKey);
 }

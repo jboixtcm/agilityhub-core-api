@@ -322,7 +322,10 @@ public class PlayoffPlanner {
             if (dogName.isEmpty() && !fromSurname.isEmpty()) { dogName=fromSurname; warn(row,"DOG_NAME_FROM_SURNAME"); }
             if (dogName.isEmpty()) { dogName=mapping.inferredDogPrefix()+row.get("firstName"); warn(row,"DOG_INFERRED"); }
             if (row.get("chip").isEmpty()) { warn(row,"CHIP_MISSING"); } else { chips.put(row.get("chip"),dogId); }
-            var dog=object("memberId",memberId,"name",dogName,"breed",row.get("breed"),"sex",Map.of("femella","FEMALE","mascle","MALE").get(normalize(row.get("dogSex"))),
+            // INC-42 (organizer 26-09): S03 requires the sex; an empty or unknown one blocks the plan, never a dog without it.
+            String sex=Map.of("femella","FEMALE","mascle","MALE").get(normalize(row.get("dogSex")));
+            if (sex==null) { incident(row,"dogs","ERROR","DOG_SEX_UNKNOWN"); return; }
+            var dog=object("memberId",memberId,"name",dogName,"breed",row.get("breed"),"sex",sex,
                     "handlerName",row.get("handler"),"status",c.status().equals("LEFT") ? "INACTIVE" : "ACTIVE","registeredAt",instant(c.joined()),
                     "sourceIds",object("playoffMemberId",source,"playoffDogIndex",0),"externalIds",object("playoff",source),
                     "instructorNote",object("text",row.get("objectives")),"licenses",licenses(row));

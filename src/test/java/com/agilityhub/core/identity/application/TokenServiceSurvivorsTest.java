@@ -73,6 +73,7 @@ class TokenServiceSurvivorsTest {
         doAnswer(call -> call.<Supplier<?>>getArgument(0).get()).when(transactions).run(any());
         when(settings.integer("auth.maxSessions")).thenReturn(10);
         when(settings.integer("auth.sessionDays")).thenReturn(30);
+        when(settings.integer("auth.refreshReuseGraceSeconds")).thenReturn(30);
         when(encoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt);
     }
 
@@ -173,6 +174,70 @@ class TokenServiceSurvivorsTest {
         verify(refreshTokens).revokeFamily("fam-1", NOW);
         verify(securityEvents).record(SecurityEvents.Type.REFRESH_TOKEN_REUSED, "acc-1", null);
         verify(refreshTokens, never()).insert(any());
+    }
+
+    /** INC-36: the row of a token its first use already rotated, at `rotatedAt`, and the family's live child it was replaced by. */
+    private RefreshToken rotatedRow(Instant rotatedAt) {
+        var old = new RefreshToken("rt-1", TokenService.digest("refresh-value-example"), "acc-1", null, "id-web", "fam-1", 0,
+                NOW.minus(Duration.ofDays(2)), NOW.plus(Duration.ofDays(28)), rotatedAt, null, "hash-child", null,
+                "Firefox / Linux", RefreshToken.Status.ROTATED, Set.of("openid"), true, "nonce-1", NOW.minus(Duration.ofDays(2)), null);
+        when(refreshTokens.find(TokenService.digest("refresh-value-example"), "id-web")).thenReturn(Optional.of(old));
+        when(identities.current("acc-1")).thenReturn(session(false));
+        return old;
+    }
+    private RefreshToken liveChild() {
+        var child = new RefreshToken("rt-2", "hash-child", "acc-1", null, "id-web", "fam-1", 0, NOW.minus(Duration.ofDays(2)),
+                NOW.plus(Duration.ofDays(30)), NOW.minusSeconds(20), null, null, null, "Firefox / Linux", RefreshToken.Status.ACTIVE,
+                Set.of("openid"), true, "nonce-1", NOW.minus(Duration.ofDays(2)), null);
+        when(refreshTokens.activeFamily("acc-1", "fam-1", NOW)).thenReturn(Optional.of(child));
+        return child;
+    }
+
+    @Test void INC_36_R_01_06_aRotatedTokenInsideTheGraceRotatesTheFamilysLiveTokenInsteadOfRevokingIt() {
+        rotatedRow(NOW.minusSeconds(29));
+        liveChild();
+        when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(true);
+        when(refreshTokens.rotate(eq("rt-2"), anyString(), eq(NOW))).thenReturn(true);
+
+        var issued = tokens.refresh("refresh-value-example", "id-web", null);
+
+        assertThat(issued.refresh().getTokenValue()).isNotBlank();
+        assertThat(issued.scopes()).isEqualTo(Set.of("openid"));
+        verify(refreshTokens, never()).revokeFamily(any(), any());
+        verify(refreshTokens).insert(argThat(token -> token.familyId().equals("fam-1") && token.status() == RefreshToken.Status.ACTIVE));
+        verify(securityEvents, never()).record(any(), any(), any());
+    }
+
+    @Test void INC_36_R_01_06_atTheGracesEndASpentGraceOrAZeroGraceTheReuseRevokesTheFamily() {
+        // At exactly 30 s the grace is over.
+        rotatedRow(NOW.minusSeconds(30));
+        assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
+        verify(refreshTokens, never()).useGrace(any(), any());
+        // Inside it, but another reuse already took the one extra use.
+        rotatedRow(NOW.minusSeconds(5));
+        when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(false);
+        assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
+        // A club that set the grace to 0 keeps the strict rotation.
+        when(settings.integer("auth.refreshReuseGraceSeconds")).thenReturn(0);
+        rotatedRow(NOW);
+        assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
+        verify(refreshTokens, times(3)).revokeFamily("fam-1", NOW);
+        verify(securityEvents, times(3)).record(SecurityEvents.Type.REFRESH_TOKEN_REUSED, "acc-1", null);
+        verify(refreshTokens, never()).insert(any());
+    }
+
+    @Test void INC_36_R_01_06_aRefreshThatLosesItsRotationToARivalTakesTheGraceOfTheRotatedToken() {
+        var active = refreshRow();
+        var rotated = new RefreshToken(active.id(), active.tokenHash(), "acc-1", null, "id-web", "fam-1", 0, active.createdAt(), active.expiresAt(),
+                NOW, null, "hash-child", null, "Firefox / Linux", RefreshToken.Status.ROTATED, Set.of("openid"), true, "nonce-1", active.authTime(), null);
+        when(refreshTokens.find(TokenService.digest("refresh-value-example"), "id-web")).thenReturn(Optional.of(active), Optional.of(rotated));
+        when(refreshTokens.rotate(eq("rt-1"), anyString(), eq(NOW))).thenReturn(false);
+        liveChild();
+        when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(true);
+        when(refreshTokens.rotate(eq("rt-2"), anyString(), eq(NOW))).thenReturn(true);
+
+        assertThat(tokens.refresh("refresh-value-example", "id-web", null)).isNotNull();
+        verify(refreshTokens, never()).revokeFamily(any(), any());
     }
 
     @Test void T_01_05_switchingTheProfileTouchesTheAccountSessions() {

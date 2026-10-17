@@ -144,7 +144,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
      * `GET /signup` sends them in `paymentMethods[MANUAL].instructions`, in ca and in es. A definition without them keeps
      * them, the export round-trips them, and they must have the club's default locale (S17 R-17-05).
      */
-    @Test void T_04_14_T_02_12_canicSeedCarriesItsCashPaymentInstructions() throws Exception {
+    @Test void R_04_10_T_02_12_T_17_01_canicSeedCarriesItsCashPaymentInstructions() throws Exception {
         var previous = activeCanic(); previous.withObject("paymentProviders").withObject("MANUAL").remove("instructions");
         var id = definitions.apply(previous, false).id();
         assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true));
@@ -172,6 +172,33 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
             assertThat(error.details()).containsEntry("fieldErrors", List.of(Map.of("field", "paymentProviders.MANUAL.instructions", "code", "REQUIRED")));
         });
         assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
+    }
+    /**
+     * INC-13 (E5-T23's review, minor #1 and detail #2; S17 R-17-05): the instructions the club ends with are checked, not only the
+     * node a definition declares. A blank text in the default locale, a locale outside `club.locales`, or a new default locale
+     * the stored instructions do not have is refused, and nothing is written.
+     */
+    @Test void INC_13_R_17_05_theResultingCashInstructionsNeedTheDefaultLocaleInTheClubsLocalesNeverBlank() throws Exception {
+        var id = definitions.apply(activeCanic(), false).id();
+        var blank = activeCanic(); blank.withObject("paymentProviders").withObject("MANUAL").putObject("instructions").put("ca", " ").put("es", CASH_INSTRUCTIONS.get("es"));
+        var foreign = activeCanic(); foreign.withObject("paymentProviders").withObject("MANUAL").putObject("instructions")
+                .put("ca", CASH_INSTRUCTIONS.get("ca")).put("es", CASH_INSTRUCTIONS.get("es")).put("en", "Fictional instructions");
+        for (var definition : List.of(blank, foreign)) { refusedInstructions(definition); }
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
+        // Stored instructions in Catalan only, then a definition that makes Spanish the default without declaring them: refused.
+        var catalanOnly = activeCanic(); catalanOnly.withObject("paymentProviders").withObject("MANUAL").putObject("instructions").put("ca", CASH_INSTRUCTIONS.get("ca"));
+        definitions.apply(catalanOnly, false);
+        var spanishDefault = activeCanic(); spanishDefault.withObject("paymentProviders").withObject("MANUAL").remove("instructions");
+        spanishDefault.withObject("club").put("defaultLocale", "es");
+        refusedInstructions(spanishDefault);
+        assertThat(clubs.findById(id).orElseThrow().defaultLocale()).isEqualTo("ca");
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", Map.of("ca", CASH_INSTRUCTIONS.get("ca"))));
+    }
+    void refusedInstructions(com.fasterxml.jackson.databind.node.ObjectNode definition) {
+        assertThatThrownBy(() -> definitions.apply(definition, false)).as(definition.at("/paymentProviders/MANUAL").toString()).isInstanceOfSatisfying(ApiException.class, error -> {
+            assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+            assertThat(error.details()).containsEntry("field", "paymentProviders.MANUAL.instructions");
+        });
     }
     /**
      * E3-T16 step 3 (Jordi, 25-09; S02 §3, R-02-02; S17 §3): the Cànic's seed carries its legal identity and registered office,

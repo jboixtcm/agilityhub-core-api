@@ -31,16 +31,22 @@ public class FollowupCensusAdapter implements FollowupCensusAccess {
     /**
      * D14's search (E6-T06): the dogs by name and by member note, and the members by full name. A full name is its names
      * joined by one space, so a match lies inside one name or spans them: each word of the text is inside one name, which the
-     * read narrows on before the full names are matched.
+     * read narrows on before the full names are matched. INC-51 (E11-T02): one read of the dogs (name or note) and one of the
+     * members, each with only the fields it matches on; if D14 grows, an index or a text search is a new incidence.
      */
     @Override public Matches search(String text) {
         String literal = java.util.regex.Pattern.quote(text);
-        var named = access.dogs.matching(Criteria.where("name").regex(literal, "i")).stream().map(dog -> dog.id).collect(java.util.stream.Collectors.toSet());
-        var noted = access.dogs.matching(Criteria.where("instructorNote.text").regex(literal, "i")).stream().map(dog -> dog.id).collect(java.util.stream.Collectors.toSet());
+        var pattern = java.util.regex.Pattern.compile(literal, java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+        var named = new HashSet<String>(); var noted = new HashSet<String>();
+        for (var dog : access.dogs.matching(new Criteria().orOperator(Criteria.where("name").regex(literal, "i"), Criteria.where("instructorNote.text").regex(literal, "i")),
+                "name", "instructorNote.text")) {
+            if (dog.name != null && pattern.matcher(dog.name).find()) { named.add(dog.id); }
+            String note = string(map(dog.instructorNote).get("text"));
+            if (note != null && pattern.matcher(note).find()) { noted.add(dog.id); }
+        }
         String word = Arrays.stream(text.strip().split("\\s+")).max(Comparator.comparingInt(String::length)).orElse(text);
         var candidates = access.members.matching(new Criteria().orOperator(java.util.stream.Stream.of("firstName", "lastName1", "lastName2")
-                .map(field -> Criteria.where(field).regex(java.util.regex.Pattern.quote(word), "i")).toList()));
-        var pattern = java.util.regex.Pattern.compile(literal, java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+                .map(field -> Criteria.where(field).regex(java.util.regex.Pattern.quote(word), "i")).toList()), "firstName", "lastName1", "lastName2", "erasedAt");
         var members = candidates.stream().filter(member -> member.erasedAt == null && pattern.matcher(fullName(member)).find()).map(member -> member.id)
                 .collect(java.util.stream.Collectors.toSet());
         return new Matches(named, members, noted);

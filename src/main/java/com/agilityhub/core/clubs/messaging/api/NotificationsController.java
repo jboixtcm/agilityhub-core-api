@@ -44,7 +44,7 @@ public class NotificationsController {
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
             columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = false, exportable = true,
-            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
+            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt", "batchId"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "notifications", description = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log "
             + "(R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel "
@@ -113,10 +113,16 @@ public class NotificationsController {
     @PostMapping("/api/v1/me/notifications/read-all")
     @PreAuthorize(FEED)
     @AllowsImpersonation
+    @ContractErrors({VALIDATION_ERROR})
     @Operation(summary = "readAllNotifications", description = "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks "
-            + "every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out." + TENANT,
+            + "every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. INC-53: the "
+            + "optional upTo (the instant screen 11 was read) marks only those created until then, so a retry sent later never marks read a notice the "
+            + "member has not seen; a bound in the future is now; a value that is not an instant → 400 VALIDATION_ERROR." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "ReadResult", useReturnTypeSchema = true))
-    public ReadResult readAllNotifications() { return new ReadResult(feed.readAll()); }
+    public ReadResult readAllNotifications(@RequestParam(required = false) @Parameter(description = "ISO-8601 instant; default now")
+            @Schema(format = "date-time") java.time.Instant upTo) {
+        return new ReadResult(feed.readAll(upTo));
+    }
 
     // ---- mapping
 

@@ -254,6 +254,8 @@ def main():
                                              cookie=refresh, origin="http://" + host)
             require(next_refresh != refresh, "Refresh did not rotate")
             print("PASS refresh rotation replaces the HttpOnly host-only cookie", flush=True)
+            # INC-36 (S01 R-01-06): inside auth.refreshReuseGraceSeconds (30) a reuse is a lost answer, accepted once; past it, a theft.
+            time.sleep(31)
             api.grant(host, dict(grant_type="refresh_token", client_id="clubs-app"), 400,
                       cookie=refresh, origin="http://" + host, error="REFRESH_REUSED")
             api.grant(host, dict(grant_type="refresh_token", client_id="clubs-app"), 400,

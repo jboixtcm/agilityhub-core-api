@@ -34,6 +34,8 @@ public class SignupService implements SignupPaymentAccess {
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<DogService> dogService;
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupTransactions> transactions;
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<CheckoutService> checkouts;
+    /** INC-31 (A37, E43): the vault that seals a member's IBAN; the census never stores it in clear. */
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.BankAccounts bankAccounts;
     /**
      * The anonymous `GET /signup` configuration per club and locale, for 60 s (R-04-27). E3-T12: generation-aware
      * ({@link CacheLoads}), so a load that overlapped an eviction (a parameter, plan or club write) never stores what it read.
@@ -384,7 +386,9 @@ public class SignupService implements SignupPaymentAccess {
             if(iban!=null && !iban.isBlank() && !countries.iban(iban)) throw new ApiException(ErrorCode.INVALID_IBAN);
             String tax=text(raw.get("holderTaxId"),"payment.holderTaxId",80,false);
             if(tax!=null && !tax.isBlank() && "ES".equals(countries.countryCode())) countries.normalizeDocument(tax.matches("(?i)[XYZ].*")?"NIE":"DNI",tax);
-            result.putAll(object("iban",iban==null||iban.isBlank()?null:iban,"holderName",raw.get("holderName")==null?defaultHolder:text(raw.get("holderName"),"payment.holderName",120,true),"holderTaxId",tax,"mandateSignedAt",clock.instant()));
+            // INC-31 (A37, E43): sealed for this member at once (`ibanEncrypted` + `ibanLast4`), never stored in clear.
+            if(iban!=null&&!iban.isBlank()) result.putAll(bankAccounts.seal(iban,TenantContext.require(),member.id));
+            result.putAll(object("holderName",raw.get("holderName")==null?defaultHolder:text(raw.get("holderName"),"payment.holderName",120,true),"holderTaxId",tax,"mandateSignedAt",clock.instant()));
         }
         return result;
     }
@@ -812,7 +816,8 @@ public class SignupService implements SignupPaymentAccess {
     /** R-04-06 (E38): D2 shows the record and the request side by side, masked like the member view; never a full IBAN. */
     private Map<String,Object> readmissionView(Member member) {
         var view=submittedView(member);var current=readmissionValues(member);var requested=readmissionValues(view);
-        var changed=READMISSION_FIELDS.stream().filter(field -> !Objects.equals(comparable(member,field),comparable(view,field))).toList();
+        var changed=READMISSION_FIELDS.stream().filter(field -> !Objects.equals(comparable(member,field),comparable(view,field))
+                ||"paymentMethod".equals(field)&&!sameAccount(member.paymentMethod,view.paymentMethod,member.id)).toList();
         var previous=map(map(member.readmissionRequest).get("previous"));
         return object("current",current,"submitted",requested,"changedFields",changed,
                 "consents",rows(submitted(member).get("consents")).stream().map(r -> object("type",r.get("type"),"granted",r.get("granted"),"version",r.get("version"))).toList(),
@@ -826,8 +831,14 @@ public class SignupService implements SignupPaymentAccess {
             case "contactEmails" -> rows(member.contactEmails).stream().map(row -> row.get("email")).toList();
             case "phones" -> rows(member.phones).stream().map(row -> select(row,"prefix","number","label")).toList();
             case "address" -> select(map(member.address),"street","postalCode","city","province","country");
-            default -> select(map(member.paymentMethod),"type","iban","holderName","holderTaxId","channel");
+            default -> select(map(member.paymentMethod),"type","holderName","holderTaxId","channel");
         };
+    }
+    /** INC-31: whether two payment methods of a member hold the same account (none in either is the same; the IBANs compare in the vault). */
+    private boolean sameAccount(Map<String,Object> first,Map<String,Object> second,String memberId) {
+        var a=account(first);var b=account(second);
+        if(a.isEmpty()||b.isEmpty()) return a.isEmpty()&&b.isEmpty();
+        return a.equals(b)||bankAccounts.same(a,b,TenantContext.require(),memberId);
     }
     private Map<String,Object> readmissionValues(Member member) {
         return object("firstName",member.firstName,"lastName1",member.lastName1,"lastName2",member.lastName2,"gender",member.gender,"birthDate",member.birthDate,

@@ -70,7 +70,7 @@ class E6ResponseContractTest {
         assertThat(followup.path("Task").fieldNames()).toIterable()
                 .containsExactly("id", "dogId", "text", "state", "createdAt", "createdBy", "doneAt", "doneBy", "attachments", "version");
         assertThat(followup.at("/FollowupPage/items/0").fieldNames()).toIterable().containsExactly("id", "kind", "taskId", "dogId", "dogName", "levelCode",
-                "memberId", "memberName", "authorName", "authorRole", "textExcerpt", "createdAt", "activityAt", "unread");
+                "memberId", "memberName", "authorName", "authorRole", "textExcerpt", "createdAt", "activityAt", "unread", "attachmentCount");
     }
 
     @Test void T_10_14_T_10_17_privateObservationsNeverReachTheMemberForms() {

@@ -123,11 +123,25 @@ public class BookingViews {
      * (FIFO), state and outcome.
      */
     public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) { return waitlistEntry(e, staff, guides.pair(e.dogId()).orElse(null)); }
-    /** A class's waiting list (D12, E5-T29): the «{guia} + {gos}» of every entry read with one census query. */
+    /**
+     * A class's waiting list (D12, E5-T29): the «{guia} + {gos}» of every entry read with one census query. INC-42: an entry whose
+     * dog is missing (an invariant the census keeps: it never deletes a dog) is logged and left out, so one bad row never fails the
+     * whole staff list.
+     */
     public List<Map<String, Object>> waitlistEntries(List<WaitlistEntry> entries, boolean staff) {
         var pairs = guides.pairs(entries.stream().map(WaitlistEntry::dogId).distinct().toList());
-        return entries.stream().map(e -> waitlistEntry(e, staff, pairs.get(e.dogId()))).toList();
+        var rows = new java.util.ArrayList<Map<String, Object>>();
+        for (var e : entries) {
+            try { rows.add(waitlistEntry(e, staff, pairs.get(e.dogId()))); }
+            catch (MissingDog missing) { LOG.warn("S08 waiting-list entry {} left out of its class's list: its dog {} is missing", e.id(), e.dogId()); }
+        }
+        return rows;
     }
+    /** INC-42: a booking's or an entry's dog the census does not have; a broken invariant, never a business error. */
+    static final class MissingDog extends IllegalStateException {
+        MissingDog(String dogId) { super("S08 row of a missing dog " + dogId); }
+    }
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BookingViews.class);
     private Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff, com.agilityhub.core.clubs.census.application.AttendanceCensusAccess.Pair pair) {
         var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
         var out = new LinkedHashMap<String, Object>();
@@ -148,7 +162,7 @@ public class BookingViews {
      * never deletes a dog, so a booking's dog always exists.
      */
     private Map<String, Object> dog(String dogId) {
-        var dog = census.dog(dogId).orElseThrow(() -> new IllegalStateException("S08 row of a missing dog " + dogId));
+        var dog = census.dog(dogId).orElseThrow(() -> new MissingDog(dogId));
         return map("id", dog.id(), "name", dog.name(), "sex", dog.sex());
     }
     public Map<String, Object> calendarLinks(Booking b, ClassSessionBookingAccess.Labels labels) {

@@ -48,10 +48,12 @@ public class CleanupRepository {
     /**
      * SIGNUP_DOCUMENT grants of the club older than `before` whose key no `DogDocument.files[].fileKey` references, nor the
      * documents of a pending readmission (a PENDING dog's {@link #READMISSION_DOCUMENTS}, R-15-19 amended 25-09, E3-T17).
+     * INC-14 (E11-T02): the DOG_DOCUMENT grants of the ADMIN's D2/D10 uploads never saved (or a rejected readmission's) too.
      */
     public List<String> orphanUploads(String clubId, Instant before) {
-        var candidates = mongo.find(Query.query(scope(clubId).and("purpose").is("SIGNUP_DOCUMENT")
-                .and("_id").regex("^" + Pattern.quote("signup/" + clubId + "/")).and("createdAt").lt(before)).with(Sort.by("createdAt", "_id")), Document.class, UPLOADS)
+        var signup = Criteria.where("purpose").is("SIGNUP_DOCUMENT").and("_id").regex("^" + Pattern.quote("signup/" + clubId + "/"));
+        var candidates = mongo.find(Query.query(scope(clubId).and("createdAt").lt(before).orOperator(signup, Criteria.where("purpose").is("DOG_DOCUMENT")))
+                        .with(Sort.by("createdAt", "_id")), Document.class, UPLOADS)
                 .stream().map(d -> d.getString("_id")).toList();
         if (candidates.isEmpty()) { return List.of(); }
         var referenced = new HashSet<String>();

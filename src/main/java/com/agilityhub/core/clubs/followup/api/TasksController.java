@@ -11,6 +11,7 @@ import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.contract.AllowsImpersonation;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.application.HandlerStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -73,8 +74,8 @@ public class TasksController {
     @PreAuthorize(STAFF)
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, DOG_NOT_ACTIVE, ATTACHMENT_ENTITY_MISMATCH, ATTACHMENT_LIMIT_REACHED, FILE_TOO_LARGE,
-            FILE_TYPE_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED, IMPERSONATION_DENIED})
-    @Operation(summary = "createTask", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachmentIds are the fileKeys of the caller's TASK uploads, registered in the same Mongo transaction as the task, its D14 row and TaskCreated (→ N-20 to the owner): a refused one (ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, …) leaves no task. Same Idempotency-Key → same 201." + GUARDS,
+            FILE_TYPE_NOT_ALLOWED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, IMPERSONATION_DENIED})
+    @Operation(summary = "createTask", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachmentIds are the fileKeys of the caller's TASK uploads, registered in the same Mongo transaction as the task, its D14 row and TaskCreated (→ N-20 to the owner): a refused one (ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, an upload whose grant expired before it was registered → 409 INVALID_STATE with details.reason = UPLOAD_EXPIRED, …) leaves no task. Same Idempotency-Key → same 201." + GUARDS,
             responses = @ApiResponse(responseCode = "201", description = "Task", useReturnTypeSchema = true))
     public Task createTask(@Valid @RequestBody TaskCreateRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
@@ -85,7 +86,7 @@ public class TasksController {
         // E6-T03 round 5 (INC-47): the task, its uploads, its D14 row, the outbox and the stored 201 commit together, retried
         // whole on a write conflict. Two creations naming one upload: the loser's retry finds it attached to the other task
         // (ATTACHMENT_ENTITY_MISMATCH) and leaves no task.
-        return transactions.keyed(201, () -> view(tasks.create(request.dogId(), request.text(), request.attachmentIds(), by), caller), KeyedAnswers.json(mapper));
+        return transactions.keyed(HandlerStatus.current(), () -> view(tasks.create(request.dogId(), request.text(), request.attachmentIds(), by), caller), KeyedAnswers.json(mapper));
     }
 
     @GetMapping("/api/v1/tasks/{id}")
@@ -121,7 +122,7 @@ public class TasksController {
         access.tenant();
         var caller = caller(jwt); var actor = actor(caller, jwt);
         // Round 5: two deletions with different keys → one 204; the other's retry finds the task deleted → 404.
-        transactions.keyedNoContent(() -> tasks.delete(access.task(caller, id), actor));
+        transactions.keyedWithoutBody(HandlerStatus.current(), () -> tasks.delete(access.task(caller, id), actor));
     }
 
     @PostMapping("/api/v1/tasks/{id}/completion")
@@ -135,7 +136,7 @@ public class TasksController {
         var caller = caller(jwt);
         // E6-T03 round 5 (T-10-25, INC-47): with or without a key, the completion and its stored 200 commit in a transaction
         // retried whole on a write conflict: the second of two simultaneous completions re-reads DONE → 422, never a 500.
-        return transactions.keyed(200, () -> {
+        return transactions.keyed(HandlerStatus.current(), () -> {
             var task = access.task(caller, id);
             // Ruling E41 (E71 for S10): an account with MEMBER and a staff role completes its own dog's task as the member.
             var by = access.owner(caller, task.dogId());
@@ -152,7 +153,7 @@ public class TasksController {
         access.tenant();
         var caller = caller(jwt); var actor = actor(caller, jwt);
         // Round 5: the second of two simultaneous reopenings re-reads PENDING → 422 TASK_NOT_DONE, never a 500.
-        return transactions.keyed(200, () -> view(tasks.reopen(access.task(caller, id), actor), caller), KeyedAnswers.json(mapper));
+        return transactions.keyed(HandlerStatus.current(), () -> view(tasks.reopen(access.task(caller, id), actor), caller), KeyedAnswers.json(mapper));
     }
 
     private Task view(com.agilityhub.core.clubs.followup.persistence.Task task, FollowupContractAccess.Caller caller) { return views(List.of(task), caller).getFirst(); }

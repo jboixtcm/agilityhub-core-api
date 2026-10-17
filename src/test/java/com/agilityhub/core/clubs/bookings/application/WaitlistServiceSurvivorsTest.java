@@ -186,6 +186,30 @@ class WaitlistServiceSurvivorsTest {
 
     // --- sweep (lines 214, 219) and the leave cancellations (cancelLocked, lines 248, 255) ---------------------------------
 
+    /**
+     * INC-46 (E11-T02; review of E6-T04 round 2 #5): P8's plan no longer reads every live entry of the club each minute. It
+     * reads the live entries of the started `ACTIVE` classes with someone waiting (S06), plus those whose own copy says the
+     * class started (a deleted class), and still decides by the class's own start (R-15-18a).
+     */
+    @Test void T_15_26_INC_46_p8ReadsOnlyTheEntriesOfStartedClassesAndDecidesByTheClassStart() {
+        var started = NOW.minusSeconds(60); var later = NOW.plusSeconds(3600);
+        // Moved earlier: the entry's copy still says later, S06 says started.
+        var movedEarlier = entry("entry-1", "dog-duna", "member-laura", WaitlistState.ACTIVE, null, null, 0L, later);
+        when(classes.startedWithWaiting(NOW)).thenReturn(List.of("class-a"));
+        when(waitlist.liveStarted(List.of("class-a"), NOW)).thenReturn(List.of(movedEarlier));
+        when(classes.startsAt(List.of("class-a"))).thenReturn(java.util.Map.of("class-a", started));
+        assertThat(service.startedBy(NOW)).containsExactly(movedEarlier);
+        // Moved later: the copy says started, S06 does not.
+        var movedLater = entry("entry-2", "dog-kira", "member-eva", WaitlistState.NOTIFIED, null, null, 0L, started);
+        when(classes.startedWithWaiting(NOW)).thenReturn(List.of());
+        when(waitlist.liveStarted(List.of(), NOW)).thenReturn(List.of(movedLater));
+        when(classes.startsAt(List.of("class-a"))).thenReturn(java.util.Map.of("class-a", later));
+        assertThat(service.startedBy(NOW)).isEmpty();
+        // A deleted class: its entry's copy decides.
+        when(classes.startsAt(List.of("class-a"))).thenReturn(java.util.Map.of());
+        assertThat(service.startedBy(NOW)).containsExactly(movedLater);
+    }
+
     @Test void T_08_19_theClassStartedSweepReadsTheClassStartUnderTheLockAndSkipsAnEntryNoLongerLive() {
         var started = Instant.parse("2026-10-05T07:30:00Z");
         when(classes.find("class-a")).thenReturn(Optional.of(session(2, 2, started)));

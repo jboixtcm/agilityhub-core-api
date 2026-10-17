@@ -195,4 +195,23 @@ class NotificationFeedIT extends AbstractIntegrationTest {
         assertThat(mongo.findById("feed-n21", Notification.class).readAt()).isNull(); // Marta's
         assertThat(mongo.findById("feed-other", Notification.class).readAt()).isNull(); // the other club's
     }
+
+    /**
+     * INC-53 point 5 (E11-T02; E6-W04 question 2, decision E82): `read-all` takes an optional upper bound, the instant screen 11
+     * was read, so a retry sent from 03 later never marks read a notice the member has not seen. A bound in the future is
+     * `now`; one that is not an instant is 400.
+     */
+    @Test void T_11_19_INC_53_readAllWithAnUpperBoundLeavesTheLaterNoticesUnread() throws Exception {
+        var bounded = call(as(post("/api/v1/me/notifications/read-all").param("upTo", now.minusSeconds(90).toString()), LAURA, "MEMBER"), 200);
+        assertThat(bounded.path("unreadCount").asLong()).isEqualTo(1).isEqualTo(homeUnread());
+        assertThat(mongo.findById("feed-n08a", Notification.class).readAt()).as("created after the bound").isNull();
+        assertThat(mongo.findById("feed-n15", Notification.class).readAt()).isEqualTo(now);
+        assertThat(mongo.findById("feed-n16-rock", Notification.class).readAt()).isEqualTo(now);
+        insert(notice("feed-later", CLUB, LAURA, "N-04", NotificationAudience.MEMBER, now.plusSeconds(5), null, delivery(NotificationChannel.APP, LAURA, DeliveryStatus.DELIVERED)));
+        var future = call(as(post("/api/v1/me/notifications/read-all").param("upTo", now.plusSeconds(3600).toString()), LAURA, "MEMBER"), 200);
+        assertThat(future.path("unreadCount").asLong()).as("a future bound is now: the later notice stays unread").isEqualTo(1);
+        assertThat(mongo.findById("feed-n08a", Notification.class).readAt()).isEqualTo(now);
+        assertThat(mongo.findById("feed-later", Notification.class).readAt()).isNull();
+        assertThat(call(as(post("/api/v1/me/notifications/read-all").param("upTo", "yesterday"), LAURA, "MEMBER"), 400).path("code").asText()).isEqualTo("VALIDATION_ERROR");
+    }
 }
