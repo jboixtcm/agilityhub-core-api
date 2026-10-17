@@ -160,6 +160,7 @@ Pattern per stage: contract → domain → endpoints and integrations → proces
 - **E11-T04** · Deploy assets provable locally (E0-T13 part 1): `deploy/compose.prod.yaml`, backups and a verified restore, `DEPLOY.md` as a runbook · no dependency · L · **thread D, installed 30-09 (`ready`)**
 - **E11-T05** · Migration rehearsal (S18 WP-D) on the anonymised derivative of Josep's fresh export · E8-T06 and the export · M
 - **E11-T06** · The E11 gate run: clean verify, traceability in CI, every smoke, seeds twice, snapshot drift, PITest on `payments` and E8's routes in E11-T03's security inventory · E11-T01…T05 · M
+- **E11-T07** (thread B) · Spring Boot 4.1 and Spring Framework 7: the upgrade that removes CVE-2026-47890's exception before 07-12 (E97), with the contract, the stored data and the gates unchanged; Jackson stays on 2 (`spring-boot-jackson2`) · E11-T03 · L · **thread B, installed 17-10 (`ready`, E129)**
 
 **E12 · Migration and go-live (S18 WP-E).**
 - **E12-T01** · Release deployment: droplet, Caddy, real secrets, SendGrid, Twilio, VAPID, the Stripe test webhook, the backup cron and one restore on the server, the k6 re-measure. Needs SSH and DNS by 21-10 · E11-T04, E11-T06 · L

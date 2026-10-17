@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v3.7 · 16-10-2026** (v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v3.8 · 17-10-2026** (v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -58,7 +58,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
 | INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, **fetes a la seva ronda 5 (30-09, E6-T03 ✅)**; les de les sessions de muntatge amb clau (revisió d'E9-T04), a E9-T06 (16-10, E118) |
 | INC-48 | 30-09 | api (seguiment) | Nits de la ronda 5 d'E6-T03: l'estat que es desa per a la resposta repetida d'una clau és una còpia escrita a mà del `@ResponseStatus` de cada ruta, i un Javadoc mal tallat | Baixa | oberta — passada de correccions |
-| INC-49 | 30-09 | api (consola, idempotència) | `IdempotencyFilter` pren el club del `clubId` del JWT i respon `NO_MEMBERSHIP` sense: una ruta de consola amb clau (`POST /platform/clubs/{clubId}/jobs/{name}/trigger`) cridada amb un token de plataforma queda refusada abans del handler (nota 2 d'E5-T29, llegida al codi) | Mitjana | oberta — per a E10 (S17, consola) |
+| INC-49 | 30-09 | api (consola, idempotència) | `IdempotencyFilter` pren el club del `clubId` del JWT i respon `NO_MEMBERSHIP` sense: una ruta de consola amb clau (`POST /platform/clubs/{clubId}/jobs/{name}/trigger`) cridada amb un token de plataforma queda refusada abans del handler (nota 2 d'E5-T29, llegida al codi) | Mitjana | **resolta 17-10 (E10-T04 ✅, ronda 2; E128)** |
 | INC-50 | 30-09 | api (processos, proves) | Nits de la ronda 2 d'E5-T29: un reintent d'un llançament manual pot deixar l'execució sense `JOB_TRIGGERED` si la primera escriptura de l'auditoria va fallar; la vida de 24 h de la clau és definida dues vegades; l'etiqueta T-09-30 dels tests de cerca no té cap asserció de tenant | Baixa | oberta — passada de correccions |
 | INC-51 | 01-10 | api (seguiment, contracte) | Menors de la revisió d'E6-T06 (la cerca de D14 sense projecció i amb llistes `$in` sense límit, les proves d'aïllament de tenant de la cerca i dels recomptes, `FOLLOWUP.searchable`, l'etiqueta d'un abonat esborrat als valors del filtre, els scripts de l'evidència) i la pregunta 1 d'E6-W05 (`POST /tasks` pot respondre `409 INVALID_STATE` sense declarar-lo) | Baixa | oberta — E11-T02 |
 | INC-52 | 01-10 | api (missatgeria, menors) | Menors de la revisió d'E7-T05: `claimAccepted` amb dos predicats sobre el mateix array, l'acceptació que no es torna a marcar mentre l'assentament falla més de 2 minuts, l'evidència del pas 4, la fila 11 de la taula sense prova, el rebot d'una adreça compartida, i detalls | Baixa | oberta — E11-T02 |
@@ -74,6 +74,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe i el d'una col·locació moguda, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | oberta — passada de correccions (E11-T02; la part del web, E11-W02) |
 | INC-63 | 16-10 | api (sessions de muntatge, menors) | Menors de la ronda 2 d'E9-T06: el límit d'enviadors refusa fluxos sans per sobre d'uns 64 subscriptors per instància, la prova del temps d'escriptura només llegeix la configuració, el `connection-timeout` de 20 s és global (també per a les pujades), l'estil del ganxo de proves, la prova dels dos `finish` només cobreix un camí | Baixa | oberta — passada de correccions (E11-T02) |
 | INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — passada de correccions (E11-T02); el pas manual es documenta a la ronda 2 d'E10-T04 |
+| INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | oberta — propera passada de correccions de l'api |
 
 ---
 
@@ -322,6 +323,23 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 **S'espera**: que l'app d'un domini verificat es triï sola, per exemple amb una pista `app` de `/internal/domains/allowed` o un emparellament dinàmic de hosts.
 
 **On mirar**: `deploy/Caddyfile:87`, `docs/DEPLOY.md:351,408`, `PlatformDomains.java`.
+
+---
+
+## INC-65 · Menors de la ronda 2 d'E10-T04 (api, consola)
+
+**Gravetat**: baixa. No es filtra res: l'interceptor `@SupportRestricted` refusa el token de suport dins el handler, i la consola corre al host del producte, on no hi ha cap tenant obert.
+
+**Origen**: `roadmap/reviews/E10-T04-20261017-1102-claude.md` (api), troballes #3, #4 i #5; verificació de l'organitzador del 17-10 (decisió E128). Les troballes #1 (el diagrama d'S17 §5) i #2 (la llista de rutes de `CONVENCIONS_API.md`) les ha corregit l'organitzador.
+
+**El problema**:
+1. `SupportAccessService.RESTRICTED` només posa `GET|POST` per a les exportacions. Spring MVC també envia `HEAD` als handlers `GET`, i cap prova cobreix `HEAD /api/v1/members/export` amb un token de suport.
+2. `IdempotencyFilter` comprova que el club existeix amb `ClubLocaleSettingsProvider.settings(clubId)`, que obre `TenantContext.open(clubId)`. Si la petició ja té obert un altre tenant (una crida de consola amb el `Host` d'un club), respon `TENANT_MISMATCH` en lloc de deixar passar la petició sense clau.
+3. `@com.agilityhub.core.shared.application.SupportRestricted` s'escriu amb el nom complet a 22 handlers.
+
+**S'espera**: `HEAD` al patró, o un cas `HEAD` a `SupportAccessIT`; la comprovació del club sense obrir cap tenant, o bé un comentari i una prova amb el `Host` d'un club; un `import`.
+
+**On mirar**: `identity/application/SupportAccessService.java:49`, `shared/api/IdempotencyFilter.java:202`, els controladors amb `@SupportRestricted`.
 
 ---
 

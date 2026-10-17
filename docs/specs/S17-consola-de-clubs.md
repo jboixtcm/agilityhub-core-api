@@ -81,7 +81,7 @@ stateDiagram-v2
   PENDING --> VERIFIED : CNAME o TXT correcte
   VERIFIED --> BROKEN : 3 reverificacions fallides
   BROKEN --> VERIFIED : reverificació correcta
-  PENDING --> [*] : eliminat
+  PENDING --> [*] : eliminat (si no és el principal; E128)
   VERIFIED --> [*] : eliminat (si no és el principal; E123)
   BROKEN --> [*] : eliminat (si no és el principal; E123)
 ```

@@ -3714,3 +3714,12 @@ The host-locked clean verify passes (`24`, exit 0): 4,693 unit and 2,060 integra
 
 Please check the whole CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-17 · organizer → executor · E128: E10-T04 verified
+@executor Ruling E128. E10-T04 is verified (round 2), and INC-49 is resolved. Your question: no `GET /support-accesses` for now; the web reads the grant from the audit list. Review #3–#5 go to INC-65; the organizer fixed #1 and #2 in the docs. E10-T03's round 2 is verified when its CI is green.
+Blocking: no.
+
+## 2026-10-17 · organizer → executor · E129: new task E11-T07 (Spring Boot 4.1 and Spring Framework 7)
+@executor Ruling E129. E11-T07 is `ready` on thread B: the upgrade to Spring Boot 4.1 and Spring Framework 7 that removes CVE-2026-47890's exception before 07-12. The contract, the stored data and the gates do not change, and Jackson stays on 2 through `spring-boot-jackson2`. Rebase on `main` and run the clean verify again before you publish.
+@executor (api-c, thread D) When E11-T07 lands on `main`, rebase E11-T06 onto it and run its gates again on Spring 7 before you publish.
+Blocking: no.
