@@ -26,6 +26,19 @@ public class ExportJobCoordinator {
             return jobs.insert(job);
         });
     }
+    /**
+     * S14 R-14-13: a member's data package, admitted like any export (account rate limit, club write lock) and at most one per
+     * member every 24 h (`DATA_EXPORT_TOO_SOON`), checked under the same lock so two requests at once cannot both pass.
+     */
+    public ExportJob submitMemberData(ExportJob job, Instant since) {
+        return transaction(() -> {
+            work.lockAccount(job.ownerAccountId());
+            jobs.lock(); jobs.recover(clock.instant());
+            if (jobs.memberDataSince(job.subjectMemberId(), since)) { throw new ApiException(ErrorCode.DATA_EXPORT_TOO_SOON); }
+            if (work.recent(job.ownerAccountId(), clock.instant().minusSeconds(600)) >= 10) { throw new ApiException(ErrorCode.RATE_LIMITED); }
+            return jobs.insert(job);
+        });
+    }
     public ExportJob claim() {
         return transaction(() -> {
             jobs.lock(); jobs.recover(clock.instant());
@@ -45,6 +58,18 @@ public class ExportJobCoordinator {
                 throw new ApiException(ErrorCode.INVALID_STATE);
             }
             completion.completed(job.id(), job.listKey(), job.format().toLowerCase(Locale.ROOT), rows);
+            return null;
+        });
+    }
+    /** S14 R-14-13: the package is `READY` (7 days, `ExportPolicy.MEMBER_DATA_RETENTION`), audited and announced in the same transaction. */
+    public void completeMemberData(ExportJob job, String fileKey, long size, long files) {
+        transaction(() -> {
+            if (!jobs.updateClaim(job, clock.instant(), new Update().set("status", "READY").set("fileKey", fileKey)
+                    .set("sizeBytes", size).set("rows", files).set("progressPct", 100)
+                    .set("expiresAt", clock.instant().plus(ExportPolicy.MEMBER_DATA_RETENTION)).unset("errorCode").unset("leaseUntil").unset("claimToken"))) {
+                throw new ApiException(ErrorCode.INVALID_STATE);
+            }
+            completion.memberDataCompleted(job.id(), job.subjectMemberId(), files, Boolean.TRUE.equals(job.deliverToMember()));
             return null;
         });
     }

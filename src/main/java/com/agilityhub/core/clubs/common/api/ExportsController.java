@@ -22,6 +22,7 @@ import static com.agilityhub.core.clubs.common.api.CommonContracts.*;
 public class ExportsController {
     private final com.agilityhub.core.clubs.common.application.ListExportService lists;
     private final com.agilityhub.core.clubs.common.application.ExportQueries jobs;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.clubs.common.application.MemberDataExports memberData;
     public ExportsController(com.agilityhub.core.clubs.common.application.ListExportService lists, com.agilityhub.core.clubs.common.application.ExportQueries jobs) { this.lists = lists; this.jobs = jobs; }
     private ExportJob view(com.agilityhub.core.clubs.common.application.ExportQueries.View job) {
         return new ExportJob(job.id(), ExportKind.valueOf(job.kind()), job.listKey(), ExportFormat.valueOf(job.format()), ExportStatus.valueOf(job.status()),
@@ -77,11 +78,14 @@ public class ExportsController {
     @PostMapping("/api/v1/members/{id}/data-export")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({DATA_EXPORT_TOO_SOON})
+    @ContractErrors({DATA_EXPORT_TOO_SOON, MEMBER_ERASED})
     @Operation(summary = "Export member data",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S14 R-14-13. Queues the member's data package (ExportJob MEMBER_DATA, ZIP: data.json memberData.v1, resum.pdf, fitxers/), always asynchronous; GET /exports/{id} follows it and gives a signed link for 7 days. One per member every 24 hours (DATA_EXPORT_TOO_SOON, catalog 422). deliverToMember sends N-50 to the member when it is ready; audited MEMBER_DATA_EXPORTED. An erased member is 409 MEMBER_ERASED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "202", description = "ExportAccepted"))
-    public ExportAccepted exportMemberData(@PathVariable String id, @Valid @RequestBody DataExportInput request) { throw new UnsupportedOperationException(); }
+    public ExportAccepted exportMemberData(@PathVariable String id, @Valid @RequestBody DataExportInput request) {
+        String jobId = memberData.requestFor(id, request.deliverToMember());
+        return new ExportAccepted(jobId, "/api/v1/exports/" + jobId);
+    }
 
     @com.agilityhub.core.shared.application.SupportRestricted
     @PostMapping("/api/v1/me/data-export")
@@ -89,13 +93,14 @@ public class ExportsController {
     @PreAuthorize("hasRole('MEMBER')")
     @ContractErrors({IMPERSONATION_DENIED, DATA_EXPORT_TOO_SOON})
     @Operation(summary = "Export my data",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "S14 R-14-13. The caller's own data package (as POST /members/{id}/data-export, always delivered: N-50 when ready). One every 24 hours (DATA_EXPORT_TOO_SOON, catalog 422); an impersonation token is 403 IMPERSONATION_DENIED. Only its owner reads the job (GET /exports/{id}); another member gets 404. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "202", description = "ExportAccepted"))
     public ExportAccepted exportMyData(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
         if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
             throw new com.agilityhub.core.shared.domain.ApiException(IMPERSONATION_DENIED);
         }
-        throw new UnsupportedOperationException();
+        String jobId = memberData.requestMine();
+        return new ExportAccepted(jobId, "/api/v1/exports/" + jobId);
     }
 
     @com.agilityhub.core.shared.application.SupportRestricted

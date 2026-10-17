@@ -536,10 +536,11 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(runs()).singleElement().satisfies(run -> assertThat(run.getString("status")).isEqualTo("SUCCEEDED"));
         var suspended = mongo.find(Query.query(Criteria.where("clubId").is(SUSPENDED)), Document.class, "job_runs");
         assertThat(suspended).isNotEmpty().allSatisfy(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
-        // E5-T05 + E6-T04 + E5-T31 (P5, step h) + E7-T04 (P4) + E8-T06 (P10): the ten processes in R-15-01 order, then the test job.
+        // E5-T05 + E6-T04 + E5-T31 (P5, step h) + E7-T04 (P4) + E8-T06 (P10) + E11-T01 (S14's erasures and retention sweep):
+        // the twelve processes in R-15-01 order, then the test job.
         assertThat(runner.registered()).extracting(Job::name).containsExactly(JobName.WEEK_OPENING, JobName.RISK_REVIEW, JobName.NO_SHOW_NOTICES,
                 JobName.REMINDERS, JobName.EXPIRATIONS, JobName.WAITLIST_FIFO, JobName.PAYMENT_TIMEOUTS, JobName.CLASS_FINISHING, JobName.CLEANUP,
-                JobName.BILLING_REMINDER, JobName.TEST_NOOP);
+                JobName.BILLING_REMINDER, JobName.ERASURES, JobName.RETENTION_SWEEP, JobName.TEST_NOOP);
         // A failing club does not stop the tick.
         job.configure(DAILY, 1, 0, true);
         clock.setInstant(at("2026-10-06T04:00:00Z"));

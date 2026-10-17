@@ -131,6 +131,8 @@ public class JobAdminService {
     /** `PUT /jobs/{name}/switch`: S02 parameter write (`ParameterChanged`, audited PARAMETER_CHANGED, config cache invalidated). */
     public JobSwitchResponse switchJob(String routeId, boolean enabled) {
         var definition = access.job(routeId);
+        // S14's processes (E11-T01) have no switch: there is nothing to turn off.
+        if (definition.switchParameter() == null) { throw new ApiException(ErrorCode.JOB_UNKNOWN, java.util.Map.of("reason", "NO_SWITCH")); }
         var current = parameters.view(definition.switchParameter(), null);
         var saved = parameters.update(definition.switchParameter(), enabled, null, current.version(), null);
         return new JobSwitchResponse(definition.routeId(), Boolean.TRUE.equals(saved.value()));

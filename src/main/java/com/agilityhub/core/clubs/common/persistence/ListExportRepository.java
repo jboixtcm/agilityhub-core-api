@@ -27,7 +27,7 @@ public class ListExportRepository extends TenantRepository<ExportJob> {
     }
     public long running() { return mongo.count(tenantQuery().addCriteria(Criteria.where("status").is("RUNNING")), ExportJob.class); }
     public ExportJob claim(Instant now, String token) {
-        var query = tenantQuery().addCriteria(Criteria.where("kind").in("LIST", "ACCOUNTING").and("status").is("QUEUED")
+        var query = tenantQuery().addCriteria(Criteria.where("kind").in("LIST", "ACCOUNTING", "MEMBER_DATA").and("status").is("QUEUED")
                 .orOperator(Criteria.where("expiresAt").gt(now), Criteria.where("expiresAt").is(null)))
                 .with(Sort.by("createdAt"));
         return mongo.findAndModify(query, new Update().set("status", "RUNNING").set("claimToken", token)
@@ -70,5 +70,27 @@ public class ListExportRepository extends TenantRepository<ExportJob> {
         mongo.updateFirst(tenantQuery(job.clubId()).addCriteria(Criteria.where("_id").is(job.id()).and("expiresAt").lte(now)),
                 new Update().set("status", "EXPIRED").set("purgeAt", now.plus(Duration.ofDays(7)))
                         .unset("fileKey").unset("fileKeys").unset("claimToken").unset("leaseUntil"), ExportJob.class);
+    }
+
+    /**
+     * S14 R-14-15: the club's export jobs owned by erased accounts or packaging an erased member's data — tombstoned at once
+     * (`EXPIRED`, files unset, `purgeAt` now); returns their file keys for the cleanup.
+     */
+    public List<String> eraseFor(Collection<String> ownerAccountIds, Collection<String> subjectMemberIds, Instant now) {
+        var query = tenantQuery().addCriteria(new Criteria().orOperator(Criteria.where("ownerAccountId").in(ownerAccountIds),
+                Criteria.where("subjectMemberId").in(subjectMemberIds)));
+        var keys = new ArrayList<String>();
+        for (var job : mongo.find(query, ExportJob.class)) {
+            if (job.fileKeys() != null) { keys.addAll(job.fileKeys()); }
+            if (job.fileKey() != null && !keys.contains(job.fileKey())) { keys.add(job.fileKey()); }
+        }
+        mongo.updateMulti(query, new Update().set("status", "EXPIRED").set("purgeAt", now).unset("fileKey").unset("fileKeys")
+                .unset("claimToken").unset("leaseUntil").unset("query"), ExportJob.class);
+        return keys;
+    }
+    /** S14 R-14-13: the member's last package request since `since` (one per 24 h, `DATA_EXPORT_TOO_SOON`). */
+    public boolean memberDataSince(String memberId, Instant since) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("kind").is("MEMBER_DATA").and("subjectMemberId").is(memberId)
+                .and("createdAt").gt(since)), ExportJob.class);
     }
 }

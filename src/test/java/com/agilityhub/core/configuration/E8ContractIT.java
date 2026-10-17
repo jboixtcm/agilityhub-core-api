@@ -348,8 +348,9 @@ class E8ContractIT extends AbstractIntegrationTest {
     @Test void T_15_01_T_15_28_theCanicListsExpirationsAndBillingReminderInCatalogOrder() throws Exception {
         club(CLUB, without(Module.SINGLE_CLASS, Module.STATS, Module.SOCIAL_LEAGUE));
         var jobs = mapper.readTree(mvc.perform(as(get("/api/v1/jobs"), "ADMIN")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        // E11-T01 appends S14's erasures and retention sweep (no module) to the catalog.
         assertThat(jobs.path("items").findValuesAsText("jobName")).containsExactly("WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS",
-                "EXPIRATIONS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER");
+                "EXPIRATIONS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER", "ERASURES", "RETENTION_SWEEP");
         for (String route : List.of("expirations", "billing-reminder")) {
             mvc.perform(as(post("/api/v1/jobs/" + route + "/trigger").contentType("application/json").content("{\"dryRun\":true}"), "ADMIN"))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.dryRun").value(true)).andExpect(jsonPath("$.status").value("SUCCEEDED"));

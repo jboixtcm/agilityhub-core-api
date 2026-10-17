@@ -19,8 +19,9 @@ import org.springframework.core.env.Profiles;
 
 @Configuration(proxyBeanMethods = false)
 public class PlatformConfiguration {
-    @Bean ApplicationRunner platformIndexes(ClubRepository clubs, ParameterRepository parameters) {
-        return arguments -> { clubs.ensureIndexes(); parameters.ensureIndexes(); };
+    @Bean ApplicationRunner platformIndexes(ClubRepository clubs, ParameterRepository parameters,
+            com.agilityhub.core.platform.persistence.privacy.ErasureRequestRepository erasures) {
+        return arguments -> { clubs.ensureIndexes(); parameters.ensureIndexes(); erasures.ensureIndexes(); };
     }
     @Bean FilterRegistrationBean<TenantFilter> tenantFilter(HostTenantResolver hosts, Environment environment,
                                                           ApiExceptionHandler errors, ObjectMapper mapper,

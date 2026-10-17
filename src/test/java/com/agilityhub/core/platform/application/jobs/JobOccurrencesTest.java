@@ -126,17 +126,19 @@ class JobOccurrencesTest {
         assertThat(JobOccurrences.next(at("2026-10-24T06:00:00Z"), daily, MADRID)).contains(at("2026-10-25T07:00:00Z"));
     }
 
+    /** E11-T01: S15's ten R1 processes, then S14's two (R-14-15 `erasures`, R-14-16 `retention-sweep`), which have no switch. */
     @Test void T_15_01_catalogHasTheTenR1ProcessesWithTheirRowsAndResolvesClubSchedules() {
         assertThat(JobCatalog.all()).extracting(JobDefinition::routeId).containsExactly("week-opening", "risk-review", "no-show-notices", "reminders",
-                "expirations", "waitlist-fifo", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder");
-        assertThat(JobCatalog.all()).extracting(JobDefinition::name).containsExactly(java.util.Arrays.copyOf(JobName.values(), 10));
+                "expirations", "waitlist-fifo", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder", "erasures", "retention-sweep");
+        assertThat(JobCatalog.all()).extracting(JobDefinition::name).containsExactly(java.util.Arrays.copyOf(JobName.values(), 12));
         assertThat(JobCatalog.find(JobName.TEST_NOOP)).isEmpty();
         assertThatThrownBy(() -> JobCatalog.definition(JobName.TEST_NOOP)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> JobCatalog.byRoute("foo")).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.JOB_UNKNOWN));
         assertThat(JobCatalog.byRoute("payment-timeouts").module()).isEqualTo(Module.SINGLE_CLASS);
         assertThat(JobCatalog.definition(JobName.WAITLIST_FIFO).module()).isEqualTo(Module.WAITLIST);
         assertThat(JobCatalog.definition(JobName.BILLING_REMINDER).module()).isEqualTo(Module.BILLING);
-        assertThat(JobCatalog.all()).allSatisfy(row -> assertThat(row.switchParameter()).startsWith("jobs.").endsWith(".enabled"));
+        assertThat(JobCatalog.all().subList(0, 10)).allSatisfy(row -> assertThat(row.switchParameter()).startsWith("jobs.").endsWith(".enabled"));
+        assertThat(JobCatalog.all().subList(10, 12)).allSatisfy(row -> assertThat(row.switchParameter()).isNull());
         Map<String, Object> parameters = Map.of("bookings.weekOpensAt", Map.of("dayOfWeek", "SUNDAY", "time", "20:00"),
                 "classes.riskReviewTime", "07:30", "jobs.dailyTime", "06:00", "billing.remittanceReminderDay", 22);
         assertThat(JobSchedule.resolve(JobCatalog.definition(JobName.WEEK_OPENING), parameters::get)).isEqualTo(OPENING);

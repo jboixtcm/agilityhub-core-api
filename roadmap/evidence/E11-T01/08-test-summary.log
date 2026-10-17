@@ -1,0 +1,29 @@
+# surefire + failsafe totals of 07-clean-verify (tests, failures, errors, skipped)
+unit (381 classes): 4621 0 0 0
+integration (157 classes): 2058 0 0 0
+
+# the E11-T01 classes and the contract tests it changed
+Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.arch.ArchitectureTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.configuration.E5BackOfficeContractTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.audit.AuditContractTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.jobs.JobCatalogContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.jobs.JobOccurrencesTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.ErasureEligibilityTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.ErasureExecutorTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.ErasurePolicyTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.ErasureServiceTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.privacy.PrivacyJobsTest
+Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.shared.api.AnonymousRateLimitsTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.shared.domain.EventCatalogContractTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.clubs.bookings.api.JobsApiIT
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.configuration.E2ContractIT
+Tests run: 40, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.configuration.E5ContractIT
+Tests run: 72, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.configuration.E8ContractIT
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.configuration.OpenApiSnapshotTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.identity.api.SecurityEventHashIT
+Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.definition.ClubDefinitionsIT
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.application.jobs.JobFrameworkIT
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.privacy.ErasureIT
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.privacy.MemberDataExportIT
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, in com.agilityhub.core.platform.privacy.RetentionSweepIT

@@ -51,7 +51,10 @@ class E2ContractIT extends AbstractIntegrationTest {
     }
 
     static Stream<Route> pendingRoutes() throws Exception {
-        return routes().filter(route -> !(route.path().startsWith("/api/v1/members") && !route.path().contains("audit-entries") && !route.path().contains("data-export") && !route.path().contains("erasure"))
+        // E11-T01 serves S14's member package, erasure and consents (ErasureIT, MemberDataExportIT check their roles and tenant).
+        return routes().filter(route -> !(route.path().startsWith("/api/v1/members") && !route.path().contains("audit-entries"))
+                && !route.path().equals("/api/v1/me/data-export")
+                && !route.path().equals("/api/v1/accounts/{id}/erasure")
                 && !route.path().startsWith("/api/v1/audit-entries")
                 && !route.path().startsWith("/api/v1/dashboard")
                 && !route.path().equals("/api/v1/members/{id}/audit-entries")
@@ -106,7 +109,7 @@ class E2ContractIT extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "{0}") @MethodSource("pendingRoutes")
     void T_03_33_T_14_22_everyE2ContractEnforcesRolesTenantAndPendingResponse(Route route) throws Exception {
-        boolean consoleRead = Set.of("/api/v1/platform/audit-entries", "/api/v1/platform/security-events").contains(route.path());
+        boolean consoleRead = Set.of("/api/v1/platform/audit-entries", "/api/v1/platform/security-events", "/api/v1/platform/erasure-requests").contains(route.path());
         int authorizedStatus = consoleRead ? 200 : 501;
         var anonymous = mvc.perform(call(route));
         if (route.roles().isEmpty()) {

@@ -11670,7 +11670,7 @@
             "type" : [ "string", "null" ]
           },
           "job" : {
-            "enum" : [ "WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO", "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER" ],
+            "enum" : [ "WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO", "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER", "ERASURES", "RETENTION_SWEEP" ],
             "type" : "string"
           },
           "parametersSnapshot" : {
@@ -11808,7 +11808,7 @@
             "type" : "boolean"
           },
           "jobName" : {
-            "enum" : [ "WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO", "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER" ],
+            "enum" : [ "WEEK_OPENING", "RISK_REVIEW", "NO_SHOW_NOTICES", "REMINDERS", "EXPIRATIONS", "WAITLIST_FIFO", "PAYMENT_TIMEOUTS", "CLASS_FINISHING", "CLEANUP", "BILLING_REMINDER", "ERASURES", "RETENTION_SWEEP" ],
             "type" : "string"
           },
           "lastRun" : {
@@ -14056,15 +14056,21 @@
             "type" : "boolean"
           },
           "address" : {
-            "$ref" : "#/components/schemas/Address"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Address"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "null only for an erased member (S14 R-14-15)"
           },
           "billedViaMemberId" : {
             "format" : "uuid",
             "type" : [ "string", "null" ]
           },
           "birthDate" : {
+            "description" : "null only for an erased member (S14 R-14-15)",
             "format" : "date",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "bookingBlock" : {
             "$ref" : "#/components/schemas/BookingBlock"
@@ -14193,7 +14199,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "address", "birthDate", "bookingBlock", "contactEmails", "displayStatus", "firstName", "fullName", "gender", "id", "lastName1", "phones", "roles", "status", "version" ],
+        "required" : [ "bookingBlock", "contactEmails", "displayStatus", "firstName", "fullName", "gender", "id", "lastName1", "phones", "roles", "status", "version" ],
         "type" : "object"
       },
       "MemberActivityDetail" : {
@@ -25147,7 +25153,7 @@
     },
     "/api/v1/accounts/{id}/erasure" : {
       "post" : {
-        "description" : "S14 §6. Global account erasure request; AGILITYHUB_ADMIN only, no request tenant.",
+        "description" : "S14 R-14-14. Global account erasure (scope ACCOUNT, every membership); AGILITYHUB_ADMIN only, no request tenant. The checks of every club of the account's members, plus no ACTIVE membership left (OTHER_MEMBERSHIPS_ACTIVE): 422 ERASURE_BLOCKED {reasons[]}. A live request, or an erased account, is 409 ERASURE_ALREADY_REQUESTED; an unknown account 404. An account without members is erased at once (ERASING).",
         "operationId" : "requestAccountErasure",
         "parameters" : [ {
           "in" : "path",
@@ -25216,7 +25222,7 @@
                 }
               }
             },
-            "description" : "Not Found"
+            "description" : "NOT_FOUND"
           },
           "409" : {
             "content" : {
@@ -52024,7 +52030,7 @@
         "description" : "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4): without fields every item property is sent; with fields an item has runId and the requested keys only. Unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
         "operationId" : "jobRuns",
         "parameters" : [ {
-          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder",
+          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep",
           "in" : "path",
           "name" : "name",
           "required" : true,
@@ -52243,7 +52249,7 @@
         "description" : "Roles: ADMIN. Run sheet with effects.items, errors and parametersSnapshot (R-15-21). Tenant comes from the JWT.",
         "operationId" : "jobRun",
         "parameters" : [ {
-          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder",
+          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep",
           "in" : "path",
           "name" : "name",
           "required" : true,
@@ -52385,10 +52391,10 @@
     },
     "/api/v1/jobs/{name}/switch" : {
       "put" : {
-        "description" : "Roles: ADMIN. Writes jobs.<name>.enabled through the parameter service (ParameterChanged, audited PARAMETER_CHANGED). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Writes jobs.<name>.enabled through the parameter service (ParameterChanged, audited PARAMETER_CHANGED). S14's erasures and retention-sweep have no switch (a legal duty): 404 JOB_UNKNOWN {reason: NO_SWITCH}. Tenant comes from the JWT.",
         "operationId" : "switchJob",
         "parameters" : [ {
-          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder",
+          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep",
           "in" : "path",
           "name" : "name",
           "required" : true,
@@ -52536,7 +52542,7 @@
         "description" : "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). Tenant comes from the JWT.",
         "operationId" : "triggerJob",
         "parameters" : [ {
-          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder",
+          "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder, erasures, retention-sweep",
           "in" : "path",
           "name" : "name",
           "required" : true,
@@ -55466,7 +55472,7 @@
     },
     "/api/v1/me/data-export" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "S14 R-14-13. The caller's own data package (as POST /members/{id}/data-export, always delivered: N-50 when ready). One every 24 hours (DATA_EXPORT_TOO_SOON, catalog 422); an impersonation token is 403 IMPERSONATION_DENIED. Only its owner reads the job (GET /exports/{id}); another member gets 404. Tenant comes from the JWT.",
         "operationId" : "exportMyData",
         "responses" : {
           "202" : {
@@ -63391,7 +63397,7 @@
     },
     "/api/v1/members/{id}/consents" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-18. The member's full consent history (S04's append-only ledger), oldest first; it survives an erasure. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
         "operationId" : "memberConsents",
         "parameters" : [ {
           "in" : "path",
@@ -63564,7 +63570,7 @@
     },
     "/api/v1/members/{id}/data-export" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-13. Queues the member's data package (ExportJob MEMBER_DATA, ZIP: data.json memberData.v1, resum.pdf, fitxers/), always asynchronous; GET /exports/{id} follows it and gives a signed link for 7 days. One per member every 24 hours (DATA_EXPORT_TOO_SOON, catalog 422). deliverToMember sends N-50 to the member when it is ready; audited MEMBER_DATA_EXPORTED. An erased member is 409 MEMBER_ERASED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
         "operationId" : "exportMemberData",
         "parameters" : [ {
           "in" : "path",
@@ -63643,7 +63649,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -63721,7 +63727,7 @@
     },
     "/api/v1/members/{id}/erasure" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-14. SCHEDULED or BLOCKED → CANCELLED, audited ERASURE_CANCELLED; ERASING (or the console's account request) is 409 INVALID_STATE; no live request is 404. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "cancelMemberErasure",
         "parameters" : [ {
           "in" : "path",
@@ -63859,7 +63865,7 @@
         "tags" : [ "platform" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 §6. The member's live request (SCHEDULED, BLOCKED with its blockReasons, or ERASING); none is 404. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
         "operationId" : "memberErasure",
         "parameters" : [ {
           "in" : "path",
@@ -63928,7 +63934,7 @@
                 }
               }
             },
-            "description" : "INVALID_STATE"
+            "description" : "Conflict"
           },
           "422" : {
             "content" : {
@@ -64004,7 +64010,7 @@
         "tags" : [ "platform" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-14. Checks first (LEFT member, no open invoice or upfront payment, no future booking): any failure is 422 ERASURE_BLOCKED {reasons[]} and nothing is created. SCHEDULED at max(now, leaveDate + rgpd.erasureMinDaysAfterLeave); one live request per member (409 ERASURE_ALREADY_REQUESTED); an erased member is 409 MEMBER_ERASED. Emits AccountErasureRequested (N-52 to the account), audited ERASURE_REQUESTED. Tenant comes from the JWT; another club's member is 404. ADMIN endpoints reject impersonation.",
         "operationId" : "requestMemberErasure",
         "parameters" : [ {
           "in" : "path",
@@ -64083,7 +64089,7 @@
                 }
               }
             },
-            "description" : "ERASURE_ALREADY_REQUESTED, INVALID_STATE"
+            "description" : "ERASURE_ALREADY_REQUESTED, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -77415,7 +77421,7 @@
     },
     "/api/v1/platform/erasure-requests" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
+        "description" : "S14 §6 / S17. Every erasure request, newest first; clubId filters the clubs a request covers, clubId:exists:false the platform's account requests. Ids, states and dates only, so no free-text search (a non-blank q is 400 INVALID_FILTER).",
         "operationId" : "platformErasureRequests",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -77449,13 +77455,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,

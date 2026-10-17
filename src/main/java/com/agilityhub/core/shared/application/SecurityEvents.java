@@ -9,4 +9,12 @@ public interface SecurityEvents {
     }
 
     void record(Type type, String accountId, String clubId);
+
+    /**
+     * S14 R-14-17 (E11-T01): the same event with the address it was about — stored only as its keyed `emailHash`, never in clear —
+     * and its own details (the limited route of `RATE_LIMITED`).
+     */
+    default void record(Type type, String accountId, String clubId, String email, java.util.Map<String, String> details) {
+        record(type, accountId, clubId);
+    }
 }

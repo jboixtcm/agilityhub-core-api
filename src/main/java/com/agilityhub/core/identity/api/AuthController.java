@@ -43,7 +43,7 @@ public class AuthController {
                 limits.retryAfter(com.agilityhub.core.shared.application.RateLimits.Route.MAGIC_LINK_IP, http.getRemoteAddr()));
         if (retry > 0) {
             events.record(com.agilityhub.core.shared.application.SecurityEvents.Type.RATE_LIMITED, null,
-                    com.agilityhub.core.shared.application.TenantContext.current());
+                    com.agilityhub.core.shared.application.TenantContext.current(), email, java.util.Map.of("limit", "MAGIC_LINK"));
             throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.RATE_LIMITED, java.util.Map.of("retryAfter", retry));
         }
         String host = local && http.getHeader("X-Club-Host") != null ? http.getHeader("X-Club-Host") : http.getHeader("Host");

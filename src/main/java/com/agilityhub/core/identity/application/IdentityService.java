@@ -48,8 +48,9 @@ public class IdentityService {
             return new Outcome(session, account.id(), null, 0, false);
         });
         if (outcome.error() != null) {
-            events.record(SecurityEvents.Type.LOGIN_FAILED, outcome.accountId(), TenantContext.current());
-            if (outcome.newLock()) { events.record(SecurityEvents.Type.LOGIN_LOCKED, outcome.accountId(), TenantContext.current()); }
+            // S14 R-14-17: the attempted address only as its keyed hash.
+            events.record(SecurityEvents.Type.LOGIN_FAILED, outcome.accountId(), TenantContext.current(), email, Map.of());
+            if (outcome.newLock()) { events.record(SecurityEvents.Type.LOGIN_LOCKED, outcome.accountId(), TenantContext.current(), email, Map.of()); }
             throw new ApiException(outcome.error(), outcome.retryAfter() > 0 ? Map.of("retryAfter", outcome.retryAfter()) : Map.of());
         }
         return outcome.session();

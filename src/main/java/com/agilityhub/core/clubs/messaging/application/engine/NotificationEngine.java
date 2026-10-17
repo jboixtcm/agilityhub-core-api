@@ -118,13 +118,25 @@ public class NotificationEngine {
         afterCommit(clubId, fresh.stream().filter(notification -> hasQueued(notification.deliveries())).map(Notification::id).toList());
     }
 
+    /**
+     * A catalog code that no event emits, triggered by its owner directly in the current club (S14 R-14-13: N-50 «Les teves dades
+     * estan a punt» when a member's data package is ready): the same pipeline, the payload's `memberId` as recipient and its scalar
+     * values as variables, sent after the commit.
+     */
+    public void notifyDirect(String code, NotificationTrigger trigger) {
+        var spec = NotificationCatalog.byCode(code).orElseThrow(() -> new IllegalArgumentException("Unknown notification code " + code));
+        afterCommit(trigger.clubId(), process(trigger, List.of(spec)));
+    }
+
     /** The notifications of one event in the current club; returns the ids with deliveries to send. */
-    public List<String> process(NotificationTrigger trigger) {
+    public List<String> process(NotificationTrigger trigger) { return process(trigger, NotificationCatalog.specsFor(trigger.type())); }
+
+    private List<String> process(NotificationTrigger trigger, List<NotificationSpec> specs) {
         ClubConfig config;
         try { config = configs.get(trigger.clubId()); }
         catch (ApiException missing) { if (missing.code() == ErrorCode.CLUB_NOT_FOUND) { return List.of(); } throw missing; }
         var toSend = new LinkedHashSet<String>();
-        for (var spec : NotificationCatalog.specsFor(trigger.type())) {
+        for (var spec : specs) {
             if (!spec.templated()) { continue; }
             if (!config.modules().containsAll(spec.moduleGuards())) { continue; }
             if (!conditions(spec, trigger, config)) { continue; }

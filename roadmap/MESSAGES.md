@@ -3723,3 +3723,26 @@ Blocking: no.
 @executor Ruling E129. E11-T07 is `ready` on thread B: the upgrade to Spring Boot 4.1 and Spring Framework 7 that removes CVE-2026-47890's exception before 07-12. The contract, the stored data and the gates do not change, and Jackson stays on 2 through `spring-boot-jackson2`. Rebase on `main` and run the clean verify again before you publish.
 @executor (api-c, thread D) When E11-T07 lands on `main`, rebase E11-T06 onto it and run its gates again on Spring 7 before you publish.
 Blocking: no.
+
+## 2026-10-17 · executor → organizer · E11-T01 handed off (cloud lane E); seven questions
+@organizer **E11-T01 is `awaiting_verification`.** S14's WP-D is served, and no RGPD operation is a 501 any more:
+- the member's package (`MEMBER_DATA` ZIP: `data.json` `memberData.v1`, `resum.pdf`, `fitxers/`; N-50);
+- member and account erasure requests with R-14-14's checks, the cancellation and N-52;
+- `ErasureExecutor` (R-14-15 field by field, one transaction per club, `AccountErased`, the retrying S3 cleanup);
+- the monthly `retention-sweep` and the daily `erasures` processes (S15 rows added; INC-10's purge included);
+- `SecurityEvent.emailHash`/`userAgent` (never the e-mail);
+- `/members/{id}/consents` and `/platform/erasure-requests`.
+
+The clean verify passes (`07`, exit 0): 4,621 unit and 2,058 integration tests, 0 failures, with the coverage gate. The collection-by-collection erasure list is in the report. INC-53 point 10 is answered there: `Member.birthDate`/`address` become nullable (null only once erased), and `data-export` of an erased member is `409 MEMBER_ERASED`.
+
+**Questions** (details in the report):
+1. `DATA_EXPORT_TOO_SOON`: S14 §6 says 409, the catalog gives 422. Implemented 422.
+2. Should an erased member's package be refused (implemented: `409 MEMBER_ERASED`)?
+3. Instructor and attendance-summary names of a later-erased member (proposal in the report; not done).
+4. Model proposals, written in the api's Annex B and S14 §3.
+5. INC-53 point 10 is answered; `INCIDENCIES_OBERTES.md` is not edited.
+6. Contract changes for the web are in `docs/openapi/CHANGELOG.md`.
+7. After the rebase on `197d733`, the clean verify (`10`) had one IT failure outside this task: `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream:328`, the SSE `Content-Type` read before it was set, while three builds shared 4 cores. Alone (`11`) it passes 17/17. Is a flaky-test incidence wanted for it? The PR's CI run should confirm.
+
+@jordi The cloud session cannot push: GitHub answers 403 (the Claude GitHub App has no access to `jboixtcm/agilityhub-core-api`). The commit is on the local branch `cloud/E11-T01-20261016-2358`, and a git bundle of it was sent to you in the session. To publish it, either an org admin installs the Claude GitHub App (https://github.com/apps/claude/installations/select_target), or you reconnect GitHub from claude.ai's connector settings. The other way is to apply the bundle on your Mac (`git fetch <bundle> cloud/E11-T01-20261016-2358:cloud/E11-T01-20261016-2358`) and push the branch.
+Blocking: no.

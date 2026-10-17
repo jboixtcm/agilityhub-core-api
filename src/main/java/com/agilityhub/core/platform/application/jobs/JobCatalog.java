@@ -6,7 +6,10 @@ import com.agilityhub.core.shared.domain.ErrorCode;
 import java.util.List;
 import java.util.Optional;
 
-/** S15 R-15-01: the ten R1 processes live in code, not in the database. */
+/**
+ * S15 R-15-01: the R1 processes live in code, not in the database. E11-T01 adds S14's two (R-14-15, R-14-16): no switch (a legal
+ * obligation of the club, not an option), and the sweep runs on the first day of the month (a product constant, no parameter).
+ */
 public final class JobCatalog {
     private static final List<JobDefinition> ROWS = List.of(
             new JobDefinition(JobName.WEEK_OPENING, "week-opening", Cadence.WEEKLY, "bookings.weekOpensAt", null, null,
@@ -28,7 +31,10 @@ public final class JobCatalog {
             new JobDefinition(JobName.CLEANUP, "cleanup", Cadence.DAILY, "jobs.dailyTime", null, null,
                     CatchUpWindow.UNLIMITED, "jobs.cleanup.enabled"),
             new JobDefinition(JobName.BILLING_REMINDER, "billing-reminder", Cadence.MONTHLY, "jobs.dailyTime", "billing.remittanceReminderDay",
-                    Module.BILLING, CatchUpWindow.END_OF_LOCAL_MONTH, "jobs.billingReminder.enabled"));
+                    Module.BILLING, CatchUpWindow.END_OF_LOCAL_MONTH, "jobs.billingReminder.enabled"),
+            new JobDefinition(JobName.ERASURES, "erasures", Cadence.DAILY, "jobs.dailyTime", null, null, CatchUpWindow.UNLIMITED, null),
+            new JobDefinition(JobName.RETENTION_SWEEP, "retention-sweep", Cadence.MONTHLY, "jobs.dailyTime", null, null,
+                    CatchUpWindow.END_OF_LOCAL_MONTH, null));
 
     private JobCatalog() { }
     public static List<JobDefinition> all() { return ROWS; }

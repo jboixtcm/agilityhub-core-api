@@ -42,4 +42,10 @@ public class SavedViewRepository extends TenantRepository<SavedView> {
             throw new ApiException(ErrorCode.STALE_VERSION);
         }
     }
+    /** S14 R-14-15: an erased account's own views in the current club (technical, deleted). */
+    public long deleteOwnedBy(java.util.Collection<String> accountIds) {
+        if (accountIds.isEmpty()) { return 0; }
+        return mongo.remove(tenantQuery().addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("data.ownerAccountId").in(accountIds)),
+                SavedView.class).getDeletedCount();
+    }
 }

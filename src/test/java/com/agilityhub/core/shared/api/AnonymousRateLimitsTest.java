@@ -43,7 +43,8 @@ class AnonymousRateLimitsTest {
         var body = new ObjectMapper().readTree(refused.getContentAsString());
         assertThat(body.path("code").asText()).isEqualTo("RATE_LIMITED");
         assertThat(body.path("details").isObject()).isTrue();
-        verify(events).record(SecurityEvents.Type.RATE_LIMITED, null, null);
+        // S14 R-14-17 (E11-T01): the event names the limited route; no address on these anonymous routes.
+        verify(events).record(eq(SecurityEvents.Type.RATE_LIMITED), isNull(), isNull(), isNull(), argThat(details -> details.containsKey("limit")));
         clock.advance(Duration.ofMinutes(1));
         assertThat(call(filter, method, path).getStatus()).isEqualTo(204);
     }
@@ -70,7 +71,7 @@ class AnonymousRateLimitsTest {
         assertThat(body.path("code").asText()).isEqualTo("RATE_LIMITED");
         assertThat(body.path("details").isEmpty()).isTrue();
         assertThat(body.path("traceId").asText()).isNotBlank();
-        verify(events, times(2)).record(SecurityEvents.Type.RATE_LIMITED, null, null);
+        verify(events, times(2)).record(eq(SecurityEvents.Type.RATE_LIMITED), isNull(), isNull(), isNull(), argThat(details -> details.containsKey("limit")));
         clock.advance(Duration.ofMinutes(1));
         assertThat(call(filter, method, path).getStatus()).isEqualTo(204);
     }

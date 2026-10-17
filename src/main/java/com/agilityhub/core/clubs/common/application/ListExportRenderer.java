@@ -100,6 +100,35 @@ public class ListExportRenderer {
             document.save(output);
         }
     }
+    /**
+     * S14 R-14-13 `resum.pdf`: the member's package as labelled sections with the club's brand, in the member's locale (`sections`:
+     * each label and its rows, already resolved), «Pàgina {n} de {m}» at the foot.
+     */
+    public void summary(String club, String color, String title, Map<String, List<String>> sections, Locale locale, OutputStream output) throws IOException {
+        try (var document = new PDDocument(org.apache.pdfbox.io.IOUtils.createTempFileOnlyStreamCache());
+             var fontInput = ListExportRenderer.class.getResourceAsStream("/org/apache/pdfbox/resources/ttf/LiberationSans-Regular.ttf")) {
+            PDFont font = PDType0Font.load(document, Objects.requireNonNull(fontInput, "PDFBox bundled Liberation Sans"));
+            var pageSize = PDRectangle.A4;
+            try (var pages = new PdfPages(document, font, pageSize, club, color, title)) {
+                for (var section : sections.entrySet()) {
+                    pages.line(printable(font, section.getKey().toUpperCase(locale)));
+                    for (String row : section.getValue()) {
+                        for (String line : wrap(font, printable(font, row), 9, pageSize.getWidth() - 80)) { pages.line(line); }
+                    }
+                    pages.line("");
+                }
+            }
+            for (int page = 0; page < document.getNumberOfPages(); page++) {
+                String label = messages.format("export.pdf.page", Map.of("page", page + 1, "total", document.getNumberOfPages()), locale);
+                try (var stream = new PDPageContentStream(document, document.getPage(page), PDPageContentStream.AppendMode.APPEND, true, true)) {
+                    stream.beginText(); stream.setFont(font, 8); stream.newLineAtOffset(40, 35); stream.showText(printable(font, label + " · " + club)); stream.endText();
+                }
+            }
+            document.save(output);
+        }
+    }
+    /** One row of {@link #summary}: a value flattened like a list export's cell. */
+    public static String summaryRow(Object value) { return text(value); }
     private static final class PdfPages implements AutoCloseable {
         private final PDDocument document; private final PDFont font; private final PDRectangle size; private final String club, color, key;
         private PDPageContentStream stream; private float y;

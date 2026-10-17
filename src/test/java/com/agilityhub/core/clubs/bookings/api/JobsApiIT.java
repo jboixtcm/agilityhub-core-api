@@ -141,8 +141,9 @@ class JobsApiIT extends BookingFixtures {
         // with its step h; P4 since E7-T04; P10 since E8-T06).
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), as("admin"), 200);
         var jobs = call(GET, "/jobs", null, as("admin"), 200).path("items");
+        // E11-T01: S14's erasures and retention sweep close the catalog (no module).
         assertThat(jobs).extracting(j -> j.path("name").asText()).containsExactly("week-opening", "risk-review", "no-show-notices", "reminders",
-                "expirations", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder");
+                "expirations", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder", "erasures", "retention-sweep");
         // E6-T04: P3 «cada dia a les 8:00» with its switch, P8 «continu».
         assertThat(jobs.get(2).at("/schedule/kind").asText()).isEqualTo("DAILY"); assertThat(jobs.get(2).at("/schedule/localTime").asText()).isEqualTo("08:00");
         assertThat(jobs.get(2).path("jobName").asText()).isEqualTo("NO_SHOW_NOTICES"); assertThat(jobs.get(2).path("enabled").asBoolean()).isTrue();

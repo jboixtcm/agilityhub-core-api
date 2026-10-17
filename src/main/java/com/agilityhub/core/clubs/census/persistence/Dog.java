@@ -44,6 +44,8 @@ public class Dog extends CensusEntity {
     public String status;
     public Instant registeredAt;
     public Instant deactivatedAt;
+    /** S14 §3 `Dog.erasedAt`: pseudonymised with its owner (R-14-15). */
+    public Instant erasedAt;
     public String deactivationReason;
     /** R-04-12 normalisation of a dog's name: trimmed, inner whitespace collapsed to one space. */
     public static String nameKey(String name) { return name==null?null:name.strip().replaceAll("(?U)\\s+"," "); }
