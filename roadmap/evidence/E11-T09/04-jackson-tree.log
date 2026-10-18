@@ -1,0 +1,17 @@
+com.agilityhub:agilityhub-core-api:jar:0.1.0-SNAPSHOT
++- org.springframework.boot:spring-boot-starter-webmvc:jar:4.1.1:compile
+|  \- org.springframework.boot:spring-boot-starter-jackson:jar:4.1.1:compile
+|     \- org.springframework.boot:spring-boot-jackson:jar:4.1.1:compile
+|        \- tools.jackson.core:jackson-databind:jar:3.1.7:compile
+|           \- tools.jackson.core:jackson-core:jar:3.1.7:compile
++- org.springframework.boot:spring-boot-jackson2:jar:4.1.1:compile
+|  +- com.fasterxml.jackson.core:jackson-databind:jar:2.21.7:compile
+|  |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.21:compile
+|  |  \- com.fasterxml.jackson.core:jackson-core:jar:2.21.7:compile
+|  +- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.21.7:compile
+|  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.21.7:compile
+|  \- com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.21.7:compile
+\- com.networknt:json-schema-validator:jar:1.5.9:compile
+   \- com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.21.7:compile
+
+# Command: ./mvnw -q dependency:tree -Dincludes='com.fasterxml.jackson.*:*,tools.jackson.*:*' -DoutputFile=roadmap/evidence/E11-T09/04-jackson-tree.log  -> exit 0

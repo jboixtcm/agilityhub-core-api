@@ -172,9 +172,10 @@ class RingGeometryIT extends CourseItSupport {
     /**
      * E9-T07 step 3 (E9-W04 question 3): an INSTRUCTOR reads `GET /rings/{id}`, as S16 §6 lets them read the ring's geometry, in the
      * reader's projection of S05 §6 (no `trainingCapacity`, `usage` or `lastChange`); writing the ring stays the ADMIN's, a MEMBER
-     * reads it only through `GET /rings`, and another club's ring is not found.
+     * reads it only through `GET /rings`, and another club's ring is not found. No S05 or S16 test id covers this read (S05 §6's
+     * row, E9-T07), so the name cites the task, not T-16-06 (INC-69 point 3).
      */
-    @Test void T_16_06_anInstructorReadsTheRingAndOnlyAnAdminWritesIt() throws Exception {
+    @Test void E9_T07_anInstructorReadsTheRingAndOnlyAnAdminWritesIt() throws Exception {
         putGeometry(CLUB, geometry(0), 200);
         var read = ok(as(get("/api/v1/rings/" + RING), CLUB, "INSTRUCTOR"), 200);
         assertThat(read.path("id").asText()).isEqualTo(RING);

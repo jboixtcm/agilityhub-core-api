@@ -9,6 +9,14 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `POST /billing/simulations` and `POST /billing/runs`: new `409 PRICE_OVERLAP` with `details {planId, concept, priceId, conflictingPriceId}` when two prices of one plan and concept are valid on the issue date. Only a legacy twin can cause it (a price stored with a BSON-date start before INC-68 and a string-dated price starting on the same day, which the startup conversion reports and `docs/DEPLOY.md` resolves by hand); the month is then neither simulated nor billed, instead of using whichever price sorted first. Nothing is written.
 - Behaviour only, no contract change: the Stripe webhook's rate-limit bucket (`/webhooks/stripe/{clubId}`, CONVENCIONS_API §9) keys on the path's club only when it is a club; a made-up id shares the address's `unknown` bucket.
 
+## 2026-10-18 · E11-T09 · Corrections INC-37, INC-64 and INC-69 (ruling E132)
+
+**0 operations or schemas added or removed; 5 descriptions changed; `PATCH /me` refuses an impersonation token.**
+
+- `PATCH /me` (INC-37): an impersonation token (`imp`) gets `403 FORBIDDEN`, as `PUT /me/password`, `PUT /me/profile` and `/me/sessions` already did; the language and name are the person's AgilityHub account and no audit action covers them. The `403` response was already declared; its description now says so. The web's impersonated app should not offer the language or name edit (S01 §6).
+- `POST /platform/clubs/{id}/domains/{host}/verification` (INC-64): description only. A verified `clubs-admin` domain serves the back office from the next request (no `CLUB_ADMIN_HOSTS`, no Caddy reload). Caddy asks the Core through the internal `GET /internal/domains/app?host=`, which is not part of this contract (`@Hidden`; the public sites never proxy `/internal/*`).
+- `MemberRingSetup.courseId` (INC-69): description corrected to the rule the code always applied, «its placement's, else its own». `MemberRingSetup.placement`: also `null` when `courseId` is `null` (the shown course was deleted), as `hasViewer` already said.
+
 ## 2026-10-18 · E11-T01 round 2 · S14 the platform cancels an account erasure (ruling E132)
 
 **1 operation added (`DELETE /platform/erasure-requests/{id}`); 0 schemas added or removed; 0 descriptions of other operations changed.**

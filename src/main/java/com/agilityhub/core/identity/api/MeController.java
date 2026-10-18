@@ -94,10 +94,13 @@ public class MeController {
 
     @com.agilityhub.core.shared.application.SupportRestricted
     @PatchMapping("/api/v1/me")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Update account language or display name", description = "Any valid account token. R-01-14.",
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
+    @Operation(summary = "Update account language or display name", description = "Account token, never impersonated. R-01-14. "
+            + "INC-37: the language and name are the person's AgilityHub account, shared by every club and app, and no audit action covers "
+            + "them, so an administrator viewing the app as a member cannot change them (403), as with the password, profile and sessions.",
             responses = {@ApiResponse(responseCode = "200", description = "Updated app bootstrap (Me)"),
-                    @ApiResponse(responseCode = "400", description = "LOCALE_NOT_SUPPORTED")})
+                    @ApiResponse(responseCode = "400", description = "LOCALE_NOT_SUPPORTED"),
+                    @ApiResponse(responseCode = "403", description = "FORBIDDEN for impersonated accounts")})
     public MeResponse update(@Valid @RequestBody AccountPatchRequest request, @AuthenticationPrincipal Jwt jwt) {
         identities.current(jwt.getSubject());
         accounts.patch(jwt.getSubject(), request.locale(), request.name());

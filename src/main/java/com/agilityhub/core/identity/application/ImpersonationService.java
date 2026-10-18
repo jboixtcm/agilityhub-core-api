@@ -58,7 +58,8 @@ public class ImpersonationService {
         if (!memberId.equals(target.membership().memberId()) || !target.membership().roles().contains(Role.MEMBER)) { throw new ApiException(ErrorCode.IMPERSONATION_DENIED); }
         Instant now = clock.instant();
         var grant = grants.insert(new ImpersonationGrant(UUID.randomUUID().toString(), TenantContext.require(), actorAccountId,
-                memberId, target.account().id(), reason, now.plusSeconds(settings.integer("auth.impersonationMinutes") * 60L), null));
+                memberId, target.account().id(), reason, now.plusSeconds(settings.integer("auth.impersonationMinutes") * 60L), null,
+                ImpersonationGrant.Type.IMPERSONATION, now));
         var jwt = token(grant, target.account(), now);
         publish(ImpersonationEvent.Kind.ImpersonationStarted, grant);
         return new Issued(grant.id(), grant.expiresAt(), jwt, launchUrl(grant, actor.account().familyVersion(), now));
@@ -143,11 +144,27 @@ public class ImpersonationService {
             return true;
         }
         if (grant != null && !grant.support() && (requester.equals(grant.actorAccountId()) || requester.equals(grant.impersonatedAccountId()))
-                && grants.revoke(grant.id(), clock.instant())) { publish(ImpersonationEvent.Kind.ImpersonationEnded, grant); }
+                && grants.revoke(grant.id(), clock.instant())) { ended(grant, ImpersonationGrant.EndReason.LOGOUT); }
+        return true;
+    }
+    /**
+     * INC-37 (S01 R-01-09 «acaba explícitament quan caduca»; §7 `ImpersonationEnded{reason: EXPIRED}`): in the grant's club, a
+     * grant past its `expiresAt` that nothing ended yet ends `EXPIRED`, once, with its event in the same transaction. False when a
+     * logout or another instance ended it first.
+     */
+    @Transactional
+    public boolean expire(String grantId, Instant now) {
+        var grant = grants.findById(grantId).orElse(null);
+        if (grant == null || grant.support() || !grants.expire(grantId, now)) { return false; }
+        ended(grant, ImpersonationGrant.EndReason.EXPIRED);
         return true;
     }
     private void publish(ImpersonationEvent.Kind kind, ImpersonationGrant grant) {
         events.publish(new ImpersonationEvent(kind, grant.clubId(), grant.id(), clock.instant(), grant.actorAccountId(), grant.impersonatedMemberId()));
+    }
+    private void ended(ImpersonationGrant grant, ImpersonationGrant.EndReason reason) {
+        events.publish(new ImpersonationEvent(ImpersonationEvent.Kind.ImpersonationEnded, grant.clubId(), grant.id(), clock.instant(),
+                grant.actorAccountId(), grant.impersonatedMemberId(), reason.name()));
     }
     /** `launchUrl` carries a one-shot handoff code: it is never audited nor logged. */
     public record Issued(String id, @AuditField Instant expiresAt, Jwt token, String launchUrl) {

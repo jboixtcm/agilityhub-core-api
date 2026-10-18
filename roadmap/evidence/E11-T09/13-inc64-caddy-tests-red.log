@@ -1,0 +1,43 @@
+test_INC_64_no_static_admin_host_list_is_left (__main__.ClubAppTest.test_INC_64_no_static_admin_host_list_is_left) ... FAIL
+test_INC_64_production_caddyfile_validates (__main__.ClubAppTest.test_INC_64_production_caddyfile_validates) ... ERROR
+test_INC_64_real_caddy_serves_each_host_the_app_the_core_names (__main__.ClubAppTest.test_INC_64_real_caddy_serves_each_host_the_app_the_core_names) ... ERROR
+test_INC_64_the_internal_routes_never_leave_through_the_public_sites (__main__.ClubAppTest.test_INC_64_the_internal_routes_never_leave_through_the_public_sites) ... ok
+test_INC_37_every_production_variable_is_in_the_deploy_inventory (__main__.InventoryTest.test_INC_37_every_production_variable_is_in_the_deploy_inventory) ... ok
+
+======================================================================
+ERROR: test_INC_64_production_caddyfile_validates (__main__.ClubAppTest.test_INC_64_production_caddyfile_validates)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red64/deploy/test_e11_t09.py", line 81, in test_INC_64_production_caddyfile_validates
+    subprocess.run(['docker', 'run', '--rm', '-v', f'{ROOT / "deploy/Caddyfile"}:/etc/caddy/Caddyfile:ro', *flags, IMAGE,
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['docker', 'run', '--rm', '-v', '/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red64/deploy/Caddyfile:/etc/caddy/Caddyfile:ro', '-e', 'ACME_EMAIL=ops@example.test', '-e', 'ID_HOST=id.example.test', '-e', 'CLUBS_HOST=clubs.example.test', '-e', 'ADMIN_HOST=admin.example.test', '-e', 'CORE_HOST=core.example.test', '-e', 'CADDY_ASK_UPSTREAM=core:8080', '-e', 'CADDY_APP_UPSTREAM=core:8080', 'caddy:2.10.2-alpine', 'caddy', 'validate', '--config', '/etc/caddy/Caddyfile']' returned non-zero exit status 1.
+
+======================================================================
+ERROR: test_INC_64_real_caddy_serves_each_host_the_app_the_core_names (__main__.ClubAppTest.test_INC_64_real_caddy_serves_each_host_the_app_the_core_names)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red64/deploy/test_e11_t09.py", line 85, in test_INC_64_real_caddy_serves_each_host_the_app_the_core_names
+    snippet = self.caddy[self.caddy.index('(club_spa) {'):self.caddy.index('https:// {')]
+                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+ValueError: substring not found
+
+======================================================================
+FAIL: test_INC_64_no_static_admin_host_list_is_left (__main__.ClubAppTest.test_INC_64_no_static_admin_host_list_is_left)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red64/deploy/test_e11_t09.py", line 65, in test_INC_64_no_static_admin_host_list_is_left
+    self.assertNotIn('CLUB_ADMIN_HOSTS', (ROOT / file).read_text(), file)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'CLUB_ADMIN_HOSTS' unexpectedly found in '{\n    email {$ACME_EMAIL}\n    {$CADDY_LOCAL_OPTIONS}\n    on_demand_tls {\n        # Caddy sends ?domain=; S17 specifies ?host=. Translate privately.\n        ask http://127.0.0.1:9080/ask\n    }\n}\n\n# E11-T03: baseline for static SPAs as well as API responses. CSP for SPA scripts belongs to the web build.\n(security_headers) {\n    header {\n        X-Content-Type-Options nosniff\n        Referrer-Policy strict-origin-when-cross-origin\n        X-Frame-Options DENY\n        Strict-Transport-Security "max-age=31536000; includeSubDomains"\n    }\n}\n\n# E9-T06 (S16 R-16-11): the build session stream takes the access token as `?access_token=` (a browser EventSource sends no\n# header). Access logging stays off (docs/DEPLOY.md: query strings carry signed capabilities); a site that turns it on imports\n# this snippet, never a bare `log`, so the token is dropped from the logged URI. Caddy already redacts Authorization and Cookie.\n(access_log) {\n    log {\n        format filter {\n            wrap json\n            fields {\n                request>uri query {\n                    delete access_token\n                }\n            }\n        }\n    }\n}\n\n(api_proxy) {\n    @backend path /api/* /oauth2/* /.well-known/* /connect/logout\n    handle @backend {\n        reverse_proxy core:8080\n    }\n}\n\n(spa) {\n    import security_headers\n    import api_proxy\n    handle {\n        root * {args[0]}\n        route {\n            try_files {path} /index.html\n            header /index.html Cache-Control "no-cache"\n            file_server\n        }\n    }\n}\n\n{$ID_HOST} {\n    import spa /srv/id\n}\n{$CLUBS_HOST} {\n    import spa /srv/clubs\n}\n{$ADMIN_HOST} {\n    import spa /srv/clubsadmin\n}\n{$CORE_HOST} {\n    @private path /internal/* /actuator/*\n    respond @private 404\n    reverse_proxy core:8080\n}\n\n# Never published by Compose. The API answers 200 only for a VERIFIED club domain (S17 R-17-03, E10-T04).\nhttp://127.0.0.1:9080 {\n    @ask path /ask\n    handle @ask {\n        rewrite * /internal/domains/allowed?host={query.domain}\n        reverse_proxy {$CADDY_ASK_UPSTREAM}\n    }\n    respond 404\n}\n\nhttps:// {\n    import security_headers\n    tls {\n        on_demand\n    }\n    import api_proxy\n    @club_admin host {$CLUB_ADMIN_HOSTS}\n    handle @club_admin {\n        root * /srv/clubsadmin\n        route {\n            try_files {path} /index.html\n            header /index.html Cache-Control "no-cache"\n            file_server\n        }\n    }\n    handle {\n        root * /srv/clubs\n        route {\n            try_files {path} /index.html\n            header /index.html Cache-Control "no-cache"\n            file_server\n        }\n    }\n}\n' : deploy/Caddyfile
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.270s
+
+FAILED (failures=1, errors=2)
+# Command: python3 .local/make_red64.py && python3 .local/red64/deploy/test_e11_t09.py  -> exit 1 (HEAD deploy files and DEPLOY.md, new test file)

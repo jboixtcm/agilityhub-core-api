@@ -58,4 +58,13 @@ public final class RingSetupRules {
     public static boolean hasViewer(String placementId, boolean liveCourse, boolean courseWithModel) {
         return liveCourse && (placementId != null || courseWithModel);
     }
+
+    /**
+     * R-16-16 (INC-69): the course a setup shows: its placement's, else its own (a placement that is gone falls back to the setup's
+     * own course). The one place this rule is written: the member's projection of a setup and the member's read of a course
+     * through a setup both ask it. {@code placementCourse} gives a placement's course, empty when the placement is gone.
+     */
+    public static String shownCourseId(String placementId, String courseId, java.util.function.Function<String, java.util.Optional<String>> placementCourse) {
+        return placementId == null ? courseId : placementCourse.apply(placementId).orElse(courseId);
+    }
 }

@@ -106,6 +106,11 @@ public class MemberService {
         var diff = events.maskedDiff(before, snapshot(member, target));
         if (diff.isEmpty() && Objects.equals(paymentBefore,target.paymentMethod)) { return; }
         access.members.save(member);
+        // S01 R-01-14 (INC-37): the admin renamed the member, so the account follows when this is its only club.
+        if (!own && !pending && !readmission && (diff.containsKey("firstName") || diff.containsKey("lastName1") || diff.containsKey("lastName2"))) {
+            identities.syncName(member.accountId, String.join(" ", java.util.stream.Stream.of(member.firstName, member.lastName1, member.lastName2)
+                    .filter(part -> part != null && !part.isBlank()).toList()));
+        }
         events.emit("PENDING".equals(member.status) ? "SignupEdited" : "MemberUpdated", "Member", id, object("memberId", id, "diff", diff));
         // R-14-01 (M11): a pending row of D1 changed (name, method, plan); D1 is refreshed right after the commit.
         if (pending) { signups.getObject().refreshDashboard(); }

@@ -113,10 +113,34 @@ class LearnImportIT extends IdentityIntegrationSupport {
         assertThat(kept.passwordHash()).isEqualTo(existing.passwordHash()); assertThat(kept.security()).isEqualTo(existing.security());
         assertThat(kept.name()).isEqualTo(existing.name()); assertThat(kept.locale()).isEqualTo(existing.locale());
         assertThat(kept.createdSource()).isEqualTo(existing.createdSource()); assertThat(kept.createdAt()).isEqualTo(existing.createdAt());
-        assertThat(kept.onboardingPending()).isTrue();
+        // INC-37: an existing account keeps its onboarding state (S01 §14 asks only the accounts the import creates).
+        assertThat(kept.onboardingPending()).isFalse();
         var adopted = accounts.findById("missing").orElseThrow();
+        assertThat(adopted.onboardingPending()).isFalse();
         assertThat(adopted.passwordHash()).isEqualTo(hashes.get(1)); assertThat(adopted.externalIds()).containsEntry("anotherSystem", "fictional");
         assertThat(adopted.security().passwordChangedAt()).isEqualTo(clock.instant()); assertThat(adopted.familyVersion()).isZero();
+    }
+    /**
+     * INC-37 (S01 R-01-03: «Usuari de Learn amb hash `$2y$10$…` entra a Clubs amb la mateixa contrasenya»): the import takes Learn's
+     * bcrypt with any of the three prefixes and up to Learn's 12 rounds, not only `$2y$12$`; the account signs in with it. More
+     * rounds than Learn uses are refused. A Learn account merged into one that already finished its onboarding is not asked again.
+     */
+    @Test void T_01_14_INC_37_learnBcryptOfTenOrTwelveRoundsImportsAndSignsInAndAMergeKeepsTheOnboarding() throws Exception {
+        String cost10 = new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 10).encode(FIXTURE_PASSWORD);
+        String cost12a = new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2A, 12).encode(FIXTURE_PASSWORD);
+        String cost13 = new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 13).encode(FIXTURE_PASSWORD);
+        var done = accountService.getOrCreate("done@example.test", "Finished Onboarding", "ca", Account.Source.CONSOLE, null, false);
+        var report = run(file(HEADER + row(1, "ten@example.test", cost10, "user") + row(2, "twelve@example.test", cost12a, "user")
+                + row(3, "thirteen@example.test", cost13, "user") + row(4, "done@example.test", cost10, "user")), false);
+        assertThat(report.rows()).extracting(LearnImportReport.Entry::reason).containsExactly(NEW_ACCOUNT, NEW_ACCOUNT, INVALID_PASSWORD, PASSWORD_ADOPTED);
+        for (String email : List.of("ten@example.test", "twelve@example.test", "done@example.test")) {
+            mvc.perform(post("/oauth2/token").header("Host", "id.agilitydoghub.com").contentType("application/x-www-form-urlencoded")
+                    .param("grant_type", "password").param("client_id", "id-web").param("username", email).param("password", FIXTURE_PASSWORD))
+                    .andExpect(status().isOk());
+        }
+        assertThat(accounts.findByLearnUserId("1").orElseThrow().onboardingPending()).isTrue();
+        assertThat(accounts.findById(done.id()).orElseThrow().onboardingPending()).isFalse();
+        assertThat(accounts.findByEmail("thirteen@example.test")).isEmpty();
     }
     @Test void T_01_14_guestExcludedAndOnlyExplicitAllowlistGrantsAuditedPlatformAdmin() throws Exception {
         var input = file(HEADER + row(1, "one@example.test", hashes.getFirst(), "admin")

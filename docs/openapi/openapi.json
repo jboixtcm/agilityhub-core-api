@@ -14885,7 +14885,7 @@
             "type" : "string"
           },
           "courseId" : {
-            "description" : "R-16-16 (E9-T07): the course the setup shows, which the member reads with GET /courses/{id}: its own, else its placement's; null when it shows none or that course was deleted",
+            "description" : "R-16-16 (E9-T07): the course the setup shows, which the member reads with GET /courses/{id}: its placement's, else its own; null when it shows none or that course was deleted",
             "type" : [ "string", "null" ]
           },
           "createdAt" : {
@@ -14929,7 +14929,7 @@
             }, {
               "type" : "null"
             } ],
-            "description" : "E9-T07: where the setup's placement stands on the ring, so the members' viewer draws its course in the ring's frame; null for a setup without a placement"
+            "description" : "E9-T07: where the setup's placement stands on the ring, so the members' viewer draws its course in the ring's frame; null for a setup without a placement, and when courseId is null (INC-69: the shown course was deleted)"
           },
           "placementId" : {
             "type" : [ "string", "null" ]
@@ -54479,7 +54479,7 @@
         "tags" : [ "identity" ]
       },
       "patch" : {
-        "description" : "Any valid account token. R-01-14.",
+        "description" : "Account token, never impersonated. R-01-14. INC-37: the language and name are the person's AgilityHub account, shared by every club and app, and no audit action covers them, so an administrator viewing the app as a member cannot change them (403), as with the password, profile and sessions.",
         "operationId" : "update",
         "requestBody" : {
           "content" : {
@@ -54530,7 +54530,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "FORBIDDEN for impersonated accounts"
           },
           "404" : {
             "content" : {
@@ -74788,7 +74788,7 @@
     },
     "/api/v1/platform/clubs/{id}/domains/{host}/verification" : {
       "post" : {
-        "description" : "S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). The DNS lookup runs before the write's transaction. A verified clubs-admin domain gets its certificate at once, but Caddy serves the back-office app on it only after the host is added to CLUB_ADMIN_HOSTS and Caddy is reloaded (docs/DEPLOY.md, «Alta d'un domini de club»; choosing the app from the domain is INC-64); until then the host serves the members' app.",
+        "description" : "S17 R-17-03. Roles: AGILITYHUB_ADMIN. Global, no tenant or module required. Looks up (a) a CNAME from the host to verification.cnameTarget, else (b) the TXT record verification.recordName = verification.recordValue. Found: the domain is VERIFIED (verifiedAt, the challenge removed), the primary one of its app when the app has no verified primary yet, Caddy's ask (GET /internal/domains/allowed) accepts it and GET /branding resolves it; publishes ClubDomainVerified and ClubUpdated, audited CLUB_DOMAIN_CHANGED. Not found: 422 HOST_NOT_VERIFIED {host, cnameTarget, recordName, recordValue} (the records it expects; the TXT pair is null without a challenge), nothing changes and the key is released, so a retry checks again. A VERIFIED domain answers 409 INVALID_STATE {status}. A BROKEN domain (S15 P9's re-check failed three times in a row) also passes when the host shares an address with verification.cnameTarget (method ADDRESS: an apex domain has no CNAME and no challenge left). The DNS lookup runs before the write's transaction. A verified domain gets its certificate at once and Caddy serves it the SPA of its app from the next request (INC-64: the back office for clubs-admin, the members' app for clubs), with no deploy setting and no reload (docs/DEPLOY.md, «Alta d'un domini de club»).",
         "operationId" : "verifyPlatformDomain",
         "parameters" : [ {
           "in" : "path",

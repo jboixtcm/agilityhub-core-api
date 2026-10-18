@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.*;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -24,6 +25,8 @@ public class SigningKeys {
     private final Clock clock;
     private final SecretKeySpec master;
     private SigningKeyRing ephemeral;
+    /** INC-37: the grants whose JWTs outlive an access token; absent only where a test builds the ring by hand. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private ImpersonationGrantRepository grants;
     public SigningKeys(SigningKeyRepository repository, Clock clock, Environment environment,
                        @Value("${core.oidc.master-key:}") String value) {
         this.repository = repository; this.clock = clock;
@@ -48,10 +51,17 @@ public class SigningKeys {
     public boolean persistent() { return ephemeral == null; }
     public RSAKey current() { return (RSAKey) keys().getFirst(); }
     public JWKSet publicKeys() { return new JWKSet(keys().stream().map(JWK::toPublicJWK).toList()); }
+    /**
+     * Retires the previous key. Never while a token it signed can still be valid: an access or ID token (15 min after the rotation
+     * that made it the previous key) or, INC-37, an impersonation or support JWT, which lives as long as its grant
+     * (`auth.impersonationMinutes`, `platform.supportAccessMinutes`, per club and without an upper bound): a grant still live and
+     * created before that rotation.
+     */
     public synchronized void rotate() {
         var old = ring();
-        // Never retire a key while one of its access/ID tokens can still be valid.
-        if (old.generation() > 0 && clock.instant().isBefore(old.rotatedAt().plus(TokenService.ACCESS_TTL))) {
+        Instant now = clock.instant();
+        if (old.generation() > 0 && (now.isBefore(old.rotatedAt().plus(TokenService.ACCESS_TTL))
+                || grants != null && grants.liveSignedBefore(old.rotatedAt(), now))) {
             throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "Previous signing key still in use"));
         }
         var next = new SigningKeyRing("active", encrypt(new JWKSet(List.of(generate(), keys().getFirst())).toString(false)),

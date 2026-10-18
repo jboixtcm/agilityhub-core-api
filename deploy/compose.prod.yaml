@@ -124,8 +124,8 @@ services:
       CLUBS_HOST: ${CLUBS_HOST:-clubs.agilitydoghub.com}
       ADMIN_HOST: ${ADMIN_HOST:-clubsadmin.agilitydoghub.com}
       CORE_HOST: ${CORE_HOST:-core.agilitydoghub.com}
-      # Space-separated verified admin aliases; other approved aliases serve clubs.
-      CLUB_ADMIN_HOSTS: ${CLUB_ADMIN_HOSTS:-unused.invalid}
+      # INC-64: a verified club host's SPA (clubs or clubs-admin) comes from the Core per request; no host list, no reload.
+      CADDY_APP_UPSTREAM: core:8080
     ports: ["80:80", "443:443", "443:443/udp"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro

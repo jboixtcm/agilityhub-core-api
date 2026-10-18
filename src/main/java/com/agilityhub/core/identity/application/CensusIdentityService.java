@@ -11,8 +11,23 @@ import org.springframework.stereotype.Service;
 public class CensusIdentityService {
     private final AccountRepository accounts; private final MembershipRepository memberships;
     private final MagicLinkService links; private final RateLimits limits; private final CensusClubSettings clubs;
-    public CensusIdentityService(AccountRepository accounts, MembershipRepository memberships, MagicLinkService links, RateLimits limits, CensusClubSettings clubs) {
+    private final AccountMembershipRepository clubsOfAccount;
+    public CensusIdentityService(AccountRepository accounts, MembershipRepository memberships, MagicLinkService links, RateLimits limits, CensusClubSettings clubs,
+            AccountMembershipRepository clubsOfAccount) {
         this.accounts = accounts; this.memberships = memberships; this.links = links; this.limits = limits; this.clubs = clubs;
+        this.clubsOfAccount = clubsOfAccount;
+    }
+    /**
+     * S01 R-01-14 / T-01-23 (INC-37): an administrator's edit of a member's name renames the member's account (`Account.name`) when
+     * that membership is the account's only one; an account that also belongs to another club keeps its name (the member's name
+     * is the club's, the account's is the person's own). Inside the member edit's transaction.
+     */
+    public void syncName(String accountId, String name) {
+        if (accountId == null || name == null || name.isBlank()
+                || memberships.findByAccountId(accountId).filter(own -> own.status() != Membership.Status.ERASED).isEmpty()) { return; }
+        if (clubsOfAccount.countNotErased(accountId) != 1) { return; }
+        accounts.findById(accountId).filter(account -> account.status() == Account.Status.ACTIVE && !name.strip().equals(account.name()))
+                .ifPresent(account -> accounts.patch(accountId, null, name.strip()));
     }
     public String displayName(String accountId) {
         if(accountId==null || memberships.findByAccountId(accountId).isEmpty()) return "";

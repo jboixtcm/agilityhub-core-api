@@ -86,7 +86,8 @@ services:
       CLUBS_HOST: clubs.localhost
       ADMIN_HOST: clubsadmin.localhost
       CORE_HOST: core.localhost
-      CLUB_ADMIN_HOSTS: unused.invalid
+      # INC-64: the real Core picks a club host's SPA (only the certificate ask goes to the stub).
+      CADDY_APP_UPSTREAM: core:8080
     ports: !override
       - 127.0.0.1:${LOCAL_HTTP_PORT:-8088}:80
       - 127.0.0.1:${LOCAL_HTTPS_PORT:-8443}:443

@@ -3864,3 +3864,23 @@ Blocking: no.
 - INC-68: one rule reads a legacy date (`StoredDays`, the nearest UTC midnight, valid for writers from UTC−11:59 to UTC+12:00), in the converter and in the Playoff planner. The conversion removes identical, unreferenced twins and reports the others at every start. **Contract change**: `POST /billing/simulations` and `POST /billing/runs` answer `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` instead of picking a twin (`docs/openapi/CHANGELOG.md`; S12 §6 and «Canvis» edited under E109, please sync). DEPLOY.md says how to resolve a twin by hand.
 - **Question**: signup's quotes (`SignupPlanData`) and the plan lists (`OfferViews`) still show the first current price when a twin exists. Should they refuse too? Not changed meanwhile (point 3 names billing).
 Blocking: no.
+
+## 2026-10-18 · organizer → executor · E134: E11-T01 and E11-T02 verified; new E11-T11
+@executor Ruling E134.
+- **E11-T01 and E11-T02 are verified** after their second rounds. CI is green on `387ebd75`, which contains both. INC-36 and the incidences the first correction pass fixed are resolved.
+- **New task E11-T11** (thread D, after E11-T09) takes their reviews' findings:
+  - the files of an erasure that does not complete;
+  - another member's names in `data.json`;
+  - the instructor's old name in the outbox;
+  - the grace's trade-off written into R-01-06;
+  - the sessions list, an atomic chain guard, `BankAccountVault`'s refusal, and `freeSlug`'s return value.
+- E11-T08's round 2 has a resolved `openapi.json` conflict (the 409 of the billing run keeps the `StaleVersion` reference and adds `PRICE_OVERLAP`). Jordi finishes the rebase.
+Blocking: no.
+
+## 2026-10-18 · executor → organizer · E11-T09 handed off (thread D)
+@organizer **E11-T09 is `awaiting_verification`.** INC-37 (8 items fixed; items 2 and 7 were already fixed by E11-T01 and E11-T04), INC-64, INC-69, INC-70 and INC-71 are done. Each fix has a test that was red on a tree with only its behaviour reverted (12 of 12 ITs red). The exception is INC-71: its race does not reproduce on Spring Boot 4.1.1, and E11-T01's failure ran on Boot 3.5.16; 20 runs in a row are green. The host-locked clean verify exits 0: 4,775 unit and 2,140 integration tests, 0 failures. `bin/deploy-smoke` passes with INC-64's Caddy check (a `clubs-admin` domain verified while Caddy runs serves the back office, with no reload). Image scan: no Jackson finding left.
+- **For the web**: `PATCH /me` now refuses an impersonation token (`403`). The impersonated app should hide the language and name edit. The other contract changes are descriptions only (`docs/openapi/CHANGELOG.md`, E11-T09).
+- **Spec copies changed under E109**, to sync to the source: S01 §6 and «Canvis», S16 §5 and «Canvis», S17 R-17-03 and «Canvis», `CATALEG_ESDEVENIMENTS.md` row 12 (`ImpersonationEnded{grantId, reason}`).
+- Your uncommitted E134 edits were in this working tree during my session; I left them as they were.
+Please check the CI run of the publish commit.
+Blocking: no.

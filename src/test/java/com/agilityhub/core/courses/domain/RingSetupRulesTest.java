@@ -61,4 +61,15 @@ class RingSetupRulesTest {
         assertThat(RingSetupRules.hasViewer("p", false, false)).isFalse();
         assertThat(RingSetupRules.hasViewer(null, false, true)).isFalse();
     }
+
+    @Test void T_16_16_INC_69_aSetupShowsItsPlacementsCourseElseItsOwn() {
+        java.util.function.Function<String, java.util.Optional<String>> placements = id -> "p".equals(id) ? java.util.Optional.of("placed") : java.util.Optional.empty();
+        assertThat(RingSetupRules.shownCourseId(null, "own", placements)).isEqualTo("own");
+        assertThat(RingSetupRules.shownCourseId("p", "own", placements)).isEqualTo("placed");
+        assertThat(RingSetupRules.shownCourseId("p", null, placements)).isEqualTo("placed");
+        // A placement that is gone: the setup's own course, or none.
+        assertThat(RingSetupRules.shownCourseId("gone", "own", placements)).isEqualTo("own");
+        assertThat(RingSetupRules.shownCourseId("gone", null, placements)).isNull();
+        assertThat(RingSetupRules.shownCourseId(null, null, placements)).isNull();
+    }
 }

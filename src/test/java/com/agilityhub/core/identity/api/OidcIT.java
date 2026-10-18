@@ -258,13 +258,52 @@ class OidcIT extends IdentityIntegrationSupport {
         mvc.perform(authorize("id-web", "openid").with(request -> { request.setParameter("client_id", " "); return request; })).andExpect(status().isBadRequest());
         mvc.perform(authorize("learn", "openid").with(request -> { request.removeParameter("code_challenge"); return request; })).andExpect(status().isBadRequest());
     }
+    /**
+     * INC-37 (S01 R-01-16): an impersonation JWT lives as long as its grant (`auth.impersonationMinutes`, 60), longer than an access
+     * token. A key is not retired while a grant created before the rotation that made it the previous key is still live; once
+     * that grant has ended, or has run out, the rotation goes ahead.
+     */
+    /** Other tests reset the clock but not the stored ring: start 16 minutes after its last rotation, so only the grants hold it. */
+    void agePreviousRotation() { clock.setInstant(keyRepository.findById("active").orElseThrow().rotatedAt().plus(Duration.ofMinutes(16))); }
+    @Test void T_01_13_INC_37_aLiveImpersonationSignedByThePreviousKeyHoldsTheRotation() {
+        mongo.remove(new Query(), ImpersonationGrant.class);
+        agePreviousRotation();
+        var signedBefore = clock.instant().minusSeconds(1);
+        mongo.insert(new ImpersonationGrant("inc37-grant", "club-a", "account-a", "member-x", "account-x", null,
+                signedBefore.plus(Duration.ofMinutes(60)), null, ImpersonationGrant.Type.IMPERSONATION, signedBefore));
+        signing.rotate(); // the grant's key becomes the previous one
+        clock.advance(Duration.ofMinutes(16)); // every access token of that key has expired, the grant's JWT has not
+        assertThatThrownBy(signing::rotate).isInstanceOf(ApiException.class).hasMessageContaining("INVALID_STATE");
+        // A grant created after that rotation was signed by the current key, which the next rotation keeps: it holds nothing.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("inc37-grant")), new Update().set("createdAt", clock.instant()), ImpersonationGrant.class);
+        signing.rotate();
+        mongo.remove(new Query(), ImpersonationGrant.class);
+    }
+    @Test void T_01_13_INC_37_anEndedOrExpiredGrantNoLongerHoldsTheRotation() {
+        mongo.remove(new Query(), ImpersonationGrant.class);
+        agePreviousRotation();
+        var signedBefore = clock.instant().minusSeconds(1);
+        // Ended by «Surt» before its expiry: its JWT no longer opens anything, so it holds nothing.
+        mongo.insert(new ImpersonationGrant("inc37-ended", "club-a", "account-a", "member-x", "account-x", null,
+                signedBefore.plus(Duration.ofMinutes(60)), signedBefore, ImpersonationGrant.Type.IMPERSONATION, signedBefore));
+        signing.rotate();
+        clock.advance(Duration.ofMinutes(16));
+        // A support grant stored before INC-37 has no createdAt: read as signed before any rotation, it holds the key until it runs out.
+        mongo.insert(new ImpersonationGrant("inc37-old", "club-a", "account-a", null, null, null,
+                clock.instant().plus(Duration.ofMinutes(4)), null, ImpersonationGrant.Type.SUPPORT, null));
+        assertThatThrownBy(signing::rotate).isInstanceOf(ApiException.class);
+        clock.advance(Duration.ofMinutes(5));
+        signing.rotate();
+        mongo.remove(new Query(), ImpersonationGrant.class);
+    }
     @Test void T_01_13_rotationIsEncryptedPersistentAndKeepsOldTokensValid() throws Exception {
+        mongo.remove(new Query(), ImpersonationGrant.class);
         String old = loginAccess(); String oldKid = com.nimbusds.jwt.SignedJWT.parse(old).getHeader().getKeyID();
         var stored = keyRepository.findById("active").orElseThrow();
         assertThat(stored.encryptedKeys().contains(signing.current().getPrivateExponent().toString()))
                 .as("Encrypted storage must not contain the plaintext private exponent").isFalse();
         // Other tests reset the injected clock; allow any prior rotation to age out.
-        clock.advance(Duration.ofMinutes(16)); old = loginAccess(); oldKid = com.nimbusds.jwt.SignedJWT.parse(old).getHeader().getKeyID();
+        agePreviousRotation(); old = loginAccess(); oldKid = com.nimbusds.jwt.SignedJWT.parse(old).getHeader().getKeyID();
         new RotateKeysCommand(signing).run(new org.springframework.boot.DefaultApplicationArguments("--core.command=identity:rotate-keys"));
         assertThat(signing.current().getKeyID()).isNotEqualTo(oldKid);
         assertThat(decoder.decode(old).getSubject()).isEqualTo("account-a");

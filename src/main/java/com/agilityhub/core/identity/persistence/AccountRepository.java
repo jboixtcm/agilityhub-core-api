@@ -21,11 +21,14 @@ public class AccountRepository extends GlobalRepository<Account> {
     public Optional<Account> findByLearnUserId(String id) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("externalIds.learnUserId").is(id)), Account.class));
     }
-    /** Called in the import transaction; partial updates preserve all unrelated account and security state. */
+    /**
+     * Called in the import transaction; partial updates preserve all unrelated account and security state. INC-37: the onboarding
+     * flag too. An account the import creates is born with it (S01 §14, «compte creat per importació»); an existing account keeps
+     * its own, so one that already accepted the policy is not asked again.
+     */
     public void linkLearn(String id, String learnUserId, String learnRole, String hash, Instant originalCreatedAt, Instant now) {
         var query = Query.query(Criteria.where("_id").is(id));
-        var update = new Update().set("externalIds.learnUserId", learnUserId).set("externalIds.learnRole", learnRole)
-                .set("onboardingPending", true);
+        var update = new Update().set("externalIds.learnUserId", learnUserId).set("externalIds.learnRole", learnRole);
         if (originalCreatedAt != null) { update.set("createdAt", originalCreatedAt); }
         mongo.updateFirst(query, update, Account.class);
         var account = findById(id).orElseThrow();

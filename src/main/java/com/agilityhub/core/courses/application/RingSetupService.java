@@ -198,12 +198,13 @@ public class RingSetupService {
      * the ring, so the members' viewer draws it in the ring's frame. The placement's warnings and the ring's geometry stay the staff's.
      */
     public Shown shown(RingSetup setup) {
+        var course = shownCourse(setup);
+        // INC-69: no course to show (deleted or gone), no placement either, as `hasViewer` says.
+        if (course == null) { return new Shown(null, null); }
         var placement = setup.placementId() == null ? null : placements.findById(setup.placementId()).orElse(null);
-        var course = live(placement != null ? placement.courseId() : setup.courseId());
-        String courseId = course == null ? null : course.id();
-        if (placement == null) { return new Shown(courseId, null); }
+        if (placement == null) { return new Shown(course.id(), null); }
         var geometry = rings.findById(placement.ringId()).map(RingGeometryRepository.GeometryRecord::geometry).orElse(null);
-        return new Shown(courseId, new Placed(placement.transform(), Objects.requireNonNullElse(placement.resolvedObstacles(), List.of()),
+        return new Shown(course.id(), new Placed(placement.transform(), Objects.requireNonNullElse(placement.resolvedObstacles(), List.of()),
                 geometry == null ? null : geometry.lengthM(), geometry == null ? null : geometry.widthM()));
     }
     /** R-16-08: the ring's setups, newest first, the ended ones included. */
@@ -237,9 +238,9 @@ public class RingSetupService {
         return new Summary(setup.id(), setup.kind(), LevelLabels.label(codes, setup.levelIds(), setup.agilityhubLevel()), setup.builtAt(), setup.expectedUntil(),
                 thumbnail, RingSetupRules.hasViewer(setup.placementId(), course != null, model));
     }
-    /** The course a setup shows: its placement's, else its own; a deleted or missing one is none. */
+    /** The course a setup shows ({@link RingSetupRules#shownCourseId}); a deleted or missing one is none. */
     private Course shownCourse(RingSetup setup) {
-        return live(setup.placementId() != null ? placements.findById(setup.placementId()).map(Placement::courseId).orElse(setup.courseId()) : setup.courseId());
+        return live(RingSetupRules.shownCourseId(setup.placementId(), setup.courseId(), id -> placements.findById(id).map(Placement::courseId)));
     }
     private Course live(String courseId) {
         if (courseId == null) { return null; }

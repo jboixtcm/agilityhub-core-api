@@ -69,7 +69,7 @@ public class SupportAccessService implements ConsoleSupportAccess {
         if (!platformAdmin(actor)) { throw new ApiException(ErrorCode.FORBIDDEN); }
         Instant now = clock.instant();
         var grant = grants.insert(new ImpersonationGrant(UUID.randomUUID().toString(), TenantContext.require(), actor.id(), null, null, reason,
-                now.plusSeconds(settings.integer("platform.supportAccessMinutes") * 60L), null, ImpersonationGrant.Type.SUPPORT));
+                now.plusSeconds(settings.integer("platform.supportAccessMinutes") * 60L), null, ImpersonationGrant.Type.SUPPORT, now));
         var claims = JwtClaimsSet.builder().issuer(issuer).subject(actor.id()).audience(List.of(CLIENT))
                 .issuedAt(now).expiresAt(grant.expiresAt()).id(grant.id()).claim("azp", CLIENT)
                 .claim("clubId", grant.clubId()).claim("roles", List.of("ADMIN")).claim("activeProfile", "ADMIN")

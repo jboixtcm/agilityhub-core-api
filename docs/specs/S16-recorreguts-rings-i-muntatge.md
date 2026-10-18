@@ -102,10 +102,13 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-  [*] --> OPEN : POST /build-sessions
-  OPEN --> OPEN : PATCH obstacle (NOT_PLACED · CURRENT · PLACED · SKIPPED · NEEDS_CHECK)
-  OPEN --> FINISHED : finish (crea/actualitza RingSetup)
-  OPEN --> ABANDONED : neteja > 12 h (S15)
+  [*] --> NOT_STARTED : POST /build-sessions
+  NOT_STARTED --> IN_PROGRESS : primer PATCH obstacle
+  IN_PROGRESS --> IN_PROGRESS : PATCH obstacle (NOT_PLACED · CURRENT · PLACED · SKIPPED · NEEDS_CHECK)
+  NOT_STARTED --> COMPLETED : finish (crea/actualitza RingSetup)
+  IN_PROGRESS --> COMPLETED : finish (crea/actualitza RingSetup)
+  NOT_STARTED --> ABANDONED : S15 P9 (> courses.buildSessionMaxHours, 12 h)
+  IN_PROGRESS --> ABANDONED : S15 P9 (> courses.buildSessionMaxHours, 12 h)
 ```
 
 `Course`: sense estats (soft delete `deletedAt`; `visibility` canviable). `Placement`: `stale` com a marca.
@@ -326,3 +329,4 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 - 16-10-2026 · verificacions d'E9-T05 i E9-W03 (decisions E119 i E120; organitzador): D16 té sis marcadors per defecte (A–F, els de l'exportació per a l'AR) i el full de marcadors porta els marcadors AprilTag; T-16-19: el `GET` del full de muntatge en retorna els bytes (`200 application/pdf`).
 - 17-10-2026 · E9-T07 (decisions E124 i E109, còpia de l'api): S16 segueix el contracte. Els estats d'obstacle de la sessió de muntatge (§2, §3, §5, R-16-11) són els del contracte; una sessió tancada respon `422 BUILD_SESSION_FINISHED` (R-16-11, §6, T-16-10); §6 afegeix `GET /rings/{id}` per a l'INSTRUCTOR (lectura). El visor mòbil (§2) rep, per a MEMBER, el recorregut d'un muntatge amb col·locació i on és a la pista (`MemberRingSetup.courseId` i `placement`, R-16-16), i per a instructors, `builtByName` («muntat … per {instructor}»).
 - 17-10-2026 · E11-T02 (INC-62, decisió E119): §3, `RingSetup.dismantledReason` (`REPLACED · MANUAL · RING_INACTIVE`) i `replacedBySetupId`, a la resposta de personal, perquè D16 no dedueixi «Substituït» de les hores.
+- 18-10-2026 · E11-T09 (INC-69, decisions E132 i E109, còpia de l'api): el diagrama de la sessió de muntatge de §5 porta els estats del codi i del contracte (`NOT_STARTED · IN_PROGRESS · COMPLETED · ABANDONED`) en lloc d'`OPEN · FINISHED`; el primer canvi d'obstacle la passa a `IN_PROGRESS`, i S15 P9 la tanca `ABANDONED` passades `courses.buildSessionMaxHours`. R-16-16: si el recorregut que mostra un muntatge s'ha esborrat, el soci no en rep la col·locació (`placement = null`, com `hasViewer = false`).

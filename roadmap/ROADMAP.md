@@ -164,6 +164,7 @@ Pattern per stage: contract → domain → endpoints and integrations → proces
 - **E11-T08** (thread B) · The api correction pass, part 2: INC-68 (the price validity dates) first, then INC-65, INC-66, INC-67 and the Sentry setting · E10-T03, E10-T04, E11-T06 · M · **thread B, installed 17-10 (`ready`, E131)**
 - **E11-T09** (thread D) · The api correction pass, part 3: INC-37 (the identity minors of the 26-09 review), INC-64 (a verified admin host serves the admin app, proven with Caddy), INC-69, INC-70 and INC-71 · E11-T07 · M · **thread D, installed 18-10 (`ready`, E132)**
 - **E11-T10** (thread B) · The api correction pass, part 4: INC-38, INC-39 and INC-40 (the census, signup and planning minors of the 26-09 review) and INC-44's staff grid · E11-T07 · L · **thread B, installed 18-10 (`ready`, E132)**
+- **E11-T11** (thread D) · The api correction pass, part 5: the follow-ups of the second rounds of E11-T01 (the files of a cancelled erasure, another member's names in the package, the outbox) and E11-T02 (the grace's trade-off in R-01-06, the sessions list, the chain guard, the vault's refusal) · E11-T01, E11-T02 · M · **thread D, installed 18-10 (`ready`, E134)**
 
 **E12 · Migration and go-live (S18 WP-E).**
 - **E12-T01** · Release deployment: droplet, Caddy, real secrets, SendGrid, Twilio, VAPID, the Stripe test webhook, the backup cron and one restore on the server, the k6 re-measure. Needs SSH and DNS by 21-10 · E11-T04, E11-T06 · L

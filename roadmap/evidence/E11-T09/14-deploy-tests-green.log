@@ -1,0 +1,15 @@
+test_INC_64_no_static_admin_host_list_is_left (__main__.ClubAppTest.test_INC_64_no_static_admin_host_list_is_left) ... ok
+test_INC_64_production_caddyfile_validates (__main__.ClubAppTest.test_INC_64_production_caddyfile_validates) ... ok
+test_INC_64_real_caddy_serves_each_host_the_app_the_core_names (__main__.ClubAppTest.test_INC_64_real_caddy_serves_each_host_the_app_the_core_names) ... ok
+test_INC_64_the_internal_routes_never_leave_through_the_public_sites (__main__.ClubAppTest.test_INC_64_the_internal_routes_never_leave_through_the_public_sites) ... ok
+test_INC_37_every_production_variable_is_in_the_deploy_inventory (__main__.InventoryTest.test_INC_37_every_production_variable_is_in_the_deploy_inventory) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.722s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.984s
+
+OK

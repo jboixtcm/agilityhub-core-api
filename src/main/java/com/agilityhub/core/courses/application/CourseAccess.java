@@ -1,6 +1,7 @@
 package com.agilityhub.core.courses.application;
 
 import com.agilityhub.core.courses.domain.CourseTypes.*;
+import com.agilityhub.core.courses.domain.RingSetupRules;
 import com.agilityhub.core.courses.persistence.*;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.shared.application.CurrentUser;
@@ -59,9 +60,16 @@ public class CourseAccess {
         if (write && !writable(course)) { throw new ApiException(FORBIDDEN); }
         return course;
     }
-    /** R-16-16: an `ACTIVE` setup of the caller's club shows the course, directly or through one of its placements. */
+    /**
+     * R-16-16: an `ACTIVE` setup of the caller's club shows the course. The repository finds the setups that name it, directly or
+     * through one of its placements; whether one shows it is {@link RingSetupRules#shownCourseId}'s, the rule the member's
+     * projection of the setup uses too (INC-69).
+     */
     private boolean shownBySetup(Course course) {
-        return TenantContext.current() != null && setups.showsCourse(course.id(), placements.ofCourse(course.id()));
+        if (TenantContext.current() == null) { return false; }
+        var ofCourse = placements.ofCourse(course.id());
+        return setups.naming(course.id(), ofCourse).stream().anyMatch(setup -> course.id().equals(RingSetupRules.shownCourseId(setup.placementId(),
+                setup.courseId(), id -> ofCourse.contains(id) ? java.util.Optional.of(course.id()) : placements.findById(id).map(Placement::courseId))));
     }
     public static boolean readable(Course course) {
         String me = accountId();

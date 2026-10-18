@@ -13,6 +13,13 @@ suppressions = scanner['suppressions']
 TODAY = datetime.date(2026, 10, 8)
 
 
+def retired_spring_webmvc_exceptions(document):
+    """E11-T07 / INC-70: the entries that bring back an exception Spring Framework 7 retired (6.2.19, or its two advisories)."""
+    return [row for row in document.get('suppressions', [])
+            if row.get('id') in ('CVE-2026-47884', 'CVE-2026-47890')
+            or (row.get('package') == 'org.springframework:spring-webmvc' and row.get('installedVersion') == '6.2.19')]
+
+
 def entry(**overrides):
     value = {'id': 'CVE-fixture-1', 'package': 'fixture', 'installedVersion': '1', 'recorded': '2026-10-08',
              'expires': '2026-12-07', 'task': 'E0-T00', 'reason': 'Fixture reason'}
@@ -68,15 +75,25 @@ class ScanPolicyTest(unittest.TestCase):
 
     def test_E11_T07_spring_framework_7_removes_the_spring_webmvc_exceptions(self):
         # E8-T08's XsltView and E8-T10's SSE advisories were accepted on 6.2.19 only until a public fix was adopted; Spring
-        # Framework 7.0.9 (Spring Boot 4.1) is that fix, so no exception remains and the old finding would block again.
+        # Framework 7.0.9 (Spring Boot 4.1) is that fix, so neither exception may come back and the old finding would block again.
+        # INC-70: only these two are ruled out; another exception that meets the policy can still be added.
         document = json.loads(scanner['SUPPRESSIONS'].read_text())
-        active, expired = suppressions(document, TODAY)
-        self.assertEqual(([row['package'] for row in active], expired), ([], []))
+        active, _ = suppressions(document, datetime.date.today())
+        self.assertEqual(retired_spring_webmvc_exceptions(document), [])
         for advisory in ('CVE-2026-47884', 'CVE-2026-47890'):
             critical = {'VulnerabilityID': advisory, 'Severity': 'CRITICAL', 'FixedVersion': '7.0.9',
                         'PkgName': 'org.springframework:spring-webmvc', 'InstalledVersion': '6.2.19'}
             self.assertEqual(findings({'Results': [{'Vulnerabilities': [critical]}]}, active)['fixableCritical'],
                              [(advisory, 'org.springframework:spring-webmvc', '7.0.9')])
+
+    def test_INC_70_another_valid_exception_stays_possible(self):
+        # A future exception that meets the policy passes the E11-T07 rule; one naming the retired advisories or 6.2.19 does not.
+        other = entry(id='CVE-fixture-7', package='org.example:fixture', installedVersion='1.2.3')
+        self.assertEqual(len(suppressions({'suppressions': [other]}, TODAY)[0]), 1)
+        self.assertEqual(retired_spring_webmvc_exceptions({'suppressions': [other]}), [])
+        for retired in (entry(id='CVE-2026-47890', package='org.springframework:spring-webmvc', installedVersion='7.0.9'),
+                        entry(id='CVE-fixture-8', package='org.springframework:spring-webmvc', installedVersion='6.2.19')):
+            self.assertEqual(retired_spring_webmvc_exceptions({'suppressions': [other, retired]}), [retired])
 
     def test_every_secret_blocks_without_reporting_the_match(self):
         result = findings({'Results': [{'Secrets': [{'RuleID': 'fixture-secret', 'Match': 'sensitive-fixture'}]}]})

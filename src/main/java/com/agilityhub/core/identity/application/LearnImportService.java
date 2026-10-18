@@ -105,14 +105,15 @@ public class LearnImportService {
         return new Account(existing == null ? fields.getFirst() : existing.id(), email, fields.get(3), "es",
                 existing == null || existing.passwordHash() == null ? fields.get(2) : existing.passwordHash(),
                 grant ? Set.of(Account.PlatformRole.AGILITYHUB_ADMIN) : existing == null ? Set.of() : existing.platformRoles(),
-                Account.Status.ACTIVE, null, externalIds, true, createdAt(fields.get(5)));
+                Account.Status.ACTIVE, null, externalIds, existing == null || existing.onboardingPending(), createdAt(fields.get(5)));
     }
     private LearnImportReport.Reason validate(List<String> fields) {
         if (fields.size() != HEADER.size()) { return INVALID_COLUMNS; }
         if ("anonymous".equals(fields.get(4)) || Email.normalize(fields.get(1)).startsWith("anonymous@")) { return GUEST; }
         if (!fields.get(0).matches("[1-9][0-9]*")) { return INVALID_ID; }
         if (!validEmail(Email.normalize(fields.get(1)))) { return INVALID_EMAIL; }
-        if (!fields.get(2).matches("\\$2y\\$12\\$[./A-Za-z0-9]{53}")) { return INVALID_PASSWORD; }
+        // INC-37: Learn's bcrypt as S01 R-01-03 reads it (`$2y$10$…` in its example; `BCRYPT_ROUNDS=12` today), not only `$2y$12$`.
+        if (!PasswordHasher.IMPORTABLE_BCRYPT.matcher(fields.get(2)).matches()) { return INVALID_PASSWORD; }
         if (fields.get(3).isBlank() || fields.get(3).length() > 200) { return INVALID_NAME; }
         if (!Set.of("user", "admin", "coach", "designer").contains(fields.get(4))) { return INVALID_ROLE; }
         try { createdAt(fields.get(5)); }

@@ -27,8 +27,8 @@ class AccessLogTest(unittest.TestCase):
 
     def test_E9_T06_production_caddyfile_still_validates(self):
         env = {'ACME_EMAIL': 'ops@example.test', 'ID_HOST': 'id.example.test', 'CLUBS_HOST': 'clubs.example.test',
-               'ADMIN_HOST': 'admin.example.test', 'CORE_HOST': 'core.example.test', 'CLUB_ADMIN_HOSTS': 'backoffice.example.test',
-               'CADDY_ASK_UPSTREAM': 'core:8080'}
+               'ADMIN_HOST': 'admin.example.test', 'CORE_HOST': 'core.example.test',
+               'CADDY_ASK_UPSTREAM': 'core:8080', 'CADDY_APP_UPSTREAM': 'core:8080'}
         flags = [part for key, value in env.items() for part in ('-e', f'{key}={value}')]
         subprocess.run(['docker', 'run', '--rm', '-v', f'{ROOT / "deploy/Caddyfile"}:/etc/caddy/Caddyfile:ro', *flags, IMAGE,
                         'caddy', 'validate', '--config', '/etc/caddy/Caddyfile'], check=True, capture_output=True)

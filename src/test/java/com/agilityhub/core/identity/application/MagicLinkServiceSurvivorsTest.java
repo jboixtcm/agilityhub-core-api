@@ -68,7 +68,8 @@ class MagicLinkServiceSurvivorsTest {
     }
     final MagicLinkService service = new MagicLinkService(accounts, memberships, tokens, transactions, settings, events, notifications,
             new InMemoryRegisteredClientRepository(clubsApp), hosts, mock(Executor.class), Clock.fixed(NOW, ZoneOffset.UTC),
-            "https://id.example.test");
+            "https://id.example.test",
+            mock(com.agilityhub.core.shared.application.SignupCapabilities.class));
 
     @BeforeEach void setUp() {
         TenantContext.open(CLUB);

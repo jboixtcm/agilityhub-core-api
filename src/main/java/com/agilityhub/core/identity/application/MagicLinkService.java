@@ -38,13 +38,15 @@ public class MagicLinkService {
     private final Executor executor;
     private final Clock clock;
     private final URI issuer;
+    /** INC-37: the server key of the request's `ipHash` (a keyed HMAC, as the signup consent's), never a bare digest of the address. */
+    private final com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     public MagicLinkService(AccountRepository accounts, MembershipRepository memberships, MagicLinkTokenRepository tokens,
             IdentityTransactions transactions, AuthSettings settings, EventPublisher events, SystemNotificationService notifications,
             RegisteredClientRepository clients, TenantHostResolver hosts, @Qualifier("magicLinkExecutor") Executor executor,
-            Clock clock, @Value("${identity.issuer}") String issuer) {
+            Clock clock, @Value("${identity.issuer}") String issuer, com.agilityhub.core.shared.application.SignupCapabilities capabilities) {
         this.accounts = accounts; this.memberships = memberships; this.tokens = tokens; this.transactions = transactions;
         this.settings = settings; this.events = events; this.notifications = notifications; this.clients = clients;
-        this.hosts = hosts; this.executor = executor; this.clock = clock; this.issuer = URI.create(issuer);
+        this.hosts = hosts; this.executor = executor; this.clock = clock; this.issuer = URI.create(issuer); this.capabilities = capabilities;
     }
     /** S17: invitations use AgilityHub ID before a new club has a verified domain. Only the token hash is persisted. */
     public void sendAdminInvitation(String deliveryId,String accountId,String clubName,String inviterName) {
@@ -115,7 +117,7 @@ public class MagicLinkService {
                     ? Duration.ofDays(settings.integer("auth.welcomeLinkDays")) : Duration.ofMinutes(settings.integer("auth.magicLinkMinutes"));
             var token = new MagicLinkToken(UUID.randomUUID().toString(), TokenService.digest(value), account.id(), clubId, clientId,
                     purpose, redirectUri, clock.instant(), clock.instant().plus(duration), null,
-                    ip == null ? null : TokenService.digest(ip), TokenService.device(agent));
+                    ip == null ? null : capabilities.fingerprint(ip), TokenService.device(agent));
             tokens.insert(token);
             tokens.trim(account.id(), purpose, clock.instant(), token.id());
             events.publish(IdentityEvents.of(IdentityEvent.Kind.MagicLinkRequested, clubId, account.id(), clock.instant(),

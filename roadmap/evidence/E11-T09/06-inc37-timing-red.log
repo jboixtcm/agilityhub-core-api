@@ -1,0 +1,34 @@
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.296 s <<< FAILURE! -- in com.agilityhub.core.identity.application.PasswordHasherTest
+[ERROR] com.agilityhub.core.identity.application.PasswordHasherTest.T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent -- Time elapsed: 2.160 s <<< FAILURE!
+java.lang.AssertionError: 
+[bcrypt 12, wrong vs a missing account (20 ms)] 
+Expecting actual:
+  2.19188916E8
+to be between:
+  [1.67609328E7, 2.51413992E7]
+
+	at com.agilityhub.core.identity.application.PasswordHasherTest.lambda$T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent$8(PasswordHasherTest.java:44)
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:986)
+	at com.agilityhub.core.identity.application.PasswordHasherTest.T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent(PasswordHasherTest.java:43)
+
+[ERROR] Failures: 
+[ERROR]   PasswordHasherTest.T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent:43->lambda$T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent$8:44 [bcrypt 12, wrong vs a missing account (20 ms)] 
+Expecting actual:
+  2.19188916E8
+to be between:
+  [1.67609328E7, 2.51413992E7]
+
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+# Command: src/main/.../PasswordHasher.java swapped for `git show HEAD:...` (restored right after, diff-checked); ./mvnw -q test -Dtest='PasswordHasherTest#T_01_02_INC_37*' -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false  -> exit 1

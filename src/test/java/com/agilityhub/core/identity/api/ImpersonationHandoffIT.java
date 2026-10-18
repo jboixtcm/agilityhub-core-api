@@ -44,6 +44,7 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
     @Autowired IdentityTransactions transactions;
     @Autowired TokenService tokens;
     @Autowired org.springframework.security.oauth2.jwt.JwtEncoder encoder;
+    @Autowired ImpersonationExpiry expiry;
     @org.springframework.beans.factory.annotation.Value("${identity.issuer}") String issuer;
     static final String ADMIN_HOST = "admin.example.test";
 
@@ -70,6 +71,8 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         return mvc.perform(post("/api/v1/members/" + member + "/impersonation-token").header("Host", host).header("Authorization", token)
                 .contentType("application/json").content("{\"reason\":\"Help with a booking\"}"));
     }
+    /** The grant behind an issued impersonation: its JWT's `jti`. */
+    static String grantId(JsonNode issued) throws Exception { return SignedJWT.parse(issued.path("token").asText()).getJWTClaimsSet().getJWTID(); }
     JsonNode impersonate(String admin) throws Exception {
         return mapper.readTree(create(admin, "member-target", HOST).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
     }
@@ -150,11 +153,58 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         mvc.perform(put("/api/v1/me/profile").header("Host", HOST).header("Authorization", imp).contentType("application/json")
                 .content("{\"activeProfile\":\"ADMIN\",\"remember\":false}")).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/me/sessions").header("Host", HOST).header("Authorization", imp)).andExpect(status().isForbidden());
+        // INC-37: the member's AgilityHub account (language, name) is not the impersonating admin's to change, and nothing audits it.
+        mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", imp).contentType("application/json")
+                .content("{\"locale\":\"es\",\"name\":\"Changed By Admin\"}")).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        assertThat(accounts.findById("account-member").orElseThrow()).satisfies(account -> {
+            assertThat(account.locale()).isEqualTo("en"); assertThat(account.name()).isEqualTo("Example Member");
+        });
         refresh(value, HOST, "clubs-app").andExpect(status().isBadRequest());
         revoke(imp, value); revoke(imp, value); revoke(admin, value);
-        assertThat(events("ImpersonationEnded")).hasSize(1);
+        // INC-37 (S01 §7 `ImpersonationEnded{grantId, reason: LOGOUT·EXPIRED}`): «Surt» ends it with LOGOUT.
+        String grantId = grantId(issued);
+        assertThat(events("ImpersonationEnded")).singleElement().satisfies(e -> assertThat(e.payload())
+                .containsEntry("grantId", grantId).containsEntry("reason", "LOGOUT")
+                .containsEntry("actorAccountId", "account-a").containsEntry("memberId", "member-target"));
         mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isUnauthorized());
         assertThat(mongo.findAll(ImpersonationGrant.class).getFirst().revokedAt()).isEqualTo(clock.instant());
+        assertThat(mongo.findAll(ImpersonationGrant.class).getFirst().endReason()).isEqualTo(ImpersonationGrant.EndReason.LOGOUT);
+    }
+
+    /**
+     * INC-37 (S01 R-01-09 «una sessió impersonada … acaba explícitament quan caduca»; §7): a grant that runs out ends with
+     * `ImpersonationEnded{grantId, reason: EXPIRED}`, once, from the sweep, never before its `expiresAt`; a grant ended by «Surt»
+     * first gets no second event, and a support access never gets one.
+     */
+    @Test void T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce() throws Exception {
+        String admin = bearer(login());
+        var issued = impersonate(admin);
+        var logout = impersonate(admin);
+        String expiring = grantId(issued), revoked = grantId(logout);
+        revoke(admin, logout.path("token").asText());
+        mongo.insert(new ImpersonationGrant("inc37-support", "club-a", "account-member", null, null, "Fictional support",
+                clock.instant().plusSeconds(60), null, ImpersonationGrant.Type.SUPPORT, clock.instant()));
+        assertThat(expiry.sweep(clock.instant().plusSeconds(3599))).isZero();
+        clock.advance(Duration.ofMinutes(60));
+        assertThat(expiry.sweep(clock.instant())).isEqualTo(1);
+        assertThat(expiry.sweep(clock.instant())).isZero();
+        var ended = events("ImpersonationEnded");
+        assertThat(ended).hasSize(2);
+        assertThat(ended).filteredOn(e -> e.aggregateId().equals(expiring)).singleElement().satisfies(e -> {
+            assertThat(e.payload()).containsEntry("grantId", expiring).containsEntry("reason", "EXPIRED")
+                    .containsEntry("actorAccountId", "account-a").containsEntry("memberId", "member-target");
+            assertThat(e.clubId()).isEqualTo("club-a"); assertThat(e.occurredAt()).isEqualTo(clock.instant());
+        });
+        assertThat(ended).filteredOn(e -> e.aggregateId().equals(revoked)).singleElement()
+                .satisfies(e -> assertThat(e.payload()).containsEntry("reason", "LOGOUT"));
+        var grant = mongo.findById(expiring, ImpersonationGrant.class);
+        assertThat(grant.endReason()).isEqualTo(ImpersonationGrant.EndReason.EXPIRED); assertThat(grant.revokedAt()).isEqualTo(clock.instant());
+        assertThat(mongo.findById("inc37-support", ImpersonationGrant.class).revokedAt()).isNull();
+        // The retention index keeps an ended grant a day, so the sweep still finds one that ran out while no instance ran it.
+        assertThat(mongo.indexOps(ImpersonationGrant.class).getIndexInfo()).anySatisfy(index -> {
+            assertThat(index.getIndexFields()).singleElement().satisfies(field -> assertThat(field.getKey()).isEqualTo("expiresAt"));
+            assertThat(index.getExpireAfter()).contains(Duration.ofDays(1));
+        });
     }
 
     /**

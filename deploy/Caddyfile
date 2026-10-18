@@ -78,27 +78,41 @@ http://127.0.0.1:9080 {
     respond 404
 }
 
+# INC-64 (E11-T09): which SPA a verified club host serves comes from the Core, per request: `forward_auth` asks
+# `GET /internal/domains/app?host=` (always 200, `X-Club-App: clubs | clubs-admin`, the domain's own app) and the answer picks
+# the root. A domain verified in the console serves its app at once: no host list, no reload. A client's own `X-Club-App` is
+# dropped first. The Core answers only the internal network: the request leaves without forwarding headers (the peer is
+# Caddy itself), without the client's credentials and with the upstream's own Host.
+(club_spa) {
+    route {
+        request_header -X-Club-App
+        forward_auth {$CADDY_APP_UPSTREAM} {
+            uri /internal/domains/app?host={host}
+            header_up Host {upstream_hostport}
+            header_up -X-Forwarded-For
+            header_up -X-Forwarded-Host
+            header_up -X-Forwarded-Proto
+            header_up -Authorization
+            header_up -Cookie
+            copy_headers X-Club-App
+        }
+        # The two roots are one exclusive group: the first that matches wins, so the back office comes first.
+        @club_admin header X-Club-App clubs-admin
+        root @club_admin /srv/clubsadmin
+        root * /srv/clubs
+        try_files {path} /index.html
+        header /index.html Cache-Control "no-cache"
+        file_server
+    }
+}
+
 https:// {
     import security_headers
     tls {
         on_demand
     }
     import api_proxy
-    @club_admin host {$CLUB_ADMIN_HOSTS}
-    handle @club_admin {
-        root * /srv/clubsadmin
-        route {
-            try_files {path} /index.html
-            header /index.html Cache-Control "no-cache"
-            file_server
-        }
-    }
     handle {
-        root * /srv/clubs
-        route {
-            try_files {path} /index.html
-            header /index.html Cache-Control "no-cache"
-            file_server
-        }
+        import club_spa
     }
 }

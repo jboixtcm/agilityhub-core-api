@@ -73,6 +73,45 @@ class PlatformDomainsIT extends AbstractIntegrationTest {
         return clubs.findById(TARGET).orElseThrow().domains().stream().filter(d -> d.host().equals(host)).findFirst().orElseThrow();
     }
     long events(String type) { return mongo.count(Query.query(Criteria.where("type").is(type).and("clubId").is(TARGET)), "domain_events"); }
+    /** INC-64: the SPA Caddy's `forward_auth` reads for {@code host} (`X-Club-App`), always with a `200` and no body. */
+    String app(String host) throws Exception {
+        var response = mvc.perform(get("/internal/domains/app").param("host", host)).andReturn().getResponse();
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(response.getContentAsString()).isEmpty();
+        return response.getHeader("X-Club-App");
+    }
+
+    /**
+     * INC-64 (S17 R-17-03; E11-T02 question 3, accepted): Caddy asks which app a club host serves. A `clubs-admin` domain serves the
+     * back office as soon as its verification commits (no `CLUB_ADMIN_HOSTS`, no reload, no stale answer from a lookup while it was
+     * pending); a members' domain, a pending, removed or unknown host serve `clubs`. Only the internal network gets an answer, and
+     * the route is not in the public contract.
+     */
+    @Test void T_17_03_INC_64_aVerifiedAdminDomainServesTheAdminAppOnceItsVerificationCommits() throws Exception {
+        assertThat(app("target.example.test")).isEqualTo("clubs");
+        add("Admin.Club.example.test", "clubs-admin", 201);
+        assertThat(app("admin.club.example.test")).as("pending").isEqualTo("clubs");
+        dns.cname("admin.club.example.test", "clubsadmin.agilitydoghub.com");
+        verify("admin.club.example.test", UUID.randomUUID().toString(), 200);
+        assertThat(app("admin.club.example.test")).isEqualTo("clubs-admin");
+        assertThat(app("ADMIN.club.example.test.")).isEqualTo("clubs-admin");
+        // A second back-office host, verified and then removed: its answer follows the removal's commit, not a five-minute cache.
+        add("office.club.example.test", "clubs-admin", 201);
+        dns.cname("office.club.example.test", "clubsadmin.agilitydoghub.com");
+        verify("office.club.example.test", UUID.randomUUID().toString(), 200);
+        assertThat(app("office.club.example.test")).isEqualTo("clubs-admin");
+        call(delete(BASE + TARGET + "/domains/office.club.example.test").header("Idempotency-Key", UUID.randomUUID().toString()), null, 204);
+        assertThat(app("office.club.example.test")).isEqualTo("clubs");
+        assertThat(app("unknown.example.test")).isEqualTo("clubs");
+        // The internal-network rule of the ask: an outside address, or a forged forwarded header from one, gets nothing.
+        for (var outside : List.of(get("/internal/domains/app").param("host", "admin.club.example.test").with(r -> { r.setRemoteAddr("203.0.113.9"); return r; }),
+                get("/internal/domains/app").param("host", "admin.club.example.test").header("X-Forwarded-For", "127.0.0.1").with(r -> { r.setRemoteAddr("203.0.113.9"); return r; }))) {
+            var response = mvc.perform(outside).andReturn().getResponse();
+            assertThat(response.getStatus()).isEqualTo(403);
+            assertThat(response.getHeader("X-Club-App")).isNull();
+        }
+        assertThat(java.nio.file.Files.readString(java.nio.file.Path.of("docs/openapi/openapi.json"))).doesNotContain("/internal/domains/app");
+    }
 
     @Test @AuditCovers(AuditAction.CLUB_DOMAIN_CHANGED)
     void T_17_03_R_17_03_cnameVerificationOpensCaddyAndBrandingOnlyOnceVerified() throws Exception {

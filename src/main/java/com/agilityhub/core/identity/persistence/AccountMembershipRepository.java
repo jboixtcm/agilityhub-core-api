@@ -13,4 +13,8 @@ public class AccountMembershipRepository extends GlobalRepository<Membership> {
     public List<Membership> activeForAccount(String authenticatedAccountId) {
         return mongo.find(Query.query(Criteria.where("accountId").is(authenticatedAccountId).and("status").is(Membership.Status.ACTIVE)), Membership.class);
     }
+    /** R-01-14 (INC-37): how many clubs the account still belongs to, in any status but `ERASED`; a count, never the clubs. */
+    public long countNotErased(String accountId) {
+        return mongo.count(Query.query(Criteria.where("accountId").is(accountId).and("status").ne(Membership.Status.ERASED)), Membership.class);
+    }
 }

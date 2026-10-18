@@ -22,14 +22,17 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 @Configuration(proxyBeanMethods=false)
 @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type=org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
 public class E10ContractConfiguration {
-    /** Existing deployment ingress rejects /internal/*; the Caddy ask listener is loopback-only. */
+    /**
+     * Existing deployment ingress rejects /internal/*; the Caddy ask listener is loopback-only. INC-64: Caddy's `forward_auth` to
+     * `/internal/domains/app` (which SPA a club host serves) answers under the same rule.
+     */
     @Bean @Order(1)
     SecurityFilterChain internalDomainSecurity(HttpSecurity http,ApiExceptionHandler errors,ObjectMapper mapper) throws Exception {
         var peers=List.of("127.0.0.0/8","::1/128","10.0.0.0/8","172.16.0.0/12","192.168.0.0/16").stream().map(IpAddressMatcher::new).toList();
-        http.securityMatcher("/internal/domains/allowed")
+        http.securityMatcher("/internal/domains/allowed","/internal/domains/app")
                 .csrf(csrf->csrf.disable()).requestCache(cache->cache.disable())
                 .sessionManagement(sessions->sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth->auth.requestMatchers(org.springframework.http.HttpMethod.GET,"/internal/domains/allowed")
+                .authorizeHttpRequests(auth->auth.requestMatchers(org.springframework.http.HttpMethod.GET,"/internal/domains/allowed","/internal/domains/app")
                         .access((authentication,context)->new AuthorizationDecision(peers.stream().anyMatch(peer->peer.matches(context.getRequest().getRemoteAddr()))))
                         .anyRequest().denyAll())
                 .exceptionHandling(errorsConfig->errorsConfig

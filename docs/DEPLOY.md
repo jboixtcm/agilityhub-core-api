@@ -349,8 +349,8 @@ rehearsal on the droplet. This local task neither accesses nor deploys productio
 
 A club's own host (for example `app.agilitycanic.cat` for the members' app and `admin.agilitycanic.cat` for its back office)
 is served by the same Caddy and Core as the product hosts. Caddy gets its certificate **on demand**, and only for a
-host the Core says is a `VERIFIED` club domain. Nobody edits the Caddyfile per club. The only per-club deploy setting is
-the back-office aliases in `CLUB_ADMIN_HOSTS` (step 5).
+host the Core says is a `VERIFIED` club domain, and serves it the SPA of the domain's app (`clubs` or `clubs-admin`) that the
+Core names. Nobody edits the Caddyfile, the env file or anything else per club, and Caddy is never reloaded for a domain.
 
 **How the pieces fit.** The `https://` catch-all site of `deploy/Caddyfile` has `tls { on_demand }`. On the first TLS
 handshake for an unknown host, Caddy asks its private bridge `http://127.0.0.1:9080/ask?domain=<host>`. The bridge
@@ -359,8 +359,20 @@ rewrites that to `GET /internal/domains/allowed?host=<host>` and forwards it to 
 issues a certificate only on `200`. `/internal/*` answers only loopback/private-network callers without forwarding
 headers, and the public `CORE_HOST` site refuses `/internal/*` and `/actuator/*` itself (`respond 404`). Never add an
 unconditional `ask` responder. Only the local override uses `ask-stub:8080`, which approves exactly
-`approved.localhost`; `bin/deploy-smoke` checks that it issues a certificate for that host and refuses another
-([Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls)).
+`approved.localhost` and `approved-admin.localhost`; `bin/deploy-smoke` checks that it issues a certificate for those hosts
+and refuses another ([Caddy's ask contract](https://caddyserver.com/docs/caddyfile/options#on-demand-tls)).
+
+**Which app a club host serves (INC-64, E11-T09).** On every SPA request of the catch-all (not `/api/*`, `/oauth2/*`,
+`/.well-known/*`, `/connect/logout`, which go to the Core), Caddy's `forward_auth` asks `CADDY_APP_UPSTREAM` (`core:8080`)
+`GET /internal/domains/app?host=<host>`. The Core always answers `200` with `X-Club-App: clubs-admin` for a `VERIFIED`
+`clubs-admin` domain and `X-Club-App: clubs` for anything else, and Caddy serves `/srv/clubsadmin` or `/srv/clubs`
+accordingly (`(club_spa)` in `deploy/Caddyfile`). The Core reads the answer from the domain after the verification commits (it
+keeps only found hosts, five minutes at most, and empties that cache after every domain change), so a verified back-office host
+serves the back office at once. The route answers only the internal network, like the ask: Caddy sends it without the
+client's forwarding headers, credentials or cookies, and drops any `X-Club-App` the client sent. It is not in the public
+contract, and the public sites never proxy `/internal/*`. If the Core is down, the catch-all answers `502` instead of the
+SPA (the SPA cannot work without the Core anyway); the product hosts (`ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`) keep their
+own static sites.
 
 **Steps (the AgilityHub team, from the console D19 «Dominis» tab or the API with an `AGILITYHUB_ADMIN` token):**
 
@@ -380,26 +392,20 @@ unconditional `ask` responder. Only the local override uses `ask-stub:8080`, whi
    retried once the record has propagated. Found → `200 {status: VERIFIED, method: CNAME | TXT}`. The challenge is
    removed, and the first verified domain of its app becomes that app's **primary** domain, the one links and e-mails use
    (`PUT …/domains/{host}/primary` moves it to another verified one). The host cache is evicted after the commit, so
-   `GET /branding` with that `Host` and Caddy's ask answer `200` at once.
+   `GET /branding` with that `Host`, Caddy's ask and the app Caddy serves on it follow at once.
 4. **First request over HTTPS**: open `https://{host}/`. The first handshake takes a few seconds while Caddy obtains the
-   certificate. Then check that `GET https://{host}/api/v1/branding` shows the club, its theme and its modules.
-5. **Back-office aliases only** (`app: clubs-admin`): add the host to the space-separated `CLUB_ADMIN_HOSTS` in the
-   populated env file and recreate Caddy (`docker compose --env-file … -f deploy/compose.prod.yaml up -d caddy`). Without
-   it, Caddy serves that host the members' SPA. Members' aliases need nothing more. **A verified `clubs-admin` domain is not
-   ready until this step is done:** step 3 makes Caddy accept its certificate at once, but the back-office app is chosen
-   from the static `CLUB_ADMIN_HOSTS` list, so the host serves the members' app until the env file has it and Caddy is
-   reloaded (recreated as above). The verify operation's contract says the same. Choosing the app from the domain's `app`
-   (no env edit, no reload) is INC-64.
-6. **Sign-in on the club's host**: a club's apps sign in on their own host with the club-scoped grants (password, magic
+   certificate. A `clubs-admin` domain shows the back office, a `clubs` domain the members' app: nothing else to configure.
+   Then check that `GET https://{host}/api/v1/branding` shows the club, its theme and its modules.
+5. **Sign-in on the club's host**: a club's apps sign in on their own host with the club-scoped grants (password, magic
    link, handoff). The tenant comes from the `Host`, so test a login, a token refresh (the refresh cookie is host-only)
    and a logout there. The OIDC code flow of `clubs-app`/`clubs-admin` is registered for one redirect URI each
    (`OIDC_CLUBS_APP_REDIRECT_URI`, `OIDC_CLUBS_ADMIN_REDIRECT_URI`) and takes its club from that URI's host. A club alias
    does not get its own code-flow callback today; ask the organizer before registering one.
-7. **Remove a domain** (`DELETE …/domains/{host}`, S17 §5; E10-T04 round 2): a `PENDING`, `VERIFIED` or `BROKEN` domain
+6. **Remove a domain** (`DELETE …/domains/{host}`, S17 §5; E10-T04 round 2): a `PENDING`, `VERIFIED` or `BROKEN` domain
    can be removed, so a club can change hosts. Caddy's ask and `GET /branding` refuse it as soon as the write commits; the
-   certificate Caddy already holds simply expires. The **primary** domain of its app answers `409 INVALID_STATE
-   {status, primary: true}`: first make another verified domain primary (`PUT …/domains/{host}/primary`). A removed
-   `clubs-admin` host should also leave `CLUB_ADMIN_HOSTS`.
+   certificate Caddy already holds simply expires, and until then the host serves the members' SPA, whose calls answer
+   `404 UNKNOWN_HOST`. The **primary** domain of its app answers `409 INVALID_STATE {status, primary: true}`: first make
+   another verified domain primary (`PUT …/domains/{host}/primary`).
 
 **Weekly re-check and `BROKEN` (S15 P9, R-17-03).** Every club's daily P9 `cleanup` re-checks the club's verified
 domains whose last check is `platform.domainRecheckDays` (7; `0` turns it off for that club) or more days old. A domain
@@ -446,6 +452,11 @@ cutover, or a staging with another `CLUBS_HOST`), do one of these right after th
 the `local` profile (`POST /api/v1/test/dns` publishes the records; it exists only under `local`/`test`): a second club
 through the console, a CNAME and a TXT verification, then the re-check with the test clock moved a week at a time: a
 resolver failure and an unresolved product host (`SKIPPED`, nothing counted), then `BROKEN`, N-43 and `RESTORED`.
+`bin/deploy-smoke` runs the Caddy side on the production topology (INC-64): `approved-admin.localhost` first serves the
+members' SPA, then a `VERIFIED` `clubs-admin` domain is written for it while Caddy runs (the local stack has no DNS egress,
+so the write stands for the console's verification commit), and the next request serves the back office. Caddy's
+configuration and container are the same before and after (no reload), and a client's own `X-Club-App` changes nothing.
+`deploy/test_e11_t09.py` runs the same `(club_spa)` snippet in a real Caddy against a stub of the route.
 
 ### Environment inventory (source, purpose and rotation)
 
@@ -495,7 +506,6 @@ and URIs are included because they must remain consistent across recovery.
 | `CORE_CONCURRENCY_LOCALLANES` | `true` for R1; infrastructure switch explained below, no secret or regular rotation. |
 | `ACME_EMAIL` | Operator contact for Caddy/ACME certificate notifications; keep monitored. |
 | `ID_HOST`, `CLUBS_HOST`, `ADMIN_HOST`, `CORE_HOST` | Four approved public DNS hostnames; default ADR-003 domains. DNS/certificate/client change, not a key rotation. |
-| `CLUB_ADMIN_HOSTS` | Space-separated verified club admin aliases for SPA selection; default `unused.invalid`. Coordinate E10 domain verification/Caddy recreation. |
 | `ID_DIST_DIR`, `CLUBS_DIST_DIR`, `ADMIN_DIST_DIR` | Absolute paths of versioned built SPA dist folders. Switch all with the matching backend tag; retain previous paths for rollback. |
 | `BACKUP_AGE_RECIPIENT` | Public native age recipient from operator `age-keygen`; the only encryption material installed for cron. Change for future backups after verifying its escrowed identity. |
 | `BACKUP_AGE_IDENTITY` | Private age identity, restored from encrypted off-host escrow into the operator environment only for verification/recovery; never in the cron env. Retain old identities through archive expiry. |
@@ -560,8 +570,10 @@ out of the Core container.
 ### Platform versions (E11-T07)
 
 The image runs Spring Boot 4.1.1 on Java 21: Spring Framework 7.0.9, Spring Security 7.1.1 (with the authorization
-server), Tomcat 11.0.27 (pinned above Boot's 11.0.24 for the scans), Jackson 2.21 through Boot's `spring-boot-jackson2`
-module, springdoc 3.0.3 and, in tests, Testcontainers 2.0.5. What an operator sees is unchanged:
+server), Tomcat 11.0.27 (pinned above Boot's 11.0.24 for the scans), Jackson 2.21.7 through Boot's `spring-boot-jackson2`
+module and Jackson 3.1.7 through `spring-boot-starter-webmvc` (both pinned above Boot's 2.21.5 and 3.1.5 for the scans,
+INC-70), springdoc 3.0.3 and, in tests, Testcontainers 2.0.5. Metrics need no separate Micrometer starter: Micrometer comes
+with `spring-boot-starter-actuator`, and `micrometer-registry-prometheus` only adds the Prometheus format (`ManagementIT`). What an operator sees is unchanged:
 
 - MongoDB connection properties live under `spring.mongodb.*`. The production Compose sets only the `MONGODB_*`
   variables of the inventory above, so nothing changes there. Anything that overrides the connection directly must use
@@ -569,7 +581,8 @@ module, springdoc 3.0.3 and, in tests, Testcontainers 2.0.5. What an operator se
   would silently connect to its default instead.
 - `GET /api/v1/health` and the management `/actuator/health` answer as before (`{"status":"UP"}`). Boot 4's
   liveness/readiness groups stay off (`management.endpoint.health.probes.enabled: false`). The image `HEALTHCHECK` and
-  both Compose files are unchanged.
+  `deploy/compose.prod.yaml` are unchanged. The one Compose file that changed is the local override
+  `deploy/compose.prod.local.yaml`: its seed sets `SPRING_MONGODB_URI` (it was `SPRING_DATA_MONGODB_URI`).
 - Stored data keeps its representation: UUIDs `JAVA_LEGACY`, `BigDecimal`/`BigInteger` as strings, which Boot 4 no
   longer chooses by default (`StoredRepresentationIT`).
 - `bin/security-scan-suppressions.json` is empty again: Spring Framework 7.0.9 fixes CVE-2026-47884 and CVE-2026-47890.

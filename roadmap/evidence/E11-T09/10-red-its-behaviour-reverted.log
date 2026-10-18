@@ -1,0 +1,477 @@
+14:04:04.370 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:04:04.494 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+14:04:04.521 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:04:04.521 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:04:04.523 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+14:04:04.547 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+14:04:04.548 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+14:04:04.551 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+14:04:04.629 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+14:04:04.778 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+14:04:04.779 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+14:04:04.789 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+14:04:05.122 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+14:04:05.148 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+14:04:05.195 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: a73792179d5dd8f9d727155ec5a932a4908aaa1400085528d6f90a24f7d4ab00
+14:04:05.360 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.237173S
+14:04:05.362 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+14:04:05.363 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+14:04:05.363 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+14:04:05.363 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+14:04:05.394 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: b2cee2ea6b3a4182a87713625e085f3f7399ad4fc9fd09e22b5f6b791fcf1089
+14:04:05.889 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.525943S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:04:06.476+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : Starting CensusIT using Java [redacted] with PID 61857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red)
+2026-10-18T14:04:06.477+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:04:07.223+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:04:07.269+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 42 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:04:07.633+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T14:04:07.640+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T14:04:07.640+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T14:04:07.669+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1186 ms
+2026-10-18T14:04:07.776+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4fdea2de], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5ea24702, com.mongodb.Jep395RecordCodecProvider@1da2219c, com.mongodb.KotlinCodecProvider@49a46f29, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64885], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7356ec91], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:04:07.782+03:00 INFO  [cluster-6ad4a7a77f2949ad147f77fe-localhost:64885] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64885, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8504791, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b2cee2ea6b3a:27017, hosts=[b2cee2ea6b3a:27017], passives=[], arbiters=[], primary='b2cee2ea6b3a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4a7a5fbce1a928738fbec, counter=6}, lastWriteDate=Sun Oct 18 14:04:06 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:04:08.350+03:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-18T14:04:08.827+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:08.842+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:08.862+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:09.405+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:09.417+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:09.430+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:09.483+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:04:12.082+03:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:04:12.082+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:04:12.088+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 6 ms
+2026-10-18T14:04:12.133+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 64891 (http) with context path '/'
+2026-10-18T14:04:12.159+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T14:04:12.160+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T14:04:12.160+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T14:04:12.169+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 35 ms
+2026-10-18T14:04:12.175+03:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-18T14:04:12.191+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 64892 (http) with context path '/'
+2026-10-18T14:04:12.196+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : Started CensusIT in 5.856 seconds (process running for 8.222)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.818 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.CensusIT
+[ERROR] com.agilityhub.core.clubs.census.api.CensusIT.T_01_23_INC_37_anAdminsRenameOfAMemberRenamesTheAccountOfItsOnlyClub -- Time elapsed: 0.674 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "Laura Serra Puig"
+ but was: "Example one"
+	at com.agilityhub.core.clubs.census.api.CensusIT.T_01_23_INC_37_anAdminsRenameOfAMemberRenamesTheAccountOfItsOnlyClub(CensusIT.java:186)
+
+2026-10-18T14:04:13.173+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ImpersonationHandoffIT
+2026-10-18T14:04:13.173+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:13.174+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:13.174+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ImpersonationHandoffIT
+2026-10-18T14:04:13.177+03:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-18T14:04:13.181+03:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:04:13.198+03:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : Starting ImpersonationHandoffIT using Java [redacted] with PID 61857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red)
+2026-10-18T14:04:13.198+03:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:04:13.506+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:04:13.538+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 30 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:04:13.606+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1b290d9a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5ea24702, com.mongodb.Jep395RecordCodecProvider@1da2219c, com.mongodb.KotlinCodecProvider@49a46f29, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64885], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@79df41a7], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:04:13.608+03:00 INFO  [cluster-6ad4a7ad7f2949ad147f77ff-localhost:64885] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64885, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1278667, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b2cee2ea6b3a:27017, hosts=[b2cee2ea6b3a:27017], passives=[], arbiters=[], primary='b2cee2ea6b3a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4a7a5fbce1a928738fbec, counter=6}, lastWriteDate=Sun Oct 18 14:04:13 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:04:15.573+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:04:15.573+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:04:15.575+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T14:04:15.595+03:00 INFO  [main] c.a.c.i.api.ImpersonationHandoffIT traceId= clubId= accountId= : Started ImpersonationHandoffIT in 2.41 seconds (process running for 11.621)
+T-01-11 decoded fictional JWT claims: {sub=account-member, activeProfile=MEMBER, roles=[MEMBER], iss=https://id.agilitydoghub.com, clubId=club-a, impersonatedMemberId=member-target, locale=en, imp=true, actorAccountId=account-a, aud=clubs-app, azp=clubs-app, name=Example Member, exp=1767229200, iat=1767225600, jti=66cc6b38-f6d7-477d-a572-99e55cf37b50, email=member@example.test, memberId=member-target}
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 3.827 s <<< FAILURE! -- in com.agilityhub.core.identity.api.ImpersonationHandoffIT
+[ERROR] com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation -- Time elapsed: 0.755 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<403> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation(ImpersonationHandoffIT.java:158)
+
+[ERROR] com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce -- Time elapsed: 0.578 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"actorAccountId"="account-a", "memberId"="member-target"}
+to contain entries:
+  ["grantId"="3a493d11-1d43-408c-b650-1dc271a5f09a"]
+but could not find the following map entries:
+  ["grantId"="3a493d11-1d43-408c-b650-1dc271a5f09a"]
+at ImpersonationHandoffIT.lambda$T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce$4(ImpersonationHandoffIT.java:194)
+	at com.agilityhub.core.identity.api.ImpersonationHandoffIT.T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce(ImpersonationHandoffIT.java:193)
+
+2026-10-18T14:04:16.974+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.LearnImportIT]: LearnImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:16.975+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.LearnImportIT
+2026-10-18T14:04:16.976+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.LearnImportIT]: LearnImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:16.976+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:16.976+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:16.977+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.LearnImportIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:04:27.801+03:00 INFO  [main] c.a.core.identity.api.LearnImportIT traceId= clubId= accountId= : Starting LearnImportIT using Java [redacted] with PID 61857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red)
+2026-10-18T14:04:27.801+03:00 INFO  [main] c.a.core.identity.api.LearnImportIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:04:28.040+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:04:28.068+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 27 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:04:28.113+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@13a5d97b], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5ea24702, com.mongodb.Jep395RecordCodecProvider@1da2219c, com.mongodb.KotlinCodecProvider@49a46f29, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64885], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6dcdea21], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:04:28.115+03:00 INFO  [cluster-6ad4a7bc7f2949ad147f7801-localhost:64885] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64885, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1539000, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b2cee2ea6b3a:27017, hosts=[b2cee2ea6b3a:27017], passives=[], arbiters=[], primary='b2cee2ea6b3a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4a7a5fbce1a928738fbec, counter=6}, lastWriteDate=Sun Oct 18 14:04:16 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:04:29.967+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:04:29.967+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:04:29.969+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T14:04:29.986+03:00 INFO  [main] c.a.core.identity.api.LearnImportIT traceId= clubId= accountId= : Started LearnImportIT in 2.196 seconds (process running for 26.012)
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 13.94 s <<< FAILURE! -- in com.agilityhub.core.identity.api.LearnImportIT
+[ERROR] com.agilityhub.core.identity.api.LearnImportIT.T_01_14_INC_37_learnBcryptOfTenOrTwelveRoundsImportsAndSignsInAndAMergeKeepsTheOnboarding -- Time elapsed: 0.786 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD]
+to contain exactly (and in same order):
+  [NEW_ACCOUNT, NEW_ACCOUNT, INVALID_PASSWORD, PASSWORD_ADOPTED]
+but some elements were not found:
+  [NEW_ACCOUNT, NEW_ACCOUNT, PASSWORD_ADOPTED]
+and others were not expected:
+  [INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD]
+
+	at com.agilityhub.core.identity.api.LearnImportIT.T_01_14_INC_37_learnBcryptOfTenOrTwelveRoundsImportsAndSignsInAndAMergeKeepsTheOnboarding(LearnImportIT.java:135)
+
+[ERROR] com.agilityhub.core.identity.api.LearnImportIT.T_01_14_existingAccountsKeepProfileSecurityAndOtherExternalIdsAndOnlyAdoptMissingHash -- Time elapsed: 0.100 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at com.agilityhub.core.identity.api.LearnImportIT.T_01_14_existingAccountsKeepProfileSecurityAndOtherExternalIdsAndOnlyAdoptMissingHash(LearnImportIT.java:117)
+
+2026-10-18T14:04:30.913+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:30.915+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+2026-10-18T14:04:30.916+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:30.916+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:30.916+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:30.916+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:04:30.927+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Starting IdentityCoreIT using Java [redacted] with PID 61857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red)
+2026-10-18T14:04:30.927+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:04:31.161+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:04:31.193+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 31 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:04:31.500+03:00 INFO  [cluster-6ad4a7bf7f2949ad147f7802-localhost:64885] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64885, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2951542, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b2cee2ea6b3a:27017, hosts=[b2cee2ea6b3a:27017], passives=[], arbiters=[], primary='b2cee2ea6b3a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4a7a5fbce1a928738fbec, counter=6}, lastWriteDate=Sun Oct 18 14:04:30 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:04:31.496+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4533840], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5ea24702, com.mongodb.Jep395RecordCodecProvider@1da2219c, com.mongodb.KotlinCodecProvider@49a46f29, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64885], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@121392f4], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:04:34.209+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:04:34.210+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:04:34.212+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T14:04:34.246+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 3.328 seconds (process running for 30.271)
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 4.904 s <<< FAILURE! -- in com.agilityhub.core.identity.api.IdentityCoreIT
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_08_neutralRequestDeliversSystemMailAfterCommitAndRedeemsExactlyOnce -- Time elapsed: 0.385 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "_o47AxuOyBYrYIChv9Y5O6Be09GzxBSUa3kXvSGOaCU"
+ but was: "EsoXtJryKJQ28wPgFmAwoh5SXSZuIJJnQzgBqP1AcaA"
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_08_neutralRequestDeliversSystemMailAfterCommitAndRedeemsExactlyOnce(IdentityCoreIT.java:111)
+
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword -- Time elapsed: 1.120 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Your AgilityHub password has changed
+
+Your account password has been set or changed from: {device}. If you did not make this change, recover access through AgilityHub ID.
+
+Example Agility Club
+This security email relates to your AgilityHub account."
+to contain:
+  "from: Firefox / Linux." 
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword(IdentityCoreIT.java:258)
+
+2026-10-18T14:04:35.819+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.OidcIT]: OidcIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:35.821+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.OidcIT
+2026-10-18T14:04:35.822+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.OidcIT]: OidcIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:35.822+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:35.822+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:35.823+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.OidcIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:04:35.847+03:00 INFO  [main] com.agilityhub.core.identity.api.OidcIT traceId= clubId= accountId= : Starting OidcIT using Java [redacted] with PID 61857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red)
+2026-10-18T14:04:35.847+03:00 INFO  [main] com.agilityhub.core.identity.api.OidcIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:04:36.215+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:04:36.246+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 30 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:04:36.302+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1b808b37], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5ea24702, com.mongodb.Jep395RecordCodecProvider@1da2219c, com.mongodb.KotlinCodecProvider@49a46f29, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64885], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@780fa845], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:04:36.304+03:00 INFO  [cluster-6ad4a7c47f2949ad147f7803-localhost:64885] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64885, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1073875, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b2cee2ea6b3a:27017, hosts=[b2cee2ea6b3a:27017], passives=[], arbiters=[], primary='b2cee2ea6b3a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4a7a5fbce1a928738fbec, counter=6}, lastWriteDate=Sun Oct 18 14:04:35 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:04:38.211+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:04:38.211+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:04:38.213+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T14:04:38.237+03:00 INFO  [main] com.agilityhub.core.identity.api.OidcIT traceId= clubId= accountId= : Started OidcIT in 2.412 seconds (process running for 34.263)
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 2.784 s <<< FAILURE! -- in com.agilityhub.core.identity.api.OidcIT
+[ERROR] com.agilityhub.core.identity.api.OidcIT.T_01_13_INC_37_anEndedOrExpiredGrantNoLongerHoldsTheRotation -- Time elapsed: 0.173 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.identity.api.OidcIT.T_01_13_INC_37_anEndedOrExpiredGrantNoLongerHoldsTheRotation(OidcIT.java:294)
+
+[ERROR] com.agilityhub.core.identity.api.OidcIT.T_01_13_INC_37_aLiveImpersonationSignedByThePreviousKeyHoldsTheRotation -- Time elapsed: 0.157 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.identity.api.OidcIT.T_01_13_INC_37_aLiveImpersonationSignedByThePreviousKeyHoldsTheRotation(OidcIT.java:276)
+
+2026-10-18T14:04:38.605+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.PlatformDomainsIT]: PlatformDomainsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.632+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.PlatformDomainsIT
+2026-10-18T14:04:38.633+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.PlatformDomainsIT]: PlatformDomainsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.633+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.634+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.PlatformDomainsIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.164 s <<< FAILURE! -- in com.agilityhub.core.platform.api.PlatformDomainsIT
+[ERROR] com.agilityhub.core.platform.api.PlatformDomainsIT.T_17_03_INC_64_aVerifiedAdminDomainServesTheAdminAppOnceItsVerificationCommits -- Time elapsed: 0.132 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 200
+ but was: 401
+	at com.agilityhub.core.platform.api.PlatformDomainsIT.app(PlatformDomainsIT.java:79)
+	at com.agilityhub.core.platform.api.PlatformDomainsIT.T_17_03_INC_64_aVerifiedAdminDomainServesTheAdminAppOnceItsVerificationCommits(PlatformDomainsIT.java:91)
+
+2026-10-18T14:04:38.769+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.RingSetupsIT]: RingSetupsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.793+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.courses.api.RingSetupsIT
+2026-10-18T14:04:38.793+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.RingSetupsIT]: RingSetupsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.794+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.courses.api.CourseItSupport]: CourseItSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.794+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:04:38.794+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.courses.api.RingSetupsIT
+2026-10-18T14:04:38.895+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#com.agilityhub.core.courses.api.CourseRequests$RingGeometryRequest(Double, Double, Double, Double, Surface, String, List, List, List, Long)
+2026-10-18T14:04:38.896+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#com.agilityhub.core.courses.api.CourseRequests$RingGeometryRequest(Double, Double, Double, Double, Surface, String, List, List, List, Long)
+2026-10-18T14:04:38.896+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#com.agilityhub.core.courses.api.CourseRequests$RingGeometryRequest(Double, Double, Double, Double, Surface, String, List, List, List, Long)
+2026-10-18T14:04:38.896+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: doors
+2026-10-18T14:04:38.897+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#markers()
+2026-10-18T14:04:38.897+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#noGoZones()
+2026-10-18T14:04:38.897+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: markers
+2026-10-18T14:04:38.897+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingGeometryRequest#doors()
+2026-10-18T14:04:38.898+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: noGoZones
+2026-10-18T14:04:38.917+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingDoor#com.agilityhub.core.courses.domain.CourseParts$RingDoor(String, String, DoorSide, Double, Double, DoorFlow, Double, List, Boolean, String)
+2026-10-18T14:04:38.917+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingDoor#polygonPointsM()
+2026-10-18T14:04:38.918+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: polygonPointsM
+2026-10-18T14:04:38.918+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingNoGoZone#com.agilityhub.core.courses.domain.CourseParts$RingNoGoZone(String, String, List, Double)
+2026-10-18T14:04:38.919+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: polygonPointsM
+2026-10-18T14:04:38.919+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=f548c14d-2d9e-4241-b9f8-2d325bd4b019 clubId=e9t2-club-a accountId=e9t2-ADMIN : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingNoGoZone#polygonPointsM()
+2026-10-18T14:04:38.971+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: CourseRequest#tags()
+2026-10-18T14:04:38.971+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: CourseRequest#levelIds()
+2026-10-18T14:04:38.971+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: CourseRequest#com.agilityhub.core.courses.api.CourseRequests$CourseRequest(Map, Discipline, CourseSource, JsonNode, Integer, String, String, String, String, LocalDate, String, AgilityHubLevel, List, List, String, Visibility, SizeCategory, Double)
+2026-10-18T14:04:38.972+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: CourseRequest#com.agilityhub.core.courses.api.CourseRequests$CourseRequest(Map, Discipline, CourseSource, JsonNode, Integer, String, String, String, String, LocalDate, String, AgilityHubLevel, List, List, String, Visibility, SizeCategory, Double)
+2026-10-18T14:04:38.972+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: tags
+2026-10-18T14:04:38.972+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=5d076aa2-c6c8-42e8-91d4-df3e6af7f66c clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: levelIds
+2026-10-18T14:04:39.038+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#sizes()
+2026-10-18T14:04:39.038+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: sizes
+2026-10-18T14:04:39.038+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#grades()
+2026-10-18T14:04:39.038+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: resolvedObstacles
+2026-10-18T14:04:39.038+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: grades
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#warnings()
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: warnings
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#com.agilityhub.core.courses.api.CourseRequests$PlacementRequest(String, Long, String, PlacementTransform, PlacementMode, Double, List, List, String, String, Boolean, PlacementStatus, PlacementUse, Instant, List, List, String)
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#com.agilityhub.core.courses.api.CourseRequests$PlacementRequest(String, Long, String, PlacementTransform, PlacementMode, Double, List, List, String, String, Boolean, PlacementStatus, PlacementUse, Instant, List, List, String)
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#com.agilityhub.core.courses.api.CourseRequests$PlacementRequest(String, Long, String, PlacementTransform, PlacementMode, Double, List, List, String, String, Boolean, PlacementStatus, PlacementUse, Instant, List, List, String)
+2026-10-18T14:04:39.039+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#com.agilityhub.core.courses.api.CourseRequests$PlacementRequest(String, Long, String, PlacementTransform, PlacementMode, Double, List, List, String, String, Boolean, PlacementStatus, PlacementUse, Instant, List, List, String)
+2026-10-18T14:04:39.040+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: PlacementRequest#resolvedObstacles()
+2026-10-18T14:04:39.041+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: numbers
+2026-10-18T14:04:39.041+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: ResolvedObstacle#numbers()
+2026-10-18T14:04:39.041+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=91692a42-f17e-4d30-a37a-d426f9601ee5 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: ResolvedObstacle#com.agilityhub.core.courses.domain.CourseParts$ResolvedObstacle(String, ObstacleType, Double, Double, Double, List)
+2026-10-18T14:04:39.096+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=768770dc-246f-4ce2-924c-27fd34d5e7f3 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingSetupRequest#com.agilityhub.core.courses.api.CourseRequests$RingSetupRequest(String, SetupKind, String, String, String, AgilityHubLevel, List, LocalDate, String)
+2026-10-18T14:04:39.096+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=768770dc-246f-4ce2-924c-27fd34d5e7f3 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: levelIds
+2026-10-18T14:04:39.096+03:00 WARN  [main] o.h.v.i.m.a.CascadingMetaDataBuilder traceId=768770dc-246f-4ce2-924c-27fd34d5e7f3 clubId=e9t2-club-a accountId=e9t2-INSTRUCTOR : HV000271: Using `@Valid` on a container (java.util.List) is deprecated. You should apply the annotation on the type argument(s). Affected element: RingSetupRequest#levelIds()
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.591 s <<< FAILURE! -- in com.agilityhub.core.courses.api.RingSetupsIT
+[ERROR] com.agilityhub.core.courses.api.RingSetupsIT.T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer -- Time elapsed: 0.375 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[placement of a deleted course] 
+Expecting value to be true but was false
+	at com.agilityhub.core.courses.api.RingSetupsIT.T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer(RingSetupsIT.java:533)
+
+[ERROR] com.agilityhub.core.courses.api.RingSetupsIT.T_16_16_INC_69_theSetupsProjectionAndTheCourseReadAgreeOnTheShownCourse -- Time elapsed: 0.188 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET /api/v1/courses/e4082f87-fb69-4e7f-9fa2-c850f6651673 {"id":"e4082f87-fb69-4e7f-9fa2-c850f6651673","ownerType":"CLUB","clubId":"e9t2-club-a","ownerAccountId":null,"visibility":"CLUB","name":"Agility S","nameI18n":null,"discipline":"AGILITY","designerName":null,"designedOn":null,"eventName":null,"agilityhubLevel":null,"levelIds":[],"tags":[],"notes":null,"source":"SMARTER","sourceCourseId":null,"sourceFileKey":null,"imageFileKey":null,"imageUrl":null,"thumbnailFileKey":null,"thumbnailUrl":null,"normalizedJson":{"id":"fictional-course","source":"smarter-agility","sourceFileName":"fictional.txt","title":"Practice course","titleRaw":"Practice course","units":"M","designLengthMeters":40,"designWidthMeters":20,"canvasWidth":800,"canvasHeight":400,"origin":"LB","metadata":{"type":"","courseType":"Agility","grade":"1","category":"","location":"","designer":"Example Designer","organization":"","date":"2026-10-08","exportVersion":null,"obstacleSummary":null},"obstacles":[{"id":"obstacle-0","sourceId":"source-0","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}},{"id":"obstacle-1","sourceId":"source-1","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}},{"id":"obstacle-2","sourceId":"source-2","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}}],"numbers":[{"id":"number-a","text":"1","sequenceNumber":1,"xMeters":9,"yMeters":8,"linkedObstacleSourceId":"1","obstacleConnectionPoint":null,"rawMetadata":{}}],"noGoZones":[],"ignoredLogos":[],"rawMetadata":{"planner.version":1,"$original":"fictional"}},"schemaVersion":1,"designLengthM":40.0,"designWidthM":20.0,"canvasWidth":800.0,"canvasHeight":400.0,"origin":"LB","courseGrade":"1","courseType":"Agility","sizeCategory":null,"stats":{"obstacleCount":3,"pathLengthM":0.0,"bbox":{"w":40.0,"h":20.0}},"version":0,"createdAt":"2026-10-05T08:00:00Z","createdByAccountId":"e9t2-INSTRUCTOR","updatedAt":"2026-10-05T08:00:00Z"}] 
+expected: 404
+ but was: 200
+	at com.agilityhub.core.courses.api.CourseItSupport.perform(CourseItSupport.java:97)
+	at com.agilityhub.core.courses.api.CourseItSupport.ok(CourseItSupport.java:104)
+	at com.agilityhub.core.courses.api.CourseItSupport.error(CourseItSupport.java:107)
+	at com.agilityhub.core.courses.api.RingSetupsIT.T_16_16_INC_69_theSetupsProjectionAndTheCourseReadAgreeOnTheShownCourse(RingSetupsIT.java:552)
+
+[ERROR] Failures: 
+[ERROR]   CensusIT.T_01_23_INC_37_anAdminsRenameOfAMemberRenamesTheAccountOfItsOnlyClub:186 
+expected: "Laura Serra Puig"
+ but was: "Example one"
+[ERROR]   RingSetupsIT.T_16_08_T_16_09_aPlacementWhoseCourseIsDeletedNeitherRegistersNorHasAViewer:533 [placement of a deleted course] 
+Expecting value to be true but was false
+[ERROR]   RingSetupsIT.T_16_16_INC_69_theSetupsProjectionAndTheCourseReadAgreeOnTheShownCourse:552->CourseItSupport.error:107->CourseItSupport.ok:104->CourseItSupport.perform:97 [GET /api/v1/courses/e4082f87-fb69-4e7f-9fa2-c850f6651673 {"id":"e4082f87-fb69-4e7f-9fa2-c850f6651673","ownerType":"CLUB","clubId":"e9t2-club-a","ownerAccountId":null,"visibility":"CLUB","name":"Agility S","nameI18n":null,"discipline":"AGILITY","designerName":null,"designedOn":null,"eventName":null,"agilityhubLevel":null,"levelIds":[],"tags":[],"notes":null,"source":"SMARTER","sourceCourseId":null,"sourceFileKey":null,"imageFileKey":null,"imageUrl":null,"thumbnailFileKey":null,"thumbnailUrl":null,"normalizedJson":{"id":"fictional-course","source":"smarter-agility","sourceFileName":"fictional.txt","title":"Practice course","titleRaw":"Practice course","units":"M","designLengthMeters":40,"designWidthMeters":20,"canvasWidth":800,"canvasHeight":400,"origin":"LB","metadata":{"type":"","courseType":"Agility","grade":"1","category":"","location":"","designer":"Example Designer","organization":"","date":"2026-10-08","exportVersion":null,"obstacleSummary":null},"obstacles":[{"id":"obstacle-0","sourceId":"source-0","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}},{"id":"obstacle-1","sourceId":"source-1","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}},{"id":"obstacle-2","sourceId":"source-2","sourceCode":"jb","obstacleType":"Jump","xMeters":10,"yMeters":8,"rotationDegrees":45,"nominalLengthMeters":null,"controlPointsMeters":null,"colorKey":null,"rawMetadata":{"planner.version":1,"$original":{"x":200}}}],"numbers":[{"id":"number-a","text":"1","sequenceNumber":1,"xMeters":9,"yMeters":8,"linkedObstacleSourceId":"1","obstacleConnectionPoint":null,"rawMetadata":{}}],"noGoZones":[],"ignoredLogos":[],"rawMetadata":{"planner.version":1,"$original":"fictional"}},"schemaVersion":1,"designLengthM":40.0,"designWidthM":20.0,"canvasWidth":800.0,"canvasHeight":400.0,"origin":"LB","courseGrade":"1","courseType":"Agility","sizeCategory":null,"stats":{"obstacleCount":3,"pathLengthM":0.0,"bbox":{"w":40.0,"h":20.0}},"version":0,"createdAt":"2026-10-05T08:00:00Z","createdByAccountId":"e9t2-INSTRUCTOR","updatedAt":"2026-10-05T08:00:00Z"}] 
+expected: 404
+ but was: 200
+[ERROR]   IdentityCoreIT.T_01_08_neutralRequestDeliversSystemMailAfterCommitAndRedeemsExactlyOnce:111 
+expected: "_o47AxuOyBYrYIChv9Y5O6Be09GzxBSUa3kXvSGOaCU"
+ but was: "EsoXtJryKJQ28wPgFmAwoh5SXSZuIJJnQzgBqP1AcaA"
+[ERROR]   IdentityCoreIT.T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword:258 
+Expecting actual:
+  "Your AgilityHub password has changed
+
+Your account password has been set or changed from: {device}. If you did not make this change, recover access through AgilityHub ID.
+
+Example Agility Club
+This security email relates to your AgilityHub account."
+to contain:
+  "from: Firefox / Linux." 
+[ERROR]   ImpersonationHandoffIT.T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce:193 
+[List check single element] (1 failure)
+-- failure 1 --
+Expecting map:
+  {"actorAccountId"="account-a", "memberId"="member-target"}
+to contain entries:
+  ["grantId"="3a493d11-1d43-408c-b650-1dc271a5f09a"]
+but could not find the following map entries:
+  ["grantId"="3a493d11-1d43-408c-b650-1dc271a5f09a"]
+at ImpersonationHandoffIT.lambda$T_01_11_INC_37_anImpersonationThatRunsOutEndsExpiredOnce$4(ImpersonationHandoffIT.java:194)
+[ERROR]   ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation:158 Status expected:<403> but was:<200>
+[ERROR]   LearnImportIT.T_01_14_INC_37_learnBcryptOfTenOrTwelveRoundsImportsAndSignsInAndAMergeKeepsTheOnboarding:135 
+Expecting actual:
+  [INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD]
+to contain exactly (and in same order):
+  [NEW_ACCOUNT, NEW_ACCOUNT, INVALID_PASSWORD, PASSWORD_ADOPTED]
+but some elements were not found:
+  [NEW_ACCOUNT, NEW_ACCOUNT, PASSWORD_ADOPTED]
+and others were not expected:
+  [INVALID_PASSWORD, INVALID_PASSWORD, INVALID_PASSWORD]
+
+[ERROR]   LearnImportIT.T_01_14_existingAccountsKeepProfileSecurityAndOtherExternalIdsAndOnlyAdoptMissingHash:117 
+Expecting value to be false but was true
+[ERROR]   OidcIT.T_01_13_INC_37_aLiveImpersonationSignedByThePreviousKeyHoldsTheRotation:276 
+Expecting code to raise a throwable.
+[ERROR]   OidcIT.T_01_13_INC_37_anEndedOrExpiredGrantNoLongerHoldsTheRotation:294 
+Expecting code to raise a throwable.
+[ERROR]   PlatformDomainsIT.T_17_03_INC_64_aVerifiedAdminDomainServesTheAdminAppOnceItsVerificationCommits:91->app:79 
+expected: 200
+ but was: 401
+[ERROR] Tests run: 12, Failures: 12, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/red/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+# Command: python3 .local/make_red.py && ./mvnw -q -f .local/red/pom.xml verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true -Dit.test='RingSetupsIT#T_16_16_INC_69*+T_16_08_T_16_09_aPlacementWhoseCourseIsDeleted*,OidcIT#T_01_13_INC_37*,ImpersonationHandoffIT#T_01_11_claims*+T_01_11_INC_37*,IdentityCoreIT#T_01_08_neutral*+T_01_09_INC_37*,LearnImportIT#T_01_14_INC_37*+T_01_14_existingAccounts*,CensusIT#T_01_23_INC_37*,PlatformDomainsIT#T_17_03_INC_64*'  -> exit 1 (12 run, 12 failures)
+# .local/make_red.py (scratch, not committed):
+#   """Scratch (not committed; its text is copied into the evidence log): a copy of the working tree with only the behaviour of each
+#   E11-T09 fix reverted, so the new and changed tests can be run red. Every substitution must match exactly once."""
+#   from pathlib import Path
+#   import shutil
+#   import subprocess
+#   import sys
+#   
+#   ROOT = Path(__file__).resolve().parents[1]
+#   RED = ROOT / '.local/red'
+#   if RED.exists():
+#       shutil.rmtree(RED)
+#   RED.mkdir(parents=True)
+#   for name in ('src', 'docs', 'seeds', 'bin', 'deploy', '.mvn'):
+#       shutil.copytree(ROOT / name, RED / name, symlinks=True)
+#   for name in ('pom.xml', 'mvnw'):
+#       shutil.copy2(ROOT / name, RED / name)
+#   
+#   J = 'src/main/java/com/agilityhub/core/'
+#   
+#   
+#   def head(path):
+#       """The file as it is at HEAD (read-only git)."""
+#       (RED / path).write_text(subprocess.check_output(['git', 'show', 'HEAD:' + path], cwd=ROOT, text=True))
+#       print('HEAD   ' + path)
+#   
+#   
+#   def revert(path, new, old):
+#       file = RED / path
+#       text = file.read_text()
+#       if text.count(new) != 1:
+#           sys.exit(f'{path}: expected one match, found {text.count(new)}')
+#       file.write_text(text.replace(new, old))
+#       print('REVERT ' + path)
+#   
+#   
+#   # INC-69: the three copies of the shown-course rule, and the placement of a deleted course.
+#   for path in ('courses/application/RingSetupService.java', 'courses/application/CourseAccess.java', 'courses/persistence/RingSetupRepository.java'):
+#       head(J + path)
+#   # INC-37 item 1: ImpersonationEnded without grantId and reason.
+#   revert(J + 'identity/domain/ImpersonationEvent.java',
+#          'return Map.of("actorAccountId", actorAccountId, "memberId", impersonatedMemberId, "grantId", aggregateId, "reason", reason);',
+#          'return Map.of("actorAccountId", actorAccountId, "memberId", impersonatedMemberId);')
+#   # Item 4: the import pins `$2y$12$` and re-flags onboarding on a merge.
+#   revert(J + 'identity/application/LearnImportService.java',
+#          'if (!PasswordHasher.IMPORTABLE_BCRYPT.matcher(fields.get(2)).matches()) { return INVALID_PASSWORD; }',
+#          'if (!fields.get(2).matches("\\\\$2y\\\\$12\\\\$[./A-Za-z0-9]{53}")) { return INVALID_PASSWORD; }')
+#   revert(J + 'identity/persistence/AccountRepository.java',
+#          '.set("externalIds.learnRole", learnRole);',
+#          '.set("externalIds.learnRole", learnRole)\n                .set("onboardingPending", true);')
+#   # Item 5: PATCH /me under impersonation.
+#   revert(J + 'identity/api/MeController.java',
+#          '@PatchMapping("/api/v1/me")\n    @PreAuthorize("isAuthenticated() and principal.claims[\'imp\'] != true")',
+#          '@PatchMapping("/api/v1/me")\n    @PreAuthorize("isAuthenticated()")')
+#   # Item 6: the rotation guard covers only the access token.
+#   revert(J + 'identity/application/SigningKeys.java',
+#          '\n                || grants != null && grants.liveSignedBefore(old.rotatedAt(), now))) {', ')) {')
+#   # Item 8: a bare SHA-256 of the address.
+#   revert(J + 'identity/application/MagicLinkService.java', 'capabilities.fingerprint(ip)', 'TokenService.digest(ip)')
+#   # Item 9: N-26 without the device.
+#   revert(J + 'identity/application/PasswordService.java',
+#          'Map.of("changed_at", clock.instant().toString(), "device", device(accountId, familyId))',
+#          'Map.of("changed_at", clock.instant().toString())')
+#   # Item 10: no Account.name sync.
+#   revert(J + 'clubs/census/application/MemberService.java', 'if (!own && !pending && !readmission && (diff', 'if (false && (diff')
+#   # INC-64: no internal app route.
+#   for path in ('platform/api/InternalDomainsController.java', 'configuration/E10ContractConfiguration.java', 'platform/application/HostTenantResolver.java'):
+#       head(J + path)
+#   print('RED TREE READY ' + str(RED))

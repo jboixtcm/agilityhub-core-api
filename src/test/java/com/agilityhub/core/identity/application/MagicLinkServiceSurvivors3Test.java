@@ -50,7 +50,8 @@ class MagicLinkServiceSurvivors3Test {
     final SystemNotificationService notifications = mock(SystemNotificationService.class);
     final MagicLinkService service = new MagicLinkService(accounts, memberships, tokens, transactions, settings, mock(EventPublisher.class),
             notifications, new InMemoryRegisteredClientRepository(idWeb()), mock(TenantHostResolver.class),
-            mock(Executor.class), Clock.fixed(NOW, ZoneOffset.UTC), "https://id.example.test");
+            mock(Executor.class), Clock.fixed(NOW, ZoneOffset.UTC), "https://id.example.test",
+            mock(com.agilityhub.core.shared.application.SignupCapabilities.class));
 
     /** The invitation never reads the client registry; the repository only needs one registered client. */
     static RegisteredClient idWeb() {

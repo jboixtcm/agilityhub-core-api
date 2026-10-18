@@ -1,0 +1,26 @@
+E..........
+======================================================================
+ERROR: test_E11_T07_spring_framework_7_removes_the_spring_webmvc_exceptions (__main__.ScanPolicyTest.test_E11_T07_spring_framework_7_removes_the_spring_webmvc_exceptions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/inc70-old/bin/security-scan-test.py", line 73, in test_E11_T07_spring_framework_7_removes_the_spring_webmvc_exceptions
+    active, expired = suppressions(document, TODAY)
+                      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api-c/.local/inc70-old/bin/security-scan", line 45, in suppressions
+    raise ValueError('Suppression %s has a future recorded date' % entry['id'])
+ValueError: Suppression CVE-fixture-70 has a future recorded date
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+FAILED (errors=1)
+
+# Command: python3 .local/inc70-old/bin/security-scan-test.py  -> exit 1 (HEAD test; fixture recorded 2026-10-18)
+# Scratch layout: bin/security-scan (HEAD), bin/security-scan-test.py (HEAD or INC-70), bin/security-scan-suppressions.json:
+#   {
+#     "policy": "INC-70 counterfactual fixture: one fictional exception that meets the policy.",
+#     "suppressions": [
+#       {"id": "CVE-fixture-70", "package": "org.example:fixture", "installedVersion": "1.2.3", "recorded": "2026-10-18",
+#        "expires": "2026-12-01", "task": "E11-T09", "reason": "Fictional INC-70 fixture: no fixed release exists on the line in use yet."}
+#     ]
+#   }

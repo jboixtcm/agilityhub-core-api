@@ -42,7 +42,8 @@ class CensusIdentityServiceSurvivorsTest {
     final RateLimits limits = new RateLimits(true, Map.of(
             RateLimits.Route.MAGIC_LINK_EMAIL, new RateLimits.Limit(10, Duration.ofHours(1)),
             RateLimits.Route.MAGIC_LINK_IP, new RateLimits.Limit(60, Duration.ofHours(1))), Clock.fixed(NOW, ZoneOffset.UTC));
-    final CensusIdentityService service = new CensusIdentityService(accounts, memberships, links, limits, clubs);
+    final CensusIdentityService service = new CensusIdentityService(accounts, memberships, links, limits, clubs,
+            mock(com.agilityhub.core.identity.persistence.AccountMembershipRepository.class));
 
     @BeforeEach void setUp() { TenantContext.open(CLUB); }
     @AfterEach void tearDown() { TenantContext.clear(); }

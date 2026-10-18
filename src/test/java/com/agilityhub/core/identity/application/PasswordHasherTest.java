@@ -5,7 +5,44 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PasswordHasherTest {
-    final PasswordHasher hasher = new PasswordHasher();
+    // One instance: building one measures the slowest verification (INC-37).
+    static final PasswordHasher hasher = new PasswordHasher();
+
+    /** The median of five timed runs of {@code verification}, in nanoseconds. */
+    static long median(Runnable verification) {
+        long[] times = new long[5];
+        for (int run = 0; run < times.length; run++) {
+            long start = System.nanoTime();
+            verification.run();
+            times[run] = System.nanoTime() - start;
+        }
+        java.util.Arrays.sort(times);
+        return times[2];
+    }
+
+    /**
+     * INC-37 (T-01-02 «temps constant (dummy hash) mesurat ± 20 %»): a missing account, an account without a password, an unusable
+     * hash, an argon2id hash and Learn's bcrypt hashes (cost 10 and 12), right or wrong, take the same time within 20 %.
+     */
+    @Test void T_01_02_INC_37_everyVerificationTakesTheSameTimeWithinTwentyPercent() {
+        String argon = hasher.hash("Example password");
+        var cost12 = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(
+                org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2Y, 12).encode("Example password");
+        var cost10 = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(
+                org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2Y, 10).encode("Example password");
+        hasher.verify("warm-up", argon); hasher.verify("warm-up", cost12); hasher.verify("warm-up", null);
+        long missing = median(() -> hasher.verify("Example password", null));
+        var cases = new java.util.LinkedHashMap<String, Runnable>();
+        cases.put("unusable hash", () -> hasher.verify("Example password", "unsupported"));
+        cases.put("argon2id, wrong", () -> hasher.verify("wrong", argon));
+        cases.put("argon2id, right", () -> hasher.verify("Example password", argon));
+        cases.put("bcrypt 12, wrong", () -> hasher.verify("wrong", cost12));
+        cases.put("bcrypt 12, right", () -> hasher.verify("Example password", cost12));
+        cases.put("bcrypt 10, wrong", () -> hasher.verify("wrong", cost10));
+        cases.put("bcrypt 10, right", () -> hasher.verify("Example password", cost10));
+        cases.forEach((name, verification) -> assertThat((double) median(verification))
+                .as("%s vs a missing account (%d ms)", name, missing / 1_000_000).isBetween(missing * 0.8, missing * 1.2));
+    }
     @Test void T_01_02_learnPhpCost12HashAndAllBcryptPrefixesVerify() throws Exception {
         String php;
         try (var input = getClass().getResourceAsStream("/fixtures/identity/php-bcrypt.txt")) {

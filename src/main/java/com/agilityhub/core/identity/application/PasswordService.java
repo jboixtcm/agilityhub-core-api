@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.messaging.application.SystemNotificationService
 import com.agilityhub.core.identity.domain.IdentityEvent;
 import com.agilityhub.core.identity.persistence.AccountRepository;
 import com.agilityhub.core.identity.persistence.AccountSessionRepository;
+import com.agilityhub.core.identity.persistence.RefreshToken;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
@@ -64,6 +65,11 @@ public class PasswordService {
             events.publish(IdentityEvents.of(IdentityEvent.Kind.PasswordChanged, null, accountId, clock.instant(), Map.of("accountId", accountId)));
             return null;
         });
-        notifications.send("N-26", accountId, Map.of("changed_at", clock.instant().toString()));
+        // INC-37 (S01 §8, N-26 {changed_at, device}): the device of the session that made the change, as `/me/sessions` names it.
+        notifications.send("N-26", accountId, Map.of("changed_at", clock.instant().toString(), "device", device(accountId, familyId)));
+    }
+    private String device(String accountId, String familyId) {
+        return tokens.sessions(accountId).stream().filter(session -> session.familyId().equals(familyId)).map(RefreshToken::deviceLabel)
+                .filter(Objects::nonNull).findFirst().orElse(TokenService.device(null));
     }
 }

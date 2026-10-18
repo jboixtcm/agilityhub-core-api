@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T09: api correction pass, part 3 (INC-37, INC-64, INC-69, INC-70, INC-71; ruling E132). Contract changes (descriptions, `PATCH /me` under impersonation) in `docs/openapi/CHANGELOG.md` (2026-10-18 · E11-T09).
+  - INC-64: Caddy asks the Core which SPA a verified club host serves (`forward_auth` to the internal `GET /internal/domains/app?host=`, `X-Club-App: clubs | clubs-admin`); `CLUB_ADMIN_HOSTS` and DEPLOY.md's manual step are gone. `bin/deploy-smoke` verifies a back-office host while Caddy runs and checks it serves the back office with no reload.
+  - INC-37: `ImpersonationEnded{grantId, reason: LOGOUT·EXPIRED}`, also when a grant runs out (`ImpersonationExpiry`, every minute; grants kept a day after they end); every password check lasts as long as the slowest (T-01-02, ± 20 %); the Learn import takes bcrypt `$2y$/$2a$/$2b$` up to 12 rounds and no longer re-asks a merged account's onboarding; `PATCH /me` refuses an impersonation token; a key rotation waits for the impersonation and support JWTs of the previous key; `magic_link_tokens.ipHash` is a keyed HMAC; N-26 names the device; an admin's rename of a member renames the account of its only club (R-01-14, T-01-23).
+  - INC-69: one rule (`RingSetupRules.shownCourseId`) decides the course a setup shows for the member's projection and the member's course read; `placement` is `null` when the shown course was deleted; S16 §5's session diagram uses the code's statuses.
+  - INC-70: `jackson-bom` 3.1.7 and `jackson-2-bom` 2.21.7; the scan test rules out only the two retired spring-webmvc exceptions; DEPLOY.md names the changed Compose file and the Micrometer starter.
+  - INC-71: `BuildSessionsIT` waits for the stream's `Content-Type` instead of reading it at once.
+
 - E11-T01 round 2: S14 RGPD fixes (ruling E132).
   - T-14-19 in full: after the erasure, `GET /invoices/{id}` reads the receipt as «Abonat suprimit #87», and `POST /signup` with the member's old DNI creates a new member (new account, new number), not a readmission.
   - R-14-15: an erased member's `Instructor.shortName` and the attendance summaries its account saved (`ClassSession.attendanceSummary.savedByName`, matched by the new `savedByAccountId` that S10 now stores) become «Abonat suprimit #87». The account stays while another club's membership is not `ERASED` (a `SUSPENDED` one too), now tested and written into R-14-15.

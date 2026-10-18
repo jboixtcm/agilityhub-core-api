@@ -118,6 +118,19 @@ class BuildSessionsIT extends CourseItSupport {
             return responses;
         } finally { pool.shutdownNow(); }
     }
+    /**
+     * INC-71: a MockMvc stream's headers are written by its first frame (`:open`), which the senders' pool may send after the
+     * handler has returned. The `Content-Type` is read once it is there, never before (at most {@link #LIVE}).
+     */
+    static String streamContentType(org.springframework.test.web.servlet.MvcResult stream) throws InterruptedException {
+        long deadline = System.nanoTime() + LIVE.toNanos();
+        String type = stream.getResponse().getContentType();
+        while (type == null && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+            type = stream.getResponse().getContentType();
+        }
+        return type;
+    }
     String code(org.springframework.mock.web.MockHttpServletResponse response) throws Exception {
         String body = response.getContentAsString();
         return body.startsWith("{") ? mapper.readTree(body).path("code").asText() : "";
@@ -325,7 +338,7 @@ class BuildSessionsIT extends CourseItSupport {
         var stream = mvc.perform(get(events).header("Host", HOST).param("access_token", instructor)).andReturn();
         assertThat(stream.getResponse().getStatus()).isEqualTo(200);
         assertThat(stream.getRequest().isAsyncStarted()).isTrue();
-        assertThat(stream.getResponse().getContentType()).startsWith("text/event-stream");
+        assertThat(streamContentType(stream)).startsWith("text/event-stream");
         for (var request : List.of(get("/api/v1/build-sessions/" + id), mark(id, "obstacle-0", "PLACED"), finish(id),
                 get("/api/v1/build-sessions/" + id + "/export"), join("ABCDEF"))) {
             error(request.header("Host", HOST).param("access_token", instructor), 401, "UNAUTHENTICATED");

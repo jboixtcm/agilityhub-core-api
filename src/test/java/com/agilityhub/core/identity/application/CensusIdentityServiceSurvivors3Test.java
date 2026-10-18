@@ -34,7 +34,7 @@ class CensusIdentityServiceSurvivors3Test {
     final AccountRepository accounts = mock(AccountRepository.class);
     final MembershipRepository memberships = mock(MembershipRepository.class);
     final CensusIdentityService service = new CensusIdentityService(accounts, memberships, mock(MagicLinkService.class),
-            mock(RateLimits.class), mock(CensusClubSettings.class));
+            mock(RateLimits.class), mock(CensusClubSettings.class), mock(com.agilityhub.core.identity.persistence.AccountMembershipRepository.class));
 
     @BeforeEach void setUp() { TenantContext.open(CLUB); }
     @AfterEach void tearDown() { TenantContext.clear(); }

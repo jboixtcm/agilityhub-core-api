@@ -2,6 +2,7 @@
 """E11-T04 proof with fictional data, random project and cleanup on every outcome."""
 import argparse
 import base64
+import hashlib
 import http.cookies
 import json
 import os
@@ -326,6 +327,42 @@ def main():
             assert '/internal/domains/allowed?host=approved.localhost' in seen
             assert '/internal/domains/allowed?host=unapproved.localhost' in seen
             print('PASS TLS certificate issued only for approved.localhost; real bridge forwards host=; other host denied', flush=True)
+            # INC-64 (E11-T09): the Core names each club host's SPA per request; a clubs-admin domain verified while Caddy runs
+            # serves the back office on its next request, with Caddy neither reloaded nor restarted.
+            def caddy_state():
+                config = docker('exec', '-T', 'caddy', 'wget', '-qO-', 'http://127.0.0.1:2019/config/', text=True).stdout
+                container = docker('ps', '-q', 'caddy', text=True).stdout.strip()
+                state = json.loads(run(['docker', 'inspect', container], text=True).stdout)[0]
+                return hashlib.sha256(config.encode()).hexdigest(), state['State']['StartedAt'], state['RestartCount']
+            before = caddy_state()
+            body, _ = request('approved-admin.localhost', '/a/spa/deep-link')
+            assert '<h1>AgilityHub clubs</h1>' in body, 'a host that is not a verified clubs-admin domain serves the members SPA'
+            body, _ = request('approved.localhost', '/', extra_headers=('X-Club-App: clubs-admin',))
+            assert '<h1>AgilityHub clubs</h1>' in body, "a client's own X-Club-App changes nothing"
+            fixture = ROOT / 'deploy/local/verify-admin-host.js'
+            verify_command = compose + ['run', '--rm', '--no-deps', '-T', '-v', f'{fixture}:/opt/verify-admin-host.js:ro',
+                                        '--entrypoint', 'mongosh', 'local-hosts', '--quiet', '--nodb', '/opt/verify-admin-host.js']
+            verified = run(verify_command, env=environment, check=False, text=True)
+            record(verify_command, verified)
+            print('COMMAND verify-admin-host.js -> exit ' + str(verified.returncode), flush=True)
+            if verified.returncode:
+                raise RuntimeError('Back-office domain fixture failed')
+            for path in ('/', '/a/spa/deep-link', '/index.html'):
+                body, headers = request('approved-admin.localhost', path)
+                baseline(headers, spa=True)
+                assert 'cache-control: no-cache' in headers.lower()
+                assert '<h1>AgilityHub clubsadmin</h1>' in body, path
+                assert 'x-club-app' not in headers.lower()
+            body, _ = request('approved-admin.localhost', '/api/v1/branding')
+            assert json.loads(body)['club']['slug'] == 'canic'
+            body, headers = request('approved-admin.localhost', '/internal/domains/app?host=approved-admin.localhost')
+            assert '<h1>AgilityHub clubsadmin</h1>' in body and 'x-club-app' not in headers.lower(), 'a club host never proxies /internal/*'
+            request('core.localhost', '/internal/domains/app?host=approved-admin.localhost', expected=404)
+            body, _ = request('approved.localhost', '/')
+            assert '<h1>AgilityHub clubs</h1>' in body
+            assert caddy_state() == before, 'Caddy was reloaded or restarted'
+            print('PASS INC-64 verified clubs-admin host serves the back office without a Caddy reload; members host and spoofed '
+                  'X-Club-App serve clubs; /internal/domains/app unreachable from outside', flush=True)
             # Unauthenticated Mongo reads must fail despite working authenticated startup.
             unauth = docker('exec', '-T', 'mongo', 'mongosh', '--quiet', '--eval',
                             'db.getSiblingDB("agilityhub").clubs.findOne()', check=False)

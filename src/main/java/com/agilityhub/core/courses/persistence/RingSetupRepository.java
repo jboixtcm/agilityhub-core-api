@@ -32,11 +32,14 @@ public class RingSetupRepository extends CourseTenantRepository<RingSetup> {
     public boolean activeWithPlacement(String ringId) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("ringId").is(ringId).and("status").is("ACTIVE").and("placementId").ne(null)), RingSetup.class);
     }
-    /** R-16-16: whether an active setup of the club shows the course, directly or through one of {@code placementIds}. */
-    public boolean showsCourse(String courseId, Collection<String> placementIds) {
-        var shows = placementIds.isEmpty() ? Criteria.where("courseId").is(courseId)
+    /**
+     * R-16-16: the club's active setups that name the course, directly or through one of {@code placementIds}. Naming it is not
+     * showing it: `RingSetupRules.shownCourseId` decides that (INC-69).
+     */
+    public List<RingSetup> naming(String courseId, Collection<String> placementIds) {
+        var names = placementIds.isEmpty() ? Criteria.where("courseId").is(courseId)
                 : new Criteria().orOperator(Criteria.where("courseId").is(courseId), Criteria.where("placementId").in(placementIds));
-        return mongo.exists(tenantQuery().addCriteria(Criteria.where("status").is("ACTIVE")).addCriteria(shows), RingSetup.class);
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("status").is("ACTIVE")).addCriteria(names), RingSetup.class);
     }
     /** R-16-08: one page of the ring's setups, newest first (`setup_history`). */
     public List<RingSetup> history(String ringId, int page, int size) {

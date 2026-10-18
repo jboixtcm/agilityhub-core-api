@@ -9,7 +9,7 @@
 | `MagicLinkRequested` | accountId, clientId | S01 | N-25 |
 | `PasswordChanged` | accountId | S01 | N-26 |
 | `MembershipChanged` | accountId, clubId, `before`, `after` (els rols abans i després; 25-09: una sola grafia per a tots els emissors, E3-T10) | S01/S03/S05 | auditoria, cache de permisos |
-| `ImpersonationStarted` / `ImpersonationEnded` | actorAccountId, memberId | S01 | auditoria |
+| `ImpersonationStarted` / `ImpersonationEnded` | actorAccountId, memberId; `ImpersonationEnded` també grantId, reason (`LOGOUT` · `EXPIRED`, S01 §7; E11-T09, INC-37) | S01 | auditoria |
 | `ClubCreated` / `ClubUpdated` / `ClubModulesChanged` / `ClubStatusChanged` | clubId, diff | S02/S17 | cache de branding, auditoria |
 | `ParameterChanged` | key, before, after | S02 | cache de configuració, auditoria |
 | **Cens i alta** | | | |

@@ -37,6 +37,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     @Autowired AccountService accountService;
     @Autowired MembershipService membershipService;
     @Autowired MagicLinkService magicLinks;
+    @Autowired com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     @Autowired TokenService tokens;
     @Autowired AuthSettings authSettings;
     @Autowired IdentityTransactions transactions;
@@ -106,6 +107,8 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         var stored = mongo.findAll(MagicLinkToken.class).getFirst();
         assertThat(stored.tokenHash()).isEqualTo(TokenService.digest(value));
         assertThat(stored.expiresAt()).isEqualTo(clock.instant().plusSeconds(900));
+        // INC-37: the request's address is a keyed HMAC, never a bare SHA-256 that anyone can reverse by hashing every IPv4 address.
+        assertThat(stored.ipHash()).isEqualTo(capabilities.fingerprint("127.0.0.1")).isNotEqualTo(TokenService.digest("127.0.0.1"));
         assertThat(mongo.getCollection("magic_link_tokens").find().first().toJson()).doesNotContain(value);
         var email = ((FakeEmailSender) emailSender).lastTo("admin@example.test");
         assertThat(email.text()).contains("https://" + HOST + "/activacio?t=");
@@ -238,6 +241,21 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThat(otherSession.revokedAt()).isEqualTo(clock.instant());
         refresh(refreshValue(other), HOST, "clubs-app").andExpect(status().isBadRequest());
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk());
+    }
+
+    /** INC-37 (S01 §8, N-26 {changed_at, device}): the notice names the device of the session that changed the password, not another one. */
+    @Test void T_01_09_INC_37_theN26NoticeNamesTheDeviceThatChangedThePassword() throws Exception {
+        var other = readTokens(login(HOST, "admin@example.test", PASSWORD).andReturn().getResponse());
+        var firefox = readTokens(mvc.perform(post("/oauth2/token").header("Host", HOST).header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0")
+                .contentType("application/x-www-form-urlencoded").param("grant_type", "password").param("username", "admin@example.test").param("password", PASSWORD))
+                .andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(other.path("access_token").asText()).isNotBlank();
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(firefox)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional new password", "repeat", "Fictional new password"))))
+                .andExpect(status().isOk());
+        var notice = ((FakeEmailSender) emailSender).lastTo("admin@example.test");
+        assertThat(notice.subject()).isEqualTo("Your AgilityHub password has changed");
+        assertThat(notice.text()).contains("from: Firefox / Linux.").doesNotContain("Unknown device", "{device}");
     }
 
     @Test void T_01_09_E11_passwordMinimumCountsCodePointsAndAcceptsTheExactBoundary() throws Exception {

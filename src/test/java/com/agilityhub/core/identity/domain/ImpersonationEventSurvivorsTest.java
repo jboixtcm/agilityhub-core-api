@@ -8,16 +8,25 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * E11-T06 PIT survivors of {@link ImpersonationEvent} (S01 R-01-09, T-01-11; CATALEG_ESDEVENIMENTS `ImpersonationStarted`
- * / `ImpersonationEnded` {actorAccountId, memberId}): the grant is the aggregate and the back office the origin.
+ * / `ImpersonationEnded` {actorAccountId, memberId}): the grant is the aggregate and the back office the origin. INC-37: the end
+ * also names its grant and its reason (S01 §7 `ImpersonationEnded{grantId, reason: LOGOUT·EXPIRED}`).
  */
 class ImpersonationEventSurvivorsTest {
     @Test void T_01_11_anImpersonationEventCarriesTheCatalogShape() {
-        var event = new ImpersonationEvent(ImpersonationEvent.Kind.ImpersonationEnded, "club-a", "grant-1",
+        var event = new ImpersonationEvent(ImpersonationEvent.Kind.ImpersonationStarted, "club-a", "grant-1",
                 Instant.parse("2026-10-05T08:00:00Z"), "acc-admin", "member-1");
 
-        assertThat(event.type()).isEqualTo("ImpersonationEnded");
+        assertThat(event.type()).isEqualTo("ImpersonationStarted");
         assertThat(event.aggregateType()).isEqualTo("ImpersonationGrant");
         assertThat(event.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE);
         assertThat(event.payload()).isEqualTo(Map.of("actorAccountId", "acc-admin", "memberId", "member-1"));
+    }
+
+    @Test void T_01_11_INC_37_anImpersonationEndNamesItsGrantAndReason() {
+        var event = new ImpersonationEvent(ImpersonationEvent.Kind.ImpersonationEnded, "club-a", "grant-1",
+                Instant.parse("2026-10-05T09:00:00Z"), "acc-admin", "member-1", "EXPIRED");
+
+        assertThat(event.type()).isEqualTo("ImpersonationEnded");
+        assertThat(event.payload()).isEqualTo(Map.of("actorAccountId", "acc-admin", "memberId", "member-1", "grantId", "grant-1", "reason", "EXPIRED"));
     }
 }

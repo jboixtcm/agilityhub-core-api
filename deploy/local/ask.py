@@ -1,4 +1,4 @@
-"""Local-only S17 approval fixture. One host; the real bridge must translate it."""
+"""Local-only S17 approval fixture. Two hosts (INC-64 adds the back-office one); the real bridge must translate them."""
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from urllib.parse import parse_qs, urlsplit
@@ -18,7 +18,8 @@ class Ask(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(seen).encode())
             return
         seen.append(self.path)
-        allowed = url.path == '/internal/domains/allowed' and parse_qs(url.query) == {'host': ['approved.localhost']}
+        allowed = url.path == '/internal/domains/allowed' and parse_qs(url.query) in ({'host': ['approved.localhost']},
+                                                                                       {'host': ['approved-admin.localhost']})
         self.send_response(200 if allowed else 403)
         self.end_headers()
 

@@ -20,6 +20,10 @@
         <!-- E11-T03 / E11-T07: same-line security patch; Boot 4.1.1 manages 11.0.24, whose three fixable CRITICAL findings
              (fixed in 11.0.25) the scans reject. -->
         <tomcat.version>11.0.27</tomcat.version>
+        <!-- INC-70 (E11-T09): same-line security patches. Boot 4.1.1 manages Jackson 3.1.5 (it reaches the runtime through
+             spring-boot-starter-webmvc) and Jackson 2.21.5 (HTTP JSON); 3.1.7 and 2.21.7 fix their HIGH findings in the image scan. -->
+        <jackson-bom.version>3.1.7</jackson-bom.version>
+        <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
         <!-- E11-T07: springdoc's Spring Boot 4 line. 3.0.x keeps swagger-core 2.2.47, so the contract stays byte-identical
              (the web generates its client from it). 3.1.x brings swagger-core 2.2.55, which publishes @Positive/@PositiveOrZero
              bounds and drops class-level @Schema(types = {"object", "null"}); adopting it is a contract change of its own. -->

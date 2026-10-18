@@ -176,6 +176,24 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(events("SignupEdited")).hasSize(1); assertThat(audit(AuditAction.SIGNUP_EDITED)).hasSize(1);
         change("members/one", Map.of("version", 2, "remarks", "Updated pending signup")); assertThat(member("one").version()).isEqualTo(2);
     }
+    /**
+     * S01 R-01-14 / T-01-23 (INC-37): an administrator's rename of a member renames the account when this club is the account's only
+     * one; an account that also belongs to another club keeps its own name (an erased membership no longer counts), and an edit that
+     * does not touch the name leaves the account alone.
+     */
+    @Test void T_01_23_INC_37_anAdminsRenameOfAMemberRenamesTheAccountOfItsOnlyClub() throws Exception {
+        change("members/one", Map.of("version", 0, "firstName", "Laura", "lastName1", "Serra", "lastName2", "Puig"));
+        assertThat(mongo.findById("one-account", Account.class).name()).isEqualTo("Laura Serra Puig");
+        field("accounts", "one-account", "name", "Laura by herself");
+        change("members/one", Map.of("version", 1, "remarks", "No name change"));
+        assertThat(mongo.findById("one-account", Account.class).name()).isEqualTo("Laura by herself");
+        mongo.insert(new Membership("two-other-membership", "two-account", OTHER, "foreign", Set.of(Role.MEMBER), Membership.Status.ACTIVE, Role.MEMBER));
+        change("members/two", Map.of("version", 0, "firstName", "Changed"));
+        assertThat(mongo.findById("two-account", Account.class).name()).as("two memberships: T-01-23").isEqualTo("Example two");
+        field("memberships", "two-other-membership", "status", "ERASED");
+        change("members/two", Map.of("version", 1, "firstName", "Marta"));
+        assertThat(mongo.findById("two-account", Account.class).name()).isEqualTo("Marta two");
+    }
     @Test @AuditCovers(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED)
     void T_03_13_paymentMethodsAreValidatedAndAlwaysMasked() throws Exception {
         error(admin(body(patch("/api/v1/members/one/payment-method"), Map.of("type", "CARD"))), ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);

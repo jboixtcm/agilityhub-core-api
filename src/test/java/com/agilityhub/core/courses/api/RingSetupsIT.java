@@ -527,6 +527,36 @@ class RingSetupsIT extends CourseItSupport {
         // The active setup's own course deleted behind the api's back: the member's summary no longer offers the viewer.
         mongo.updateFirst(Query.query(Criteria.where("_id").is(shown)), new Update().set("deletedAt", java.util.Date.from(MONDAY)), "courses");
         assertThat(mine("MEMBER", A1).at("/0/setup/hasViewer").asBoolean()).isFalse();
+        // INC-69 point 2: no course to show, so no placement either (its transform and obstacles belong to a course the member cannot read).
+        var member = setup(setup, "MEMBER");
+        assertThat(member.path("courseId").isNull()).isTrue();
+        assertThat(member.path("placement").isNull()).as("placement of a deleted course").isTrue();
+        assertThat(member.path("placementId").asText()).isEqualTo(placed);
+    }
+
+    /**
+     * INC-69 point 1 (R-16-16): one rule decides the course a setup shows, its placement's, else its own. The member's projection of
+     * the setup (`courseId`) and the member's `GET /courses/{id}` through a setup agree on it whatever the setup names: a setup that
+     * also names another course directly (written behind the api's back) shows its placement's, and only that one is readable; once
+     * the placement is gone, it shows its own course, and only that one is readable.
+     */
+    @Test void T_16_16_INC_69_theSetupsProjectionAndTheCourseReadAgreeOnTheShownCourse() throws Exception {
+        clock.setInstant(MONDAY);
+        drawRing(A1);
+        String placedCourse = createCourse("Agility R"), ownCourse = createCourse("Agility S");
+        String placed = createPlacement("INSTRUCTOR", placementBody(placedCourse, A1), 201).path("id").asText();
+        String setup = id(register("INSTRUCTOR", setupBody(A1, "AGILITY").put("placementId", placed)));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(setup)), new Update().set("courseId", ownCourse), "ring_setups");
+        assertThat(setup(setup, "MEMBER").path("courseId").asText()).isEqualTo(placedCourse);
+        assertThat(ok(as(get("/api/v1/courses/" + placedCourse), CLUB, "MEMBER"), 200).path("id").asText()).isEqualTo(placedCourse);
+        error(as(get("/api/v1/courses/" + ownCourse), CLUB, "MEMBER"), 404, "COURSE_NOT_VISIBLE");
+        // The placement gone: the setup's own course is the one shown, and the only one the member reads.
+        mongo.remove(Query.query(Criteria.where("_id").is(placed)), "placements");
+        var member = setup(setup, "MEMBER");
+        assertThat(member.path("courseId").asText()).isEqualTo(ownCourse);
+        assertThat(member.path("placement").isNull()).isTrue();
+        assertThat(ok(as(get("/api/v1/courses/" + ownCourse), CLUB, "MEMBER"), 200).path("id").asText()).isEqualTo(ownCourse);
+        error(as(get("/api/v1/courses/" + placedCourse), CLUB, "MEMBER"), 404, "COURSE_NOT_VISIBLE");
     }
 
     /**

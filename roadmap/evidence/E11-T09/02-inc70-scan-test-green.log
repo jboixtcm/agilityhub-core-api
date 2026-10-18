@@ -1,0 +1,15 @@
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.003s
+
+OK
+
+# Command: python3 .local/inc70-new/bin/security-scan-test.py  -> exit 0 (INC-70 test; fixture recorded 2026-10-18)
+# Scratch layout: bin/security-scan (HEAD), bin/security-scan-test.py (HEAD or INC-70), bin/security-scan-suppressions.json:
+#   {
+#     "policy": "INC-70 counterfactual fixture: one fictional exception that meets the policy.",
+#     "suppressions": [
+#       {"id": "CVE-fixture-70", "package": "org.example:fixture", "installedVersion": "1.2.3", "recorded": "2026-10-18",
+#        "expires": "2026-12-01", "task": "E11-T09", "reason": "Fictional INC-70 fixture: no fixed release exists on the line in use yet."}
+#     ]
+#   }
