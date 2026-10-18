@@ -150,6 +150,22 @@ class OnboardingIT extends IdentityIntegrationSupport {
         assertThat(mongo.count(Query.query(Criteria.where("type").is("AccountLocaleChanged")), DomainEventRecord.class)).isEqualTo(1);
     }
 
+    /** S01 §14, R-14-09: the image consent given at onboarding is audited as `MEMBER_CONSENT_CHANGED` on the member. INC-38 (E11-T10). */
+    @Test void T_01_26_INC_38_theOnboardingImageConsentIsAuditedAsAMemberConsentChange() throws Exception {
+        call(acceptance("platform-v1").content("""
+                {"consentAccepted":true,"consentVersion":"platform-v1","fields":{"phone":"+34600000003"},"imageConsent":true}
+                """), "club-a", "MEMBER").andExpect(status().isOk());
+        assertThat(mongo.find(Query.query(Criteria.where("action").is("MEMBER_CONSENT_CHANGED")), AuditEntry.class)).singleElement().satisfies(audit -> {
+            assertThat(audit.clubId()).isEqualTo("club-a"); assertThat(audit.entityType()).isEqualTo("Member");
+            assertThat(audit.entityId()).isEqualTo("member-a"); assertThat(audit.memberId()).isEqualTo("member-a");
+            assertThat(audit.actorAccountId()).isEqualTo("account-a");
+            assertThat(audit.changes()).anySatisfy(change -> {
+                assertThat(change.path()).isEqualTo("consents.imageRights.granted"); assertThat(change.before()).isEqualTo(false); assertThat(change.after()).isEqualTo(true);
+            });
+        });
+        assertThat(mongo.count(Query.query(Criteria.where("action").is("MEMBER_UPDATED")), AuditEntry.class)).isZero();
+    }
+
     @Test void T_01_26_policyBumpsResetBoundedRenewalAllowanceWithoutCachedVersion() throws Exception {
         accept("club-a", "platform-v1"); accept("club-a", "v1");
         platformVersion("platform-v2");

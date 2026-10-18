@@ -1,0 +1,101 @@
+# E11-T10 INC-39 A: red — the same test after building each request when it is sent (log 30 showed STALE_VERSION on the PATCH rows); swapped to pre-INC-39 with target/e11t10-inc39.py old: CensusAccess, MemberService, BillingCensusAdapter, MessagingCensusDirectory, MembersController, MemberPlanChangeController, NotificationPreferencesController; restored afterwards. Every route writes the LEFT record.
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=SignupSecurityFixesIT#*INC_39*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/31-inc39-a-red.log 2>&1; echo "exit $?"
+16:20:52.805 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:20:52.947 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+16:20:52.977 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:20:52.977 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:20:52.980 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+16:20:53.003 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:20:53.004 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:20:53.007 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:20:53.093 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:20:53.254 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:20:53.255 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:20:53.265 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:20:53.604 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:20:53.633 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:20:53.682 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 1372322bcf85ff48382f5ddc52642cb595fff68a84eb7c678869b15274e102de
+16:20:53.853 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.249172S
+16:20:53.857 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:20:53.857 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:20:53.857 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:20:53.857 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:20:53.893 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 75788d8f47cc1b0a550463e37d48c6f7089f461bb620b31566bdc7d0e83562c1
+16:20:54.417 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.559604S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T16:20:54.997+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Starting SignupSecurityFixesIT using Java [redacted] with PID 96490 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T16:20:54.999+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T16:20:55.801+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T16:20:55.849+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 44 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T16:20:56.240+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3fc105dd], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@35129b9e, com.mongodb.Jep395RecordCodecProvider@2f4bc3ff, com.mongodb.KotlinCodecProvider@2297c8bf, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52328], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@154fcedd], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T16:20:56.247+03:00 INFO  [cluster-6ad4c7b81816bd080a0f4699-localhost:52328] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52328, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10288625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=75788d8f47cc:27017, hosts=[75788d8f47cc:27017], passives=[], arbiters=[], primary='75788d8f47cc:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4c7b583177c0d16fde453, counter=6}, lastWriteDate=Sun Oct 18 16:20:54 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T16:20:57.244+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.261+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.280+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.881+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.897+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.910+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:57.969+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:20:59.604+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T16:20:59.604+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T16:20:59.608+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-18T16:20:59.665+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Started SignupSecurityFixesIT in 4.809 seconds (process running for 7.212)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.392 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending -- Time elapsed: 1.214 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: {"DELETE /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} internalNotes"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} remarks"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id}/payment-method"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/plan-change"="409 INVALID_STATE READMISSION_PENDING", "PUT /members/{id}/notification-preferences"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /members/{id}/booking-block"="204  ", "PATCH /members/{id} internalNotes"="200  ", "PATCH /members/{id} remarks"="200  ", "PATCH /members/{id}/payment-method"="200  ", "POST /members/{id}/booking-block"="201  ", "POST /members/{id}/plan-change"="204  ", "PUT /members/{id}/notification-preferences"="200  "}
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending(SignupSecurityFixesIT.java:514)
+
+[ERROR] Failures: 
+[ERROR]   SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending:514 
+expected: {"DELETE /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} internalNotes"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} remarks"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id}/payment-method"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/plan-change"="409 INVALID_STATE READMISSION_PENDING", "PUT /members/{id}/notification-preferences"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /members/{id}/booking-block"="204  ", "PATCH /members/{id} internalNotes"="200  ", "PATCH /members/{id} remarks"="200  ", "PATCH /members/{id}/payment-method"="200  ", "POST /members/{id}/booking-block"="201  ", "POST /members/{id}/plan-change"="204  ", "PUT /members/{id}/notification-preferences"="200  "}
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit=1
+surefire tests 4803 failures 3 errors 0 skipped 0
+  FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract
+  FAILED S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow
+  FAILED S04ErrorContractTest.T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected
+failsafe tests 2039 failures 5 errors 0 skipped 0
+  SignupSecurityFixesIT tests 1 failures 1 errors 0 skipped 0
+  FAILED SignupGateFixesIT.T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason
+  FAILED SignupIT.T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite
+  FAILED SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup
+  FAILED SignupPlansFollowUpIT.R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen
+  FAILED SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending

@@ -410,6 +410,50 @@ class TrainingIT extends TrainingFixtures {
         assertThat(cell(slots(as("pau"), "2026-10-06", "2026-10-06", null), "2026-10-06T17:00", CAR).path("reason").asText()).isEqualTo("RING_BLOCK");
     }
 
+    @Autowired com.agilityhub.core.clubs.scheduling.application.RingBlockService ringBlocks;
+    /**
+     * R-09-13, R-09-16, S14 R-14-09, CATALEG_NOTIFICACIONS N-47 — INC-40 (E11-T10): an S07 activity block with
+     * `cancelBookings: true` and the admin's text cancels the live training booking by the club, keeps the text on the
+     * booking (`cancelNote`) and in N-47's `admin_text`, and writes TRAINING_CANCELLED_BY_CLUB in the same transaction.
+     * A D4 block has no admin text (S06 §6: `note` is the block's own staff note), so its N-47 has none.
+     */
+    @Test @AuditCovers(AuditAction.TRAINING_CANCELLED_BY_CLUB)
+    void T_09_21_INC_40_aClubCancellationKeepsTheAdminTextForN47AndIsAudited() throws Exception {
+        var thai = book(as("sergio"), "s09-d-thai", "2026-10-06T17:00", CAR, 201);
+        String text = "Torneig d'estiu: la pista Carretera és de l'activitat.";
+        var request = new com.agilityhub.core.clubs.scheduling.application.ActivityBlockRequest("s09-activity", List.of(CAR), local("2026-10-06T16:00"),
+                local("2026-10-06T18:00"), "s09-admin");
+        var security = org.springframework.security.core.context.SecurityContextHolder.getContext(); var before = security.getAuthentication();
+        security.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("s09-admin", "", List.of(() -> "ROLE_ADMIN")));
+        try (var tenant = TenantContext.open(CLUB); var user = com.agilityhub.core.shared.application.CurrentUser.open(
+                new com.agilityhub.core.shared.application.CurrentUser("s09-admin", "Example admin", null, com.agilityhub.core.shared.domain.DomainEvent.Origin.APP))) {
+            tx.executeWithoutResult(status -> ringBlocks.syncForActivity(request, new com.agilityhub.core.clubs.scheduling.application.RingBlockService.Options(true, false, text)));
+        } finally { security.setAuthentication(before); }
+        var stored = training(thai.path("id").asText());
+        assertThat(stored.getString("state")).isEqualTo("CANCELLED_BY_CLUB"); assertThat(stored.getString("cancelReason")).isEqualTo("RING_BLOCK");
+        assertThat(stored.getString("cancelNote")).isEqualTo(text);
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("TRAINING_CANCELLED_BY_CLUB")), Document.class, "audit_entries");
+        assertThat(audit).isNotNull();
+        assertThat(audit).containsEntry("entityId", thai.path("id").asText()).containsEntry("actorAccountId", "s09-admin").containsEntry("reason", "RING_BLOCK");
+        dispatch(); dispatch();
+        assertThat(notifications("N-47")).isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class))
+                .containsEntry("admin_text", text).containsEntry("change", "CANCELLED"));
+        // A D4 block (no admin text in its request): cancelled and audited the same way, with an empty admin_text.
+        var pau = book(as("pau"), "s09-d-blat", "2026-10-07T17:00", CAR, 201);
+        call(POST, "/ring-blocks", Map.of("ringId", CAR, "from", local("2026-10-07T16:00").toString(), "to", local("2026-10-07T18:00").toString(),
+                "kind", "BLOCK", "reason", "MAINTENANCE", "note", "Només per a l'equip", "cancelBookings", true), as("admin"), 201, UUID.randomUUID().toString());
+        assertThat(training(pau.path("id").asText()).getString("cancelNote")).isNull();
+        assertThat(count("audit_entries", Criteria.where("action").is("TRAINING_CANCELLED_BY_CLUB").and("entityId").is(pau.path("id").asText()))).isEqualTo(1);
+    }
+
+    /** R-09-08 (S08 R-08-05: the dog owner or the booker) — INC-40 (E11-T10): the owner's booking block also stops a family member booking the owner's dog. */
+    @Test void T_09_17_INC_40_theOwnersBookingBlockStopsAFamilyMemberBookingTheOwnersDog() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("bookingBlock", new Document("active", true).append("reason", "Quota pendent")), "members");
+        var blocked = book(as("joan"), "s09-d-rock", "2026-10-06T10:00", MUN, 422);
+        assertThat(code(blocked)).isEqualTo("BOOKING_BLOCKED"); assertThat(blocked.at("/details/reason").asText()).isEqualTo("Quota pendent");
+        book(as("joan"), "s09-d-kira", "2026-10-06T10:00", MUN, 201);
+    }
+
     @Test @AuditCovers({AuditAction.TRAINING_BOOKED_BY_CLUB, AuditAction.TRAINING_CANCELLED_BY_CLUB})
     void T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason() throws Exception {
         var admin = impersonating("admin", "s09-m-maria");
@@ -583,6 +627,40 @@ class TrainingIT extends TrainingFixtures {
         }
     }
 
+    /**
+     * INC-44 items 1–2 (E11-T02 question 2, ruling E132; S09 R-09-02, §9): the staff grid of 24 and D12 also lists the active rings
+     * without free training (Petita): capacity 0, classes and blocks shown, never free for «Qualsevol» nor bookable. A member keeps
+     * the reservable rings only.
+     */
+    @Test void T_09_03_INC_44_theStaffGridAlsoListsTheActiveRingsWithoutFreeTraining() throws Exception {
+        classSession("s09-inc44-pet", PET, "2026-10-06T18:00", "2026-10-06T19:00", "ACTIVE");
+        block("s09-inc44-block", PET, "2026-10-06T20:00", "2026-10-06T21:00", "RESERVATION", "PRIVATE_CLASS", "Particular", null);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(CAD)), new Update().set("active", false), "rings");
+        var staff = slots(as("estel"), "2026-10-06", "2026-10-06", null);
+        assertThat(staff.path("rings")).extracting(r -> r.path("id").asText()).containsExactly(MUN, CEN, CAR, PET);
+        assertThat(staff.path("rings")).extracting(r -> r.path("capacity").asInt()).containsExactly(1, 1, 1, 0);
+        assertThat(cell(staff, "2026-10-06T18:00", PET).path("reason").asText()).isEqualTo("CLASS");
+        assertThat(cell(staff, "2026-10-06T18:00", PET).at("/classSession/id").asText()).isEqualTo("s09-inc44-pet");
+        assertThat(cell(staff, "2026-10-06T20:30", PET).path("reason").asText()).isEqualTo("RING_BLOCK");
+        assertThat(cell(staff, "2026-10-06T20:30", PET).at("/block/note").asText()).isEqualTo("Particular");
+        assertThat(cell(staff, "2026-10-06T10:00", PET).path("state").asText()).as("free for a block, no seat").isEqualTo("FREE");
+        assertThat(cell(staff, "2026-10-06T10:00", PET).path("occupants")).isEmpty();
+        // Every reservable ring taken at 10:00: Petita's free cell never makes the slot «Qualsevol» or bookable.
+        for (var booking : List.of(List.of("maria", "s09-d-rock", MUN), List.of("pau", "s09-d-blat", CEN), List.of("julia", "s09-d-lluna", CAR))) {
+            book(as(booking.get(0)), booking.get(1), "2026-10-06T10:00", booking.get(2), 201);
+        }
+        var full = slot(slots(as("estel"), "2026-10-06", "2026-10-06", null), "2026-10-06T10:00");
+        assertThat(full.path("anyFree").asBoolean()).isFalse(); assertThat(full.path("bookable").asBoolean()).isFalse();
+        assertThat(slots(as("admin"), "2026-10-06", "2026-10-06", null).path("rings")).extracting(r -> r.path("id").asText()).contains(PET);
+        assertThat(call(GET, "/training-slots?from=2026-10-06&to=2026-10-06&ringId=" + PET, null, as("estel"), 200).path("rings")).hasSize(1);
+        // The member's grid and booking path are unchanged: Petita is not there, nor reservable.
+        assertThat(slots(as("maria"), "2026-10-06", "2026-10-06", null).path("rings")).extracting(r -> r.path("id").asText()).containsExactly(MUN, CEN, CAR);
+        call(GET, "/training-slots?from=2026-10-06&to=2026-10-06&ringId=" + PET, null, as("maria"), 404);
+        assertThat(code(book(as("maria"), "s09-d-kira", "2026-10-06T11:00", PET, 422))).isEqualTo("RING_NOT_RESERVABLE");
+        // An inactive ring is never listed, not even for the staff.
+        call(GET, "/training-slots?from=2026-10-06&to=2026-10-06&ringId=" + CAD, null, as("estel"), 404);
+    }
+
     @Test void T_09_29_aNewClassInvalidatesTheWarmGridCacheOfItsDay() throws Exception {
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", MUN).path("state").asText()).isEqualTo("FREE");
         classSession("s09-late-class", MUN, "2026-10-05T18:00", "2026-10-05T19:00", "ACTIVE");
@@ -673,6 +751,15 @@ class TrainingIT extends TrainingFixtures {
         }
         var grid = call(GET, "/day-grid?date=2026-10-06&view=instructor", null, as("estel"), 200);
         assertThat(grid.toString()).doesNotContain("TRAINING");
+        // INC-44 item 2: the staff keep the grid of 24 and D12 (every active ring, capacity 0, blocks only, no training booking).
+        for (var viewer : List.of(as("estel"), as("admin"))) {
+            var staff = slots(viewer, "2026-10-06", "2026-10-06", null);
+            assertThat(staff.path("rings")).extracting(r -> r.path("id").asText()).containsExactly(MUN, CEN, CAR, CAD, PET);
+            assertThat(staff.path("rings")).extracting(r -> r.path("capacity").asInt()).containsOnly(0);
+            assertThat(cell(staff, "2026-10-06T10:00", MUN).path("reason").asText()).as("the block, not the old booking").isEqualTo("RING_BLOCK");
+            assertThat(cell(staff, "2026-10-06T10:00", CEN).path("state").asText()).isEqualTo("FREE");
+            assertThat(staff.toString()).doesNotContain(rock.path("id").asText(), "\"anyFree\":true", "\"bookable\":true");
+        }
     }
 
     @Test void T_09_27_theDayGridShowsTrainingAsOccupiedForMembersAndNamedForStaff() throws Exception {

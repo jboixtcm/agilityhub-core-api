@@ -15,19 +15,20 @@ import org.springframework.stereotype.Service;
 /** S15 R-15-09 manual execution ([Simula] / [Executa ara]) of a process of the current club, audited as JOB_TRIGGERED. */
 @Service
 public class JobTriggerService {
-    private final JobRunner runner;
-    public JobTriggerService(JobRunner runner) { this.runner = runner; }
+    private final JobRunner runner; private final org.springframework.beans.factory.ObjectProvider<JobTriggerService> self;
+    public JobTriggerService(JobRunner runner, org.springframework.beans.factory.ObjectProvider<JobTriggerService> self) { this.runner = runner; this.self = self; }
 
     /**
      * Callers resolve `{name}` with {@link JobCatalog#byRoute}; the platform console opens the club scope first. A keyed request's
      * reference goes on the run (E5-T29 round 2): {@code JobAdminService} answers that run to the retry, without a second entry.
      */
-    @Audited(action = AuditAction.JOB_TRIGGERED, entityType = "'JobRun'", entity = "#result.runId()")
     public JobViews.JobRunView trigger(JobName name, boolean dryRun) {
-        return JobViews.view(runner.manual(TenantContext.require(), name, dryRun, actor(), IdempotentOperation.reference()));
+        // R-14-09 (INC-40, E11-T10): the run commits in the runner's own transactions; its entry is then written in one of its own.
+        return self.getObject().audited(runner.manual(TenantContext.require(), name, dryRun, actor(), IdempotentOperation.reference()));
     }
 
-    /** INC-50 (E11-T02): the JOB_TRIGGERED entry of a run whose first attempt lost it ({@code JobAdminService} decides). */
+    /** The JOB_TRIGGERED entry of a run, in its own transaction (R-14-09); also for a run whose first attempt lost it (INC-50, E11-T02). */
+    @org.springframework.transaction.annotation.Transactional
     @Audited(action = AuditAction.JOB_TRIGGERED, entityType = "'JobRun'", entity = "#result.runId()")
     public JobViews.JobRunView audited(com.agilityhub.core.platform.persistence.jobs.JobRun run) { return JobViews.view(run); }
 

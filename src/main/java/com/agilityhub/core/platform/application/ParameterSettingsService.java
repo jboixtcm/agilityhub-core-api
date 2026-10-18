@@ -39,9 +39,12 @@ public class ParameterSettingsService {
     public record View(String id, ParameterDefinition definition, @AuditField Object value,
             @AuditField boolean isOverride, String scopeRef, long version, List<Parameter.History> history) { }
 
+    /** E11-T10 (INC-38): D11 reads the club and its club-level overrides once, not once per catalog key. */
     public List<View> list(String block) {
+        var club = club();
+        var stored = parameters.findClubLevel();
         return catalog.entries().values().stream().filter(d -> block == null || block.equals(d.block()))
-                .map(d -> view(d.key(), null)).toList();
+                .map(d -> view(d, null, club, stored.get(d.key()), null)).toList();
     }
 
     public View view(String key, String scopeRef) {
@@ -49,15 +52,20 @@ public class ParameterSettingsService {
         checkScope(definition, scopeRef);
         var club = club();
         var stored = parameters.findByKey(key, scopeRef).orElse(null);
+        return view(definition, scopeRef, club, stored, () -> parameters.findByKey(key, null).orElse(null));
+    }
+    private View view(ParameterDefinition definition, String scopeRef, Club club, Parameter stored, java.util.function.Supplier<Parameter> clubLevel) {
         Object value = validValue(definition, stored, club);
         boolean isOverride = value != null;
-        if (value == null && scopeRef != null) { value = validValue(definition, parameters.findByKey(key, null).orElse(null), club); }
+        if (value == null && scopeRef != null) { value = validValue(definition, clubLevel.get(), club); }
         if (value == null) { value = defaultValue(definition, club); }
-        return new View(stored == null ? key : stored.id(), definition, value, isOverride, scopeRef,
+        return new View(stored == null ? definition.key() : stored.id(), definition, value, isOverride, scopeRef,
                 stored == null ? 0 : stored.version(), stored == null ? List.of() : stored.history());
     }
 
     public Object defaultValue(ParameterDefinition definition) { return defaultValue(definition, club()); }
+    /** The product defaults of a whole list with one read of the club (E11-T10, INC-38). */
+    public java.util.function.Function<ParameterDefinition, Object> defaults() { var club = club(); return definition -> defaultValue(definition, club); }
     private Object defaultValue(ParameterDefinition definition, Club club) {
         if (definition.type().equals("money") && definition.defaultValue() instanceof Map<?, ?> money) {
             return Map.of("amountMinor", money.get("amountMinor"), "currency", club.currency());

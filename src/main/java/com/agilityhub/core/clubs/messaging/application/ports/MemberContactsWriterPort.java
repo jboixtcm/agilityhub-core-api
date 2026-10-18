@@ -16,4 +16,10 @@ public interface MemberContactsWriterPort {
      * is erased. The null object writes nothing.
      */
     default boolean savePreferences(String memberId, java.util.Map<String, Object> block) { return false; }
+    /**
+     * S04 R-04-06 (INC-39, E11-T10): D10's write of the member's block (`PUT /members/{id}/notification-preferences`) refuses a
+     * `LEFT` record with a pending readmission, 409 INVALID_STATE (READMISSION_PENDING); the member's own route (12) is not frozen.
+     * The null object refuses nothing.
+     */
+    default void requireNotFrozen(String memberId) { }
 }

@@ -71,6 +71,12 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         var scope = startedClassIds.isEmpty() ? started : new Criteria().orOperator(Criteria.where("classSessionId").in(startedClassIds), started);
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE)).addCriteria(scope).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
     }
+    /** R-08-14 (INC-40, E11-T10): the still open FIFO offers (NOTIFIED, `confirmBy > now`) of the given classes. */
+    public List<WaitlistEntry> openOffers(Collection<String> classSessionIds, java.time.Instant now) {
+        if (classSessionIds.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").in(classSessionIds).and("state").is(WaitlistState.NOTIFIED)
+                .and("confirmBy").gt(now)), WaitlistEntry.class);
+    }
     /** S15 P6: NOTIFIED (FIFO) entries whose `confirmBy` has passed, oldest offer first. */
     public List<WaitlistEntry> notifiedDue(java.time.Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is(WaitlistState.NOTIFIED).and("confirmBy").lte(now))

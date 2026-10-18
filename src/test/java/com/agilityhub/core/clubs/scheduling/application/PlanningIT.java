@@ -88,6 +88,49 @@ class PlanningIT extends AbstractIntegrationTest {
         mongo.remove(Query.query(Criteria.where("_id").is(CLUB + ":" + key)), Parameter.class);
         mongo.insert(new Parameter(CLUB + ":" + key, CLUB, key, value, type, "club", null, List.of(), 0L, clock.instant())); configs.invalidate(CLUB);
     }
+    void fieldError(String method, String path, Object body, String field, String code) throws Exception {
+        mvc.perform(call(method, path, body)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details.fieldErrors[0].field").value(field)).andExpect(jsonPath("$.details.fieldErrors[0].code").value(code));
+    }
+    JsonNode templateClass(JsonNode view, String classId) {
+        for (var c : view.path("classes")) { if (c.path("id").asText().equals(classId)) { return c; } }
+        throw new AssertionError("class " + classId + " not in the template");
+    }
+    /**
+     * S06 §3 / R-06-02, S05 R-05-03 and R-06-05, INC-40 (E11-T10): an empty or repeated `instructorIds` is a 400 VALIDATION_ERROR
+     * on the field (only more than the maximum is TOO_MANY_INSTRUCTORS); an inactive level, instructor or ring cannot be chosen
+     * for a template class, while a class that already has one keeps it and stays editable.
+     */
+    @Test void T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses() throws Exception {
+        String id = template("Week A", "WEEKDAYS"); String path = "/week-templates/" + id; String band = band(id).at("/bands/0/id").asText();
+        // The POST's Bean Validation already answers an empty list (NotEmpty); the PATCH below answers it with the same field code.
+        var body = classBody(band); body.put("instructorIds", List.of()); fieldError("POST", path + "/classes", body, "instructorIds", "NotEmpty");
+        parameter("classes.maxInstructorsPerClass", 2, "int");
+        body.put("instructorIds", List.of("plan-instructor", "plan-instructor")); fieldError("POST", path + "/classes", body, "instructorIds", "INVALID_VALUE");
+        body.put("instructorIds", List.of("plan-instructor", "plan-instructor-2", "plan-instructor-3")); error("POST", path + "/classes", body, ErrorCode.TOO_MANY_INSTRUCTORS);
+        body.put("instructorIds", List.of("plan-instructor-2")); body.put("levelIds", List.of("plan-level-F"));
+        var view = ok("POST", path + "/classes", body); String kept = view.at("/classes/0/id").asText();
+        body.put("ringId", null); body.put("instructorIds", List.of("plan-instructor")); body.put("levelIds", List.of("plan-level-G"));
+        view = ok("POST", path + "/classes", body); String other = view.path("classes").get(1).path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-level-F")), new Update().set("active", false), "levels");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-instructor-2")), new Update().set("active", false), "instructors");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-ring")), new Update().set("active", false), "rings");
+        templateQuery.invalidate(CLUB);
+        var inactiveLevel = new LinkedHashMap<String, Object>(body); inactiveLevel.put("levelIds", List.of("plan-level-F"));
+        fieldError("POST", path + "/classes", inactiveLevel, "levelIds", "INVALID_VALUE");
+        body.put("ringId", "plan-ring"); fieldError("POST", path + "/classes", body, "ringId", "INVALID_VALUE");
+        view = patchClass(id, kept, ok("GET", path, null).path("version").asLong(), "capacity", 3);
+        assertThat(templateClass(view, kept).path("levelIds")).extracting(JsonNode::asText).containsExactly("plan-level-F");
+        assertThat(templateClass(view, kept).path("instructorIds")).extracting(JsonNode::asText).containsExactly("plan-instructor-2");
+        assertThat(templateClass(view, kept).path("ringId").asText()).isEqualTo("plan-ring");
+        view = patchClass(id, kept, view.path("version").asLong(), "levelIds", List.of("plan-level-F", "plan-level-G"));
+        long version = view.path("version").asLong();
+        fieldError("PATCH", path + "/classes/" + other, Map.of("version", version, "instructorIds", List.of()), "instructorIds", "NotEmpty");
+        fieldError("PATCH", path + "/classes/" + other, Map.of("version", version, "instructorIds", List.of("plan-instructor", "plan-instructor")), "instructorIds", "INVALID_VALUE");
+        fieldError("PATCH", path + "/classes/" + other, Map.of("version", version, "levelIds", List.of("plan-level-G", "plan-level-F")), "levelIds", "INVALID_VALUE");
+        fieldError("PATCH", path + "/classes/" + other, Map.of("version", version, "instructorIds", List.of("plan-instructor-2")), "instructorIds", "INVALID_VALUE");
+        fieldError("PATCH", path + "/classes/" + other, Map.of("version", version, "ringId", "plan-ring"), "ringId", "INVALID_VALUE");
+    }
     @Test @AuditCovers({AuditAction.TEMPLATE_CLASS_DELETED, AuditAction.TEMPLATE_BAND_DELETED})
     void T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage() throws Exception {
         String id = template("Week A", "WEEKDAYS"); String path = "/week-templates/" + id;

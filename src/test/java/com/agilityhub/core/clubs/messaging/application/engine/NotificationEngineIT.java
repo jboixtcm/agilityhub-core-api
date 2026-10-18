@@ -535,6 +535,22 @@ class NotificationEngineIT extends EngineFixtures {
                 .filteredOn(d -> d.channel() == NotificationChannel.EMAIL).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.QUEUED);
     }
 
+    /**
+     * E13, R-11-09, INC-40 (E11-T10): the engine only hands the sends after the commit to its executor (the notification scheduler
+     * in production), so the outbox thread never waits on a provider; until that task runs the deliveries stay QUEUED (the poll's).
+     */
+    @Test void R_11_09_INC_40_theSendsAfterTheCommitRunOnTheNotificationExecutor() {
+        var handed = new java.util.ArrayList<Runnable>();
+        engine = new NotificationEngine(configs, messages, templates, new RecipientResolver(ports, ports, ports), notifications, subscriptions, accounts, owners, ports,
+                events, dispatcher, clock, transactions, handed::add);
+        String event = deliver(CLUB, "DogLevelChanged", Map.of("memberId", "member-anna", "dogId", "dog-lluna", "levelName", "C"));
+        java.util.function.Supplier<Notification> n09 = () -> stored(CLUB, "N-09").stream().filter(n -> event.equals(n.eventId())).findFirst().orElseThrow();
+        assertThat(handed).hasSize(1);
+        assertThat(n09.get().deliveries()).filteredOn(d -> d.channel() == NotificationChannel.EMAIL).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.QUEUED);
+        handed.getFirst().run();
+        assertThat(n09.get().deliveries()).filteredOn(d -> d.channel() == NotificationChannel.EMAIL).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SENT);
+    }
+
     @Test void T_11_14_leftMembersAndTheDefaultRecipientsOfAnEventWithoutOwner() {
         ports.update("member-marc", c -> InMemoryMessagingPorts.with(c, "LEFT", null, null, null));
         // N-28 (LeaveResolved, no owner yet: the payload's member and scalar values) reaches the member who left.

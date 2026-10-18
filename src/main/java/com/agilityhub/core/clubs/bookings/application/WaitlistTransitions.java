@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.bookings.application;
 
 import com.agilityhub.core.clubs.bookings.application.ports.WaitlistConsolidationPort;
+import com.agilityhub.core.clubs.bookings.application.ports.WaitlistConsolidationPort.Offer;
 import com.agilityhub.core.clubs.bookings.domain.*;
 import com.agilityhub.core.clubs.bookings.persistence.*;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
@@ -49,6 +50,53 @@ public class WaitlistTransitions implements WaitlistConsolidationPort {
             demoted.add(e.id());
         }
         return demoted;
+    }
+    @Override public List<Offer> openOffers(String classSessionId, Instant now) { return openOffers(context, waitlist, classSessionId, now); }
+    /** The class's open FIFO offers in queue order ({@link #offeredDogs} as entries); empty in ALL_AT_ONCE and with WAITLIST off. */
+    static List<Offer> openOffers(BookingContext context, WaitlistEntryRepository waitlist, String classSessionId, Instant now) {
+        if (!context.enabled(Module.WAITLIST) || context.waitlistMode() != WaitlistMode.FIFO) { return List.of(); }
+        return waitlist.openOffers(List.of(classSessionId), now).stream().map(e -> new Offer(e.id(), e.dogId(), e.notifiedAt(), e.position()))
+                .sorted(QUEUE).toList();
+    }
+    static final Comparator<Offer> QUEUE = Comparator.comparing(Offer::notifiedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
+            .thenComparingInt(Offer::position).thenComparing(Offer::entryId);
+    /** `taken` beside the live bookings: {@code dogs} = every other dog with a seat, {@code offered} = those with an open offer. */
+    record Taken(Set<String> offered, Set<String> dogs) { }
+    /**
+     * R-08-07/14/15: the other dogs that take a seat against {@code dogId}'s hold or confirmation, each dog once: their live holds
+     * and their open FIFO offers. For the claim of the dog's own open FIFO offer ({@code claimEntryId}) the queue wins (E11-T10
+     * review, INC-40): another dog's hold taken up to the offer's `notifiedAt` does not count (the offer was made for that seat),
+     * and of the other open offers only those ahead in the queue count, with their holds. Without {@code claimEntryId}, or when it
+     * is not one of {@code offers} (ALL_AT_ONCE, an offer already over), every other hold and offer counts.
+     */
+    static Taken taken(List<Offer> offers, List<SeatHold> live, String dogId, String claimEntryId) {
+        var claimed = claimEntryId == null ? null
+                : offers.stream().filter(o -> o.entryId().equals(claimEntryId) && o.dogId().equals(dogId)).findFirst().orElse(null);
+        var offered = new HashSet<String>(); var behind = new HashSet<String>();
+        for (var o : offers) {
+            if (o.dogId().equals(dogId)) { continue; }
+            (claimed != null && QUEUE.compare(o, claimed) > 0 ? behind : offered).add(o.dogId());
+        }
+        var dogs = new HashSet<>(offered);
+        live.stream().filter(h -> !h.dogId().equals(dogId) && !behind.contains(h.dogId()))
+                .filter(h -> claimed == null || claimed.notifiedAt() == null || h.createdAt().isAfter(claimed.notifiedAt()))
+                .forEach(h -> dogs.add(h.dogId()));
+        return new Taken(offered, dogs);
+    }
+    /**
+     * R-08-14 (INC-40, E11-T10): by class, the dogs whose FIFO offer is still open (NOTIFIED, `confirmBy > now`). Until
+     * `confirmBy` the seat is the offered dog's: holds, confirmations, joins (R-08-12) and the free seats of 04 count it as
+     * taken for every other dog. Empty in ALL_AT_ONCE (the seat is for whoever claims it first, R-08-13) and with WAITLIST off.
+     */
+    static Map<String, Set<String>> offeredDogs(BookingContext context, WaitlistEntryRepository waitlist, Collection<String> classSessionIds, Instant now) {
+        if (!context.enabled(Module.WAITLIST) || context.waitlistMode() != WaitlistMode.FIFO) { return Map.of(); }
+        var result = new HashMap<String, Set<String>>();
+        waitlist.openOffers(classSessionIds, now).forEach(e -> result.computeIfAbsent(e.classSessionId(), key -> new HashSet<>()).add(e.dogId()));
+        return result;
+    }
+    /** The other dogs among {@code dogs} (the caller's own offer never takes its seat). */
+    static Set<String> others(Set<String> dogs, String dogId) {
+        var result = new HashSet<>(dogs); result.remove(dogId); return result;
     }
     /** Seats of the class not taken by live (ACTIVE + PAYMENT_PENDING) bookings; 0 when the class is gone or not ACTIVE. */
     int freeSeats(String classSessionId) {

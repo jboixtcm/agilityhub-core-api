@@ -71,6 +71,15 @@ class ExportStorageTest {
         assertThat(values.text("2026-99-99")).isEqualTo("2026-99-99");
         assertThat(values.label("unknown", "unknown")).isEqualTo("unknown");
         var masked = new ExportPolicy().mask(Map.of("idDocument", Map.of("number", "AA1234567"), "chip", "123456789012345"));
-        assertThat(masked.toString()).contains("567", "345").doesNotContain("AA1234", "1234567890");
+        assertThat(masked.toString()).contains("345").doesNotContain("AA1234", "1234567890");
+    }
+    /** R-03-27, R-14-12: an export masks `idDocument` once, in the one format, and keeps a value the list already masked. INC-38 (E11-T10). */
+    @Test void T_03_27_INC_38_exportMasksTheDocumentOnceInTheOneFormat() {
+        var policy = new ExportPolicy();
+        assertThat(policy.mask(Map.of("idDocument", Map.of("number", "38123456P1P")))).isEqualTo(Map.of("idDocument", "38······1P"));
+        assertThat(policy.mask(Map.of("idDocument", "38······1P"))).isEqualTo(Map.of("idDocument", "38······1P"));
+        assertThat(policy.mask(Map.of("idDocument", "AB1"))).isEqualTo(Map.of("idDocument", "······"));
+        assertThat(policy.mask(Map.of("idDocument", ""))).isEqualTo(Map.of("idDocument", ""));
+        assertThat(policy.mask(Map.of("chip", "941000000100001"))).isEqualTo(Map.of("chip", "···· 001"));
     }
 }

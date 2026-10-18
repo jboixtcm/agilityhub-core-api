@@ -1,0 +1,89 @@
+# E11-T10 INC-38 A, F, G (unit): red - swapped to HEAD: ExportPolicy, CensusRules, Masking (removed), InvoicingRules, catalog.yaml (plus the IT behaviour files of log 11, restored right after)
+$ ./mvnw -q '-Dtest=ExportStorageTest#T_03_27*,ParameterCatalogContractTest,InvoicingRulesTest#T_12_02_INC*' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=ExportEngineIT#T_03_2*,CensusIT#*INC_38*,OnboardingIT#*INC_38*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify
+# (surefire failed first, so failsafe did not run: the IT red is log 11)
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.044 s <<< FAILURE! -- in com.agilityhub.core.payments.domain.InvoicingRulesTest
+[ERROR] com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_INC_38_aGroupWhoseHolderIsNotActiveBillsTheOthersOnTheirOwn -- Time elapsed: 0.036 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["joan-antoni", "nuria"]
+but could not find the following elements:
+  ["joan-antoni", "nuria"]
+
+	at com.agilityhub.core.payments.domain.InvoicingRulesTest.T_12_02_INC_38_aGroupWhoseHolderIsNotActiveBillsTheOthersOnTheirOwn(InvoicingRulesTest.java:249)
+
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.018 s <<< FAILURE! -- in com.agilityhub.core.clubs.common.application.ExportStorageTest
+[ERROR] com.agilityhub.core.clubs.common.application.ExportStorageTest.T_03_27_INC_38_exportMasksTheDocumentOnceInTheOneFormat -- Time elapsed: 0.017 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: {"idDocument"="38······1P"}
+ but was: {"idDocument"="···· P1P"}
+	at com.agilityhub.core.clubs.common.application.ExportStorageTest.T_03_27_INC_38_exportMasksTheDocumentOnceInTheOneFormat(ExportStorageTest.java:79)
+
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.187 s <<< FAILURE! -- in com.agilityhub.core.platform.application.ParameterCatalogContractTest
+[ERROR] com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults -- Time elapsed: 0.027 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[signup.text.imageConsent] 
+expected: "`{"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club", "es": "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club", "en": "I authorise the publication of photos of me and my dog within the scope of the club's activities"}`"
+ but was: "«Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club»"
+	at com.agilityhub.core.platform.application.ParameterCatalogContractTest.lambda$T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults$0(ParameterCatalogContractTest.java:26)
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:986)
+	at com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults(ParameterCatalogContractTest.java:22)
+
+[ERROR] com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_INC_38_everyLocalizedDefaultHasCaEsAndEn -- Time elapsed: 0.013 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: ["signup.text.imageConsent: {ca=Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club}",
+    "census.bookingBlockReasons: {ca=rebut impagat}",
+    "census.bookingBlockReasons: {ca=cartilla pendent}",
+    "census.bookingBlockReasons: {ca=decisió del club}",
+    "learn.linkText: {ca=Aprèn amb AgilityHub}"]
+	at com.agilityhub.core.platform.application.ParameterCatalogContractTest.T_02_03_INC_38_everyLocalizedDefaultHasCaEsAndEn(ParameterCatalogContractTest.java:55)
+
+[ERROR] Failures: 
+[ERROR]   ExportStorageTest.T_03_27_INC_38_exportMasksTheDocumentOnceInTheOneFormat:79 
+expected: {"idDocument"="38······1P"}
+ but was: {"idDocument"="···· P1P"}
+[ERROR]   InvoicingRulesTest.T_12_02_INC_38_aGroupWhoseHolderIsNotActiveBillsTheOthersOnTheirOwn:249 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["joan-antoni", "nuria"]
+but could not find the following elements:
+  ["joan-antoni", "nuria"]
+
+[ERROR]   ParameterCatalogContractTest.T_02_03_INC_38_everyLocalizedDefaultHasCaEsAndEn:55 
+Expecting empty but was: ["signup.text.imageConsent: {ca=Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club}",
+    "census.bookingBlockReasons: {ca=rebut impagat}",
+    "census.bookingBlockReasons: {ca=cartilla pendent}",
+    "census.bookingBlockReasons: {ca=decisió del club}",
+    "learn.linkText: {ca=Aprèn amb AgilityHub}"]
+[ERROR]   ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults:22->lambda$T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults$0:26 [signup.text.imageConsent] 
+expected: "`{"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club", "es": "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club", "en": "I authorise the publication of photos of me and my dog within the scope of the club's activities"}`"
+ but was: "«Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club»"
+[ERROR] Tests run: 5, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit=1
+surefire tests 4776 failures 4 errors 0 skipped 0
+  ExportStorageTest tests 1 failures 1 errors 0 skipped 0
+  InvoicingRulesTest tests 1 failures 1 errors 0 skipped 0
+  ParameterCatalogContractTest tests 3 failures 2 errors 0 skipped 0
+  FAILED ExportStorageTest.T_03_27_INC_38_exportMasksTheDocumentOnceInTheOneFormat
+  FAILED InvoicingRulesTest.T_12_02_INC_38_aGroupWhoseHolderIsNotActiveBillsTheOthersOnTheirOwn
+  FAILED ParameterCatalogContractTest.T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults
+  FAILED ParameterCatalogContractTest.T_02_03_INC_38_everyLocalizedDefaultHasCaEsAndEn
+failsafe tests 2131 failures 0 errors 0 skipped 0
+

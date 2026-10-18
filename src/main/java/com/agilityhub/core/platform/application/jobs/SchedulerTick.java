@@ -42,7 +42,8 @@ public class SchedulerTick {
         this.runner = runner; this.clubs = clubs; this.locks = locks; this.metrics = metrics; this.clock = clock;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    /** R-15-01: second 0 of every minute, on its own thread (INC-40, E11-T10): the outbox and the provider sends never delay it. */
+    @Scheduled(cron = "0 * * * * *", scheduler = com.agilityhub.core.shared.application.SchedulerConfiguration.JOB_TICK)
     public void scheduled() { run(clock.instant()); }
 
     /** Returns false when another tick holds the lease. */

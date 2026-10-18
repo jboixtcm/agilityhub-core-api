@@ -41,6 +41,8 @@ public class ActivityContext {
         ActivityRules.validate(a.input(),config().get("classes.slotMinutes",Integer.class),
                 snapshot.rings().stream().filter(PlanningCatalogAccess.ResourceView::active).map(PlanningCatalogAccess.ResourceView::id).collect(java.util.stream.Collectors.toSet()),
                 snapshot.levels().stream().filter(PlanningCatalogAccess.LevelView::active).map(PlanningCatalogAccess.LevelView::id).collect(java.util.stream.Collectors.toSet()));
+        ActivityRules.window(a.ringBlockWindow==null?null:a.ringBlockWindow.fromTime(),a.ringBlockWindow==null?null:a.ringBlockWindow.toTime(),!a.ringIds.isEmpty(),
+                config().get("classes.slotMinutes",Integer.class));
         var times=ActivityTimes.of(a.date,a.startTime,a.endTime,a.registrationFrom,a.registrationTo,zone());
         a.startsAt=times.startsAt(); a.endsAt=times.endsAt(); a.registrationOpensAt=times.registrationOpensAt(); a.registrationClosesAt=times.registrationClosesAt();
     }

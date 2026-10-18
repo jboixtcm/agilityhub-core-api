@@ -1,0 +1,725 @@
+# E11-T10 INC-40 A, C, D, E: red — swapped to HEAD: SeatLockRepository.java, CleanupJob.java (A; the SeatLock record keeps its new lockedAt field so the tests compile), OutboxDispatcher.java, SchedulerTick.java, NotificationDispatcher.java (C; SchedulerConfiguration and the NotificationEngine executor constructor kept: new seam), AuditedAspect.java (E); D = mutation: GET /api/v1/risk-review removed from e5-routes.json. -Dmaven.test.failure.ignore=true so every class runs (exit 0 by design; the failures are below)
+$ ./mvnw -q '-Dtest=SchedulerSeparationTest,E5RouteParityTest,AuditedAspectTest' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=E5PersistenceIT,CleanupJobIT,AuditedAspectIT,NotificationEngineIT#R_11_09*' -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Djacoco.skip=true verify
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.57 s <<< FAILURE! -- in com.agilityhub.core.configuration.SchedulerSeparationTest
+[ERROR] com.agilityhub.core.configuration.SchedulerSeparationTest.R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers -- Time elapsed: 10.56 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"dispatch"="", "poll"="", "scheduled"=""}
+to contain entries:
+  ["poll"="notificationScheduler",
+    "dispatch"="outboxScheduler",
+    "scheduled"="jobTickScheduler"]
+but the following map entries had different values:
+  ["poll"="" (expected: "notificationScheduler"), "dispatch"="" (expected: "outboxScheduler"), "scheduled"="" (expected: "jobTickScheduler")]
+	at com.agilityhub.core.configuration.SchedulerSeparationTest.lambda$R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers$8(SchedulerSeparationTest.java:50)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.accept(AbstractApplicationContextRunner.java:457)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.consumeAssertableContext(AbstractApplicationContextRunner.java:371)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$1(AbstractApplicationContextRunner.java:349)
+	at org.springframework.boot.test.util.TestPropertyValues.lambda$applyToSystemProperties$0(TestPropertyValues.java:176)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:190)
+	at org.springframework.boot.test.util.TestPropertyValues.applyToSystemProperties(TestPropertyValues.java:175)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.lambda$run$0(AbstractApplicationContextRunner.java:349)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.withContextClassLoader(AbstractApplicationContextRunner.java:377)
+	at org.springframework.boot.test.context.runner.AbstractApplicationContextRunner.run(AbstractApplicationContextRunner.java:348)
+	at com.agilityhub.core.configuration.SchedulerSeparationTest.R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers(SchedulerSeparationTest.java:42)
+
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.099 s <<< FAILURE! -- in com.agilityhub.core.configuration.E5RouteParityTest
+[ERROR] com.agilityhub.core.configuration.E5RouteParityTest.T_15_29_INC_40_theSnapshotPublishesTheFixtureRoutesAndNoOtherUnderTheirFamilies -- Time elapsed: 0.050 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/risk-review",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+to contain exactly (and in same order):
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+but some elements were not expected:
+  ["GET /api/v1/risk-review"]
+
+	at com.agilityhub.core.configuration.E5RouteParityTest.T_15_29_INC_40_theSnapshotPublishesTheFixtureRoutesAndNoOtherUnderTheirFamilies(E5RouteParityTest.java:86)
+
+[ERROR] com.agilityhub.core.configuration.E5RouteParityTest.T_15_29_INC_40_theE5FixtureIsTheSection6TablesBothWays -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+to contain exactly (and in same order):
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/risk-review",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+but could not find the following elements:
+  ["GET /api/v1/risk-review"]
+
+	at com.agilityhub.core.configuration.E5RouteParityTest.T_15_29_INC_40_theE5FixtureIsTheSection6TablesBothWays(E5RouteParityTest.java:67)
+
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.117 s <<< FAILURE! -- in com.agilityhub.core.platform.application.audit.AuditedAspectTest
+[ERROR] com.agilityhub.core.platform.application.audit.AuditedAspectTest.R_14_09_INC_40_anAuditedMethodWithoutTransactionIsRefusedBeforeItRuns -- Time elapsed: 0.007 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.platform.application.audit.AuditedAspectTest.R_14_09_INC_40_anAuditedMethodWithoutTransactionIsRefusedBeforeItRuns(AuditedAspectTest.java:70)
+
+[ERROR] Failures: 
+[ERROR]   E5RouteParityTest.T_15_29_INC_40_theE5FixtureIsTheSection6TablesBothWays:67 
+Expecting actual:
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+to contain exactly (and in same order):
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/risk-review",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+but could not find the following elements:
+  ["GET /api/v1/risk-review"]
+
+[ERROR]   E5RouteParityTest.T_15_29_INC_40_theSnapshotPublishesTheFixtureRoutesAndNoOtherUnderTheirFamilies:86 
+Expecting actual:
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/risk-review",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+to contain exactly (and in same order):
+  ["DELETE /api/v1/seat-holds/{id}",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/bookings/{id}",
+    "GET /api/v1/bookings/{id}/calendar.ics",
+    "GET /api/v1/class-sessions/{id}/bookings",
+    "GET /api/v1/class-sessions/{id}/waitlist-entries",
+    "GET /api/v1/jobs",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/jobs/{name}/runs/{runId}",
+    "GET /api/v1/me/bookable-classes",
+    "GET /api/v1/me/bookings",
+    "GET /api/v1/me/home",
+    "GET /api/v1/me/training-bookings",
+    "GET /api/v1/me/training-summary",
+    "GET /api/v1/platform/jobs/overview",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/training-bookings/{id}",
+    "GET /api/v1/training-slots",
+    "GET /api/v1/waitlist-entries/{id}",
+    "POST /api/v1/bookings",
+    "POST /api/v1/bookings/{id}/cancellation",
+    "POST /api/v1/jobs/{name}/trigger",
+    "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger",
+    "POST /api/v1/seat-holds",
+    "POST /api/v1/training-bookings",
+    "POST /api/v1/training-bookings/{id}/cancellation",
+    "POST /api/v1/waitlist-entries",
+    "POST /api/v1/waitlist-entries/{id}/cancellation",
+    "POST /api/v1/waitlist-entries/{id}/claim",
+    "PUT /api/v1/jobs/{name}/switch"]
+but some elements were not expected:
+  ["GET /api/v1/risk-review"]
+
+[ERROR]   SchedulerSeparationTest.R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers:42->lambda$R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers$8:50 
+Expecting map:
+  {"dispatch"="", "poll"="", "scheduled"=""}
+to contain entries:
+  ["poll"="notificationScheduler",
+    "dispatch"="outboxScheduler",
+    "scheduled"="jobTickScheduler"]
+but the following map entries had different values:
+  ["poll"="" (expected: "notificationScheduler"), "dispatch"="" (expected: "outboxScheduler"), "scheduled"="" (expected: "jobTickScheduler")]
+[ERROR]   AuditedAspectTest.R_14_09_INC_40_anAuditedMethodWithoutTransactionIsRefusedBeforeItRuns:70 
+Expecting code to raise a throwable.
+[ERROR] Tests run: 8, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+17:31:19.631 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5PersistenceIT]: E5PersistenceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:31:19.740 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5PersistenceIT
+17:31:19.765 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5PersistenceIT]: E5PersistenceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:31:19.765 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:31:19.766 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5PersistenceIT
+17:31:19.793 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+17:31:19.794 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+17:31:19.798 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+17:31:19.895 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+17:31:20.069 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+17:31:20.070 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+17:31:20.080 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+17:31:20.417 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+17:31:20.472 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+17:31:20.528 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: e3c95b6ab3036757da955851cf758cb85aa9bcf50bd72b8079e777ba3f30399f
+17:31:20.701 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.284294S
+17:31:20.704 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+17:31:20.704 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+17:31:20.705 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+17:31:20.705 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+17:31:20.743 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: cd6dbfca5caa9cd7d1d66b359097cf4a7a4a22170a214211cdc2197317c70c93
+17:31:21.175 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.470415S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T17:31:21.789+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : Starting E5PersistenceIT using Java [redacted] with PID 5770 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T17:31:21.790+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T17:31:22.551+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T17:31:22.601+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 46 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T17:31:22.935+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@116fe252], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7b8b755d, com.mongodb.Jep395RecordCodecProvider@3bd5dff5, com.mongodb.KotlinCodecProvider@6df605f, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:53497], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@68cc6fa4], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T17:31:22.940+03:00 INFO  [cluster-6ad4d83aa551aa813f5180ce-localhost:53497] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:53497, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7776125, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cd6dbfca5caa:27017, hosts=[cd6dbfca5caa:27017], passives=[], arbiters=[], primary='cd6dbfca5caa:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4d8386b3911536f97eec5, counter=6}, lastWriteDate=Sun Oct 18 17:31:21 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T17:31:23.880+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:23.903+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:23.921+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:24.463+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:24.475+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:24.487+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:24.543+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T17:31:26.379+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : Started E5PersistenceIT in 4.739 seconds (process running for 7.098)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 8, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 7.772 s <<< FAILURE! -- in com.agilityhub.core.configuration.E5PersistenceIT
+[ERROR] com.agilityhub.core.configuration.E5PersistenceIT.T_08_29_T_09_32_T_15_03_collectionsDeclareTheirIndexesTtlAndUniqueGuards -- Time elapsed: 0.362 s <<< FAILURE!
+java.lang.AssertionError: 
+[seat_lock_ttl] 
+Expecting actual not to be null
+	at com.agilityhub.core.configuration.E5PersistenceIT.T_08_29_T_09_32_T_15_03_collectionsDeclareTheirIndexesTtlAndUniqueGuards(E5PersistenceIT.java:65)
+
+[ERROR] com.agilityhub.core.configuration.E5PersistenceIT.T_08_29_INC_40_everySeatLockStampsLockedAtFromTheClock -- Time elapsed: 0.043 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.util.Date.toInstant()" because the return value of "org.bson.Document.getDate(Object)" is null
+	at com.agilityhub.core.configuration.E5PersistenceIT.T_08_29_INC_40_everySeatLockStampsLockedAtFromTheClock(E5PersistenceIT.java:143)
+
+2026-10-18T17:31:27.360+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.CleanupJobIT]: CleanupJobIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:27.403+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.CleanupJobIT
+2026-10-18T17:31:27.404+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.CleanupJobIT]: CleanupJobIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:27.404+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.BookingFixtures]: BookingFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:27.404+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:27.405+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.CleanupJobIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T17:31:27.421+03:00 INFO  [main] c.a.core.clubs.bookings.api.CleanupJobIT traceId= clubId= accountId= : Starting CleanupJobIT using Java [redacted] with PID 5770 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T17:31:27.421+03:00 INFO  [main] c.a.core.clubs.bookings.api.CleanupJobIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T17:31:27.709+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T17:31:27.742+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 32 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T17:31:27.801+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3132e390], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7b8b755d, com.mongodb.Jep395RecordCodecProvider@3bd5dff5, com.mongodb.KotlinCodecProvider@6df605f, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:53497], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1b1f86f0], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T17:31:27.803+03:00 INFO  [cluster-6ad4d83fa551aa813f5180cf-localhost:53497] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:53497, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1495542, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cd6dbfca5caa:27017, hosts=[cd6dbfca5caa:27017], passives=[], arbiters=[], primary='cd6dbfca5caa:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4d8386b3911536f97eec5, counter=6}, lastWriteDate=Sun Oct 18 17:31:27 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T17:31:28.683+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T17:31:28.684+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T17:31:28.686+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T17:31:28.709+03:00 INFO  [main] c.a.core.clubs.bookings.api.CleanupJobIT traceId= clubId= accountId= : Started CleanupJobIT in 1.301 seconds (process running for 9.428)
+2026-10-18T17:31:29.310+03:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failed jobRunId=e3e37f41-acea-4092-9f70-58c405c16272 job=CLEANUP clubId=s08-a traceId=342fd85e-4704-4694-9348-6953a93f448e
+java.lang.IllegalStateException
+	at com.agilityhub.core.clubs.bookings.api.CleanupJobIT$1.plan(CleanupJobIT.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:201)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.tick(JobRunner.java:112)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$scheduled$1(JobRunner.java:91)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:137)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.scheduled(JobRunner.java:91)
+	at com.agilityhub.core.clubs.bookings.api.CleanupJobIT.T_15_27_aRunTheRunnerClosesFailedWhoseHookThrowsDoesNotKeepThePlatformCycle(CleanupJobIT.java:205)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-18T17:31:29.331+03:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job failure hook failed jobRunId=e3e37f41-acea-4092-9f70-58c405c16272 job=CLEANUP clubId=s08-a
+java.lang.IllegalStateException
+	at com.agilityhub.core.clubs.bookings.api.CleanupJobIT$1.failed(CleanupJobIT.java:203)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.failed(JobRunner.java:258)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.run(JobRunner.java:252)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.execute(JobRunner.java:185)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.tick(JobRunner.java:112)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.lambda$scheduled$1(JobRunner.java:91)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:137)
+	at com.agilityhub.core.platform.application.jobs.JobRunner.scheduled(JobRunner.java:91)
+	at com.agilityhub.core.clubs.bookings.api.CleanupJobIT.T_15_27_aRunTheRunnerClosesFailedWhoseHookThrowsDoesNotKeepThePlatformCycle(CleanupJobIT.java:205)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-10-18T17:31:31.738+03:00 ERROR [main] c.a.c.p.application.jobs.JobRunner traceId= clubId= accountId= : Job lease expired jobRunId=s08-dead-cleanup job=CLEANUP clubId=s08-a
+2026-10-18T17:31:31.740+03:00 WARN  [main] c.a.c.c.common.application.CleanupJob traceId= clubId= accountId= : Cleanup platform cycle released by a failed run jobRunId=s08-dead-cleanup clubId=s08-a
+[ERROR] Tests run: 8, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 5.362 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.CleanupJobIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.CleanupJobIT.T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns -- Time elapsed: 0.420 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"WOULD_DELETE"=6L, "WOULD_DELETE_domainEvents"=1L, "WOULD_DELETE_exports"=1L, "WOULD_DELETE_jobRuns"=3L, "WOULD_DELETE_orphanUploads"=3L, "WOULD_DELETE_stripeEvents"=0L, "platformPass"=0L, "ttlPendingIdempotencyRecords"=1L, "ttlPendingJobLocks"=1L, "ttlPendingMagicLinkTokens"=1L, "ttlPendingRingSlotLocks"=1L, "ttlPendingSeatHolds"=1L, "ttlPendingSignupNotificationAdmissions"=1L}
+to contain entries:
+  ["ttlPendingSeatLocks"=1L]
+but could not find the following map entries:
+  ["ttlPendingSeatLocks"=1L]
+	at com.agilityhub.core.clubs.bookings.api.CleanupJobIT.T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns(CleanupJobIT.java:284)
+
+2026-10-18T17:31:32.722+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT]: NotificationEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:32.770+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+2026-10-18T17:31:32.770+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT]: NotificationEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:32.771+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.EngineFixtures]: EngineFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:32.771+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:32.771+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+2026-10-18T17:31:33.021+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.audit.AuditedAspectIT
+2026-10-18T17:31:33.021+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T17:31:33.022+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.audit.AuditedAspectIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T17:31:33.034+03:00 INFO  [main] c.a.c.p.a.audit.AuditedAspectIT traceId= clubId= accountId= : Starting AuditedAspectIT using Java [redacted] with PID 5770 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T17:31:33.034+03:00 INFO  [main] c.a.c.p.a.audit.AuditedAspectIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T17:31:33.281+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T17:31:33.310+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 29 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T17:31:33.355+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@23c54fbb], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7b8b755d, com.mongodb.Jep395RecordCodecProvider@3bd5dff5, com.mongodb.KotlinCodecProvider@6df605f, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:53497], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@250db31d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T17:31:33.357+03:00 INFO  [cluster-6ad4d845a551aa813f5180d1-localhost:53497] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:53497, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=929333, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=cd6dbfca5caa:27017, hosts=[cd6dbfca5caa:27017], passives=[], arbiters=[], primary='cd6dbfca5caa:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4d8386b3911536f97eec5, counter=6}, lastWriteDate=Sun Oct 18 17:31:32 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T17:31:34.146+03:00 INFO  [main] c.a.c.p.a.audit.AuditedAspectIT traceId= clubId= accountId= : Started AuditedAspectIT in 1.123 seconds (process running for 14.864)
+2026-10-18T17:31:34.228+03:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 24 dogs
+audit_entries indexes: [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{clubId=1, at=-1}}, name=audit_club_at}}, Document{{v=2, key=Document{{clubId=1, memberId=1, at=-1}}, name=audit_club_member_at}}, Document{{v=2, key=Document{{clubId=1, impersonatedMemberId=1, at=-1}}, name=audit_club_impersonated_at}}, Document{{v=2, key=Document{{clubId=1, entityType=1, entityId=1, at=-1}}, name=audit_club_entity_at}}, Document{{v=2, key=Document{{clubId=1, action=1, at=-1}}, name=audit_club_action_at}}]
+[ERROR] Tests run: 15, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.614 s <<< FAILURE! -- in com.agilityhub.core.platform.application.audit.AuditedAspectIT
+[ERROR] com.agilityhub.core.platform.application.audit.AuditedAspectIT.T_14_07_R_14_09_INC_40_aspectSkipsNoOpAndRefusesAnAuditedMethodWithoutTransaction -- Time elapsed: 0.025 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.platform.application.audit.AuditedAspectIT.T_14_07_R_14_09_INC_40_aspectSkipsNoOpAndRefusesAnAuditedMethodWithoutTransaction(AuditedAspectIT.java:185)
+
+[ERROR] Failures: 
+[ERROR]   CleanupJobIT.T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns:284 
+Expecting map:
+  {"WOULD_DELETE"=6L, "WOULD_DELETE_domainEvents"=1L, "WOULD_DELETE_exports"=1L, "WOULD_DELETE_jobRuns"=3L, "WOULD_DELETE_orphanUploads"=3L, "WOULD_DELETE_stripeEvents"=0L, "platformPass"=0L, "ttlPendingIdempotencyRecords"=1L, "ttlPendingJobLocks"=1L, "ttlPendingMagicLinkTokens"=1L, "ttlPendingRingSlotLocks"=1L, "ttlPendingSeatHolds"=1L, "ttlPendingSignupNotificationAdmissions"=1L}
+to contain entries:
+  ["ttlPendingSeatLocks"=1L]
+but could not find the following map entries:
+  ["ttlPendingSeatLocks"=1L]
+[ERROR]   E5PersistenceIT.T_08_29_T_09_32_T_15_03_collectionsDeclareTheirIndexesTtlAndUniqueGuards:65 [seat_lock_ttl] 
+Expecting actual not to be null
+[ERROR]   AuditedAspectIT.T_14_07_R_14_09_INC_40_aspectSkipsNoOpAndRefusesAnAuditedMethodWithoutTransaction:185 
+Expecting code to raise a throwable.
+[ERROR] Errors: 
+[ERROR]   E5PersistenceIT.T_08_29_INC_40_everySeatLockStampsLockedAtFromTheClock:143 NullPointer Cannot invoke "java.util.Date.toInstant()" because the return value of "org.bson.Document.getDate(Object)" is null
+[ERROR] Tests run: 32, Failures: 3, Errors: 1, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+exit=0
+surefire tests 4817 failures 5 errors 0 skipped 0
+  E5RouteParityTest tests 2 failures 2 errors 0 skipped 0
+  SchedulerSeparationTest tests 1 failures 1 errors 0 skipped 0
+  AuditedAspectTest tests 5 failures 1 errors 0 skipped 0
+  FAILED E5RouteParityTest.T_15_29_INC_40_theSnapshotPublishesTheFixtureRoutesAndNoOtherUnderTheirFamilies
+  FAILED E5RouteParityTest.T_15_29_INC_40_theE5FixtureIsTheSection6TablesBothWays
+  FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract
+  FAILED SchedulerSeparationTest.R_15_01_R_11_09_INC_40_theOutboxTheTickAndTheNotificationPollRunOnTheirOwnSchedulers
+  FAILED AuditedAspectTest.R_14_09_INC_40_anAuditedMethodWithoutTransactionIsRefusedBeforeItRuns
+failsafe tests 2157 failures 5 errors 1 skipped 0
+  CleanupJobIT tests 8 failures 1 errors 0 skipped 0
+  NotificationEngineIT tests 1 failures 0 errors 0 skipped 0
+  E5PersistenceIT tests 8 failures 1 errors 1 skipped 0
+  AuditedAspectIT tests 15 failures 1 errors 0 skipped 0
+  FAILED CleanupJobIT.T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns
+  FAILED E5PersistenceIT.T_08_29_T_09_32_T_15_03_collectionsDeclareTheirIndexesTtlAndUniqueGuards
+  FAILED E5PersistenceIT.T_08_29_INC_40_everySeatLockStampsLockedAtFromTheClock
+  FAILED AuditedAspectIT.T_14_07_R_14_09_INC_40_aspectSkipsNoOpAndRefusesAnAuditedMethodWithoutTransaction
+  FAILED OutboxIT.E0_T04_deliversToEveryMatchingConsumerAndPublishesWithRetentionIndexes
+  FAILED OutboxIT.R_15_19_INC_40_ensureIndexesDropsTheFormerOutboxTtl

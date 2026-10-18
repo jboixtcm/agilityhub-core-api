@@ -150,8 +150,13 @@ public class MessagingConfiguration {
 
     @Bean NotificationEngine notificationEngine(ClubConfigService configs, IcuMessageSource messages, TemplateProvider templates, RecipientResolver recipients,
             NotificationRepository notifications, PushSubscriptionRepository subscriptions, NotificationAccounts accounts, List<NotificationFactsPort> owners,
-            BookingRelevancePort bookings, EventPublisher events, NotificationDispatcher dispatcher, Clock clock, PlatformTransactionManager transactions) {
+            BookingRelevancePort bookings, EventPublisher events, NotificationDispatcher dispatcher, Clock clock, PlatformTransactionManager transactions,
+            @Value("${shared.scheduling.enabled:true}") boolean scheduling,
+            @org.springframework.beans.factory.annotation.Qualifier(com.agilityhub.core.shared.application.SchedulerConfiguration.NOTIFICATIONS)
+            java.util.concurrent.Executor notificationScheduler) {
+        // INC-40 (E11-T10): the sends after a commit run on the notification scheduler, off the outbox thread; with the schedulers
+        // off (tests, a consumer stack without scheduling) nothing would run them there, so they stay inline.
         return new NotificationEngine(configs, messages, templates, recipients, notifications, subscriptions, accounts, owners, bookings, events, dispatcher,
-                clock, transactions);
+                clock, transactions, scheduling ? notificationScheduler : Runnable::run);
     }
 }

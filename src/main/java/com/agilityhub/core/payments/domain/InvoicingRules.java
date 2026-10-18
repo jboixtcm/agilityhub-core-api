@@ -120,7 +120,8 @@ public final class InvoicingRules {
         var payerOf = new HashMap<String, String>();
         if (settings.familyGroups()) {
             for (var group : groups) {
-                if (!byId.containsKey(group.holderMemberId())) { continue; }
+                // R-03-20 (INC-38, E11-T10): a holder who is not ACTIVE pays for nobody; the others are billed on their own.
+                if (!byId.containsKey(group.holderMemberId()) || !"ACTIVE".equals(byId.get(group.holderMemberId()).status())) { continue; }
                 for (String memberId : group.memberIds()) {
                     if (memberId.equals(group.holderMemberId()) || !byId.containsKey(memberId) || payerOf.containsKey(memberId)) { continue; }
                     payerOf.put(memberId, group.holderMemberId());

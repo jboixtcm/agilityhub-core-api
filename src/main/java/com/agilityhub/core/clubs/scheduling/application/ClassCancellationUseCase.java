@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 public class ClassCancellationUseCase {
     private final ClassSessionService sessions; private final ClassSessionRepository classes; private final ClassBookingsPort bookings;
     private final SchedulingRecipients recipients; private final PlanningContext context; private final SchedulingTransactions transactions;
-    private final SchedulingEvents events; private final SchedulingAudit audit; private final Clock clock;
+    private final SchedulingEvents events; private final SchedulingAudit audit; private final Clock clock; private final IcuMessageSource messages;
     public ClassCancellationUseCase(ClassSessionService sessions,ClassSessionRepository classes,ClassBookingsPort bookings,SchedulingRecipients recipients,
-            PlanningContext context,SchedulingTransactions transactions,SchedulingEvents events,SchedulingAudit audit,Clock clock) {
+            PlanningContext context,SchedulingTransactions transactions,SchedulingEvents events,SchedulingAudit audit,Clock clock,IcuMessageSource messages) {
         this.sessions=sessions; this.classes=classes; this.bookings=bookings; this.recipients=recipients; this.context=context;
-        this.transactions=transactions; this.events=events; this.audit=audit; this.clock=clock;
+        this.transactions=transactions; this.events=events; this.audit=audit; this.clock=clock; this.messages=messages;
     }
     /** The admin's own cancellation (reason CLUB_MANUAL) for callers outside S06, which hold no S06 domain type (the E6-T04 demo seed). */
     public void cancelByClub(String id,String adminText,String actor) { cancel(id,ClassCancellationReason.CLUB_MANUAL,adminText,actor); }
@@ -40,16 +40,22 @@ public class ClassCancellationUseCase {
             events.publish(SchedulingEvent.Kind.ClassCancelledByClub,id,payload); audit.cancelled(before,after); return after;
         }, ErrorCode.INVALID_STATE);
     }
+    /**
+     * R-06-10 (D4c modal, T-06-15). INC-40 (E11-T10): a booking whose member the census no longer names (erased, R-14-15) or
+     * whose dog is gone is still a row: the neutral `lists.erasedMember`, an empty dog name, no channels and no phones (nothing
+     * will reach them), never a 404 for the whole preview.
+     */
     public Map<String,Object> preview(String id) {
-        sessions.require(id); var config=context.config(); var catalog=context.catalog();
+        sessions.require(id); var config=context.config(); var catalog=context.catalog(); var locale=LocaleContext.current();
         var rows=bookings.activeBookings(id).stream().map(b -> {
-            var member=recipients.member(b.memberId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            var dog=recipients.dog(b.dogId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            var channels=new ArrayList<String>(); if(member.accountId()!=null) channels.add("APP"); if(member.email()!=null) channels.add("EMAIL");
-            if(config.modules().contains(Module.SMS) && !member.phones().isEmpty()) channels.add("SMS");
-            var row=new LinkedHashMap<String,Object>(); row.put("bookingId",b.bookingId()); row.put("memberName",member.name()); row.put("dogName",dog.name());
-            row.put("levelName",catalog.levels().stream().filter(l -> l.id().equals(dog.levelId())).map(l -> l.name().resolve(LocaleContext.current()).value()).findFirst().orElse(null));
-            row.put("channels",channels); row.put("phoneCount",member.phones().size()); return row;
+            var member=recipients.member(b.memberId()); var dog=recipients.dog(b.dogId());
+            var channels=new ArrayList<String>();
+            member.ifPresent(m -> { if(m.accountId()!=null) channels.add("APP"); if(m.email()!=null) channels.add("EMAIL"); if(config.modules().contains(Module.SMS) && !m.phones().isEmpty()) channels.add("SMS"); });
+            var row=new LinkedHashMap<String,Object>(); row.put("bookingId",b.bookingId());
+            row.put("memberName",member.map(SchedulingRecipients.Member::name).orElseGet(() -> messages.format("lists.erasedMember",Map.of(),locale)));
+            row.put("dogName",dog.map(SchedulingRecipients.Dog::name).orElse(""));
+            row.put("levelName",dog.flatMap(d -> catalog.levels().stream().filter(l -> l.id().equals(d.levelId())).map(l -> l.name().resolve(locale).value()).findFirst()).orElse(null));
+            row.put("channels",channels); row.put("phoneCount",member.map(m -> m.phones().size()).orElse(0)); return row;
         }).toList();
         return Map.of("bookings",rows,"waitlistCount",bookings.liveWaitlist(id).size());
     }

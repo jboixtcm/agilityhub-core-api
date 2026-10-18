@@ -531,6 +531,15 @@ class SignupIT extends AbstractIntegrationTest {
         assertThat(collection("upfront_payments").stream().filter(p->"ENTRY_FEE".equals(p.getString("concept"))).findFirst().orElseThrow().getString("status")).isEqualTo("PARTIAL");
         assertThat(collection("upfront_payments").stream().filter(p->"FIRST_MONTH".equals(p.getString("concept"))).findFirst().orElseThrow().getString("status")).isEqualTo("DUE");
     }
+    /** R-04-16, INC-39 (E11-T10): an amount collected in another currency than the club's is 422 CURRENCY_MISMATCH on its field, before any write. */
+    @Test void T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite() throws Exception {
+        String id=submit(request()).path("memberId").asText();String dog=dog(id);var rows=collection("upfront_payments");var before=member(id);
+        var request=new LinkedHashMap<>(validation(id,dog,0));request.put("upfrontAmountPaid",Map.of("amountMinor",5000,"currency","USD"));
+        var refused=result(admin(postJson("/members/"+id+"/validation",request)),422);
+        assertThat(refused.path("code").asText()).isEqualTo("CURRENCY_MISMATCH");assertThat(refused.at("/details/field").asText()).isEqualTo("upfrontAmountPaid");
+        assertThat(member(id)).isEqualTo(before);assertThat(collection("upfront_payments")).isEqualTo(rows);
+        validate(id,5000);assertThat(member(id).getString("status")).isEqualTo("ACTIVE");
+    }
     @Test void T_04_22_zeroDueCardUsesSetupAndCheckoutRejectsUnsafeRedirectsAndUnpayableMembers() throws Exception {
         providers(true);String single=offer(PlanType.SINGLE_CLASS,1,2000);var body=request();body.put("planId",single);body.set("payment",mapper.valueToTree(Map.of("type","CARD")));var submitted=submit(body);String id=submitted.path("memberId").asText();
         var checkout=new LinkedHashMap<>(Map.of("memberId",id,"signupToken",submitted.path("signupToken").asText(),"successUrl","https://"+host+"/success","cancelUrl","https://"+host+"/cancel"));

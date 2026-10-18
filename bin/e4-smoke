@@ -186,7 +186,7 @@ class Smoke:
             print("PASS working tree image built", flush=True)
         require(self.mongo("db.clubs.countDocuments()") == 0, "Smoke database must be empty")
         output = ""
-        for command in (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42")):
+        for command in (("club:apply", "seeds/club-canic-consumer.yaml"), ("seed:demo", "--club=canic", "--seed=42")):
             for attempt in (1, 2):
                 output = self.cli(*command)
                 if attempt == 2:

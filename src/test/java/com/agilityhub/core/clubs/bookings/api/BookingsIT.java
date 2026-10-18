@@ -126,6 +126,56 @@ class BookingsIT extends BookingFixtures {
         try (var t = TenantContext.open(CLUB)) { assertThat(packs.refund("s08-m-joan", "s08-d-toby", "x", LocalDate.parse("2026-10-08"))).isNull(); }
     }
 
+    /**
+     * R-08-07, R-08-08 — INC-40 (E11-T10): a live hold is its account's guarantee. Another member of the family group cannot
+     * take over the hold of the same dog (CLASS_FULL{heldOnly: true}, as for any seat only held by someone else), so the
+     * holder still confirms; once that hold has expired the other member may hold the dog.
+     */
+    @Test void T_08_14_INC_40_aLiveHoldOfTheDogIsNotTakenOverByAnotherFamilyMember() throws Exception {
+        var lauras = hold(as("laura"), "wed", "s08-d-duna", 201);
+        var refused = hold(as("joan"), "wed", "s08-d-duna", 409);
+        assertThat(code(refused)).isEqualTo("CLASS_FULL"); assertThat(refused.at("/details/heldOnly").asBoolean()).isTrue();
+        assertThat(mongo.findById(lauras.path("id").asText(), Document.class, "seat_holds")).containsEntry("accountId", "s08-laura");
+        assertThat(confirm(as("laura"), lauras.path("id").asText(), null, 201).at("/bookedBy/displayName").asText()).isEqualTo("Laura");
+        // An expired hold (the TTL has not run yet) guarantees nothing: Joan may hold the dog, and Laura's old hold no longer confirms.
+        var expired = hold(as("laura"), "thu", "s08-d-duna", 201); clock.advance(Duration.ofSeconds(31));
+        var joans = hold(as("joan"), "thu", "s08-d-duna", 201);
+        assertThat(mongo.findById(joans.path("id").asText(), Document.class, "seat_holds")).containsEntry("accountId", "s08-joan");
+        assertThat(code(confirm(as("laura"), expired.path("id").asText(), null, 409))).isEqualTo("SEAT_HOLD_EXPIRED");
+        confirm(as("joan"), joans.path("id").asText(), null, 201);
+        assertThat(count("bookings", Criteria.where("dogId").is("s08-d-duna").and("state").is("ACTIVE"))).isEqualTo(2);
+    }
+
+    /**
+     * R-08-08 — INC-40 (E11-T10), RFC 5545 §3.8.1.11/§3.8.7.4: the served `.ics` keeps its UID, says STATUS:CONFIRMED and is
+     * stamped when it is served; once the booking is cancelled (or its class is) it says STATUS:CANCELLED with a higher
+     * SEQUENCE, so a calendar that imported it updates the event instead of keeping it.
+     */
+    @Test void T_08_15_INC_40_theIcsOfACancelledBookingSaysCancelledWithAHigherSequence() throws Exception {
+        var booking = book(as("laura"), "wed", "s08-d-duna"); String id = booking.path("id").asText();
+        String ics = booking.at("/calendarLinks/ics").asText(); String path = ics.substring(ics.indexOf("/api/v1"));
+        String uid = "UID:" + id + "@" + CLUB + ".agilityhub";
+        var confirmed = mvc.perform(get(path).header("Host", HOST)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(confirmed).contains(uid, "STATUS:CONFIRMED", "DTSTAMP:20261006T080000Z").doesNotContain("STATUS:CANCELLED");
+        int before = sequence(confirmed);
+        clock.advance(Duration.ofMinutes(5));
+        cancel(as("laura"), id, 200);
+        var cancelled = mvc.perform(get(path).header("Host", HOST)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(cancelled).contains(uid, "STATUS:CANCELLED", "DTSTAMP:20261006T080500Z").doesNotContain("STATUS:CONFIRMED");
+        assertThat(sequence(cancelled)).isGreaterThan(before);
+        // The class itself cancelled while the booking is still ACTIVE in this read: CANCELLED too, and a higher SEQUENCE again.
+        var fri = book(as("laura"), "fri", "s08-d-duna"); String friIcs = fri.at("/calendarLinks/ics").asText(); String friPath = friIcs.substring(friIcs.indexOf("/api/v1"));
+        int friBefore = sequence(mvc.perform(get(friPath).header("Host", HOST)).andReturn().getResponse().getContentAsString());
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-fri")), new Update().set("state", "CANCELLED").inc("version", 1), "class_sessions");
+        var classCancelled = mvc.perform(get(friPath).header("Host", HOST)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(classCancelled).contains("STATUS:CANCELLED"); assertThat(sequence(classCancelled)).isGreaterThan(friBefore);
+    }
+    static int sequence(String ics) {
+        var line = ics.lines().filter(l -> l.startsWith("SEQUENCE:")).findFirst();
+        assertThat(line).as("SEQUENCE in\n" + ics).isPresent();
+        return Integer.parseInt(line.get().substring("SEQUENCE:".length()).trim());
+    }
+
     @Test void T_08_16_theSameIdempotencyKeyReplaysTheResponseAlsoAStored409() throws Exception {
         var held = hold(as("laura"), "wed", "s08-d-duna", 201); String key = UUID.randomUUID().toString();
         var body = Map.of("seatHoldId", held.path("id").asText());

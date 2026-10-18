@@ -53,7 +53,31 @@ public class MongoEventPublisher extends GlobalRepository<DomainEventRecord> imp
                     DomainEventRecord.Status.PENDING, 0, clock.instant(), null, null, null, 0, Map.of()));
         } catch (JsonProcessingException invalid) { throw new IllegalArgumentException("Event cannot be serialized", invalid); }
         evictAfterCommit(id, event.type(), json);
+        published(id);
         return id;
+    }
+
+    /** The key of this transaction's published ids (a list bound as a transaction resource, suspended with it). */
+    private final Object publishedKey = new Object();
+    @SuppressWarnings("unchecked")
+    private void published(String id) {
+        var ids = (List<String>) TransactionSynchronizationManager.getResource(publishedKey);
+        if (ids == null) {
+            var bound = new java.util.ArrayList<String>(); ids = bound;
+            TransactionSynchronizationManager.bindResource(publishedKey, bound);
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void suspend() { TransactionSynchronizationManager.unbindResourceIfPossible(publishedKey); }
+                @Override public void resume() { TransactionSynchronizationManager.bindResource(publishedKey, bound); }
+                @Override public void afterCompletion(int status) { TransactionSynchronizationManager.unbindResourceIfPossible(publishedKey); }
+            });
+        }
+        ids.add(id);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override public List<String> publishedInTransaction() {
+        var ids = TransactionSynchronizationManager.isActualTransactionActive() ? (List<String>) TransactionSynchronizationManager.getResource(publishedKey) : null;
+        return ids == null ? List.of() : List.copyOf(ids);
     }
 
     /** E3-T09: the cache evictions of this event run on this instance right after the commit ({@link DomainEventHandler#evictsAfterCommit}). */

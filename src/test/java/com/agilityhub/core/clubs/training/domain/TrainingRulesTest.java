@@ -40,6 +40,15 @@ class TrainingRulesTest {
         var two = List.of(one.getFirst(), new TrainingGrid.Seat("b2", "cen", "toby", slot.startsAt(), slot.endsAt(), 1));
         assertThat(TrainingGrid.cell(central, slot, List.of(), List.of(), two, "kira").state()).isEqualTo(SlotState.BOOKED);
         assertThat(TrainingGrid.cell(new TrainingGrid.Ring("mun", 1), slot, List.of(), List.of(), one, null).state()).as("another ring is not touched").isEqualTo(SlotState.FREE);
+        // A reservable ring whose capacity parameter is 0 stays full; INC-44's staff-only ring is free for a block unless a seat holds it.
+        assertThat(TrainingGrid.cell(new TrainingGrid.Ring("mun", 0), slot, List.of(), List.of(), List.of(), null).state()).isEqualTo(SlotState.BOOKED);
+        var petita = TrainingGrid.Ring.staffOnly("pet");
+        assertThat(petita.capacity()).isZero(); assertThat(petita.trainable()).isFalse();
+        assertThat(TrainingGrid.cell(petita, slot, List.of(), List.of(), List.of(), null).state()).isEqualTo(SlotState.FREE);
+        var left = List.of(new TrainingGrid.Seat("b3", "pet", "rock", slot.startsAt(), slot.endsAt(), 0));
+        assertThat(TrainingGrid.cell(petita, slot, List.of(), List.of(), left, null).state()).isEqualTo(SlotState.BOOKED);
+        assertThat(TrainingGrid.cell(petita, slot, List.of(new TrainingGrid.Busy("c", "pet", slot.startsAt(), slot.endsAt())), List.of(), List.of(), null).reason())
+                .isEqualTo(SlotReason.CLASS);
     }
 
     @Test void T_09_04_openingHoursGiveThirtySlotsAndAHolidayNone() {

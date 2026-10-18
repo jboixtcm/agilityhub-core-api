@@ -23,6 +23,7 @@ class WaitlistIT extends BookingFixtures {
     @Autowired WaitlistService waitlist; @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationEngine engine;
     @Autowired org.springframework.transaction.PlatformTransactionManager notificationTransactions;
     @Autowired com.agilityhub.core.clubs.bookings.persistence.WaitlistEntryRepository waitlistEntries;
+    @Autowired BookableClassesCache cache;
 
     static String id(JsonNode node) { return node.path("id").asText(); }
     long notifications(String code, String channel) { return notificationsOf(code, channel).size(); }
@@ -226,6 +227,93 @@ class WaitlistIT extends BookingFixtures {
         dispatch();
         try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerNext("s08-last", null)).isZero(); assertThat(waitlist.offerSeats("s08-last", 1)).isZero(); }
         assertThat(entry(c0)).containsEntry("state", "ACTIVE"); assertThat(events("WaitlistNotified")).isEqualTo(2);
+    }
+
+    JsonNode row(String account, String dogId, String classId) throws Exception {
+        cache.invalidate(CLUB);
+        for (var row : call(GET, "/me/bookable-classes?dogId=" + dogId, null, as(account), 200).path("classes")) {
+            if (row.path("id").asText().equals("s08-" + classId)) { return row; }
+        }
+        throw new AssertionError("no row " + classId);
+    }
+
+    /**
+     * R-08-14, R-08-15 — INC-40 (E11-T10): an open FIFO offer keeps its seat for the offered dog until `confirmBy`. Meanwhile
+     * nobody else sees it free (04), holds it, confirms a hold taken before the offer, or finds the class «not full» to join;
+     * the offered dog claims it. Once `confirmBy` has passed (before S15 expires the entry) the seat is free again.
+     */
+    @Test void T_08_21_INC_40_aFifoOfferKeepsItsSeatForTheOfferedDogUntilConfirmBy() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201));
+        cancel(as("pere"), id(pere), 200);
+        var c1 = hold(as("c1"), "last", "s08-d-c1", 201); // taken between the release and the offer (the outbox has not run)
+        dispatch();
+        assertThat(entry(duna)).containsEntry("state", "NOTIFIED");
+        var seat = row("c0", "s08-d-c0", "last");
+        assertThat(seat.path("freeSeats").asInt()).isZero(); assertThat(seat.path("state").asText()).isEqualTo("WAITLIST_OPEN");
+        var refused = hold(as("c0"), "last", "s08-d-c0", 409);
+        assertThat(code(refused)).isEqualTo("CLASS_FULL"); assertThat(refused.at("/details/heldOnly").asBoolean()).isFalse();
+        assertThat(code(confirm(as("c1"), id(c1), null, 409))).isEqualTo("CLASS_FULL");
+        call(DELETE, "/seat-holds/" + id(c1), null, as("c1"), 204);
+        String c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        // The offered dog claims the seat.
+        var claimed = claim(as("laura"), duna, id(holdFor(as("laura"), "last", "s08-d-duna", duna, 201)), null, 201);
+        assertThat(entry(duna)).containsEntry("state", "CONSOLIDATED");
+        // The next offer (c0) runs out: from confirmBy on, the seat is anybody's again.
+        cancel(as("laura"), id(claimed), 200); dispatch();
+        assertThat(entry(c0)).containsEntry("state", "NOTIFIED");
+        assertThat(code(hold(as("c2"), "last", "s08-d-c2", 409))).isEqualTo("CLASS_FULL");
+        clock.setInstant(instant(entry(c0), "confirmBy"));
+        assertThat(entry(c0)).as("S15 P6 has not expired it yet").containsEntry("state", "NOTIFIED");
+        var free = row("c2", "s08-d-c2", "last");
+        assertThat(free.path("freeSeats").asInt()).isEqualTo(1); assertThat(free.path("state").asText()).isEqualTo("BOOKABLE");
+        book(as("c2"), "last", "s08-d-c2");
+        assertThat(count("bookings", Criteria.where("classSessionId").is("s08-last").and("state").is("ACTIVE"))).isEqualTo(1);
+    }
+
+    /**
+     * R-08-14, R-08-15 — INC-40 (E11-T10 review): the queue wins. A plain hold taken between the release and the offer never
+     * locks the offered dog out: the offered dog holds and claims while that hold is still live, and the hold's confirmation
+     * meets CLASS_FULL. Before, each saw the other's seat as taken and nobody could book until the hold expired.
+     */
+    @Test void T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201));
+        cancel(as("pere"), id(pere), 200);
+        var c1 = hold(as("c1"), "last", "s08-d-c1", 201); // taken between the release and the offer (the outbox has not run)
+        clock.advance(Duration.ofSeconds(5)); dispatch();
+        assertThat(entry(duna)).containsEntry("state", "NOTIFIED");
+        assertThat(count("seat_holds", Criteria.where("_id").is(id(c1)))).as("c1's hold is still live").isEqualTo(1);
+        var offered = holdFor(as("laura"), "last", "s08-d-duna", duna, 201);
+        var claimed = claim(as("laura"), duna, id(offered), null, 201);
+        assertThat(entry(duna)).containsEntry("state", "CONSOLIDATED").containsEntry("bookingId", id(claimed));
+        assertThat(code(confirm(as("c1"), id(c1), null, 409))).isEqualTo("CLASS_FULL");
+        assertThat(count("bookings", Criteria.where("classSessionId").is("s08-last").and("state").in("ACTIVE", "PAYMENT_PENDING"))).isEqualTo(1);
+    }
+
+    /**
+     * R-08-14, R-08-15 — INC-40 (E11-T10 review): two open offers and a capacity lowered to one seat while they are open. The
+     * dog notified first claims it, also against the claim hold the later one took before the change; the later one meets
+     * SEAT_TAKEN on its claim and on a new hold. Before, each counted the other's offer and both were refused.
+     */
+    @Test void T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        session("two", "2026-10-08T12:00", 2, List.of());
+        var pere = book(as("pere"), "two", "s08-d-nit"); var joan = book(as("joan"), "two", "s08-d-toby");
+        String duna = id(join(as("laura"), "two", "s08-d-duna", 201)), c0 = id(join(as("c0"), "two", "s08-d-c0", 201));
+        cancel(as("pere"), id(pere), 200); cancel(as("joan"), id(joan), 200); dispatch();
+        assertThat(entry(duna)).containsEntry("state", "NOTIFIED"); assertThat(entry(c0)).containsEntry("state", "NOTIFIED");
+        var later = holdFor(as("c0"), "two", "s08-d-c0", c0, 201);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-two")), new Update().set("capacity", 1), "class_sessions");
+        assertThat(code(claim(as("c0"), c0, id(later), null, 409))).as("Duna's offer is ahead").isEqualTo("SEAT_TAKEN");
+        var claimed = claim(as("laura"), duna, id(holdFor(as("laura"), "two", "s08-d-duna", duna, 201)), null, 201);
+        assertThat(entry(duna)).containsEntry("state", "CONSOLIDATED").containsEntry("bookingId", id(claimed));
+        assertThat(code(holdFor(as("c0"), "two", "s08-d-c0", c0, 409))).isEqualTo("SEAT_TAKEN");
+        assertThat(code(claim(as("c0"), c0, id(later), null, 409))).isEqualTo("SEAT_TAKEN");
+        assertThat(entry(c0)).containsEntry("state", "NOTIFIED");
+        assertThat(count("bookings", Criteria.where("classSessionId").is("s08-two").and("state").in("ACTIVE", "PAYMENT_PENDING"))).isEqualTo(1);
     }
 
     @Test void T_08_22_claimNeedsTheOfferedHoldAndStillRespectsTheWeeklyLimitWithSwap() throws Exception {

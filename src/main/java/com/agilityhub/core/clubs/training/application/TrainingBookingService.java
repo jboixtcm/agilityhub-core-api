@@ -186,16 +186,19 @@ public class TrainingBookingService {
 
     /**
      * R-09-13: the `TrainingConflictPort` half — inside the caller's S05/S06/S07 transaction, each still ACTIVE booking
-     * → CANCELLED_BY_CLUB with `cancelReason ∈ RING_BLOCK · CLASS_CONFLICT · RING_NOT_RESERVABLE` and
-     * `TrainingCancelled{by: ADMIN, origin: BACKOFFICE}` (N-47).
+     * → CANCELLED_BY_CLUB with `cancelReason ∈ RING_BLOCK · CLASS_CONFLICT · RING_NOT_RESERVABLE`, the club's text (if
+     * any) as `cancelNote` (N-47 `admin_text`), `TrainingCancelled{by: ADMIN, origin: BACKOFFICE}` (N-47) and the
+     * TRAINING_CANCELLED_BY_CLUB audit entry of S14 R-14-09 in the same transaction (INC-40, E11-T10).
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public List<TrainingBooking> cancelByClub(List<String> bookingIds, TrainingCancelReason reason, String adminText) {
         var actor = TrainingActor.club(); var now = context.now(); var result = new ArrayList<TrainingBooking>();
+        String note = adminText == null || adminText.isBlank() ? null : adminText;
         for (String id : bookingIds) {
             var b = bookings.findById(id).orElse(null);
             if (b == null || b.state() != TrainingBookingState.ACTIVE) { continue; }
-            var after = transition(b, TrainingBookingState.CANCELLED_BY_CLUB, TrainingCancelledBy.ADMIN, reason, adminText, actor.accountId(), now);
+            var after = transition(b, TrainingBookingState.CANCELLED_BY_CLUB, TrainingCancelledBy.ADMIN, reason, note, actor.accountId(), now);
+            audit.cancelledByClub(b, after, reason.name());
             events.cancelled(after, actor, false); result.add(after);
         }
         return result;

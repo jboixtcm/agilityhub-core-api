@@ -141,6 +141,63 @@ class ExportEngineIT extends AbstractIntegrationTest {
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("DataExported")), "domain_events")).isEqualTo(4);
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("DATA_EXPORTED")), "audit_entries")).isEqualTo(4);
     }
+    /** R-03-27, R-14-12: the member export shows `idDocument` as «AB······CD», masked once. INC-38 (E11-T10). */
+    @Test void T_03_27_INC_38_theMemberExportMasksTheDocumentInTheOneFormat() throws Exception {
+        requesterLocale = "ca";
+        var bytes = admin(get("/api/v1/members/export").header("Accept-Language", "ca").param("format", "xlsx").param("columns", "fullName,idDocument"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+            var sheet = workbook.getSheetAt(0); assertThat(sheet.getLastRowNum()).isEqualTo(60);
+            for (int row = 1; row <= 60; row++) { assertThat(sheet.getRow(row).getCell(1).getStringCellValue()).as("row %d", row).isEqualTo("AB······CD"); }
+        }
+    }
+    /**
+     * R-03-24, R-14-12: an asynchronous export filtered on a NUMBER field reaches READY with the filtered rows once its job is
+     * read back from Mongo (the stored value is a string). INC-38 (E11-T10).
+     */
+    @Test void T_03_24_T_14_16_INC_38_anAsynchronousExportWithANumberFilterIsRenderedFromTheStoredJob() throws Exception {
+        var rows = new ArrayList<Document>();
+        for (int i = 60; i < 5061; i++) { rows.add(member(i)); }
+        mongo.insert(rows, "members");
+        requesterLocale = "ca";
+        for (var selection : List.of(Map.entry("memberNumber:gte:10", 5051L), Map.entry("memberNumber:nin:2,4", 5059L))) {
+            String id = json(admin(post("/api/v1/members/export").header("Accept-Language", "ca").param("format", "xlsx").param("columns", "fullName")
+                    .param("filter", selection.getKey())), 202).path("jobId").asText();
+            assertThat(mongo.findById(id, Document.class, "export_jobs").get("query", Document.class).getList("filters", Document.class).getFirst().get("value"))
+                    .as(selection.getKey()).isNotInstanceOf(Number.class);
+            worker.poll();
+            var job = json(admin(get("/api/v1/exports/" + id)), 200);
+            assertThat(job.path("status").asText()).as(selection.getKey()).isEqualTo("READY");
+            assertThat(job.path("rows").asLong()).as(selection.getKey()).isEqualTo(selection.getValue());
+        }
+    }
+    /**
+     * R-14-12 (`DATA_EXPORTED`, `details {listKey, rows, filters}`) and S14 §3 (`actorName` snapshot): the synchronous and the
+     * worker-rendered export both name their requester (the account's name) and carry their details; an export changes no
+     * field, so `changes` is empty (R-14-10). INC-38 (E11-T10).
+     */
+    @Test void T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync() throws Exception {
+        mongo.save(new com.agilityhub.core.identity.persistence.Account("export-admin-a", "export-admin-a@example.test", "Example Exporter", "ca", null,
+                Set.of(), com.agilityhub.core.identity.persistence.Account.Status.ACTIVE, new com.agilityhub.core.identity.persistence.Account.Security(0, null, null, 0),
+                Map.of(), false, clock.instant()));
+        try {
+            admin(get("/api/v1/members/export").param("format", "xlsx").param("columns", "fullName").param("filter", "status:eq:ACTIVE")).andExpect(status().isOk());
+            String id = largeExport(); worker.poll();
+            var entries = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("DATA_EXPORTED")), Document.class, "audit_entries");
+            assertThat(entries).hasSize(2).allSatisfy(entry -> {
+                assertThat(entry.getString("actorName")).isEqualTo("Example Exporter");
+                assertThat(entry.getList("changes", Document.class, List.of())).isEmpty();
+            });
+            var sync = entries.stream().filter(entry -> !entry.getString("entityId").equals(id)).findFirst().orElseThrow().get("details", Document.class);
+            assertThat(sync.getString("listKey")).isEqualTo("members"); assertThat(((Number) sync.get("rows")).longValue()).isEqualTo(30);
+            assertThat(sync.getList("filters", Document.class)).singleElement().satisfies(filter -> {
+                assertThat(filter.getString("field")).isEqualTo("status"); assertThat(filter.getString("op")).isEqualTo("eq"); assertThat(filter.get("value")).isEqualTo("ACTIVE");
+            });
+            var async = entries.stream().filter(entry -> entry.getString("entityId").equals(id)).findFirst().orElseThrow().get("details", Document.class);
+            assertThat(async.getString("listKey")).isEqualTo("dogs"); assertThat(((Number) async.get("rows")).longValue()).isEqualTo(5001);
+            assertThat(async.getList("filters", Document.class)).isEmpty();
+        } finally { mongo.remove(Query.query(Criteria.where("_id").is("export-admin-a")), "accounts"); }
+    }
     String largeExport() throws Exception {
         requesterLocale = "ca";
         if (mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "dogs") < 5001) {

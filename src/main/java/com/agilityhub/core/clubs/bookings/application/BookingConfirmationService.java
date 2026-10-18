@@ -59,6 +59,7 @@ public class BookingConfirmationService {
             var swapTarget = swapBookingId == null ? null : bookings.findById(swapBookingId).orElse(null);
             if (swapTarget != null && !swapTarget.classSessionId().equals(hold.classSessionId())) { locks.lock(swapTarget.classSessionId()); }
             var subject = checks.subject(actor, hold.classSessionId(), hold.dogId(), now);
+            checks.lockOwner(subject);
             checks.notBookedYet(subject);
             var limit = checks.limit(subject, now);
             Booking swapped = null;
@@ -70,9 +71,11 @@ public class BookingConfirmationService {
                 swapped = cancellations.cancelLocked(swapTarget, actor, BookingCancelReason.SWAP, null, hold.classSessionId());
             }
             var s = subject.session();
-            int taken = bookings.forClass(s.id(), BookingRepository.LIVE).size()
-                    + (int) holds.live(s.id(), now).stream().filter(h -> !h.id().equals(hold.id())).count();
-            if (taken >= s.capacity()) { throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", bookings.forClass(s.id(), BookingRepository.LIVE).size() < s.capacity())); }
+            // R-08-14 (INC-40, E11-T10): an open FIFO offer of another dog keeps its seat, also against a hold taken before the offer;
+            // the claim of the dog's own offer counts neither the holds taken before it nor the offers behind it (the queue wins).
+            int booked = bookings.forClass(s.id(), BookingRepository.LIVE).size();
+            var taken = WaitlistTransitions.taken(waitlist.openOffers(s.id(), now), holds.live(s.id(), now), hold.dogId(), hold.waitlistEntryId());
+            if (booked + taken.dogs().size() >= s.capacity()) { throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", booked + taken.offered().size() < s.capacity())); }
             var terms = seatHolds.singleClass(subject.owner().id());
             var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null, null)).orElse(null);
             boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();

@@ -17,6 +17,7 @@ import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.annotation.Order;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Aspect
 @Component
@@ -35,6 +36,11 @@ public class AuditedAspect {
     public Object audit(ProceedingJoinPoint invocation, Audited audited) throws Throwable {
         Method method = AopUtils.getMostSpecificMethod(((MethodSignature) invocation.getSignature()).getMethod(),
                 invocation.getTarget().getClass());
+        // R-14-09 / R-14-10 (INC-40, E11-T10): the entry is written in the change's own transaction, so a rollback leaves none
+        // (T-14-12). Refused before the method runs: without a transaction the change and its entry could part.
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("@Audited needs an active transaction (R-14-09): " + method.getDeclaringClass().getSimpleName() + "." + method.getName());
+        }
         var context = new MethodBasedEvaluationContext(invocation.getTarget(), method, invocation.getArgs(),
                 new DefaultParameterNameDiscoverer());
         Object before = null;

@@ -47,7 +47,8 @@ public class OutboxDispatcher {
         Gauge.builder("outbox.failed", records, r -> r.count(DomainEventRecord.Status.FAILED)).register(metrics);
     }
 
-    @Scheduled(fixedDelay = 1000)
+    /** INC-40 (E11-T10): on its own thread, so neither the job tick nor a provider send delays the outbox. */
+    @Scheduled(fixedDelay = 1000, scheduler = SchedulerConfiguration.OUTBOX)
     public void dispatch() {
         for (int i = 0; i < 100; i++) {
             DomainEventRecord record = records.claim(clock.instant());

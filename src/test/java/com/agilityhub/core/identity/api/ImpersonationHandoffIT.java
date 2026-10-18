@@ -139,10 +139,11 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
             assertThat(e.eventJson()).doesNotContain(value);
         });
         assertThat(CurrentUser.current()).isNull(); assertThat(TenantContext.current()).isNull();
-        for (String path : List.of("/api/v1/members", "/api/v1/test/instructor-probe")) {
-            mvc.perform(get(path).header("Host", HOST).header("Authorization", imp))
-                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
-        }
+        // E11-T10 (INC-38, T-03-35): a census staff route refuses the impersonation token by name; the test probe by its role.
+        mvc.perform(get("/api/v1/members").header("Host", HOST).header("Authorization", imp))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
+        mvc.perform(get("/api/v1/test/instructor-probe").header("Host", HOST).header("Authorization", imp))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
         mvc.perform(get("/api/v1/platform/accounts/account-a/platform-roles").header("Host", HOST).header("Authorization", imp))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
         mvc.perform(put("/api/v1/platform/accounts/account-a/platform-roles").header("Host", HOST).header("Authorization", imp)

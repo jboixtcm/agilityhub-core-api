@@ -33,10 +33,16 @@ public class ActivityApiService {
     public Map<String,Object> conflicts(String id) {
         var result=lifecycle.conflicts(id); return object("conflicts",result.conflicts(),"trainingBookings",result.bookings().stream().map(b -> object("bookingId",b.bookingId(),"ringId",b.ringId(),"from",b.from(),"to",b.to(),"memberName",b.memberName(),"dogName",b.dogName())).toList());
     }
+    /**
+     * R-07-06 (D7 modal). INC-40 (E11-T10): a registrant the census no longer names (erased, R-14-15) is a neutral row
+     * (`lists.erasedMember`, no channels, no phones), never a 500: nothing will reach them, but the row still counts.
+     */
     public Map<String,Object> preview(String id) {
-        var a=service.require(id); var rows=registrations.registrations.live(id).stream().map(r -> {
-            var m=recipients.member(r.memberId()).orElseThrow(); return object("registrationId",r.id(),"memberName",m.name(),"state",r.state(),"channels",com.agilityhub.core.clubs.messaging.application.NotificationPreferences.clubChangesChannels(service.context.members.notificationPreferences(m.id()),m.email()!=null,service.context.enabled(com.agilityhub.core.platform.application.Module.SMS) && !m.phones().isEmpty()),"phoneCount",m.phones().size());
-        }).toList(); return object("registrations",rows,"activeCount",a.counters().active(),"waitingCount",a.counters().waiting());
+        var a=service.require(id); var rows=registrations.registrations.live(id).stream().map(r -> recipients.member(r.memberId()).map(m ->
+                object("registrationId",r.id(),"memberName",m.name(),"state",r.state(),"channels",com.agilityhub.core.clubs.messaging.application.NotificationPreferences.clubChangesChannels(service.context.members.notificationPreferences(m.id()),m.email()!=null,service.context.enabled(com.agilityhub.core.platform.application.Module.SMS) && !m.phones().isEmpty()),"phoneCount",m.phones().size()))
+                .orElseGet(() -> object("registrationId",r.id(),"memberName",service.context.messages.format("lists.erasedMember",Map.of(),com.agilityhub.core.shared.application.LocaleContext.current()),
+                        "state",r.state(),"channels",List.of(),"phoneCount",0))).toList();
+        return object("registrations",rows,"activeCount",a.counters().active(),"waitingCount",a.counters().waiting());
     }
     public Map<String,Object> register(String id,boolean waitlist) { var r=registrations.register(id,waitlist); return projection.registration(r,service.require(r.activityId())); }
     public Map<String,Object> registration(String id,boolean staff) { var r=registrations.require(id,staff); return projection.registration(r,service.require(r.activityId())); }

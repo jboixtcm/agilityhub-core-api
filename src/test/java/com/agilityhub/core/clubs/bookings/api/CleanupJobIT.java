@@ -51,6 +51,10 @@ class CleanupJobIT extends BookingFixtures {
         export("s08-export-old", 8); export("s08-export-new", 2);
         // TTL documents Mongo has not removed yet (the test container runs without the TTL monitor).
         mongo.insert(new Document("_id", "s08-hold").append("clubId", CLUB).append("expiresAt", Date.from(RUN.minusSeconds(30))), "seat_holds");
+        // INC-40 (E11-T10): a seat lock untouched for 8 days (reported) and one of yesterday (kept).
+        mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "seat_locks");
+        mongo.insert(new Document("_id", "s08-lock-old").append("clubId", CLUB).append("version", 3L).append("lockedAt", Date.from(RUN.minus(Duration.ofDays(8)))), "seat_locks");
+        mongo.insert(new Document("_id", "s08-lock-new").append("clubId", CLUB).append("version", 1L).append("lockedAt", Date.from(RUN.minus(Duration.ofDays(1)))), "seat_locks");
         mongo.insert(new Document("_id", "s08-token").append("clubId", CLUB).append("tokenHash", "s08-hash-" + UUID.randomUUID()).append("expiresAt", Date.from(RUN.minusSeconds(30))), "magic_link_tokens");
         mongo.insert(new Document("_id", "s08-idem").append("clubId", CLUB).append("createdAt", Date.from(RUN.minus(Duration.ofHours(25)))), "idempotency_records");
         mongo.insert(new Document("_id", CLUB + ":REMINDERS").append("holder", "gone").append("expiresAt", Date.from(RUN.minusSeconds(30))), "job_locks");
@@ -275,7 +279,9 @@ class CleanupJobIT extends BookingFixtures {
                 .containsEntry("WOULD_DELETE", 6L).containsEntry("ttlPendingSeatHolds", 1L).containsEntry("ttlPendingMagicLinkTokens", 1L)
                 .containsEntry("ttlPendingIdempotencyRecords", 1L).containsEntry("ttlPendingJobLocks", 1L)
                 // E3-T16 step 4 (R-15-19 amended 25-09): the recipient-cap decisions past their expiry; not one still pending.
-                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).containsEntry("ttlPendingRingSlotLocks", 1L).doesNotContainKey("orphanUploadsDeleted");
+                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).containsEntry("ttlPendingRingSlotLocks", 1L).doesNotContainKey("orphanUploadsDeleted")
+                // INC-40 (E11-T10, R-15-19 amended): the seat locks untouched for 7 days or more.
+                .containsEntry("ttlPendingSeatLocks", 1L);
         // The dry run writes nothing but its JobRun.
         before.forEach((collection, value) -> assertThat(count(collection)).as(collection).isEqualTo(value));
         assertThat(count("job_runs")).isEqualTo(runs + 1);
@@ -313,6 +319,7 @@ class CleanupJobIT extends BookingFixtures {
         // TTL-managed documents are only reported, never deleted.
         assertThat(count("seat_holds")).isEqualTo(1); assertThat(count("magic_link_tokens")).isEqualTo(1);
         assertThat(count("signup_notification_admissions")).isEqualTo(3); assertThat(count("ring_slot_locks")).isEqualTo(2);
+        assertThat(count("seat_locks")).isEqualTo(2);
         assertThat(mongo.findById(CLUB + ":REMINDERS", Document.class, "job_locks")).isNotNull();
         // No business event: only the SchedulerRun of the run itself.
         assertThat(eventsOf("SchedulerRun")).hasSize(1);
@@ -321,6 +328,27 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(again.items()).isEmpty();
         System.out.println("E5-T05 cleanup JobRun dry  " + mongo.findById(dry.id(), Document.class, "job_runs").toJson());
         System.out.println("E5-T05 cleanup JobRun real " + mongo.findById(real.id(), Document.class, "job_runs").toJson());
+    }
+
+    /**
+     * R-15-19 (`domain_events` row), INC-40 (E11-T10): the club's `jobs.retention.domainEventsDays` alone decides when a processed
+     * event goes. At 120 days, events of 91 and 100 days stay and only the one of 130 days is deleted; no TTL index on the outbox
+     * removes them at 90 days behind P9's back.
+     */
+    @Test void R_15_19_INC_40_theClubsDomainEventRetentionIsTheOnlyCutOff() {
+        parameter("jobs.retention.domainEventsDays", 120);
+        for (int days : List.of(100, 130)) {
+            mongo.insert(new Document("_id", "inc40-event-" + days).append("clubId", CLUB).append("type", "BookingCreated").append("status", "PUBLISHED")
+                    .append("occurredAt", Date.from(RUN.minus(Duration.ofDays(days)))).append("publishedAt", Date.from(RUN.minus(Duration.ofDays(days)))), "domain_events");
+        }
+        assertThat(mongo.getCollection("domain_events").listIndexes().into(new ArrayList<>())).noneMatch(index -> index.containsKey("expireAfterSeconds"));
+        var real = runner.scheduled(CLUB, true, job, RUN).orElseThrow();
+        assertThat(counters(real)).containsEntry("domainEventsDeleted", 1L);
+        assertThat(real.parametersSnapshot()).contains(new JobRun.Entry("jobs.retention.domainEventsDays", 120));
+        assertThat(mongo.findById("inc40-event-130", Document.class, "domain_events")).isNull();
+        for (String kept : List.of("inc40-event-100", "s08-event-old", "s08-event-recent", "s08-event-stuck")) {
+            assertThat(mongo.findById(kept, Document.class, "domain_events")).as(kept).isNotNull();
+        }
     }
 
     @Autowired com.agilityhub.core.clubs.common.persistence.CleanupRepository cleanup;

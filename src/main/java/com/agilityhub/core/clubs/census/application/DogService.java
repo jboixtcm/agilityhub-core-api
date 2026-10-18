@@ -135,7 +135,8 @@ public class DogService {
         if (!future.isEmpty()) { throw new ApiException(ErrorCode.DOG_HAS_FUTURE_BOOKINGS, object("bookings", future)); }
     }
     @Transactional
-    @Audited(action = AuditAction.DOG_DEACTIVATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
+    // R-03-11, R-14-09 (INC-38, E11-T10): the admin's optional `reason` is the audit entry's; the event keeps `reason: CLUB`.
+    @Audited(action = AuditAction.DOG_DEACTIVATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)", reason = "#reason")
     public void deactivate(String id, String reason) {
         var dog = access.mutableDog(id); if (!"ACTIVE".equals(dog.status)) { throw new ApiException(ErrorCode.DOG_NOT_ACTIVE); }
         noBookings(dog); deactivate(dog, "CLUB");
@@ -159,8 +160,8 @@ public class DogService {
         }
     }
     @Transactional
-    @Audited(action = AuditAction.DOG_REACTIVATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
-    public void reactivate(String id) {
+    @Audited(action = AuditAction.DOG_REACTIVATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)", reason = "#reason")
+    public void reactivate(String id, String reason) {
         var dog = access.mutableDog(id);
         if (!"ACTIVE".equals(access.members.require(dog.memberId).status)) { throw new ApiException(ErrorCode.TARGET_MEMBER_NOT_ACTIVE); }
         if (!"INACTIVE".equals(dog.status)) { throw new ApiException(ErrorCode.DOG_NOT_ACTIVE); }

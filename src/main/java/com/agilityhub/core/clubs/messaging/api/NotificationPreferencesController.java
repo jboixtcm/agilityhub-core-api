@@ -60,10 +60,10 @@ public class NotificationPreferencesController {
 
     @PutMapping("/api/v1/members/{id}/notification-preferences")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({VALIDATION_ERROR, INVALID_REMINDER_OPTION, NOT_FOUND, MEMBER_ERASED})
+    @ContractErrors({VALIDATION_ERROR, INVALID_REMINDER_OPTION, NOT_FOUND, MEMBER_ERASED, INVALID_STATE})
     @Operation(summary = "saveMemberNotificationPreferences", description = "Roles: ADMIN (impersonation → 403). The same block from D10, audited as "
             + "MEMBER_UPDATED (changes[].path = notificationPreferences.…, the actor's actorAccountId) with NotificationPreferencesChanged. Another club's "
-            + "member → 404." + TENANT,
+            + "member → 404. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING. A save that changes nothing writes nothing and answers 200." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "NotificationPreferences", useReturnTypeSchema = true))
     public NotificationPreferences saveMemberNotificationPreferences(@PathVariable String id, @Valid @RequestBody NotificationPreferencesRequest request) {
         return view(preferences.saveMember(id, patch(request)));

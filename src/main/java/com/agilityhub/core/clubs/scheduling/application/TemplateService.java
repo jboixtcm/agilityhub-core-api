@@ -94,7 +94,7 @@ public class TemplateService {
             List<String> levels, Integer capacity, String description, String placementId) {
         return write(() -> {
             context.lockReferences(); var before = query.require(id);
-            var next = buildClass(before, id(), bandId, day, instructors, ringId, levels, capacity, description, placementId);
+            var next = buildClass(before, id(), bandId, day, instructors, ringId, levels, capacity, description, placementId, TemplateClassRules.Kept.NONE);
             placements.check(placementId, ringId);
             var classes = new ArrayList<>(before.classes()); classes.add(next);
             return save(before, changed(before, before.timeBands(), classes));
@@ -111,7 +111,8 @@ public class TemplateService {
             String placementId = moved ? placements.kept(old.placementId()) : (String) patch.getOrDefault("placementId", old.placementId());
             var next = buildClass(before, classId, (String) patch.getOrDefault("bandId", old.bandId()), (DayOfWeek) patch.getOrDefault("dayOfWeek", old.dayOfWeek()),
                     (List<String>) patch.getOrDefault("instructorIds", old.instructorIds()), ringId,
-                    (List<String>) patch.getOrDefault("levelIds", old.levelIds()), capacity, (String) patch.getOrDefault("description", old.description()), placementId);
+                    (List<String>) patch.getOrDefault("levelIds", old.levelIds()), capacity, (String) patch.getOrDefault("description", old.description()), placementId,
+                    new TemplateClassRules.Kept(old.instructorIds(), old.ringId(), old.levelIds()));
             // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
             if (patch.containsKey("placementId") || moved) { placements.check(placementId, next.ringId()); }
             return save(before, changed(before, before.timeBands(), before.classes().stream().map(c -> c.id().equals(classId) ? next : c).toList()));
@@ -143,10 +144,11 @@ public class TemplateService {
                 template.kind(), config.get("classes.slotMinutes", Integer.class), context.opening(config));
     }
     private WeekTemplate.TemplateClass buildClass(WeekTemplate template, String id, String bandId, DayOfWeek day, List<String> instructors,
-            String ringId, List<String> levels, Integer capacity, String description, String placementId) {
+            String ringId, List<String> levels, Integer capacity, String description, String placementId, TemplateClassRules.Kept kept) {
         var config = context.config(); var catalog = context.catalog();
+        // INC-40 (E11-T10, S05 R-05-03): an edited class keeps its own inactive references; a new one must be active.
         TemplateClassRules.validate(template.kind(), new HashSet<>(template.timeBands().stream().map(WeekTemplate.TimeBand::id).toList()), bandId, day,
-                instructors, ringId, levels, description, config.get("classes.maxInstructorsPerClass", Integer.class), config.get("levels.enabled", Boolean.class), catalog);
+                instructors, ringId, levels, description, config.get("classes.maxInstructorsPerClass", Integer.class), config.get("levels.enabled", Boolean.class), catalog, kept);
         var mode = capacity == null ? CapacityMode.AUTO : CapacityMode.MANUAL;
         return new WeekTemplate.TemplateClass(id, bandId, day, List.copyOf(instructors), ringId, List.copyOf(levels),
                 context.capacity(levels, mode, capacity == null ? 0 : capacity, catalog, config), mode,

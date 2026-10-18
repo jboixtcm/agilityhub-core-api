@@ -172,6 +172,19 @@ public class BookingViews {
         try { host = "https://" + clubs.appHost(); } catch (ApiException noVerifiedHost) { host = ""; }
         return map("google", BookingCalendar.google(event), "outlook", BookingCalendar.outlook(event), "ics", host + path);
     }
+    /**
+     * `GET /bookings/{id}/calendar.ics` (R-08-08; INC-40, E11-T10, RFC 5545): the same UID, `STATUS` from the booking and
+     * its class ({@link BookingCalendar#status}), `SEQUENCE` = booking version + class version (both only grow, so every
+     * cancellation or class change raises it) and `DTSTAMP` = now.
+     */
+    public String ics(Booking b) {
+        var session = classes.find(b.classSessionId()).orElse(null);
+        var labels = session == null ? labelsOf(b) : labels(session);
+        var base = event(b, labels);
+        long sequence = (b.version() == null ? 0 : b.version()) + (session == null ? 0 : session.version());
+        return BookingCalendar.ics(new BookingCalendar.Event(base.uid(), base.title(), base.location(), base.startsAt(), base.endsAt(), context.now(), sequence,
+                BookingCalendar.status(b.state(), session != null && "CANCELLED".equals(session.state()))));
+    }
     public BookingCalendar.Event event(Booking b, ClassSessionBookingAccess.Labels labels) {
         String title = labels.description() + census.dog(b.dogId()).map(d -> " · " + d.name()).orElse("");
         return new BookingCalendar.Event(b.id() + "@" + b.clubId() + ".agilityhub", title, Objects.toString(labels.ringName(), ""),

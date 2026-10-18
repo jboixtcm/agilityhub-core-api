@@ -24,7 +24,7 @@ import urllib.parse
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
-SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+SEEDS = (("club:apply", "seeds/club-canic-consumer.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
 # The E6 cast of seeds/demo-canic.yaml `scenario.attendance` (invented names, never the mockups').
 HOLDER, BOOKED, WAITING = "Rita", ["Rita", "Martí", "Alba", "Nil"], "Iu"
 DOGS = {"Rita": "Mel", "Martí": "Sorra", "Alba": "Pinya", "Nil": "Trufa", "Iu": "Gira"}

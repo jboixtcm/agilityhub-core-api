@@ -30,10 +30,7 @@ public final class CensusRules {
         String compact = value.replaceAll("\\s", "");
         return "···· ···· ···· ···· " + compact.substring(Math.max(0, compact.length() - 4));
     }
-    public static String maskedId(String value) {
-        if (value == null || value.length() <= 4) { return "······"; }
-        return value.substring(0, 2) + "······" + value.substring(value.length() - 2);
-    }
+    public static String maskedId(String value) { return Masking.idDocument(value); }
     /** pain.008 `MndtId` is `Max35Text`. */
     public static final int MANDATE_REF_MAX = 35;
     /**

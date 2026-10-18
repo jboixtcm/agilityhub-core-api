@@ -112,7 +112,7 @@ public class SchedulingController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH})
-    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]).", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate createTemplateClass(@PathVariable String id, @Valid @RequestBody TemplateClassCreateRequest request) {
         access.tenant();
         return view(templateWrites.addClass(id, request.bandId(), request.dayOfWeek(), request.instructorIds(), request.ringId(), request.levelIds(), request.capacity(), request.description(), request.placementId()), WeekTemplate.class);
@@ -121,7 +121,7 @@ public class SchedulingController {
     @PatchMapping("/api/v1/week-templates/{id}/classes/{classId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, PLACEMENT_RING_MISMATCH})
-    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]), while the ones the class already has may have become inactive and stay (S05 R-05-03, R-06-05).", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate patchTemplateClass(@PathVariable String id, @PathVariable String classId, @Valid @RequestBody TemplateClassPatchRequest request) {
         access.tenant();
         return view(templateWrites.patchClass(id, classId, request.version, request.patch()), WeekTemplate.class);
@@ -238,7 +238,8 @@ public class SchedulingController {
     @Operation(summary = "createClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. "
             + "In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent "
             + "validation of the week runs again and validates it too (T-06-23, E5-T28). placementId (S16 R-16-13): the planned placement, with COURSES, "
-            + "of the class's ring.", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
+            + "of the class's ring."
+            + " References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]).", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession createClass(@Valid @RequestBody ClassSessionCreateRequest request) {
         access.tenant();
         return view(projections.session(sessions.create(request.date(),request.startTime(),request.endTime(),request.ringId(),request.levelIds(),request.instructorIds(),request.capacity(),request.description(),Boolean.TRUE.equals(request.cancelBookings()),request.placementId()),false,java.util.List.of()),ClassSession.class);
@@ -258,7 +259,7 @@ public class SchedulingController {
     @PatchMapping("/api/v1/class-sessions/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, INVALID_STATE, CAPACITY_BELOW_BOOKINGS, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED, PLACEMENT_RING_MISMATCH})
-    @Operation(summary = "patchClass", description = "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "patchClass", description = "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]), while the ones the class already has may have become inactive and stay (S05 R-05-03, R-06-05). A reorder of instructorIds is stored as sent but is no change: no diff entry, no N-08b (R-06-09).", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession patchClass(@PathVariable String id, @Valid @RequestBody ClassSessionPatchRequest request) {
         access.tenant();
         access.classSession(id);
@@ -268,7 +269,7 @@ public class SchedulingController {
     @GetMapping("/api/v1/class-sessions/{id}/cancellation-preview")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classCancellationPreview", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "CancellationPreview", useReturnTypeSchema = true))
+    @Operation(summary = "classCancellationPreview", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. INC-40 (E11-T10): a booking whose member is erased (R-14-15) is a row with the neutral memberName (lists.erasedMember), no channels and phoneCount 0; one whose dog is gone has an empty dogName and a null levelName.", responses = @ApiResponse(responseCode = "200", description = "CancellationPreview", useReturnTypeSchema = true))
     public CancellationPreview classCancellationPreview(@PathVariable String id) {
         access.tenant();
         access.classSession(id);

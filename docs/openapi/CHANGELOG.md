@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-18 · E11-T10 · The 26-09 review's census, signup and planning minors (INC-38, INC-39, INC-40) and the staff training grid (INC-44, ruling E132)
+
+**0 operations or schemas added or removed; 7 error codes added to 7 operations, 1 removed from 1; 24 descriptions changed; 1 property description changed (`TrainingRing.capacity`).**
+
+- `GET /training-slots` (INC-44, S09 R-09-02, §6, §9): INSTRUCTOR and ADMIN also get the active rings without free training, with `capacity: 0` (their cells show classes and blocks, are `FREE` otherwise and never count for `anyFree` or `bookable`); with `FREE_TRAINING` off they get every active ring that way and no training bookings, instead of `404 MODULE_DISABLED`. A MEMBER (also the impersonation token) keeps the `404`. `TrainingRing.capacity` says what 0 means.
+- `POST /members/{id}/validation` (INC-39, S04 R-04-16): new `422 CURRENCY_MISMATCH {field: upfrontAmountPaid}` (an amount collected in another currency than the club's, refused before any write); a cash amount above 0 while a line waits for a card checkout is `409 INVALID_STATE {reason: CHECKOUT_PENDING}` (no longer a bare `409`); the dry run warns `CHECKOUT_PENDING` whenever a line waits for a checkout.
+- `GET /members/{id}/signup` (INC-39, S04 R-04-19): `422 PLAN_NOT_AVAILABLE` removed; D2 loads a signup whose requested plan was deactivated, with no plan proposal, and the validation still refuses until a plan is chosen.
+- `PATCH /members/{id}/payment-method`, `POST`/`DELETE /members/{id}/booking-block`, `POST /members/{id}/plan-change`, `PUT /members/{id}/notification-preferences` (INC-39, S04 R-04-06): new `409 INVALID_STATE {reason: READMISSION_PENDING}` while the member's readmission waits for its validation; `PATCH /members/{id}` says the same for `remarks`/`internalNotes` (it already declared the 409).
+- `POST /activities/{id}/publication` (INC-40, S07): new `400 INVALID_SLOT_GRANULARITY` when the ring-block window is not aligned to `classes.slotMinutes`; `PATCH /activities/{id}` says so.
+- Descriptions only (INC-40): `POST /week-templates/{id}/classes`, `PATCH /week-templates/{id}/classes/{classId}`, `POST /class-sessions`, `PATCH /class-sessions/{id}` (an empty or repeated `instructorIds` is `400 VALIDATION_ERROR`, only more than the maximum is `TOO_MANY_INSTRUCTORS`; a newly chosen inactive level, instructor or ring is refused, the ones the class keeps are not; a reorder of the instructors is no change); `GET /class-sessions/{id}/cancellation-preview` and `GET /activities/{id}/cancellation-preview` (a missing or erased person is a neutral row, never a 404/500); `POST /seat-holds` (a live hold of the dog by another account is refused; a FIFO offer keeps its seat until `confirmBy`); `POST /waitlist-entries` and `GET /me/bookable-classes` (open FIFO offers count as taken seats); `GET /bookings/{id}/calendar.ics` (`STATUS`, a growing `SEQUENCE`, `DTSTAMP` = now).
+- Behaviour only, no contract change: E2's staff routes answer an impersonation token `403 IMPERSONATION_DENIED` instead of `403 FORBIDDEN` (INC-38, S03 T-03-35; the operations already published their 403); a framework error with a status of 502–599 answers `500 INTERNAL_ERROR` and one of 501 `501 NOT_IMPLEMENTED` (INC-40, CATALEG_ERRORS row 500).
+
 ## 2026-10-18 · E11-T08 round 2 · S12 billing refuses two prices valid on the same day (INC-68, ruling E132)
 
 **0 operations or schemas added or removed; 1 error code added to 2 operations; 2 descriptions changed.**

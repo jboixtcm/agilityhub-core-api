@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * S08 R-08-07 `SeatHold`: one Mongo transaction serialised by `seat_locks` — lock → eligibility → limit →
- * `taken = ACTIVE|PAYMENT_PENDING bookings + live holds of other dogs` (always `expiresAt > now`) → upsert the dog's
+ * `taken = ACTIVE|PAYMENT_PENDING bookings + live holds of other dogs` (always `expiresAt > now`) + open FIFO offers of other
+ * dogs (R-08-14, INC-40) → upsert the dog's
  * hold (re-entering refreshes it) → `SeatHeld`. A live hold guarantees the seat; TTL expiry emits nothing.
  */
 @Service
@@ -44,7 +45,7 @@ public class SeatHoldService {
             return transactions.write(List.of(classSessionId), () -> {
                 var now = context.now();
                 locks.lock(classSessionId);
-                var admitted = admit(actor, classSessionId, dogId, waitlistEntryId, now);
+                var admitted = admit(actor, classSessionId, dogId, waitlistEntryId, now, true);
                 var subject = admitted.subject(); var limit = admitted.limit();
                 int seconds = context.integer("bookings.seatHoldSeconds");
                 var hold = holds.upsert(new SeatHold(UUID.randomUUID().toString(), TenantContext.require(), classSessionId, dogId, subject.owner().id(),
@@ -55,27 +56,37 @@ public class SeatHoldService {
         });
     }
     private void precheck(BookingActor actor, String classSessionId, String dogId) {
-        try { admit(actor, classSessionId, dogId, null, context.now()); }
+        try { admit(actor, classSessionId, dogId, null, context.now(), false); }
         catch (ApiException rejected) {
             if (rejected.code() != ErrorCode.CLASS_FULL || !Boolean.TRUE.equals(rejected.details().get("heldOnly"))) { throw rejected; }
         }
     }
     private record Admitted(BookingChecks.Subject subject, BookingLimits.Result limit) { }
-    /** The ordered R-08-04…07/09/15 checks of a hold at `now`; throws the first rejection, reads only. */
-    private Admitted admit(BookingActor actor, String classSessionId, String dogId, String waitlistEntryId, Instant now) {
+    /**
+     * The ordered R-08-04…07/09/15 checks of a hold at `now`; throws the first rejection. Inside the hold transaction
+     * ({@code locked}) it also serialises the dog owner ({@link BookingChecks#lockOwner}); the pre-check only reads (INC-40, E11-T10).
+     * `taken` = live bookings + the other dogs with a live hold or (FIFO) an open offer (R-08-14), each dog once; a claim of the
+     * dog's own open FIFO offer counts neither the holds taken before its offer nor the offers behind it ({@link WaitlistTransitions#taken}); a live
+     * hold of this very dog by another account (a family member, or the club impersonating) is that account's guarantee
+     * and is never taken over (R-08-07/08, INC-40): CLASS_FULL{heldOnly: true}, as any seat only held by someone else.
+     */
+    private Admitted admit(BookingActor actor, String classSessionId, String dogId, String waitlistEntryId, Instant now, boolean locked) {
         var subject = checks.subject(actor, classSessionId, dogId, now);
+        if (locked) { checks.lockOwner(subject); }
         checks.notBookedYet(subject);
-        int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
-        long others = holds.live(classSessionId, now).stream().filter(h -> !h.dogId().equals(dogId)).count();
-        boolean full = active + others >= subject.session().capacity();
+        int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size(); int capacity = subject.session().capacity();
+        var live = holds.live(classSessionId, now);
+        var taken = WaitlistTransitions.taken(WaitlistTransitions.openOffers(context, waitlist, classSessionId, now), live, dogId, waitlistEntryId);
+        boolean full = active + taken.dogs().size() >= capacity;
+        boolean heldByOther = live.stream().anyMatch(h -> h.dogId().equals(dogId) && !Objects.equals(h.accountId(), actor.accountId()));
         if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
         var limit = checks.limit(subject, now);
         if (limit.done()) {
             throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
         }
-        if (full) {
+        if (full || heldByOther) {
             if (waitlistEntryId != null) { throw new ApiException(ErrorCode.SEAT_TAKEN); }
-            throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", active < subject.session().capacity()));
+            throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", active + taken.offered().size() < capacity));
         }
         return new Admitted(subject, limit);
     }

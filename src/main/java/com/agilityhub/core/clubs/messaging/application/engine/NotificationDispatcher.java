@@ -131,8 +131,11 @@ public class NotificationDispatcher {
         return sent;
     }
 
-    /** The 5-second poll (R-11-09): the accepted deliveries left unsettled past their lease, then the due ones of every club, retries included. */
-    @Scheduled(fixedDelayString = "${notifications.dispatcher.poll-millis:5000}")
+    /**
+     * The 5-second poll (R-11-09): the accepted deliveries left unsettled past their lease, then the due ones of every club, retries
+     * included. On the notification scheduler (INC-40, E11-T10): a stalled provider holds only the sends.
+     */
+    @Scheduled(fixedDelayString = "${notifications.dispatcher.poll-millis:5000}", scheduler = com.agilityhub.core.shared.application.SchedulerConfiguration.NOTIFICATIONS)
     public int poll() {
         settleWaiting();
         int sent = claimAll((now, token) -> notifications.claimAccepted(null, now, LEASE, token), true, POLL_BATCH);

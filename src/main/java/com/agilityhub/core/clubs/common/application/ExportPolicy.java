@@ -33,7 +33,11 @@ public class ExportPolicy {
                 if (field.equalsIgnoreCase("iban")) {
                     String text = Objects.toString(item, "");
                     safe.put("maskedAccount", text.isEmpty() ? "" : "···· ···· ···· ···· " + text.substring(Math.max(0, text.length() - 4)));
-                } else if (field.equalsIgnoreCase("chip") || field.equalsIgnoreCase("idDocument")) {
+                } else if (field.equalsIgnoreCase("idDocument")) {
+                    // R-03-27 (INC-38, E11-T10): the one format «38······1P»; a value the list projection already masked is kept.
+                    String text = item instanceof Map<?, ?> document ? Objects.toString(document.get("number"), "") : Objects.toString(item, "");
+                    safe.put(field, text.isEmpty() || text.contains("······") ? text : Masking.idDocument(text));
+                } else if (field.equalsIgnoreCase("chip")) {
                     String text = item instanceof Map<?, ?> document ? Objects.toString(document.get("number"), "") : Objects.toString(item, "");
                     safe.put(field, text.isEmpty() ? "" : "···· " + text.substring(Math.max(0, text.length() - 3)));
                 } else { safe.put(field, mask(item)); }

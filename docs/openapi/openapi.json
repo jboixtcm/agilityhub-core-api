@@ -23909,7 +23909,7 @@
       "TrainingRing" : {
         "properties" : {
           "capacity" : {
-            "description" : "Ring.trainingCapacity ?? training.capacityPerRingSlot",
+            "description" : "Ring.trainingCapacity ?? training.capacityPerRingSlot; 0 for an active ring without free training (or with FREE_TRAINING off), listed for INSTRUCTOR and ADMIN only and never bookable (INC-44)",
             "format" : "int32",
             "type" : "integer"
           },
@@ -26707,7 +26707,7 @@
         "tags" : [ "clubs.activities" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. With rings, startTime, endTime and the ringBlockWindow hours are multiples of classes.slotMinutes (400 INVALID_SLOT_GRANULARITY; INC-40, E11-T10).",
         "operationId" : "patchActivity",
         "parameters" : [ {
           "in" : "path",
@@ -27023,7 +27023,7 @@
     },
     "/api/v1/activities/{id}/cancellation-preview" : {
       "get" : {
-        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. INC-40 (E11-T10): a registrant whose member is erased (R-14-15) is a row with the neutral memberName (lists.erasedMember), no channels and phoneCount 0.",
         "operationId" : "cancellationPreview",
         "parameters" : [ {
           "in" : "path",
@@ -27914,7 +27914,7 @@
         "tags" : [ "clubs.activities" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. With rings, startTime, endTime and the ringBlockWindow hours are multiples of classes.slotMinutes (400 INVALID_SLOT_GRANULARITY; INC-40, E11-T10).",
         "operationId" : "publish",
         "parameters" : [ {
           "in" : "path",
@@ -27961,7 +27961,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, INVALID_SLOT_GRANULARITY"
           },
           "401" : {
             "content" : {
@@ -33725,7 +33725,7 @@
     },
     "/api/v1/bookings/{id}/calendar.ics" : {
       "get" : {
-        "description" : "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt; any mismatch is 404.",
+        "description" : "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt; any mismatch is 404. RFC 5545: stable UID, STATUS CONFIRMED (TENTATIVE while PAYMENT_PENDING, CANCELLED once the booking or its class is cancelled), a SEQUENCE that only grows, DTSTAMP = when it is served.",
         "operationId" : "bookingCalendar",
         "parameters" : [ {
           "in" : "path",
@@ -36193,7 +36193,7 @@
         "x-sortable" : [ "startsAt", "date" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent validation of the week runs again and validates it too (T-06-23, E5-T28). placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent validation of the week runs again and validates it too (T-06-23, E5-T28). placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]).",
         "operationId" : "createClass",
         "requestBody" : {
           "content" : {
@@ -36491,7 +36491,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]), while the ones the class already has may have become inactive and stay (S05 R-05-03, R-06-05). A reorder of instructorIds is stored as sent but is no change: no diff entry, no N-08b (R-06-09).",
         "operationId" : "patchClass",
         "parameters" : [ {
           "in" : "path",
@@ -37258,7 +37258,7 @@
     },
     "/api/v1/class-sessions/{id}/cancellation-preview" : {
       "get" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. INC-40 (E11-T10): a booking whose member is erased (R-14-15) is a row with the neutral memberName (lists.erasedMember), no channels and phoneCount 0; one whose dog is gone has an empty dogName and a null levelName.",
         "operationId" : "classCancellationPreview",
         "parameters" : [ {
           "in" : "path",
@@ -54922,7 +54922,7 @@
     },
     "/api/v1/me/bookable-classes" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live. SINGLE_CLASS off: no price. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live, and so are the open FIFO offers of other dogs, whose seats freeSeats leaves out (R-08-14). SINGLE_CLASS off: no price. Tenant comes from the JWT.",
         "operationId" : "bookableClasses",
         "parameters" : [ {
           "in" : "query",
@@ -62450,7 +62450,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. A wrong document is resolved by rejecting the readmission.",
+        "description" : "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit.",
         "operationId" : "updateMember",
         "parameters" : [ {
           "in" : "path",
@@ -62991,7 +62991,7 @@
     },
     "/api/v1/members/{id}/booking-block" : {
       "delete" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "removeBookingBlock",
         "parameters" : [ {
           "in" : "path",
@@ -63053,7 +63053,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "MEMBER_ERASED, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -63129,7 +63129,7 @@
         "tags" : [ "clubs.census" ]
       },
       "post" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "activateBookingBlock",
         "parameters" : [ {
           "in" : "path",
@@ -63208,7 +63208,7 @@
                 }
               }
             },
-            "description" : "BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED"
+            "description" : "BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -64674,7 +64674,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences.…, the actor's actorAccountId) with NotificationPreferencesChanged. Another club's member → 404. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences.…, the actor's actorAccountId) with NotificationPreferencesChanged. Another club's member → 404. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING. A save that changes nothing writes nothing and answers 200. Tenant comes from the JWT.",
         "operationId" : "saveMemberNotificationPreferences",
         "parameters" : [ {
           "in" : "path",
@@ -64753,7 +64753,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "MEMBER_ERASED, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -64978,7 +64978,7 @@
     },
     "/api/v1/members/{id}/payment-method" : {
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account («Compte no informat»). Another `type` replaces the method.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account («Compte no informat»). Another `type` replaces the method. A pending readmission's method is edited with PATCH /members/{id}.A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updatePaymentMethod",
         "parameters" : [ {
           "in" : "path",
@@ -65057,7 +65057,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "MEMBER_ERASED, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -65285,7 +65285,7 @@
     },
     "/api/v1/members/{id}/plan-change" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403 IMPERSONATION_DENIED). BILLING off → 404 MODULE_DISABLED. Changes the current plan and price without moving nextInvoiceDate. A PACK to MONTHLY change creates a DUE entry fee, discounted once per eligible pack. effectiveMonth, if supplied, must be the current club-local month. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "change",
         "parameters" : [ {
           "in" : "path",
@@ -65359,7 +65359,7 @@
           },
           "409" : {
             "$ref" : "#/components/responses/StaleVersion",
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -66050,7 +66050,7 @@
     },
     "/api/v1/members/{id}/signup" : {
       "get" : {
-        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING; a requested plan that is no longer assignable, 422 PLAN_NOT_AVAILABLE. For an ACTIVE member (add-dog), `signup` is the oldest pending dog's own submission. A pending readmission (R-04-06, E38) adds `readmission`: the LEFT record's values and the submitted ones, with changedFields; validation applies the submitted ones.",
+        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING. A requested plan that is no longer assignable (R-04-19, INC-39) still loads: proposals.planId and priceId are null, the first month is the one frozen at submission, and the admin chooses a plan in planOptions. For an ACTIVE member (add-dog), `signup` is the oldest pending dog's own submission. A pending readmission (R-04-06, E38) adds `readmission`: the LEFT record's values and the submitted ones, with changedFields; validation applies the submitted ones.",
         "operationId" : "review",
         "parameters" : [ {
           "in" : "path",
@@ -66129,7 +66129,7 @@
                 }
               }
             },
-            "description" : "PLAN_NOT_AVAILABLE"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -66197,7 +66197,7 @@
     },
     "/api/v1/members/{id}/validation" : {
       "post" : {
-        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. 409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change while a checkout of the submission is in progress, S04 §5 E39; dryRun warns CHECKOUT_PENDING). nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate; while the plan is the requested one, that start is the one frozen at submission. The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted. A member who has an account (a readmission, R-04-06/R-04-22) keeps it: no second Account, and the account's login email never changes; only a member without one is matched, or given a new one, by its primary email.",
+        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. 409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change, or an upfrontAmountPaid above 0, while a checkout of the submission is in progress, S04 §5 E39 and R-04-16; dryRun warns CHECKOUT_PENDING whenever a line waits for a checkout). upfrontAmountPaid in another currency than the club's → 422 CURRENCY_MISMATCH with details.field = upfrontAmountPaid, before any write. Without planId and priceId, a requested plan that is no longer assignable gives a dryRun of the rows as they are (no price) and a validation 422 PLAN_NOT_AVAILABLE. nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate; while the plan is the requested one, that start is the one frozen at submission. The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted. A member who has an account (a readmission, R-04-06/R-04-22) keeps it: no second Account, and the account's login email never changes; only a member without one is matched, or given a new one, by its primary email.",
         "operationId" : "validate",
         "parameters" : [ {
           "in" : "path",
@@ -66298,7 +66298,7 @@
                 }
               }
             },
-            "description" : "LEVEL_REQUIRED, LEVEL_NOT_ACTIVE, NEXT_INVOICE_DATE_REQUIRED, UPFRONT_AMOUNT_EXCEEDS_DUE, PLAN_NOT_AVAILABLE, FAMILY_HOLDER_NOT_FOUND"
+            "description" : "LEVEL_REQUIRED, LEVEL_NOT_ACTIVE, NEXT_INVOICE_DATE_REQUIRED, UPFRONT_AMOUNT_EXCEEDS_DUE, PLAN_NOT_AVAILABLE, FAMILY_HOLDER_NOT_FOUND, CURRENCY_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -85284,7 +85284,7 @@
     },
     "/api/v1/seat-holds" : {
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold. waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold; a live hold of the same dog by another account is never taken over (CLASS_FULL{heldOnly: true}, SEAT_TAKEN for a claim's hold), and in FIFO an open offer of another dog keeps its seat until confirmBy (R-08-14). waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Tenant comes from the JWT.",
         "operationId" : "holdSeat",
         "requestBody" : {
           "content" : {
@@ -88888,7 +88888,7 @@
     },
     "/api/v1/training-slots" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token; interval cut to the booking window, R-09-04), INSTRUCTOR, ADMIN (at most 31 days; cells add occupants[], block and classSession). R-09-03 computed grid: holidays and days without opening hours are closed; cells BLOCKED/CLASS > BLOCKED/RING_BLOCK > BOOKED/TRAINING (OWN_TRAINING for dogId) > FREE. Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token; interval cut to the booking window, R-09-04), INSTRUCTOR, ADMIN (at most 31 days; cells add occupants[], block and classSession). R-09-03 computed grid: holidays and days without opening hours are closed; cells BLOCKED/CLASS > BLOCKED/RING_BLOCK > BOOKED/TRAINING (OWN_TRAINING for dogId) > FREE. INC-44: INSTRUCTOR and ADMIN also get the active rings without free training (capacity 0: their cells show classes and blocks, are FREE otherwise and never count for anyFree or bookable); with FREE_TRAINING off they get every active ring that way, without training bookings, while a MEMBER gets 404 MODULE_DISABLED. Tenant comes from the JWT.",
         "operationId" : "trainingSlots",
         "parameters" : [ {
           "in" : "query",
@@ -89522,7 +89522,7 @@
     },
     "/api/v1/waitlist-entries" : {
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone, in FIFO counting the open offers of other dogs (R-08-14) (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
         "operationId" : "joinWaitlist",
         "parameters" : [ {
           "in" : "header",
@@ -91197,7 +91197,7 @@
     },
     "/api/v1/week-templates/{id}/classes" : {
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]).",
         "operationId" : "createTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -91499,7 +91499,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. placementId (S16 R-16-13): the planned placement, with COURSES, of the class's ring; a new ring is checked against the kept placement; without COURSES a new ring drops the hidden planned placement. References (INC-40, E11-T10): instructorIds empty is 400 VALIDATION_ERROR fieldErrors[{instructorIds, NotEmpty}], repeated ids [{instructorIds, INVALID_VALUE}], more than classes.maxInstructorsPerClass 422 TOO_MANY_INSTRUCTORS; a newly chosen level, instructor or ring must be active (else 400 VALIDATION_ERROR fieldErrors[{levelIds|instructorIds|ringId, INVALID_VALUE}]), while the ones the class already has may have become inactive and stay (S05 R-05-03, R-06-05).",
         "operationId" : "patchTemplateClass",
         "parameters" : [ {
           "in" : "path",

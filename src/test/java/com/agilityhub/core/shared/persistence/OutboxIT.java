@@ -110,12 +110,30 @@ class OutboxIT extends AbstractIntegrationTest {
         assertThat(metrics.get("outbox.pending").gauge().value()).isZero();
         assertThat(metrics.get("outbox.failed").gauge().value()).isZero();
         var indexes = mongo.getCollection("domain_events").listIndexes().into(new java.util.ArrayList<>());
+        // R-15-19, INC-40 (E11-T10): no TTL on the outbox (P9 deletes per club after `jobs.retention.domainEventsDays`); a plain
+        // index serves P9's `{clubId, status: PUBLISHED, publishedAt < cut-off}` query.
+        assertThat(indexes).noneMatch(index -> index.containsKey("expireAfterSeconds"));
         assertThat(indexes).anySatisfy(index -> {
-            assertThat(index.getString("name")).isEqualTo("outbox_retention");
-            assertThat(((Number) index.get("expireAfterSeconds")).longValue()).isEqualTo(90 * 86400L);
-            assertThat(index.get("key", Document.class)).containsEntry("publishedAt", 1);
+            assertThat(index.getString("name")).isEqualTo("outbox_cleanup");
+            assertThat(index.get("key", Document.class)).containsExactly(java.util.Map.entry("clubId", 1), java.util.Map.entry("status", 1),
+                    java.util.Map.entry("publishedAt", 1));
         });
         System.out.println("db.domain_events.getIndexes(): " + indexes);
+    }
+    /**
+     * R-15-19, INC-40 (E11-T10): a deployed database still has the former 90-day TTL `outbox_retention`, which would cut a club's
+     * longer `jobs.retention.domainEventsDays` short: `ensureIndexes` drops it, and stays idempotent once it is gone.
+     */
+    @Test void R_15_19_INC_40_ensureIndexesDropsTheFormerOutboxTtl() {
+        var collection = mongo.getCollection("domain_events");
+        if (collection.listIndexes().into(new java.util.ArrayList<>()).stream().noneMatch(index -> "outbox_retention".equals(index.getString("name")))) {
+            collection.createIndex(new Document("publishedAt", 1), new com.mongodb.client.model.IndexOptions().name("outbox_retention")
+                    .expireAfter(90L, TimeUnit.DAYS));
+        }
+        records.ensureIndexes(); records.ensureIndexes();
+        var indexes = collection.listIndexes().into(new java.util.ArrayList<>());
+        assertThat(indexes).extracting(index -> index.getString("name")).doesNotContain("outbox_retention").contains("outbox_cleanup");
+        assertThat(indexes).noneMatch(index -> index.containsKey("expireAfterSeconds"));
     }
     @Test void E0_T04_retryRollsBackHandlerWritesAndSkipsAlreadyProcessedConsumers() {
         String id = publish("club-a");

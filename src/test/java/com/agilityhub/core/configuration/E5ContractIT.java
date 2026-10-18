@@ -224,7 +224,11 @@ class E5ContractIT extends AbstractIntegrationTest {
     @Test void T_09_31_T_08_19_disabledModulesAnswer404BeforeTheStub() throws Exception {
         club(CLUB, List.of(Module.BILLING));
         for (Route route : routes().filter(r -> r.module() != null).toList()) {
-            for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
+            for (String role : route.roles()) {
+                // INC-44 (ruling E132): the staff keep the training grid of 24 and D12 without FREE_TRAINING; a member does not.
+                if (route.path().equals("/api/v1/training-slots") && !role.equals("MEMBER")) { served(call(route, CLUB, role)); continue; }
+                error(call(route, CLUB, role), 404, "MODULE_DISABLED");
+            }
         }
         var hold = routes().filter(r -> r.path().equals("/api/v1/seat-holds")).findFirst().orElseThrow();
         error(call(hold, CLUB, "MEMBER").content("{\"classSessionId\":\"e5-class-a\",\"dogId\":\"dog-a\",\"waitlistEntryId\":\"e5-entry-a\"}"), 404, "MODULE_DISABLED");

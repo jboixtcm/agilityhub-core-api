@@ -40,6 +40,33 @@ public class MongoUsageCounter extends TenantRepository<MongoUsageCounter.Refere
             case FAQ -> Map.of();
         };
     }
+    /** E11-T10 (INC-38): the list's usage in a fixed number of reads; each id's counts are the ones {@link #usage(CatalogKind, String)} gives. */
+    @Override public Map<String, Map<String, Long>> usage(CatalogKind kind, Collection<String> ids) {
+        var now = Date.from(clock.instant());
+        var counts = new LinkedHashMap<String, Map<String, Long>>();
+        switch (kind) {
+            case LEVEL -> {
+                var dogs = countBy("dogs", "levelId", ids, criteria -> criteria.and("status").is("ACTIVE"));
+                var sessions = countBy("class_sessions", "levelIds", ids, criteria -> criteria.and("startsAt").gt(now).and("state").ne("CANCELLED"));
+                var templates = templateClasses("levelIds", ids);
+                ids.forEach(id -> counts.put(id, Map.of("activeDogs", dogs.get(id), "futureClassSessions", sessions.get(id), "templateClasses", templates.get(id))));
+            }
+            case RING -> {
+                var sessions = countBy("class_sessions", "ringId", ids, criteria -> criteria.and("startsAt").gt(now).and("state").ne("CANCELLED"));
+                var trainings = countBy("training_bookings", "ringId", ids, criteria -> criteria.and("startsAt").gt(now).and("state").is("ACTIVE"));
+                var templates = templateClasses("ringId", ids);
+                var blocks = countBy("ring_blocks", "ringId", ids, criteria -> criteria.and("state").is("ACTIVE"));
+                ids.forEach(id -> counts.put(id, Map.of("futureClassSessions", sessions.get(id), "futureTrainingBookings", trainings.get(id),
+                        "templateClasses", templates.get(id), "ringBlocks", blocks.get(id))));
+            }
+            case FAQ -> ids.forEach(id -> counts.put(id, Map.of()));
+        }
+        return counts;
+    }
+    private Map<String, Long> countBy(String collection, String field, Collection<String> ids, java.util.function.UnaryOperator<Criteria> filter) {
+        return ReferenceCounts.countBy(mongo, collection, field, ids, filter);
+    }
+    private Map<String, Long> templateClasses(String field, Collection<String> ids) { return ReferenceCounts.templateClasses(mongo, tenantQuery(), field, ids); }
     @Override public boolean hasReferences(CatalogKind kind, String id) {
         return switch (kind) {
             case LEVEL -> count("dogs", Criteria.where("levelId").is(id))

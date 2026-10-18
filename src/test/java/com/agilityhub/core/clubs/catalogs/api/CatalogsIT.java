@@ -384,6 +384,43 @@ class CatalogsIT extends AbstractIntegrationTest {
         }
     }
 
+    /**
+     * R-05-07, T-05-19: D16's ring list and D11's level card read the usage and the last change once per list, not once per row;
+     * every row keeps the usage and last change its own GET answers. INC-38 (E11-T10).
+     */
+    @Test void T_05_19_INC_38_theRingAndLevelListsReadAFixedNumberOfDocumentsAndKeepTheirUsage() throws Exception {
+        var collections = List.of("audit_entries", "class_sessions", "training_bookings", "ring_blocks", "week_templates", "dogs", "rings", "levels", "parameters", "clubs");
+        var reads = new LinkedHashMap<String, List<Long>>();
+        for (String catalog : List.of("rings", "levels")) {
+            for (int round = 0; round < 2; round++) {
+                for (int i = 0; i < (round == 0 ? 1 : 4); i++) {
+                    int n = round * 10 + i;
+                    String id = create(catalog, String.valueOf(n)).path("id").asText();
+                    if (catalog.equals("rings")) {
+                        reference("class_sessions", CLUB, "ringId", id, "SCHEDULED", 24 + n); reference("training_bookings", CLUB, "ringId", id, "ACTIVE", 24 + n);
+                        reference("ring_blocks", CLUB, "ringId", id, "ACTIVE", 24 + n); reference("week_templates", CLUB, "ringId", id, "ACTIVE", 0);
+                    } else {
+                        reference("dogs", CLUB, "levelId", id, "ACTIVE", 0); reference("class_sessions", CLUB, "levelIds", List.of(id, "other"), "SCHEDULED", 24 + n);
+                        reference("week_templates", CLUB, "levelIds", List.of(id), "ACTIVE", 0);
+                    }
+                }
+                var list = new JsonNode[1];
+                reads.computeIfAbsent(catalog, key -> new ArrayList<>())
+                        .add(MongoReads.count(mongo, collections, () -> list[0] = json(admin(get("/api/v1/" + catalog)), 200)));
+                assertThat(list[0].path("items")).hasSize(round == 0 ? 1 : 5);
+                for (var item : list[0].path("items")) {
+                    var detail = json(admin(get("/api/v1/" + catalog + "/" + item.path("id").asText())), 200);
+                    assertThat(item.path("usage")).as(catalog).isEqualTo(detail.path("usage"));
+                    assertThat(item.path("lastChange")).as(catalog).isEqualTo(detail.path("lastChange"));
+                    assertThat(item.at("/usage/futureClassSessions").asLong()).isEqualTo(1); assertThat(item.at("/usage/templateClasses").asLong()).isEqualTo(1);
+                    assertThat(item.at("/lastChange/actorName").asText()).isEqualTo("Example Catalog Admin");
+                }
+            }
+        }
+        assertThat(reads.get("rings").get(1)).as("ring list reads, 1 then 5 rings").isEqualTo(reads.get("rings").get(0));
+        assertThat(reads.get("levels").get(1)).as("level list reads, 1 then 5 levels").isEqualTo(reads.get("levels").get(0));
+    }
+
     @Test void T_05_20_concurrentEditsHaveOneWinnerAndAtomicRollbackLeavesNoAuditOrOutbox() throws Exception {
         var created = create("levels", "1"); String id = created.path("id").asText();
         try (var executor = Executors.newFixedThreadPool(2)) {

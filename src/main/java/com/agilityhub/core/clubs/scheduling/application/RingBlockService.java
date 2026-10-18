@@ -119,7 +119,8 @@ public class RingBlockService {
         if(!remaining.isEmpty()) throw new ApiException(ErrorCode.RING_BLOCK_CONFLICT,Map.of("conflicts",remaining));
         if(!conflicts.bookings().isEmpty() && !options.cancelBookings()) throw new ApiException(ErrorCode.RING_HAS_BOOKINGS,Map.of("bookings",conflicts.bookings()));
         for(var c:conflicts.conflicts()) cancellations.cancel(c.id(),classes.findById(c.id()).orElseThrow().state()==ClassState.DRAFT ? ClassCancellationReason.DELETED : ClassCancellationReason.ACTIVITY,options.adminText(),actor);
-        if(!conflicts.bookings().isEmpty()) training.cancelByClub(conflicts.bookings().stream().map(TrainingConflictPort.Booking::bookingId).toList(),"RING_BLOCK");
+        // R-09-13 (INC-40, E11-T10): the activity's adminText reaches N-47; a D4/24 block has none (its `note` is staff-only).
+        if(!conflicts.bookings().isEmpty()) training.cancelByClub(conflicts.bookings().stream().map(TrainingConflictPort.Booking::bookingId).toList(),"RING_BLOCK",options.adminText());
     }
     public Conflicts conflictsFor(ActivityBlockRequest request) {
         var conflicts=new ArrayList<Conflict>(); var bookings=new ArrayList<TrainingConflictPort.Booking>();

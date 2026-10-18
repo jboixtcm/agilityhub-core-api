@@ -13,7 +13,8 @@ import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
- * S14 R-14-15 `AuditEntry`: an entry about an erased member (`memberId` or `impersonatedMemberId`) or acted by an erased account
+ * S14 R-14-15 `AuditEntry`: an entry about an erased member (`memberId` or `impersonatedMemberId`, the member or one of its dogs as
+ * the entity, E11-T10) or acted by an erased account
  * keeps action, entity, ids and date; `changes → []` and `reason`, `actorName`, `impersonatedName`, `entityLabel`, `ip`,
  * `userAgent` and `details` go.
  */
@@ -22,7 +23,8 @@ public class AuditErasure implements ErasureStep, AccountErasureStep, MemberData
     private final AuditRepository audit;
     public AuditErasure(AuditRepository audit) { this.audit = audit; }
     @Override public ErasureEffect erase(ErasureSubject subject) {
-        return ErasureEffect.builder().count("audit_entries", audit.eraseMembers(subject.memberIds(), subject.erasedAccountIds())).build();
+        // The subject's dogs are the members' current dogs (CensusErasure reads them by `Dog.memberId`), transferred ones included.
+        return ErasureEffect.builder().count("audit_entries", audit.eraseMembers(subject.memberIds(), subject.dogIds(), subject.erasedAccountIds())).build();
     }
     @Override public ErasureEffect eraseAccount(String accountId, String pseudonym, ErasurePlaceholders placeholders, Instant at) {
         return ErasureEffect.builder().count("audit_entries", audit.eraseActor(accountId)).build();

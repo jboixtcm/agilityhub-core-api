@@ -78,10 +78,20 @@ public class NotificationEngine {
     private final NotificationRepository notifications; private final PushSubscriptionRepository subscriptions; private final NotificationAccounts accounts;
     private final List<NotificationFactsPort> owners; private final BookingRelevancePort bookings; private final EventPublisher events;
     private final NotificationDispatcher dispatcher; private final Clock clock; private final TransactionTemplate outside;
+    /** Where the sends after the commit run (INC-40, E11-T10): the notification scheduler in production, inline without one. */
+    private final java.util.concurrent.Executor sends;
 
     public NotificationEngine(ClubConfigService configs, IcuMessageSource messages, TemplateProvider templates, RecipientResolver recipients,
             NotificationRepository notifications, PushSubscriptionRepository subscriptions, NotificationAccounts accounts, List<NotificationFactsPort> owners,
             BookingRelevancePort bookings, EventPublisher events, NotificationDispatcher dispatcher, Clock clock, PlatformTransactionManager transactions) {
+        this(configs, messages, templates, recipients, notifications, subscriptions, accounts, owners, bookings, events, dispatcher, clock, transactions, Runnable::run);
+    }
+    /** With `sends` the notification scheduler, the outbox thread only hands the ids over: a slow provider never stalls the outbox (INC-40, E11-T10). */
+    public NotificationEngine(ClubConfigService configs, IcuMessageSource messages, TemplateProvider templates, RecipientResolver recipients,
+            NotificationRepository notifications, PushSubscriptionRepository subscriptions, NotificationAccounts accounts, List<NotificationFactsPort> owners,
+            BookingRelevancePort bookings, EventPublisher events, NotificationDispatcher dispatcher, Clock clock, PlatformTransactionManager transactions,
+            java.util.concurrent.Executor sends) {
+        this.sends = sends;
         this.configs = configs; this.messages = messages; this.templates = templates; this.recipients = recipients; this.notifications = notifications;
         this.subscriptions = subscriptions; this.accounts = accounts; this.owners = List.copyOf(owners); this.bookings = bookings; this.events = events;
         this.dispatcher = dispatcher; this.clock = clock;
@@ -439,15 +449,23 @@ public class NotificationEngine {
         }
     }
 
-    /** The sends happen after the commit, outside any transaction (decision E13); without a transaction, at once. */
+    /**
+     * The sends happen after the commit, outside any transaction (decision E13); without a transaction, at once. They run on
+     * `sends` (INC-40, E11-T10); a send that never runs (refused, or the process stops first) leaves its deliveries QUEUED for
+     * the 5-second poll, so the delivery stays at least once.
+     */
     private void afterCommit(String clubId, List<String> ids) {
         if (ids.isEmpty()) { return; }
-        Runnable send = () -> {
+        Runnable dispatch = () -> {
             try (var tenant = TenantContext.open(clubId)) { outside.executeWithoutResult(tx -> dispatcher.dispatch(ids)); }
             catch (RuntimeException failure) {
                 // The deliveries stay QUEUED: the 5-second poll retries them.
                 LOG.warn("Inline notification dispatch failed; the poll retries it error={}", failure.getClass().getSimpleName());
             }
+        };
+        Runnable send = () -> {
+            try { sends.execute(dispatch); }
+            catch (RuntimeException refused) { LOG.warn("Inline notification dispatch refused; the poll sends it error={}", refused.getClass().getSimpleName()); }
         };
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() { @Override public void afterCommit() { send.run(); } });

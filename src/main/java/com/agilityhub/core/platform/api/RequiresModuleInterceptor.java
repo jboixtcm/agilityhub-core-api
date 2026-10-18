@@ -28,8 +28,16 @@ public class RequiresModuleInterceptor implements HandlerInterceptor {
     }
 
     private void require(RequiresModule requirement) {
-        if (requirement != null) {
+        if (requirement != null && !exempt(requirement.exemptRoles())) {
             guard.require(TenantContext.require(), requirement.value());
         }
+    }
+
+    private static boolean exempt(String[] roles) {
+        if (roles.length == 0) { return false; }
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) { return false; }
+        var granted = java.util.Arrays.stream(roles).map(role -> "ROLE_" + role).toList();
+        return authentication.getAuthorities().stream().anyMatch(authority -> granted.contains(authority.getAuthority()));
     }
 }

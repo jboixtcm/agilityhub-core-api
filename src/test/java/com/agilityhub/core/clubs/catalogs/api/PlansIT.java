@@ -273,6 +273,28 @@ class PlansIT extends AbstractIntegrationTest {
         updatePlan(id, Map.of("active", true, "version", 1));
         assertThat(mongo.findById("member-own", Document.class, "members").getString("planId")).isEqualTo(id);
     }
+    /**
+     * R-05-02, S05 §3 (`Plan.usage`): a plan's usage counts its members, pack balances and upfront collections with tenant-scoped count queries
+     * (by plan or by one of its prices); it never reads the club's whole collections into memory. INC-38 (E11-T10).
+     */
+    @Test void R_05_02_INC_38_planUsageCountsWithQueriesInsteadOfReadingTheWholeCollections() throws Exception {
+        String id = plan("COUNTED", "MONTHLY"); String price = price(id, 6000, "2026-01-01", null).at("/price/id").asText();
+        String other = plan("UNRELATED", "MONTHLY");
+        for (String collection : List.of("members", "pack_balances", "collections")) {
+            for (int i = 0; i < 20; i++) { mongo.insert(new Document("_id", collection + "-unrelated-" + i).append("clubId", CLUB).append("planId", other), collection); }
+            mongo.insert(new Document("_id", collection + "-plan").append("clubId", CLUB).append("planId", id), collection);
+            mongo.insert(new Document("_id", collection + "-price").append("clubId", CLUB).append("priceId", price), collection);
+            mongo.insert(new Document("_id", collection + "-both").append("clubId", CLUB).append("planId", id).append("priceId", price), collection);
+            mongo.insert(new Document("_id", collection + "-foreign").append("clubId", OTHER).append("planId", id).append("priceId", price), collection);
+        }
+        var counts = new Map[1];
+        var reads = MongoReads.during(mongo, List.of("members", "pack_balances", "collections"), () -> {
+            try (var scope = TenantContext.open(CLUB)) { counts[0] = usage.plan(id); }
+        });
+        assertThat(counts[0]).containsEntry("members", 3L).containsEntry("packBalances", 3L).containsEntry("upfrontCollections", 3L).containsEntry("invoiceLines", 0L);
+        assertThat(reads).hasSize(3).noneMatch(read -> "query".equals(read.getString("op")))
+                .allSatisfy(read -> assertThat(read.get("command", Document.class).toJson()).contains(CLUB, id, price));
+    }
     @Test void T_05_06_planOrderCodeUniquenessTypeChangesAndUnusedDeletion() throws Exception {
         String first = plan("FIRST", "MONTHLY"), second = plan("SECOND", "PACK");
         error(admin(body(post("/api/v1/plans"), planInput("FIRST", "MONTHLY"))), 409, "DUPLICATE_NAME");

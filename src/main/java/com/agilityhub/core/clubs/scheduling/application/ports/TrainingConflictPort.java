@@ -12,6 +12,13 @@ public interface TrainingConflictPort {
     @Transactional(propagation = Propagation.MANDATORY)
     void cancelByClub(List<String> bookingIds, String cancelReason);
     /**
+     * R-09-13 with the club's text for the member (INC-40, E11-T10): kept as `TrainingBooking.cancelNote`, N-47's
+     * `admin_text`. Only S07's activity block has one (its `adminText`); the other routes pass null. Adapters without a
+     * training store ignore it.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    default void cancelByClub(List<String> bookingIds, String cancelReason, String adminText) { cancelByClub(bookingIds, cancelReason); }
+    /**
      * R-09-13: `$inc` the ring-slot sequences of every training grid slot of the ring overlapping `[from, to)` inside the
      * caller's transaction, before it reads {@link #findActiveBookings}: a concurrent booking of one of those slots
      * then conflicts with the caller in Mongo instead of both committing.

@@ -174,13 +174,18 @@ class AuditedAspectIT extends AbstractIntegrationTest {
         assertThat(entries()).isEmpty();
     }
 
-    @Test void T_14_07_aspectSkipsNoOpAndWritesImmediatelyWithoutTransaction() {
+    /**
+     * R-14-09, R-14-10, INC-40 (E11-T10): a no-op writes no entry, and an audited method called without a transaction is refused
+     * before it runs (no change, no entry), so a change and its entry can never part.
+     */
+    @Test void T_14_07_R_14_09_INC_40_aspectSkipsNoOpAndRefusesAnAuditedMethodWithoutTransaction() {
         try (var scope = TenantContext.open("club-a")) {
             service.update("parameter-a", "before", false);
             assertThat(entries()).isEmpty();
-            service.withoutTransaction("parameter-a", "immediate");
-            assertThat(entries()).singleElement().satisfies(entry ->
-                    assertThat(entry.changes()).containsExactly(new AuditChange("value", "before", "immediate")));
+            assertThatThrownBy(() -> service.withoutTransaction("parameter-a", "immediate")).isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("R-14-09").hasMessageContaining("withoutTransaction");
+            assertThat(entries()).isEmpty();
+            assertThat(mongo.findById("parameter-a", AuditableParameter.class).value()).isEqualTo("before");
         }
     }
 
@@ -293,6 +298,17 @@ class AuditedAspectIT extends AbstractIntegrationTest {
             return keys.containsKey("targetType") || keys.containsKey("targetId");
         });
         System.out.println("audit_entries indexes: " + indexes);
+    }
+
+    /**
+     * R-14-11 (the `action` filter of the newest-first audit list) and the census' member → membership lookup have their indexes
+     * at startup: `audit_entries {clubId, action, at}` and `memberships {clubId, memberId}`. INC-38 (E11-T10).
+     */
+    @Test void T_14_11_INC_38_theActionFilterAndTheMembershipLookupHaveTheirIndexes() {
+        assertThat(mongo.getCollection("audit_entries").listIndexes().into(new java.util.ArrayList<>())).extracting(index -> index.get("key"))
+                .contains(new Document("clubId", 1).append("action", 1).append("at", -1));
+        assertThat(mongo.getCollection("memberships").listIndexes().into(new java.util.ArrayList<>())).extracting(index -> index.get("key"))
+                .contains(new Document("clubId", 1).append("memberId", 1));
     }
 
     @Test void T_14_07_persistedAuditUsesEntityNamesAndChangePaths() {

@@ -213,7 +213,7 @@ def main():
                 eventually(lambda: mongo('print(JSON.stringify(db.adminCommand({ping:1}).ok))'), "Mongo did not start")
                 mongo('print(JSON.stringify(rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok))')
                 eventually(lambda: mongo('print(JSON.stringify(db.hello().isWritablePrimary))'), "Replica set has no primary")
-                cli("club:apply", "seeds/club-canic.yaml")
+                cli("club:apply", "seeds/club-canic-consumer.yaml")
             print("PASS disposable MongoDB 7 replica set ready", flush=True)
             fixture = mongo('''
                 const club = db.clubs.findOne({"domains.app":"clubs-admin"});

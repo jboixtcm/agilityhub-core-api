@@ -18,7 +18,9 @@ RUN apt-get update \
     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
 WORKDIR /app
 COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
-COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
+# INC-40 (E11-T10): each seed under its own name; the local consumer stacks apply club-canic-consumer.yaml.
+COPY --chown=agilityhub:agilityhub seeds/club-canic.yaml seeds/club-canic.yaml
+COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic-consumer.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
 # E10-T03: the console's catalog-clone source (S17 R-17-08, §13 #5), applied with `club:apply`.
 COPY --chown=agilityhub:agilityhub seeds/club-template-default.yaml seeds/club-template-default.yaml

@@ -1,0 +1,140 @@
+# E11-T10 INC-44 red: TrainingSlotService, TrainingGrid, TrainingController, TrainingContractAccess at HEAD (a37e885a), TrainingSlotsController removed, TrainingRulesTest at HEAD; TrainingIT and E5ContractIT as changed.
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=TrainingIT#T_09_03_INC_44*+T_09_31*,E5ContractIT#T_09_31*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify
+14:56:25.286 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5ContractIT]: E5ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:56:25.414 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5ContractIT
+14:56:25.453 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5ContractIT]: E5ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:56:25.453 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:56:25.456 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5ContractIT
+14:56:25.496 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+14:56:25.497 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+14:56:25.503 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+14:56:25.623 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+14:56:25.836 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+14:56:25.837 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+14:56:25.848 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+14:56:26.310 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+14:56:26.390 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+14:56:26.467 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 6889d9de6daa5ee2ab7a071216f036fd7002c673eb0ebde2712d0e359cf19cce
+14:56:26.676 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.365717S
+14:56:26.680 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+14:56:26.680 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+14:56:26.680 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+14:56:26.681 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+14:56:26.717 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: b54ba50136e19acb4675241267a51fac84e053f24003f1aa4aafb9f0ff4d12c9
+14:56:27.179 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.497944S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:56:27.982+03:00 INFO  [main] c.a.core.configuration.E5ContractIT traceId= clubId= accountId= : Starting E5ContractIT using Java [redacted] with PID 74914 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T14:56:27.984+03:00 INFO  [main] c.a.core.configuration.E5ContractIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:56:29.011+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:56:29.066+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 51 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:56:29.538+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@639c5ab4], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@272cec71, com.mongodb.Jep395RecordCodecProvider@12e8ea81, com.mongodb.KotlinCodecProvider@6345dc06, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50135], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@628d6320], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:56:29.545+03:00 INFO  [cluster-6ad4b3edc6b3779fd39d7b7f-localhost:50135] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50135, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9834375, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b54ba50136e1:27017, hosts=[b54ba50136e1:27017], passives=[], arbiters=[], primary='b54ba50136e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4b3eafc7322aea8fee310, counter=6}, lastWriteDate=Sun Oct 18 14:56:27 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:56:30.772+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:30.793+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:30.818+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:31.512+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:31.528+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:31.543+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:31.620+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T14:56:33.691+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:56:33.691+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:56:33.698+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 7 ms
+2026-10-18T14:56:33.779+03:00 INFO  [main] c.a.core.configuration.E5ContractIT traceId= clubId= accountId= : Started E5ContractIT in 5.996 seconds (process running for 9.023)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-18T14:56:35.294+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=720c4647-07d7-4f84-9277-729aa62ebeef clubId=- accountId=user : Framework request rejected code=VALIDATION_ERROR traceId=720c4647-07d7-4f84-9277-729aa62ebeef
+2026-10-18T14:56:35.312+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.training.api.TrainingIT]: TrainingIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:56:35.357+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.training.api.TrainingIT
+2026-10-18T14:56:35.358+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.training.api.TrainingIT]: TrainingIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:56:35.358+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T14:56:35.360+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.training.api.TrainingIT
+2026-10-18T14:56:35.360+03:00 WARN  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : For test class [com.agilityhub.core.clubs.training.api.TrainingIT], the following 'default' context configuration classes were detected but are currently ignored: com.agilityhub.core.clubs.training.api.TrainingFixtures$Ports. In Spring Framework 7.1, these classes will no longer be ignored. Please update your test configuration accordingly. For details, see: https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/default-config.html
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T14:56:35.382+03:00 INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : Starting TrainingIT using Java [redacted] with PID 74914 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T14:56:35.382+03:00 INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T14:56:35.779+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T14:56:35.823+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 43 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T14:56:35.906+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2a8aa569], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@272cec71, com.mongodb.Jep395RecordCodecProvider@12e8ea81, com.mongodb.KotlinCodecProvider@6345dc06, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50135], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3dcafc9c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T14:56:35.908+03:00 INFO  [cluster-6ad4b3f3c6b3779fd39d7b80-localhost:50135] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50135, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1561625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=b54ba50136e1:27017, hosts=[b54ba50136e1:27017], passives=[], arbiters=[], primary='b54ba50136e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4b3eafc7322aea8fee310, counter=6}, lastWriteDate=Sun Oct 18 14:56:35 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T14:56:36.990+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T14:56:36.990+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T14:56:36.993+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 3 ms
+2026-10-18T14:56:37.018+03:00 INFO  [main] c.a.core.clubs.training.api.TrainingIT traceId= clubId= accountId= : Started TrainingIT in 1.654 seconds (process running for 12.262)
+2026-10-18T14:56:37.083+03:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 2 dogs
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 3.641 s <<< FAILURE! -- in com.agilityhub.core.clubs.training.api.TrainingIT
+[ERROR] com.agilityhub.core.clubs.training.api.TrainingIT.T_09_31_withFreeTrainingOffTheRoutesAreGoneAndOnlyBlocksRemain -- Time elapsed: 1.196 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET /training-slots?from=2026-10-06&to=2026-10-06 {"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"af3d3829-cce7-443b-b348-f89e608a2b05"}] 
+expected: 200
+ but was: 404
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:163)
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:156)
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.slots(TrainingFixtures.java:192)
+	at com.agilityhub.core.clubs.training.api.TrainingIT.T_09_31_withFreeTrainingOffTheRoutesAreGoneAndOnlyBlocksRemain(TrainingIT.java:712)
+
+[ERROR] com.agilityhub.core.clubs.training.api.TrainingIT.T_09_03_INC_44_theStaffGridAlsoListsTheActiveRingsWithoutFreeTraining -- Time elapsed: 0.619 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["s09-r-mun", "s09-r-cen", "s09-r-car"]
+to contain exactly (and in same order):
+  ["s09-r-mun", "s09-r-cen", "s09-r-car", "s09-r-pet"]
+but could not find the following elements:
+  ["s09-r-pet"]
+
+	at com.agilityhub.core.clubs.training.api.TrainingIT.T_09_03_INC_44_theStaffGridAlsoListsTheActiveRingsWithoutFreeTraining(TrainingIT.java:596)
+
+[ERROR] Failures: 
+[ERROR]   TrainingIT.T_09_03_INC_44_theStaffGridAlsoListsTheActiveRingsWithoutFreeTraining:596 
+Expecting actual:
+  ["s09-r-mun", "s09-r-cen", "s09-r-car"]
+to contain exactly (and in same order):
+  ["s09-r-mun", "s09-r-cen", "s09-r-car", "s09-r-pet"]
+but could not find the following elements:
+  ["s09-r-pet"]
+
+[ERROR]   TrainingIT.T_09_31_withFreeTrainingOffTheRoutesAreGoneAndOnlyBlocksRemain:712->TrainingFixtures.slots:192->TrainingFixtures.call:156->TrainingFixtures.call:163 [GET /training-slots?from=2026-10-06&to=2026-10-06 {"code":"MODULE_DISABLED","message":"Aquest mòdul està desactivat.","details":{},"traceId":"af3d3829-cce7-443b-b348-f89e608a2b05"}] 
+expected: 200
+ but was: 404
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1

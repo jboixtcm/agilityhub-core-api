@@ -1,0 +1,16 @@
+# E11-T10 INC-40 planning items A-F: failed attempt (green) — test compile error: the new CalendarRulesTest case builds an IcuMessageSource (throws IOException) without `throws Exception` → added it, repeated as 45
+$ ./mvnw -q '-Dtest=CalendarRulesTest,PlanningRulesTest,ActivityRulesTest,ActivityApiServiceTest,RiskReviewQueryTest,RiskNotificationTextsTest,TemplateQueryTest' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=CalendarIT,PlanningIT,ActivityIT,DemoPlanningSeedIT,RiskReviewJobIT' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/44-inc40-planning-green.log 2>&1
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/domain/CalendarRulesTest.java:[16,41] unreported exception java.io.IOException; must be caught or declared to be thrown
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/domain/CalendarRulesTest.java:[16,41] unreported exception java.io.IOException; must be caught or declared to be thrown
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1
+no tests ran (testCompile failed)

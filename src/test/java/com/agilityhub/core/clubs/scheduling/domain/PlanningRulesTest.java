@@ -110,12 +110,45 @@ class PlanningRulesTest {
         TemplateClassRules.validate(TemplateKind.SATURDAY, Set.of("band"), "band", DayOfWeek.SATURDAY, List.of("i"), "r", List.of(), "Manual", 1, false, catalog);
         error(() -> validate("foreign", DayOfWeek.MONDAY, List.of("i"), null, List.of("B"), null, true), ErrorCode.VALIDATION_ERROR);
         error(() -> validate("band", DayOfWeek.SUNDAY, List.of("i"), null, List.of("B"), null, true), ErrorCode.VALIDATION_ERROR);
-        for (var ids : List.of(List.<String>of(), List.of("i", "j"), List.of("i", "i"))) { error(() -> validate("band", DayOfWeek.MONDAY, ids, null, List.of("B"), null, true), ErrorCode.TOO_MANY_INSTRUCTORS); }
+        // INC-40 (E11-T10, S06 §3): only more than the maximum is TOO_MANY_INSTRUCTORS; an empty or repeated list is a field error.
+        error(() -> validate("band", DayOfWeek.MONDAY, List.of("i", "j"), null, List.of("B"), null, true), ErrorCode.TOO_MANY_INSTRUCTORS);
+        fieldError(() -> validate("band", DayOfWeek.MONDAY, List.of(), null, List.of("B"), null, true), "instructorIds", "NotEmpty");
+        fieldError(() -> validate("band", DayOfWeek.MONDAY, List.of("i", "i"), null, List.of("B"), null, true), "instructorIds", "INVALID_VALUE");
         error(() -> validate("band", DayOfWeek.MONDAY, List.of("i"), null, List.of(), null, true), ErrorCode.LEVEL_REQUIRED);
         for (String text : Arrays.asList(null, " ")) { error(() -> validate("band", DayOfWeek.MONDAY, List.of("i"), null, List.of(), text, false), ErrorCode.DESCRIPTION_REQUIRED); }
         error(() -> validate("band", DayOfWeek.MONDAY, List.of("inactive"), null, List.of("B"), null, true), ErrorCode.VALIDATION_ERROR);
         for (var levels : List.of(List.of("B", "B"), List.of("missing"))) { error(() -> validate("band", DayOfWeek.MONDAY, List.of("i"), null, levels, null, true), ErrorCode.VALIDATION_ERROR); }
         error(() -> validate("band", DayOfWeek.MONDAY, List.of("i"), "inactive", List.of("B"), null, true), ErrorCode.VALIDATION_ERROR);
+    }
+    private static void fieldError(Runnable call, String field, String code) {
+        assertThatThrownBy(call::run).isInstanceOfSatisfying(ApiException.class, e -> {
+            assertThat(e.code()).isEqualTo(ErrorCode.VALIDATION_ERROR); assertThat(e.details()).containsEntry("fieldErrors", List.of(Map.of("field", field, "code", code)));
+        });
+    }
+    static SchedulingCatalog withInactiveLevel(String id) {
+        var source = catalog(); var levels = new ArrayList<>(source.levels());
+        levels.replaceAll(l -> l.id().equals(id) ? new SchedulingCatalog.Level(id, l.name(), l.order(), l.capacity(), false, true) : l);
+        return new SchedulingCatalog(levels, source.rings(), source.instructors());
+    }
+    /** S05 R-05-03 and R-06-05, INC-40 (E11-T10): an inactive level cannot be chosen for a new template class or class session. */
+    @Test void T_06_09_INC_40_anInactiveLevelCannotBeChosenForANewClass() {
+        var catalog = withInactiveLevel("F");
+        TemplateClassRules.validate(TemplateKind.WEEKDAYS, Set.of("band"), "band", DayOfWeek.MONDAY, List.of("i"), "r", List.of("G"), null, 1, true, catalog);
+        fieldError(() -> TemplateClassRules.validate(TemplateKind.WEEKDAYS, Set.of("band"), "band", DayOfWeek.MONDAY, List.of("i"), "r", List.of("F", "G"), null, 1, true, catalog), "levelIds", "INVALID_VALUE");
+        fieldError(() -> ClassSessionRules.references(List.of("i"), null, List.of("F"), null, 1, true, catalog), "levelIds", "INVALID_VALUE");
+    }
+    /** S05 R-05-03 and R-06-05, INC-40 (E11-T10): an edited class keeps its own inactive references; only newly chosen ones must be active. */
+    @Test void T_06_09_INC_40_anEditedClassKeepsItsOwnInactiveReferences() {
+        var catalog = withInactiveLevel("F"); var kept = new TemplateClassRules.Kept(List.of("inactive"), "inactive", List.of("F"));
+        TemplateClassRules.validate(TemplateKind.WEEKDAYS, Set.of("band"), "band", DayOfWeek.MONDAY, List.of("inactive"), "inactive", List.of("F", "G"), null, 1, true, catalog, kept);
+        ClassSessionRules.references(List.of("inactive"), "inactive", List.of("F"), null, 1, true, catalog, kept);
+        var none = new TemplateClassRules.Kept(List.of("i"), "r", List.of("G"));
+        fieldError(() -> ClassSessionRules.references(List.of("i"), "r", List.of("G", "F"), null, 1, true, catalog, none), "levelIds", "INVALID_VALUE");
+        fieldError(() -> ClassSessionRules.references(List.of("inactive"), "r", List.of("G"), null, 1, true, catalog, none), "instructorIds", "INVALID_VALUE");
+        fieldError(() -> ClassSessionRules.references(List.of("i"), "inactive", List.of("G"), null, 1, true, catalog, none), "ringId", "INVALID_VALUE");
+        // A kept id must still be a catalog id (R-05-02 never deletes a referenced one).
+        fieldError(() -> ClassSessionRules.references(List.of("i"), "r", List.of("gone"), null, 1, true, catalog, new TemplateClassRules.Kept(List.of("i"), "r", List.of("gone"))), "levelIds", "INVALID_VALUE");
+        assertThat(TemplateClassRules.Kept.NONE.levelIds()).isEmpty();
     }
     private void validate(String band, DayOfWeek day, List<String> instructors, String ring, List<String> levels, String text, boolean enabled) {
         TemplateClassRules.validate(TemplateKind.WEEKDAYS, Set.of("band"), band, day, instructors, ring, levels, text, 1, enabled, catalog());

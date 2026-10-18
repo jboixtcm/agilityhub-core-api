@@ -22,7 +22,11 @@ public class AuditConfiguration {
         return arguments -> repository.ensureIndexes();
     }
 
-    @Bean AuditActorProvider auditActorProvider() {
+    /**
+     * E11-T10 (INC-38), S14 §3 (`actorName` = the actor's name when written): a bearer without a `name` claim — the internal context
+     * an export job renders under, synchronous or in the worker — is named after its account (identity), never a name stored in the job.
+     */
+    @Bean AuditActorProvider auditActorProvider(org.springframework.beans.factory.ObjectProvider<com.agilityhub.core.identity.persistence.AccountRepository> accounts) {
         return () -> {
             var authentication = SecurityContextHolder.getContext().getAuthentication();
             String accountId = null;
@@ -52,6 +56,9 @@ public class AuditConfiguration {
                     if (current != null && current.support() != null) { role = "PLATFORM"; }
                 }
                 if (role.equals("AGILITYHUB_ADMIN")) { role = "PLATFORM"; }
+                if (name == null && accountId != null && authentication instanceof JwtAuthenticationToken) {
+                    name = accounts.getObject().findById(accountId).map(com.agilityhub.core.identity.persistence.Account::name).orElse(null);
+                }
             }
             var attributes = RequestContextHolder.getRequestAttributes();
             var request = attributes instanceof ServletRequestAttributes servlet ? servlet.getRequest() : null;

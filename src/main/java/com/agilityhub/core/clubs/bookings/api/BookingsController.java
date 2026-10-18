@@ -94,7 +94,7 @@ public class BookingsController {
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "bookableClasses", description = "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live. SINGLE_CLASS off: no price. Tenant comes from the JWT.",
+    @Operation(summary = "bookableClasses", description = "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live, and so are the open FIFO offers of other dogs, whose seats freeSeats leaves out (R-08-14). SINGLE_CLASS off: no price. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "BookableClasses", useReturnTypeSchema = true))
     public BookableClasses bookableClasses(@RequestParam(required = false) String dogId, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
@@ -108,7 +108,7 @@ public class BookingsController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED, CLASS_FULL, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_LIMIT_REACHED,
             BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN,
             WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED})
-    @Operation(summary = "holdSeat", description = "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold. waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Tenant comes from the JWT.",
+    @Operation(summary = "holdSeat", description = "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold; a live hold of the same dog by another account is never taken over (CLASS_FULL{heldOnly: true}, SEAT_TAKEN for a claim's hold), and in FIFO an open offer of another dog keeps its seat until confirmBy (R-08-14). waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "SeatHoldResponse", useReturnTypeSchema = true))
     public SeatHoldResponse holdSeat(@Valid @RequestBody SeatHoldRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
@@ -200,7 +200,7 @@ public class BookingsController {
 
     @GetMapping("/api/v1/bookings/{id}/calendar.ics")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND})
-    @Operation(summary = "bookingCalendar", description = "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt; any mismatch is 404.",
+    @Operation(summary = "bookingCalendar", description = "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt; any mismatch is 404. RFC 5545: stable UID, STATUS CONFIRMED (TENTATIVE while PAYMENT_PENDING, CANCELLED once the booking or its class is cancelled), a SEQUENCE that only grows, DTSTAMP = when it is served.",
             responses = @ApiResponse(responseCode = "200", description = "iCalendar file", content = @Content(mediaType = "text/calendar", schema = @Schema(type = "string"))))
     public String bookingCalendar(@PathVariable String id, @RequestParam(required = false) String token,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) jakarta.servlet.http.HttpServletResponse response) {
@@ -265,7 +265,7 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED, CLASS_NOT_FULL, ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT,
             BOOKING_LIMIT_REACHED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_LEAVING, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
+    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone, in FIFO counting the open offers of other dogs (R-08-14) (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Joins of one class are serialised by its seat lock, so a dog is never twice on the list (ALREADY_ON_WAITLIST). An optional Idempotency-Key replays the same 201 to a retry whose answer was lost (CONVENCIONS_API §7). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "WaitlistEntry", useReturnTypeSchema = true))
     public WaitlistEntry joinWaitlist(@Valid @RequestBody WaitlistEntryRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {

@@ -41,6 +41,19 @@ class ParameterCatalogContractTest {
         System.out.println("CATALEG_PARAMETRES.md expanded effective parameter keys: " + document.size());
         System.out.println("Markdown grouped keys/jobs expanded; Club binding rows excluded; Annex amendments folded");
     }
+    /** CONVENCIONS_I18N §1: every localized product default (a text, or a list of texts) is complete in ca, es and en. INC-38 (E11-T10). */
+    @Test void T_02_03_INC_38_everyLocalizedDefaultHasCaEsAndEn() {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var incomplete = new ArrayList<String>();
+        catalog.entries().forEach((key, entry) -> {
+            if (!entry.documentType().startsWith("localizedText") && !entry.documentType().equals("list localizedText")) { return; }
+            var texts = entry.defaultValue() instanceof List<?> list ? list : entry.defaultValue() == null ? List.of() : List.of(entry.defaultValue());
+            for (Object text : texts) {
+                if (!(text instanceof Map<?, ?> values) || !values.keySet().containsAll(Set.of("ca", "es", "en"))) { incomplete.add(key + ": " + text); }
+            }
+        });
+        assertThat(incomplete).isEmpty();
+    }
     /**
      * E5-T20 step 2 (E4-W06 question 3): every key sits in the D11 block the document gives it («— bloc X» of its section, or
      * the «Bloc D11» column of Annex A), and a `sistema` key is exactly one the club cannot edit (CATALEG_PARAMETRES 26-09).
@@ -136,7 +149,6 @@ class ParameterCatalogContractTest {
         if (kind.equals("enum") || kind.equals("time")) { return text.split(" ")[0]; }
         if (kind.equals("money")) { return Map.of("amountMinor", new java.math.BigDecimal(text.replace(" €", "").replace(',', '.')).movePointRight(2).intValueExact(), "currency", "EUR"); }
         if (kind.equals("string")) { return text; }
-        if (kind.equals("localizedText")) { return Map.of("ca", text.substring(1, text.length() - 1)); }
         return switch (key) {
             case "bookings.weekOpensAt" -> {
                 String[] parts = text.replace("{", "").replace("}", "").split(", ");
@@ -156,7 +168,6 @@ class ParameterCatalogContractTest {
             case "club.holidays" -> { assertThat(text).isEqualTo("—"); yield List.of(); }
             case "messaging.reminderOptionsMinutes" -> Arrays.stream(text.split(",")).map(Integer::valueOf).toList();
             case "files.allowedTypes" -> Arrays.asList(text.split(", "));
-            case "census.bookingBlockReasons" -> Arrays.stream(text.split(" · ")).map(label -> Map.of("ca", label)).toList();
             default -> throw new AssertionError("Untranscribed default: " + key);
         };
     }

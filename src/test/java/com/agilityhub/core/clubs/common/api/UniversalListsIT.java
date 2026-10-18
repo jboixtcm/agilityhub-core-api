@@ -170,7 +170,8 @@ class UniversalListsIT extends AbstractIntegrationTest {
         var event = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("DataExported")), Document.class, "domain_events");
         assertThat(event).isNotNull(); assertThat(event.toJson()).contains("rows", "2").doesNotContain("ES0000");
         var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("DATA_EXPORTED")), Document.class, "audit_entries");
-        assertThat(audit).isNotNull(); assertThat(audit.toJson()).contains("listKey", "format", "rows").doesNotContain("ES0000");
+        // R-14-12 (INC-38, E11-T10): DATA_EXPORTED carries `details {listKey, rows, filters}`.
+        assertThat(audit).isNotNull(); assertThat(audit.toJson()).contains("listKey", "rows", "filters").doesNotContain("ES0000");
         byte[] pdf = admin(get("/api/v1/members/export").param("format", "pdf").param("columns", "fullName,paymentMethod").param("filter", "id:in:member-0"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {

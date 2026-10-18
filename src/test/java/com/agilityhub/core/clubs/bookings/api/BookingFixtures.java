@@ -173,7 +173,10 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
         return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection);
     }
     long events(String type) { return count("domain_events", Criteria.where("type").is(type)); }
-    List<Document> eventsOf(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
+    /** In the order they happened: the outbox's own indexes (INC-40's `outbox_cleanup`, E11-T10) may return them in another one. */
+    List<Document> eventsOf(String type) {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)).with(org.springframework.data.domain.Sort.by("occurredAt")), Document.class, "domain_events");
+    }
     Document booking(String id) { return mongo.findById(id, Document.class, "bookings"); }
     Document session(String id) { return mongo.findById("s08-" + id, Document.class, "class_sessions"); }
     void dispatch() { for (int i = 0; i < 6; i++) { dispatcher.dispatch(); } }

@@ -28,7 +28,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+SEEDS = (("club:apply", "seeds/club-canic-consumer.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
 # Seed logins (seeds/demo-canic.yaml `accountEmails`): member@ = ordinal 5 (member number 6) … member.10@ = ordinal 14 (number 15).
 ANNOUNCEMENT_FILTERS = ["memberNumber:gte:6", "memberNumber:lte:15"]
 # The member's feed lists SMS in a card's `channels` only when one of the notice's SMS deliveries is SENT or DELIVERED («i per
@@ -268,7 +268,9 @@ class E7:
         catalog = [i for i in listing["items"] if i["kind"] == "CATALOG"]
         custom = [i for i in listing["items"] if i["kind"] == "CUSTOM"]
         counts = listing["countsByCategory"]
-        self.require(len(catalog) == 51 and len({i["code"] for i in catalog}) == 51, f"Expected the 51 catalog templates, got {len(catalog)}")
+        # E11-T10: one CATALOG template per seeded code (52 since N-55, E8-T11), read from the seed instead of a literal.
+        seeded = len(json.loads((ROOT / "src/main/resources/seed/message-templates.ca.json").read_text(encoding="utf-8"))["templates"])
+        self.require(len(catalog) == seeded and len({i["code"] for i in catalog}) == seeded, f"Expected the {seeded} catalog templates, got {len(catalog)}")
         self.require(set(counts) == {"OPERATIONAL", "PERSONAL", "CLUB_CHANGES", "CLUB_NEWS"}, f"Category counts: {sorted(counts)}")
         self.require(sum(counts.values()) == len(listing["items"]), "The four counts cover every template")
         self.require(any(i["category"] == "CLUB_NEWS" for i in custom), "The seed's CUSTOM «Comunicat del club» is missing")

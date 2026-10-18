@@ -12,6 +12,7 @@ import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.persistence.DomainEventRecord;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import com.agilityhub.core.support.AuditCovers;
+import com.agilityhub.core.support.MongoReads;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.*;
@@ -120,6 +121,32 @@ class SettingsIT extends AbstractIntegrationTest {
         assertThat(events()).hasSize(3);
         assertThat(json(admin(get("/api/v1/parameters").param("block", "missing"))).path("blocks")).isEmpty();
         assertThat(json(admin(get("/api/v1/parameters"))).path("blocks").size()).isGreaterThan(5);
+    }
+
+    /**
+     * R-02-04, T-02-03: D11's `GET /parameters` reads the club, its overrides and their last changes once, whatever the number of
+     * keys, and each row is the one `GET /parameters/{key}` answers (override, scoped override, invalid stored value, last change).
+     * INC-38 (E11-T10).
+     */
+    @Test void T_02_03_INC_38_theParameterListReadsAFixedNumberOfDocumentsAndEachRowIsTheSingleRead() throws Exception {
+        update(KEY, 120, 0);
+        update("training.capacityPerRingSlot", 2, 0);
+        admin(body(put("/api/v1/parameters/training.capacityPerRingSlot"), Map.of("value", 3, "version", 0, "scopeRef", "ring:small"))).andExpect(status().isOk());
+        mongo.upsert(Query.query(Criteria.where("clubId").is("settings-a").and("key").is("training.maxPerWeek").and("scopeRef").is(null)),
+                new Update().set("value", "not a number").set("version", 1).set("history", List.of()).set("type", "int").set("scope", "club"), Parameter.class);
+        json(admin(get("/api/v1/parameters")));
+        var collections = List.of("clubs", "parameters", "audit_entries");
+        long block = MongoReads.count(mongo, collections, () -> json(admin(get("/api/v1/parameters").param("block", "classes"))));
+        var list = new JsonNode[1];
+        long all = MongoReads.count(mongo, collections, () -> list[0] = json(admin(get("/api/v1/parameters"))));
+        var rows = new ArrayList<JsonNode>(); list[0].path("blocks").forEach(item -> item.path("rows").forEach(rows::add));
+        assertThat(rows).hasSizeGreaterThan(100);
+        assertThat(all).as("reads of %d keys (one block: %d)", rows.size(), block).isLessThanOrEqualTo(6).isLessThanOrEqualTo(block + 1);
+        for (var row : rows) {
+            assertThat(row).as(row.path("key").asText()).isEqualTo(json(admin(get("/api/v1/parameters/" + row.path("key").asText()))));
+        }
+        assertThat(rows).filteredOn(row -> row.path("key").asText().equals(KEY)).singleElement()
+                .satisfies(row -> assertThat(row.path("lastChange").path("actorName").asText()).isEqualTo("Example Admin"));
     }
 
     @Test void T_02_08_scopedResetFallsBackToClubAndInvalidStoredValuesUseDefaults() throws Exception {

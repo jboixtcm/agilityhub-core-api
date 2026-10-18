@@ -17,12 +17,20 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OutboxRepository extends GlobalRepository<DomainEventRecord> {
     public static final Duration LEASE = Duration.ofMinutes(5);
+    static final String FORMER_TTL = "outbox_retention";
 
     public OutboxRepository(MongoTemplate mongo) { super(mongo, DomainEventRecord.class); }
 
     public void ensureIndexes() {
         var indexes = mongo.indexOps(DomainEventRecord.class);
-        indexes.createIndex(new Index().on("publishedAt", Direction.ASC).expire(Duration.ofDays(90)).named("outbox_retention"));
+        // R-15-19, INC-40 (E11-T10): P9 deletes a club's processed events after its `jobs.retention.domainEventsDays`; the former
+        // 90-day TTL `outbox_retention` cut a longer retention short, so a deployed database loses it. The plain index serves P9.
+        if (indexes.getIndexInfo().stream().anyMatch(index -> FORMER_TTL.equals(index.getName()))) {
+            try { indexes.dropIndex(FORMER_TTL); }
+            catch (org.springframework.dao.DataAccessException droppedByAnotherInstance) { /* gone either way */ }
+        }
+        indexes.createIndex(new Index().on("clubId", Direction.ASC).on("status", Direction.ASC).on("publishedAt", Direction.ASC)
+                .named("outbox_cleanup"));
         indexes.createIndex(new Index().on("status", Direction.ASC).on("nextAttemptAt", Direction.ASC).named("outbox_dispatch"));
         indexes.createIndex(new Index().on("clubId", Direction.ASC).on("aggregateType", Direction.ASC)
                 .on("aggregateId", Direction.ASC).named("outbox_aggregate"));

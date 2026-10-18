@@ -33,6 +33,7 @@ class E5PersistenceIT extends AbstractIntegrationTest {
     @Autowired SeatHoldRepository holds;
     @Autowired WaitlistEntryRepository waitlist;
     @Autowired SeatLockRepository seatLocks;
+    @Autowired com.mongodb.client.MongoClient mongoClient;
     @Autowired TrainingBookingRepository training;
 
     @BeforeEach void clean() {
@@ -60,6 +61,11 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         var hold = indexes("seat_holds");
         assertThat(hold.get("seat_hold_ttl").get("expireAfterSeconds", Number.class).intValue()).isZero();
         assertThat(hold.get("seat_hold_club_class_dog").getBoolean("unique")).isTrue();
+        // INC-40 (E11-T10): `seat_locks` is ephemeral (S08 §3): the TTL drops a lock no write touched for 7 days.
+        var seatLock = indexes("seat_locks").get("seat_lock_ttl");
+        assertThat(seatLock).as("seat_lock_ttl").isNotNull();
+        assertThat(seatLock.get("key")).isEqualTo(keys("lockedAt"));
+        assertThat(seatLock.get("expireAfterSeconds", Number.class).longValue()).isEqualTo(7 * 86400L);
         var entries = indexes("waitlist_entries");
         assertThat(entries.get("waitlist_club_class_state").get("key")).isEqualTo(keys("clubId", "classSessionId", "state"));
         assertThat(entries.get("waitlist_club_dog_week_state").get("key")).isEqualTo(keys("clubId", "dogId", "bookingWeekKey", "state"));
@@ -117,7 +123,7 @@ class E5PersistenceIT extends AbstractIntegrationTest {
             waitlist.insert(new WaitlistEntry("e5p-w1", CLUB, "e5p-class-a", "dog-b", "member-a", "account-a", now, WaitlistState.NOTIFIED, 1, now,
                     now.plusSeconds(1800), null, null, null, null, starts, "2026-10-04", 1L, now, "account-a", now, "account-a"));
             assertThat(waitlist.findById("e5p-w1").orElseThrow().confirmBy()).isEqualTo(now.plusSeconds(1800));
-            seatLocks.insert(new SeatLock("e5p-class-a", CLUB, 0));
+            seatLocks.insert(new SeatLock("e5p-class-a", CLUB, 0, now));
             assertThat(seatLocks.findById("e5p-class-a").orElseThrow().version()).isZero();
             assertThatThrownBy(() -> bookings.insert(new Booking("e5p-b9", OTHER, "e5p-class-a", "dog-a", "member-a", BookingState.ACTIVE, BookingOrigin.APP, now,
                     null, starts, starts, "2026-10-04", null, null, null, null, null, null, null, null, null, null, null, null, null, 1L, now, null, now, null)))
@@ -125,6 +131,27 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         }
         try (var scope = TenantContext.open(OTHER)) {
             assertThat(bookings.findById("e5p-b1")).isEmpty(); assertThat(holds.findAll()).isEmpty(); assertThat(waitlist.findAll()).isEmpty();
+        }
+    }
+
+    /** S08 §3 (`seat_locks` ephemeral), R-15-19, INC-40 (E11-T10): every lock stamps `lockedAt` from the injected clock (R-15-22), the TTL's field. */
+    @Test void T_08_29_INC_40_everySeatLockStampsLockedAtFromTheClock() {
+        // The pinned clock is weeks behind real time, so every lockedAt written here is already past the 7-day TTL: these
+        // assertions (and every IT reading seat_locks) hold only because the test server runs without the TTL monitor
+        // (AbstractIntegrationTest). Pinned here, so a server that deletes them mid-test fails at once instead of flaking.
+        var parameter = mongoClient.getDatabase("admin").runCommand(new Document("getParameter", 1).append("ttlMonitorEnabled", 1));
+        assertThat(parameter.getBoolean("ttlMonitorEnabled")).as("the test Mongo's TTL monitor is off").isFalse();
+        Instant first = clock.instant();
+        try (var scope = TenantContext.open(CLUB)) {
+            seatLocks.lock("e5p-class-l");
+            var created = mongo.findById("e5p-class-l", Document.class, "seat_locks");
+            assertThat(created.getString("clubId")).isEqualTo(CLUB);
+            assertThat(created.getDate("lockedAt").toInstant()).isEqualTo(first);
+            clock.setInstant(first.plusSeconds(3600));
+            seatLocks.lock("e5p-class-l");
+            var touched = mongo.findById("e5p-class-l", Document.class, "seat_locks");
+            assertThat(touched.getDate("lockedAt").toInstant()).isEqualTo(first.plusSeconds(3600));
+            assertThat(((Number) touched.get("version")).longValue()).isEqualTo(2);
         }
     }
 

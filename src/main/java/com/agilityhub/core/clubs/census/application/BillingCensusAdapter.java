@@ -38,7 +38,8 @@ public class BillingCensusAdapter implements BillingCensusAccess {
         return member.planId;
     }
     @Override public String lockPlan(String memberId) {
-        census.members.lock(); return census.mutableMember(memberId).planId;
+        // R-04-06 (INC-39, E11-T10): a pending readmission's LEFT record is frozen; D2's validation assigns its plan.
+        census.members.lock(); return CensusAccess.unfrozen(census.mutableMember(memberId)).planId;
     }
     @Override public void changePlan(String memberId, String planId, String priceId) {
         var member = census.mutableMember(memberId); member.planId = planId; member.priceId = priceId;
@@ -91,8 +92,9 @@ public class BillingCensusAdapter implements BillingCensusAccess {
     @Override public Optional<FamilyGroup> familyGroupOf(String memberId) {
         var member = census.members.findById(memberId).orElse(null);
         if (member == null || member.familyGroupId == null) { return Optional.empty(); }
+        // R-12-27, R-03-20 (INC-38, E11-T10): a group whose holder is no longer ACTIVE gives the member no holder to read.
         return census.groups.findById(member.familyGroupId).filter(group -> "ACTIVE".equals(group.status) && group.memberIds != null
-                && group.memberIds.contains(memberId)).map(BillingCensusAdapter::group);
+                && group.memberIds.contains(memberId) && census.activeHolder(group)).map(BillingCensusAdapter::group);
     }
     @Override public boolean moveNextInvoiceDate(String memberId, LocalDate expected, LocalDate next) {
         // `Member.nextInvoiceDate` goes through `CensusDateConverter` (an ISO string in Mongo): the values stay `LocalDate`s here.

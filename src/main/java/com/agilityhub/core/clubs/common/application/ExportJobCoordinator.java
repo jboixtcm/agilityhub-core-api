@@ -57,7 +57,7 @@ public class ExportJobCoordinator {
                     .set("expiresAt", clock.instant().plus(Duration.ofDays(7))).unset("errorCode").unset("leaseUntil").unset("claimToken"))) {
                 throw new ApiException(ErrorCode.INVALID_STATE);
             }
-            completion.completed(job.id(), job.listKey(), job.format().toLowerCase(Locale.ROOT), rows);
+            completion.completed(job.id(), job.listKey(), job.format().toLowerCase(Locale.ROOT), rows, job.query() == null ? null : job.query().filters());
             return null;
         });
     }

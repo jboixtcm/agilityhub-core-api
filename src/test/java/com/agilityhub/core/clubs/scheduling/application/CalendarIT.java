@@ -547,6 +547,75 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         assertThat(memberGrid("2026-08-25",false).path("date").asText()).isEqualTo("2026-08-25");
     }
+    void fieldError(String method,String path,Object body,String field,String code) throws Exception {
+        mvc.perform(call(method,path,body)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details.fieldErrors[0].field").value(field)).andExpect(jsonPath("$.details.fieldErrors[0].code").value(code));
+    }
+    String riskText(String date) throws Exception { return memberGrid(date,false).at("/rows/0/cells/0/riskText").asText(); }
+    /** R-06-13 and S15 §6 (E37), INC-40 (E11-T10): the tooltip writes «7:30» and promises the cancellation only when P2 will act on the class. */
+    @Test void T_06_06_INC_40_theRiskTooltipPromisesTheCancellationOnlyWhenTheReviewWillAct() throws Exception {
+        String id=session("2026-08-25","18:00","plan-ring");validate(id);counts(id,1,0);
+        assertThat(riskText("2026-08-25")).contains("abans de les 7:30 de dimarts","s'anul·larà").doesNotContain("07:30");
+        parameter("jobs.riskReview.enabled",false,"bool");
+        assertThat(riskText("2026-08-25")).as("the risk-review job is off").contains("7:30","el club decidirà").doesNotContain("s'anul·larà");
+        parameter("jobs.riskReview.enabled",true,"bool");parameter("classes.riskReviewTime","19:00","time");
+        assertThat(memberGrid("2026-08-25",false).at("/rows/0/cells/0/atRisk").asBoolean()).isTrue();
+        assertThat(riskText("2026-08-25")).as("the class starts before its review").contains("19:00","el club decidirà").doesNotContain("s'anul·larà");
+    }
+    /**
+     * S06 §3 / R-06-02, S05 R-05-03 and R-06-05, INC-40 (E11-T10): an empty or repeated `instructorIds` is a 400 VALIDATION_ERROR
+     * on the field (only more than the maximum is TOO_MANY_INSTRUCTORS); a newly chosen level or instructor must be active,
+     * while a class that already has an inactive one keeps it and stays editable.
+     */
+    @Test void T_06_13_INC_40_instructorListsAndInactiveReferencesOfClassSessions() throws Exception {
+        var body=new LinkedHashMap<String,Object>(Map.of("date","2026-08-25","startTime","18:00","endTime","19:00","ringId","plan-ring","instructorIds",List.of(),"levelIds",List.of("plan-level-D")));
+        // The POST's Bean Validation already answers an empty list (NotEmpty); the PATCH below answers it with the same field code.
+        fieldError("POST","/class-sessions",body,"instructorIds","NotEmpty");
+        parameter("classes.maxInstructorsPerClass",2,"int");
+        body.put("instructorIds",List.of("plan-instructor","plan-instructor"));fieldError("POST","/class-sessions",body,"instructorIds","INVALID_VALUE");
+        body.put("instructorIds",List.of("plan-instructor","plan-instructor-2","plan-instructor-3"));error("POST","/class-sessions",body,ErrorCode.TOO_MANY_INSTRUCTORS);
+        body.put("instructorIds",List.of("plan-instructor-2"));body.put("levelIds",List.of("plan-level-F"));String kept=ok("POST","/class-sessions",body).path("id").asText();
+        body.put("startTime","20:00");body.put("endTime","21:00");body.put("instructorIds",List.of("plan-instructor"));body.put("levelIds",List.of("plan-level-G"));
+        String other=ok("POST","/class-sessions",body).path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-level-F")),new Update().set("active",false),"levels");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("plan-instructor-2")),new Update().set("active",false),"instructors");
+        body.put("startTime","09:00");body.put("endTime","10:00");body.put("levelIds",List.of("plan-level-F"));fieldError("POST","/class-sessions",body,"levelIds","INVALID_VALUE");
+        var edited=patch(kept,Map.of("capacity",3));
+        assertThat(edited.path("levelIds")).extracting(JsonNode::asText).containsExactly("plan-level-F");assertThat(edited.path("instructorIds")).extracting(JsonNode::asText).containsExactly("plan-instructor-2");
+        patch(kept,Map.of("levelIds",List.of("plan-level-F","plan-level-G")));
+        fieldError("PATCH","/class-sessions/"+other,Map.of("version",session(other).path("version").asLong(),"levelIds",List.of("plan-level-G","plan-level-F")),"levelIds","INVALID_VALUE");
+        fieldError("PATCH","/class-sessions/"+other,Map.of("version",session(other).path("version").asLong(),"instructorIds",List.of("plan-instructor-2")),"instructorIds","INVALID_VALUE");
+        fieldError("PATCH","/class-sessions/"+other,Map.of("version",session(other).path("version").asLong(),"instructorIds",List.of()),"instructorIds","NotEmpty");
+        fieldError("PATCH","/class-sessions/"+other,Map.of("version",session(other).path("version").asLong(),"instructorIds",List.of("plan-instructor","plan-instructor")),"instructorIds","INVALID_VALUE");
+    }
+    /** R-06-10 and T-06-15, INC-40 (E11-T10): a booking whose member is erased (R-14-15) or whose dog is gone is a neutral row, never a 404. */
+    @Test void T_06_15_INC_40_thePreviewShowsAnErasedMemberAndAMissingDogAsNeutralRows() throws Exception {
+        modules(Module.SMS);String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,3,0);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("student-1")),new Update().set("erasedAt",new Date()).set("firstName","Abonat suprimit").set("lastName1","#87")
+                .set("contactEmails",List.of()).set("phones",List.of()).set("accountId",null),"members");
+        mongo.remove(Query.query(Criteria.where("_id").is("dog-2")),"dogs");
+        var preview=ok("GET","/class-sessions/"+id+"/cancellation-preview",null);
+        assertThat(preview.path("bookings")).hasSize(3);assertThat(preview.path("waitlistCount").asInt()).isZero();
+        var erased=preview.at("/bookings/1");
+        assertThat(erased.path("bookingId").asText()).isEqualTo("booking-1");assertThat(erased.path("memberName").asText()).isEqualTo("Abonat suprimit");
+        assertThat(erased.path("dogName").asText()).isEqualTo("Dog1");assertThat(erased.path("channels")).isEmpty();assertThat(erased.path("phoneCount").asInt()).isZero();
+        var dogless=preview.at("/bookings/2");
+        assertThat(dogless.path("memberName").asText()).isEqualTo("Student2 Example");assertThat(dogless.path("dogName").asText()).isEmpty();assertThat(dogless.path("levelName").isNull() || dogless.path("levelName").isMissingNode()).isTrue();
+        assertThat(dogless.path("channels").toString()).isEqualTo("[\"APP\",\"EMAIL\",\"SMS\"]");
+    }
+    /** R-06-09 and S06 §8 (N-08b), INC-40 (E11-T10): a change of instructors is a change of the set; a reorder notifies nobody and keeps the order sent. */
+    @Test void T_06_13_INC_40_reorderingTheInstructorsSendsNoN08b() throws Exception {
+        parameter("classes.maxInstructorsPerClass",2,"int");
+        var body=new LinkedHashMap<String,Object>(Map.of("date","2026-08-25","startTime","18:00","endTime","19:00","ringId","plan-ring","instructorIds",List.of("plan-instructor","plan-instructor-2"),"levelIds",List.of("plan-level-D")));
+        String id=ok("POST","/class-sessions",body).path("id").asText();validate(id);audience(id,3,0);
+        patch(id,Map.of("instructorIds",List.of("plan-instructor-2","plan-instructor")));dispatcher.dispatch();
+        assertThat(notifications("N-08b")).isEmpty();
+        assertThat(session(id).path("instructorIds")).extracting(JsonNode::asText).containsExactly("plan-instructor-2","plan-instructor");
+        var updated=mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ClassSessionUpdated")),Document.class,"domain_events");
+        assertThat(updated).hasSize(1);assertThat(updated.getFirst().get("payload",Document.class).get("diff",Document.class)).doesNotContainKey("instructorIds");
+        patch(id,Map.of("instructorIds",List.of("plan-instructor")));dispatcher.dispatch();
+        assertThat(notifications("N-08b")).isNotEmpty();
+    }
     @TestConfiguration(proxyBeanMethods=false) static class Ports {
         @Bean @org.springframework.context.annotation.Primary Doubles schedulingTestPorts(EventPublisher events,ClubConfigService configs,java.time.Clock clock) { return new Doubles(events,configs,clock); }
     }

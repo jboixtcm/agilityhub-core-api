@@ -15,15 +15,22 @@ public class SettingsMapper {
     public SettingsMapper(ParameterSettingsService parameters, AuditQuery audit) { this.parameters = parameters; this.audit = audit; }
 
     public Parameter parameter(ParameterSettingsService.View view) {
+        return parameter(view, lastChange("Parameter", view.id()), parameters.defaultValue(view.definition()));
+    }
+    private Parameter parameter(ParameterSettingsService.View view, LastChange lastChange, Object defaultValue) {
         var d = view.definition();
         return new Parameter(d.key(), d.type(), d.labelKey(), d.helpKey(), view.value(), view.isOverride(), view.scopeRef(),
-                lastChange("Parameter", view.id()), ParameterEditor.valueOf(d.editableBy()), d.constraints(),
-                d.modules().isEmpty() ? null : d.modules().getFirst().name(), view.version(), parameters.defaultValue(d),
+                lastChange, ParameterEditor.valueOf(d.editableBy()), d.constraints(),
+                d.modules().isEmpty() ? null : d.modules().getFirst().name(), view.version(), defaultValue,
                 d.block(), view.history().stream().map(h -> new ParameterHistoryEntry(h.value(), h.changedAt(), h.changedByAccountId(), h.reason())).toList());
     }
+    /** E11-T10 (INC-38): the rows' last changes and product defaults are read once for the whole list (D11). */
     public Parameters parameters(List<ParameterSettingsService.View> values) {
+        var changes = audit.lastChanges("Parameter", values.stream().map(ParameterSettingsService.View::id).toList());
+        var defaults = parameters.defaults();
         var blocks = new LinkedHashMap<String, List<Parameter>>();
-        values.forEach(view -> blocks.computeIfAbsent(view.definition().block(), ignored -> new ArrayList<>()).add(parameter(view)));
+        values.forEach(view -> blocks.computeIfAbsent(view.definition().block(), ignored -> new ArrayList<>())
+                .add(parameter(view, project(changes.get(view.id())), defaults.apply(view.definition()))));
         var last = blocks.values().stream().flatMap(List::stream).map(Parameter::lastChange).filter(Objects::nonNull)
                 .max(Comparator.comparing(LastChange::at)).orElse(null);
         return new Parameters(blocks.entrySet().stream().map(e -> new ParameterBlock(e.getKey(),
@@ -51,8 +58,6 @@ public class SettingsMapper {
                 legal == null ? null : new ClubLegal(legal.privacyPolicyUrl(), legal.imageConsentText().get(c.defaultLocale()),
                         legal.imageConsentText(), legal.legalTextsVersion()), c.status().name(), lastChange("Club", c.id()), c.version());
     }
-    private LastChange lastChange(String type, String id) {
-        var last = audit.lastChange(type, id);
-        return last == null ? null : new LastChange(last.at(), last.actorName(), last.action().name());
-    }
+    private LastChange lastChange(String type, String id) { return project(audit.lastChange(type, id)); }
+    private static LastChange project(AuditQuery.LastChange last) { return last == null ? null : new LastChange(last.at(), last.actorName(), last.action().name()); }
 }

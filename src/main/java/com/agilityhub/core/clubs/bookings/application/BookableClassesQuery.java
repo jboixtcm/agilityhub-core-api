@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
  * {@link BookingLimits} (via {@link BookingChecks#limit}) and the class counters.
  * <p>The class list and its counters come from {@link BookableClassesCache} (S15 R-15-11: owned by S08, key
  * `{clubId}:{W0 key}`, TTL 30 s, warmed by P1); the per-dog part (exclusions, limits, pack, block, inactivity, leave) is
- * always read live. Class labels are cached for the same 30 s per class version and locale.
+ * always read live, and so are the open FIFO offers that keep a seat for another dog (R-08-14, INC-40). Class labels are
+ * cached for the same 30 s per class version and locale.
  */
 @Service
 public class BookableClassesQuery {
@@ -82,6 +83,8 @@ public class BookableClassesQuery {
         boolean levelsEnabled = context.flag("levels.enabled"), waitlistOn = context.enabled(Module.WAITLIST), inactivityOn = context.enabled(Module.INACTIVITY);
         int waitlistMax = context.integer("waitlist.maxPerClass");
         var limits = new HashMap<String, BookingLimits.Result>();
+        // R-08-14 (INC-40, E11-T10): read live, one query; a seat on an open FIFO offer of another dog is not free on 04.
+        var offers = WaitlistTransitions.offeredDogs(context, waitlist, cached.classes().stream().map(ClassSessionBookingAccess.Session::id).toList(), now);
         var result = new ArrayList<Map<String, Object>>();
         for (var s : cached.classes()) {
             if (!s.startsAt().isAfter(now) || taken.contains(s.id()) || !BookingEligibility.levelAllowed(levelsEnabled, dog.levelId(), s.levelIds())) { continue; }
@@ -92,15 +95,16 @@ public class BookableClassesQuery {
             boolean limitDone = relative != RelativeWeek.LATER
                     && limits.computeIfAbsent(week.key(), key -> checks.limit(key, relative, dog.id(), owner.id(), now)).done();
             var sessionPack = context.enabled(Module.PACKS) ? packs.balance(owner.id(), dog.id(), date) : Optional.<PackBalancePort.Balance>empty();
+            int occupied = s.booked() + WaitlistTransitions.others(offers.getOrDefault(s.id(), Set.of()), dog.id()).size();
             var row = BookableRow.resolve(new BookableRow.Input(reason, relative == RelativeWeek.LATER,
                     sessionPack.isPresent() && BookingEligibility.packEmpty(new BookingEligibility.Pack(sessionPack.get().available(), sessionPack.get().expiresOn()), date),
-                    limitDone, s.booked() >= s.capacity(), waitlistOn, s.waiting(), waitlistMax));
+                    limitDone, occupied >= s.capacity(), waitlistOn, s.waiting(), waitlistMax));
             var label = labels.get(context.clubId() + ":" + s.id() + ":" + s.version() + ":" + locale.toLanguageTag(), key -> views.labels(s));
             var out = new LinkedHashMap<String, Object>();
             out.put("id", s.id()); out.put("startsAtLocal", views.local(s.startsAt())); out.put("endsAtLocal", views.local(s.endsAt()));
             out.put("description", label.description()); out.put("ringName", label.ringName()); out.put("ringColor", label.ringColor());
             out.put("week", relative); out.put("state", row.state()); out.put("notBookableReason", row.reason());
-            out.put("freeSeats", Math.max(0, s.capacity() - s.booked()));
+            out.put("freeSeats", Math.max(0, s.capacity() - occupied));
             out.put("waiting", waitlistOn ? s.waiting() : null); out.put("waitlistMax", waitlistOn ? waitlistMax : null);
             out.put("opensAt", row.state() == BookableRow.State.NOT_YET_OPEN ? weeks.opensAt(week) : null);
             out.put("price", terms.map(SingleClassChargePort.Terms::price).orElse(null));

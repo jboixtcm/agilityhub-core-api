@@ -155,7 +155,32 @@ class ApiExceptionHandlerTest {
         }
     }
 
+    /**
+     * CATALEG_ERRORS §1, INC-40 (E11-T10): a framework 5xx answers the catalog status of its code: 501 is `NOT_IMPLEMENTED`,
+     * any other 5xx (a 502, a 503, an async timeout before the response is committed) is `500 INTERNAL_ERROR`, without the
+     * framework's headers.
+     */
+    @Test void INC_40_aFrameworkServerErrorAnswersTheCatalogStatusOfItsCode() throws Exception {
+        mvc.perform(get("/framework-status").param("status", "501")).andExpect(status().isNotImplemented())
+                .andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED")).andExpect(jsonPath("$.traceId").isNotEmpty());
+        for (String status : java.util.List.of("502", "503")) {
+            var response = mvc.perform(get("/framework-status").param("status", status)).andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("INTERNAL_ERROR")).andExpect(jsonPath("$.traceId").isNotEmpty())
+                    .andReturn().getResponse();
+            assertThat(response.getHeader("Retry-After")).isNull();
+        }
+        mvc.perform(get("/async-timeout")).andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+    }
+
     @RestController static class TestController {
+        @GetMapping("/framework-status") void frameworkStatus(@RequestParam int status) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatusCode.valueOf(status), "fictional") {
+                @Override public org.springframework.http.HttpHeaders getHeaders() {
+                    var headers = new org.springframework.http.HttpHeaders(); headers.set("Retry-After", "30"); return headers;
+                }
+            };
+        }
+        @GetMapping("/async-timeout") void asyncTimeout() { throw new org.springframework.web.context.request.async.AsyncRequestTimeoutException(); }
         @GetMapping("/page") int page(@RequestParam int page) { return page; }
         @GetMapping(value = "/json", produces = "application/json") Map<String, String> json() { return Map.of("value", "ok"); }
         @GetMapping("/upload-too-large") void uploadTooLarge() {

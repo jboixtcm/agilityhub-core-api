@@ -765,16 +765,44 @@ public class SignupService implements SignupPaymentAccess {
         // M8: the admin assigns any active plan of an enabled module, hidden from the public offer or not.
         var plan=policy.requireAssignable(id);
         if(request.get("planId")==null&&access.enabled(Module.FAMILY_GROUP)) {
-            String holderId=string(map(member.familyGroupClaim).get("holderMemberId"));
-            int count=dogs.size();
-            if(holderId!=null) count+=dogs(holderId).stream().filter(d -> !"INACTIVE".equals(d.status)).count();
-            else if("ACTIVE".equals(member.status)) count=dogs(member.id).stream().filter(d -> !"INACTIVE".equals(d.status)).toList().size();
+            int count=familyDogs(member,request,dogs);
             if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.proposedFamilyFare(count).orElse(plan);
         }
         // The accepted price is the one the plan bills (its billing mode): Teràpia's maintenance price, the standard one otherwise.
         if(request.get("priceId")!=null&&(plan==null||plan.billedPrice()==null||!request.get("priceId").equals(plan.billedPrice().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
         return plan;
     }
+    /**
+     * R-04-13 (INC-39, E11-T10): the dogs of the group the validation leaves the member in ({@link #joinFamily}), each counted
+     * once: the selected pending dogs and every non-`INACTIVE` dog (a dog is never `LEFT`, §3) of its members. The group is the
+     * one D2 chose (`familyGroupId`), else the claimed holder's (a holder without one makes one with the member), else the
+     * member's own; only an `ACTIVE` group adds its members (the claimed holder too: a holder whose group is not `ACTIVE` adds
+     * nobody, E11-T10 review; a holder without a group adds itself).
+     */
+    private int familyDogs(Member member,Map<String,Object> request,List<Dog> dogs) {
+        var members=new LinkedHashSet<String>(List.of(member.id));
+        String groupId=string(request.get("familyGroupId")),holderId=string(map(member.familyGroupClaim).get("holderMemberId"));
+        if(groupId==null&&holderId!=null) {
+            groupId=access.members.findById(holderId).map(holder -> holder.familyGroupId).orElse(null);
+            if(groupId==null) members.add(holderId);
+        }
+        else if(groupId==null) groupId=member.familyGroupId;
+        if(groupId!=null) access.groups.findById(groupId).filter(group -> "ACTIVE".equals(group.status)).ifPresent(group -> members.addAll(Objects.requireNonNullElse(group.memberIds,List.<String>of())));
+        var counted=new HashSet<>(dogIds(dogs));
+        access.dogs.matching(Criteria.where("memberId").in(members)).stream().filter(d -> !"INACTIVE".equals(d.status)).forEach(d -> counted.add(d.id));
+        return counted.size();
+    }
+    /**
+     * R-04-19 (INC-39, E11-T10): a submission whose requested plan is no longer assignable (deactivated, or its module off) when
+     * D2 names none (`planId`, `priceId`): D2 loads and its dry run previews the rows as submitted, with no plan proposal and
+     * no quote, until the admin chooses a plan; the validation still answers 422 PLAN_NOT_AVAILABLE without one.
+     */
+    private boolean planGone(Member member,Map<String,Object> request,List<Dog> dogs) {
+        if(request.get("planId")!=null||request.get("priceId")!=null) return false;
+        try { policy.requireAssignable(string(submission(member,dogs).getOrDefault("planIdRequested",member.planId)));return false; }
+        catch(ApiException gone) { if(gone.code()!=ErrorCode.PLAN_NOT_AVAILABLE) throw gone;return true; }
+    }
+    private SignupPolicy.Quote noQuote() { return new SignupPolicy.Quote(List.of(),new Money(0,currency()),null,null); }
     private SignupPolicy.Quote validationQuote(Member member,SignupPolicy.Plan plan,List<Dog> dogs) {
         boolean add="ACTIVE".equals(member.status);var signup=map(member.signup);
         var lines=new ArrayList<SignupPolicy.Line>();Money total=new Money(0,currency());SignupPolicy.Period first=null,additional=null;
@@ -800,7 +828,9 @@ public class SignupService implements SignupPaymentAccess {
     }
     public Map<String,Object> review(String id) {
         var member=access.mutableMember(id);var dogs=pending(id);if(dogs.isEmpty()) throw notPending();
-        var plan=proposedPlan(member,Map.of(),dogs);var quote=validationQuote(member,plan,dogs);var signup=submission(member,dogs);var first=firstMonth(member,plan,dogs,quote);
+        // R-04-19 (INC-39): a gone requested plan proposes nothing; the first month in force is the frozen one.
+        boolean gone=planGone(member,Map.of(),dogs);var plan=gone?null:proposedPlan(member,Map.of(),dogs);var quote=gone?noQuote():validationQuote(member,plan,dogs);
+        var signup=submission(member,dogs);var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);
         var submission=new LinkedHashMap<>(signup);submission.put("pendingDays",Math.max(0,ChronoUnit.DAYS.between(instant(signup.get("submittedAt")).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate(),policy.today())));
         var claim=new LinkedHashMap<>(map(member.familyGroupClaim));String holderId=string(claim.remove("holderMemberId"));
         // E3-T16 round 2: the whole FamilyMember (number, ACTIVE dogs), never a partial one whose required `dogs` is null.
@@ -951,18 +981,24 @@ public class SignupService implements SignupPaymentAccess {
         if(date.isBefore(first.startDate())) throw invalid("nextInvoiceDate","INVALID_VALUE");
     }
     public Map<String,Object> dryRun(String id,Map<String,Object> request) {
-        var member=access.mutableMember(id);var dogs=selection(member,request);var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);
-        var first=firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first);
+        var member=access.mutableMember(id);var dogs=selection(member,request);
+        // R-04-19 (INC-39): with a gone requested plan and none chosen, the preview is the rows as they are.
+        boolean gone=planGone(member,request,dogs);var plan=gone?null:proposedPlan(member,request,dogs);var quote=gone?noQuote():validationQuote(member,plan,dogs);
+        var first=gone?frozenFirstMonth(member,dogs):firstMonth(member,plan,dogs,quote);nextInvoiceDate(request,first);
         var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
         if(billing()) {
             // The preview is what the validation will write: the rows as they are, or (plan change, S04 §5 / E39) the kept rows plus the new ones.
             var scope=scope(member,dogs);List<UpfrontPayments.Line> lines;Money due,paid,exceeds=null;
-            if(planChanged(member,plan,dogs)) {
+            if(!gone&&planChanged(member,plan,dogs)) {
                 var replacement=payments.replacement(id,scope,charges(quote));lines=replacement.lines();due=replacement.due(currency());paid=replacement.paid(currency());
                 if(replacement.checkoutPending()) warnings.add("CHECKOUT_PENDING");
                 // E39b: what was paid beyond the new quote stays paid; D2 warns so the club refunds it (S12).
                 exceeds=replacement.paidExceedsQuote();if(exceeds!=null) warnings.add("PAID_EXCEEDS_QUOTE");
-            } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
+            } else {
+                lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency());
+                // R-04-16 (INC-39, E11-T10): an amount collected by hand is refused while a checkout of these rows is in progress.
+                if(lines.stream().anyMatch(SignupService::checkoutPending)) warnings.add("CHECKOUT_PENDING");
+            }
             upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
                     l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider(),l.submissionId())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds,
                     // The first month the validation will charge: the frozen one, or the recalculated one after a plan change;
@@ -987,6 +1023,9 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> validateDogs(String id,Map<String,Object> request) { return validate(id,request,true); }
     private Map<String,Object> validate(String id,Map<String,Object> request,boolean addDog) {
         lock();var member=access.mutableMember(id);var dogs=selection(member,request);
+        // R-04-16 (INC-39, E11-T10): the amount collected is in the club's currency, checked before any write.
+        if(billing()&&request.get("upfrontAmountPaid")!=null&&!currency().equals(map(request.get("upfrontAmountPaid")).get("currency")))
+            throw new ApiException(ErrorCode.CURRENCY_MISMATCH,Map.of("field","upfrontAmountPaid"));
         // S04 R-04-26 (E5-T30 round 2, E79): a checkout past its expiry gives its rows back before the plan change or the cash
         // allocation reads them, whether or not the provider ever had it and with the provider switched off.
         checkouts.getObject().releaseLapsed(id);
@@ -1004,6 +1043,9 @@ public class SignupService implements SignupPaymentAccess {
         Money due=payments.due(id,scope,currency());
         if(billing()&&due.amountMinor()>0&&payments.lines(id,scope).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");
         if(request.get("upfrontAmountPaid")!=null&&!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
+        // R-04-16, S04 §5 (INC-39, E11-T10): no cash is recorded while a checkout of these rows is in progress, as for a plan change.
+        if(request.get("upfrontAmountPaid")!=null&&mapper.convertValue(request.get("upfrontAmountPaid"),Money.class).amountMinor()>0&&payments.lines(id,scope).stream().anyMatch(SignupService::checkoutPending))
+            throw new ApiException(ErrorCode.INVALID_STATE,Map.of("reason","CHECKOUT_PENDING"));
         String previousMandate=string(map(member.paymentMethod).get("mandateRef"));
         if(!addDog&&readmissionPending(member)) applyReadmission(member);
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
@@ -1042,6 +1084,7 @@ public class SignupService implements SignupPaymentAccess {
         return object("memberId",id,"number",member.memberNumber,"accountId",member.accountId,"dogIds",dogIds(dogs),
                 "warnings",exceeds==null?List.of():List.of("PAID_EXCEEDS_QUOTE"),"paidExceedsQuote",exceeds);
     }
+    private static boolean checkoutPending(UpfrontPayments.Line line) { return "CHECKOUT_PENDING".equals(line.status()); }
     /** `MemberValidated.dogs[{dogId, levelId}]` from the stored dog (`levelId` null without levels), never from the request. */
     private static Map<String,Object> dogLevel(Dog dog) { var row=new LinkedHashMap<String,Object>();row.put("dogId",dog.id);row.put("levelId",dog.levelId);return row; }
     private void joinFamily(Member member,Map<String,Object> request) {

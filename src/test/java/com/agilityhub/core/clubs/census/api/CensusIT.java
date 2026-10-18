@@ -55,6 +55,8 @@ class CensusIT extends AbstractIntegrationTest {
     @Autowired IdentityTransactions transactions; @Autowired EventPublisher publisher; @Autowired OutboxDispatcher dispatcher;
     @Autowired CountryContacts countries; @Autowired AttachmentService attachments; @Autowired MemberIdentityAccess identityAccess;
     @Autowired com.agilityhub.core.payments.application.BankAccountVault vault;
+    @Autowired com.agilityhub.core.platform.application.audit.AuditErasure auditErasure;
+    @Autowired com.agilityhub.core.platform.application.privacy.ErasureDirectory erasureDirectory;
 
     @BeforeEach void seed() {
         TenantContext.clear();
@@ -194,6 +196,29 @@ class CensusIT extends AbstractIntegrationTest {
         change("members/two", Map.of("version", 1, "firstName", "Marta"));
         assertThat(mongo.findById("two-account", Account.class).name()).isEqualTo("Marta two");
     }
+    /**
+     * R-03-08, R-14-09: an ADMIN's change of `consents.imageRights` is a `MEMBER_CONSENT_CHANGED` entry of its own; `MEMBER_UPDATED`
+     * keeps the other fields and is not written for a consent-only edit. INC-38 (E11-T10).
+     */
+    @Test @AuditCovers(AuditAction.MEMBER_CONSENT_CHANGED)
+    void T_03_12_INC_38_aConsentChangeIsAuditedAsMemberConsentChanged() throws Exception {
+        change("members/one", Map.of("version", 0, "consents", Map.of("imageRights", Map.of("granted", false))));
+        assertThat(audit(AuditAction.MEMBER_UPDATED)).isEmpty();
+        assertThat(audit(AuditAction.MEMBER_CONSENT_CHANGED)).singleElement().satisfies(entry -> {
+            assertThat(entry.entityType()).isEqualTo("Member"); assertThat(entry.entityId()).isEqualTo("one"); assertThat(entry.memberId()).isEqualTo("one");
+            assertThat(entry.actorAccountId()).isEqualTo("admin-account");
+            assertThat(entry.changes()).isNotEmpty().allSatisfy(change -> assertThat(change.path()).startsWith("consents.imageRights."));
+            assertThat(entry.changes()).anySatisfy(change -> {
+                assertThat(change.path()).isEqualTo("consents.imageRights.granted"); assertThat(change.before()).isEqualTo(true); assertThat(change.after()).isEqualTo(false);
+            });
+        });
+        change("members/one", Map.of("version", 1, "firstName", "Updated", "consents", Map.of("imageRights", Map.of("granted", true))));
+        assertThat(audit(AuditAction.MEMBER_UPDATED)).singleElement().satisfies(entry ->
+                assertThat(entry.changes()).singleElement().satisfies(change -> assertThat(change.path()).isEqualTo("firstName")));
+        assertThat(audit(AuditAction.MEMBER_CONSENT_CHANGED)).hasSize(2);
+        change("members/one", Map.of("version", 2, "remarks", "Example remark"));
+        assertThat(audit(AuditAction.MEMBER_UPDATED)).hasSize(2); assertThat(audit(AuditAction.MEMBER_CONSENT_CHANGED)).hasSize(2);
+    }
     @Test @AuditCovers(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED)
     void T_03_13_paymentMethodsAreValidatedAndAlwaysMasked() throws Exception {
         error(admin(body(patch("/api/v1/members/one/payment-method"), Map.of("type", "CARD"))), ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
@@ -293,6 +318,16 @@ class CensusIT extends AbstractIntegrationTest {
         error(admin(body(post("/api/v1/members/one/booking-block"), Map.of())), ErrorCode.VALIDATION_ERROR);
         assertThat(events("BookingBlockChanged")).hasSize(2); assertThat(audit(AuditAction.BOOKING_BLOCK_SET)).hasSize(1); assertThat(audit(AuditAction.BOOKING_BLOCK_CLEARED)).hasSize(1);
     }
+    /** R-03-04, N-29: lifting a block emits `BookingBlockChanged{active: false, reason}` with the lifted block's reason. INC-38 (E11-T10). */
+    @Test void T_03_14_INC_38_theUnblockEventCarriesTheReasonOfTheLiftedBlock() throws Exception {
+        admin(body(post("/api/v1/members/one/booking-block"), Map.of("reason", "Example unpaid receipt"))).andExpect(status().isCreated());
+        admin(delete("/api/v1/members/one/booking-block")).andExpect(status().isNoContent());
+        assertThat(events("BookingBlockChanged")).extracting(event -> event.payload().get("active") + ":" + event.payload().get("reason"))
+                .containsExactlyInAnyOrder("true:Example unpaid receipt", "false:Example unpaid receipt");
+        dispatcher.dispatch(); dispatcher.dispatch();
+        assertThat(mongo.find(Query.query(Criteria.where("code").is("N-29")), com.agilityhub.core.clubs.messaging.persistence.Notification.class))
+                .isNotEmpty().allSatisfy(notification -> assertThat(notification.variables()).containsEntry("reason", "Example unpaid receipt"));
+    }
     @Test void T_03_15_ownerOrFamilyActorBlockPreventsNewBookingsOnly() throws Exception {
         family(); reference("bookings", "existing", "dog-one", "ACTIVE", clock.instant().plusSeconds(100));
         admin(body(post("/api/v1/members/one/booking-block"), Map.of("reason", "Example reason"))).andExpect(status().isCreated());
@@ -369,6 +404,14 @@ class CensusIT extends AbstractIntegrationTest {
         field("members", "one", "status", "LEFT"); error(admin(body(post("/api/v1/dogs/dog-one/reactivation"), Map.of())), ErrorCode.TARGET_MEMBER_NOT_ACTIVE);
         field("members", "one", "status", "ACTIVE"); admin(body(post("/api/v1/dogs/dog-one/reactivation"), Map.of())).andExpect(status().isOk());
         assertThat(dog("dog-one").status).isEqualTo("ACTIVE"); assertThat(dog("dog-one").deactivatedAt).isNull(); assertThat(audit(AuditAction.DOG_REACTIVATED)).hasSize(1);
+    }
+    /** R-03-11, R-14-09: the manual deactivation and reactivation audit the admin's `reason`; the event stays `reason: CLUB`. INC-38 (E11-T10). */
+    @Test void T_03_22_INC_38_theManualDeactivationAndReactivationAuditTheirReason() throws Exception {
+        admin(body(post("/api/v1/dogs/dog-one/deactivation"), Map.of("reason", "Example retirement"))).andExpect(status().isOk());
+        assertThat(audit(AuditAction.DOG_DEACTIVATED)).singleElement().satisfies(entry -> assertThat(entry.reason()).isEqualTo("Example retirement"));
+        assertThat(events("DogDeactivated")).singleElement().satisfies(event -> assertThat(event.payload()).containsEntry("reason", "CLUB"));
+        admin(body(post("/api/v1/dogs/dog-one/reactivation"), Map.of("reason", "Example return"))).andExpect(status().isOk());
+        assertThat(audit(AuditAction.DOG_REACTIVATED)).singleElement().satisfies(entry -> assertThat(entry.reason()).isEqualTo("Example return"));
     }
     @Test @AuditCovers({AuditAction.DOG_UPDATED, AuditAction.DOG_DOCUMENT_FILE_REMOVED})
     void T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval() throws Exception {
@@ -513,6 +556,19 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(mongo.findById("one-account", Account.class).email()).isEqualTo("one@example.test");
         assertThat(events("MemberUpdated")).singleElement().satisfies(event -> assertThat(event.origin()).isEqualTo(DomainEvent.Origin.APP));
     }
+    /**
+     * R-03-20, R-12-04, R-12-27: once the holder of an ACTIVE family group is LEFT, its members are billed on their own
+     * (`billedViaMemberId` = themselves) and have no holder whose receipts they read. INC-38 (E11-T10).
+     */
+    @Test void T_03_28_INC_38_aLeftHolderNoLongerBillsOrServesTheGroup() throws Exception {
+        family();
+        assertThat(json(admin(get("/api/v1/members/two")), 200).path("billedViaMemberId").asText()).isEqualTo("one");
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(billing.familyGroupOf("two")).isPresent(); }
+        field("members", "one", "status", "LEFT");
+        assertThat(json(admin(get("/api/v1/members/two")), 200).path("billedViaMemberId").asText()).isEqualTo("two");
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(billing.familyGroupOf("two")).isEmpty(); }
+    }
+    @Autowired BillingCensusAccess billing;
     @Test @AuditCovers(AuditAction.FAMILY_GROUP_CHANGED)
     void T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic() throws Exception {
         error(admin(body(post("/api/v1/family-groups"), Map.of("holderMemberId", "one", "memberIds", List.of("one")))), ErrorCode.FAMILY_GROUP_TOO_SMALL);
@@ -651,6 +707,32 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(json(call(get("/api/v1/family-groups/" + group), CLUB, "one", "INSTRUCTOR"), 200).path("memberIds")).hasSize(2);
         error(own(body(post("/api/v1/family-groups"), Map.of("holderMemberId", "one", "memberIds", List.of("one", "two")))), ErrorCode.FORBIDDEN);
     }
+    /**
+     * R-03-05, T-03-35 (and S05 §11, S14 §6): a real impersonation token on any E2/E3 staff route is refused by name, before the role
+     * check; the member routes still serve it. INC-38 (E11-T10).
+     */
+    @Test void T_03_35_INC_38_aRealImpersonationTokenGetsImpersonationDeniedOnEveryStaffRoute() throws Exception {
+        String token;
+        try (var tenant = TenantContext.open(CLUB)) { token = impersonation.create("admin-account", "one", "Example support").token().getTokenValue(); }
+        String bearer = "Bearer " + token;
+        var staff = List.of(get("/api/v1/members"), body(patch("/api/v1/members/one"), Map.of("version", 0, "firstName", "Example")),
+                post("/api/v1/members/one/access-resend"), get("/api/v1/dogs/dog-one"), body(patch("/api/v1/dogs/dog-one/level"), Map.of("levelId", "level-d")),
+                get("/api/v1/family-groups/unknown"), delete("/api/v1/family-groups/unknown"), get("/api/v1/saved-views").param("listKey", "members"),
+                get("/api/v1/exports"), get("/api/v1/members/one/audit-entries"), body(post("/api/v1/levels"), Map.of()), get("/api/v1/plans/unknown"),
+                get("/api/v1/prices"), body(post("/api/v1/instructors"), Map.of()), get("/api/v1/administrators"), get("/api/v1/parameters"), get("/api/v1/club"),
+                get("/api/v1/audit-entries"), get("/api/v1/members/one/consents"), get("/api/v1/members/one/signup"),
+                body(post("/api/v1/members/one/validation"), Map.of()), body(post("/api/v1/members/one/rejection"), Map.of()));
+        for (var request : staff) {
+            var result = mvc.perform(request.header("Host", CLUB + ".example.test").header("Authorization", bearer));
+            String label = result.andReturn().getRequest().getMethod() + " " + result.andReturn().getRequest().getRequestURI();
+            assertThat(result.andReturn().getResponse().getStatus()).as(label).isEqualTo(403);
+            assertThat(mapper.readTree(result.andReturn().getResponse().getContentAsString()).path("code").asText()).as(label).isEqualTo("IMPERSONATION_DENIED");
+        }
+        // The member routes of the same contexts keep serving the impersonation token (R-03-02).
+        for (String path : List.of("/api/v1/me/dogs", "/api/v1/me/profile")) {
+            mvc.perform(get(path).header("Host", CLUB + ".example.test").header("Authorization", bearer)).andExpect(status().isOk());
+        }
+    }
 
     @Test void T_03_23_photoAndNoteAttachmentsAreBoundPrivateAndReplaySafe() throws Exception {
         byte[] data = "Example image bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -705,6 +787,49 @@ class CensusIT extends AbstractIntegrationTest {
         error(own(body(post("/api/v1/attachments"), note).header("Idempotency-Key", "not-a-uuid")), ErrorCode.VALIDATION_ERROR);
     }
 
+    /**
+     * S14 §3 (`entityLabel` snapshot: the member's full name, the dog's name), R-14-11 (`q` over it), R-14-10 (`eventIds[]` of
+     * the same transaction) and R-14-15 (the erasure removes the label). INC-38 (E11-T10).
+     */
+    @Test void T_14_11_INC_38_memberAndDogEntriesCarryTheirNameAndTheirEventsUntilTheErasure() throws Exception {
+        change("members/one", Map.of("version", 0, "firstName", "Fictional Laia"));
+        change("dogs/dog-one", Map.of("version", 0, "name", "Fictional Lua"));
+        var member = mongo.findOne(Query.query(Criteria.where("action").is("MEMBER_UPDATED")), Document.class, "audit_entries");
+        var dog = mongo.findOne(Query.query(Criteria.where("action").is("DOG_UPDATED")), Document.class, "audit_entries");
+        assertThat(member.getString("entityLabel")).isEqualTo("Fictional Laia one"); assertThat(dog.getString("entityLabel")).isEqualTo("Fictional Lua");
+        assertThat(member.getList("eventIds", String.class)).containsExactly(events("MemberUpdated").getFirst().id());
+        assertThat(dog.getList("eventIds", String.class)).containsExactly(events("DogUpdated").getFirst().id());
+        for (var search : Map.of("Fictional Laia", "MEMBER_UPDATED", "fictional lua", "DOG_UPDATED").entrySet()) {
+            var page = json(admin(get("/api/v1/audit-entries").param("q", search.getKey())), 200);
+            assertThat(page.path("items").findValuesAsText("action")).as(search.getKey()).containsExactly(search.getValue());
+        }
+        eraseAudit("one");
+        for (var entry : List.of(member, dog)) { assertThat(mongo.findById(entry.get("_id"), Document.class, "audit_entries")).doesNotContainKey("entityLabel"); }
+    }
+    /** R-14-15's audit step for one member of the club, with the dogs the census gives it (its current ones). */
+    void eraseAudit(String memberId) {
+        try (var tenant = TenantContext.open(CLUB)) {
+            var erased = erasureDirectory.member(memberId).orElseThrow();
+            auditErasure.erase(new com.agilityhub.core.platform.application.privacy.ErasureSubject("erasure-" + memberId, CLUB, List.of(erased), Set.of(), Map.of(),
+                    new com.agilityhub.core.platform.application.privacy.ErasurePlaceholders("Abonat suprimit", "Compte suprimit", "Gos suprimit", "(suprimit)"),
+                    clock.instant()));
+        }
+    }
+    /**
+     * R-14-15, S14 §3 — INC-38 (E11-T10 review): a dog's entries written while another member owned it (their `memberId` is that
+     * owner) lose the dog's name when its current owner is erased, and `q` no longer finds them.
+     */
+    @Test void T_14_11_INC_38_aTransferredDogsEarlierEntriesLoseItsNameWhenItsNewOwnerIsErased() throws Exception {
+        change("dogs/dog-one", Map.of("version", 0, "name", "Fictional Lua"));
+        var dog = mongo.findOne(Query.query(Criteria.where("action").is("DOG_UPDATED")), Document.class, "audit_entries");
+        assertThat(dog.getString("memberId")).isEqualTo("one"); assertThat(dog.getString("entityLabel")).isEqualTo("Fictional Lua");
+        admin(body(post("/api/v1/dogs/dog-one/transfer"), Map.of("toMemberId", "two"))).andExpect(status().isOk());
+        assertThat(json(admin(get("/api/v1/audit-entries").param("q", "fictional lua")), 200).path("items")).isNotEmpty();
+        eraseAudit("two");
+        assertThat(mongo.findById(dog.get("_id"), Document.class, "audit_entries")).doesNotContainKey("entityLabel")
+                .containsEntry("memberId", "one").containsEntry("entityId", "dog-one");
+        assertThat(json(admin(get("/api/v1/audit-entries").param("q", "fictional lua")), 200).path("items")).isEmpty();
+    }
     @Test void T_03_17_impersonatedProfileEditsRecordTheRealActor() throws Exception {
         String token;
         try (var tenant = TenantContext.open(CLUB)) { token = impersonation.create("admin-account", "one", "Example support").token().getTokenValue(); }

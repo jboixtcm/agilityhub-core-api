@@ -30,7 +30,7 @@ import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+SEEDS = (("club:apply", "seeds/club-canic-consumer.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
 # seeds/demo-canic.yaml `courses`.
 DEMO_COURSES = {"Jumping C–D de dimarts", "Agility A–B d'iniciació", "Joc de túnels"}
 LIVE = 2.0

@@ -51,6 +51,8 @@ public class CleanupJob implements Job {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(CleanupJob.class);
     /** The `idempotency_records` TTL (`IdempotencyRepository`, 24 h): older records are only waiting for Mongo's TTL monitor. */
     static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
+    /** The `seat_locks` TTL (`SeatLockRepository.TTL`, 7 days after `lockedAt`). */
+    static final Duration SEAT_LOCK_TTL = Duration.ofDays(7);
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
     private final AttachmentStorage uploads; private final ParameterCatalog parameters; private final OutlivedBuildSessionsPort buildSessions;
     private final PlatformDomains domains;
@@ -89,6 +91,8 @@ public class CleanupJob implements Job {
         recorder.count("ttlPendingSignupNotificationAdmissions", cleanup.ttlPending(club, "signup_notification_admissions", "expiresAt", now));
         // R-15-19 (amended 25-09, E5-T17): the ring-slot sequences, kept until `startsAt` + 7 days.
         recorder.count("ttlPendingRingSlotLocks", cleanup.ttlPending(club, "ring_slot_locks", "expiresAt", now));
+        // R-15-19 (amended 18-10, INC-40 E11-T10): the per-class seat locks no write touched for 7 days (`lockedAt` + TTL).
+        recorder.count("ttlPendingSeatLocks", cleanup.ttlPending(club, "seat_locks", "lockedAt", now.minus(SEAT_LOCK_TTL)));
         var items = new ArrayList<JobItem>();
         var totals = new LinkedHashMap<String, Long>();
         var orphans = cleanup.orphanUploads(club, cut.uploads());

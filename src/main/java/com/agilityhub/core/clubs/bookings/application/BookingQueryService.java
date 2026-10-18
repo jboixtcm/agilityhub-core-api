@@ -65,8 +65,7 @@ public class BookingQueryService implements ListProvider {
         if (token == null || token.isBlank()) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "token")); }
         var booking = bookings.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         tokens.require(id, token);
-        var session = views.labelsOf(booking);
-        return com.agilityhub.core.clubs.bookings.domain.BookingCalendar.ics(views.event(booking, session));
+        return views.ics(booking);
     }
     /**
      * The registrants of a class (21, D4, D12, the instructor's drawer; E5-T29): each row with S08 §6 `displayState`, derived as

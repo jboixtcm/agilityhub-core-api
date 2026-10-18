@@ -1,0 +1,248 @@
+# E11-T10 review fix 1-5: red — the new ITs against the pre-fix main code (snapshot pre; WaitlistOffersQueueTest absent); E5PersistenceIT's guard passes pre-fix (defect 4: not a reproducible red, n/a)
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=WaitlistIT#T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut+T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt,CensusIT#T_14_11_INC_38*,SignupSecurityFixesIT#R_04_06_R_11_04_INC_39*,SignupPlansFollowUpIT#R_04_13_T_04_16_INC_39*,E5PersistenceIT#T_08_29_INC_40*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify
+20:02:00.771 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5PersistenceIT]: E5PersistenceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:02:00.876 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5PersistenceIT
+20:02:00.904 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E5PersistenceIT]: E5PersistenceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:02:00.904 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:02:00.905 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E5PersistenceIT
+20:02:00.932 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+20:02:00.933 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+20:02:00.937 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+20:02:01.036 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+20:02:01.232 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+20:02:01.233 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+20:02:01.243 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+20:02:01.598 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+20:02:01.652 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+20:02:01.728 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 84d1f58d978ef5dfebb773cfe4d1077b1300bd21fd8a5105bfc2bcb951b9417a
+20:02:01.977 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.378406S
+20:02:01.981 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+20:02:01.981 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+20:02:01.981 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+20:02:01.981 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+20:02:02.034 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 496ac9cb45e1c097fbcb42f9ab2e50a0599ecfa9f544975e14190ed93d0def02
+20:02:02.647 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.666157S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T20:02:03.840+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : Starting E5PersistenceIT using Java [redacted] with PID 32314 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T20:02:03.842+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T20:02:04.674+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T20:02:04.721+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 43 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T20:02:05.109+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@683218c8], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3eb6d7a9, com.mongodb.Jep395RecordCodecProvider@345f4e0d, com.mongodb.KotlinCodecProvider@1c3eeda4, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59438], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@64b242b3], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T20:02:05.117+03:00 INFO  [cluster-6ad4fb8d065c21e3546630f7-localhost:59438] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59438, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10088458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=496ac9cb45e1:27017, hosts=[496ac9cb45e1:27017], passives=[], arbiters=[], primary='496ac9cb45e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4fb8acaf611fcc917f677, counter=6}, lastWriteDate=Sun Oct 18 20:02:03 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T20:02:06.157+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.175+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.197+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.815+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.830+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.844+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:06.908+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T20:02:08.740+03:00 INFO  [main] c.a.core.configuration.E5PersistenceIT traceId= clubId= accountId= : Started E5PersistenceIT in 5.082 seconds (process running for 8.378)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-18T20:02:09.492+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.WaitlistIT]: WaitlistIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:09.537+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.WaitlistIT
+2026-10-18T20:02:09.537+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.WaitlistIT]: WaitlistIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:09.537+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.BookingFixtures]: BookingFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:09.538+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:09.539+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.WaitlistIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T20:02:09.557+03:00 INFO  [main] c.a.core.clubs.bookings.api.WaitlistIT traceId= clubId= accountId= : Starting WaitlistIT using Java [redacted] with PID 32314 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T20:02:09.557+03:00 INFO  [main] c.a.core.clubs.bookings.api.WaitlistIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T20:02:09.898+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T20:02:09.929+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 30 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T20:02:09.998+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4b5b8a39], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3eb6d7a9, com.mongodb.Jep395RecordCodecProvider@345f4e0d, com.mongodb.KotlinCodecProvider@1c3eeda4, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59438], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@10d85b0f], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T20:02:10.000+03:00 INFO  [cluster-6ad4fb91065c21e3546630f8-localhost:59438] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59438, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1484625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=496ac9cb45e1:27017, hosts=[496ac9cb45e1:27017], passives=[], arbiters=[], primary='496ac9cb45e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4fb8acaf611fcc917f677, counter=6}, lastWriteDate=Sun Oct 18 20:02:09 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T20:02:10.978+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T20:02:10.978+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T20:02:10.980+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T20:02:11.005+03:00 INFO  [main] c.a.core.clubs.bookings.api.WaitlistIT traceId= clubId= accountId= : Started WaitlistIT in 1.463 seconds (process running for 10.643)
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 4.622 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.WaitlistIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.WaitlistIT.T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt -- Time elapsed: 2.146 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[Duna's offer is ahead] 
+expected: "SEAT_TAKEN"
+ but was: "CLASS_FULL"
+	at com.agilityhub.core.clubs.bookings.api.WaitlistIT.T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt(WaitlistIT.java:310)
+
+[ERROR] com.agilityhub.core.clubs.bookings.api.WaitlistIT.T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut -- Time elapsed: 0.929 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[POST /seat-holds {"code":"SEAT_TAKEN","message":"La plaça ja està ocupada.","details":{},"traceId":"042de950-ca8b-470b-ab93-580387c9ec05"}] 
+expected: 201
+ but was: 409
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:138)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.call(BookingFixtures.java:131)
+	at com.agilityhub.core.clubs.bookings.api.BookingFixtures.holdFor(BookingFixtures.java:160)
+	at com.agilityhub.core.clubs.bookings.api.WaitlistIT.T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut(WaitlistIT.java:289)
+
+2026-10-18T20:02:14.114+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:14.161+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+2026-10-18T20:02:14.162+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:14.162+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:14.163+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T20:02:14.181+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Starting SignupSecurityFixesIT using Java [redacted] with PID 32314 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T20:02:14.182+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T20:02:14.487+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T20:02:14.517+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 29 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T20:02:14.581+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@eecb80d], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3eb6d7a9, com.mongodb.Jep395RecordCodecProvider@345f4e0d, com.mongodb.KotlinCodecProvider@1c3eeda4, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59438], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@70fe6835], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T20:02:14.583+03:00 INFO  [cluster-6ad4fb96065c21e3546630fd-localhost:59438] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59438, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1599083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=496ac9cb45e1:27017, hosts=[496ac9cb45e1:27017], passives=[], arbiters=[], primary='496ac9cb45e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4fb8acaf611fcc917f677, counter=6}, lastWriteDate=Sun Oct 18 20:02:14 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T20:02:15.463+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T20:02:15.463+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T20:02:15.465+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T20:02:15.490+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Started SignupSecurityFixesIT in 1.325 seconds (process running for 15.128)
+2026-10-18T20:02:15.594+03:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 24 dogs
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.908 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_11_04_INC_39_theMembersOwnNotificationPreferencesStayWritableWhileTheReadmissionIsPending -- Time elapsed: 0.400 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[HTTP code=INVALID_STATE details={"reason":"READMISSION_PENDING"}] 
+expected: 200
+ but was: 409
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.result(SignupSecurityFixesIT.java:80)
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_11_04_INC_39_theMembersOwnNotificationPreferencesStayWritableWhileTheReadmissionIsPending(SignupSecurityFixesIT.java:531)
+
+2026-10-18T20:02:16.022+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:16.023+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+2026-10-18T20:02:16.023+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:16.024+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:16.024+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T20:02:16.037+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : Starting CensusIT using Java [redacted] with PID 32314 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T20:02:16.037+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T20:02:16.291+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T20:02:16.329+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 37 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T20:02:16.423+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T20:02:16.429+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T20:02:16.429+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T20:02:16.454+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 417 ms
+2026-10-18T20:02:16.472+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3a2cb095], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3eb6d7a9, com.mongodb.Jep395RecordCodecProvider@345f4e0d, com.mongodb.KotlinCodecProvider@1c3eeda4, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59438], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2f6e06ca], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T20:02:16.474+03:00 INFO  [cluster-6ad4fb98065c21e3546630fe-localhost:59438] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59438, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1653917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=496ac9cb45e1:27017, hosts=[496ac9cb45e1:27017], passives=[], arbiters=[], primary='496ac9cb45e1:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4fb8acaf611fcc917f677, counter=6}, lastWriteDate=Sun Oct 18 20:02:15 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T20:02:16.640+03:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-18T20:02:17.226+03:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T20:02:17.226+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T20:02:17.229+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 3 ms
+2026-10-18T20:02:17.263+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 59452 (http) with context path '/'
+2026-10-18T20:02:17.291+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T20:02:17.291+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T20:02:17.291+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T20:02:17.301+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 36 ms
+2026-10-18T20:02:17.308+03:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-18T20:02:17.326+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 59453 (http) with context path '/'
+2026-10-18T20:02:17.330+03:00 INFO  [main] c.a.core.clubs.census.api.CensusIT traceId= clubId= accountId= : Started CensusIT in 1.304 seconds (process running for 16.967)
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.764 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.CensusIT
+[ERROR] com.agilityhub.core.clubs.census.api.CensusIT.T_14_11_INC_38_aTransferredDogsEarlierEntriesLoseItsNameWhenItsNewOwnerIsErased -- Time elapsed: 0.241 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="a517a14d-9b5e-4f9a-b0a8-1333f02f4f85", "action"="DOG_UPDATED", "actorAccountId"="admin-account", "actorName"="Example Operator", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="Fictional Lua", "before"="Example dog-one", "path"="name"},
+    {"after"="Fictional Lua", "before"="Example dog-one", "path"="nameKey"}], "clubId"="census-a", "entityId"="dog-one", "entityLabel"="Fictional Lua", "entityType"="Dog", "eventIds"=["92689af3-86ef-4696-9f43-b90af715b171"], "ip"="127.0.0.1", "memberId"="one", "origin"="BACKOFFICE", "traceId"="20fb4b59-0e8e-4119-837e-65cea6c66518"}
+not to contain key:
+  "entityLabel"
+	at com.agilityhub.core.clubs.census.api.CensusIT.T_14_11_INC_38_aTransferredDogsEarlierEntriesLoseItsNameWhenItsNewOwnerIsErased(CensusIT.java:811)
+
+2026-10-18T20:02:17.786+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT]: SignupPlansFollowUpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:17.787+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+2026-10-18T20:02:17.788+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT]: SignupPlansFollowUpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:17.788+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T20:02:17.788+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+2026-10-18T20:02:17.789+03:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-18T20:02:17.794+03:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.817 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup -- Time elapsed: 0.806 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "e0794b31-ada1-4641-802e-91202dbe8d53"
+ but was: "fe38d5a0-4041-4c89-81b0-4e9c0b59e9ee"
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup(SignupPlansFollowUpIT.java:321)
+
+[ERROR] Failures: 
+[ERROR]   WaitlistIT.T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut:289->BookingFixtures.holdFor:160->BookingFixtures.call:131->BookingFixtures.call:138 [POST /seat-holds {"code":"SEAT_TAKEN","message":"La plaça ja està ocupada.","details":{},"traceId":"042de950-ca8b-470b-ab93-580387c9ec05"}] 
+expected: 201
+ but was: 409
+[ERROR]   WaitlistIT.T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt:310 [Duna's offer is ahead] 
+expected: "SEAT_TAKEN"
+ but was: "CLASS_FULL"
+[ERROR]   CensusIT.T_14_11_INC_38_aTransferredDogsEarlierEntriesLoseItsNameWhenItsNewOwnerIsErased:811 
+Expecting actual:
+  {"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="a517a14d-9b5e-4f9a-b0a8-1333f02f4f85", "action"="DOG_UPDATED", "actorAccountId"="admin-account", "actorName"="Example Operator", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="Fictional Lua", "before"="Example dog-one", "path"="name"},
+    {"after"="Fictional Lua", "before"="Example dog-one", "path"="nameKey"}], "clubId"="census-a", "entityId"="dog-one", "entityLabel"="Fictional Lua", "entityType"="Dog", "eventIds"=["92689af3-86ef-4696-9f43-b90af715b171"], "ip"="127.0.0.1", "memberId"="one", "origin"="BACKOFFICE", "traceId"="20fb4b59-0e8e-4119-837e-65cea6c66518"}
+not to contain key:
+  "entityLabel"
+[ERROR]   SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup:321 
+expected: "e0794b31-ada1-4641-802e-91202dbe8d53"
+ but was: "fe38d5a0-4041-4c89-81b0-4e9c0b59e9ee"
+[ERROR]   SignupSecurityFixesIT.R_04_06_R_11_04_INC_39_theMembersOwnNotificationPreferencesStayWritableWhileTheReadmissionIsPending:531->result:80 [HTTP code=INVALID_STATE details={"reason":"READMISSION_PENDING"}] 
+expected: 200
+ but was: 409
+[ERROR] Tests run: 7, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1
+surefire tests 0 failures 0 errors 0 skipped 0
+
+failsafe tests 7 failures 5 errors 0 skipped 0
+  WaitlistIT tests 2 failures 2 errors 0 skipped 0
+  CensusIT tests 2 failures 1 errors 0 skipped 0
+  SignupSecurityFixesIT tests 1 failures 1 errors 0 skipped 0
+  SignupPlansFollowUpIT tests 1 failures 1 errors 0 skipped 0
+  E5PersistenceIT tests 1 failures 0 errors 0 skipped 0
+  FAILED WaitlistIT.T_08_45_INC_40_withTwoOffersForOneSeatTheEarlierOfferClaimsIt
+  FAILED WaitlistIT.T_08_21_INC_40_aHoldTakenBeforeTheOfferNeverLocksTheOfferedDogOut
+  FAILED CensusIT.T_14_11_INC_38_aTransferredDogsEarlierEntriesLoseItsNameWhenItsNewOwnerIsErased
+  FAILED SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup
+  FAILED SignupSecurityFixesIT.R_04_06_R_11_04_INC_39_theMembersOwnNotificationPreferencesStayWritableWhileTheReadmissionIsPending

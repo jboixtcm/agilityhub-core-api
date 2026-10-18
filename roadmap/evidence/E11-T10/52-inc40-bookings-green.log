@@ -1,0 +1,25 @@
+# E11-T10 INC-40 bookings A–F: failed attempt — compilation error (BookableClassesQuery: a local 'taken' already existed) → renamed to 'occupied'; no test ran (the summary lines are the stale reports of logs 50/51)
+$ ./mvnw -q '-Dtest=com/agilityhub/core/clubs/bookings/**/*Test,com/agilityhub/core/clubs/training/**/*Test,SchedulingPortDefaultsTest' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=BookingConcurrencyIT,BookingsIT,WaitlistIT,TrainingIT,MemberAggregatesIT,CalendarIT,TrainingConcurrencyIT,NotificationActionsIT,ActivityIT,BookingJobsIT,LifecycleIT' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/52-inc40-bookings-green.log 2>&1
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/application/BookableClassesQuery.java:[98,17] variable taken is already defined in method classes(com.agilityhub.core.clubs.census.application.BookingMemberAccess.Dog,com.agilityhub.core.clubs.census.application.BookingMemberAccess.Member,boolean,java.util.Optional<com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort.Balance>,java.util.Optional<com.agilityhub.core.clubs.bookings.application.ports.SingleClassChargePort.Terms>,java.time.Instant)
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project agilityhub-core-api: Compilation failure
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/application/BookableClassesQuery.java:[98,17] variable taken is already defined in method classes(com.agilityhub.core.clubs.census.application.BookingMemberAccess.Dog,com.agilityhub.core.clubs.census.application.BookingMemberAccess.Member,boolean,java.util.Optional<com.agilityhub.core.clubs.bookings.application.ports.PackBalancePort.Balance>,java.util.Optional<com.agilityhub.core.clubs.bookings.application.ports.SingleClassChargePort.Terms>,java.time.Instant)
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit=1
+surefire tests 4807 failures 1 errors 0 skipped 0
+  FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract
+failsafe tests 2092 failures 6 errors 0 skipped 0
+  FAILED BookingConcurrencyIT.T_08_29_INC_40_twoClassesConfirmedAtOnceForOneDogOneShortOfTheWeeklyLimitGiveOneBooking
+  FAILED BookingConcurrencyIT.T_08_19_INC_40_twoWaitingListsJoinedAtOnceForOneDogOneShortOfTheDogWeekLimitGiveOneEntry
+  FAILED BookingsIT.T_08_14_INC_40_aLiveHoldOfTheDogIsNotTakenOverByAnotherFamilyMember
+  FAILED BookingsIT.T_08_15_INC_40_theIcsOfACancelledBookingSaysCancelledWithAHigherSequence
+  FAILED WaitlistIT.T_08_21_INC_40_aFifoOfferKeepsItsSeatForTheOfferedDogUntilConfirmBy
+  FAILED TrainingIT.T_09_17_INC_40_theOwnersBookingBlockStopsAFamilyMemberBookingTheOwnersDog

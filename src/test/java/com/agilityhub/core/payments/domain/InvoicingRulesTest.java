@@ -236,6 +236,20 @@ class InvoicingRulesTest {
         assertThat(skipped.skipped()).containsExactly(new Incident("laura", BillingIncidentCode.NO_BANK_ACCOUNT));
     }
 
+    /** R-12-04, R-03-20: a family group whose holder is not ACTIVE (LEFT, or not among the club's active members) bills each member on their own. INC-38 (E11-T10). */
+    @Test void T_12_02_INC_38_aGroupWhoseHolderIsNotActiveBillsTheOthersOnTheirOwn() {
+        var joanAntoni = sepa("joan-antoni", "abonat", LocalDate.of(2026, 9, 1));
+        var nuria = sepa("nuria", "abonat", LocalDate.of(2026, 9, 1));
+        var group = new Group("laura", List.of("laura", "joan-antoni", "nuria"));
+        var absent = InvoicingRules.month(List.of(joanAntoni, nuria), List.of(group), SEPTEMBER, RUN_DAY, CANIC, sources, TEXT);
+        assertThat(absent.invoices()).extracting(Draft::payerId).containsExactly("joan-antoni", "nuria");
+        assertThat(absent.excluded()).doesNotContainValue(Exclusion.BILLED_VIA_HOLDER);
+        var left = new Member("laura", "LEFT", LocalDate.of(2026, 9, 1), PaymentMethodType.SEPA_DD, true, false, "abonat2");
+        var withLeft = InvoicingRules.month(List.of(left, joanAntoni, nuria), List.of(group), SEPTEMBER, RUN_DAY, CANIC, sources, TEXT);
+        assertThat(withLeft.invoices()).extracting(Draft::payerId).containsExactly("joan-antoni", "nuria");
+        assertThat(withLeft.invoices()).extracting(draft -> draft.lines().getFirst().amounts().total()).containsExactly(eur(6000), eur(6000));
+        assertThat(withLeft.excluded()).doesNotContainValue(Exclusion.BILLED_VIA_HOLDER);
+    }
     @Test void T_12_03_cashBySemesterBillsTheRestOfTheNaturalHalfYearFromTheFirstUnpaidMonth() {
         // Signup on 17-08 (split day 16, invoice day 1): option A starts today, August is paid at signup → nextInvoiceDate 01-09.
         var options = FirstMonthCalculator.options(LocalDate.of(2026, 8, 17), 16, 1, eur(6000));

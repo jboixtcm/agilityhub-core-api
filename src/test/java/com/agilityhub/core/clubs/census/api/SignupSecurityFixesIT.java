@@ -484,6 +484,54 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(unversioned(dog(id))).isEqualTo(unversioned(dogBefore));
         assertThat(dogDocuments(dogId).stream().map(SignupSecurityFixesIT::unversioned).toList()).isEqualTo(documentsBefore.stream().map(SignupSecurityFixesIT::unversioned).toList());
     }
+    /**
+     * R-04-06, R-04-23, INC-39 (E11-T10): while the readmission waits, D10's member routes that would write the LEFT record are
+     * frozen like the reused dog's: 409 INVALID_STATE (READMISSION_PENDING). Sending the remarks and notes it has is no edit,
+     * and the rejection leaves the record exactly as it was.
+     */
+    @Test void R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending() throws Exception {
+        String otherPlan=UUID.randomUUID().toString(),otherPrice=UUID.randomUUID().toString();var text=new LocalizedText(Map.of("ca","Other","es","Other","en","Other"),"en");
+        mongo.insert(new Plan(otherPlan,club,"OTHER",text,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,text,null,true,true,1,true,0,clock.instant(),clock.instant(),null,null));
+        mongo.insert(new Price(otherPrice,club,otherPlan,PriceConcept.MONTHLY_FEE,new Money(7000,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2020,1,1),null,0,clock.instant(),clock.instant(),null,null));
+        var original=request();String id=leftMember(original);
+        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("remarks","Fictional remark").append("internalNotes","Fictional note")));
+        var before=member(id);
+        submit(readmission(original));var pending=member(id);long version=((Number)pending.get("version")).longValue();String path="/api/v1/members/"+id;
+        // Each request is built when it is sent, with the record's current version, so a route that did write shows its own answer.
+        var routes=new LinkedHashMap<String,java.util.concurrent.Callable<MockHttpServletRequestBuilder>>();
+        routes.put("PATCH /members/{id}/payment-method",() -> admin(json(patch(path+"/payment-method"),Map.of("type","SEPA_DD","sepa",Map.of("iban",IBAN,"holderName","Example Holder")))));
+        routes.put("POST /members/{id}/booking-block",() -> admin(json(post(path+"/booking-block"),Map.of("reason","Fictional block reason"))));
+        routes.put("DELETE /members/{id}/booking-block",() -> admin(delete(path+"/booking-block").header("Host",host)));
+        routes.put("PATCH /members/{id} remarks",() -> admin(json(patch(path),Map.of("version",member(id).get("version"),"remarks","Other fictional remark"))));
+        routes.put("PATCH /members/{id} internalNotes",() -> admin(json(patch(path),Map.of("version",member(id).get("version"),"internalNotes","Other fictional note"))));
+        routes.put("PUT /members/{id}/notification-preferences",() -> admin(json(put(path+"/notification-preferences"),Map.of("pushClubNews",false))));
+        routes.put("POST /members/{id}/plan-change",() -> admin(json(post(path+"/plan-change"),Map.of("planId",otherPlan,"priceId",otherPrice)).header("Idempotency-Key",UUID.randomUUID())));
+        var answers=new LinkedHashMap<String,String>();var expected=new LinkedHashMap<String,String>();
+        for(var route:routes.entrySet()) {
+            var response=mvc.perform(route.getValue().call()).andReturn().getResponse();var body=mapper.readTree(response.getContentAsString().isEmpty()?"{}":response.getContentAsString());
+            answers.put(route.getKey(),response.getStatus()+" "+body.path("code").asText()+" "+body.at("/details/reason").asText());expected.put(route.getKey(),"409 INVALID_STATE READMISSION_PENDING");
+        }
+        assertThat(answers).isEqualTo(expected);
+        assertThat(unversioned(member(id))).as("the record is untouched").isEqualTo(unversioned(pending));
+        // D2 sending back the remarks and notes the record has is no edit.
+        result(admin(json(patch(path),Map.of("version",version,"remarks","Fictional remark","internalNotes","Fictional note"))),200);
+        reject(id);
+        assertThat(unversioned(member(id))).isEqualTo(unversioned(before));
+    }
+
+    /**
+     * R-04-06, R-11-04 — INC-39 (E11-T10 review): the freeze is D10's (`/members/{id}` routes). While the readmission waits, the
+     * member's own PUT /me/notification-preferences (12) still saves its block: 200, never the 409 its contract does not declare.
+     */
+    @Test void R_04_06_R_11_04_INC_39_theMembersOwnNotificationPreferencesStayWritableWhileTheReadmissionIsPending() throws Exception {
+        var original=request();String id=leftMember(original);
+        submit(readmission(original));
+        var admin=mvc.perform(admin(json(put("/api/v1/members/"+id+"/notification-preferences"),Map.of("pushClubNews",false)))).andReturn().getResponse();
+        assertThat(admin.getStatus()).as("D10 stays frozen").isEqualTo(409);
+        var saved=result(asMember(json(put("/api/v1/me/notification-preferences"),Map.of("pushClubNews",false)),id),200);
+        assertThat(saved.path("pushClubNews").asBoolean(true)).isFalse();
+        assertThat(member(id).get("notificationPreferences",Document.class)).containsEntry("pushClubNews",false);
+    }
 
     /** Point 4 (R-04-06, R-14-09): the reused dog's submission is audited like the member's: SIGNUP_SUBMITTED on the Dog, PUBLIC. */
     @AuditCovers(AuditAction.SIGNUP_SUBMITTED)

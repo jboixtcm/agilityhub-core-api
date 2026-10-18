@@ -29,13 +29,17 @@ public class ExportJobRenderer {
             var dataset = lists.dataset(job.listKey());
             dataset.definition().selectColumns(String.join(",", job.columns()));
             ListQuery.validateSort(dataset.definition(), job.query().sort());
-            job.query().filters().forEach(filter -> ListQuery.validateFilter(dataset.definition(), filter));
+            // R-03-24 / R-14-12 (INC-38, E11-T10): a job read back from Mongo holds a NUMBER value as a string (`big-decimal: string`);
+            // the export streams the typed filters, not the stored ones.
+            var stored = job.query();
+            var query = new ListQuery(stored.page(), stored.size(), stored.sort(), stored.q(),
+                    stored.filters().stream().map(filter -> ListQuery.validateFilter(dataset.definition(), filter)).toList(), stored.fields());
             String key = "exports/" + job.clubId() + "/" + job.id() + "/" + job.claimToken() + "/" + job.fileName();
             coordinator.heartbeat(job, 0); jobs.registerFile(job, clock.instant(), key);
             Path file = Files.createTempFile("agilityhub-export-", "." + job.format().toLowerCase(Locale.ROOT));
             try {
                 long[] count = {0};
-                try (var stream = lists.exportStream(dataset, job.query(), job.columns()); var output = Files.newOutputStream(file)) {
+                try (var stream = lists.exportStream(dataset, query, job.columns()); var output = Files.newOutputStream(file)) {
                     var safe = stream.map(row -> {
                         if (++count[0] > ExportPolicy.MAX_ROWS) { throw new ApiException(ErrorCode.EXPORT_TOO_LARGE); }
                         if (count[0] % 200 == 0) { coordinator.heartbeat(job, job.rows() == null || job.rows() == 0 ? 0 : (int) (count[0] * 100 / job.rows())); }

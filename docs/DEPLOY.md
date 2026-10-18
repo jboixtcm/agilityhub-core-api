@@ -677,13 +677,13 @@ The CI publisher uses only `GITHUB_TOKEN` with job-scoped `packages: write`.
 env file. From a different repo, copy `docker-compose.consumer.yml`,
 `.env.consumer.example` and the two `bin/consumer-*` helpers with the same relative
 layout, or run the Compose command directly. No source checkout mounts are used.
-The image contains both seed files. Its local Cànic seed is
-`seeds/club-canic-consumer.yaml`, installed as `/app/seeds/club-canic.yaml`; it
-differs from the canonical seed only in the two domain hosts. Keep those fixture
-datasets aligned when changing seeds.
+The image contains both seed files, each under its own name (INC-40, E11-T10): the
+canonical `/app/seeds/club-canic.yaml` carries the club's real domains, and the local
+Cànic seed `/app/seeds/club-canic-consumer.yaml` differs from it only in the two
+fictional domain hosts. Keep those fixture datasets aligned when changing seeds.
 
 Startup waits for Mongo's single-node `rs0` PRIMARY, then the one-shot `seed`
-service applies `/app/seeds/club-canic.yaml` and `/app/seeds/club-minim.yaml`, then
+service applies `/app/seeds/club-canic-consumer.yaml` and `/app/seeds/club-minim.yaml`, then
 the non-root `core` becomes healthy. An unsuccessful seed prevents API startup.
 Account examples: `admin@example.test`, `instructor@example.test`,
 `member@example.test`, and `minim.admin@example.test`. All passwords come from
@@ -1180,7 +1180,7 @@ bin/e4-smoke --image agilityhub-e4-smoke:local
 
 Same isolation as `bin/e3-smoke`: a new random Compose project, free loopback
 ports, generated `SEED_PASSWORD`, the local mailbox volume, exact HTTP statuses,
-and `down --volumes` on success or failure. It applies `seeds/club-canic.yaml` and
+and `down --volumes` on success or failure. It applies `seeds/club-canic-consumer.yaml` and
 `seed:demo --seed=42` twice (second runs: 0 changes), activates only its
 disposable club and provisions a **runtime-only random public API key** by storing
 its SHA-256 in that club's `publicApiKeyHash` (no key provisioning API exists yet;
@@ -1242,7 +1242,7 @@ bin/e5-perf                    # k6 (ruling E28): peak 300 distinct members in 5
 
 Same isolation as `bin/e4-smoke`: each run uses a new random Compose project, free loopback ports and a generated
 `SEED_PASSWORD`, checks exact HTTP statuses and codes, and runs `down --volumes` on success or failure. It applies
-`seeds/club-canic.yaml` and `seeds/club-fifo.yaml` (the fictional FIFO + `SINGLE_CLASS` club), and runs
+`seeds/club-canic-consumer.yaml` and `seeds/club-fifo.yaml` (the fictional FIFO + `SINGLE_CLASS` club), and runs
 `seed:demo --seed=42` for each club twice with `--week-start` on the Monday at least 8 days ahead, so nothing seeded
 is due in real time. The second run of every command prints 0 changes. The smoke activates both disposable clubs and
 starts the API **with the scheduler on**. It switches P2 off until P2's own step. Then it moves the test clock

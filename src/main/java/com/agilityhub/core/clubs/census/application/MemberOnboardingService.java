@@ -12,6 +12,8 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Service
 public class MemberOnboardingService implements MemberOnboardingAccess {
     private final CensusRepository<Member> members; private final CountryContacts countries;
+    @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.platform.application.audit.AuditWriter audits;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
     public MemberOnboardingService(CensusRepository<Member> members, CountryContacts countries) { this.members = members; this.countries = countries; }
     private Optional<Member> member(String id, String account) { return members.findById(id).filter(item -> account.equals(item.accountId) && !"ERASED".equals(item.status)); }
     @Override public String phone(String memberId, String accountId) {
@@ -28,10 +30,13 @@ public class MemberOnboardingService implements MemberOnboardingAccess {
                 var primary = countries.phone(null, phone, phones.isEmpty() ? null : string(phones.getFirst().get("label")));
                 if (phones.isEmpty()) { phones.add(primary); } else { phones.set(0, primary); } member.phones = phones;
             }
+            Object consents = imageConsent == null ? null : CensusAudit.view(member, mapper).get("consents");
             if (imageConsent != null) {
                 member.consents = ConsentLedgers.image(member.consents,imageConsent,version,at,accountId);
             }
             members.save(member);
+            // R-14-09 (INC-38, E11-T10): the image consent given at onboarding (S01 §14) is audited like the ADMIN's edit.
+            if (imageConsent != null) { CensusAudit.consentChange(audits, member.id, consents, CensusAudit.view(member, mapper).get("consents")); }
         });
     }
 }

@@ -1,0 +1,60 @@
+# E11-T10 INC-40 planning items A-F: failed attempt (red) — main code at HEAD (no fix written yet, nothing swapped); surefire's expected failures stopped the build before failsafe ran, and the C tests expected field code REQUIRED where the POST's Bean Validation answers NotEmpty → C tests changed to NotEmpty, red runs repeated as 42 (unit) and 43 (IT)
+$ ./mvnw -q '-Dtest=CalendarRulesTest,PlanningRulesTest' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=CalendarIT#*INC_40*,PlanningIT#*INC_40*,ActivityIT#*INC_40*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/40-inc40-planning-red.log 2>&1
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.120 s <<< FAILURE! -- in com.agilityhub.core.clubs.scheduling.domain.CalendarRulesTest
+[ERROR] com.agilityhub.core.clubs.scheduling.domain.CalendarRulesTest.T_06_06_riskBoundariesAndAllRecipientLocales -- Time elapsed: 0.088 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Aquesta classe no té cap alumne: si no s'hi apunta un mínim de 2 gossos, s'anul·larà com a màxim a les 07:30 de dimarts."
+not to contain:
+  ["{", "}", "07:30"]
+but found:
+  ["07:30"]
+
+	at com.agilityhub.core.clubs.scheduling.domain.CalendarRulesTest.T_06_06_riskBoundariesAndAllRecipientLocales(CalendarRulesTest.java:17)
+
+[ERROR] Tests run: 8, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.044 s <<< FAILURE! -- in com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest
+[ERROR] com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.T_06_09_INC_40_anInactiveLevelCannotBeChosenForANewClass -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.fieldError(PlanningRulesTest.java:124)
+	at com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.T_06_09_INC_40_anInactiveLevelCannotBeChosenForANewClass(PlanningRulesTest.java:137)
+
+[ERROR] com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.T_06_09_templateClassValidationAndVariants -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: VALIDATION_ERROR
+ but was: TOO_MANY_INSTRUCTORS
+	at com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.lambda$fieldError$18(PlanningRulesTest.java:125)
+	at com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.fieldError(PlanningRulesTest.java:124)
+	at com.agilityhub.core.clubs.scheduling.domain.PlanningRulesTest.T_06_09_templateClassValidationAndVariants(PlanningRulesTest.java:115)
+
+[ERROR] Failures: 
+[ERROR]   CalendarRulesTest.T_06_06_riskBoundariesAndAllRecipientLocales:17 
+Expecting actual:
+  "Aquesta classe no té cap alumne: si no s'hi apunta un mínim de 2 gossos, s'anul·larà com a màxim a les 07:30 de dimarts."
+not to contain:
+  ["{", "}", "07:30"]
+but found:
+  ["07:30"]
+
+[ERROR]   PlanningRulesTest.T_06_09_INC_40_anInactiveLevelCannotBeChosenForANewClass:137->fieldError:124 
+Expecting code to raise a throwable.
+[ERROR]   PlanningRulesTest.T_06_09_templateClassValidationAndVariants:115->fieldError:124->lambda$fieldError$18:125 
+expected: VALIDATION_ERROR
+ but was: TOO_MANY_INSTRUCTORS
+[ERROR] Tests run: 11, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1
+per-class summary of this run: CalendarRulesTest tests 3 failures 1; PlanningRulesTest tests 8 failures 2 (failsafe not reached)

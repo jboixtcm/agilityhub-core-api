@@ -19,7 +19,14 @@ public final class TrainingGrid {
         public String slotId(String ringId) { return slotId(ringId, startsAt); }
         public static String slotId(String ringId, Instant startsAt) { return ringId + "_" + startsAt; }
     }
-    public record Ring(String id, int capacity) { }
+    /**
+     * `trainable` false = an active ring without free training, shown to the staff only (INC-44): capacity 0, its cells show classes
+     * and blocks, never a free seat («Qualsevol» skips it).
+     */
+    public record Ring(String id, int capacity, boolean trainable) {
+        public Ring(String id, int capacity) { this(id, capacity, true); }
+        public static Ring staffOnly(String id) { return new Ring(id, 0, false); }
+    }
     /** A class session or a ring block occupying a ring. */
     public record Busy(String id, String ringId, Instant from, Instant to) {
         public boolean overlaps(Instant start, Instant end) { return from.isBefore(end) && to.isAfter(start); }
@@ -64,7 +71,8 @@ public final class TrainingGrid {
         String own = dogId == null ? null : s.stream().filter(b -> dogId.equals(b.dogId())).map(Seat::bookingId).findFirst().orElse(null);
         if (!c.isEmpty()) { return new Cell(SlotState.BLOCKED, SlotReason.CLASS, ring.capacity(), s, c, r, own); }
         if (!r.isEmpty()) { return new Cell(SlotState.BLOCKED, SlotReason.RING_BLOCK, ring.capacity(), s, c, r, own); }
-        if (s.size() >= ring.capacity()) {
+        // INC-44: a ring without free training (the staff projection) is FREE for a block, unless a seat still holds it.
+        if (s.size() >= ring.capacity() && (ring.trainable() || !s.isEmpty())) {
             return new Cell(SlotState.BOOKED, own != null ? SlotReason.OWN_TRAINING : SlotReason.TRAINING, ring.capacity(), s, c, r, own);
         }
         return new Cell(SlotState.FREE, null, ring.capacity(), s, c, r, own);

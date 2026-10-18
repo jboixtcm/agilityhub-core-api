@@ -14,6 +14,13 @@ public class AuditQuery {
         return repository.lastChange(entityType, entityId).map(this::project).orElse(null);
     }
 
+    /** E11-T10 (INC-38): {@link #lastChange} of a whole list in one read; an entity never changed is absent. */
+    public java.util.Map<String, LastChange> lastChanges(String entityType, java.util.Collection<String> entityIds) {
+        var result = new java.util.HashMap<String, LastChange>();
+        repository.lastChanges(entityType, entityIds).forEach((id, entry) -> result.put(id, project(entry)));
+        return result;
+    }
+
     public LastChange lastPlatformChange(String entityType, String entityId) {
         return repository.lastPlatformChange(entityType, entityId).map(this::project).orElse(null);
     }

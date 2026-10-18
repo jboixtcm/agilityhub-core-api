@@ -24,7 +24,9 @@
     "en": "Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence."
   },
   "signup.text.imageConsent": {
-    "ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"
+    "ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club",
+    "es": "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club",
+    "en": "I authorise the publication of photos of me and my dog within the scope of the club's activities"
   },
   "signup.text.closed": {
     "ca": "Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.",
@@ -257,13 +259,19 @@
   ],
   "census.bookingBlockReasons": [
     {
-      "ca": "rebut impagat"
+      "ca": "rebut impagat",
+      "es": "recibo impagado",
+      "en": "unpaid receipt"
     },
     {
-      "ca": "cartilla pendent"
+      "ca": "cartilla pendent",
+      "es": "cartilla pendiente",
+      "en": "vaccination card pending"
     },
     {
-      "ca": "decisió del club"
+      "ca": "decisió del club",
+      "es": "decisión del club",
+      "en": "club decision"
     }
   ],
   "signup.text.monthlyPaymentIntro": {
@@ -341,7 +349,9 @@
   "migration.reconciliationTolerancePct": 1,
   "migration.playoffReadOnlyMonths": 3,
   "learn.linkText": {
-    "ca": "Aprèn amb AgilityHub"
+    "ca": "Aprèn amb AgilityHub",
+    "es": "Aprende con AgilityHub",
+    "en": "Learn with AgilityHub"
   },
   "learn.recommendationsTtlMinutes": 60,
   "learn.baseUrl": "https://learn.agilitydoghub.com",

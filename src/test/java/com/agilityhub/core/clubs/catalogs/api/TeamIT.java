@@ -155,6 +155,34 @@ class TeamIT extends AbstractIntegrationTest {
         update("instructors/" + id, Map.of("active", false, "version", 2));
     }
 
+    /**
+     * R-05-10, T-05-14: D17 reads the instructors' usage and the team's last changes once per list, not once per instructor or
+     * administrator; every row keeps its counts and last change. INC-38 (E11-T10).
+     */
+    @Test void T_05_14_INC_38_theTeamListsReadAFixedNumberOfDocumentsAndKeepTheirUsage() throws Exception {
+        var collections = List.of("audit_entries", "class_sessions", "week_templates");
+        var reads = new ArrayList<List<Long>>();
+        for (int round = 0; round < 2; round++) {
+            for (int i = 0; i < (round == 0 ? 1 : 4); i++) {
+                String member = "staff-" + round + i; member(CLUB, member, "ACTIVE", Set.of(Role.MEMBER));
+                String id = json(admin(body(post("/api/v1/instructors"), Map.of("memberId", member, "shortName", "I" + round + i, "color", "#123456"))), 201).path("id").asText();
+                json(admin(body(post("/api/v1/administrators"), Map.of("memberId", member, "shortName", "A" + round + i, "since", "2020-01-01"))), 201);
+                reference("class_sessions", CLUB, id, "PLANNED", 24 + i); reference("class_sessions", CLUB, id, "CANCELLED", 24 + i);
+                reference("week_templates", CLUB, id, "ACTIVE", 0);
+            }
+            var instructors = new JsonNode[1]; var administrators = new JsonNode[1];
+            reads.add(List.of(MongoReads.count(mongo, collections, () -> instructors[0] = json(admin(get("/api/v1/instructors")), 200)),
+                    MongoReads.count(mongo, collections, () -> administrators[0] = json(admin(get("/api/v1/administrators")), 200))));
+            assertThat(instructors[0].path("items")).hasSize(round == 0 ? 1 : 5).allSatisfy(item -> {
+                assertThat(item.at("/usage/futureClassSessions").asInt()).isEqualTo(1); assertThat(item.at("/usage/templateClasses").asInt()).isEqualTo(1);
+                assertThat(item.at("/lastChange/actorName").asText()).isEqualTo("Example Operator");
+            });
+            assertThat(administrators[0].path("items")).hasSize(round == 0 ? 1 : 5)
+                    .allSatisfy(item -> assertThat(item.at("/lastChange/actorName").asText()).isEqualTo("Example Operator"));
+        }
+        assertThat(reads.get(1)).as("instructor and administrator list reads, 1 then 5 rows").isEqualTo(reads.get(0));
+    }
+
     @Test void T_05_15_lastAdminEveryPathAndProfileHistory() throws Exception {
         var first = administrator("one"); long v = first.path("version").asLong();
         admin(body(patch("/api/v1/administrators/one-membership"), Map.of("active", false, "version", v)))

@@ -1,7 +1,7 @@
 package com.agilityhub.core.clubs.census.application;
 
 import com.agilityhub.core.clubs.census.persistence.*;
-import com.agilityhub.core.platform.application.audit.AuditableLoader;
+import com.agilityhub.core.platform.application.audit.*;
 import com.agilityhub.core.shared.domain.audit.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +47,11 @@ public class CensusAudit {
             }
         }
         return fields;
+    }
+    /** R-14-09 (INC-38, E11-T10): the member's consents changed: `MEMBER_CONSENT_CHANGED`, its `changes[]` under `consents.*`. */
+    static void consentChange(AuditWriter audits, String memberId, Object before, Object after) {
+        audits.write(new AuditCommand(AuditAction.MEMBER_CONSENT_CHANGED, "Member", memberId, memberId,
+                Collections.singletonMap("consents", before), Collections.singletonMap("consents", after), null));
     }
     /** The audited stand-in of a sealed account: masked, only its last four digits show. */
     private static final String SEALED = "sealed-";

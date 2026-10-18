@@ -27,7 +27,9 @@ class S04ErrorContractTest {
     private static final List<String> SLICE = List.of(BASE + "clubs.census.", BASE + "clubs.signup.", BASE + "payments.",
             BASE + "identity.application.SignupIdentityService", BASE + "identity.application.CensusIdentityService",
             BASE + "platform.application.CountryContacts", BASE + "platform.application.CountryContactRules", BASE + "platform.application.CensusClubSettings",
-            BASE + "platform.domain.", BASE + "clubs.followup.application.AttachmentService", BASE + "clubs.catalogs.application.SignupPlanData");
+            BASE + "platform.domain.", BASE + "clubs.followup.application.AttachmentService", BASE + "clubs.catalogs.application.SignupPlanData",
+            // INC-39 (E11-T10): the money arithmetic, whose currency check the validation's upfrontAmountPaid reached undocumented.
+            BASE + "shared.domain.Money");
     /**
      * Answered by the generic responses of every operation (401/403/404/500): authentication, the tenant guards, S02 host
      * resolution and configuration faults (a stored parameter was validated when it was written, S02).
@@ -52,31 +54,41 @@ class S04ErrorContractTest {
             "PROVIDER_CONFIG_INVALID", "CheckoutService.expireAtProvider catches the provider failure after commit",
             "RATE_LIMITED", "CheckoutService.expireAtProvider catches the provider failure after commit");
 
+    /**
+     * INC-39 (E11-T10): with `Money` in the slice, its currency check is reachable from every route that adds amounts. They all
+     * add amounts in the club's currency (the catalog's prices are checked against it when the club writes them, S05, and
+     * the rows and quotes are made in it); only the validation takes an amount from the client (`upfrontAmountPaid`).
+     */
+    private static final Map<String, String> CLUB_CURRENCY = Map.of("CURRENCY_MISMATCH", "every amount added is in the club's currency; no amount comes from the client");
+    private static Map<String, String> with(Map<String, String> first, Map<String, String> second) { var all = new HashMap<>(first); all.putAll(second); return all; }
+
     record Route(String name, Class<?> controller, String method, Set<String> crossCutting, Map<String, String> notAnswered) { }
     static final Class<?> SIGNUP = com.agilityhub.core.clubs.census.api.SignupController.class;
     static final List<Route> ROUTES = List.of(
-            new Route("GET /signup", SIGNUP, "config", Set.of(), Map.of("PLAN_NOT_AVAILABLE", "only offered or the member's assignable plans are quoted",
-                    "VALIDATION_ERROR", "the quotes use the catalog's own options")),
+            new Route("GET /signup", SIGNUP, "config", Set.of(), with(CLUB_CURRENCY, Map.of("PLAN_NOT_AVAILABLE", "only offered or the member's assignable plans are quoted",
+                    "VALIDATION_ERROR", "the quotes use the catalog's own options"))),
             new Route("POST /signup/identity-checks", SIGNUP, "identityCheck", Set.of("VALIDATION_ERROR", "RATE_LIMITED"),
                     Map.of("MEMBER_NOT_ACTIVE", "an inactive account is caught and answered CONTACT_CLUB")),
             new Route("GET /signup/towns", SIGNUP, "towns", Set.of("VALIDATION_ERROR", "RATE_LIMITED"), Map.of()),
             new Route("POST /signup/upload-urls", SIGNUP, "uploadUrl", Set.of("VALIDATION_ERROR", "RATE_LIMITED"), SIGNUP_UPLOAD),
             new Route("POST /signup/family-group-lookups", SIGNUP, "familyGroup", Set.of("VALIDATION_ERROR", "RATE_LIMITED", "MODULE_DISABLED"), Map.of()),
-            new Route("POST /signup", SIGNUP, "signup", Set.of("VALIDATION_ERROR", "RATE_LIMITED", "IDEMPOTENCY_KEY_REUSED"), SIGNUP_UPLOAD),
+            new Route("POST /signup", SIGNUP, "signup", Set.of("VALIDATION_ERROR", "RATE_LIMITED", "IDEMPOTENCY_KEY_REUSED"), with(CLUB_CURRENCY, SIGNUP_UPLOAD)),
             new Route("POST /me/dogs/signup", SIGNUP, "addDog", Set.of("VALIDATION_ERROR", "IDEMPOTENCY_KEY_REUSED"),
-                    Map.of("ATTACHMENT_ENTITY_MISMATCH", SIGNUP_UPLOAD.get("ATTACHMENT_ENTITY_MISMATCH"), "MODULE_DISABLED", SIGNUP_UPLOAD.get("MODULE_DISABLED"),
-                            "ID_DOCUMENT_ALREADY_EXISTS", SAVED_MEMBER.get("ID_DOCUMENT_ALREADY_EXISTS"))),
-            new Route("GET /members/{id}/signup", SIGNUP, "review", Set.of(), Map.of("VALIDATION_ERROR", "the quote uses the options stored at submission")),
+                    with(CLUB_CURRENCY, Map.of("ATTACHMENT_ENTITY_MISMATCH", SIGNUP_UPLOAD.get("ATTACHMENT_ENTITY_MISMATCH"), "MODULE_DISABLED", SIGNUP_UPLOAD.get("MODULE_DISABLED"),
+                            "ID_DOCUMENT_ALREADY_EXISTS", SAVED_MEMBER.get("ID_DOCUMENT_ALREADY_EXISTS")))),
+            // R-04-19 (INC-39, E11-T10): D2 loads a submission whose requested plan is gone; only an assignable plan is quoted.
+            new Route("GET /members/{id}/signup", SIGNUP, "review", Set.of(), with(CLUB_CURRENCY, Map.of("VALIDATION_ERROR", "the quote uses the options stored at submission",
+                    "PLAN_NOT_AVAILABLE", "a requested plan that is no longer assignable is caught (SignupService.planGone) and proposes nothing"))),
             new Route("POST /members/{id}/validation", SIGNUP, "validate", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
-            new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), REJECTED_MEMBER),
+            new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), with(CLUB_CURRENCY, REJECTED_MEMBER)),
             // Round 2, point 4 (S04 §6, D2): the census PATCH routes also edit a pending signup (`patchPending`).
             new Route("PATCH /members/{id}", com.agilityhub.core.clubs.census.api.MembersController.class, "updateMember", Set.of("VALIDATION_ERROR"),
-                    Map.of("CHIP_ALREADY_EXISTS", "a member PATCH saves no dog")),
+                    with(CLUB_CURRENCY, Map.of("CHIP_ALREADY_EXISTS", "a member PATCH saves no dog"))),
             new Route("PATCH /dogs/{id}", com.agilityhub.core.clubs.census.api.DogsController.class, "updateDog", Set.of("VALIDATION_ERROR"),
                     Map.of("ATTACHMENT_ENTITY_MISMATCH", SIGNUP_UPLOAD.get("ATTACHMENT_ENTITY_MISMATCH"), "MODULE_DISABLED", SIGNUP_UPLOAD.get("MODULE_DISABLED"),
                             "ID_DOCUMENT_ALREADY_EXISTS", "a dog PATCH saves no member")),
             new Route("POST /checkout-sessions", com.agilityhub.core.payments.api.CheckoutController.class, "create",
-                    Set.of("VALIDATION_ERROR", "RATE_LIMITED", "IDEMPOTENCY_KEY_REUSED", "MODULE_DISABLED"), Map.of()));
+                    Set.of("VALIDATION_ERROR", "RATE_LIMITED", "IDEMPOTENCY_KEY_REUSED", "MODULE_DISABLED"), CLUB_CURRENCY));
 
     @Test void T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow() throws Exception {
         var problems = new ArrayList<String>();
@@ -107,6 +119,14 @@ class S04ErrorContractTest {
         var dog = ROUTES.stream().filter(r -> r.name().equals("PATCH /dogs/{id}")).findFirst().orElseThrow();
         assertThat(reachable(dog)).containsKeys("DOCUMENT_TYPE_UNKNOWN", "FILE_NOT_FOUND");
         assertThat(documented(dog)).contains("DOCUMENT_TYPE_UNKNOWN", "FILE_NOT_FOUND");
+    }
+
+    /** R-04-16, INC-39 (E11-T10): the validation's client amount reaches Money's currency check, and the route documents it. */
+    @Test void T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected() {
+        var validation = ROUTES.stream().filter(r -> r.name().equals("POST /members/{id}/validation")).findFirst().orElseThrow();
+        assertThat(reachable(validation)).containsKey("CURRENCY_MISMATCH");
+        assertThat(validation.notAnswered()).doesNotContainKey("CURRENCY_MISMATCH");
+        assertThat(documented(validation)).contains("CURRENCY_MISMATCH");
     }
 
     private static Set<String> documented(Route route) {

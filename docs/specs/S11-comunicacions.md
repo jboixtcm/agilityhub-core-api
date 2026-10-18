@@ -421,3 +421,4 @@ Ordre: A → B0 (E1) → (B ∥ C ∥ D/E) → F. Tres fils: **B** (motor + prov
 - 17-10-2026 · E11-T02 (INC-53, decisió E82): R-11-10 i §6, `read-all` accepta un `upTo` opcional (l'instant en què s'ha llegit 11).
 - 17-10-2026 · E11-T02 (INC-53, decisió E89): §6, el `name` de D9 d'una plantilla del catàleg és el nom de producte («Nom» de `CATALEG_NOTIFICACIONS`, i les traduccions `es`/`en` al seed, `name`), no el títol; el d'una `CUSTOM`, el seu títol.
 - 17-10-2026 · E11-T02 (INC-53, decisió E89): §6, les files del log d'un comunicat porten el `batchId` del lot.
+- 18-10-2026 · E11-T10 (INC-40, decisió E109): R-11-09 i E13, el sondeig de 5 s i els enviaments just després de la confirmació corren al planificador de notificacions, d'un sol fil i separat del de l'outbox i del tic de S15: un proveïdor lent (SendGrid) ja no atura l'outbox; un enviament que no arriba a córrer deixa els lliuraments `QUEUED` per al sondeig (com a mínim una vegada).

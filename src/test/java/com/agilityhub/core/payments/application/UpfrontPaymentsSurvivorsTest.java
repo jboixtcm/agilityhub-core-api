@@ -10,17 +10,26 @@ import com.agilityhub.core.payments.persistence.UpfrontPaymentRepository;
 import com.agilityhub.core.shared.application.ClubClock;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.DomainEvent;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.domain.Money;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.*;
@@ -130,6 +139,105 @@ class UpfrontPaymentsSurvivorsTest {
         var smaller = payments.replacement(MEMBER, scope, List.of(new Charge("FIRST_MONTH", "dog-1", eur(1000))));
         assertThat(smaller.created()).isEmpty();
         assertThat(smaller.paidExceedsQuote()).isEqualTo(eur(2000));
+    }
+
+    // --- INC-39 (E11-T10): T-04-07 and T-04-22 on the production writers (the domain copies they tested were dead code) ------
+
+    /** T-04-07 (R-04-16), INC-39 (E11-T10): S04's cash cascade on the production allocation, the entry fee before the first month. */
+    @ParameterizedTest
+    @CsvSource({"13000,PAID,10000,PAID,3000", "10000,PAID,10000,DUE,0", "5000,PARTIAL,5000,DUE,0", "0,DUE,0,DUE,0"})
+    void T_04_07_INC_39_theCashCascadeOfS04OnTheProductionAllocation(long amount, String entryStatus, long entryPaid, String monthStatus, long monthPaid) {
+        var rows = new HashMap<String, UpfrontPayment>();
+        rows.put("payment-month", row("payment-month", "FIRST_MONTH", "dog-1", 3000, 0, "DUE", null, NOW, null, "sub-1"));
+        rows.put("payment-entry", row("payment-entry", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"));
+        when(repository.member(MEMBER)).thenReturn(List.of(rows.get("payment-month"), rows.get("payment-entry")));
+        doAnswer(call -> { UpfrontPayment p = call.getArgument(0); rows.put(p.id(), p); return null; }).when(repository).update(any());
+
+        try (var tenant = TenantContext.open(CLUB)) { payments.allocate(MEMBER, null, eur(amount)); }
+
+        assertThat(rows.get("payment-entry")).extracting(UpfrontPayment::status, p -> p.amountPaid().amountMinor()).containsExactly(entryStatus, entryPaid);
+        assertThat(rows.get("payment-month")).extracting(UpfrontPayment::status, p -> p.amountPaid().amountMinor()).containsExactly(monthStatus, monthPaid);
+    }
+
+    /** T-04-07 (R-04-16), INC-39 (E11-T10): 131 € against 130 € due is UPFRONT_AMOUNT_EXCEEDS_DUE, and nothing is written. */
+    @Test void T_04_07_INC_39_anAmountAboveWhatIsDueIsRefusedAndNothingIsWritten() {
+        when(repository.member(MEMBER)).thenReturn(List.of(row("payment-entry", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"),
+                row("payment-month", "FIRST_MONTH", "dog-1", 3000, 0, "DUE", null, NOW, null, "sub-1")));
+
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThatThrownBy(() -> payments.allocate(MEMBER, null, eur(13100))).isInstanceOfSatisfying(ApiException.class,
+                    refused -> assertThat(refused.code()).isEqualTo(ErrorCode.UPFRONT_AMOUNT_EXCEEDS_DUE));
+        }
+
+        verify(repository, never()).update(any());
+    }
+
+    /** The edges of S04 §5's `UpfrontPayment.status` diagram; `[*]` is a new row. */
+    static final Set<String> S04_EDGES = Set.of("[*] → DUE", "DUE → CHECKOUT_PENDING", "CHECKOUT_PENDING → PAID", "CHECKOUT_PENDING → DUE", "DUE → PAID",
+            "DUE → PARTIAL", "PARTIAL → PAID", "DUE → CANCELLED", "PARTIAL → CANCELLED", "CHECKOUT_PENDING → CANCELLED", "PAID → REFUNDED");
+    /**
+     * What the writers do that the diagram does not draw, with where it was decided. PARTIAL → CHECKOUT_PENDING and back: E5-T30
+     * (verified, step 3) lets a row that received cash enter a checkout for the rest and gives it back with its payment history;
+     * INC-39, pending question (E11-T10): S04 §5 does not draw it, and the behaviour (a money path) stays until the owner decides.
+     * [*] → PAID: the correction row of a closed PARTIAL row, in §5's text (ruling E39b).
+     */
+    static final Map<String, String> DOCUMENTED = Map.of(
+            "PARTIAL → CHECKOUT_PENDING", "INC-39, pending question (E11-T10): E5-T30 step 3",
+            "CHECKOUT_PENDING → PARTIAL", "INC-39, pending question (E11-T10): E5-T30 step 3, the release of such a checkout",
+            "[*] → PAID", "S04 §5 text, ruling E39b: the PAID correction of a closed PARTIAL row");
+
+    /** Runs a writer over {@code rows} and returns each status change it writes: `before → after`, or `[*] → status` for a new row. */
+    Set<String> changes(List<UpfrontPayment> rows, Runnable writer) {
+        reset(repository);
+        var before = new HashMap<String, String>(); rows.forEach(p -> before.put(p.id(), p.status()));
+        var changes = new LinkedHashSet<String>();
+        when(repository.member(MEMBER)).thenReturn(rows);
+        doAnswer(call -> { UpfrontPayment p = call.getArgument(0); if (!p.status().equals(before.get(p.id()))) { changes.add(before.get(p.id()) + " → " + p.status()); } return null; })
+                .when(repository).update(any());
+        doAnswer(call -> { UpfrontPayment p = call.getArgument(0); changes.add("[*] → " + p.status()); return p; }).when(repository).insert(any());
+        try (var tenant = TenantContext.open(CLUB)) { writer.run(); }
+        return changes;
+    }
+    static UpfrontPayment waiting(String id, long due, long paid, String bookingId) {
+        return new UpfrontPayment(id, CLUB, MEMBER, "dog-1", "ENTRY_FEE", "ENTRY_FEE", eur(due), eur(paid), "CHECKOUT_PENDING", "STRIPE", "cs_fake_1", NOW, null, bookingId, "sub-1", null);
+    }
+
+    /**
+     * T-04-22 (R-04-26, S04 §5), INC-39 (E11-T10): every status change the production writers of {@link UpfrontPayments} make is
+     * an edge of S04 §5's diagram or one of the documented exceptions, and each of those is really made (so the list cannot
+     * rot). The refund (PAID → REFUNDED) is S12's writer. A checkout never takes a row that is not DUE or PARTIAL.
+     */
+    @Test void T_04_22_INC_39_everyStatusChangeOfTheWritersIsAnEdgeOfS04sDiagramOrADocumentedException() {
+        var scope = List.of(new Submission("dog-1", "sub-1"));
+        var produced = new LinkedHashSet<String>();
+        produced.addAll(changes(List.of(), () -> payments.create(MEMBER, "sub-1", List.of(new Charge("ENTRY_FEE", "dog-1", eur(10000))))));
+        produced.addAll(changes(List.of(), () -> payments.createForBooking(MEMBER, new Charge("SINGLE_CLASS", "dog-1", eur(1500)), "booking-1")));
+        produced.addAll(changes(List.of(row("p-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(10000))));
+        produced.addAll(changes(List.of(row("p-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(4000))));
+        produced.addAll(changes(List.of(row("p-partial", "ENTRY_FEE", "dog-1", 10000, 4000, "PARTIAL", null, NOW, null, "sub-1")), () -> payments.allocate(MEMBER, scope, eur(6000))));
+        for (var status : List.of("DUE", "PARTIAL")) {
+            produced.addAll(changes(List.of(row("p-open", "ENTRY_FEE", "dog-1", 10000, status.equals("DUE") ? 0 : 4000, status, null, NOW, null, "sub-1")),
+                    () -> payments.pending(MEMBER, List.of("p-open"), "cs_fake_1")));
+        }
+        for (var status : List.of("CHECKOUT_PENDING", "PAID", "CANCELLED", "REFUNDED")) {
+            var closed = List.of(row("p-closed", "ENTRY_FEE", "dog-1", 10000, 0, status, null, NOW, null, "sub-1"));
+            assertThatThrownBy(() -> changes(closed, () -> payments.pending(MEMBER, List.of("p-closed"), "cs_fake_2"))).as(status)
+                    .isInstanceOfSatisfying(ApiException.class, refused -> assertThat(refused.code()).isEqualTo(ErrorCode.INVALID_STATE));
+        }
+        produced.addAll(changes(List.of(waiting("p-paying", 10000, 0, null), waiting("p-paying-rest", 10000, 4000, null)), () -> payments.checkout(MEMBER, "cs_fake_1", true)));
+        produced.addAll(changes(List.of(waiting("p-expiring", 10000, 0, null), waiting("p-expiring-partial", 10000, 4000, null), waiting("p-booking", 1500, 0, "booking-1")),
+                () -> payments.checkout(MEMBER, "cs_fake_1", false)));
+        var open = List.of(row("r-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"), row("r-partial", "FIRST_MONTH", "dog-1", 6000, 1000, "PARTIAL", null, NOW, null, "sub-1"),
+                waiting("r-waiting", 3000, 0, null), row("r-paid", "PACK", "dog-1", 2000, 2000, "PAID", null, NOW, null, "sub-1"));
+        produced.addAll(changes(open, () -> payments.reject(MEMBER, scope)));
+        var replaced = List.of(row("c-due", "ENTRY_FEE", "dog-1", 10000, 0, "DUE", null, NOW, null, "sub-1"), row("c-partial", "FIRST_MONTH", "dog-1", 6000, 1000, "PARTIAL", null, NOW, null, "sub-1"),
+                row("c-paid", "PACK", "dog-1", 2000, 2000, "PAID", null, NOW, null, "sub-1"));
+        produced.addAll(changes(replaced, () -> payments.replace(MEMBER, scope, List.of(new Charge("PACK", "dog-1", eur(13500))))));
+
+        var allowed = new HashSet<>(S04_EDGES); allowed.addAll(DOCUMENTED.keySet());
+        assertThat(produced).as("only S04 §5's edges and the documented exceptions").isSubsetOf(allowed);
+        var expected = new HashSet<>(allowed); expected.remove("PAID → REFUNDED");
+        assertThat(produced).as("every edge but S12's refund, and every documented exception, is really written").containsExactlyInAnyOrderElementsOf(expected);
     }
 
     // --- fixture ------------------------------------------------------------------------------------------------------------

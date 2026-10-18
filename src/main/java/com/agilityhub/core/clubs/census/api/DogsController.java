@@ -134,7 +134,7 @@ public class DogsController {
     @Operation(summary = "Reactivation dog",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
             responses = @ApiResponse(responseCode = "200", description = "Dog", content = @Content(schema = @Schema(implementation = Dog.class))))
-    public java.util.Map<String,Object> reactivationDog(@PathVariable String id, @Valid @RequestBody ReasonRequest request) { return transactions.run(() -> { dogs.reactivate(id); return queries.dog(id); }); }
+    public java.util.Map<String,Object> reactivationDog(@PathVariable String id, @Valid @RequestBody ReasonRequest request) { return transactions.run(() -> { dogs.reactivate(id, request.reason()); return queries.dog(id); }); }
 
     @PutMapping("/api/v1/dogs/{id}/photo")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

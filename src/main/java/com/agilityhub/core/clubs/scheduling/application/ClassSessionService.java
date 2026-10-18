@@ -53,7 +53,7 @@ public class ClassSessionService {
                     capacity == null ? 0 : capacity, capacity == null ? CapacityMode.AUTO : CapacityMode.MANUAL, description,
                     week.state() == WeekState.VALIDATED ? ClassState.ACTIVE : ClassState.DRAFT, new ClassSession.Counters(0, 0),
                     new ClassSession.Risk(false, List.of(), null, null), null, null, null, null, -1L, now, actor, now, actor);
-            var edit = new SessionEdit(draft); edit.placementId = placementId; validate(edit, cancelBookings, true);
+            var edit = new SessionEdit(draft); edit.placementId = placementId; validate(edit, cancelBookings, true, TemplateClassRules.Kept.NONE);
             // T-06-23 (A4-01): never a DRAFT class in a VALIDATED week. A DRAFT writes its week, so a concurrent validation conflicts.
             if (week.state() != WeekState.VALIDATED) { weeks.touch(week); }
             var saved = classes.insert(edit.snapshot(now, actor));
@@ -80,16 +80,21 @@ public class ClassSessionService {
             // A new placement, or a new ring for the planned one, must still be a placement of the class's ring.
             if (patch.containsKey("placementId") || moved) { placements.check(edit.placementId, edit.ringId); }
             if (!Set.of("notes", "placementId").containsAll(patch.keySet())) {
-                validate(edit, cancelBookings, !Objects.equals(before.ringId(), edit.ringId) || !before.startTime().equals(edit.startTime) || !before.endTime().equals(edit.endTime));
+                validate(edit, cancelBookings, !Objects.equals(before.ringId(), edit.ringId) || !before.startTime().equals(edit.startTime) || !before.endTime().equals(edit.endTime),
+                        new TemplateClassRules.Kept(before.instructorIds(), before.ringId(), before.levelIds()));
             }
             var after = classes.update(edit.snapshot(clock.instant(), events.actor()), version);
             var diff = new LinkedHashMap<String, Object>();
-            for (String key : patch.keySet()) { Object old = field(before, key), next = field(after, key); if (!Objects.equals(old, next)) { var change = new LinkedHashMap<String, Object>(); change.put("before", old); change.put("after", next); diff.put(key, change); } }
+            // INC-40 (E11-T10, R-06-09): the instructors are a set; a reorder is kept as sent but is no change (no diff, no N-08b).
+            for (String key : patch.keySet()) { Object old = field(before, key), next = field(after, key); if (!same(key, old, next)) { var change = new LinkedHashMap<String, Object>(); change.put("before", old); change.put("after", next); diff.put(key, change); } }
             events.publish(SchedulingEvent.Kind.ClassSessionUpdated, id, Map.of("classId", id, "diff", diff, "bookedCount", before.counters().booked()));
             if (before.counters().booked() > 0) { audit.updated(before, after); }
             if (before.risk().exempt() != after.risk().exempt()) { riskEvent(before, after); }
             return after;
         });
+    }
+    private static boolean same(String key, Object old, Object next) {
+        return key.equals("instructorIds") ? new HashSet<>((List<?>) old).equals(new HashSet<>((List<?>) next)) : Objects.equals(old, next);
     }
     private Object field(ClassSession c, String key) {
         return switch (key) {
@@ -113,11 +118,12 @@ public class ClassSessionService {
     }
     private void requireActive(ClassSession c) { if (c.state() != ClassState.ACTIVE) { throw new ApiException(ErrorCode.INVALID_STATE); } }
     private ClassSession.Risk risk(ClassSession c, boolean exempt) { return new ClassSession.Risk(exempt, c.risk().notifiedBookingIds(), c.risk().adminNotifiedAt(), c.risk().lowAlertSentAt()); }
-    private void validate(SessionEdit edit, boolean cancelBookings, boolean moving) {
+    private void validate(SessionEdit edit, boolean cancelBookings, boolean moving, TemplateClassRules.Kept kept) {
         var config = context.config(); var catalog = context.catalog();
         var start = WeekTemplateRules.time(edit.startTime); var end = WeekTemplateRules.time(edit.endTime);
         ClassSessionRules.times(edit.before.date(), start, end, config.get("classes.slotMinutes", Integer.class), context.opening(config));
-        ClassSessionRules.references(edit.instructors, edit.ringId, edit.levels, edit.description, config.get("classes.maxInstructorsPerClass", Integer.class), config.get("levels.enabled", Boolean.class), catalog);
+        // INC-40 (E11-T10, S05 R-05-03): an edit keeps the class's own inactive references; a newly chosen one must be active.
+        ClassSessionRules.references(edit.instructors, edit.ringId, edit.levels, edit.description, config.get("classes.maxInstructorsPerClass", Integer.class), config.get("levels.enabled", Boolean.class), catalog, kept);
         edit.capacity = context.capacity(edit.levels, edit.capacityMode, edit.capacity, catalog, config);
         if (edit.capacity < edit.counters.booked()) { throw new ApiException(ErrorCode.CAPACITY_BELOW_BOOKINGS); }
         var zone = ZoneId.of(config.club().timeZone());

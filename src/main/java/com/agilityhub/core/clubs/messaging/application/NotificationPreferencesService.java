@@ -59,10 +59,11 @@ public class NotificationPreferencesService {
         access.member(memberId);
         return view(members.find(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), configs.get(TenantContext.require()));
     }
-    public View saveMine(Patch patch) { return transactions.write(() -> save(me(), patch)); }
+    public View saveMine(Patch patch) { return transactions.write(() -> save(me(), patch, false)); }
+    /** D10's save; R-04-06 freezes it (not the member's own) while a readmission is pending (INC-39, E11-T10). */
     public View saveMember(String memberId, Patch patch) {
         access.member(memberId);
-        return transactions.write(() -> save(members.find(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), patch));
+        return transactions.write(() -> save(members.find(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), patch, true));
     }
 
     /** The caller's member: the impersonated one, or the member of the caller's account in the club. */
@@ -74,7 +75,7 @@ public class NotificationPreferencesService {
         return members.byAccount(access.account()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
 
-    private View save(MemberContact member, Patch patch) {
+    private View save(MemberContact member, Patch patch, boolean club) {
         var config = configs.get(TenantContext.require());
         var options = options(config);
         if (patch.reminderPresent() && patch.reminderMinutesBefore() != null && !options.contains(patch.reminderMinutesBefore())) {
@@ -91,6 +92,7 @@ public class NotificationPreferencesService {
         var user = CurrentUser.current();
         String by = user == null ? null : user.impersonation() != null ? user.impersonation().actorAccountId() : user.accountId();
         var stored = next.changedBy(by, clock.instant()).toDocument(member.preferences());
+        if (club) { writer.requireNotFrozen(member.memberId()); }
         if (!writer.savePreferences(member.memberId(), stored)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         audit.write(new AuditCommand(AuditAction.MEMBER_UPDATED, "Member", member.memberId(), member.memberId(), Map.of("notificationPreferences", before),
                 Map.of("notificationPreferences", after), null));

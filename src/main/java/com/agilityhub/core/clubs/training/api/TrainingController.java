@@ -49,11 +49,11 @@ public class TrainingController {
     }
     private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value, type); }
 
-    private static String memberId(Jwt jwt) {
+    static String memberId(Jwt jwt) {
         var user = CurrentUser.current();
         return user != null && user.impersonation() != null ? user.impersonation().memberId() : jwt.getClaimAsString("memberId");
     }
-    private static boolean staff() {
+    static boolean staff() {
         var user = CurrentUser.current();
         return (user == null || user.impersonation() == null) && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ROLE_INSTRUCTOR"));
@@ -67,19 +67,6 @@ public class TrainingController {
             catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
             return result;
         });
-    }
-
-    @GetMapping("/api/v1/training-slots")
-    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
-    @AllowsImpersonation
-    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "trainingSlots", description = "Roles: MEMBER (also the impersonation token; interval cut to the booking window, R-09-04), INSTRUCTOR, ADMIN (at most 31 days; cells add occupants[], block and classSession). R-09-03 computed grid: holidays and days without opening hours are closed; cells BLOCKED/CLASS > BLOCKED/RING_BLOCK > BOOKED/TRAINING (OWN_TRAINING for dogId) > FREE. Requires FREE_TRAINING. Tenant comes from the JWT.",
-            responses = @ApiResponse(responseCode = "200", description = "TrainingSlots", useReturnTypeSchema = true))
-    public TrainingSlots trainingSlots(@RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam(required = false) String dogId,
-            @RequestParam(required = false) String ringId, @AuthenticationPrincipal Jwt jwt) {
-        access.tenant();
-        boolean staff = staff();
-        return view(slots.grid(from, to, dogId, ringId, new TrainingSlotService.Viewer(staff ? null : memberId(jwt), staff)), TrainingSlots.class);
     }
 
     @GetMapping("/api/v1/me/training-summary")

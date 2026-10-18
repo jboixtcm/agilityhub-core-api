@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
  * (days, slots, classes, blocks) comes from {@link TrainingGridCache}; bookings are always read live, in one query
  * for the whole range. MEMBER requests are clipped to the booking window, the other roles may ask ≤ 31 days.
  * INSTRUCTOR/ADMIN cells add `occupants[]`, `block` and `classSession`; with COURSES (and
- * `courses.showSetupToMembers` for a member) each ring carries its mounted `setup`.
+ * `courses.showSetupToMembers` for a member) each ring carries its mounted `setup`. INC-44: INSTRUCTOR/ADMIN also get the
+ * active rings without free training (capacity 0; classes and blocks only, never bookable), and with FREE_TRAINING off every
+ * active ring that way, without training bookings (the members keep `404 MODULE_DISABLED` at the controller).
  */
 @Service
 public class TrainingSlotService {
@@ -78,16 +80,20 @@ public class TrainingSlotService {
                             .orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
             dogEligible = eligibility.canFreeTrain(dog);
         }
-        var ringViews = bookableRings();
+        // INC-44 (S09 R-09-02, §9): the staff also see the active rings without free training, and the whole grid with FREE_TRAINING off.
+        boolean training = context.enabled(Module.FREE_TRAINING);
+        var ringViews = viewer.staff() ? catalogs.trainingRings().stream().filter(PlanningCatalogAccess.TrainingRingView::active).toList() : bookableRings();
         if (ringId != null) {
             ringViews = ringViews.stream().filter(r -> r.id().equals(ringId)).toList();
             if (ringViews.isEmpty()) { throw new ApiException(ErrorCode.NOT_FOUND); }
         }
-        var rings = ringViews.stream().map(this::ring).toList();
+        var trainable = new HashSet<String>();
+        ringViews.stream().filter(r -> training && r.allowsFreeTraining()).forEach(r -> trainable.add(r.id()));
+        var rings = ringViews.stream().map(r -> trainable.contains(r.id()) ? ring(r) : TrainingGrid.Ring.staffOnly(r.id())).toList();
         var days = new ArrayList<TrainingGridCache.Day>();
         for (var date = start; !date.isAfter(end); date = date.plusDays(1)) { days.add(day(date)); }
         var open = days.stream().filter(d -> !d.closed()).toList();
-        List<TrainingBooking> active = open.isEmpty() ? List.of()
+        List<TrainingBooking> active = open.isEmpty() || !training ? List.of()
                 : bookings.activeBetween(open.getFirst().slots().getFirst().startsAt(), open.getLast().slots().getLast().endsAt(), null);
         var seats = seats(active);
         // Staff detail: class descriptions, block notes and occupants' names (never for a member, R-09-12).
@@ -110,7 +116,7 @@ public class TrainingSlotService {
                 var cells = new LinkedHashMap<String, Object>(); boolean anyFree = false;
                 for (var ring : rings) {
                     var cell = TrainingGrid.cell(ring, slot, classes, blocks, seats, dogId);
-                    anyFree |= cell.free();
+                    anyFree |= cell.free() && ring.trainable();
                     cells.put(ring.id(), cell(cell, viewer, descriptions, staffBlocks, memberNames, dogNames, zone));
                 }
                 var view = new LinkedHashMap<String, Object>();
@@ -124,13 +130,13 @@ public class TrainingSlotService {
         out.put("timeZone", zone.getId()); out.put("slotMinutes", context.slotMinutes());
         out.put("window", Map.of("from", today, "to", today.plusDays(windowDays))); out.put("dogEligible", dogEligible);
         boolean setup = context.enabled(Module.COURSES) && (viewer.staff() || context.flag("courses.showSetupToMembers"));
-        out.put("rings", ringViews.stream().map(r -> ringView(r, setup)).toList()); out.put("days", dayViews);
+        out.put("rings", ringViews.stream().map(r -> ringView(r, setup, trainable.contains(r.id()))).toList()); out.put("days", dayViews);
         return out;
     }
-    private Map<String, Object> ringView(PlanningCatalogAccess.TrainingRingView r, boolean withSetup) {
+    private Map<String, Object> ringView(PlanningCatalogAccess.TrainingRingView r, boolean withSetup, boolean trainable) {
         var out = new LinkedHashMap<String, Object>();
         out.put("id", r.id()); out.put("name", r.name()); out.put("shortName", r.shortName()); out.put("color", r.color()); out.put("order", r.order());
-        out.put("capacity", context.capacity(r.id(), r.trainingCapacity()));
+        out.put("capacity", trainable ? context.capacity(r.id(), r.trainingCapacity()) : 0);
         if (withSetup && r.activeSetupId() != null) {
             setups.active(r.activeSetupId(), LocaleContext.current()).ifPresent(s -> {
                 var setup = new LinkedHashMap<String, Object>(); setup.put("id", s.id()); setup.put("kind", s.kind()); setup.put("levelNames", s.levelNames());

@@ -27,9 +27,22 @@ public class MemberService {
         this.access = access; this.validation = validation; this.events = events; this.countries = countries;
         this.settings = settings; this.configs = configs; this.identities = identities; this.clock = clock;
     }
+    @org.springframework.beans.factory.annotation.Autowired private AuditWriter audits;
+    @org.springframework.beans.factory.annotation.Autowired private com.fasterxml.jackson.databind.ObjectMapper mapper;
+    /**
+     * R-03-08, R-14-09 (INC-38, E11-T10): a change of `consents` is its own `MEMBER_CONSENT_CHANGED` entry; `MEMBER_UPDATED` keeps
+     * the other fields, so a consent-only edit writes no `MEMBER_UPDATED`. Both diff the audited view of `@Audited`'s loader.
+     */
     @Transactional
-    @Audited(action = AuditAction.MEMBER_UPDATED, entityType = "'Member'", entity = "#id", member = "#id")
-    public void patch(String id, Map<String,Object> request, boolean own) { edit(id, request, own); }
+    public void patch(String id, Map<String,Object> request, boolean own) {
+        var before = audited(id); edit(id, request, own); var after = audited(id);
+        Object consentsBefore = before.remove("consents"), consentsAfter = after.remove("consents");
+        audits.write(new AuditCommand(AuditAction.MEMBER_UPDATED, "Member", id, id, before, after, null));
+        CensusAudit.consentChange(audits, id, consentsBefore, consentsAfter);
+    }
+    private Map<String,Object> audited(String id) {
+        return access.members.findById(id).map(member -> CensusAudit.view(member, mapper)).orElseGet(LinkedHashMap::new);
+    }
     @Transactional
     @Audited(action = AuditAction.SIGNUP_EDITED, entityType = "'Member'", entity = "#id", member = "#id")
     public void patchPending(String id, Map<String,Object> request) { edit(id, request, false); }
@@ -93,8 +106,10 @@ public class MemberService {
             signups.getObject().requirePlan(string(signup.get("planIdRequested")));
             member.signup=new LinkedHashMap<>(map(member.signup));member.signup.putAll(signup);
         }
-        if (request.containsKey("remarks")) { member.remarks = text(request.get("remarks"), "remarks", 2000, false); }
-        if (request.containsKey("internalNotes")) { member.internalNotes = text(request.get("internalNotes"), "internalNotes", 2000, false); }
+        // R-04-06 (INC-39, E11-T10): the remarks and notes live only on the LEFT record, which a pending readmission freezes;
+        // sending the ones it has is no edit.
+        if (request.containsKey("remarks")) { String remarks = text(request.get("remarks"), "remarks", 2000, false); if (readmission && !Objects.equals(remarks, member.remarks)) { throw CensusAccess.readmissionFrozen(); } member.remarks = remarks; }
+        if (request.containsKey("internalNotes")) { String notes = text(request.get("internalNotes"), "internalNotes", 2000, false); if (readmission && !Objects.equals(notes, member.internalNotes)) { throw CensusAccess.readmissionFrozen(); } member.internalNotes = notes; }
         if (request.containsKey("consents")) {
             var consent = map(request.get("consents")); allow(consent, Set.of("imageRights"));
             var image = map(consent.get("imageRights")); allow(image, Set.of("granted"));
@@ -130,7 +145,8 @@ public class MemberService {
     @Transactional
     @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")
     public void payment(String id, Map<String,Object> request) {
-        var member = access.mutableMember(id); access.require(Module.BILLING);
+        // R-04-06 (INC-39): a pending readmission's method waits in its request (D2 edits it with PATCH /members/{id}).
+        var member = CensusAccess.unfrozen(access.mutableMember(id)); access.require(Module.BILLING);
         allow(request, Set.of("type", "sepa", "card", "manual"));
         String type = string(request.get("type"));
         String provider = PaymentProviderFlags.provider(type);
@@ -194,7 +210,7 @@ public class MemberService {
     @Transactional
     @Audited(action = AuditAction.BOOKING_BLOCK_SET, entityType = "'Member'", entity = "#id", member = "#id", reason = "#reason")
     public void block(String id, String reason) {
-        var member = access.mutableMember(id); reason = text(reason, "reason", 200, true);
+        var member = CensusAccess.unfrozen(access.mutableMember(id)); reason = text(reason, "reason", 200, true);
         if (Boolean.TRUE.equals(map(member.bookingBlock).get("active"))) { throw new ApiException(ErrorCode.BOOKING_BLOCK_ALREADY_ACTIVE); }
         member.bookingBlock = object("active", true, "reason", reason, "since", clock.instant(), "byAccountId", CurrentUser.current().accountId());
         access.members.save(member); events.emit("BookingBlockChanged", "Member", id, object("memberId", id, "active", true, "reason", reason));
@@ -202,10 +218,12 @@ public class MemberService {
     @Transactional
     @Audited(action = AuditAction.BOOKING_BLOCK_CLEARED, entityType = "'Member'", entity = "#id", member = "#id")
     public void unblock(String id) {
-        var member = access.mutableMember(id);
+        var member = CensusAccess.unfrozen(access.mutableMember(id));
         if (!Boolean.TRUE.equals(map(member.bookingBlock).get("active"))) { throw new ApiException(ErrorCode.BOOKING_BLOCK_NOT_ACTIVE); }
+        // R-03-04, N-29 (INC-38, E11-T10): the unblock event carries the reason of the block it lifts.
+        String lifted = string(map(member.bookingBlock).get("reason"));
         member.bookingBlock = object("active", false); access.members.save(member);
-        events.emit("BookingBlockChanged", "Member", id, object("memberId", id, "active", false));
+        events.emit("BookingBlockChanged", "Member", id, object("memberId", id, "active", false, "reason", lifted));
     }
     @Transactional
     @Audited(action = AuditAction.ACCESS_RESENT, entityType = "'Member'", entity = "#id", member = "#id", reason = "'ACCESS_RESENT'")

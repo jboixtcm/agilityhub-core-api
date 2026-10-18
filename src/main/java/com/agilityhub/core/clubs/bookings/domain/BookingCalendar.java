@@ -8,10 +8,19 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * S08 R-08-08 calendar links and the `.ics` body. Only class data and the dog's name travel: no member, e-mail
- * or phone. Times are UTC (`Z`) so every calendar client converts them to its own zone.
+ * or phone. Times are UTC (`Z`) so every calendar client converts them to its own zone. INC-40 (E11-T10), RFC 5545: the
+ * `UID` never changes, `STATUS` (§3.8.1.11) says whether the booking still stands and `SEQUENCE` (§3.8.7.4) only grows, so a
+ * calendar that imported the file replaces the event when it is fetched again (a cancelled booking or class →
+ * `STATUS:CANCELLED`); `DTSTAMP` is when the file was produced.
  */
 public final class BookingCalendar {
-    public record Event(String uid, String title, String location, Instant startsAt, Instant endsAt, Instant stamp) { }
+    public enum Status { TENTATIVE, CONFIRMED, CANCELLED }
+    public record Event(String uid, String title, String location, Instant startsAt, Instant endsAt, Instant stamp, long sequence, Status status) {
+        /** The links' event: only the times, the title and the place matter there. */
+        public Event(String uid, String title, String location, Instant startsAt, Instant endsAt, Instant stamp) {
+            this(uid, title, location, startsAt, endsAt, stamp, 0, Status.CONFIRMED);
+        }
+    }
     private static final DateTimeFormatter UTC = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
     private BookingCalendar() { }
 
@@ -25,8 +34,21 @@ public final class BookingCalendar {
     }
     public static String ics(Event e) {
         return String.join("\r\n", "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AgilityHub//Bookings//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-                "BEGIN:VEVENT", "UID:" + e.uid(), "DTSTAMP:" + UTC.format(e.stamp()), "DTSTART:" + UTC.format(e.startsAt()),
-                "DTEND:" + UTC.format(e.endsAt()), "SUMMARY:" + text(e.title()), "LOCATION:" + text(e.location()), "END:VEVENT", "END:VCALENDAR") + "\r\n";
+                "BEGIN:VEVENT", "UID:" + e.uid(), "DTSTAMP:" + UTC.format(e.stamp()), "SEQUENCE:" + e.sequence(), "STATUS:" + e.status(),
+                "DTSTART:" + UTC.format(e.startsAt()), "DTEND:" + UTC.format(e.endsAt()), "SUMMARY:" + text(e.title()), "LOCATION:" + text(e.location()),
+                "END:VEVENT", "END:VCALENDAR") + "\r\n";
+    }
+    /**
+     * The `STATUS` of a booking: CANCELLED for every cancelled state (CANCELLED, CANCELLED_LATE, CANCELLED_BY_CLUB) and when the
+     * class itself is cancelled; TENTATIVE while a PAY_TO_BOOK booking waits for its payment (R-08-18); CONFIRMED otherwise.
+     */
+    public static Status status(BookingState state, boolean classCancelled) {
+        if (classCancelled) { return Status.CANCELLED; }
+        return switch (state) {
+            case CANCELLED, CANCELLED_LATE, CANCELLED_BY_CLUB -> Status.CANCELLED;
+            case PAYMENT_PENDING -> Status.TENTATIVE;
+            case ACTIVE -> Status.CONFIRMED;
+        };
     }
     private static String q(String value) { return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8); }
     /** RFC 5545 §3.3.11 TEXT escaping. */

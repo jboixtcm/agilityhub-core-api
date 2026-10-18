@@ -35,7 +35,7 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"),
+SEEDS = (("club:apply", "seeds/club-canic-consumer.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"),
          ("club:apply", "seeds/club-template-default.yaml"))
 PLATFORM = "platform@example.test"
 ID_HOST = "id.example.test"            # bin/e5-smoke's AUTH_ISSUER

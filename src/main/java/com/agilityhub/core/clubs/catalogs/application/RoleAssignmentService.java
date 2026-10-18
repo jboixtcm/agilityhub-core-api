@@ -41,6 +41,8 @@ public class RoleAssignmentService {
     }
     public Instructor instructor(String id) { return instructors.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public InstructorUsageCounter.Usage usage(String id) { return usage.usage(id); }
+    /** E11-T10 (INC-38): {@link #usage(String)} of a whole list in a fixed number of reads. */
+    public java.util.Map<String, InstructorUsageCounter.Usage> usage(java.util.Collection<String> ids) { return usage.usage(ids); }
     public TeamMembership administrator(String id) {
         var item = memberships.get(id);
         if (item.adminProfile() == null) { throw new ApiException(ErrorCode.NOT_FOUND); }

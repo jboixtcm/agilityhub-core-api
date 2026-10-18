@@ -42,6 +42,14 @@ public class AuditRepository {
         return tenants.lastChange(entityType, entityId);
     }
 
+    /**
+     * E11-T10 (INC-38): the last entry of each of these entities of the current club in one aggregate, the same entry
+     * {@link #lastChange} picks one by one (newest `at`, then `_id`); an entity without entries is absent.
+     */
+    public java.util.Map<String, AuditEntry> lastChanges(String entityType, Collection<String> entityIds) {
+        return tenants.lastChanges(entityType, entityIds);
+    }
+
     /** Explicit global operation selects only platform entries, never all tenants. */
     public Optional<AuditEntry> lastPlatformChange(String entityType, String entityId) {
         requirePlatformScope();
@@ -64,10 +72,18 @@ public class AuditRepository {
         return new Update().set("changes", java.util.List.of()).unset("reason").unset("actorName").unset("impersonatedName")
                 .unset("entityLabel").unset("ip").unset("userAgent").unset("details");
     }
-    /** The current club's entries about these members (`memberId`, `impersonatedMemberId`) or acted by these erased accounts. */
-    public long eraseMembers(Collection<String> memberIds, Collection<String> erasedAccountIds) {
+    /**
+     * The current club's entries about these members (`memberId`, `impersonatedMemberId`, or the member itself as the entity, whose
+     * `entityLabel` is its name: E11-T10, INC-38), about their dogs as the entity (also the entries written while another member
+     * owned the dog, whose `memberId` is that owner: E11-T10 review) or acted by these erased accounts.
+     */
+    public long eraseMembers(Collection<String> memberIds, Collection<String> dogIds, Collection<String> erasedAccountIds) {
         var who = new java.util.ArrayList<Criteria>();
-        if (!memberIds.isEmpty()) { who.add(Criteria.where("memberId").in(memberIds)); who.add(Criteria.where("impersonatedMemberId").in(memberIds)); }
+        if (!memberIds.isEmpty()) {
+            who.add(Criteria.where("memberId").in(memberIds)); who.add(Criteria.where("impersonatedMemberId").in(memberIds));
+            who.add(Criteria.where("entityType").is("Member").and("entityId").in(memberIds));
+        }
+        if (!dogIds.isEmpty()) { who.add(Criteria.where("entityType").is("Dog").and("entityId").in(dogIds)); }
         if (!erasedAccountIds.isEmpty()) { who.add(Criteria.where("actorAccountId").in(erasedAccountIds)); }
         if (who.isEmpty()) { return 0; }
         writes.written(TenantContext.require());
@@ -102,12 +118,27 @@ public class AuditRepository {
                 .on("at", Sort.Direction.DESC).named("audit_club_impersonated_at"));
         indexes.createIndex(new Index().on("clubId", Sort.Direction.ASC).on("entityType", Sort.Direction.ASC)
                 .on("entityId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_entity_at"));
+        // E11-T10 (INC-38): R-14-11's `filter=action:…` on the newest-first list.
+        indexes.createIndex(new Index().on("clubId", Sort.Direction.ASC).on("action", Sort.Direction.ASC)
+                .on("at", Sort.Direction.DESC).named("audit_club_action_at"));
     }
 
     private class TenantEntries extends TenantRepository<AuditEntry> {
         TenantEntries(MongoTemplate mongo) { super(mongo, AuditEntry.class); }
         Optional<AuditEntry> lastChange(String entityType, String entityId) {
             return findLast(tenantQuery(), entityType, entityId);
+        }
+        java.util.Map<String, AuditEntry> lastChanges(String entityType, Collection<String> entityIds) {
+            var result = new java.util.HashMap<String, AuditEntry>();
+            if (entityIds.isEmpty()) { return result; }
+            var match = tenantQuery().addCriteria(Criteria.where("entityType").is(entityType).and("entityId").in(entityIds)).getQueryObject();
+            var pipeline = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(context -> new org.bson.Document("$match", match),
+                    context -> new org.bson.Document("$sort", new org.bson.Document("at", -1).append("_id", -1)),
+                    context -> new org.bson.Document("$group", new org.bson.Document("_id", "$entityId").append("entry", new org.bson.Document("$first", "$$ROOT"))));
+            for (var row : mongo.aggregate(pipeline, mongo.getCollectionName(AuditEntry.class), org.bson.Document.class)) {
+                result.put(row.getString("_id"), mongo.getConverter().read(AuditEntry.class, row.get("entry", org.bson.Document.class)));
+            }
+            return result;
         }
     }
 }

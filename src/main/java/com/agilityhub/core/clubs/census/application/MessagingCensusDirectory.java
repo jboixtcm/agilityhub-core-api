@@ -108,6 +108,10 @@ public class MessagingCensusDirectory implements MemberDirectoryPort, MemberCont
         if (member == null || member.erasedAt != null) { return false; }
         return access.members.updateFirst(Criteria.where("_id").is(memberId), new Update().set("notificationPreferences", block));
     }
+    /** R-04-06 (INC-39, E11-T10): a pending readmission's LEFT record is frozen for D10 until its validation or rejection. */
+    @Override public void requireNotFrozen(String memberId) {
+        access.members.findById(memberId).ifPresent(member -> CensusAccess.unfrozen(member));
+    }
     /** E7-T03 (R-11-11 `CHANGE_CLASS`): an `ACTIVE` dog the account's member may book for (S08 R-08-02, family group included). */
     @Override public boolean dogAccessible(String accountId, String dogId) {
         var member = bookingMembers.memberByAccount(accountId).orElse(null);

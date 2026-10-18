@@ -69,6 +69,8 @@ public class CatalogService {
         return repository(kind).findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
     public Map<String, Long> usage(CatalogKind kind, String id) { return usage.usage(kind, id); }
+    /** E11-T10 (INC-38): {@link #usage} of a whole list in a fixed number of reads. */
+    public Map<String, Map<String, Long>> usage(CatalogKind kind, Collection<String> ids) { return usage.usage(kind, ids); }
     public Map<String, Object> snapshot(CatalogKind kind, String id) { return fields(get(kind, id)); }
     public Map<String, Object> orderSnapshot(CatalogKind kind) {
         Map<String, Object> order = new LinkedHashMap<>();

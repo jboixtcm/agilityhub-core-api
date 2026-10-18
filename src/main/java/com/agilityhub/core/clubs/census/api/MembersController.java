@@ -84,7 +84,8 @@ public class MembersController {
             description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. "
                     + "A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; "
                     + "the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
-                    + "A wrong document is resolved by rejecting the readmission.",
+                    + "A wrong document is resolved by rejecting the readmission. The remarks and internal notes stay the LEFT record's: "
+                    + "changing them answers the same 409 (READMISSION_PENDING, INC-39); sending the ones it has is no edit.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(implementation = Member.class))))
     public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
         else { members.patch(id, request, false); } return queries.member(id, true); }); }
@@ -93,12 +94,13 @@ public class MembersController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
-    @ContractErrors({INVALID_IBAN, PAYMENT_PROVIDER_NOT_ENABLED, MEMBER_ERASED})
+    @ContractErrors({INVALID_IBAN, PAYMENT_PROVIDER_NOT_ENABLED, MEMBER_ERASED, INVALID_STATE})
     @Operation(summary = "Update payment method",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
                     + "SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` "
                     + "and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account "
-                    + "(«Compte no informat»). Another `type` replaces the method.",
+                    + "(«Compte no informat»). Another `type` replaces the method. A pending readmission's method is edited with PATCH /members/{id}."
+                    + "A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView", content = @Content(schema = @Schema(implementation = PaymentMethodView.class))))
     public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
 
@@ -106,9 +108,9 @@ public class MembersController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED})
+    @ContractErrors({BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED, INVALID_STATE})
     @Operation(summary = "Activate booking block",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "201", description = "BookingBlock", content = @Content(schema = @Schema(implementation = BookingBlock.class))))
     public java.util.Map<String,Object> activateBookingBlock(@PathVariable String id, @Valid @RequestBody BookingBlockRequest request) { return transactions.run(() -> { members.block(id, request.reason()); return queries.block(id); }); }
 
@@ -116,9 +118,9 @@ public class MembersController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({BOOKING_BLOCK_NOT_ACTIVE, MEMBER_ERASED})
+    @ContractErrors({BOOKING_BLOCK_NOT_ACTIVE, MEMBER_ERASED, INVALID_STATE})
     @Operation(summary = "Remove booking block",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. A pending readmission's LEFT record (S04 R-04-06, INC-39) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
     public void removeBookingBlock(@PathVariable String id) { transactions.run(() -> { members.unblock(id); return null; }); }
 

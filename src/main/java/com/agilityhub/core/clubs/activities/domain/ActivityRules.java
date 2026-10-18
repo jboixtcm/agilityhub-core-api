@@ -33,6 +33,17 @@ public final class ActivityRules {
         if (a.minPlaces() != null && a.minPlaces() < 1 || a.maxPlaces() != null && a.maxPlaces() < 1
                 || a.minPlaces() != null && a.maxPlaces() != null && a.minPlaces() > a.maxPlaces()) invalid("minPlaces");
     }
+    /**
+     * S07 §3 and R-07-05 (R-06-11), INC-40 (E11-T10): with rings, the ring-block window's hours are aligned to
+     * `classes.slotMinutes` like `startTime`/`endTime` (400 INVALID_SLOT_GRANULARITY); RingBlockWindow checks the rest at sync.
+     */
+    public static void window(String fromTime, String toTime, boolean rings, int slotMinutes) {
+        if (!rings) return;
+        for (String value : new String[]{fromTime,toTime}) {
+            LocalTime at = time(value);
+            if (at != null && at.toSecondOfDay() % (slotMinutes * 60) != 0) throw new ApiException(ErrorCode.INVALID_SLOT_GRANULARITY);
+        }
+    }
     public static void publish(Input a, LocalDate today) {
         var missing = new ArrayList<Map<String,String>>();
         if (a.date() == null) missing.add(Map.of("field", "date", "code", "REQUIRED"));

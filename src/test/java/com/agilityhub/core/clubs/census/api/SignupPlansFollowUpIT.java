@@ -235,4 +235,89 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$pull",new Document("modules","PACKS")));configs.invalidate(club);signupService.invalidateConfiguration(club);
         mustChoose(pack,planId("PACK6"),planId("ABONAT"),"94100000592000");
     }
+
+    /** A submitted (PENDING) public signup of the copy; returns its member id. */
+    String submitted(ObjectNode signup) throws Exception {
+        String ip="198.51.100."+(++sequence%250+1);
+        return result(postJson("/signup",signup).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr(ip);return r;}),201).path("memberId").asText();
+    }
+    /** D2's validation body: the version and every pending dog with the level A. */
+    Map<String,Object> validation(JsonNode review) {
+        var body=new LinkedHashMap<String,Object>();body.put("version",review.path("version").asLong());
+        var dogs=new ArrayList<Map<String,Object>>();for(var dog:review.path("dogs")) dogs.add(Map.of("dogId",dog.path("id").asText(),"levelId",level));body.put("dogs",dogs);
+        return body;
+    }
+    String priceOf(String code) { return mongo.getCollection("prices").find(new Document("clubId",club).append("planId",planId(code))).first().getString("_id"); }
+
+    /**
+     * R-04-19, R-04-09, INC-39 (E11-T10): D2 loads a public signup whose requested plan was deactivated since: no plan proposal and
+     * the rows as submitted. Its dry run without a plan previews them as they are, the validation without a plan still answers
+     * 422 PLAN_NOT_AVAILABLE, and with an assignable plan it validates.
+     */
+    @Test void R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen() throws Exception {
+        String id=submitted(request(planId("ABONAT")));
+        long version=((Number)mongo.getCollection("plans").find(new Document("_id",planId("ABONAT"))).first().get("version")).longValue();
+        result(admin(patch("/api/v1/plans/"+planId("ABONAT")).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version,"active",false)))),200);
+        var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);
+        assertThat(review.at("/proposals/planId").asText(null)).isNull();assertThat(review.at("/proposals/priceId").asText(null)).isNull();
+        assertThat(review.at("/signup/planIdRequested").asText()).isEqualTo(planId("ABONAT"));
+        assertThat(review.path("planOptions").findValuesAsText("planId")).doesNotContain(planId("ABONAT")).contains(planId("PACK6"));
+        assertThat(review.at("/upfront/lines")).hasSize(2);assertThat(review.at("/upfront/totalDue/amountMinor").asLong()).isPositive();
+        assertThat(SnapshotSchemas.violations(review,"MemberSignupView")).isEmpty();
+        var body=validation(review);
+        var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+        assertThat(dry.at("/upfront/totalDue")).isEqualTo(review.at("/upfront/totalDue"));assertThat(dry.at("/upfront/lines").findValuesAsText("id")).isEqualTo(review.at("/upfront/lines").findValuesAsText("id"));
+        assertThat(dry.path("price").asText(null)).isNull();
+        body.put("upfrontAmountPaid",Map.of("amountMinor",0,"currency","EUR"));
+        assertThat(result(admin(postJson("/members/"+id+"/validation",body)),422).path("code").asText()).isEqualTo("PLAN_NOT_AVAILABLE");
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");
+        body.put("planId",planId("PACK6"));body.remove("upfrontAmountPaid");
+        var chosen=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+        assertThat(chosen.at("/price/id").asText()).isEqualTo(priceOf("PACK6"));
+        body.put("upfrontAmountPaid",mapper.convertValue(chosen.at("/upfront/totalDue"),Map.class));
+        result(admin(postJson("/members/"+id+"/validation",body)),200);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(member(id).getString("planId")).isEqualTo(planId("PACK6"));
+    }
+
+    /**
+     * R-04-13, T-04-16, INC-39 (E11-T10): the family-fare proposal counts the dogs of the group the validation leaves the member in,
+     * every member's. An applicant without a claim whom D2 puts in a group (`familyGroupId`) with two dogs gets the largest
+     * family fare (no plan includes three); a claim on the holder of that group counts three and, once a fare includes three,
+     * gets that one.
+     */
+    @Test void R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup() throws Exception {
+        String family=familyMember();String group=member(family).getString("familyGroupId");
+        String holder=mongo.getCollection("family_groups").find(new Document("_id",group).append("clubId",club)).first().getString("holderMemberId");
+        String alone=submitted(request(planId("ABONAT")));
+        var body=validation(result(admin(get("/api/v1/members/"+alone+"/signup")),200));body.put("familyGroupId",group);
+        var dry=result(admin(postJson("/members/"+alone+"/validation",body).param("dryRun","true")),200);
+        assertThat(dry.at("/price/id").asText()).as("1 + the group's 2 dogs: the largest family fare").isEqualTo(priceOf("ABONAT_FAMILIAR"));
+        // A family fare that includes three dogs (fictional, on the copy).
+        var familiar=mongo.getCollection("plans").find(new Document("_id",planId("ABONAT_FAMILIAR"))).first();
+        String three=UUID.randomUUID().toString();var plan=new Document(familiar);plan.put("_id",three);plan.put("code","ABONAT_FAMILIAR_3");plan.put("dogsIncluded",3);
+        mongo.getCollection("plans").insertOne(plan);
+        var price=new Document(mongo.getCollection("prices").find(new Document("_id",priceOf("ABONAT_FAMILIAR"))).first());
+        price.put("_id",UUID.randomUUID().toString());price.put("planId",three);price.put("amount",new Document("amountMinor",12000L).append("currency","EUR"));
+        mongo.getCollection("prices").insertOne(price);
+        var holderRow=member(holder);String holderDog=mongo.getCollection("dogs").find(new Document("memberId",holder).append("clubId",club)).first().getString("name");
+        var claim=request(planId("ABONAT"));
+        claim.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName",holderRow.getString("firstName")+" "+holderRow.getString("lastName1"),"dogName",holderDog,"leavePending",false)));
+        String claimed=submitted(claim);
+        assertThat(result(admin(get("/api/v1/members/"+claimed+"/signup")),200).at("/proposals/planId").asText()).as("the holder's group has 2 dogs: 3 with the applicant's").isEqualTo(three);
+        assertThat(result(admin(postJson("/members/"+alone+"/validation",body).param("dryRun","true")),200).at("/price/id").asText()).isEqualTo(price.getString("_id"));
+        // E11-T10 review. Each dog once, never an INACTIVE one: with the family member's dog gone (INACTIVE) the group adds the
+        // holder's dog alone, and the applicant's pending dog (selected, and one of its own dogs) counts once: 2 dogs.
+        String familyDog=mongo.getCollection("dogs").find(new Document("memberId",family).append("clubId",club)).first().getString("_id");
+        mongo.getCollection("dogs").updateOne(new Document("_id",familyDog),new Document("$set",new Document("status","INACTIVE")));
+        assertThat(result(admin(postJson("/members/"+alone+"/validation",body).param("dryRun","true")),200).at("/price/id").asText())
+                .as("1 pending + the holder's: 2 dogs, the fare that includes two").isEqualTo(priceOf("ABONAT_FAMILIAR"));
+        assertThat(result(admin(get("/api/v1/members/"+claimed+"/signup")),200).at("/proposals/planId").asText()).isEqualTo(planId("ABONAT_FAMILIAR"));
+        // A group that is not ACTIVE adds nobody: neither through D2's familyGroupId nor through the claimed holder who is in it.
+        var withoutGroup=new java.util.LinkedHashMap<>(body);withoutGroup.remove("familyGroupId");
+        String standard=result(admin(postJson("/members/"+alone+"/validation",withoutGroup).param("dryRun","true")),200).at("/price/id").asText();
+        assertThat(standard).isNotEqualTo(priceOf("ABONAT_FAMILIAR"));
+        mongo.getCollection("family_groups").updateOne(new Document("_id",group),new Document("$set",new Document("status","DISSOLVED")));
+        assertThat(result(admin(postJson("/members/"+alone+"/validation",body).param("dryRun","true")),200).at("/price/id").asText()).isEqualTo(standard);
+        assertThat(result(admin(get("/api/v1/members/"+claimed+"/signup")),200).at("/proposals/planId").asText()).isEqualTo(planId("ABONAT"));
+    }
 }

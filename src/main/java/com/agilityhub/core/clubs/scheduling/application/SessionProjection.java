@@ -35,9 +35,11 @@ public class SessionProjection {
     public ZoneId zone() { return ZoneId.of(context.config().club().timeZone()); }
     public RiskEvaluator.Result risk(ClassSession c) {
         var config=context.config();
-        return new RiskEvaluator(messages::format).evaluate(new RiskEvaluator.Input(c.state(),c.risk().exempt(),c.counters().booked(),c.date()),
+        // INC-40 (E11-T10): the tooltip promises the cancellation only when P2 will review the class (S15 §6, E37).
+        return new RiskEvaluator(messages::format).evaluate(new RiskEvaluator.Input(c.state(),c.risk().exempt(),c.counters().booked(),c.date(),c.startsAt()),
                 new RiskEvaluator.Policy(config.get("classes.minDogs",Integer.class),LocalTime.parse(config.get("classes.riskReviewTime",String.class)),
-                        config.get("classes.riskLookaheadDays",Integer.class),config.get("classes.riskAutoCancelSameDay",Boolean.class),zone()),clock.instant(),LocaleContext.current());
+                        config.get("classes.riskLookaheadDays",Integer.class),config.get("classes.riskAutoCancelSameDay",Boolean.class),
+                        Boolean.TRUE.equals(config.get("jobs.riskReview.enabled",Boolean.class)),zone()),clock.instant(),LocaleContext.current());
     }
     public String description(ClassSession c,Locale locale) { return context.descriptions().resolve(c.description(),c.levelIds(),context.catalog(),locale); }
     private static final List<String> PRODUCT_LANGUAGES=List.of("ca","es","en");

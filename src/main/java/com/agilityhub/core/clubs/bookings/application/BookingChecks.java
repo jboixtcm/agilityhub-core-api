@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 /**
  * The shared S08 check pipeline of hold, confirmation, waiting-list join and claim: load the class, the dog, its
  * owner and the booker, run {@link BookingEligibility} (R-08-04/05/06/17), reject a second live booking of the dog
- * (ALREADY_BOOKED), then evaluate the weekly limit of the class's booking week (R-08-02/03/09).
+ * (ALREADY_BOOKED), then evaluate the weekly limit of the class's booking week (R-08-02/03/09). The transactional callers
+ * serialise the owner with {@link #lockOwner} before they count.
  */
 @Service
 public class BookingChecks {
@@ -31,7 +32,6 @@ public class BookingChecks {
         var session = classes.find(classSessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var dog = census.dog(dogId).filter(d -> actor.memberId() != null && census.canAccess(actor.memberId(), d))
                 .orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
-        census.lockBooking(dog.memberId());
         var owner = census.member(dog.memberId()).orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
         var booker = census.member(actor.memberId()).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
         var weeks = context.weeks(); var week = weeks.week(session.startsAt()); var relative = weeks.relative(session.startsAt(), now);
@@ -44,6 +44,12 @@ public class BookingChecks {
                 relative, weeks.opensAt(week), pack.map(p -> new BookingEligibility.Pack(p.available(), p.expiresOn()))));
         return new Subject(session, dog, owner, booker, week, relative, pack);
     }
+    /**
+     * R-08-02/12 (E8-T05): `$inc` of the dog owner's `bookingEligibilitySeq` inside the caller's transaction, so two
+     * transactions of one owner (two classes of a booking week, two waiting lists) conflict in Mongo and the retried one counts
+     * the other. Only inside a transaction: the hold's pre-check reads and never writes (INC-40, E11-T10).
+     */
+    public void lockOwner(Subject s) { census.lockBooking(s.owner().id()); }
     public void notBookedYet(Subject s) {
         if (bookings.live(s.session().id(), s.dog().id()).isPresent()) { throw new ApiException(ErrorCode.ALREADY_BOOKED); }
     }

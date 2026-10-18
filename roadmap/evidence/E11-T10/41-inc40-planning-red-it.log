@@ -1,0 +1,523 @@
+# E11-T10 INC-40 planning items A-F: failed attempt (red, IT) — main code at HEAD (nothing swapped); red as expected, but the C assertions expected REQUIRED for an empty POST list, which the POST's Bean Validation already answers as 400 NotEmpty → tests changed to NotEmpty (and PATCH cases added), repeated as 43
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=CalendarIT#*INC_40*,PlanningIT#*INC_40*,ActivityIT#*INC_40*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/41-inc40-planning-red-it.log 2>&1
+16:35:16.106 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.scheduling.application.CalendarIT
+16:35:16.133 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:35:16.135 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.scheduling.application.CalendarIT
+16:35:16.156 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:35:16.157 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:35:16.160 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:35:16.240 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:35:16.393 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:35:16.393 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:35:16.403 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:35:16.741 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:35:16.764 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:35:16.811 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 9069a817ef9cf3d053a2a4fad08c7e2993a50de2a303bd916b558c9542bbb2c3
+16:35:16.981 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.239967S
+16:35:16.984 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:35:16.984 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:35:16.984 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:35:16.984 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:35:17.014 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 48a20546a333d3d6ff44742058e46289563bd459a375af0b09544de632e56778
+16:35:17.529 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.544583S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T16:35:18.115+03:00 INFO  [main] c.a.c.c.s.application.CalendarIT traceId= clubId= accountId= : Starting CalendarIT using Java [redacted] with PID 98096 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T16:35:18.116+03:00 INFO  [main] c.a.c.c.s.application.CalendarIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T16:35:18.925+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T16:35:18.972+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 43 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T16:35:19.356+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@645b67d6], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1926806c, com.mongodb.Jep395RecordCodecProvider@44a972b4, com.mongodb.KotlinCodecProvider@4848681d, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52502], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7712c315], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T16:35:19.363+03:00 INFO  [cluster-6ad4cb172ecae142ea534b84-localhost:52502] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52502, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10103792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=48a20546a333:27017, hosts=[48a20546a333:27017], passives=[], arbiters=[], primary='48a20546a333:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4cb15d49b62ccd4da29a1, counter=6}, lastWriteDate=Sun Oct 18 16:35:17 EEST 2026, lastUpdateTimeNanos=[redacted]}
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-18T16:35:20.647+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:20.666+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:20.691+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:21.671+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:21.684+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:21.696+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:21.761+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:35:23.662+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T16:35:23.663+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T16:35:23.667+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-18T16:35:23.727+03:00 INFO  [main] c.a.c.c.s.application.CalendarIT traceId= clubId= accountId= : Started CalendarIT in 5.751 seconds (process running for 8.086)
+2026-10-18T16:35:24.671+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=7259b2ed-f269-45d8-9e74-5306fa390e5e clubId=planning-a accountId=planning-admin : Framework request rejected code=VALIDATION_ERROR traceId=7259b2ed-f269-45d8-9e74-5306fa390e5e
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 9.586 s <<< FAILURE! -- in com.agilityhub.core.clubs.scheduling.application.CalendarIT
+[ERROR] com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_15_INC_40_thePreviewShowsAnErasedMemberAndAMissingDogAsNeutralRows -- Time elapsed: 0.508 s <<< FAILURE!
+java.lang.AssertionError: Range for response status value 404 expected:<SUCCESSFUL> but was:<CLIENT_ERROR>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$is2xxSuccessful$0(StatusResultMatchers.java:80)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.ok(CalendarIT.java:81)
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_15_INC_40_thePreviewShowsAnErasedMemberAndAMissingDogAsNeutralRows(CalendarIT.java:594)
+
+[ERROR] com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_13_INC_40_instructorListsAndInactiveReferencesOfClassSessions -- Time elapsed: 0.175 s <<< FAILURE!
+java.lang.AssertionError: JSON path "$.details.fieldErrors[0].code" expected:<REQUIRED> but was:<NotEmpty>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.fieldError(CalendarIT.java:552)
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_13_INC_40_instructorListsAndInactiveReferencesOfClassSessions(CalendarIT.java:572)
+
+[ERROR] com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_06_INC_40_theRiskTooltipPromisesTheCancellationOnlyWhenTheReviewWillAct -- Time elapsed: 0.235 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Aquesta classe només té un alumne: si ningú més s'hi apunta abans de les 07:30 de dimarts, s'anul·larà."
+to contain:
+  ["abans de les 7:30 de dimarts", "s'anul·larà"]
+but could not find:
+  ["abans de les 7:30 de dimarts"]
+ 
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_06_INC_40_theRiskTooltipPromisesTheCancellationOnlyWhenTheReviewWillAct(CalendarIT.java:558)
+
+[ERROR] com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_13_INC_40_reorderingTheInstructorsSendsNoN08b -- Time elapsed: 0.619 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting empty but was: [{"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Tomorrow, with Dog0: the class has changed. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Check the app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="en", "memberId"="student-0", "status"="DELIVERED", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "target"="student-0", "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Tomorrow, with Dog0: the class has changed. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Check the app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="en", "memberId"="student-0", "providerRef"="fake-b25f40d1-4026-4090-b366-7c5e9e55699b", "recipientEmail"="student-0@example.test", "status"="SENT", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "target"="student-0@example.test", "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: class tomorrow with Dog0 changed. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="en", "memberId"="student-0", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Demà, amb Dog1: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-1", "status"="DELIVERED", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "target"="student-1", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Demà, amb Dog1: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="ca", "memberId"="student-1", "providerRef"="fake-01f6e776-7ae8-4a03-ae2e-7701778f77a7", "recipientEmail"="student-1@example.test", "status"="SENT", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "target"="student-1@example.test", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: classe demà amb Dog1 modificada. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-1", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Demà, amb Dog2: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-2", "status"="DELIVERED", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "target"="student-2", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Demà, amb Dog2: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="ca", "memberId"="student-2", "providerRef"="fake-08d399ef-005c-4be4-8267-f29aea2b9b3e", "recipientEmail"="student-2@example.test", "status"="SENT", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "target"="student-2@example.test", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: classe demà amb Dog2 modificada. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-2", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="adc0cfa0-5013-4db0-9d5d-9d3889253b97", "accountId"="teacher-account", "action"={"params"={"classSessionId"="28400f43-9e63-445b-9395-d91bee17e571"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="INSTRUCTORS", "body"="Demà · D: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:INSTRUCTORS:teacher-account", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="plan-instructor-member", "status"="DELIVERED", "subject"={"classSessionId"="28400f43-9e63-445b-9395-d91bee17e571"}, "target"="teacher-account", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="STAFF", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "ring_name"="Example"}}]
+	at com.agilityhub.core.clubs.scheduling.application.CalendarIT.T_06_13_INC_40_reorderingTheInstructorsSendsNoN08b(CalendarIT.java:609)
+
+2026-10-18T16:35:25.544+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.scheduling.application.PlanningIT]: PlanningIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:25.546+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.scheduling.application.PlanningIT
+2026-10-18T16:35:25.546+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.scheduling.application.PlanningIT]: PlanningIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:25.546+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:25.547+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.scheduling.application.PlanningIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T16:35:25.577+03:00 INFO  [main] c.a.c.c.s.application.PlanningIT traceId= clubId= accountId= : Starting PlanningIT using Java [redacted] with PID 98096 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T16:35:25.578+03:00 INFO  [main] c.a.c.c.s.application.PlanningIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T16:35:25.913+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T16:35:25.942+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T16:35:26.011+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@629651b5], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1926806c, com.mongodb.Jep395RecordCodecProvider@44a972b4, com.mongodb.KotlinCodecProvider@4848681d, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52502], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5fe6c7c2], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T16:35:26.012+03:00 INFO  [cluster-6ad4cb1e2ecae142ea534b86-localhost:52502] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52502, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1089666, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=48a20546a333:27017, hosts=[48a20546a333:27017], passives=[], arbiters=[], primary='48a20546a333:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4cb15d49b62ccd4da29a1, counter=6}, lastWriteDate=Sun Oct 18 16:35:25 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T16:35:26.902+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T16:35:26.902+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T16:35:26.904+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T16:35:26.929+03:00 INFO  [main] c.a.c.c.s.application.PlanningIT traceId= clubId= accountId= : Started PlanningIT in 1.379 seconds (process running for 11.289)
+2026-10-18T16:35:26.955+03:00 INFO  [main] c.a.c.c.c.persistence.CensusPersistence traceId= clubId= accountId= : Dog.nameKey migrated for 3 dogs
+2026-10-18T16:35:27.153+03:00 WARN  [main] c.a.core.shared.api.ApiExceptionHandler traceId=9833813e-de60-43f5-9cd6-b46abf83286c clubId=planning-a accountId=planning-admin : Framework request rejected code=VALIDATION_ERROR traceId=9833813e-[redacted]
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.613 s <<< FAILURE! -- in com.agilityhub.core.clubs.scheduling.application.PlanningIT
+[ERROR] com.agilityhub.core.clubs.scheduling.application.PlanningIT.T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses -- Time elapsed: 0.177 s <<< FAILURE!
+java.lang.AssertionError: JSON path "$.details.fieldErrors[0].code" expected:<REQUIRED> but was:<NotEmpty>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.clubs.scheduling.application.PlanningIT.fieldError(PlanningIT.java:93)
+	at com.agilityhub.core.clubs.scheduling.application.PlanningIT.T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses(PlanningIT.java:106)
+
+2026-10-18T16:35:27.158+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.activities.application.ActivityIT]: ActivityIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:27.192+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.activities.application.ActivityIT
+2026-10-18T16:35:27.193+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.activities.application.ActivityIT]: ActivityIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:27.193+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:35:27.194+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.activities.application.ActivityIT
+2026-10-18T16:35:27.194+03:00 WARN  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : For test class [com.agilityhub.core.clubs.activities.application.ActivityIT], the following 'default' context configuration classes were detected but are currently ignored: com.agilityhub.core.clubs.activities.application.ActivityFixtures$Ports. In Spring Framework 7.1, these classes will no longer be ignored. Please update your test configuration accordingly. For details, see: https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/default-config.html
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T16:35:27.210+03:00 INFO  [main] c.a.c.c.a.application.ActivityIT traceId= clubId= accountId= : Starting ActivityIT using Java [redacted] with PID 98096 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T16:35:27.210+03:00 INFO  [main] c.a.c.c.a.application.ActivityIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T16:35:27.435+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T16:35:27.463+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 26 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T16:35:27.508+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3d7e2bde], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1926806c, com.mongodb.Jep395RecordCodecProvider@44a972b4, com.mongodb.KotlinCodecProvider@4848681d, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52502], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@681b65c8], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T16:35:27.509+03:00 INFO  [cluster-6ad4cb1f2ecae142ea534b87-localhost:52502] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52502, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1015125, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=48a20546a333:27017, hosts=[48a20546a333:27017], passives=[], arbiters=[], primary='48a20546a333:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4cb15d49b62ccd4da29a1, counter=6}, lastWriteDate=Sun Oct 18 16:35:27 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T16:35:28.230+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T16:35:28.230+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T16:35:28.232+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T16:35:28.254+03:00 INFO  [main] c.a.c.c.a.application.ActivityIT traceId= clubId= accountId= : Started ActivityIT in 1.058 seconds (process running for 12.613)
+2026-10-18T16:35:28.963+03:00 ERROR [main] c.a.core.shared.api.ApiExceptionHandler traceId=7e2a890a-bc3e-4aea-822b-3305f9c82db8 clubId=s07-a accountId=s07-admin : Unhandled request exception traceId=7e2a890a-bc3e-4aea-822b-3305f9c82db8
+java.util.NoSuchElementException
+	at java.base/java.util.Optional.orElseThrow(Optional.java:377)
+	at com.agilityhub.core.clubs.activities.application.ActivityApiService.lambda$preview$2(ActivityApiService.java:38)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:722)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:575)
+	at java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:260)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:616)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:622)
+	at java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:627)
+	at com.agilityhub.core.clubs.activities.application.ActivityApiService.preview(ActivityApiService.java:39)
+	at com.agilityhub.core.clubs.activities.api.ActivitiesController.cancellationPreview(ActivitiesController.java:188)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158)
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:82)
+	at com.agilityhub.core.shared.api.IdempotentReplayAspect.handler(IdempotentReplayAspect.java:27)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:648)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:630)
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:168)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.proceed(AuthorizationManagerBeforeMethodInterceptor.java:271)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization(AuthorizationManagerBeforeMethodInterceptor.java:266)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:197)
+	at org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke(DeferringMethodInterceptor.java:44)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719)
+	at com.agilityhub.core.clubs.activities.api.ActivitiesController$$SpringCGLIB$$0.cancellationPreview(<generated>)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.sentry.spring7.SentryUserFilter.doFilterInternal(SentryUserFilter.java:72)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at com.agilityhub.core.shared.api.RequestLocaleFilter.doFilterInternal(RequestLocaleFilter.java:24)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$2(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:491)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:353)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:84)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:131)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at com.agilityhub.core.identity.api.CurrentUserFilter.doFilterInternal(CurrentUserFilter.java:60)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at com.agilityhub.core.shared.api.AccountStateFilter.doFilterInternal(AccountStateFilter.java:36)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at com.agilityhub.core.shared.api.TenantFilter.doFilterInternal(TenantFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at com.agilityhub.core.shared.api.RateLimitFilter.doFilterInternal(RateLimitFilter.java:99)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:174)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.oauth2.server.resource.web.OAuth2ProtectedResourceMetadataFilter.doFilterInternal(OAuth2ProtectedResourceMetadataFilter.java:98)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:230)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:243)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:336)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:140)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at com.agilityhub.core.configuration.MongoTimeoutConfiguration$2.doFilterInternal(MongoTimeoutConfiguration.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:43)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.sentry.spring7.tracing.SentryTracingFilter.doFilterInternal(SentryTracingFilter.java:125)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.sentry.spring7.SentrySpringFilter.doFilterInternal(SentrySpringFilter.java:80)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199)
+	at com.agilityhub.core.clubs.activities.application.ActivityFixtures.call(ActivityFixtures.java:82)
+	at com.agilityhub.core.clubs.activities.application.ActivityIT.T_07_13_INC_40_thePreviewShowsAnErasedRegistrantAsANeutralRow(ActivityIT.java:94)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 2.190 s <<< FAILURE! -- in com.agilityhub.core.clubs.activities.application.ActivityIT
+[ERROR] com.agilityhub.core.clubs.activities.application.ActivityIT.T_07_13_INC_40_thePreviewShowsAnErasedRegistrantAsANeutralRow -- Time elapsed: 0.695 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET /activities/914926d8-a5d5-4d23-aa23-fd1fdba426f8/cancellation-preview {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 7e2a890a-bc3e-4aea-822b-3305f9c82db8 al club.","details":{},"traceId":"7e2a890a-bc3e-4aea-822b-3305f9c82db8"}] 
+expected: 200
+ but was: 500
+	at com.agilityhub.core.clubs.activities.application.ActivityFixtures.call(ActivityFixtures.java:83)
+	at com.agilityhub.core.clubs.activities.application.ActivityIT.T_07_13_INC_40_thePreviewShowsAnErasedRegistrantAsANeutralRow(ActivityIT.java:94)
+
+[ERROR] com.agilityhub.core.clubs.activities.application.ActivityIT.T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots -- Time elapsed: 0.366 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[PATCH /activities/7c1bb6e0-1a0b-48bf-8c53-48c70c79db78 {"id":"7c1bb6e0-1a0b-48bf-8c53-48c70c79db78","slug":"activitat-exemple","state":"DRAFT","type":"SEMINAR","typeLabel":null,"typeDisplay":"seminari","title":"Activitat exemple","titleI18n":{"es":"Actividad ejemplo","en":"Example activity","ca":"Activitat exemple"},"shortDescription":null,"shortDescriptionI18n":null,"longDescriptionHtml":null,"longDescriptionI18n":null,"image":null,"documents":[],"location":{"atClub":true,"name":null,"address":null,"url":null},"ringIds":["s07-ring-0","s07-ring-1","s07-ring-2","s07-ring-3","s07-ring-4"],"rings":[{"id":"s07-ring-0","name":"Ring 0","color":"#112233"},{"id":"s07-ring-1","name":"Ring 1","color":"#112233"},{"id":"s07-ring-2","name":"Ring 2","color":"#112233"},{"id":"s07-ring-3","name":"Ring 3","color":"#112233"},{"id":"s07-ring-4","name":"Ring 4","color":"#112233"}],"allRings":true,"date":"2026-09-15","startTime":"18:00","endTime":"20:00","startsAt":"2026-09-15T16:00:00Z","endsAt":"2026-09-15T18:00:00Z","ringBlockWindow":{"fromTime":"17:45","toTime":"20:00"},"registrationFrom":"2026-09-01","registrationTo":"2026-09-15","registrationOpen":false,"minPlaces":null,"maxPlaces":5,"levelIds":[],"levelNames":[],"waitlistEnabled":true,"visibility":"MEMBERS","priceTiers":[],"counters":{"active":0,"waiting":0},"freeSeats":5,"belowMinimum":false,"publicUrl":"https://club.example.test/activitat/activitat-exemple","ringBlockIds":[],"placementIds":[],"publishedAt":null,"cancellation":null,"version":2}] 
+expected: 400
+ but was: 200
+	at com.agilityhub.core.clubs.activities.application.ActivityFixtures.call(ActivityFixtures.java:83)
+	at com.agilityhub.core.clubs.activities.application.ActivityIT.T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots(ActivityIT.java:103)
+
+[ERROR] Failures: 
+[ERROR]   ActivityIT.T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots:103->ActivityFixtures.call:83 [PATCH /activities/7c1bb6e0-1a0b-48bf-8c53-48c70c79db78 {"id":"7c1bb6e0-1a0b-48bf-8c53-48c70c79db78","slug":"activitat-exemple","state":"DRAFT","type":"SEMINAR","typeLabel":null,"typeDisplay":"seminari","title":"Activitat exemple","titleI18n":{"es":"Actividad ejemplo","en":"Example activity","ca":"Activitat exemple"},"shortDescription":null,"shortDescriptionI18n":null,"longDescriptionHtml":null,"longDescriptionI18n":null,"image":null,"documents":[],"location":{"atClub":true,"name":null,"address":null,"url":null},"ringIds":["s07-ring-0","s07-ring-1","s07-ring-2","s07-ring-3","s07-ring-4"],"rings":[{"id":"s07-ring-0","name":"Ring 0","color":"#112233"},{"id":"s07-ring-1","name":"Ring 1","color":"#112233"},{"id":"s07-ring-2","name":"Ring 2","color":"#112233"},{"id":"s07-ring-3","name":"Ring 3","color":"#112233"},{"id":"s07-ring-4","name":"Ring 4","color":"#112233"}],"allRings":true,"date":"2026-09-15","startTime":"18:00","endTime":"20:00","startsAt":"2026-09-15T16:00:00Z","endsAt":"2026-09-15T18:00:00Z","ringBlockWindow":{"fromTime":"17:45","toTime":"20:00"},"registrationFrom":"2026-09-01","registrationTo":"2026-09-15","registrationOpen":false,"minPlaces":null,"maxPlaces":5,"levelIds":[],"levelNames":[],"waitlistEnabled":true,"visibility":"MEMBERS","priceTiers":[],"counters":{"active":0,"waiting":0},"freeSeats":5,"belowMinimum":false,"publicUrl":"https://club.example.test/activitat/activitat-exemple","ringBlockIds":[],"placementIds":[],"publishedAt":null,"cancellation":null,"version":2}] 
+expected: 400
+ but was: 200
+[ERROR]   ActivityIT.T_07_13_INC_40_thePreviewShowsAnErasedRegistrantAsANeutralRow:94->ActivityFixtures.call:83 [GET /activities/914926d8-a5d5-4d23-aa23-fd1fdba426f8/cancellation-preview {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 7e2a890a-bc3e-4aea-822b-3305f9c82db8 al club.","details":{},"traceId":"7e2a890a-bc3e-4aea-822b-3305f9c82db8"}] 
+expected: 200
+ but was: 500
+[ERROR]   CalendarIT.T_06_06_INC_40_theRiskTooltipPromisesTheCancellationOnlyWhenTheReviewWillAct:558 
+Expecting actual:
+  "Aquesta classe només té un alumne: si ningú més s'hi apunta abans de les 07:30 de dimarts, s'anul·larà."
+to contain:
+  ["abans de les 7:30 de dimarts", "s'anul·larà"]
+but could not find:
+  ["abans de les 7:30 de dimarts"]
+ 
+[ERROR]   CalendarIT.T_06_13_INC_40_instructorListsAndInactiveReferencesOfClassSessions:572->fieldError:552 JSON path "$.details.fieldErrors[0].code" expected:<REQUIRED> but was:<NotEmpty>
+[ERROR]   CalendarIT.T_06_13_INC_40_reorderingTheInstructorsSendsNoN08b:609 
+Expecting empty but was: [{"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Tomorrow, with Dog0: the class has changed. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Check the app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="en", "memberId"="student-0", "status"="DELIVERED", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "target"="student-0", "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Tomorrow, with Dog0: the class has changed. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Check the app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="en", "memberId"="student-0", "providerRef"="fake-b25f40d1-4026-4090-b366-7c5e9e55699b", "recipientEmail"="student-0@example.test", "status"="SENT", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "target"="student-0@example.test", "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="ede8c933-6050-41c3-a2cf-cb244c7ebcb0", "accountId"="student-0", "action"={"params"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: class tomorrow with Dog0 changed. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-0:dog-0", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="en", "memberId"="student-0", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-0", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-0", "memberId"="student-0"}, "title"="Class changed by the club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="tomorrow", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog0", "dog_name_article"="Dog0", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student0", "member_last_names"="Example", "member_name"="Student0 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Demà, amb Dog1: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-1", "status"="DELIVERED", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "target"="student-1", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Demà, amb Dog1: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="ca", "memberId"="student-1", "providerRef"="fake-01f6e776-7ae8-4a03-ae2e-7701778f77a7", "recipientEmail"="student-1@example.test", "status"="SENT", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "target"="student-1@example.test", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="b86b7cbf-7ab4-49dd-b7d2-fc236b6a1ab6", "accountId"="student-1", "action"={"params"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: classe demà amb Dog1 modificada. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-1:dog-1", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-1", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-1", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-1", "memberId"="student-1"}, "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog1", "dog_name_article"="Dog1", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student1", "member_last_names"="Example", "member_name"="Student1 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Demà, amb Dog2: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-2", "status"="DELIVERED", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "target"="student-2", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=1, "audience"="MEMBER", "body"="Demà, amb Dog2: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor. Mira-ho a l'app.", "category"="CLUB_CHANGES", "channel"="EMAIL", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "lastError"=null, "locale"="ca", "memberId"="student-2", "providerRef"="fake-08d399ef-005c-4be4-8267-f29aea2b9b3e", "recipientEmail"="student-2@example.test", "status"="SENT", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "target"="student-2@example.test", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="d7996d4a-3cd3-4dc5-82ba-820d43e1e4ee", "accountId"="student-2", "action"={"params"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Example Agility Club: classe demà amb Dog2 modificada. Instructor: plan-instructor-2, plan-instructor -> plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="SMS", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:MEMBER:student-2:dog-2", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="student-2", "status"="SKIPPED_MODULE_OFF", "subject"={"bookingId"="booking-2", "classSessionId"="28400f43-9e63-445b-9395-d91bee17e571", "dogId"="dog-2", "memberId"="student-2"}, "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "dog_name"="Dog2", "dog_name_article"="Dog2", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "gender"="other", "member_first_name"="Student2", "member_last_names"="Example", "member_name"="Student2 Example", "ring_name"="Example"}},
+    {"_id"="adc0cfa0-5013-4db0-9d5d-9d3889253b97", "accountId"="teacher-account", "action"={"params"={"classSessionId"="28400f43-9e63-445b-9395-d91bee17e571"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="INSTRUCTORS", "body"="Demà · D: la classe ha canviat. Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor.", "category"="CLUB_CHANGES", "channel"="APP", "clubId"="planning-a", "code"="N-08b", "createdAt"=2026-08-24T07:00:00.000 (java.util.Date), "dedupKey"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973:N-08b:INSTRUCTORS:teacher-account", "eventId"="4178d3cf-d3ff-4339-bb33-cc2e71d8b973", "eventType"="ClassSessionUpdated", "locale"="ca", "memberId"="plan-instructor-member", "status"="DELIVERED", "subject"={"classSessionId"="28400f43-9e63-445b-9395-d91bee17e571"}, "target"="teacher-account", "title"="Classe modificada pel club", "variables"={"action"="OPEN_BOOKING", "audience"="STAFF", "changes"="Instructor: plan-instructor-2, plan-instructor → plan-instructor-2, plan-instructor", "class_date"="demà", "class_description"="D", "class_time"="18:00", "club_name"="Example Agility Club", "entityId"="28400f43-9e63-445b-9395-d91bee17e571", "ring_name"="Example"}}]
+[ERROR]   CalendarIT.T_06_15_INC_40_thePreviewShowsAnErasedMemberAndAMissingDogAsNeutralRows:594->ok:81 Range for response status value 404 expected:<SUCCESSFUL> but was:<CLIENT_ERROR>
+[ERROR]   PlanningIT.T_06_09_INC_40_instructorListsAndInactiveReferencesOfTemplateClasses:106->fieldError:93 JSON path "$.details.fieldErrors[0].code" expected:<REQUIRED> but was:<NotEmpty>
+[ERROR] Tests run: 7, Failures: 7, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1
+surefire: not run in this command (-Dtest=NONE); failsafe per class (this run):
+  ActivityIT tests 2 failures 2 errors 0 skipped 0
+  CalendarIT tests 4 failures 4 errors 0 skipped 0
+  PlanningIT tests 1 failures 1 errors 0 skipped 0

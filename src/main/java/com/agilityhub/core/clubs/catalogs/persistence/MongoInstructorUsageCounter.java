@@ -24,6 +24,15 @@ public class MongoInstructorUsageCounter extends TenantRepository<MongoInstructo
         return new Usage(count("class_sessions", Criteria.where("instructorIds").is(id).and("startsAt").gt(clock.instant()).and("state").ne("CANCELLED")),
                 templateClasses("instructorIds", id));
     }
+    /** E11-T10 (INC-38): D17's usage of every instructor in two reads; each id's counts are {@link #usage(String)}'s. */
+    @Override public java.util.Map<String, Usage> usage(java.util.Collection<String> ids) {
+        var now = java.util.Date.from(clock.instant());
+        var sessions = ReferenceCounts.countBy(mongo, "class_sessions", "instructorIds", ids, criteria -> criteria.and("startsAt").gt(now).and("state").ne("CANCELLED"));
+        var templates = ReferenceCounts.templateClasses(mongo, tenantQuery(), "instructorIds", ids);
+        var result = new java.util.LinkedHashMap<String, Usage>();
+        ids.forEach(id -> result.put(id, new Usage(sessions.get(id), templates.get(id))));
+        return result;
+    }
     public boolean hasReferences(String id) {
         return count("class_sessions", Criteria.where("instructorIds").is(id)) + templateClasses("instructorIds", id) > 0;
     }

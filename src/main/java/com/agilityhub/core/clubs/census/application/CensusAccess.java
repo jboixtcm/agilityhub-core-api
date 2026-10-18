@@ -49,6 +49,14 @@ public class CensusAccess implements DogOwnerAccess {
         if (readmissionPending(dog)) { throw readmissionFrozen(); }
         return dog;
     }
+    /**
+     * R-04-06, R-04-23 (INC-39, E11-T10): the LEFT record of a pending readmission is frozen the same way; D2 edits only the
+     * submitted values ({@link MemberService}), and D10's routes that would write the record answer 409 (READMISSION_PENDING).
+     */
+    public static Member unfrozen(Member member) {
+        if (member.readmissionPending()) { throw readmissionFrozen(); }
+        return member;
+    }
     public static ApiException readmissionFrozen() { return new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
     public Dog ownDog(String id, boolean mutation) {
         var dog = dogs.require(id); var member = me();
@@ -66,9 +74,14 @@ public class CensusAccess implements DogOwnerAccess {
         var member = members.require(memberId);
         if (enabled(Module.FAMILY_GROUP) && member.familyGroupId != null) {
             var group = groups.findById(member.familyGroupId).orElse(null);
-            if (group != null && "ACTIVE".equals(group.status) && group.memberIds.contains(member.id)) { return group.holderMemberId; }
+            // R-03-20, R-12-04 (INC-38, E11-T10): only an ACTIVE holder pays for the group; otherwise the member is billed on their own.
+            if (group != null && "ACTIVE".equals(group.status) && group.memberIds.contains(member.id) && activeHolder(group)) { return group.holderMemberId; }
         }
         return member.id;
+    }
+    /** R-03-20: the group's holder is an ACTIVE member of the club (a LEFT holder bills nobody, INC-38). */
+    boolean activeHolder(FamilyGroup group) {
+        return group.holderMemberId != null && members.findById(group.holderMemberId).map(holder -> "ACTIVE".equals(holder.status)).orElse(false);
     }
     public FreeTrainingPolicy.Result free(Dog dog) {
         return FreeTrainingPolicy.evaluate(dog.freeTrainingOverride, levels() && dog.levelId != null,

@@ -16,12 +16,24 @@ public class AuditWriter {
     private final AuditRepository repository;
     private final AuditActorProvider actors;
     private final Clock clock;
+    private final Map<String, AuditLabeler> labelers;
+    private final com.agilityhub.core.shared.application.EventPublisher events;
 
-    public AuditWriter(AuditRepository repository, AuditActorProvider actors, Clock clock) {
+    public AuditWriter(AuditRepository repository, AuditActorProvider actors, Clock clock) { this(repository, actors, clock, List.of(), null); }
+
+    /** E11-T10 (INC-38): with the `entityLabel` labelers (S14 §3) and the outbox whose ids the entry links (R-14-10). */
+    @org.springframework.beans.factory.annotation.Autowired
+    public AuditWriter(AuditRepository repository, AuditActorProvider actors, Clock clock, List<AuditLabeler> labelers,
+            com.agilityhub.core.shared.application.EventPublisher events) {
         this.repository = repository;
         this.actors = actors;
         this.clock = clock;
+        this.labelers = labelers.stream().collect(java.util.stream.Collectors.toUnmodifiableMap(AuditLabeler::entityType, java.util.function.Function.identity()));
+        this.events = events;
     }
+
+    /** R-14-15: the erasure's own entries carry only ids, never a label. */
+    static final java.util.Set<AuditAction> UNLABELLED = java.util.EnumSet.of(AuditAction.MEMBER_ERASED, AuditAction.ACCOUNT_ERASED);
 
     /**
      * S14 R-14-10: an entry without changes or reason is discarded, except for the «event» actions, which record that the
@@ -98,11 +110,13 @@ public class AuditWriter {
         }
         // S17 R-17-10 (E10-T04): every action taken with a support access token is the AgilityHub team's, not the club's.
         if (origin == null && Boolean.TRUE.equals(actor.support())) { origin = "PLATFORM_SUPPORT"; }
+        // E11-T10 (INC-38): S14 §3's `entityLabel` snapshot, read in the entry's club; R-14-10's `eventIds[]` of this transaction.
+        var labeler = clubId == null || UNLABELLED.contains(action) ? null : labelers.get(entityType);
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
                 auditOrigin(origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name()),
-                details);
+                details, labeler == null ? null : labeler.label(entityId), events == null ? null : events.publishedInTransaction());
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }

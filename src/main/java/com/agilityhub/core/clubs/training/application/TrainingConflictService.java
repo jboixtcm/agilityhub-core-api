@@ -26,7 +26,10 @@ public class TrainingConflictService implements TrainingConflictPort {
         return active.stream().map(b -> new Booking(b.id(), b.ringId(), b.startsAt(), b.endsAt(), Objects.toString(names.get(b.memberId()), ""),
                 Objects.toString(dogs.get(b.dogId()), ""))).toList();
     }
-    @Override public void cancelByClub(List<String> bookingIds, String cancelReason) { service.cancelByClub(bookingIds, reason(cancelReason), null); }
+    @Override public void cancelByClub(List<String> bookingIds, String cancelReason) { cancelByClub(bookingIds, cancelReason, null); }
+    @Override public void cancelByClub(List<String> bookingIds, String cancelReason, String adminText) {
+        service.cancelByClub(bookingIds, reason(cancelReason), adminText);
+    }
     @Override public void lockSlots(String ringId, Instant from, Instant to) { slotLocks.overlapping(ringId, from, to); }
     static TrainingCancelReason reason(String value) {
         if (value == null) { return TrainingCancelReason.RING_BLOCK; }

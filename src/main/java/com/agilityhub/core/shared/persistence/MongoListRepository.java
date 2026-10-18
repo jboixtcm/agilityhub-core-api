@@ -144,7 +144,8 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         if (value instanceof List<?> values) { return values.stream().map(v -> mongoValue(type, v)).toList(); }
         if (value instanceof Boolean) { return value; }
         if (type == ListDefinition.Type.INSTANT) { return Date.from(java.time.Instant.parse(value.toString())); }
-        if (type == ListDefinition.Type.NUMBER) { return new org.bson.types.Decimal128((java.math.BigDecimal) value); }
+        // INC-38 (E11-T10): a stored query holds its numbers as strings (`big-decimal: string`).
+        if (type == ListDefinition.Type.NUMBER) { return new org.bson.types.Decimal128(value instanceof java.math.BigDecimal number ? number : new java.math.BigDecimal(value.toString())); }
         return value;
     }
     private Document sort(ListDataset data, ListQuery query) {

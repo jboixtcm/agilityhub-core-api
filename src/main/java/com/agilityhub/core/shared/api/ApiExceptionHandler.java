@@ -63,15 +63,22 @@ public class ApiExceptionHandler {
                 case 406 -> ErrorCode.NOT_ACCEPTABLE;
                 case 415 -> ErrorCode.UNSUPPORTED_MEDIA_TYPE;
                 case 429 -> ErrorCode.RATE_LIMITED;
+                case 501 -> ErrorCode.NOT_IMPLEMENTED;
                 default -> status < 500 ? ErrorCode.VALIDATION_ERROR : ErrorCode.INTERNAL_ERROR;
             };
-            if (status < 500 || exception instanceof org.springframework.web.context.request.async.AsyncRequestTimeoutException) {
+            if (status < 500 || code == ErrorCode.NOT_IMPLEMENTED
+                    || exception instanceof org.springframework.web.context.request.async.AsyncRequestTimeoutException) {
                 // An expired async request (SSE) is an expected end of the stream, not an internal error.
                 LOG.warn("Framework request rejected status={} code={} traceId={}", status, code,
                         RequestTraceFilter.traceId(request));
             } else {
                 captureInternalError(exception, request);
                 LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
+            }
+            if (status >= 500) {
+                // CATALEG_ERRORS §1, INC-40 (E11-T10): a 5xx answers its code's catalog status (501 NOT_IMPLEMENTED, else 500
+                // INTERNAL_ERROR), never the framework's 502/503 or its headers.
+                return respond(new ApiException(code), request);
             }
             return ResponseEntity.status(framework.getStatusCode()).headers(framework.getHeaders())
                     .contentType(org.springframework.http.MediaType.APPLICATION_JSON)

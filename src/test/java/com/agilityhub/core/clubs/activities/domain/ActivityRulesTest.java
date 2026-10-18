@@ -61,6 +61,15 @@ class ActivityRulesTest {
         error(ErrorCode.INVALID_TIME_RANGE,() -> RingBlockWindow.of(date,"18:30","18:40",null,null,zone,LocalTime.MIN,LocalTime.MAX,30));
         error(ErrorCode.INVALID_TIME_RANGE,() -> RingBlockWindow.of(date,null,null,null,null,zone,LocalTime.MIN,LocalTime.MAX,30));
     }
+    /** S07 §3 and R-07-05 (R-06-11), INC-40 (E11-T10): the ring-block window's hours are multiples of classes.slotMinutes when rings are blocked. */
+    @Test void T_07_04_INC_40_theRingBlockWindowIsAlignedToTheClassSlots() {
+        ActivityRules.window("17:40","20:10",true,10); ActivityRules.window(null,null,true,10); ActivityRules.window("17:45","20:00",false,10);
+        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window("17:45","20:00",true,10));
+        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window("17:40","20:05",true,10));
+        error(ErrorCode.INVALID_SLOT_GRANULARITY,() -> ActivityRules.window(null,"20:00:30",true,10));
+        ActivityRules.window("17:45","20:15",true,15);
+        error(ErrorCode.INVALID_TIME_RANGE,() -> ActivityRules.window("25:00",null,true,10));
+    }
     ActivityEligibility.Member member(String status,boolean active,LocalDate leave,Map<String,Object> block,Map<String,Object> actor,List<ActivityEligibility.Inactivity> inactivity) {
         return new ActivityEligibility.Member(status,active,leave,block,actor,inactivity,List.of(new ActivityEligibility.Dog("dog-c",true,"C"),new ActivityEligibility.Dog("dog-d",true,"D")));
     }

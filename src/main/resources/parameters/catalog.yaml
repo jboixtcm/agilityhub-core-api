@@ -159,7 +159,7 @@ parameters:
     documentDefault: "`{\"ca\": \"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.\", \"es\": \"Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.\", \"en\": \"Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence.\"}`"
   - key: "signup.text.imageConsent"
     type: "localizedText"
-    default: {"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"}
+    default: {"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club", "es": "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club", "en": "I authorise the publication of photos of me and my dog within the scope of the club's activities"}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.imageConsent.label"
     helpKey: "admin-settings:param.signup.text.imageConsent.help"
@@ -169,7 +169,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "«Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club»"
+    documentDefault: "`{\"ca\": \"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club\", \"es\": \"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club\", \"en\": \"I authorise the publication of photos of me and my dog within the scope of the club's activities\"}`"
   - key: "signup.text.closed"
     type: "localizedText"
     default: {"ca": "Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.", "es": "Las inscripciones están cerradas temporalmente. Vuelve a intentarlo más adelante o ponte en contacto con el club.", "en": "Registration is temporarily closed. Please try again later or contact the club."}
@@ -1147,7 +1147,7 @@ parameters:
     documentDefault: "`[{\"key\": \"VACCINATION_CARD\", \"label\": {\"ca\": \"Cartilla de vacunes\", \"es\": \"Cartilla de vacunas\", \"en\": \"Vaccination card\"}, \"required\": true}, {\"key\": \"INSURANCE\", \"label\": {\"ca\": \"Assegurança\", \"es\": \"Seguro\", \"en\": \"Insurance\"}, \"required\": false}, {\"key\": \"OTHER\", \"label\": {\"ca\": \"Altres\", \"es\": \"Otros\", \"en\": \"Other\"}, \"required\": false}]`"
   - key: "census.bookingBlockReasons"
     type: "list"
-    default: [{"ca": "rebut impagat"}, {"ca": "cartilla pendent"}, {"ca": "decisió del club"}]
+    default: [{"ca": "rebut impagat", "es": "recibo impagado", "en": "unpaid receipt"}, {"ca": "cartilla pendent", "es": "cartilla pendiente", "en": "vaccination card pending"}, {"ca": "decisió del club", "es": "decisión del club", "en": "club decision"}]
     block: "club"
     labelKey: "admin-settings:param.census.bookingBlockReasons.label"
     helpKey: "admin-settings:param.census.bookingBlockReasons.help"
@@ -1157,7 +1157,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "list localizedText"
-    documentDefault: "rebut impagat · cartilla pendent · decisió del club"
+    documentDefault: "`[{\"ca\": \"rebut impagat\", \"es\": \"recibo impagado\", \"en\": \"unpaid receipt\"}, {\"ca\": \"cartilla pendent\", \"es\": \"cartilla pendiente\", \"en\": \"vaccination card pending\"}, {\"ca\": \"decisió del club\", \"es\": \"decisión del club\", \"en\": \"club decision\"}]`"
   - key: "signup.text.monthlyPaymentIntro"
     type: "localizedText"
     default: {"ca": "La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.", "es": "La cuota mensual para abonados se cobrará normalmente el día 1. En el caso de packs no se genera ningún cargo.", "en": "The monthly membership fee is normally collected on the 1st. Packs do not generate a monthly charge."}
@@ -1892,7 +1892,7 @@ parameters:
     documentDefault: "3"
   - key: "learn.linkText"
     type: "localizedText"
-    default: {"ca": "Aprèn amb AgilityHub"}
+    default: {"ca": "Aprèn amb AgilityHub", "es": "Aprende con AgilityHub", "en": "Learn with AgilityHub"}
     block: "club"
     labelKey: "admin-settings:param.learn.linkText.label"
     helpKey: "admin-settings:param.learn.linkText.help"
@@ -1902,7 +1902,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "«Aprèn amb AgilityHub»"
+    documentDefault: "`{\"ca\": \"Aprèn amb AgilityHub\", \"es\": \"Aprende con AgilityHub\", \"en\": \"Learn with AgilityHub\"}`"
   - key: "learn.recommendationsTtlMinutes"
     type: "int"
     default: 60

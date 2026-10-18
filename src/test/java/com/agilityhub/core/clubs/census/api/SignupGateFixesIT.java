@@ -464,6 +464,27 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");assertThat(refused.at("/details/reason").asText()).isEqualTo("CHECKOUT_PENDING");
         assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
     }
+    /**
+     * R-04-16, S04 §5, INC-39 (E11-T10): an amount collected by hand while a checkout of the rows is in progress is refused with
+     * its reason, as a plan change is, and the dry run of the same plan warns; nothing collected lets the validation pass.
+     */
+    @Test void T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason() throws Exception {
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true)).append("SEPA_XML",new Document("enabled",true)).append("STRIPE",new Document("enabled",true)))));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+        var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));var submitted=submit(body);String id=submitted.path("memberId").asText();
+        result(postJson("/checkout-sessions",Map.of("memberId",id,"signupToken",submitted.path("signupToken").asText(),"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel")).header("Idempotency-Key",UUID.randomUUID()),201);
+        var request=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)),
+                "nextInvoiceDate",review(id).at("/proposals/nextInvoiceDate").asText()));
+        var dry=result(admin(postJson("/members/"+id+"/validation",request).param("dryRun","true")),200);
+        assertThat(dry.path("warnings").toString()).contains("CHECKOUT_PENDING");
+        request.put("upfrontAmountPaid",Map.of("amountMinor",100,"currency","EUR"));
+        var refused=result(admin(postJson("/members/"+id+"/validation",request)),409);
+        assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");assertThat(refused.at("/details/reason").asText()).isEqualTo("CHECKOUT_PENDING");
+        assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));assertThat(member(id).getString("status")).isEqualTo("PENDING");
+        request.put("upfrontAmountPaid",Map.of("amountMinor",0,"currency","EUR"));
+        result(admin(postJson("/members/"+id+"/validation",request)),200);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
+    }
     String pack() { return pack(13500); }
     /** A pack plan without entry fee: its whole quote is `amountMinor`. */
     String pack(long amountMinor) {

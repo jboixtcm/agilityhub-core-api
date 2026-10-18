@@ -284,7 +284,8 @@ class E3ContractIT extends AbstractIntegrationTest {
         var expected = new LinkedHashMap<String, Integer>();
         for (String code : List.of("MEMBER_ALREADY_EXISTS","MEMBERSHIP_EXISTS")) { expected.put(code,409); }
         for (String code : List.of("INVALID_ID_DOCUMENT","INVALID_PHONE","FILE_NOT_FOUND")) { expected.put(code,400); }
-        for (String code : List.of("SIGNUP_CLOSED","SIGNUP_ALREADY_PENDING","ID_DOCUMENT_AMBIGUOUS","PLAN_NOT_AVAILABLE","PAYMENT_METHOD_NOT_AVAILABLE","PAYMENT_PROVIDER_NOT_ENABLED","DOG_CHIP_ALREADY_REGISTERED","DOG_DOCUMENT_REQUIRED","CONSENT_VERSION_OUTDATED","LEVEL_REQUIRED","NEXT_INVOICE_DATE_REQUIRED","UPFRONT_AMOUNT_EXCEEDS_DUE","FAMILY_HOLDER_NOT_FOUND")) { expected.put(code,422); }
+        for (String code : List.of("SIGNUP_CLOSED","SIGNUP_ALREADY_PENDING","ID_DOCUMENT_AMBIGUOUS","PLAN_NOT_AVAILABLE","PAYMENT_METHOD_NOT_AVAILABLE","PAYMENT_PROVIDER_NOT_ENABLED","DOG_CHIP_ALREADY_REGISTERED","DOG_DOCUMENT_REQUIRED","CONSENT_VERSION_OUTDATED","LEVEL_REQUIRED","NEXT_INVOICE_DATE_REQUIRED","UPFRONT_AMOUNT_EXCEEDS_DUE","FAMILY_HOLDER_NOT_FOUND",
+                "CURRENCY_MISMATCH")) { expected.put(code,422); } // INC-39 (E11-T10): the validation's currency check, R-04-16
         expected.put("RATE_LIMITED",429);
         String row = Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md")).stream().filter(s -> s.startsWith("| S04 |")).findFirst().orElseThrow();
         var matcher = java.util.regex.Pattern.compile("`([A-Z_]+)`").matcher(row);

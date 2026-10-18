@@ -1,0 +1,249 @@
+# E11-T10 INC-38 A (AuditEntry entityLabel / eventIds / DATA_EXPORTED details and actorName): red — swapped to HEAD: AuditEntry, EventPublisher, MongoEventPublisher, AuditWriter, ExportCompletion, ExportJobCoordinator, AuditConfiguration (AuditLabeler, PlatformAuditLabels, CensusAuditLabels removed) and the test AuditConfigurationTest (its INC-38 unit test needs the new provider seam: new seam, compile); AuditRepository kept at the working version (it also holds item C). Fails: no entityLabel, q finds nothing, DATA_EXPORTED without actorName and with changes[] instead of details
+$ ./mvnw -q -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=CensusIT#T_14_11_INC_38_*,AuditQueriesIT#T_14_11_INC_38_*,ExportEngineIT#T_14_15_INC_38_*,UniversalListsIT#T_03_11_*' -Dfailsafe.failIfNoSpecifiedTests=false -Djacoco.skip=true verify > roadmap/evidence/E11-T10/27-inc38-audit-label-events-export-red.log 2>&1
+15:56:39.207 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.ExportEngineIT]: ExportEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:56:39.328 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.ExportEngineIT
+15:56:39.355 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.ExportEngineIT]: ExportEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:56:39.355 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:56:39.358 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.ExportEngineIT
+15:56:39.380 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+15:56:39.381 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+15:56:39.384 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+15:56:39.465 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+15:56:39.620 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+15:56:39.621 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+15:56:39.631 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+15:56:39.956 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+15:56:39.984 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+15:56:40.034 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 0d72ff71c24236af8783cc4d2317ac1220f1e87d17c2bdd7a07be1331aa8dd98
+15:56:40.214 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.258063S
+15:56:40.217 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+15:56:40.217 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+15:56:40.217 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+15:56:40.217 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+15:56:40.248 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 4aebda466f3744223f4319a9c96555811058fa708fe6585ad3efc9ddb9082170
+15:56:40.697 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.479621S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T15:56:41.305+03:00 INFO  [main] c.a.core.clubs.common.api.ExportEngineIT traceId= clubId= accountId= : Starting ExportEngineIT using Java [redacted] with PID 93604 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T15:56:41.306+03:00 INFO  [main] c.a.core.clubs.common.api.ExportEngineIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T15:56:42.104+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T15:56:42.149+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 41 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T15:56:42.554+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T15:56:42.561+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T15:56:42.561+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T15:56:42.587+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 1276 ms
+2026-10-18T15:56:42.695+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@1ee37c7a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@4973dacf, com.mongodb.Jep395RecordCodecProvider@5cb42eb2, com.mongodb.KotlinCodecProvider@2d05d022, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52060], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@28806954], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T15:56:42.701+03:00 INFO  [cluster-6ad4c20a67ebd895ec931cc1-localhost:52060] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52060, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8809083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4aebda466f37:27017, hosts=[4aebda466f37:27017], passives=[], arbiters=[], primary='4aebda466f37:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4c208d247e8a9abf1c4e1, counter=6}, lastWriteDate=Sun Oct 18 15:56:40 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T15:56:43.282+03:00 INFO  [main] o.s.boot.web.servlet.RegistrationBean traceId= clubId= accountId= : Filter rateLimitFilter was not registered (disabled)
+2026-10-18T15:56:43.774+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:43.790+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:43.810+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:44.411+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:44.425+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:44.437+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:44.493+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T15:56:46.036+03:00 INFO  [main] o.a.c.c.C.[Tomcat].[localhost].[/] traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T15:56:46.036+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T15:56:46.041+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 5 ms
+2026-10-18T15:56:46.083+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 52064 (http) with context path '/'
+2026-10-18T15:56:46.111+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat initialized with port 0 (http)
+2026-10-18T15:56:46.111+03:00 INFO  [main] o.apache.catalina.core.StandardService traceId= clubId= accountId= : Starting service [Tomcat]
+2026-10-18T15:56:46.112+03:00 INFO  [main] org.apache.catalina.core.StandardEngine traceId= clubId= accountId= : Starting Servlet engine: [Apache Tomcat/11.0.27]
+2026-10-18T15:56:46.121+03:00 INFO  [main] o.s.b.w.c.s.WebApplicationContextInitializer traceId= clubId= accountId= : Root WebApplicationContext: initialization completed in 36 ms
+2026-10-18T15:56:46.128+03:00 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver traceId= clubId= accountId= : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-18T15:56:46.144+03:00 INFO  [main] o.s.boot.tomcat.TomcatWebServer traceId= clubId= accountId= : Tomcat started on port 52065 (http) with context path '/'
+2026-10-18T15:56:46.149+03:00 INFO  [main] c.a.core.clubs.common.api.ExportEngineIT traceId= clubId= accountId= : Started ExportEngineIT in 4.987 seconds (process running for 7.301)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 9.091 s <<< FAILURE! -- in com.agilityhub.core.clubs.common.api.ExportEngineIT
+[ERROR] com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync -- Time elapsed: 1.814 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting all elements of:
+  [{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="5cdd35b7-29cf-4dd9-92ae-df1db95e152c", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="members", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=30L, "path"="rows"}], "clubId"="export-a", "entityId"="59b4ad24-338d-4f7a-aba0-aa055f71d8a3", "entityType"="ExportJob", "ip"="127.0.0.1", "origin"="APP", "traceId"="e45a0b31-1029-4ae7-b74d-192d613889c9"},
+    {"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="9ff810c5-1b26-4432-b2aa-171b6a315ee6", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="dogs", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=5001L, "path"="rows"}], "clubId"="export-a", "entityId"="f9290be1-3088-4ab7-aedf-c19260a45648", "entityType"="ExportJob", "traceId"="63e205cb-7476-4b46-9506-219a89adb70a"}]
+to satisfy given requirements, but these elements did not:
+
+{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="5cdd35b7-29cf-4dd9-92ae-df1db95e152c", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="members", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=30L, "path"="rows"}], "clubId"="export-a", "entityId"="59b4ad24-338d-4f7a-aba0-aa055f71d8a3", "entityType"="ExportJob", "ip"="127.0.0.1", "origin"="APP", "traceId"="e45a0b31-1029-4ae7-b74d-192d613889c9"}
+error: org.opentest4j.AssertionFailedError: 
+expected: "Example Exporter"
+ but was: null
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.lambda$T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync$3(ExportEngineIT.java:188)
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync(ExportEngineIT.java:187)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="9ff810c5-1b26-4432-b2aa-171b6a315ee6", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="dogs", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=5001L, "path"="rows"}], "clubId"="export-a", "entityId"="f9290be1-3088-4ab7-aedf-c19260a45648", "entityType"="ExportJob", "traceId"="63e205cb-7476-4b46-9506-219a89adb70a"}
+error: org.opentest4j.AssertionFailedError: 
+expected: "Example Exporter"
+ but was: null
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.lambda$T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync$3(ExportEngineIT.java:188)
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync(ExportEngineIT.java:187)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync(ExportEngineIT.java:187)
+
+2026-10-18T15:56:48.251+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:48.252+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+2026-10-18T15:56:48.253+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:48.253+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:48.254+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.767 s <<< FAILURE! -- in com.agilityhub.core.clubs.common.api.UniversalListsIT
+[ERROR] com.agilityhub.core.clubs.common.api.UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox -- Time elapsed: 0.185 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "{"_id": "f17165cf-7a58-451e-8c92-a52154133f88", "clubId": "list-a", "at": {"$date": "2026-01-01T00:00:00Z"}, "actorAccountId": "admin-a", "actorRole": "ADMIN", "action": "DATA_EXPORTED", "entityType": "ExportJob", "entityId": "80c5e0a8-6469-48f1-b34c-c0657a1a7f18", "changes": [{"path": "listKey", "after": "members"}, {"path": "format", "after": "xlsx"}, {"path": "rows", "after": 2}], "ip": "127.0.0.1", "traceId": "a037d66d-c137-4822-9a0f-a0374cd2a174", "origin": "APP", "_class": "com.agilityhub.core.platform.persistence.audit.AuditEntry"}"
+to contain:
+  ["listKey", "rows", "filters"]
+but could not find:
+  ["filters"]
+ 
+	at com.agilityhub.core.clubs.common.api.UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox(UniversalListsIT.java:174)
+
+2026-10-18T15:56:50.018+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.059+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+2026-10-18T15:56:50.059+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.059+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.060+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.252 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.CensusIT
+[ERROR] com.agilityhub.core.clubs.census.api.CensusIT.T_14_11_INC_38_memberAndDogEntriesCarryTheirNameAndTheirEventsUntilTheErasure -- Time elapsed: 0.208 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "Fictional Laia one"
+ but was: null
+	at com.agilityhub.core.clubs.census.api.CensusIT.T_14_11_INC_38_memberAndDogEntriesCarryTheirNameAndTheirEventsUntilTheErasure(CensusIT.java:780)
+
+2026-10-18T15:56:50.272+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.299+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-10-18T15:56:50.300+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.300+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T15:56:50.301+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-10-18T15:56:50.303+03:00 INFO  [main] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-18T15:56:50.310+03:00 INFO  [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown traceId= clubId= accountId= : Graceful shutdown complete
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T15:56:50.328+03:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Starting AuditQueriesIT using Java [redacted] with PID 93604 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T15:56:50.328+03:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T15:56:50.601+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T15:56:50.634+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 31 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T15:56:50.699+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4a687cba], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@4973dacf, com.mongodb.Jep395RecordCodecProvider@5cb42eb2, com.mongodb.KotlinCodecProvider@2d05d022, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52060], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@25358a90], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T15:56:50.700+03:00 INFO  [cluster-6ad4c21267ebd895ec931cc2-localhost:52060] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52060, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1234750, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4aebda466f37:27017, hosts=[4aebda466f37:27017], passives=[], arbiters=[], primary='4aebda466f37:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4c208d247e8a9abf1c4e1, counter=6}, lastWriteDate=Sun Oct 18 15:56:50 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T15:56:51.576+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T15:56:51.576+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T15:56:51.579+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 3 ms
+2026-10-18T15:56:51.610+03:00 INFO  [main] c.a.core.platform.api.AuditQueriesIT traceId= clubId= accountId= : Started AuditQueriesIT in 1.296 seconds (process running for 12.762)
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.530 s <<< FAILURE! -- in com.agilityhub.core.platform.api.AuditQueriesIT
+[ERROR] com.agilityhub.core.platform.api.AuditQueriesIT.T_14_11_INC_38_anEntryWrittenThroughTheApiIsFoundByItsLabelAndLinksItsEvents -- Time elapsed: 0.147 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 1
+ but was: 0
+	at com.agilityhub.core.platform.api.AuditQueriesIT.T_14_11_INC_38_anEntryWrittenThroughTheApiIsFoundByItsLabelAndLinksItsEvents(AuditQueriesIT.java:226)
+
+[ERROR] Failures: 
+[ERROR]   CensusIT.T_14_11_INC_38_memberAndDogEntriesCarryTheirNameAndTheirEventsUntilTheErasure:780 
+expected: "Fictional Laia one"
+ but was: null
+[ERROR]   ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync:187 
+Expecting all elements of:
+  [{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="5cdd35b7-29cf-4dd9-92ae-df1db95e152c", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="members", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=30L, "path"="rows"}], "clubId"="export-a", "entityId"="59b4ad24-338d-4f7a-aba0-aa055f71d8a3", "entityType"="ExportJob", "ip"="127.0.0.1", "origin"="APP", "traceId"="e45a0b31-1029-4ae7-b74d-192d613889c9"},
+    {"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="9ff810c5-1b26-4432-b2aa-171b6a315ee6", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="dogs", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=5001L, "path"="rows"}], "clubId"="export-a", "entityId"="f9290be1-3088-4ab7-aedf-c19260a45648", "entityType"="ExportJob", "traceId"="63e205cb-7476-4b46-9506-219a89adb70a"}]
+to satisfy given requirements, but these elements did not:
+
+{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="5cdd35b7-29cf-4dd9-92ae-df1db95e152c", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="members", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=30L, "path"="rows"}], "clubId"="export-a", "entityId"="59b4ad24-338d-4f7a-aba0-aa055f71d8a3", "entityType"="ExportJob", "ip"="127.0.0.1", "origin"="APP", "traceId"="e45a0b31-1029-4ae7-b74d-192d613889c9"}
+error: org.opentest4j.AssertionFailedError: 
+expected: "Example Exporter"
+ but was: null
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.lambda$T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync$3(ExportEngineIT.java:188)
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync(ExportEngineIT.java:187)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"_class"="com.agilityhub.core.platform.persistence.audit.AuditEntry", "_id"="9ff810c5-1b26-4432-b2aa-171b6a315ee6", "action"="DATA_EXPORTED", "actorAccountId"="export-admin-a", "actorRole"="ADMIN", "at"=2026-01-01T02:00:00.000 (java.util.Date), "changes"=[{"after"="dogs", "path"="listKey"},
+    {"after"="xlsx", "path"="format"},
+    {"after"=5001L, "path"="rows"}], "clubId"="export-a", "entityId"="f9290be1-3088-4ab7-aedf-c19260a45648", "entityType"="ExportJob", "traceId"="63e205cb-7476-4b46-9506-219a89adb70a"}
+error: org.opentest4j.AssertionFailedError: 
+expected: "Example Exporter"
+ but was: null
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.lambda$T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync$3(ExportEngineIT.java:188)
+	at com.agilityhub.core.clubs.common.api.ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync(ExportEngineIT.java:187)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(80 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox:174 
+Expecting actual:
+  "{"_id": "f17165cf-7a58-451e-8c92-a52154133f88", "clubId": "list-a", "at": {"$date": "2026-01-01T00:00:00Z"}, "actorAccountId": "admin-a", "actorRole": "ADMIN", "action": "DATA_EXPORTED", "entityType": "ExportJob", "entityId": "80c5e0a8-6469-48f1-b34c-c0657a1a7f18", "changes": [{"path": "listKey", "after": "members"}, {"path": "format", "after": "xlsx"}, {"path": "rows", "after": 2}], "ip": "127.0.0.1", "traceId": "a037d66d-c137-4822-9a0f-a0374cd2a174", "origin": "APP", "_class": "com.agilityhub.core.platform.persistence.audit.AuditEntry"}"
+to contain:
+  ["listKey", "rows", "filters"]
+but could not find:
+  ["filters"]
+ 
+[ERROR]   AuditQueriesIT.T_14_11_INC_38_anEntryWrittenThroughTheApiIsFoundByItsLabelAndLinksItsEvents:226 
+expected: 1
+ but was: 0
+[ERROR] Tests run: 6, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+exit=1
+surefire tests 4803 failures 1 errors 0 skipped 0
+  FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract
+failsafe tests 2046 failures 4 errors 0 skipped 0
+  CensusIT tests 1 failures 1 errors 0 skipped 0
+  ExportEngineIT tests 1 failures 1 errors 0 skipped 0
+  UniversalListsIT tests 3 failures 1 errors 0 skipped 0
+  AuditQueriesIT tests 1 failures 1 errors 0 skipped 0
+  FAILED CensusIT.T_14_11_INC_38_memberAndDogEntriesCarryTheirNameAndTheirEventsUntilTheErasure
+  FAILED ExportEngineIT.T_14_15_INC_38_dataExportedNamesItsRequesterAndCarriesItsDetailsSyncAndAsync
+  FAILED UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+  FAILED AuditQueriesIT.T_14_11_INC_38_anEntryWrittenThroughTheApiIsFoundByItsLabelAndLinksItsEvents

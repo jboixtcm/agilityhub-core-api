@@ -25,7 +25,7 @@ public final class TrainingContracts {
             List<TrainingRing> rings, List<TrainingDay> days) { }
     public record TrainingWindow(LocalDate from, LocalDate to) { }
     public record TrainingRing(String id, String name, String shortName, String color, int order,
-            @Schema(description = "Ring.trainingCapacity ?? training.capacityPerRingSlot") int capacity,
+            @Schema(description = "Ring.trainingCapacity ?? training.capacityPerRingSlot; 0 for an active ring without free training (or with FREE_TRAINING off), listed for INSTRUCTOR and ADMIN only and never bookable (INC-44)") int capacity,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with COURSES (and courses.showSetupToMembers for MEMBER), R-09-15") RingSetupSummary setup) { }
     public record RingSetupSummary(String id, String kind, List<String> levelNames, Instant builtAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate expectedUntil) { }

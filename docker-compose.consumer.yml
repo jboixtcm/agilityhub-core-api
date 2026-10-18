@@ -62,7 +62,7 @@ services:
     entrypoint: [/bin/sh, -ec]
     command:
       - |
-        java -jar /app/app.jar --core.command=club:apply seeds/club-canic.yaml
+        java -jar /app/app.jar --core.command=club:apply seeds/club-canic-consumer.yaml
         java -jar /app/app.jar --core.command=club:apply seeds/club-minim.yaml
     healthcheck:
       disable: true

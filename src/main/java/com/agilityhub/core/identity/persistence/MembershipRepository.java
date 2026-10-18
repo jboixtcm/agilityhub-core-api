@@ -40,5 +40,7 @@ public class MembershipRepository extends TenantRepository<Membership> {
     public void ensureIndexes() {
         mongo.indexOps(Membership.class).createIndex(new Index().on("accountId", Direction.ASC)
                 .on("clubId", Direction.ASC).unique().named("membership_account_club"));
+        // E11-T10 (INC-38): the census reads a member's membership by `{clubId, memberId}` (roles, access resend, D10).
+        mongo.indexOps(Membership.class).createIndex(new Index().on("clubId", Direction.ASC).on("memberId", Direction.ASC).named("membership_club_member"));
     }
 }

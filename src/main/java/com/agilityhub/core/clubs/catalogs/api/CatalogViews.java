@@ -38,52 +38,71 @@ public class CatalogViews {
     String create(CatalogKind kind, Object request) { return (String) catalogs.create(kind, input(request)).get("id"); }
     void update(CatalogKind kind, String id, Object request) { catalogs.update(kind, id, input(request)); }
     private String text(LocalizedText value) { return value.withDefaultLocale(catalogs.config().club().defaultLocale()).resolve(LocaleContext.current()).value(); }
-    private LastChange lastChange(CatalogKind kind, String id) {
-        if (!admin()) { return null; }
-        var last = audit.lastChange(kind.entityType(), id);
-        return last == null ? null : new LastChange(last.at(), last.actorName(), last.action().name());
+    private LastChange lastChange(CatalogKind kind, String id) { return admin() ? project(audit.lastChange(kind.entityType(), id)) : null; }
+    static LastChange project(AuditQuery.LastChange last) { return last == null ? null : new LastChange(last.at(), last.actorName(), last.action().name()); }
+    /** E11-T10 (INC-38): the last changes of a whole list in one read (ADMIN only; the reader projection has none). */
+    private Map<String, LastChange> lastChanges(CatalogKind kind, List<CatalogEntity> items) {
+        var result = new HashMap<String, LastChange>();
+        if (admin()) { audit.lastChanges(kind.entityType(), items.stream().map(CatalogEntity::id).toList()).forEach((id, last) -> result.put(id, project(last))); }
+        return result;
     }
-    CatalogResponses.Level level(String id, boolean warnings) { return level((Level) catalogs.get(CatalogKind.LEVEL, id), warnings); }
+    /** E11-T10 (INC-38): the usage of a whole list in a fixed number of reads (ADMIN only). */
+    private Map<String, Map<String, Long>> usages(CatalogKind kind, List<CatalogEntity> items) {
+        return admin() ? catalogs.usage(kind, items.stream().map(CatalogEntity::id).toList()) : Map.of();
+    }
+    CatalogResponses.Level level(String id, boolean warnings) {
+        var item = (Level) catalogs.get(CatalogKind.LEVEL, id);
+        return level(item, warnings, admin() ? catalogs.usage(CatalogKind.LEVEL, item.id()) : null, lastChange(CatalogKind.LEVEL, item.id()));
+    }
     Map<String, Object> levelDetail(String id) {
         var level = level(id, false);
         Map<String, Object> result = mapper.convertValue(level, new TypeReference<>() { });
         if (admin() && level.lastChange() == null) { result.put("lastChange", com.fasterxml.jackson.databind.node.NullNode.instance); }
         return result;
     }
-    private CatalogResponses.Level level(Level item, boolean warnings) {
-        var usage = admin() ? mapper.convertValue(catalogs.usage(CatalogKind.LEVEL, item.id()), CatalogResponses.LevelUsage.class) : null;
+    private CatalogResponses.Level level(Level item, boolean warnings, Map<String, Long> counts, LastChange lastChange) {
+        var usage = counts == null ? null : mapper.convertValue(counts, CatalogResponses.LevelUsage.class);
         return new CatalogResponses.Level(item.id(), item.code(), text(item.name()), admin() ? item.name().values() : null,
                 item.order(), item.color(), item.capacity(), item.grantsFreeTraining(), item.progression(), item.active(), usage,
-                warnings && !item.active() ? usage : null, lastChange(CatalogKind.LEVEL, item.id()), item.version());
+                warnings && !item.active() ? usage : null, lastChange, item.version());
     }
     CatalogItems<CatalogResponses.Level> levels(boolean includeInactive) {
         checkInactive(includeInactive);
-        var items = catalogs.list(CatalogKind.LEVEL, includeInactive).stream().map(item -> level((Level) item, false)).toList();
+        var list = catalogs.list(CatalogKind.LEVEL, includeInactive);
+        var usages = usages(CatalogKind.LEVEL, list); var changes = lastChanges(CatalogKind.LEVEL, list);
+        var items = list.stream().map(item -> level((Level) item, false, usages.get(item.id()), changes.get(item.id()))).toList();
         return new CatalogItems<>(items, items.size());
     }
-    CatalogResponses.Ring ring(String id) { return ring((Ring) catalogs.get(CatalogKind.RING, id)); }
-    private CatalogResponses.Ring ring(Ring item) {
+    CatalogResponses.Ring ring(String id) {
+        var item = (Ring) catalogs.get(CatalogKind.RING, id);
+        return ring(item, catalogs.config().get("training.capacityPerRingSlot", Integer.class), admin() ? catalogs.usage(CatalogKind.RING, item.id()) : null,
+                lastChange(CatalogKind.RING, item.id()));
+    }
+    private CatalogResponses.Ring ring(Ring item, Integer capacityPerRingSlot, Map<String, Long> usage, LastChange lastChange) {
         return new CatalogResponses.Ring(item.id(), item.name(), item.shortName(), item.color(), item.allowsFreeTraining(), admin() ? item.trainingCapacity() : null,
-                CapacityCalculator.forRing(item.trainingCapacity(), catalogs.config().get("training.capacityPerRingSlot", Integer.class)), item.order(), item.active(),
-                admin() ? mapper.convertValue(catalogs.usage(CatalogKind.RING, item.id()), CatalogResponses.RingUsage.class) : null,
-                lastChange(CatalogKind.RING, item.id()), item.version());
+                CapacityCalculator.forRing(item.trainingCapacity(), capacityPerRingSlot), item.order(), item.active(),
+                usage == null ? null : mapper.convertValue(usage, CatalogResponses.RingUsage.class), lastChange, item.version());
     }
     CatalogItems<CatalogResponses.Ring> rings(boolean includeInactive) {
         checkInactive(includeInactive);
-        var items = catalogs.list(CatalogKind.RING, includeInactive).stream().map(item -> ring((Ring) item)).toList();
+        var list = catalogs.list(CatalogKind.RING, includeInactive);
+        var usages = usages(CatalogKind.RING, list); var changes = lastChanges(CatalogKind.RING, list);
+        Integer capacityPerRingSlot = catalogs.config().get("training.capacityPerRingSlot", Integer.class);
+        var items = list.stream().map(item -> ring((Ring) item, capacityPerRingSlot, usages.get(item.id()), changes.get(item.id()))).toList();
         return new CatalogItems<>(items, items.size());
     }
-    CatalogResponses.FaqEntry faq(String id) { return faq((FaqEntry) catalogs.get(CatalogKind.FAQ, id)); }
-    private CatalogResponses.FaqEntry faq(FaqEntry item) {
+    CatalogResponses.FaqEntry faq(String id) { var item = (FaqEntry) catalogs.get(CatalogKind.FAQ, id); return faq(item, lastChange(CatalogKind.FAQ, item.id())); }
+    private CatalogResponses.FaqEntry faq(FaqEntry item, LastChange lastChange) {
         return new CatalogResponses.FaqEntry(item.id(), text(item.category()), admin() ? item.category().values() : null,
                 text(item.question()), admin() ? item.question().values() : null, text(item.answer()), admin() ? item.answer().values() : null,
-                item.order(), item.active(), lastChange(CatalogKind.FAQ, item.id()), item.version());
+                item.order(), item.active(), lastChange, item.version());
     }
     CatalogItems<CatalogResponses.FaqEntry> faqs(boolean includeInactive) {
         checkInactive(includeInactive);
         // The sorted input fixes category order by its minimum entry order; resolved labels define grouping.
         Map<String, List<CatalogResponses.FaqEntry>> groups = new LinkedHashMap<>();
-        catalogs.list(CatalogKind.FAQ, includeInactive).stream().map(item -> faq((FaqEntry) item))
+        var list = catalogs.list(CatalogKind.FAQ, includeInactive); var changes = lastChanges(CatalogKind.FAQ, list);
+        list.stream().map(item -> faq((FaqEntry) item, changes.get(item.id())))
                 .forEach(item -> groups.computeIfAbsent(item.category(), ignored -> new ArrayList<>()).add(item));
         var items = groups.values().stream().flatMap(List::stream).toList();
         return new CatalogItems<>(items, items.size());

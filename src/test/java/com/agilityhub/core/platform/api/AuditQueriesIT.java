@@ -214,6 +214,22 @@ class AuditQueriesIT extends AbstractIntegrationTest {
         var blocks = json(admin(get("/api/v1/parameters"))).path("blocks");
         assertThat(blocks.findValues("lastChange")).anySatisfy(last -> assertThat(last.path("actorName").asText()).isEqualTo("Latest Admin"));
     }
+    /**
+     * R-14-11 (`q` over `entityLabel`), S14 §3 (`entityLabel` snapshot) and R-14-10 (`eventIds[]` of the same transaction's outbox):
+     * a parameter change made through the API is found by its key, and its entry links the `ParameterChanged` it published.
+     * INC-38 (E11-T10).
+     */
+    @Test void T_14_11_INC_38_anEntryWrittenThroughTheApiIsFoundByItsLabelAndLinksItsEvents() throws Exception {
+        String key = "bookings.lateCancelThresholdMinutes";
+        admin(put("/api/v1/parameters/" + key).contentType("application/json").content("{\"value\":120,\"version\":0,\"reason\":\"Example update\"}")).andExpect(status().isOk());
+        var page = json(admin(get("/api/v1/audit-entries").param("q", "lateCancelThreshold")));
+        assertThat(page.path("totalItems").asInt()).isEqualTo(1);
+        var item = page.path("items").get(0);
+        assertThat(item.path("action").asText()).isEqualTo("PARAMETER_CHANGED"); assertThat(item.path("entityLabel").asText()).isEqualTo(key);
+        var event = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ParameterChanged")), Document.class, "domain_events");
+        var detail = json(admin(get("/api/v1/audit-entries/" + item.path("id").asText())));
+        assertThat(detail.path("eventIds")).hasSize(1); assertThat(detail.path("eventIds").get(0).asText()).isEqualTo(event.getString("_id"));
+    }
     @Test void T_14_16_5001AuditRowsQueueAndWorkerCompletesMaskedExport() throws Exception {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "audit_entries");
         var rows = new ArrayList<Document>();

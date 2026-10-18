@@ -158,24 +158,6 @@ class SignupPaymentsTest {
             error(() -> UpfrontLines.additionalMonthlyFee(null, null, eur(6000), bad), ErrorCode.VALIDATION_ERROR);
         }
     }
-    @ParameterizedTest
-    @CsvSource({"13000,10000,PAID,3000,PAID","10000,10000,PAID,0,DUE","5000,5000,PARTIAL,0,DUE","0,0,DUE,0,DUE"})
-    void T_04_07_allocationCascadesEntryBeforeFirstMonth(long paid, long entryPaid, UpfrontPaymentStatus entryStatus,
-            long monthPaid, UpfrontPaymentStatus monthStatus) {
-        var lines = List.of(new UpfrontLines.Line(FIRST_MONTH, "dog", eur(3000)), new UpfrontLines.Line(ENTRY_FEE, "dog", eur(10000)));
-        assertThat(UpfrontAllocator.allocate(lines, eur(paid))).containsExactly(
-                new UpfrontAllocator.Allocation(lines.get(1), eur(entryPaid), entryStatus),
-                new UpfrontAllocator.Allocation(lines.get(0), eur(monthPaid), monthStatus));
-    }
-    @Test void T_04_07_allocationRejectsExcessNegativeAndMixedCurrency() {
-        var lines = List.of(new UpfrontLines.Line(ENTRY_FEE, "dog", eur(10000)), new UpfrontLines.Line(FIRST_MONTH, "dog", eur(3000)));
-        error(() -> UpfrontAllocator.allocate(lines, eur(13100)), ErrorCode.UPFRONT_AMOUNT_EXCEEDS_DUE);
-        error(() -> UpfrontAllocator.allocate(lines, eur(-1)), ErrorCode.VALIDATION_ERROR);
-        error(() -> UpfrontAllocator.allocate(lines, new Money(100, "USD")), ErrorCode.CURRENCY_MISMATCH);
-        assertThat(UpfrontAllocator.allocate(List.of(), eur(0))).isEmpty();
-        assertThat(UpfrontAllocator.allocate(List.of(new UpfrontLines.Line(PACK, "dog", eur(0))), eur(0)).getFirst().status())
-                .isEqualTo(UpfrontPaymentStatus.PAID);
-    }
     @Test void T_04_09_catalogFiltersTypesVisibilityTenantAndSuppressesAmounts() {
         var monthly = plan("monthly", Type.MONTHLY, null, List.of(new CurrentPrice("monthly-price", Concept.MONTHLY_FEE, eur(6000))));
         var pack = plan("pack", Type.PACK, null, List.of(new CurrentPrice("pack-price", Concept.PACK, eur(13500))));

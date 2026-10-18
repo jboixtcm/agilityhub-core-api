@@ -33,7 +33,12 @@ public final class ClassSessionRules {
     }
     public static void references(List<String> instructors, String ring, List<String> levels, String description,
             int maxInstructors, boolean levelsEnabled, SchedulingCatalog catalog) {
+        references(instructors, ring, levels, description, maxInstructors, levelsEnabled, catalog, TemplateClassRules.Kept.NONE);
+    }
+    /** An edit: the references the class already has may be inactive and stay (INC-40, E11-T10). */
+    public static void references(List<String> instructors, String ring, List<String> levels, String description,
+            int maxInstructors, boolean levelsEnabled, SchedulingCatalog catalog, TemplateClassRules.Kept kept) {
         TemplateClassRules.validate(TemplateKind.WEEKDAYS, Set.of("class"), "class", DayOfWeek.MONDAY,
-                instructors, ring, levels, description, maxInstructors, levelsEnabled, catalog);
+                instructors, ring, levels, description, maxInstructors, levelsEnabled, catalog, kept);
     }
 }

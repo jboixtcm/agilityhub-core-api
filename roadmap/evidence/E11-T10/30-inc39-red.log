@@ -1,0 +1,230 @@
+# E11-T10 INC-39 A, C, D, E, F (+ B's new unit tests): red — swapped to their pre-INC-39 versions with target/e11t10-inc39.py old (only INC-39's hunks; the other groups' changes stay): CensusAccess, MemberService, BillingCensusAdapter, MessagingCensusDirectory, MembersController, MemberPlanChangeController, NotificationPreferencesController, SignupService, SignupController, SignupWarning; restored afterwards. -Dmaven.test.failure.ignore=true lets failsafe run after the surefire failures, so the exit code is 0 and the failures are in the summary below.
+$ ./mvnw -q '-Dtest=S04ErrorContractTest,UpfrontPaymentsSurvivorsTest' -Dsurefire.failIfNoSpecifiedTests=false '-Dit.test=SignupSecurityFixesIT#*INC_39*,SignupGateFixesIT#*INC_39*,SignupIT#*INC_39*,SignupPlansFollowUpIT#*INC_39*' -Dfailsafe.failIfNoSpecifiedTests=false -Dmaven.test.failure.ignore=true -Djacoco.skip=true verify > roadmap/evidence/E11-T10/30-inc39-red.log 2>&1; echo "exit $?"
+16:19:42.838 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 2.205 s <<< FAILURE! -- in com.agilityhub.core.configuration.S04ErrorContractTest
+[ERROR] com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow -- Time elapsed: 0.021 s <<< FAILURE!
+java.lang.AssertionError: 
+[GET /members/{id}/signup documents PLAN_NOT_AVAILABLE but its handler cannot throw it
+POST /members/{id}/validation throws CURRENCY_MISMATCH (via com.agilityhub.core.shared.domain.Money.requireSameCurrency(com.agilityhub.core.shared.domain.Money)) but does not document it] 
+Expecting empty but was: ["GET /members/{id}/signup documents PLAN_NOT_AVAILABLE but its handler cannot throw it",
+    "POST /members/{id}/validation throws CURRENCY_MISMATCH (via com.agilityhub.core.shared.domain.Money.requireSameCurrency(com.agilityhub.core.shared.domain.Money)) but does not document it"]
+	at com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow(S04ErrorContractTest.java:106)
+
+[ERROR] com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting TreeSet:
+  ["FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "INVALID_STATE",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_REQUIRED",
+    "MEMBERSHIP_EXISTS",
+    "MEMBER_ERASED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "PLAN_NOT_AVAILABLE",
+    "STALE_VERSION",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "VALIDATION_ERROR"]
+to contain:
+  ["CURRENCY_MISMATCH"]
+but could not find the following element(s):
+  ["CURRENCY_MISMATCH"]
+
+	at com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected(S04ErrorContractTest.java:129)
+
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Failures: 
+[ERROR]   S04ErrorContractTest.T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected:129 
+Expecting TreeSet:
+  ["FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "INVALID_STATE",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_REQUIRED",
+    "MEMBERSHIP_EXISTS",
+    "MEMBER_ERASED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "PLAN_NOT_AVAILABLE",
+    "STALE_VERSION",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "VALIDATION_ERROR"]
+to contain:
+  ["CURRENCY_MISMATCH"]
+but could not find the following element(s):
+  ["CURRENCY_MISMATCH"]
+
+[ERROR]   S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow:106 [GET /members/{id}/signup documents PLAN_NOT_AVAILABLE but its handler cannot throw it
+POST /members/{id}/validation throws CURRENCY_MISMATCH (via com.agilityhub.core.shared.domain.Money.requireSameCurrency(com.agilityhub.core.shared.domain.Money)) but does not document it] 
+Expecting empty but was: ["GET /members/{id}/signup documents PLAN_NOT_AVAILABLE but its handler cannot throw it",
+    "POST /members/{id}/validation throws CURRENCY_MISMATCH (via com.agilityhub.core.shared.domain.Money.requireSameCurrency(com.agilityhub.core.shared.domain.Money)) but does not document it"]
+[ERROR] Tests run: 16, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+16:19:47.040 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:19:47.170 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+16:19:47.202 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:19:47.202 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:19:47.205 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+16:19:47.228 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:19:47.229 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:19:47.232 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+16:19:47.313 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:19:47.467 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:19:47.468 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:19:47.477 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:19:47.822 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+16:19:47.846 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:19:47.895 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: cadeaf53da3826e180b2eb842dbf7ca5e47fb1a222e8154602004d271ac0ff79
+16:19:48.060 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.238091S
+16:19:48.063 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:19:48.063 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:19:48.063 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:19:48.064 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:19:48.095 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: e1390e6d49b4d02951a206af15a5e5ceaa2b41843dc3dd17096945599590cc6b
+16:19:48.571 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.507504S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T16:19:49.162+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Starting SignupSecurityFixesIT using Java [redacted] with PID 96291 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T16:19:49.164+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T16:19:49.946+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T16:19:49.990+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 41 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T16:19:50.371+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@42365c82], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@46c47690, com.mongodb.Jep395RecordCodecProvider@5aa026e9, com.mongodb.KotlinCodecProvider@499f9003, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52311], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@39bd07fe], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T16:19:50.378+03:00 INFO  [cluster-6ad4c77696d7f3931f5d0c26-localhost:52311] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52311, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9372541, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=e1390e6d49b4:27017, hosts=[e1390e6d49b4:27017], passives=[], arbiters=[], primary='e1390e6d49b4:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad4c774fb995955241b1148, counter=6}, lastWriteDate=Sun Oct 18 16:19:48 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T16:19:51.430+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:51.446+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:51.467+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:52.034+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:52.047+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:52.059+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:52.116+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T16:19:53.792+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T16:19:53.792+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T16:19:53.796+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-18T16:19:53.861+03:00 INFO  [main] c.a.c.c.census.api.SignupSecurityFixesIT traceId= clubId= accountId= : Started SignupSecurityFixesIT in 4.838 seconds (process running for 7.198)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.304 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending -- Time elapsed: 1.149 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: {"DELETE /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} internalNotes"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} remarks"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id}/payment-method"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/plan-change"="409 INVALID_STATE READMISSION_PENDING", "PUT /members/{id}/notification-preferences"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /members/{id}/booking-block"="204  ", "PATCH /members/{id} internalNotes"="409 STALE_VERSION ", "PATCH /members/{id} remarks"="409 STALE_VERSION ", "PATCH /members/{id}/payment-method"="200  ", "POST /members/{id}/booking-block"="201  ", "POST /members/{id}/plan-change"="204  ", "PUT /members/{id}/notification-preferences"="200  "}
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending(SignupSecurityFixesIT.java:513)
+
+2026-10-18T16:19:55.303+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT]: SignupPlansFollowUpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:55.305+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+2026-10-18T16:19:55.305+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT]: SignupPlansFollowUpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:55.305+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:55.306+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 1.283 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup -- Time elapsed: 0.826 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[1 + the group's 2 dogs: the largest family fare] 
+expected: "42e138a6-517c-4099-8d1a-b38e1c6d3de0"
+ but was: "a6178965-c069-4805-98b2-3284d07176a4"
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup(SignupPlansFollowUpIT.java:294)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen -- Time elapsed: 0.452 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[HTTP code=PLAN_NOT_AVAILABLE details={}] 
+expected: 200
+ but was: 422
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.result(SignupPlansFollowUpIT.java:68)
+	at com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT.R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen(SignupPlansFollowUpIT.java:261)
+
+2026-10-18T16:19:56.588+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupIT]: SignupIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.589+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupIT
+2026-10-18T16:19:56.589+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupIT]: SignupIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.589+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.590+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.108 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupIT.T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite -- Time elapsed: 0.103 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "upfrontAmountPaid"
+ but was: ""
+	at com.agilityhub.core.clubs.census.api.SignupIT.T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite(SignupIT.java:539)
+
+2026-10-18T16:19:56.696+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupGateFixesIT]: SignupGateFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.697+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+2026-10-18T16:19:56.697+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupGateFixesIT]: SignupGateFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.698+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T16:19:56.698+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.134 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupGateFixesIT.T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason -- Time elapsed: 0.130 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "["NO_IMAGE_CONSENT","DOCUMENT_PENDING","UPFRONT_UNPAID"]"
+to contain:
+  "CHECKOUT_PENDING" 
+	at com.agilityhub.core.clubs.census.api.SignupGateFixesIT.T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason(SignupGateFixesIT.java:479)
+
+[ERROR] Failures: 
+[ERROR]   SignupGateFixesIT.T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason:479 
+Expecting actual:
+  "["NO_IMAGE_CONSENT","DOCUMENT_PENDING","UPFRONT_UNPAID"]"
+to contain:
+  "CHECKOUT_PENDING" 
+[ERROR]   SignupIT.T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite:539 
+expected: "upfrontAmountPaid"
+ but was: ""
+[ERROR]   SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup:294 [1 + the group's 2 dogs: the largest family fare] 
+expected: "42e138a6-517c-4099-8d1a-b38e1c6d3de0"
+ but was: "a6178965-c069-4805-98b2-3284d07176a4"
+[ERROR]   SignupPlansFollowUpIT.R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen:261->result:68 [HTTP code=PLAN_NOT_AVAILABLE details={}] 
+expected: 200
+ but was: 422
+[ERROR]   SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending:513 
+expected: {"DELETE /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} internalNotes"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id} remarks"="409 INVALID_STATE READMISSION_PENDING", "PATCH /members/{id}/payment-method"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/booking-block"="409 INVALID_STATE READMISSION_PENDING", "POST /members/{id}/plan-change"="409 INVALID_STATE READMISSION_PENDING", "PUT /members/{id}/notification-preferences"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /members/{id}/booking-block"="204  ", "PATCH /members/{id} internalNotes"="409 STALE_VERSION ", "PATCH /members/{id} remarks"="409 STALE_VERSION ", "PATCH /members/{id}/payment-method"="200  ", "POST /members/{id}/booking-block"="201  ", "POST /members/{id}/plan-change"="204  ", "PUT /members/{id}/notification-preferences"="200  "}
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+
+exit=0
+surefire tests 4803 failures 3 errors 0 skipped 0
+  S04ErrorContractTest tests 3 failures 2 errors 0 skipped 0
+  UpfrontPaymentsSurvivorsTest tests 13 failures 0 errors 0 skipped 0
+  FAILED OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract
+  FAILED S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow
+  FAILED S04ErrorContractTest.T_04_25_INC_39_theValidationDocumentsTheCurrencyCheckOfTheAmountCollected
+failsafe tests 2039 failures 5 errors 0 skipped 0
+  SignupGateFixesIT tests 1 failures 1 errors 0 skipped 0
+  SignupIT tests 1 failures 1 errors 0 skipped 0
+  SignupPlansFollowUpIT tests 2 failures 2 errors 0 skipped 0
+  SignupSecurityFixesIT tests 1 failures 1 errors 0 skipped 0
+  FAILED SignupGateFixesIT.T_04_22_R_04_16_INC_39_cashWithACheckoutInProgressIsRefusedWithItsReason
+  FAILED SignupIT.T_04_18_R_04_16_INC_39_anAmountInAnotherCurrencyIsRefusedOnItsFieldBeforeAnyWrite
+  FAILED SignupPlansFollowUpIT.R_04_13_T_04_16_INC_39_theFamilyFareCountsEveryDogOfTheResultingGroup
+  FAILED SignupPlansFollowUpIT.R_04_19_INC_39_d2LoadsASignupWhoseRequestedPlanIsGoneAndValidatesItOnceAPlanIsChosen
+  FAILED SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_INC_39_theMembersD10RoutesAreFrozenWhileTheReadmissionIsPending

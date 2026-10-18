@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-/** S08 R-08-07/08/09 under concurrency: parallel executors against the real Mongo replica set. */
+/** S08 R-08-07/08/09/12 under concurrency: parallel executors against the real Mongo replica set. */
 class BookingConcurrencyIT extends BookingFixtures {
     record Reply(int status, JsonNode body) { String code() { return body.path("code").asText(); } }
     Reply send(String path, Object body, RequestPostProcessor auth, String key) throws Exception {
@@ -120,6 +120,74 @@ class BookingConcurrencyIT extends BookingFixtures {
             dispatch();
             assertThat(count("notifications", Criteria.where("code").is("N-46"))).isEqualTo(10L - seats);
         }
+    }
+
+    /**
+     * The crowd dogs `s08-d-c0…` as their owners' last dog, so a confirmation or a join never writes `Member.lastDogForClass`
+     * (an unchanged value writes nothing): the only member document two transactions of one owner share is the owner's
+     * `bookingEligibilitySeq` (R-08-02 serialisation, E8-T05).
+     */
+    void crowdRemembersItsDog(int dogs) {
+        for (int i = 0; i < dogs; i++) {
+            mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(Criteria.where("_id").is("s08-m-c" + i)),
+                    new org.springframework.data.mongodb.core.query.Update().set("lastDogForClass", "s08-d-c" + i), "members");
+        }
+    }
+
+    /**
+     * R-08-02, R-08-03, R-08-07 — INC-40 (E11-T10): the weekly limit is serialised per dog owner, so two classes of one week
+     * confirmed at once for one dog one short of the limit give one booking and one BOOKING_LIMIT_REACHED, never two bookings.
+     */
+    @Test void T_08_29_INC_40_twoClassesConfirmedAtOnceForOneDogOneShortOfTheWeeklyLimitGiveOneBooking() throws Exception {
+        int dogs = 8;
+        parameter("bookings.maxCurrentWeek", 1); crowdRemembersItsDog(dogs);
+        // Two classes per dog today at 12:00 and 13:00: inside bookings.lateCancelThresholdMinutes (240), so never swappable.
+        var holds = new ArrayList<String>();
+        for (int i = 0; i < dogs; i++) {
+            session("i40-" + i + "a", "2026-10-06T12:00", 3, List.of()); session("i40-" + i + "b", "2026-10-06T13:00", 3, List.of());
+            holds.add(hold(as("c" + i), "i40-" + i + "a", "s08-d-c" + i, 201).path("id").asText());
+            holds.add(hold(as("c" + i), "i40-" + i + "b", "s08-d-c" + i, 201).path("id").asText());
+        }
+        var replies = parallel(2 * dogs, i -> () -> send("/bookings", Map.of("seatHoldId", holds.get(i)), as("c" + (i / 2)), UUID.randomUUID().toString()));
+        var counts = tally(replies);
+        System.out.println("INC-40 two classes of one week at once per dog: " + counts);
+        assertThat(counts).containsExactly(Map.entry("201", (long) dogs), Map.entry("409 BOOKING_LIMIT_REACHED", (long) dogs));
+        for (int i = 0; i < dogs; i++) {
+            assertThat(count("bookings", Criteria.where("dogId").is("s08-d-c" + i).and("state").is("ACTIVE"))).as("dog c" + i).isEqualTo(1);
+        }
+    }
+
+    /**
+     * R-08-12 — INC-40 (E11-T10): `waitlist.maxPerDogPerWeek` is serialised per dog owner too: two full classes of one week
+     * joined at once for one dog one short of the limit give one entry and one WAITLIST_LIMIT{DOG_WEEK}.
+     */
+    @Test void T_08_19_INC_40_twoWaitingListsJoinedAtOnceForOneDogOneShortOfTheDogWeekLimitGiveOneEntry() throws Exception {
+        int dogs = 8;
+        parameter("waitlist.maxPerDogPerWeek", 1); crowdRemembersItsDog(dogs);
+        for (int i = 0; i < dogs; i++) { session("i40-" + i + "a", "2026-10-07T12:00", 0, List.of()); session("i40-" + i + "b", "2026-10-08T12:00", 0, List.of()); }
+        // Capacity 0: full by bookings from the start (R-08-12).
+        var replies = parallel(2 * dogs, i -> () -> send("/waitlist-entries", Map.of("classSessionId", "s08-i40-" + (i / 2) + (i % 2 == 0 ? "a" : "b"),
+                "dogId", "s08-d-c" + (i / 2)), as("c" + (i / 2)), null));
+        var counts = tally(replies);
+        System.out.println("INC-40 two waiting lists of one week at once per dog: " + counts);
+        assertThat(counts).containsExactly(Map.entry("201", (long) dogs), Map.entry("409 WAITLIST_LIMIT", (long) dogs));
+        assertThat(replies.stream().filter(r -> r.status() == 409).allMatch(r -> r.body().at("/details/scope").asText().equals("DOG_WEEK"))).isTrue();
+        for (int i = 0; i < dogs; i++) {
+            assertThat(count("waitlist_entries", Criteria.where("dogId").is("s08-d-c" + i).and("state").is("ACTIVE"))).as("dog c" + i).isEqualTo(1);
+        }
+    }
+
+    /**
+     * R-08-07 — INC-40 (E11-T10): the pre-check of a plain hold runs outside any transaction and only reads: a hold it refuses
+     * (here CLASS_FULL by bookings) writes nothing, not even the owner's `bookingEligibilitySeq`.
+     */
+    @Test void T_08_14_INC_40_aHoldRefusedByThePreCheckWritesNothing() throws Exception {
+        book(as("pere"), "last", "s08-d-nit");
+        var before = mongo.findById("s08-m-laura", Document.class, "members");
+        var refused = send("/seat-holds", Map.of("classSessionId", "s08-last", "dogId", "s08-d-duna"), as("laura"), null);
+        assertThat(refused.status()).isEqualTo(409); assertThat(refused.code()).isEqualTo("CLASS_FULL");
+        assertThat(refused.body().at("/details/heldOnly").asBoolean()).isFalse();
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members")).isEqualTo(before);
     }
 
     @Test void T_08_33_anExpiredHoldNotYetRemovedByTheTtlNeitherCountsNorConfirms() throws Exception {

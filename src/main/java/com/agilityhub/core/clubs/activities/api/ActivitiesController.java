@@ -109,7 +109,7 @@ public class ActivitiesController {
     @PatchMapping("/api/v1/activities/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_SLOT_GRANULARITY, INVALID_TIME_RANGE, STALE_VERSION, SLUG_LOCKED, DUPLICATE_SLUG, INVALID_STATE, RING_BLOCK_CONFLICT, RING_HAS_BOOKINGS, CAPACITY_BELOW_REGISTRATIONS, OUTSIDE_OPENING_HOURS, ADMIN_TEXT_REQUIRED, LOCALE_NOT_ENABLED})
-    @Operation(summary = "patchActivity", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
+    @Operation(summary = "patchActivity", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. With rings, startTime, endTime and the ringBlockWindow hours are multiples of classes.slotMinutes (400 INVALID_SLOT_GRANULARITY; INC-40, E11-T10).", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
     public Activity patchActivity(@PathVariable String id, @RequestBody @Schema(implementation=ActivityPatchRequest.class) com.fasterxml.jackson.databind.JsonNode body) {
         if(body==null || !body.isObject()) throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR);
         ActivityPatchRequest request;
@@ -166,8 +166,8 @@ public class ActivitiesController {
 
     @PostMapping("/api/v1/activities/{id}/publication")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, RING_BLOCK_CONFLICT, RING_HAS_BOOKINGS, ACTIVITY_INCOMPLETE, ACTIVITY_IN_PAST, OUTSIDE_OPENING_HOURS, ADMIN_TEXT_REQUIRED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "publish", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, RING_BLOCK_CONFLICT, RING_HAS_BOOKINGS, ACTIVITY_INCOMPLETE, ACTIVITY_IN_PAST, OUTSIDE_OPENING_HOURS, ADMIN_TEXT_REQUIRED, IDEMPOTENCY_KEY_REUSED, INVALID_SLOT_GRANULARITY})
+    @Operation(summary = "publish", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. With rings, startTime, endTime and the ringBlockWindow hours are multiples of classes.slotMinutes (400 INVALID_SLOT_GRANULARITY; INC-40, E11-T10).", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
     public Activity publish(@PathVariable String id, @Valid @RequestBody PublicationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         return mutation(id,() -> service.publish(id,Boolean.TRUE.equals(request.notifyEmail()),options(request.cancelBookings(),request.cancelClasses(),request.adminText())),Activity.class,200);
     }
@@ -183,7 +183,7 @@ public class ActivitiesController {
     @GetMapping("/api/v1/activities/{id}/cancellation-preview")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "cancellationPreview", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ActivityCancellationPreview", useReturnTypeSchema = true))
+    @Operation(summary = "cancellationPreview", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES. INC-40 (E11-T10): a registrant whose member is erased (R-14-15) is a row with the neutral memberName (lists.erasedMember), no channels and phoneCount 0.", responses = @ApiResponse(responseCode = "200", description = "ActivityCancellationPreview", useReturnTypeSchema = true))
     public ActivityCancellationPreview cancellationPreview(@PathVariable String id) {
         return view(service.preview(id),ActivityCancellationPreview.class);
     }

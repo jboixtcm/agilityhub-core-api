@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.bookings.application.ports;
 
 import com.agilityhub.core.clubs.bookings.application.BookingActor;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,11 @@ public interface WaitlistConsolidationPort {
     Optional<String> consolidate(String classSessionId, String dogId, String bookingId, boolean claim, BookingActor actor);
     /** Returns the ids of the demoted entries (empty unless WAITLIST, ALL_AT_ONCE and no free seat). */
     List<String> demoteIfFull(String classSessionId, BookingActor actor);
+    /**
+     * R-08-14 (INC-40, E11-T10): the class's open FIFO offers (NOTIFIED, `confirmBy > now`) in queue order; their seats are taken
+     * for everybody else. Empty in ALL_AT_ONCE and with WAITLIST off.
+     */
+    List<Offer> openOffers(String classSessionId, Instant now);
+    /** One open FIFO offer; the queue order is (`notifiedAt`, `position`). */
+    record Offer(String entryId, String dogId, Instant notifiedAt, int position) { }
 }

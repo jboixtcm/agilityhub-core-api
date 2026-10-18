@@ -19,7 +19,10 @@ import org.springframework.stereotype.Repository;
 public class MongoOfferUsage extends TenantRepository<MongoOfferUsage.Reference> implements OfferUsage {
     public record Reference(String id, String clubId) implements TenantEntity { }
     public MongoOfferUsage(MongoTemplate mongo) { super(mongo, Reference.class); }
-    private List<Document> rows(String collection) { return mongo.find(tenantQuery(), Document.class, collection); }
+    /** E11-T10 (INC-38): the club's rows of the plan or of one of its prices, counted by the database (no tenant-wide read). */
+    private long count(String collection, String plan, Set<String> prices) {
+        return mongo.count(tenantQuery().addCriteria(new Criteria().orOperator(Criteria.where("planId").is(plan), Criteria.where("priceId").in(prices))), collection);
+    }
     private boolean matches(Map<?, ?> row, String plan, Set<String> prices) {
         return plan.equals(row.get("planId")) || prices.contains(row.get("priceId"));
     }
@@ -29,7 +32,7 @@ public class MongoOfferUsage extends TenantRepository<MongoOfferUsage.Reference>
                 .forEach(price -> prices.add(price.getString("_id")));
         Map<String, Long> counts = new LinkedHashMap<>();
         for (var entry : Map.of("members", "members", "packBalances", "pack_balances", "upfrontCollections", "collections").entrySet()) {
-            counts.put(entry.getKey(), rows(entry.getValue()).stream().filter(row -> matches(row, id, prices)).count());
+            counts.put(entry.getKey(), count(entry.getValue(), id, prices));
         }
         counts.put("invoiceLines", 0L);
         for (Document invoice : mongo.find(tenantQuery().addCriteria(Criteria.where("lines.priceId").in(prices)), Document.class, "invoices")) {

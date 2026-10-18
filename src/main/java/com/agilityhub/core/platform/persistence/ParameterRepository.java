@@ -13,6 +13,13 @@ public class ParameterRepository extends TenantRepository<Parameter> {
         return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(
                 org.springframework.data.mongodb.core.query.Criteria.where("key").is(key).and("scopeRef").is(scopeRef)), Parameter.class));
     }
+    /** E11-T10 (INC-38): the current club's club-level overrides (no `scopeRef`) by key, in one read. */
+    public java.util.Map<String, Parameter> findClubLevel() {
+        var result = new java.util.HashMap<String, Parameter>();
+        mongo.find(tenantQuery().addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("scopeRef").is(null)), Parameter.class)
+                .forEach(parameter -> result.putIfAbsent(parameter.key(), parameter));
+        return result;
+    }
     /** Compare-and-set without upsert: a stale editor must never replace a newer override. */
     public Parameter saveVersioned(Parameter next, Long expectedVersion) {
         try {

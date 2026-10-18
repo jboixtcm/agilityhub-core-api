@@ -57,9 +57,32 @@ class AuditedAspectTest {
                 .hasMessage("@Audited details must be a map");
     }
 
+    /**
+     * R-14-09, INC-40 (E11-T10): an audited method is refused without an active transaction, before it runs: nothing changes and
+     * nothing is written.
+     */
+    @Test void R_14_09_INC_40_anAuditedMethodWithoutTransactionIsRefusedBeforeItRuns() {
+        AuditWriter writer = mock(AuditWriter.class);
+        var factory = new AspectJProxyFactory(new DetachedService());
+        factory.addAspect(new AuditedAspect(writer, List.of()));
+        DetachedService proxy = factory.getProxy();
+        MutableClub club = new MutableClub();
+        assertThatThrownBy(() -> proxy.update(club, "Corrected name")).isInstanceOf(IllegalStateException.class)
+                .hasMessage("@Audited needs an active transaction (R-14-09): DetachedService.update");
+        assertThat(club.name).isEqualTo("before");
+        verifyNoInteractions(writer);
+    }
+
+    /** The calls of the other tests run as inside a transaction (R-14-09): the aspect only checks that one is active. */
     private DetachedService proxy(AuditWriter writer, DetachedService service) {
         var factory = new AspectJProxyFactory(service);
         factory.addAspect(new AuditedAspect(writer, List.of()));
+        // Outermost, as the transaction interceptor (order 0) is around the aspect (order 100).
+        factory.addAdvice(0, (org.aopalliance.intercept.MethodInterceptor) invocation -> {
+            org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(true);
+            try { return invocation.proceed(); }
+            finally { org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(false); }
+        });
         return factory.getProxy();
     }
 

@@ -39,4 +39,37 @@ class RequiresModuleInterceptorTest {
                 .preHandle(new MockHttpServletRequest(), new MockHttpServletResponse(), handler))
                 .isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
     }
+
+    /** As `TrainingSlotsController.trainingSlots`: the staff keep their grid without FREE_TRAINING (INC-44). */
+    static class StaffGrid {
+        @com.agilityhub.core.platform.application.RequiresModule(value = com.agilityhub.core.platform.application.Module.FREE_TRAINING,
+                exemptRoles = {"ADMIN", "INSTRUCTOR"})
+        public void slots() { }
+    }
+
+    @Test
+    void T_09_31_INC_44_anExemptRolePassesWithoutTheModuleAndEveryOtherCallerIsChecked() throws Exception {
+        var guard = mock(ModuleGuard.class);
+        org.mockito.Mockito.doThrow(new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.MODULE_DISABLED))
+                .when(guard).require("club-a", com.agilityhub.core.platform.application.Module.FREE_TRAINING);
+        var handler = new org.springframework.web.method.HandlerMethod(new StaffGrid(), StaffGrid.class.getMethod("slots"));
+        var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open("club-a")) {
+            for (String role : java.util.List.of("ROLE_INSTRUCTOR", "ROLE_ADMIN")) {
+                context.setAuthentication(new org.springframework.security.authentication.TestingAuthenticationToken("staff", null, role));
+                assertThat(new RequiresModuleInterceptor(guard).preHandle(new MockHttpServletRequest(), new MockHttpServletResponse(), handler)).isTrue();
+            }
+            verifyNoInteractions(guard);
+            context.setAuthentication(new org.springframework.security.authentication.TestingAuthenticationToken("member", null, "ROLE_MEMBER"));
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new RequiresModuleInterceptor(guard)
+                    .preHandle(new MockHttpServletRequest(), new MockHttpServletResponse(), handler))
+                    .isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+            context.setAuthentication(null);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> new RequiresModuleInterceptor(guard)
+                    .preHandle(new MockHttpServletRequest(), new MockHttpServletResponse(), handler))
+                    .as("no authentication: checked").isInstanceOf(com.agilityhub.core.shared.domain.ApiException.class);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
 }

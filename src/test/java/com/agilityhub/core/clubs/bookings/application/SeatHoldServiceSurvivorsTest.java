@@ -100,6 +100,16 @@ class SeatHoldServiceSurvivorsTest {
         verify(locks).lock("class-a");
     }
 
+    /** R-08-07, R-08-02 — INC-40 (E11-T10): the pre-check only reads; the owner is serialised once, inside the hold transaction. */
+    @Test void T_08_14_INC_40_onlyTheLockedPathSerialisesTheDogOwner() {
+        when(bookings.forClass("class-a", BookingRepository.LIVE))
+                .thenReturn(List.of(booking("booking-1", "dog-nala", "member-pau"), booking("booking-2", "dog-kira", "member-eva")), List.of(), List.of());
+        assertThatThrownBy(() -> service.hold(laura, "class-a", "dog-duna", null)).isInstanceOf(ApiException.class);
+        verify(checks, never()).lockOwner(any());
+        service.hold(laura, "class-a", "dog-duna", null);
+        verify(checks, times(1)).lockOwner(any());
+    }
+
     // --- offer (line 105) ---------------------------------------------------------------------------------------------------
 
     @Test void T_08_22_aClaimHoldNamingAnotherDogsEntryIsNotFound() {

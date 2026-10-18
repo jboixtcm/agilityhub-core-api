@@ -1,0 +1,8 @@
+# E11-T10: the unit test of bin/e7-smoke after its template count is read from the seed.
+$ python3 bin/e7-smoke-test.py
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+exit=0

@@ -38,16 +38,21 @@ public class WaitlistService {
 
     /**
      * R-08-12: the full eligibility chain of a booking (block, inactivity, member status, level, pack, leave date,
-     * not yet open), then the class must be full by bookings alone (holds excluded), the dog has no live booking or
-     * entry, and the waiting-list limits and the «can accept the seat» rule hold.
+     * not yet open), then the class must be full by bookings alone (holds excluded; in FIFO the open offers of other dogs
+     * count, R-08-14), the dog has no live booking or entry, and the waiting-list limits and the «can accept the seat» rule
+     * hold. The owner is serialised first ({@link BookingChecks#lockOwner}), so `waitlist.maxPerDogPerWeek` holds for joins at once.
      */
     public WaitlistEntry join(BookingActor actor, String classSessionId, String dogId) {
         return events.loggingBlocked("join", classSessionId, () -> transactions.write(List.of(classSessionId), () -> {
             var now = context.now();
             locks.lock(classSessionId);
             var subject = checks.subject(actor, classSessionId, dogId, now);
+            checks.lockOwner(subject);
             var s = subject.session();
-            if (bookings.forClass(classSessionId, BookingRepository.LIVE).size() < s.capacity()) { throw new ApiException(ErrorCode.CLASS_NOT_FULL); }
+            // R-08-14 (INC-40, E11-T10): a seat on an open FIFO offer of another dog is not free, so the class is full for this dog.
+            int offered = WaitlistTransitions.others(WaitlistTransitions.offeredDogs(context, waitlist, List.of(classSessionId), now)
+                    .getOrDefault(classSessionId, Set.of()), dogId).size();
+            if (bookings.forClass(classSessionId, BookingRepository.LIVE).size() + offered < s.capacity()) { throw new ApiException(ErrorCode.CLASS_NOT_FULL); }
             checks.notBookedYet(subject);
             if (waitlist.live(classSessionId, dogId).isPresent()) { throw new ApiException(ErrorCode.ALREADY_ON_WAITLIST); }
             var unit = context.unit();
@@ -110,7 +115,8 @@ public class WaitlistService {
     /**
      * R-08-15 `POST /waitlist-entries/{id}/claim`: the entry is NOTIFIED (FIFO: `confirmBy > now`), the hold is the
      * caller's, live and taken for this entry; then the very same R-08-08 confirmation (checks, swap, BR-01, capacity)
-     * runs in this transaction and consolidates the entry; in ALL_AT_ONCE the last seat demotes the other NOTIFIED ones.
+     * runs in this transaction and consolidates the entry; in ALL_AT_ONCE the last seat demotes the other NOTIFIED ones. No seat
+     * left answers SEAT_TAKEN (E11-T10 review: the confirmation's CLASS_FULL is not a claim's answer).
      */
     public BookingConfirmationService.Confirmed claim(BookingActor actor, String entryId, String seatHoldId, String swapBookingId) {
         var initial = waitlist.findById(entryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -127,7 +133,9 @@ public class WaitlistService {
             var hold = holds.findById(seatHoldId).filter(h -> Objects.equals(h.accountId(), actor.accountId()) && h.expiresAt().isAfter(now))
                     .orElseThrow(() -> new ApiException(ErrorCode.SEAT_HOLD_EXPIRED));
             if (!entryId.equals(hold.waitlistEntryId())) { throw new ApiException(ErrorCode.WAITLIST_NOT_NOTIFIED); }
-            return confirmations.confirm(actor, seatHoldId, swapBookingId);
+            // R-08-15: a claim without a seat (a booking, another dog's hold or an offer ahead) is SEAT_TAKEN, never the booking's CLASS_FULL.
+            try { return confirmations.confirm(actor, seatHoldId, swapBookingId); }
+            catch (ApiException rejected) { if (rejected.code() == ErrorCode.CLASS_FULL) { throw new ApiException(ErrorCode.SEAT_TAKEN); } throw rejected; }
         }));
     }
 
