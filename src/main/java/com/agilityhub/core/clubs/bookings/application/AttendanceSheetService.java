@@ -121,6 +121,6 @@ public class AttendanceSheetService {
             }
         }
         schedule.attendanceSummary(cls.id(), new InstructorScheduleAccess.Summary(cls.summary().version() + 1, marked, present, notified, noShow, afterEnd,
-                now, caller.displayName()));
+                now, caller.displayName(), caller.accountId()));
     }
 }

@@ -40,10 +40,17 @@ public record ClassSession(@Id String id, String clubId,
      * `notifiedAfterEnd` counts the NOTIFIED rows whose booking stayed ACTIVE (R-10-05 `afterClassEnd`): they are
      * already in `counters.booked`, so the sheet total subtracts them once (R-10-02). Boxed because a summary stored
      * before the counter existed has no such field, and the mapping passes null for it: it reads as 0.
+     * `savedByAccountId` is the account behind `savedByName` (E11-T01 round 2), so S14 R-14-15 can replace the name of an erased
+     * member; a summary saved before it has none.
      */
-    public record AttendanceSummary(int version, int marked, int present, int notified, int noShow, Integer notifiedAfterEnd, Instant savedAt, String savedByName) {
-        public static final AttendanceSummary EMPTY = new AttendanceSummary(0, 0, 0, 0, 0, 0, null, null);
+    public record AttendanceSummary(int version, int marked, int present, int notified, int noShow, Integer notifiedAfterEnd, Instant savedAt, String savedByName,
+            String savedByAccountId) {
+        public static final AttendanceSummary EMPTY = new AttendanceSummary(0, 0, 0, 0, 0, 0, null, null, null);
         public AttendanceSummary { if (notifiedAfterEnd == null) { notifiedAfterEnd = 0; } }
+        /** A summary without the saving account (written before E11-T01 round 2). */
+        public AttendanceSummary(int version, int marked, int present, int notified, int noShow, Integer notifiedAfterEnd, Instant savedAt, String savedByName) {
+            this(version, marked, present, notified, noShow, notifiedAfterEnd, savedAt, savedByName, null);
+        }
         /** The summary of the round-1 contract (no `notifiedAfterEnd`): the counter is 0. */
         public AttendanceSummary(int version, int marked, int present, int notified, int noShow, Instant savedAt, String savedByName) {
             this(version, marked, present, notified, noShow, 0, savedAt, savedByName);

@@ -105,7 +105,7 @@ class ErasureServiceTest {
         verify(requests, never()).insert(any());
     }
 
-    @Test void T_14_16_aRetentionRequestExecutesNowAndIsAuditedAsTheSystem() {
+    @Test void T_14_09_aRetentionRequestExecutesNowAndIsAuditedAsTheSystem() {
         var request = service.requestRetention(montse("LEFT", null), "retention-sweep");
         assertThat(request.source()).isEqualTo("RETENTION");
         assertThat(request.executeAt()).isEqualTo(NOW);
@@ -137,7 +137,7 @@ class ErasureServiceTest {
         assertThatThrownBy(() -> service.cancel("montse")).hasMessage("STALE_VERSION");
     }
 
-    @Test void T_14_14_anAccountRequestChecksEveryClubAndTakesTheLatestMargin() {
+    @Test void R_14_14_anAccountRequestChecksEveryClubAndTakesTheLatestMargin() {
         tenant.close(); tenant = null;
         try {
             when(accounts.account("laura-account")).thenReturn(Optional.of(new ErasureAccounts.Account("laura-account", "laura@example.test", "ca", false, false)));
@@ -161,7 +161,38 @@ class ErasureServiceTest {
         } finally { tenant = TenantContext.open("club-a"); }
     }
 
-    @Test void T_14_14_anAccountWithoutMembersIsErasedAtOnceAndUnknownOrErasedOnesAreRefused() {
+    /** S14 §5 «plataforma» (E11-T01 round 2): the console cancels an account request before it erases, never a club's member request. */
+    @Test void R_14_14_thePlatformCancelsAScheduledOrBlockedAccountRequestOnly() {
+        tenant.close(); tenant = null;
+        try {
+            var blocked = PrivacyFixtures.request("r", "ACCOUNT", "BLOCKED", List.of("montse", "montse-b"), List.of("club-a", "club-b"), List.of("club-a"), "montse-account");
+            when(requests.findById("r")).thenReturn(Optional.of(blocked));
+            when(requests.update(eq(blocked), any(Update.class))).thenReturn(true);
+            service.cancelAccountRequest("r");
+            var update = ArgumentCaptor.forClass(Update.class);
+            verify(requests).update(eq(blocked), update.capture());
+            assertThat(update.getValue().getUpdateObject().toString()).contains("CANCELLED", "cancelledAt", "cancelledByAccountId", "admin-account", "live")
+                    .doesNotContain("erasedClubIds");
+            verify(audit).write(argThat((AuditCommand command) -> command.action() == AuditAction.ERASURE_CANCELLED && "r".equals(command.entityId())
+                    && command.memberId() == null));
+            for (var refused : List.of(PrivacyFixtures.request("m", "MEMBER", "SCHEDULED", List.of("montse"), List.of("club-a"), List.of(), null),
+                    PrivacyFixtures.request("m", "ACCOUNT", "ERASING", List.of("montse"), List.of("club-a"), List.of("club-a"), "montse-account"),
+                    PrivacyFixtures.request("m", "ACCOUNT", "CANCELLED", List.of("montse"), List.of("club-a"), List.of(), "montse-account"))) {
+                when(requests.findById("m")).thenReturn(Optional.of(refused));
+                assertThatThrownBy(() -> service.cancelAccountRequest("m")).isInstanceOfSatisfying(ApiException.class, error -> {
+                    assertThat(error.code()).isEqualTo(ErrorCode.INVALID_STATE);
+                    assertThat(error.details()).containsEntry("status", refused.status()).containsEntry("scope", refused.scope());
+                });
+            }
+            when(requests.findById("ghost")).thenReturn(Optional.empty());
+            assertThatThrownBy(() -> service.cancelAccountRequest("ghost")).hasMessage("NOT_FOUND");
+            when(requests.update(eq(blocked), any(Update.class))).thenReturn(false);
+            assertThatThrownBy(() -> service.cancelAccountRequest("r")).hasMessage("STALE_VERSION");
+            verify(audit, times(1)).write(any());
+        } finally { tenant = TenantContext.open("club-a"); }
+    }
+
+    @Test void R_14_14_anAccountWithoutMembersIsErasedAtOnceAndUnknownOrErasedOnesAreRefused() {
         tenant.close(); tenant = null;
         try {
             when(accounts.account("staff-account")).thenReturn(Optional.of(new ErasureAccounts.Account("staff-account", "staff@example.test", "ca", false, false)));

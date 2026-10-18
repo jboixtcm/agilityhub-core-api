@@ -147,6 +147,15 @@ public class AuditController {
         return new ListPage<>(page.items().stream().map(this::view).toList(), page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());
     }
 
+    @DeleteMapping("/api/v1/platform/erasure-requests/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
+    @ContractErrors({NOT_FOUND, INVALID_STATE})
+    @Operation(summary = "Cancel account erasure",
+            description = "S14 §5 (E11-T01 round 2). The console cancels an account request (scope ACCOUNT) that is SCHEDULED or BLOCKED → CANCELLED, audited ERASURE_CANCELLED on the platform; AGILITYHUB_ADMIN only, no request tenant. The clubs it already erased (a request blocked halfway) stay erased. Another state, or a club's member request (its club cancels it), is 409 INVALID_STATE {status, scope}; an unknown id is 404.",
+            responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
+    public void cancelAccountErasure(@PathVariable String id) { erasures.cancelAccountRequest(id); }
+
     private ErasureRequest view(com.agilityhub.core.platform.persistence.privacy.ErasureRequest request) {
         return new ErasureRequest(request.id(), request.clubId(), ErasureScope.valueOf(request.scope()), request.accountId(), request.memberIds(), request.clubIds(),
                 ErasureSource.valueOf(request.source()), request.requestedByAccountId(), request.requestedAt(), request.reason(),

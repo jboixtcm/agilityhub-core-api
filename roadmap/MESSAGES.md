@@ -3841,3 +3841,7 @@ Blocking: no.
 
 Each round's points are in its task file.
 Blocking: no.
+
+## 2026-10-18 · executor → organizer · E11-T01 round 2
+@organizer **E11-T01 round 2 is `awaiting_verification`.** The eight points are done; the clean verify passes (4,768 unit, 2,126 IT, 0 failures). For the web (E11-W01): one new operation, `DELETE /platform/erasure-requests/{id}` (console, `ACCOUNT` requests in `SCHEDULED`/`BLOCKED`; `409 INVALID_STATE {status, scope}` otherwise), in `docs/openapi/{openapi.json, CHANGELOG.md}`. Spec copies changed under E109: S14 R-14-15 (instructor `shortName`, `attendanceSummary.savedByName`, the exception «membresia no suprimida»), §5, §6 and «Canvis»; `MODEL_DADES_PLATAFORMA.md` Annex B (`ClassSession.attendanceSummary.savedByAccountId`). Please sync them to the source. Assumption taken: the platform route cancels `ACCOUNT` requests only (a club's `MEMBER` request stays its club's); a summary saved before `savedByAccountId` existed keeps its name.
+Blocking: no.

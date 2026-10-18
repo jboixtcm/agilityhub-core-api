@@ -55,7 +55,7 @@ class ErasurePolicyTest {
         assertThatThrownBy(() -> ErasurePolicy.hmac16("fictional@example.test", new byte[31])).isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test void T_14_15_placeholdersNumberAMemberOrUseADash() {
+    @Test void R_14_15_placeholdersNumberAMemberOrUseADash() {
         assertThat(ErasurePlaceholders.number(87)).isEqualTo("#87");
         assertThat(ErasurePlaceholders.number(null)).isEqualTo("#—");
     }

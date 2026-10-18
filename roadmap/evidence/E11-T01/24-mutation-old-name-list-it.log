@@ -1,0 +1,1811 @@
+12:11:02.336 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.MemberDataExportIT]: MemberDataExportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:11:02.425 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.privacy.MemberDataExportIT
+12:11:02.462 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.MemberDataExportIT]: MemberDataExportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:11:02.463 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.platform.privacy.PrivacyItFixtures]: PrivacyItFixtures does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:11:02.463 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:11:02.467 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.privacy.MemberDataExportIT
+12:11:02.497 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:11:02.498 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:11:02.501 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+12:11:02.595 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:11:02.768 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:11:02.769 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:11:02.777 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:11:03.133 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+12:11:03.163 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:11:03.399 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: f5838ccf4275077699d41713ffe8e9f9f9493902a572eab345247507b284f37e
+12:11:03.559 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.426792S
+12:11:03.563 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:11:03.563 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:11:03.563 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:11:03.563 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:11:03.603 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: ae18b2f11b95294c18e882c4be5be871e6064e74922f25bf55a2a127e1c28a02
+12:11:03.994 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.430748S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T12:11:04.582+03:00 INFO  [main] c.a.c.p.privacy.MemberDataExportIT traceId= clubId= accountId= : Starting MemberDataExportIT using Java [redacted] with PID 33466 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-18T12:11:04.583+03:00 INFO  [main] c.a.c.p.privacy.MemberDataExportIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T12:11:05.478+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T12:11:05.528+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 45 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T12:11:05.933+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@497cf31a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@530aa75c, com.mongodb.Jep395RecordCodecProvider@593d0173, com.mongodb.KotlinCodecProvider@4a0a93ce, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60686], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@64404db6], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T12:11:05.942+03:00 INFO  [cluster-6ad48d29a805bc672a1b1aad-localhost:60686] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60686, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10095750, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=ae18b2f11b95:27017, hosts=[ae18b2f11b95:27017], passives=[], arbiters=[], primary='ae18b2f11b95:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad48d27c948bc1707fca498, counter=6}, lastWriteDate=Sun Oct 18 12:11:04 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T12:11:06.931+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:06.949+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:06.975+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:07.593+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:07.613+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:07.631+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:07.699+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:11:09.518+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T12:11:09.518+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T12:11:09.522+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-18T12:11:09.579+03:00 INFO  [main] c.a.c.p.privacy.MemberDataExportIT traceId= clubId= accountId= : Started MemberDataExportIT in 5.14 seconds (process running for 7.564)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 9.593 s <<< FAILURE! -- in com.agilityhub.core.platform.privacy.MemberDataExportIT
+[ERROR] com.agilityhub.core.platform.privacy.MemberDataExportIT.T_14_17_R_14_13_theMembersPackageHoldsItsDataItsFilesAndAnnouncesItself -- Time elapsed: 1.423 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "{
+  "schema" : "memberData.v1",
+  "generatedAt" : "2026-09-05T08:00:00Z",
+  "club" : {
+    "name" : "Example Agility Club",
+    "id" : "rgpd-a"
+  },
+  "account" : {
+    "email" : "laura@example.test",
+    "name" : "Fictional laura-account",
+    "locale" : "ca",
+    "createdAt" : "2020-01-01T00:00:00Z",
+    "lastLoginAt" : null
+  },
+  "memberships" : [ {
+    "roles" : [ "MEMBER" ],
+    "status" : "ACTIVE",
+    "createdAt" : null,
+    "lastAccessAt" : null,
+    "clubId" : "rgpd-a"
+  } ],
+  "member" : {
+    "id" : "laura",
+    "accountId" : "laura-account",
+    "memberNumber" : 41,
+    "idDocument" : {
+      "type" : "DNI",
+      "number" : "12345678Z"
+    },
+    "firstName" : "Fictional",
+    "lastName1" : "Person laura",
+    "lastName2" : "Second",
+    "gender" : "FEMALE",
+    "birthDate" : "1990-05-06",
+    "contactEmails" : [ {
+      "email" : "laura@example.test",
+      "bounced" : false
+    } ],
+    "phones" : [ {
+      "prefix" : "+34",
+      "number" : "600000001",
+      "label" : "Primary"
+    } ],
+    "address" : {
+      "street" : "1 Fictional Street",
+      "postalCode" : "08349",
+      "city" : "Fictional Town",
+      "country" : "ES"
+    },
+    "paymentMethod" : {
+      "type" : "SEPA_DD",
+      "iban" : "···· 1332",
+      "holderName" : "Fictional Holder",
+      "holderTaxId" : "12345678Z",
+      "mandateRef" : "rgpd-41-1",
+      "mandateSignedAt" : "2020-01-01T00:00:00Z"
+    },
+    "planId" : "plan-a",
+    "priceId" : "price-a",
+    "signup" : {
+      "submittedAt" : "2020-01-01T00:00:00Z",
+      "locale" : "ca",
+      "userAgent" : "Fictional Browser",
+      "ipHash" : "hash-laura"
+    },
+    "familyGroupClaim" : {
+      "status" : "NOT_FOUND_PENDING",
+      "holderName" : "Fictional Holder",
+      "dogName" : "Fictional Dog"
+    },
+    "remarks" : "Remarks about laura",
+    "internalNotes" : "Internal note about laura",
+    "status" : "ACTIVE",
+    "joinedAt" : "2020-01-01T00:00:00Z",
+    "bookingBlock" : {
+      "active" : false,
+      "reason" : "a fictional reason"
+    },
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z"
+  },
+  "consents" : [ {
+    "type" : "PRIVACY_POLICY",
+    "granted" : true,
+    "acceptedAt" : "2020-01-01T00:00:00Z",
+    "locale" : "ca",
+    "ipHash" : "hash-laura",
+    "source" : "SIGNUP"
+  }, {
+    "type" : "IMAGE_USE",
+    "granted" : false,
+    "acceptedAt" : "2020-01-01T00:00:01Z",
+    "locale" : "ca",
+    "ipHash" : "hash-laura",
+    "source" : "SIGNUP"
+  } ],
+  "notificationPreferences" : {
+    "pushClubNews" : false
+  },
+  "dogs" : [ {
+    "id" : "duna",
+    "memberId" : "laura",
+    "name" : "Fictional duna",
+    "breed" : "whippet",
+    "sex" : "FEMALE",
+    "birthDate" : "2021-03-12",
+    "chip" : "941000000200001",
+    "handlerName" : "Fictional Handler",
+    "levelId" : "level-a",
+    "levelHistory" : [ {
+      "levelId" : "level-a",
+      "from" : "2021-05-01T00:00:00Z"
+    } ],
+    "instructorNote" : {
+      "text" : "Instructor note about duna"
+    },
+    "remarks" : "Dog remarks of duna",
+    "remarksMeta" : { },
+    "licenses" : [ {
+      "organisation" : "RSCE",
+      "number" : "L-1"
+    } ],
+    "status" : "ACTIVE",
+    "registeredAt" : "2021-05-01T00:00:00Z",
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z",
+    "documents" : [ {
+      "id" : "doc-duna",
+      "dogId" : "duna",
+      "type" : "VACCINATION",
+      "state" : "VALID",
+      "files" : [ {
+        "id" : "f1",
+        "fileKey" : "a88b5d6f-2114-4498-a606-8ce56c3af742",
+        "name" : "cartilla-duna.pdf",
+        "mimeType" : "application/pdf"
+      } ]
+    } ]
+  }, {
+    "id" : "rock",
+    "memberId" : "laura",
+    "name" : "Fictional rock",
+    "breed" : "whippet",
+    "sex" : "FEMALE",
+    "birthDate" : "2021-03-12",
+    "chip" : "941000000200002",
+    "handlerName" : "Fictional Handler",
+    "levelId" : "level-a",
+    "levelHistory" : [ {
+      "levelId" : "level-a",
+      "from" : "2021-05-01T00:00:00Z"
+    } ],
+    "instructorNote" : {
+      "text" : "Instructor note about rock"
+    },
+    "remarks" : "Dog remarks of rock",
+    "remarksMeta" : { },
+    "licenses" : [ {
+      "organisation" : "RSCE",
+      "number" : "L-1"
+    } ],
+    "status" : "ACTIVE",
+    "registeredAt" : "2021-05-01T00:00:00Z",
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z",
+    "documents" : [ ]
+  } ],
+  "bookings" : [ {
+    "id" : "booking-laura",
+    "memberId" : "laura",
+    "dogId" : "duna",
+    "state" : "CANCELLED_BY_CLUB",
+    "classStartsAt" : "2026-07-01T18:00:00Z",
+    "instructorName" : "Fictional Staff Neus",
+    "bookedBy" : {
+      "accountId" : "admin-account",
+      "role" : "ADMIN"
+    },
+    "cancelledBy" : {
+      "accountId" : "instructor-account",
+      "role" : "INSTRUCTOR",
+      "name" : "Fictional Staff Neus",
+      "email" : "neus@example.test"
+    }
+  } ],
+  "trainingBookings" : [ ],
+  "waitlistEntries" : [ ],
+  "attendances" : [ {
+    "id" : "attendance-laura",
+    "bookingId" : "booking-laura",
+    "memberId" : "laura",
+    "state" : "PRESENT",
+    "markedBy" : {
+      "accountId" : "instructor-account",
+      "role" : "INSTRUCTOR"
+    }
+  } ],
+  "tasks" : [ {
+    "id" : "task-laura",
+    "memberId" : "laura",
+    "dogId" : "duna",
+    "text" : "practise the weaves",
+    "state" : "PENDING",
+    "createdBy" : {
+      "accountId" : "instructor-account"
+    },
+    "attachments" : [ ]
+  } ],
+  "inactivityPeriods" : [ {
+    "id" : "inactivity-laura",
+    "memberId" : "laura",
+    "fromMonth" : "2026-03",
+    "toMonth" : "2026-04",
+    "state" : "FINISHED",
+    "decision" : {
+      "at" : "2026-02-20T10:00:00Z",
+      "byAccountId" : "admin-account",
+      "byName" : "Fictional Staff Jordi",
+      "decision" : "APPROVED",
+      "deadlineOverridden" : false
+    }
+  } ],
+  "leaveRequests" : [ ],
+  "invoices" : [ {
+    "id" : "invoice-1",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 1,
+    "displayNumber" : "2026-1",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ {
+      "id" : "collection-1",
+      "invoiceId" : "invoice-1",
+      "status" : "SUCCEEDED"
+    } ]
+  }, {
+    "id" : "invoice-10",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 10,
+    "displayNumber" : "2026-10",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-11",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 11,
+    "displayNumber" : "2026-11",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-12",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 12,
+    "displayNumber" : "2026-12",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-13",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 13,
+    "displayNumber" : "2026-13",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-14",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 14,
+    "displayNumber" : "2026-14",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-15",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 15,
+    "displayNumber" : "2026-15",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-16",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 16,
+    "displayNumber" : "2026-16",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-17",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 17,
+    "displayNumber" : "2026-17",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-18",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 18,
+    "displayNumber" : "2026-18",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-19",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 19,
+    "displayNumber" : "2026-19",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-2",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 2,
+    "displayNumber" : "2026-2",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-20",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 20,
+    "displayNumber" : "2026-20",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-21",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 21,
+    "displayNumber" : "2026-21",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-22",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 22,
+    "displayNumber" : "2026-22",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-23",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 23,
+    "displayNumber" : "2026-23",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-24",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 24,
+    "displayNumber" : "2026-24",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-25",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 25,
+    "displayNumber" : "2026-25",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-26",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 26,
+    "displayNumber" : "2026-26",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-27",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 27,
+    "displayNumber" : "2026-27",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-28",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 28,
+    "displayNumber" : "2026-28",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-29",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 29,
+    "displayNumber" : "2026-29",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-3",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 3,
+    "displayNumber" : "2026-3",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-30",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 30,
+    "displayNumber" : "2026-30",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-31",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 31,
+    "displayNumber" : "2026-31",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-32",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 32,
+    "displayNumber" : "2026-32",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-33",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 33,
+    "displayNumber" : "2026-33",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-34",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 34,
+    "displayNumber" : "2026-34",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-35",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 35,
+    "displayNumber" : "2026-35",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-36",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 36,
+    "displayNumber" : "2026-36",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-37",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 37,
+    "displayNumber" : "2026-37",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-38",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 38,
+    "displayNumber" : "2026-38",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-4",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 4,
+    "displayNumber" : "2026-4",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-5",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 5,
+    "displayNumber" : "2026-5",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-6",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 6,
+    "displayNumber" : "2026-6",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-7",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 7,
+    "displayNumber" : "2026-7",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-8",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 8,
+    "displayNumber" : "2026-8",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-9",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 9,
+    "displayNumber" : "2026-9",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  } ],
+  "upfrontPayments" : [ ],
+  "packBalances" : [ ],
+  "notifications" : [ {
+    "code" : "N-13",
+    "title" : "Hola Laura",
+    "body" : "Duna puja",
+    "channels" : [ "APP" ],
+    "createdAt" : "2026-07-01T10:00:00Z",
+    "readAt" : null
+  } ],
+  "auditEntries" : [ {
+    "action" : "MEMBER_UPDATED",
+    "at" : "2026-07-01T10:00:00Z",
+    "actorRole" : "ADMIN"
+  } ],
+  "familyGroup" : null
+}"
+not to contain:
+  ["Fictional Staff",
+    "Fictional Instructor",
+    "Fictional Admin",
+    "Fictional admin-account",
+    "neus@example.test",
+    "admin@example.test"]
+but found:
+  ["Fictional Staff", "neus@example.test"]
+
+	at com.agilityhub.core.platform.privacy.MemberDataExportIT.T_14_17_R_14_13_theMembersPackageHoldsItsDataItsFilesAndAnnouncesItself(MemberDataExportIT.java:130)
+
+[ERROR] Failures: 
+[ERROR]   MemberDataExportIT.T_14_17_R_14_13_theMembersPackageHoldsItsDataItsFilesAndAnnouncesItself:130 
+Expecting actual:
+  "{
+  "schema" : "memberData.v1",
+  "generatedAt" : "2026-09-05T08:00:00Z",
+  "club" : {
+    "name" : "Example Agility Club",
+    "id" : "rgpd-a"
+  },
+  "account" : {
+    "email" : "laura@example.test",
+    "name" : "Fictional laura-account",
+    "locale" : "ca",
+    "createdAt" : "2020-01-01T00:00:00Z",
+    "lastLoginAt" : null
+  },
+  "memberships" : [ {
+    "roles" : [ "MEMBER" ],
+    "status" : "ACTIVE",
+    "createdAt" : null,
+    "lastAccessAt" : null,
+    "clubId" : "rgpd-a"
+  } ],
+  "member" : {
+    "id" : "laura",
+    "accountId" : "laura-account",
+    "memberNumber" : 41,
+    "idDocument" : {
+      "type" : "DNI",
+      "number" : "12345678Z"
+    },
+    "firstName" : "Fictional",
+    "lastName1" : "Person laura",
+    "lastName2" : "Second",
+    "gender" : "FEMALE",
+    "birthDate" : "1990-05-06",
+    "contactEmails" : [ {
+      "email" : "laura@example.test",
+      "bounced" : false
+    } ],
+    "phones" : [ {
+      "prefix" : "+34",
+      "number" : "600000001",
+      "label" : "Primary"
+    } ],
+    "address" : {
+      "street" : "1 Fictional Street",
+      "postalCode" : "08349",
+      "city" : "Fictional Town",
+      "country" : "ES"
+    },
+    "paymentMethod" : {
+      "type" : "SEPA_DD",
+      "iban" : "···· 1332",
+      "holderName" : "Fictional Holder",
+      "holderTaxId" : "12345678Z",
+      "mandateRef" : "rgpd-41-1",
+      "mandateSignedAt" : "2020-01-01T00:00:00Z"
+    },
+    "planId" : "plan-a",
+    "priceId" : "price-a",
+    "signup" : {
+      "submittedAt" : "2020-01-01T00:00:00Z",
+      "locale" : "ca",
+      "userAgent" : "Fictional Browser",
+      "ipHash" : "hash-laura"
+    },
+    "familyGroupClaim" : {
+      "status" : "NOT_FOUND_PENDING",
+      "holderName" : "Fictional Holder",
+      "dogName" : "Fictional Dog"
+    },
+    "remarks" : "Remarks about laura",
+    "internalNotes" : "Internal note about laura",
+    "status" : "ACTIVE",
+    "joinedAt" : "2020-01-01T00:00:00Z",
+    "bookingBlock" : {
+      "active" : false,
+      "reason" : "a fictional reason"
+    },
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z"
+  },
+  "consents" : [ {
+    "type" : "PRIVACY_POLICY",
+    "granted" : true,
+    "acceptedAt" : "2020-01-01T00:00:00Z",
+    "locale" : "ca",
+    "ipHash" : "hash-laura",
+    "source" : "SIGNUP"
+  }, {
+    "type" : "IMAGE_USE",
+    "granted" : false,
+    "acceptedAt" : "2020-01-01T00:00:01Z",
+    "locale" : "ca",
+    "ipHash" : "hash-laura",
+    "source" : "SIGNUP"
+  } ],
+  "notificationPreferences" : {
+    "pushClubNews" : false
+  },
+  "dogs" : [ {
+    "id" : "duna",
+    "memberId" : "laura",
+    "name" : "Fictional duna",
+    "breed" : "whippet",
+    "sex" : "FEMALE",
+    "birthDate" : "2021-03-12",
+    "chip" : "941000000200001",
+    "handlerName" : "Fictional Handler",
+    "levelId" : "level-a",
+    "levelHistory" : [ {
+      "levelId" : "level-a",
+      "from" : "2021-05-01T00:00:00Z"
+    } ],
+    "instructorNote" : {
+      "text" : "Instructor note about duna"
+    },
+    "remarks" : "Dog remarks of duna",
+    "remarksMeta" : { },
+    "licenses" : [ {
+      "organisation" : "RSCE",
+      "number" : "L-1"
+    } ],
+    "status" : "ACTIVE",
+    "registeredAt" : "2021-05-01T00:00:00Z",
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z",
+    "documents" : [ {
+      "id" : "doc-duna",
+      "dogId" : "duna",
+      "type" : "VACCINATION",
+      "state" : "VALID",
+      "files" : [ {
+        "id" : "f1",
+        "fileKey" : "a88b5d6f-2114-4498-a606-8ce56c3af742",
+        "name" : "cartilla-duna.pdf",
+        "mimeType" : "application/pdf"
+      } ]
+    } ]
+  }, {
+    "id" : "rock",
+    "memberId" : "laura",
+    "name" : "Fictional rock",
+    "breed" : "whippet",
+    "sex" : "FEMALE",
+    "birthDate" : "2021-03-12",
+    "chip" : "941000000200002",
+    "handlerName" : "Fictional Handler",
+    "levelId" : "level-a",
+    "levelHistory" : [ {
+      "levelId" : "level-a",
+      "from" : "2021-05-01T00:00:00Z"
+    } ],
+    "instructorNote" : {
+      "text" : "Instructor note about rock"
+    },
+    "remarks" : "Dog remarks of rock",
+    "remarksMeta" : { },
+    "licenses" : [ {
+      "organisation" : "RSCE",
+      "number" : "L-1"
+    } ],
+    "status" : "ACTIVE",
+    "registeredAt" : "2021-05-01T00:00:00Z",
+    "createdAt" : "2026-09-05T08:00:00Z",
+    "updatedAt" : "2026-09-05T08:00:00Z",
+    "documents" : [ ]
+  } ],
+  "bookings" : [ {
+    "id" : "booking-laura",
+    "memberId" : "laura",
+    "dogId" : "duna",
+    "state" : "CANCELLED_BY_CLUB",
+    "classStartsAt" : "2026-07-01T18:00:00Z",
+    "instructorName" : "Fictional Staff Neus",
+    "bookedBy" : {
+      "accountId" : "admin-account",
+      "role" : "ADMIN"
+    },
+    "cancelledBy" : {
+      "accountId" : "instructor-account",
+      "role" : "INSTRUCTOR",
+      "name" : "Fictional Staff Neus",
+      "email" : "neus@example.test"
+    }
+  } ],
+  "trainingBookings" : [ ],
+  "waitlistEntries" : [ ],
+  "attendances" : [ {
+    "id" : "attendance-laura",
+    "bookingId" : "booking-laura",
+    "memberId" : "laura",
+    "state" : "PRESENT",
+    "markedBy" : {
+      "accountId" : "instructor-account",
+      "role" : "INSTRUCTOR"
+    }
+  } ],
+  "tasks" : [ {
+    "id" : "task-laura",
+    "memberId" : "laura",
+    "dogId" : "duna",
+    "text" : "practise the weaves",
+    "state" : "PENDING",
+    "createdBy" : {
+      "accountId" : "instructor-account"
+    },
+    "attachments" : [ ]
+  } ],
+  "inactivityPeriods" : [ {
+    "id" : "inactivity-laura",
+    "memberId" : "laura",
+    "fromMonth" : "2026-03",
+    "toMonth" : "2026-04",
+    "state" : "FINISHED",
+    "decision" : {
+      "at" : "2026-02-20T10:00:00Z",
+      "byAccountId" : "admin-account",
+      "byName" : "Fictional Staff Jordi",
+      "decision" : "APPROVED",
+      "deadlineOverridden" : false
+    }
+  } ],
+  "leaveRequests" : [ ],
+  "invoices" : [ {
+    "id" : "invoice-1",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 1,
+    "displayNumber" : "2026-1",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ {
+      "id" : "collection-1",
+      "invoiceId" : "invoice-1",
+      "status" : "SUCCEEDED"
+    } ]
+  }, {
+    "id" : "invoice-10",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 10,
+    "displayNumber" : "2026-10",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-11",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 11,
+    "displayNumber" : "2026-11",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-12",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 12,
+    "displayNumber" : "2026-12",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-13",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 13,
+    "displayNumber" : "2026-13",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-14",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 14,
+    "displayNumber" : "2026-14",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-15",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 15,
+    "displayNumber" : "2026-15",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-16",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 16,
+    "displayNumber" : "2026-16",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-17",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 17,
+    "displayNumber" : "2026-17",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-18",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 18,
+    "displayNumber" : "2026-18",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-19",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 19,
+    "displayNumber" : "2026-19",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-2",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 2,
+    "displayNumber" : "2026-2",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-20",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 20,
+    "displayNumber" : "2026-20",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-21",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 21,
+    "displayNumber" : "2026-21",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-22",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 22,
+    "displayNumber" : "2026-22",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-23",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 23,
+    "displayNumber" : "2026-23",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-24",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 24,
+    "displayNumber" : "2026-24",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-25",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 25,
+    "displayNumber" : "2026-25",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-26",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 26,
+    "displayNumber" : "2026-26",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-27",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 27,
+    "displayNumber" : "2026-27",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-28",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 28,
+    "displayNumber" : "2026-28",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-29",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 29,
+    "displayNumber" : "2026-29",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-3",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 3,
+    "displayNumber" : "2026-3",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-30",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 30,
+    "displayNumber" : "2026-30",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-31",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 31,
+    "displayNumber" : "2026-31",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-32",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 32,
+    "displayNumber" : "2026-32",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-33",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 33,
+    "displayNumber" : "2026-33",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-34",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 34,
+    "displayNumber" : "2026-34",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-35",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 35,
+    "displayNumber" : "2026-35",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-36",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 36,
+    "displayNumber" : "2026-36",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-37",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 37,
+    "displayNumber" : "2026-37",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-38",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 38,
+    "displayNumber" : "2026-38",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-4",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 4,
+    "displayNumber" : "2026-4",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-5",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 5,
+    "displayNumber" : "2026-5",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-6",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 6,
+    "displayNumber" : "2026-6",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-7",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 7,
+    "displayNumber" : "2026-7",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-8",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 8,
+    "displayNumber" : "2026-8",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  }, {
+    "id" : "invoice-9",
+    "memberId" : "laura",
+    "series" : "2026",
+    "number" : 9,
+    "displayNumber" : "2026-9",
+    "status" : "PAID",
+    "total" : {
+      "amountMinor" : 9000,
+      "currency" : "EUR"
+    },
+    "lines" : [ {
+      "lineNo" : 1,
+      "description" : "Quota"
+    } ],
+    "collections" : [ ]
+  } ],
+  "upfrontPayments" : [ ],
+  "packBalances" : [ ],
+  "notifications" : [ {
+    "code" : "N-13",
+    "title" : "Hola Laura",
+    "body" : "Duna puja",
+    "channels" : [ "APP" ],
+    "createdAt" : "2026-07-01T10:00:00Z",
+    "readAt" : null
+  } ],
+  "auditEntries" : [ {
+    "action" : "MEMBER_UPDATED",
+    "at" : "2026-07-01T10:00:00Z",
+    "actorRole" : "ADMIN"
+  } ],
+  "familyGroup" : null
+}"
+not to contain:
+  ["Fictional Staff",
+    "Fictional Instructor",
+    "Fictional Admin",
+    "Fictional admin-account",
+    "neus@example.test",
+    "admin@example.test"]
+but found:
+  ["Fictional Staff", "neus@example.test"]
+
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

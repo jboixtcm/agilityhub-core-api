@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T01 round 2: S14 RGPD fixes (ruling E132).
+  - T-14-19 in full: after the erasure, `GET /invoices/{id}` reads the receipt as «Abonat suprimit #87», and `POST /signup` with the member's old DNI creates a new member (new account, new number), not a readmission.
+  - R-14-15: an erased member's `Instructor.shortName` and the attendance summaries its account saved (`ClassSession.attendanceSummary.savedByName`, matched by the new `savedByAccountId` that S10 now stores) become «Abonat suprimit #87». The account stays while another club's membership is not `ERASED` (a `SUSPENDED` one too), now tested and written into R-14-15.
+  - `DELETE /platform/erasure-requests/{id}`: the console cancels a `SCHEDULED` or `BLOCKED` account request; the clubs already erased stay erased.
+  - N-52: a console request names the product from its configuration; the date is the long date in the e-mail's language and the club's (or platform's) zone.
+  - R-14-13: the package's third-party filter is fail-closed (every `…Name`/`…_name` key except the member's own names and the names of things; no name or address inside a `…By` actor).
+  - Test names cite the right spec ids (T-14-14/15/16 were other tests).
+
 - E11-T08: api correction pass, part 2 (INC-65 … INC-68 and the Sentry setting, ruling E131). No contract change.
   - INC-68: a `Price`'s `validFrom`/`validTo` are stored as `YYYY-MM-DD` strings on every write path (`PriceDateConverter` replaces the `@Field(targetType = STRING)` that whole-document writes ignored); a startup runner (`CatalogPersistence`) converts the BSON dates earlier inserts left, idempotently.
   - INC-67: `SecurityInventoryIT` checks that every published anonymous non-`GET` operation has a `RateLimits.Route`; the `STRIPE_WEBHOOK` quota is keyed by `clubId:ip`; an authenticated `CHECKOUT_STATUS` poll counts per account.

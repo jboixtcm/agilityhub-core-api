@@ -148,13 +148,35 @@ public class ErasureService {
             if (!Set.of("SCHEDULED", "BLOCKED").contains(request.status()) || !"MEMBER".equals(request.scope())) {
                 throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", request.status(), "scope", request.scope()));
             }
-            String by = CurrentUser.current() == null ? null : CurrentUser.current().accountId();
-            var update = new Update().set("status", "CANCELLED").set("cancelledAt", clock.instant()).unset("live");
-            if (by != null) { update.set("cancelledByAccountId", by); }
-            if (!requests.update(request, update)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+            close(request);
             audit.write(new AuditCommand(AuditAction.ERASURE_CANCELLED, "ErasureRequest", request.id(), memberId, null, null, null));
             return null;
         });
+    }
+
+    /**
+     * `DELETE /platform/erasure-requests/{id}` (AGILITYHUB_ADMIN, no tenant; S14 §5 «plataforma», E11-T01 round 2): the console's
+     * `ACCOUNT` request in `SCHEDULED` or `BLOCKED` → `CANCELLED`, audited `ERASURE_CANCELLED` on the platform, as a club cancels a
+     * member's. A request blocked halfway keeps what it already did: the clubs of `erasedClubIds` stay erased (nothing is restored).
+     * Another state, or a club's `MEMBER` request (its club cancels it), → `409 INVALID_STATE`; an unknown id → `404`.
+     */
+    public void cancelAccountRequest(String requestId) {
+        transactions.write(() -> {
+            var request = requests.findById(requestId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+            if (!Set.of("SCHEDULED", "BLOCKED").contains(request.status()) || !"ACCOUNT".equals(request.scope())) {
+                throw new ApiException(ErrorCode.INVALID_STATE, Map.of("status", request.status(), "scope", request.scope()));
+            }
+            close(request);
+            audit.write(new AuditCommand(AuditAction.ERASURE_CANCELLED, "ErasureRequest", request.id(), null, null, null, null));
+            return null;
+        });
+    }
+
+    private void close(ErasureRequest request) {
+        String by = CurrentUser.current() == null ? null : CurrentUser.current().accountId();
+        var update = new Update().set("status", "CANCELLED").set("cancelledAt", clock.instant()).unset("live");
+        if (by != null) { update.set("cancelledByAccountId", by); }
+        if (!requests.update(request, update)) { throw new ApiException(ErrorCode.STALE_VERSION); }
     }
 
     private static void blocked(Set<ErasureBlockReason> reasons) {

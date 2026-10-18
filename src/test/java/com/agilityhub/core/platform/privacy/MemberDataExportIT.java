@@ -53,6 +53,18 @@ class MemberDataExportIT extends PrivacyItFixtures {
                 "impersonatedAccountId", "laura-account", "reason", "support", "expiresAt", NOW.plusSeconds(3600), "type", "IMPERSONATION");
         raw("notifications", "_id", "notification-1", "clubId", CLUB, "code", "N-13", "title", "Hola Laura", "body", "Duna puja", "createdAt", Instant.parse("2026-07-01T10:00:00Z"),
                 "recipient", map("accountId", "laura-account", "memberId", "laura"), "deliveries", List.of(map("channel", "APP", "status", "DELIVERED")));
+        // E11-T01 round 2 (review #7): the staff who acted on Laura's data, named under keys of every shape (S14 R-14-13: never a third party's name).
+        raw("bookings", "_id", "booking-laura", "clubId", CLUB, "memberId", "laura", "dogId", "duna", "state", "CANCELLED_BY_CLUB",
+                "classStartsAt", Instant.parse("2026-07-01T18:00:00Z"), "instructorName", "Fictional Staff Neus",
+                "bookedBy", map("accountId", "admin-account", "role", "ADMIN", "displayName", "Fictional Staff Jordi"),
+                "cancelledBy", map("accountId", "instructor-account", "role", "INSTRUCTOR", "name", "Fictional Staff Neus", "email", "neus@example.test"));
+        raw("attendances", "_id", "attendance-laura", "clubId", CLUB, "bookingId", "booking-laura", "memberId", "laura", "state", "PRESENT",
+                "markedBy", map("accountId", "instructor-account", "role", "INSTRUCTOR", "displayName", "Fictional Staff Neus"));
+        raw("tasks", "_id", "task-laura", "clubId", CLUB, "memberId", "laura", "dogId", "duna", "text", "practise the weaves", "state", "PENDING",
+                "createdBy", map("accountId", "instructor-account", "displayName", "Fictional Staff Neus"));
+        raw("inactivity_periods", "_id", "inactivity-laura", "clubId", CLUB, "memberId", "laura", "fromMonth", "2026-03", "toMonth", "2026-04", "state", "FINISHED",
+                "decision", map("at", Instant.parse("2026-02-20T10:00:00Z"), "byAccountId", "admin-account", "byName", "Fictional Staff Jordi", "decision", "APPROVED",
+                        "deadlineOverridden", false));
     }
     org.springframework.test.web.servlet.ResultActions member(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request, String account, boolean impersonated)
             throws Exception {
@@ -105,6 +117,17 @@ class MemberDataExportIT extends PrivacyItFixtures {
             assertThat(entry.has("actorName")).isFalse();
         });
         assertThat(data.path("notifications")).singleElement().satisfies(notice -> assertThat(notice.path("title").asText()).isEqualTo("Hola Laura"));
+        // No staff name anywhere: not the fixture's staff (their bookings, marks, tasks, decisions, the dogs' remarks), not the staff accounts.
+        assertThat(data.path("bookings")).singleElement().satisfies(booking -> {
+            assertThat(booking.path("state").asText()).isEqualTo("CANCELLED_BY_CLUB");
+            assertThat(booking.path("cancelledBy").path("role").asText()).isEqualTo("INSTRUCTOR");
+        });
+        assertThat(data.path("attendances")).hasSize(1);
+        assertThat(data.path("tasks")).singleElement().satisfies(task -> assertThat(task.path("text").asText()).isEqualTo("practise the weaves"));
+        assertThat(data.path("inactivityPeriods")).singleElement().satisfies(period -> assertThat(period.at("/decision/decision").asText()).isEqualTo("APPROVED"));
+        assertThat(data.path("dogs").get(0).has("remarksMeta")).isTrue();
+        assertThat(new String(entries.get("data.json"), java.nio.charset.StandardCharsets.UTF_8))
+                .doesNotContain("Fictional Staff", "Fictional Instructor", "Fictional Admin", "Fictional admin-account", "neus@example.test", "admin@example.test");
         try (var pdf = org.apache.pdfbox.Loader.loadPDF(entries.get("resum.pdf"))) {
             assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(pdf)).contains("GOSSOS", "Les meves dades", "Pàgina 1 de");
         }

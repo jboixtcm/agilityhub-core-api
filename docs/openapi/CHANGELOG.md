@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-18 · E11-T01 round 2 · S14 the platform cancels an account erasure (ruling E132)
+
+**1 operation added (`DELETE /platform/erasure-requests/{id}`); 0 schemas added or removed; 0 descriptions of other operations changed.**
+
+- New `DELETE /platform/erasure-requests/{id}` (AGILITYHUB_ADMIN, no request tenant, impersonation refused; `204`, no body): the console cancels an account request (`scope: ACCOUNT`) that is `SCHEDULED` or `BLOCKED` → `CANCELLED`, audited `ERASURE_CANCELLED` on the platform (S14 §5 «plataforma»). The clubs it already erased (a request blocked halfway, `erasedClubIds`) stay erased. `404 NOT_FOUND` (unknown id) · `409 INVALID_STATE {status, scope}` (another state, or a club's `MEMBER` request, which its club cancels with `DELETE /members/{id}/erasure`).
+- Behaviour only, no contract change: N-52 for a console request names the product (`platform/product-branding.json`), and `execute_date` of every N-52 is the long date in the e-mail's language (the account's, when the club or the platform offers it) and in the club's (or the platform's) zone, e.g. «30 de setembre de 2026», «September 30, 2026» (was `dd/MM/yyyy`, in UTC for a console request). R-14-15 also renames an erased member's instructor profile (`GET /instructors` shows «Abonat suprimit #87») and the attendance summaries it saved; the member's package (`data.json`) leaves out every third party's name, whatever its key.
+
 ## 2026-10-17 · E9-T07 · S16 ring-setup reads for the members' app (ruling E124)
 
 **1 schema added (`MemberSetupPlacement`); 2 optional nullable response properties added (`RingSetup.builtByName`, `MemberRingSetup.placement`); 3 descriptions changed; `GET /rings/{id}` also admits INSTRUCTOR; 0 operations added or removed.**

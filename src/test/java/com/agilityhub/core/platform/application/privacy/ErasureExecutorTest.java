@@ -101,7 +101,26 @@ class ErasureExecutorTest {
         verifyNoInteractions(accountStep);
     }
 
-    @Test void T_14_15_aFailingCheckBlocksTheRequestWithItsReasonsAndErasesNothing() {
+    /**
+     * S14 R-14-15 exception (E11-T01 round 2): the account stays while another club's membership is not `ERASED` — a `SUSPENDED`
+     * one too (a former member of that club), so that club's member never points at an erased account.
+     */
+    @Test void T_14_19_aSuspendedMembershipElsewhereAlsoKeepsTheAccount() {
+        when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "MEMBER", "SCHEDULED", List.of("montse"), List.of("club-a"), List.of(), "montse-account")));
+        when(accounts.memberships("montse-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "montse", "SUSPENDED"),
+                new ErasureAccounts.Membership("club-b", "montse-b", "SUSPENDED")));
+        assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.ERASED);
+        verify(step).erase(argThat(subject -> subject.erasedAccountIds().isEmpty()));
+        verifyNoInteractions(accountStep);
+        // Once that membership is erased too, nothing holds the account any more.
+        reset(step); when(step.erase(any())).thenReturn(ErasureEffect.NONE);
+        when(accounts.memberships("montse-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "montse", "SUSPENDED"),
+                new ErasureAccounts.Membership("club-b", "montse-b", "ERASED")));
+        assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.ERASED);
+        verify(step).erase(argThat(subject -> subject.erasedAccountIds().contains("montse-account")));
+    }
+
+    @Test void R_14_15_aFailingCheckBlocksTheRequestWithItsReasonsAndErasesNothing() {
         when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "MEMBER", "SCHEDULED", List.of("montse"), List.of("club-a"), List.of(), "montse-account")));
         when(checks.blockReasons(any(), any())).thenReturn(EnumSet.of(ErasureBlockReason.INVOICES_OPEN));
         assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.BLOCKED);
@@ -127,7 +146,7 @@ class ErasureExecutorTest {
         assertThatThrownBy(() -> executor.execute("r")).hasMessage("STALE_VERSION");
     }
 
-    @Test void T_14_15_anAccountRequestErasesClubByClubAndTheLastClubErasesTheAccount() {
+    @Test void R_14_15_anAccountRequestErasesClubByClubAndTheLastClubErasesTheAccount() {
         when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "ACCOUNT", "SCHEDULED", List.of("montse", "montse-b"),
                 List.of("club-a", "club-b"), List.of(), "montse-account")));
         when(accounts.memberships("montse-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-a", "montse", "SUSPENDED")));
@@ -148,21 +167,21 @@ class ErasureExecutorTest {
         verify(events).publish(argThat(event -> "montse-account".equals(event.payload().get("accountId")) && event.clubId().equals("club-b")));
     }
 
-    @Test void T_14_14_anAccountRequestIsBlockedByAnActiveMembership() {
+    @Test void R_14_15_anAccountRequestIsBlockedByAnActiveMembership() {
         when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "ACCOUNT", "BLOCKED", List.of("montse"), List.of("club-a"), List.of(), "montse-account")));
         when(accounts.memberships("montse-account")).thenReturn(List.of(new ErasureAccounts.Membership("club-c", null, "ACTIVE")));
         assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.BLOCKED);
         verifyNoInteractions(step);
     }
 
-    @Test void T_14_15_anAlreadyErasedMemberIsNotAuditedAgain() {
+    @Test void T_14_08_anAlreadyErasedMemberIsNotAuditedAgain() {
         when(directory.member("montse")).thenReturn(Optional.of(montse(Instant.parse("2026-09-01T00:00:00Z"))));
         when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "MEMBER", "BLOCKED", List.of("montse"), List.of("club-a"), List.of(), null)));
         assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.ERASED);
         verify(audit, never()).writeAsSystem(argThat(command -> command.action() == AuditAction.MEMBER_ERASED), any());
     }
 
-    @Test void T_14_14_anAccountWithoutMembersIsErasedOutsideAnyClub() {
+    @Test void R_14_14_anAccountWithoutMembersIsErasedOutsideAnyClub() {
         tenant.close(); tenant = null;
         var request = PrivacyFixtures.request("r", "ACCOUNT", "SCHEDULED", List.of(), List.of(), List.of(), "montse-account");
         when(requests.findById("r")).thenReturn(Optional.of(request));

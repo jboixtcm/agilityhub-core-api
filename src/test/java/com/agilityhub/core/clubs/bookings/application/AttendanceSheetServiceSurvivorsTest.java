@@ -73,7 +73,7 @@ class AttendanceSheetServiceSurvivorsTest {
 
     @Test void T_10_02_aReMarkLocksTheClassBumpsTheStoredVersionAndIsAnnouncedAsTheInstructors() {
         // The first save (summary version 0 -> 1) inserted the NO_SHOW mark, which Mongo stored with version 0.
-        when(schedule.find("class-1")).thenReturn(Optional.of(cls("ACTIVE", new InstructorScheduleAccess.Summary(1, 1, 0, 0, 1, 0, NOW.minusSeconds(600), "Neus"))));
+        when(schedule.find("class-1")).thenReturn(Optional.of(cls("ACTIVE", new InstructorScheduleAccess.Summary(1, 1, 0, 0, 1, 0, NOW.minusSeconds(600), "Neus", "neus-account"))));
         when(bookings.byIds(List.of("booking-1"))).thenReturn(List.of(booking()));
         when(attendances.byBookings(List.of("booking-1"))).thenReturn(Map.of("booking-1", stored(AttendanceState.NO_SHOW, 0L)));
 

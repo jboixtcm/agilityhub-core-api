@@ -344,7 +344,7 @@ class AttendanceIT extends BookingFixtures {
         assertThat(events("AttendanceMarked")).as("one per item, the replay emits nothing").isEqualTo(2);
         assertThat(code(call(HttpMethod.PUT, "/class-sessions/s08-fri/attendance", body(0, duna, "NO_SHOW"), as("inst"), 409, key))).isEqualTo("IDEMPOTENCY_KEY_REUSED");
         assertThat(summary("fri")).containsEntry("version", 1).containsEntry("marked", 2).containsEntry("present", 1).containsEntry("noShow", 1)
-                .containsEntry("notified", 0).containsEntry("savedByName", "Estela");
+                .containsEntry("notified", 0).containsEntry("savedByName", "Estela").containsEntry("savedByAccountId", "s08-inst");
         // Resending the whole sheet as it is: no-op, no event, same version.
         var resent = save("fri", as("inst"), 200, 1, duna, "PRESENT", toby, "NO_SHOW");
         assertThat(resent.path("applied").size()).isZero(); assertThat(resent.path("sheet").path("version").asLong()).isEqualTo(1);

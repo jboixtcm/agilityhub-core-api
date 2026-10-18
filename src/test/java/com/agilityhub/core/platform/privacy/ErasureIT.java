@@ -1,6 +1,22 @@
 package com.agilityhub.core.platform.privacy;
 
+import com.agilityhub.core.clubs.catalogs.persistence.Instructor;
+import com.agilityhub.core.clubs.catalogs.persistence.Plan;
+import com.agilityhub.core.clubs.catalogs.persistence.Price;
 import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
+import com.agilityhub.core.payments.domain.CollectionProvider;
+import com.agilityhub.core.payments.domain.CollectionStatus;
+import com.agilityhub.core.payments.domain.InvoiceKind;
+import com.agilityhub.core.payments.domain.InvoiceLineOrigin;
+import com.agilityhub.core.payments.domain.InvoiceStatus;
+import com.agilityhub.core.payments.domain.PaymentMethodType;
+import com.agilityhub.core.payments.persistence.Collection;
+import com.agilityhub.core.payments.persistence.Invoice;
+import com.agilityhub.core.shared.domain.LocalizedText;
+import com.agilityhub.core.shared.domain.Money;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.math.BigDecimal;
+import java.util.UUID;
 import com.agilityhub.core.identity.domain.Role;
 import com.agilityhub.core.identity.persistence.Membership;
 import com.agilityhub.core.platform.application.audit.AuditAction;
@@ -44,6 +60,25 @@ class ErasureIT extends PrivacyItFixtures {
         member(CLUB, "active", 12, "X1234567L", null);
     }
     ErasureRequest request(String id) { return mongo.findById(id, ErasureRequest.class); }
+
+    /** T-14-19: a public S04 signup with this document, a fictional dog and the club's one plan (`POST /signup`, as a newcomer sends it). */
+    JsonNode signupWithDocument(String document, String email) throws Exception {
+        var text = new LocalizedText(Map.of("ca", "Quota", "es", "Cuota", "en", "Fee"), "ca");
+        mongo.insert(new Plan("plan-rgpd", CLUB, "MONTHLY", text, com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PlanType.MONTHLY,
+                com.agilityhub.core.clubs.catalogs.domain.OfferTerms.BillingMode.MONTHLY_FEE, 1, new com.agilityhub.core.clubs.catalogs.domain.OfferTerms.EntryFee(
+                com.agilityhub.core.clubs.catalogs.domain.OfferTerms.EntryFeeMode.STANDARD, null, null), null, null, text, null, true, true, 0, true, 0,
+                clock.instant(), clock.instant(), null, null));
+        mongo.insert(new Price("price-rgpd", CLUB, "plan-rgpd", com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept.MONTHLY_FEE, new Money(6000, "EUR"),
+                BigDecimal.ZERO, LocalDate.of(2020, 1, 1), null, 0, clock.instant(), clock.instant(), null, null));
+        raw("levels", "_id", "level-a", "clubId", CLUB, "active", true, "name", Map.of("ca", "Iniciació"), "order", 0);
+        var request = Map.of("locale", "ca", "website", "", "person", Map.of("idDocument", Map.of("type", "DNI", "value", document), "firstName", "Fictional",
+                        "lastName1", "Newcomer", "birthDate", "1990-05-06", "gender", "FEMALE", "emails", List.of(email), "phones", List.of(Map.of("prefix", "+34", "number", "600000009")),
+                        "address", Map.of("street", "2 Fictional Street", "postalCode", "99999", "town", "Fictional Town")),
+                "dog", Map.of("name", "Fictional Pup", "sex", "FEMALE", "breed", "whippet", "birthMonth", "2024-04", "chip", "941000000100009"), "planId", "plan-rgpd",
+                "payment", Map.of("type", "MANUAL", "firstMonthOption", "TODAY"),
+                "consents", Map.of("privacyPolicy", Map.of("accepted", true, "version", "v1"), "imageUse", Map.of("granted", false, "version", "v1")));
+        return json(mvc.perform(body(post("/api/v1/signup"), request).header("Host", CLUB + ".example.test").header("Idempotency-Key", UUID.randomUUID().toString())), 201);
+    }
     long count(String collection, Criteria criteria) { return mongo.count(Query.query(criteria), collection); }
 
     @Test @AuditCovers({AuditAction.ERASURE_REQUESTED, AuditAction.ERASURE_CANCELLED})
@@ -148,11 +183,16 @@ class ErasureIT extends PrivacyItFixtures {
         raw("attachments", "_id", "attachment-1", "clubId", CLUB, "entityType", "TASK", "entityId", "task-1", "fileKey", taskFile, "name", "kiwi.png", "version", 0L);
         raw("followup_items", "_id", "item-1", "clubId", CLUB, "memberId", "montse", "dogId", "kiwi", "taskId", "task-1", "textExcerpt", "practise the weaves",
                 "authorAccountId", "montse-account", "authorName", "Fictional Montse");
-        raw("invoices", "_id", "invoice-1", "clubId", CLUB, "memberId", "montse", "series", "2026", "number", 744L, "displayNumber", "2026-0744", "status", "PAID",
-                "total", map("amountMinor", 9000L, "currency", "EUR"), "lines", List.of(map("lineNo", 1, "description", "Quota")),
-                "memberSnapshot", map("number", 87, "fullName", "Fictional Montse Person", "taxId", "12345678Z"),
-                "paymentMethod", map("type", "SEPA_DD", "maskedAccount", "···· 1332", "holderName", "Fictional Holder", "mandateRef", "rgpd-87-1"));
-        raw("collections", "_id", "collection-1", "clubId", CLUB, "invoiceId", "invoice-1", "status", "SUCCEEDED", "providerRef", "provider-ref-1");
+        // The invoice and its collection as S12 writes them, so that `GET /invoices/{id}` reads them back (T-14-19).
+        Money fee = new Money(9000, "EUR"), zero = new Money(0, "EUR");
+        mongo.insert(new Invoice("invoice-1", CLUB, "2026", 744, "2026-0744", "2026-07-25", "2026-08", "montse",
+                new Invoice.MemberSnapshot(87, "Fictional Montse Person", "12345678Z"), List.of(new Invoice.Line(1, InvoiceLineOrigin.MONTHLY_FEE, "price-a", null,
+                "Quota", fee, BigDecimal.ZERO, zero, fee)), fee, zero, fee,
+                new Invoice.PaymentMethodSnapshot(PaymentMethodType.SEPA_DD, "···· 1332", "Fictional Holder", "rgpd-87-1", null, null),
+                InvoiceStatus.PAID, InvoiceKind.PERIODIC, null, null, false, null, Instant.parse("2026-08-05T10:00:00Z"), null, null, null, null, zero, null, 0L,
+                Instant.parse("2026-07-25T05:00:00Z"), "admin-account", Instant.parse("2026-08-05T10:00:00Z"), "admin-account"));
+        mongo.insert(new Collection("collection-1", CLUB, "invoice-1", CollectionProvider.SEPA_XML, fee, CollectionStatus.SUCCEEDED, "provider-ref-1", null, 1,
+                null, null, List.of(), Instant.parse("2026-08-01T05:00:00Z"), Instant.parse("2026-08-05T10:00:00Z")));
         raw("notifications", "_id", "notification-1", "clubId", CLUB, "code", "N-13", "title", "Hola Montse", "body", "Kiwi …", "smsBody", "sms", "variables", map("member_name", "Montse"),
                 "recipient", map("accountId", "montse-account", "memberId", "montse", "displayName", "Fictional Montse", "email", "montse@example.test"),
                 "recipientEmail", "montse@example.test", "accountId", "montse-account", "channel", "EMAIL", "status", "SENT", "sentAt", Instant.parse("2026-07-01T10:00:00Z"),
@@ -314,6 +354,33 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(json(admin(get("/api/v1/members/montse/notification-preferences")), 409).path("code").asText()).isEqualTo("MEMBER_ERASED");
         assertThat(json(admin(body(post("/api/v1/members/montse/data-export"), Map.of("deliverToMember", false))), 409).path("code").asText()).isEqualTo("MEMBER_ERASED");
         assertThat(json(admin(body(post("/api/v1/members/montse/impersonation-token"), Map.of("reason", "support"))), 409).path("code").asText()).isEqualTo("MEMBER_ERASED");
+        // T-14-19 (E11-T01 round 2): the receipt still reads, anonymised — D6 «2026-0744 · 90 € · cobrat · Abonat suprimit #87».
+        var receipt = json(admin(get("/api/v1/invoices/invoice-1")), 200);
+        assertThat(receipt.path("displayNumber").asText()).isEqualTo("2026-0744");
+        assertThat(receipt.path("status").asText()).isEqualTo("PAID");
+        assertThat(receipt.at("/total/amountMinor").asLong()).isEqualTo(9000);
+        assertThat(receipt.at("/memberSnapshot/fullName").asText()).isEqualTo("Abonat suprimit #87");
+        assertThat(receipt.at("/memberSnapshot/number").asInt()).isEqualTo(87);
+        assertThat(receipt.at("/paymentMethod/holderName").asText()).isEqualTo("Abonat suprimit #87");
+        assertThat(receipt.at("/paymentMethod/mandateRef").asText()).isEqualTo("rgpd-87-1");
+        assertThat(receipt.path("collections")).hasSize(1);
+        assertThat(receipt.toString()).doesNotContain("Fictional", "12345678Z", "1332");
+        // T-14-19: S04 with Montse's old DNI finds nobody to readmit (R-14-14 last sentence): a new member, a new account, a new number.
+        var signup = signupWithDocument("12345678Z", "montse@example.test");
+        String newcomer = signup.path("memberId").asText();
+        assertThat(newcomer).isNotEqualTo("montse");
+        var fresh = document("members", newcomer);
+        assertThat(fresh.getString("status")).isEqualTo("PENDING");
+        assertThat(fresh.get("signup", Document.class).getBoolean("readmission")).isFalse();
+        assertThat(fresh.get("idDocument", Document.class)).containsEntry("number", "12345678Z");
+        String newcomerDog = documents("dogs", "memberId", newcomer).getFirst().getString("_id");
+        var validated = json(admin(body(post("/api/v1/members/" + newcomer + "/validation"), Map.of("version", ((Number) fresh.get("version")).longValue(),
+                "dogs", List.of(Map.of("dogId", newcomerDog, "levelId", "level-a")), "nextInvoiceDate", "2026-11-01",
+                "upfrontAmountPaid", Map.of("amountMinor", signup.at("/upfront/totalDue/amountMinor").asLong(), "currency", "EUR")))), 200);
+        assertThat(validated.path("number").asInt()).isPositive().isNotEqualTo(87);
+        assertThat(document("members", newcomer).getString("accountId")).isNotEqualTo("montse-account");
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
+        assertThat(document("members", "montse").get("idDocument", Document.class)).containsEntry("number", "ERASED-montse");
         // R-14-15 is idempotent: running every step again changes nothing.
         var before = List.of(document("members", "montse").toJson(), document("dogs", "kiwi").toJson(), document("invoices", "invoice-1").toJson(),
                 document("notifications", "notification-1").toJson(), document("tasks", "task-1").toJson(), document("audit_entries", "audit-1").toJson());
@@ -346,7 +413,113 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(request(id).status()).isEqualTo("ERASED");
     }
 
-    @Test void T_14_15_R_14_15_aRequestBlockedAtItsExecutionStaysBlockedUntilTheDailyRetryPasses() throws Exception {
+    /**
+     * R-14-15's exception (E11-T01 round 2): the account stays while another club's membership is not `ERASED`, a `SUSPENDED` one
+     * (a former member there) too, so that club's member never points at an erased account.
+     */
+    @Test void T_14_19_R_14_15_aSuspendedMembershipElsewhereAlsoKeepsTheAccount() throws Exception {
+        membership("montse-account", OTHER, "montse-other", Membership.Status.SUSPENDED);
+        String id = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201).path("id").asText();
+        clock.setInstant(DUE);
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("ERASING");
+        assertThat(request(id).accountErased()).isFalse();
+        var account = document("accounts", "montse-account");
+        assertThat(account.getString("email")).isEqualTo("montse@example.test");
+        assertThat(account.getString("status")).isEqualTo("ACTIVE");
+        assertThat(document("memberships", "montse-account-" + CLUB)).containsEntry("status", "ERASED");
+        assertThat(document("memberships", "montse-account-" + OTHER)).containsEntry("status", "SUSPENDED");
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
+        assertThat(count("audit_entries", Criteria.where("action").is("ACCOUNT_ERASED"))).isZero();
+    }
+
+    /**
+     * S14 §5 «plataforma» (E11-T01 round 2): an account request blocked halfway is cancelled from the console. The club it already
+     * erased stays erased; the blocked club's member is left as it is, and no daily run touches it again.
+     */
+    @Test @AuditCovers(AuditAction.ERASURE_CANCELLED)
+    void R_14_14_thePlatformCancelsAnAccountRequestBlockedHalfway() throws Exception {
+        member(OTHER, "montse-b", 3, "87654321X", LocalDate.of(2026, 8, 1));
+        mongo.remove(Query.query(Criteria.where("accountId").is("montse-b-account")), "memberships");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("montse-b")), new org.springframework.data.mongodb.core.query.Update().set("accountId", "montse-account"), "members");
+        membership("montse-account", OTHER, "montse-b", Membership.Status.SUSPENDED);
+        String id = json(platform(body(post("/api/v1/accounts/montse-account/erasure"), Map.of())), 201).path("id").asText();
+        clock.setInstant(DUE);
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        raw("invoices", "_id", "invoice-open-b", "clubId", OTHER, "memberId", "montse-b", "status", "FAILED");
+        runner.manual(OTHER, JobName.ERASURES, false, "other-admin-account");
+        assertThat(request(id).status()).isEqualTo("BLOCKED");
+        assertThat(request(id).erasedClubIds()).containsExactly(CLUB);
+        // Only the platform cancels it; a club's member request is not the platform's to cancel.
+        assertThat(json(admin(delete("/api/v1/platform/erasure-requests/" + id)), 403).path("code").asText()).isEqualTo("FORBIDDEN");
+        assertThat(json(call(delete("/api/v1/platform/erasure-requests/" + id), OTHER, "other-admin-account", "ADMIN"), 403).path("code").asText()).isEqualTo("FORBIDDEN");
+        assertThat(mvc.perform(delete("/api/v1/platform/erasure-requests/" + id).header("Host", "unknown.example.test").with(
+                org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt().jwt(j -> j.subject("platform-account").claim("imp", true))
+                        .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN")))).andReturn().getResponse().getStatus())
+                .isEqualTo(403);
+        assertThat(request(id).status()).isEqualTo("BLOCKED");
+        json(platform(delete("/api/v1/platform/erasure-requests/" + id)), 204);
+        var cancelled = request(id);
+        assertThat(cancelled.status()).isEqualTo("CANCELLED");
+        assertThat(cancelled.cancelledByAccountId()).isEqualTo("platform-account");
+        assertThat(cancelled.cancelledAt()).isEqualTo(DUE);
+        assertThat(cancelled.erasedClubIds()).containsExactly(CLUB);
+        assertThat(documents("audit_entries", "action", "ERASURE_CANCELLED")).singleElement()
+                .satisfies(entry -> { assertThat(entry).containsEntry("entityId", id); assertThat(entry.get("clubId")).isNull(); });
+        assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
+        assertThat(document("members", "montse-b").getString("firstName")).isEqualTo("Fictional");
+        assertThat(document("accounts", "montse-account").getString("status")).isEqualTo("ACTIVE");
+        // Closed: a second cancel, an unknown id and a club's member request are refused; the daily run leaves the request alone.
+        assertThat(json(platform(delete("/api/v1/platform/erasure-requests/" + id)), 409).path("details").path("status").asText()).isEqualTo("CANCELLED");
+        assertThat(json(platform(delete("/api/v1/platform/erasure-requests/nobody")), 404).path("code").asText()).isEqualTo("NOT_FOUND");
+        mongo.remove(Query.query(Criteria.where("_id").is("invoice-open-b")), "invoices");
+        runner.manual(OTHER, JobName.ERASURES, false, "other-admin-account");
+        assertThat(request(id).status()).isEqualTo("CANCELLED");
+        assertThat(document("members", "montse-b").getString("firstName")).isEqualTo("Fictional");
+        String member = json(call(body(post("/api/v1/members/montse-b/erasure"), Map.of()), OTHER, "other-admin-account", "ADMIN"), 201).path("id").asText();
+        var refused = json(platform(delete("/api/v1/platform/erasure-requests/" + member)), 409);
+        assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");
+        assertThat(refused.path("details").path("scope").asText()).isEqualTo("MEMBER");
+    }
+
+    /**
+     * R-14-15 (E11-T01 round 2, question 3): an erased member who is an instructor keeps the profile, named «Abonat suprimit #87»,
+     * and the attendance summaries it saved (`savedByAccountId`) name it the same way. A summary saved before the account was stored
+     * has nothing to match and keeps its name.
+     */
+    @Test void R_14_15_anErasedInstructorsNameLeavesTheCatalogAndTheAttendanceSummaries() throws Exception {
+        Instant created = Instant.parse("2025-01-01T00:00:00Z");
+        mongo.insert(new Instructor("instructor-montse", CLUB, "montse", "Montse", "#ff7a00", false, 3L, created, created, "admin-account", "admin-account"));
+        mongo.insert(new Instructor("instructor-neus", CLUB, "active", "Neus", "#0057b8", true, 1L, created, created, "admin-account", "admin-account"));
+        for (var row : List.of(List.of("class-montse", "Montse", "montse-account"), List.of("class-neus", "Neus", "active-account"))) {
+            raw("class_sessions", "_id", row.get(0), "clubId", CLUB, "state", "FINISHED", "instructorIds", List.of("instructor-montse"),
+                    "attendanceSummary", map("version", 2, "marked", 3, "present", 2, "notified", 0, "noShow", 1, "notifiedAfterEnd", 0,
+                            "savedAt", Instant.parse("2026-07-01T20:00:00Z"), "savedByName", row.get(1), "savedByAccountId", row.get(2)));
+        }
+        raw("class_sessions", "_id", "class-before", "clubId", CLUB, "state", "FINISHED", "attendanceSummary", map("version", 1, "marked", 1, "present", 1,
+                "notified", 0, "noShow", 0, "savedAt", Instant.parse("2025-07-01T20:00:00Z"), "savedByName", "Montse"));
+        json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201);
+        clock.setInstant(DUE);
+        runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        var instructor = document("instructors", "instructor-montse");
+        assertThat(instructor).containsEntry("shortName", "Abonat suprimit #87").containsEntry("memberId", "montse").containsEntry("version", 4L);
+        assertThat(document("instructors", "instructor-neus")).containsEntry("shortName", "Neus");
+        assertThat(document("class_sessions", "class-montse").get("attendanceSummary", Document.class)).containsEntry("savedByName", "Abonat suprimit #87")
+                .containsEntry("savedByAccountId", "montse-account").containsEntry("marked", 3);
+        assertThat(document("class_sessions", "class-neus").get("attendanceSummary", Document.class)).containsEntry("savedByName", "Neus");
+        assertThat(document("class_sessions", "class-before").get("attendanceSummary", Document.class)).containsEntry("savedByName", "Montse");
+        // The catalog's caches hear of it through the outbox, whose event carries the new name only.
+        var changed = documents("domain_events", "type", "InstructorChanged");
+        assertThat(changed).singleElement().satisfies(event -> {
+            assertThat(event).containsEntry("aggregateId", "instructor-montse");
+            assertThat(event.toJson()).contains("Abonat suprimit #87").doesNotContain("Montse");
+        });
+        dispatcher.dispatch(); dispatcher.dispatch();
+        var team = json(admin(get("/api/v1/instructors").param("includeInactive", "true")), 200);
+        assertThat(team.path("items").findValuesAsText("shortName")).containsExactlyInAnyOrder("Abonat suprimit #87", "Neus");
+    }
+
+    @Test void R_14_15_aRequestBlockedAtItsExecutionStaysBlockedUntilTheDailyRetryPasses() throws Exception {
         String id = json(admin(body(post("/api/v1/members/montse/erasure"), Map.of())), 201).path("id").asText();
         raw("invoices", "_id", "invoice-late", "clubId", CLUB, "memberId", "montse", "status", "PENDING");
         clock.setInstant(DUE);
@@ -362,7 +535,8 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
     }
 
-    @Test void T_14_14_R_14_18_consentsAndThePlatformViewsOfRequests() throws Exception {
+    /** WP-14-D's two reads that no rule of S14 §4 carries: `/members/{id}/consents` and `/platform/erasure-requests` (§6). */
+    @Test void WP_14_D_consentsAndThePlatformViewOfTheRequests() throws Exception {
         var consents = json(admin(get("/api/v1/members/montse/consents")), 200);
         assertThat(consents).hasSize(2);
         assertThat(consents.get(0).path("type").asText()).isEqualTo("PRIVACY_POLICY");
@@ -380,7 +554,7 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(json(platform(get("/api/v1/platform/erasure-requests").param("q", "montse")), 400).path("code").asText()).isEqualTo("INVALID_FILTER");
     }
 
-    @Test void T_14_14_R_14_15_theConsoleErasesAnAccountAcrossClubsOrAtOnceWithoutMembers() throws Exception {
+    @Test void R_14_14_R_14_15_theConsoleErasesAnAccountAcrossClubsOrAtOnceWithoutMembers() throws Exception {
         member(OTHER, "montse-b", 3, "87654321X", LocalDate.of(2026, 8, 1));
         mongo.remove(Query.query(Criteria.where("accountId").is("montse-b-account")), "memberships");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("montse-b")), new org.springframework.data.mongodb.core.query.Update().set("accountId", "montse-account"), "members");

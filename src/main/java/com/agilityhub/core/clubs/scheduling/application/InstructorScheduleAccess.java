@@ -19,8 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class InstructorScheduleAccess {
-    public record Summary(int version, int marked, int present, int notified, int noShow, int notifiedAfterEnd, Instant savedAt, String savedByName) {
-        public static final Summary EMPTY = new Summary(0, 0, 0, 0, 0, 0, null, null);
+    public record Summary(int version, int marked, int present, int notified, int noShow, int notifiedAfterEnd, Instant savedAt, String savedByName,
+            String savedByAccountId) {
+        public static final Summary EMPTY = new Summary(0, 0, 0, 0, 0, 0, null, null, null);
     }
     public record Ring(String id, String name, String color) { }
     /** @param instructorNames «Marc, Neus» in `instructorIds` order (R-10-16); @param description the display description in the request locale */
@@ -51,7 +52,7 @@ public class InstructorScheduleAccess {
                     ids, String.join(", ", ids.stream().map(names::get).filter(Objects::nonNull).toList()), projection.description(c, locale),
                     c.levelIds() == null ? List.of() : c.levelIds(), c.capacity(), c.counters() == null ? 0 : c.counters().booked(),
                     c.counters() == null ? 0 : c.counters().waiting(),
-                    new Summary(s.version(), s.marked(), s.present(), s.notified(), s.noShow(), s.notifiedAfterEnd(), s.savedAt(), s.savedByName()));
+                    new Summary(s.version(), s.marked(), s.present(), s.notified(), s.noShow(), s.notifiedAfterEnd(), s.savedAt(), s.savedByName(), s.savedByAccountId()));
         }).toList();
     }
     /**
@@ -62,6 +63,6 @@ public class InstructorScheduleAccess {
     @Transactional(propagation = Propagation.MANDATORY)
     public void attendanceSummary(String id, Summary summary) {
         classes.attendanceSummary(id, new ClassSession.AttendanceSummary(summary.version(), summary.marked(), summary.present(), summary.notified(),
-                summary.noShow(), summary.notifiedAfterEnd(), summary.savedAt(), summary.savedByName()));
+                summary.noShow(), summary.notifiedAfterEnd(), summary.savedAt(), summary.savedByName(), summary.savedByAccountId()));
     }
 }

@@ -1,0 +1,38 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.234 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.ErasureNoticesTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.ErasureNoticesTest.T_14_18_aClubRequestNamesTheClubAndFallsBackToItsLanguage -- Time elapsed: 0.026 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"club_name"="Example Club", "execute_date"="30 de setembre de 2026"}
+to contain entries:
+  ["execute_date"="30 de setembre del 2026"]
+but the following map entries had different values:
+  ["execute_date"="30 de setembre de 2026" (expected: "30 de setembre del 2026")]
+	at com.agilityhub.core.clubs.messaging.application.ErasureNoticesTest.T_14_18_aClubRequestNamesTheClubAndFallsBackToItsLanguage(ErasureNoticesTest.java:66)
+
+[ERROR] Failures: 
+[ERROR]   ErasureNoticesTest.T_14_18_aClubRequestNamesTheClubAndFallsBackToItsLanguage:66 
+Expecting map:
+  {"club_name"="Example Club", "execute_date"="30 de setembre de 2026"}
+to contain entries:
+  ["execute_date"="30 de setembre del 2026"]
+but the following map entries had different values:
+  ["execute_date"="30 de setembre de 2026" (expected: "30 de setembre del 2026")]
+[ERROR] Tests run: 30, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

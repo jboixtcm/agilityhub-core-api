@@ -1,12 +1,17 @@
 package com.agilityhub.core.clubs.messaging.application;
 
 import com.agilityhub.core.platform.application.ClubConfigService;
+import com.agilityhub.core.platform.application.ClubFormats;
+import com.agilityhub.core.platform.application.ProductBranding;
 import com.agilityhub.core.shared.application.DomainEventHandler;
+import com.agilityhub.core.shared.application.IcuMessageSource;
+import com.agilityhub.core.shared.application.NotificationAccounts;
 import com.agilityhub.core.shared.application.TenantContext;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.context.annotation.Bean;
@@ -17,31 +22,49 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * S14 §8 N-52 «Hem rebut la teva sol·licitud de supressió»: on `AccountErasureRequested{source ≠ RETENTION}`, one SYSTEM e-mail
- * to the account (while it exists) with the execution date in the club's zone and the club's name (an account's request, without
- * a club, names the platform). Once per event: the notification id derives from the event id, so a redelivery sends nothing.
+ * to the account (while it exists) with the club's name and the execution date in the club's zone. An account's request (the
+ * console's, without a club) names the platform and uses its zone, both from the product's configuration
+ * ({@link ProductBranding}, E11-T01 round 2). The date is `fmtDate(long)` in the language the e-mail is written in: the
+ * account's, when the club (or the platform) offers it, otherwise the default one. Once per event: the notification id
+ * derives from the event id, so a redelivery sends nothing.
  */
 @Service
 public class ErasureNotices {
-    static final String PLATFORM = "AgilityHub";
-    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final SystemNotificationService notifications;
+    private final NotificationAccounts accounts;
     private final ClubConfigService configs;
-    public ErasureNotices(SystemNotificationService notifications, ClubConfigService configs) { this.notifications = notifications; this.configs = configs; }
+    private final ProductBranding product;
+    private final IcuMessageSource messages;
+    public ErasureNotices(SystemNotificationService notifications, NotificationAccounts accounts, ClubConfigService configs, ProductBranding product,
+            IcuMessageSource messages) {
+        this.notifications = notifications; this.accounts = accounts; this.configs = configs; this.product = product; this.messages = messages;
+    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void deliver(String eventId, ErasureForeignEvent event) {
         var payload = event.payload();
         if ("RETENTION".equals(payload.get("source")) || !(payload.get("accountId") instanceof String accountId) || payload.get("executeAt") == null) { return; }
+        var account = accounts.find(accountId).orElse(null);
+        if (account == null) { return; }
         Instant executeAt = Instant.parse(payload.get("executeAt").toString());
         String id = UUID.nameUUIDFromBytes(("N-52:" + eventId).getBytes(StandardCharsets.UTF_8)).toString();
         if (event.clubId() == null) {
-            notifications.sendOnce(id, "N-52", accountId, Map.of("execute_date", DATE.format(executeAt.atZone(ZoneId.of("UTC"))), "club_name", PLATFORM));
+            var platform = product.values();
+            send(id, account, platform.name(), ZoneId.of(platform.timeZone()), platform.locales(), platform.defaultLocale(), executeAt);
             return;
         }
         try (var tenant = TenantContext.open(event.clubId())) {
             var club = configs.get(event.clubId()).club();
-            notifications.sendOnce(id, "N-52", accountId, Map.of("execute_date", DATE.format(executeAt.atZone(ZoneId.of(club.timeZone()))), "club_name", club.name()));
+            send(id, account, club.name(), ZoneId.of(club.timeZone()), club.locales(), club.defaultLocale(), executeAt);
         }
+    }
+
+    private void send(String id, NotificationAccounts.Recipient account, String name, ZoneId zone, List<String> locales, String defaultLocale, Instant executeAt) {
+        String tag = account.locale() != null && locales != null && locales.contains(account.locale()) ? account.locale() : defaultLocale;
+        Locale locale = Locale.forLanguageTag(tag);
+        if (!messages.supports(locale)) { locale = Locale.forLanguageTag(defaultLocale); tag = defaultLocale; }
+        String date = new ClubFormats(zone, messages).formatLongDate(executeAt.atZone(zone).toLocalDate(), locale);
+        notifications.sendOnceLocalized(id, "N-52", account.id(), tag, Map.of("execute_date", date, "club_name", name));
     }
 
     @Configuration(proxyBeanMethods = false)
