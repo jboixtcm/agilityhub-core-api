@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-10-18 · E11-T08 round 2 · S12 billing refuses two prices valid on the same day (INC-68, ruling E132)
+
+**0 operations or schemas added or removed; 1 error code added to 2 operations; 2 descriptions changed.**
+
+- `POST /billing/simulations` and `POST /billing/runs`: new `409 PRICE_OVERLAP` with `details {planId, concept, priceId, conflictingPriceId}` when two prices of one plan and concept are valid on the issue date. Only a legacy twin can cause it (a price stored with a BSON-date start before INC-68 and a string-dated price starting on the same day, which the startup conversion reports and `docs/DEPLOY.md` resolves by hand); the month is then neither simulated nor billed, instead of using whichever price sorted first. Nothing is written.
+- Behaviour only, no contract change: the Stripe webhook's rate-limit bucket (`/webhooks/stripe/{clubId}`, CONVENCIONS_API §9) keys on the path's club only when it is a club; a made-up id shares the address's `unknown` bucket.
+
 ## 2026-10-18 · E11-T01 round 2 · S14 the platform cancels an account erasure (ruling E132)
 
 **1 operation added (`DELETE /platform/erasure-requests/{id}`); 0 schemas added or removed; 0 descriptions of other operations changed.**

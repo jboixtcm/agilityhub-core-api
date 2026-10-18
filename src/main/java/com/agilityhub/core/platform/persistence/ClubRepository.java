@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 public class ClubRepository extends GlobalRepository<Club> {
     public ClubRepository(MongoTemplate mongo) { super(mongo, Club.class); }
     public java.util.List<Club> findAll() { return mongo.findAll(Club.class); }
+    /** Every club's id, without loading the documents (INC-67 round 2: the webhook rate-limit key). */
+    public java.util.Set<String> ids() { return java.util.Set.copyOf(mongo.findDistinct(new Query(), "_id", Club.class, String.class)); }
     public Optional<Club> findByHost(String host) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("domains").elemMatch(
                 Criteria.where("host").is(host).and("status").is(Club.DomainStatus.VERIFIED))), Club.class));

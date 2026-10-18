@@ -34,6 +34,9 @@ public final class RateLimitFilter extends OncePerRequestFilter {
     public void signupHosts(com.agilityhub.core.shared.application.TenantHostResolver hosts, boolean local) { this.hosts=hosts;this.local=local; }
     /** R-04-20: the club's `signup.rateLimit` (null: the catalog defaults). */
     public void signupParameter(java.util.function.Function<String, java.util.Map<?, ?>> parameter) { this.signupParameter=parameter; }
+    private java.util.function.Predicate<String> knownClubs = clubId -> false;
+    /** INC-67 round 2: whether a webhook path's club id names a club (a cached lookup; unset: none does). */
+    public void knownClubs(java.util.function.Predicate<String> known) { this.knownClubs = known; }
 
     public RateLimitFilter(RateLimits limits, SecurityEvents events, ApiExceptionHandler errors, ObjectMapper mapper,
                            java.util.function.UnaryOperator<String> normalizeAccountEmail) {
@@ -53,7 +56,12 @@ public final class RateLimitFilter extends OncePerRequestFilter {
             // INC-67 (E11-T08), CONVENCIONS_API §9: a member's or an administrator's status polls count per account, not per shared NAT.
             if (route == Route.CHECKOUT_STATUS && jwt != null) { subject = "account:" + jwt.getName(); }
             // INC-67: Stripe sends every club's webhooks from the same addresses; a club's burst never delays another club's events.
-            if (route == Route.STRIPE_WEBHOOK) { subject = path.substring(STRIPE_WEBHOOKS.length()).split("/", 2)[0] + ":" + request.getRemoteAddr(); }
+            // Round 2: the path's club counts only when it is a club (like SIGNUP_*'s resolved club); a made-up id is `unknown`,
+            // so one address rotating made-up ids shares one bucket.
+            if (route == Route.STRIPE_WEBHOOK) {
+                String pathClub = path.substring(STRIPE_WEBHOOKS.length()).split("/", 2)[0];
+                subject = (knownClubs.test(pathClub) ? pathClub : "unknown") + ":" + request.getRemoteAddr();
+            }
             String clubId = jwt == null ? null : jwt.getToken().getClaimAsString("clubId");
             if (route.name().startsWith("SIGNUP_")) {
                 if (clubId == null && hosts != null) clubId=hosts.resolve(local && request.getHeader("X-Club-Host")!=null?request.getHeader("X-Club-Host"):request.getHeader("Host")).orElse(null);

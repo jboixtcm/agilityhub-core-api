@@ -87,6 +87,31 @@ class AnonymousRateLimitsTest {
         assertThat(call(filter, "POST", "/webhooks/stripe/club-b").getStatus()).isEqualTo(429);
     }
 
+    /** INC-67 round 2 (E11-T08): a club id the caller makes up is no club; one address rotating them shares one bucket. */
+    @org.junit.jupiter.api.Test void INC_67_round2_madeUpClubIdsFromOneAddressShareOneBucket() throws Exception {
+        var filter = filter(new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
+        assertThat(call(filter, "POST", "/webhooks/stripe/made-up-1").getStatus()).isEqualTo(204);
+        assertThat(call(filter, "POST", "/webhooks/stripe/made-up-2").getStatus()).isEqualTo(204);
+        assertThat(call(filter, "POST", "/webhooks/stripe/made-up-3").getStatus()).isEqualTo(429);
+        assertThat(call(filter, "POST", "/webhooks/stripe/made-up-4").getStatus()).isEqualTo(429);
+        // A known club behind the same address keeps its own quota.
+        assertThat(call(filter, "POST", "/webhooks/stripe/club-a").getStatus()).isEqualTo(204);
+    }
+
+    /** INC-67 round 2 (E11-T08): a flood of new webhook keys never evicts another route's bucket (its count survives). */
+    @org.junit.jupiter.api.Test void INC_67_round2_aFloodOfNewWebhookKeysKeepsTheTokenBucketsCount() throws Exception {
+        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var limits = new RateLimits(true, policies(), clock, 64);
+        var filter = filter(limits);
+        assertThat(call(filter, "POST", "/oauth2/token", "203.0.113.7").getStatus()).isEqualTo(204);
+        for (int i = 0; i < 1_000; i++) {
+            // Made-up club ids from rotating addresses (an IPv6 prefix offers plenty): every request is a new key.
+            for (int hit = 0; hit < 3; hit++) { call(filter, "POST", "/webhooks/stripe/made-up-" + i, "2001:db8::" + Integer.toHexString(i)); }
+        }
+        assertThat(call(filter, "POST", "/oauth2/token", "203.0.113.7").getStatus()).isEqualTo(204);
+        assertThat(call(filter, "POST", "/oauth2/token", "203.0.113.7").getStatus()).isEqualTo(429);
+    }
+
     /** INC-67 (E11-T08), CONVENCIONS_API §9: with a token, the checkout status is counted per account, not per shared address. */
     @org.junit.jupiter.api.Test void INC_67_anAuthenticatedCheckoutStatusIsCountedPerAccount() throws Exception {
         var filter = filter(new MockClock(Instant.parse("2026-01-01T00:00:00Z")));
@@ -103,13 +128,21 @@ class AnonymousRateLimitsTest {
         assertThat(call(filter, "GET", "/api/v1/checkout-sessions/example").getStatus()).isEqualTo(429);
     }
 
-    private static RateLimitFilter filter(MockClock clock) {
-        var policies = new EnumMap<RateLimits.Route, RateLimits.Limit>(RateLimits.Route.class);
-        for (var route : RateLimits.Route.values()) { policies.put(route, new RateLimits.Limit(2, Duration.ofMinutes(1))); }
+    private static RateLimitFilter filter(MockClock clock) { return filter(new RateLimits(true, policies(), clock)); }
+
+    private static RateLimitFilter filter(RateLimits limits) {
         var errors = mock(ApiExceptionHandler.class);
         when(errors.body(any(), any())).thenReturn(new ApiError("RATE_LIMITED", "Rate limited", Map.of(), "fixture-trace"));
-        return new RateLimitFilter(new RateLimits(true, policies, clock), mock(SecurityEvents.class), errors, new ObjectMapper(),
+        var filter = new RateLimitFilter(limits, mock(SecurityEvents.class), errors, new ObjectMapper(),
                 com.agilityhub.core.identity.domain.Email::normalize);
+        filter.knownClubs(java.util.Set.of("club-a", "club-b")::contains);
+        return filter;
+    }
+
+    private static Map<RateLimits.Route, RateLimits.Limit> policies() {
+        var policies = new EnumMap<RateLimits.Route, RateLimits.Limit>(RateLimits.Route.class);
+        for (var route : RateLimits.Route.values()) { policies.put(route, new RateLimits.Limit(2, Duration.ofMinutes(1))); }
+        return policies;
     }
 
     private static void authenticate(String account) {

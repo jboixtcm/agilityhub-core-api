@@ -3,6 +3,8 @@ package com.agilityhub.core.clubs.catalogs.persistence;
 import com.agilityhub.core.clubs.catalogs.application.PriceResolver;
 import com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.domain.Money;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import java.math.BigDecimal;
@@ -13,7 +15,10 @@ import java.util.Date;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -27,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * index never compare a BSON date with a string. Prices stored as dates before the fix are read with their own day and
  * converted at startup.
  */
+@ExtendWith(OutputCaptureExtension.class)
 class PriceDatesIT extends AbstractIntegrationTest {
     private static final String CLUB = "club-inc-68";
     private static final String PLAN = "plan-inc-68";
@@ -36,7 +42,10 @@ class PriceDatesIT extends AbstractIntegrationTest {
     @Autowired private PriceResolver resolver;
     @Autowired private MongoTemplate mongo;
 
-    @AfterEach void dropPrices() { mongo.getCollection("prices").deleteMany(eq("clubId", CLUB)); }
+    @AfterEach void dropPrices() {
+        mongo.getCollection("prices").deleteMany(eq("clubId", CLUB));
+        mongo.getCollection("members").deleteMany(eq("clubId", CLUB));
+    }
 
     @Test void INC_68_aPriceWrittenWholeOrPatchedIsStoredAsADayStringAndChosenForTheBillingDate() {
         try (var tenant = TenantContext.open(CLUB)) {
@@ -85,24 +94,65 @@ class PriceDatesIT extends AbstractIntegrationTest {
         }
     }
 
-    @Test void INC_68_aStoredDateStartThatWouldDuplicateAStringStartStaysADate() {
-        // Before the fix the unique `price_start` index saw a date and a string as two starts of the same day.
-        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null));
+    // Before the fix the unique `price_start` index saw a date and a string as two starts of the same day: twins could exist.
+
+    @Test void INC_68_round2_aLegacyTwinIdenticalToThePriceKeptIsRemovedAtStartup(CapturedOutput output) throws Exception {
+        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null, 4500));
         try (var tenant = TenantContext.open(CLUB)) { prices.insert(price("inc68-string", "2026-01-01", null, 0)); }
 
-        assertThat(prices.normaliseValidityDates()).isZero();
-        assertThat(raw("inc68-legacy-twin").get("validFrom")).isInstanceOf(Date.class);
+        startup();
+        assertThat(raw("inc68-legacy-twin")).isNull();
         assertThat(raw("inc68-string")).containsEntry("validFrom", "2026-01-01");
+        assertThat(output).contains("Price start twins removed count=1 ids=[inc68-legacy-twin]").doesNotContain("PriceStartTwins");
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(resolver.current(PLAN, PriceConcept.MONTHLY_FEE, LocalDate.parse("2026-02-01"))).get().extracting(Price::id).isEqualTo("inc68-string");
+        }
     }
+
+    @Test void INC_68_round2_anIdenticalTwinThatADocumentNamesIsKeptAndReported(CapturedOutput output) throws Exception {
+        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null, 4500));
+        try (var tenant = TenantContext.open(CLUB)) { prices.insert(price("inc68-string", "2026-01-01", null, 0)); }
+        // A member's price (`member.priceId`) names the legacy twin: removing it would leave that reference dangling.
+        mongo.getCollection("members").insertOne(new Document("_id", "inc68-member").append("clubId", CLUB).append("priceId", "inc68-legacy-twin"));
+
+        startup();
+        assertThat(raw("inc68-legacy-twin").get("validFrom")).isInstanceOf(Date.class);
+        assertThat(output).contains("PriceStartTwins count=1 ids=[inc68-legacy-twin]");
+    }
+
+    @Test void INC_68_round2_aTwinThatDiffersIsReportedAndBillingNeverChoosesBetweenThem(CapturedOutput output) throws Exception {
+        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null, 5000));
+        try (var tenant = TenantContext.open(CLUB)) { prices.insert(price("inc68-string", "2026-01-01", null, 0)); }
+
+        startup();
+        assertThat(raw("inc68-legacy-twin").get("validFrom")).isInstanceOf(Date.class);
+        assertThat(raw("inc68-legacy-twin").get("amount", Document.class).get("amountMinor")).isEqualTo(5000L);
+        assertThat(output).contains("PriceStartTwins count=1 ids=[inc68-legacy-twin]");
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThatThrownBy(() -> resolver.current(PLAN, PriceConcept.MONTHLY_FEE, LocalDate.parse("2026-02-01")))
+                    .isInstanceOfSatisfying(ApiException.class, refused -> {
+                        assertThat(refused.code()).isEqualTo(ErrorCode.PRICE_OVERLAP);
+                        assertThat(refused.details()).containsEntry("planId", PLAN).containsEntry("concept", "MONTHLY_FEE");
+                        assertThat(java.util.List.of(refused.details().get("priceId"), refused.details().get("conflictingPriceId")))
+                                .containsExactlyInAnyOrder("inc68-string", "inc68-legacy-twin");
+                    });
+            // Before the twins start there is no price, and no ambiguity.
+            assertThat(resolver.current(PLAN, PriceConcept.MONTHLY_FEE, LocalDate.parse("2025-12-31"))).isEmpty();
+        }
+    }
+
+    private void startup() throws Exception { new CatalogPersistence().priceValidityDays(prices).run(null); }
 
     private static Price price(String id, String from, String to, long version) {
         return new Price(id, CLUB, PLAN, PriceConcept.MONTHLY_FEE, new Money(4500, "EUR"), new BigDecimal("21"), LocalDate.parse(from),
                 to == null ? null : LocalDate.parse(to), version, WRITTEN, WRITTEN, "account-inc-68", "account-inc-68");
     }
 
-    private static Document legacy(String id, String from, String to) {
+    private static Document legacy(String id, String from, String to) { return legacy(id, from, to, 4500); }
+
+    private static Document legacy(String id, String from, String to, long amountMinor) {
         return new Document("_id", id).append("clubId", CLUB).append("planId", PLAN).append("concept", "MONTHLY_FEE")
-                .append("amount", new Document("amountMinor", 4500L).append("currency", "EUR")).append("taxPercent", "21")
+                .append("amount", new Document("amountMinor", amountMinor).append("currency", "EUR")).append("taxPercent", "21")
                 .append("validFrom", midnight(from)).append("validTo", to == null ? null : midnight(to)).append("version", 0L)
                 .append("createdAt", Date.from(WRITTEN)).append("updatedAt", Date.from(WRITTEN))
                 .append("createdByAccountId", "account-inc-68").append("updatedByAccountId", "account-inc-68")

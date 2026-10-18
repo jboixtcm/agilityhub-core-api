@@ -574,6 +574,39 @@ module, springdoc 3.0.3 and, in tests, Testcontainers 2.0.5. What an operator se
   longer chooses by default (`StoredRepresentationIT`).
 - `bin/security-scan-suppressions.json` is empty again: Spring Framework 7.0.9 fixes CVE-2026-47884 and CVE-2026-47890.
 
+### Price validity days and price start twins (INC-68, E11-T08)
+
+Before INC-68 a price written whole (`POST /prices`, a seed, a catalog clone, the Playoff migration) stored `validFrom` and
+`validTo` as BSON dates; a patch stored `YYYY-MM-DD` strings. Every write now stores the string. At every start the API
+converts the dates that remain (`CatalogPersistence`, idempotent; log `Price validity days converted for N prices`).
+
+- **Time zone of a legacy date.** Such a date is the writer JVM's local midnight. The API reads its day as the UTC day of
+  the nearest UTC midnight (`StoredDays`), which is right for every writer zone from UTC-11:59 to UTC+12:00, so the
+  conversion does not depend on the `TZ` of the API or `bin/core` container that runs it, nor on the one that wrote the
+  date. Nothing to configure. A date written by a JVM at UTC+13 or UTC+14 would read a day early.
+- **Price start twins.** The old unique index `price_start` saw a date start and a string start as two keys, so two prices
+  of one plan and concept could start on the same day. The conversion removes a legacy twin that has the same amount, tax
+  and end as the string price it would duplicate, when no document names it (`members.priceId`,
+  `invoices.lines.priceId`, `pending_charges`, `collections` and `pack_balances` `priceId`); log
+  `Price start twins removed count=N ids=[…]`. Any other twin stays as it is, and every start logs
+  `WARN PriceStartTwins count=N ids=[…]`. Meanwhile billing refuses to choose: `POST /billing/simulations` and
+  `POST /billing/runs` answer `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`, and the outbox
+  consumer that creates a single-class charge of that plan fails and retries with backoff; after its attempts it leaves
+  the event `FAILED` (gauge `outbox.failed`). No amount is ever chosen between the twins.
+- **Resolving a reported twin by hand** (one per id; production was not live when INC-68 was fixed, so this concerns
+  local and staging data):
+  1. Compare the twin with the price it duplicates:
+     `db.prices.find({clubId: "<club>", planId: "<plan>", concept: "<concept>"}, {amount: 1, taxPercent: 1, validFrom: 1, validTo: 1})`.
+  2. Find what names each of them: `db.members.countDocuments({clubId: "<club>", priceId: "<id>"})`,
+     `db.invoices.countDocuments({clubId: "<club>", "lines.priceId": "<id>"})`, and the same `priceId` count on
+     `pending_charges`, `collections` and `pack_balances`.
+  3. Keep the price the club's administrator confirms. When only `members`, `pending_charges`, `collections` or
+     `pack_balances` name the other one, point them at the kept one
+     (`updateMany({clubId: "<club>", priceId: "<other>"}, {$set: {priceId: "<kept>"}})`) and delete it with
+     `deleteOne({_id: "<other>", clubId: "<club>"})`. When an invoice line names it, stop: invoice lines are frozen and
+     are never edited; report the case to the organizer.
+  4. Restart the API (or wait for the next start): the `PriceStartTwins` line is gone, and the month can be simulated.
+
 ## Run the published image (E1-T14)
 
 Requirements: Docker with Compose v2.20+, `curl`, and access to the private GHCR

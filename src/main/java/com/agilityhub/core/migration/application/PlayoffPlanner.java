@@ -455,7 +455,8 @@ public class PlayoffPlanner {
             catch (DateTimeParseException invalid) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
         }
     }
+    /** INC-68 round 2 (E11-T08): a price's legacy BSON date is read with the price converter's rule ({@link com.agilityhub.core.shared.domain.StoredDays}). */
     static LocalDate businessDate(Object value) {
-        return value instanceof java.util.Date date ? date.toInstant().atZone(ZoneOffset.UTC).toLocalDate() : date(value.toString());
+        return value instanceof java.util.Date date ? com.agilityhub.core.shared.domain.StoredDays.day(date) : date(value.toString());
     }
 }

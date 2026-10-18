@@ -67,6 +67,8 @@ public class SecurityBaselineConfiguration {
         filter.signupParameter(clubId -> {
             try { return configs.get(clubId).get("signup.rateLimit", Map.class); } catch (RuntimeException unknown) { return null; }
         });
+        // INC-67 round 2 (E11-T08): the Stripe webhook's path club keys its bucket only when it is a club.
+        filter.knownClubs(configs::known);
         var registration = new FilterRegistrationBean<>(filter);
         // Install only in the security chains, after bearer authentication and before tenant lookup.
         registration.setEnabled(false);

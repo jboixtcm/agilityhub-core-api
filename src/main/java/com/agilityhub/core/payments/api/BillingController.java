@@ -65,14 +65,16 @@ public class BillingController {
 
     @PostMapping("/api/v1/billing/simulations")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, BILLING_BUSY})
+    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, BILLING_BUSY, PRICE_OVERLAP})
     @Operation(summary = "simulateBilling", description = ROLES + "R-12-07 «1 · SIMULA EL MES»: computes R-12-01…05 without writing business data "
             + "(incidents NO_BANK_ACCOUNT, NO_PLAN, NO_PRICE, CARD_INVALID, CURRENCY_MISMATCH, PROVIDER_DISABLED; cash members with their planned "
             + "leave; preview and KPIs) and keeps it as the month's only simulation; RemittanceSimulated. The waiting manual SEPA_DD receipts "
             + "with includeInNextRun (R-12-19) the run will remit are in the preview (with their invoiceId and displayNumber) and the KPIs; one "
             + "whose member has left, no longer pays by SEPA_DD, has no account or signed another mandate since is an incident (NO_BANK_ACCOUNT) "
             + "and is not remitted. A month more than three months ahead "
-            + "→ 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY." + SERVED,
+            + "→ 400 VALIDATION_ERROR (S12 §13). Another simulation, run or rollback holding the club's billing lock → 409 BILLING_BUSY. "
+            + "Two prices of one plan and concept valid on the issue date (a legacy twin, INC-68) → 409 PRICE_OVERLAP "
+            + "{planId, concept, priceId, conflictingPriceId}: no price is chosen." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingSimulation", useReturnTypeSchema = true))
     public BillingSimulation simulateBilling(@Valid @RequestBody SimulationRequest request) {
         access.tenant();
@@ -83,7 +85,7 @@ public class BillingController {
     @PostMapping("/api/v1/billing/runs")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, RUN_EXISTS, SIMULATION_STALE, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION,
-            COLLECTION_DATE_TOO_SOON, NO_INVOICES, SEPA_NOT_CONFIGURED})
+            COLLECTION_DATE_TOO_SOON, NO_INVOICES, SEPA_NOT_CONFIGURED, PRICE_OVERLAP})
     @Operation(summary = "createBillingRun", description = ROLES + "R-12-11/12 «2 · GENERA REMESA SEPA (XML)»: one Mongo transaction under the "
             + "club's billing lock (409 BILLING_BUSY) creates the PENDING/COLLECTING invoices numbered {series}-{number:04d} in the members' order "
             + "(last names, first name, member number), one Collection each, the remittance (pain.008 written and validated before the commit), "
@@ -95,7 +97,9 @@ public class BillingController {
             + "waiting receipts the simulation listed as incidents (they stay PENDING); the others join the remittance. "
             + "collectionDate (SEPA only) defaults to billing.sepa.collectionDayOfMonth of the billed month (0 = its last day) and must leave two "
             + "business days after today → otherwise 422 COLLECTION_DATE_TOO_SOON {requested, earliest}. Nothing to bill → 422 NO_INVOICES; SEPA "
-            + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). The same Idempotency-Key answers the same run." + SERVED,
+            + "members without a SEPA writer → 422 SEPA_NOT_CONFIGURED (until E8-T03). Two prices of one plan and concept valid on the issue "
+            + "date (INC-68) → 409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}, nothing written. The same Idempotency-Key "
+            + "answers the same run." + SERVED,
             responses = @ApiResponse(responseCode = "201", description = "BillingRunResult", useReturnTypeSchema = true))
     public BillingRunResult createBillingRun(@Valid @RequestBody BillingRunRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") UUID idempotencyKey) {

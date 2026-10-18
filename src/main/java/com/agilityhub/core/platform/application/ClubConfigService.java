@@ -26,6 +26,9 @@ public class ClubConfigService implements TimeZoneProvider {
     private final ParameterValidator validator = new ParameterValidator();
     private final com.agilityhub.core.shared.application.CacheLoads<String, ClubConfig> cache = com.agilityhub.core.shared.application.CacheLoads.of(
             Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(Duration.ofMinutes(5)).build());
+    /** INC-67 round 2: one snapshot of every club id ({@link #known}), at most a minute old. */
+    private final com.agilityhub.core.shared.application.CacheLoads<Boolean, java.util.Set<String>> clubIds = com.agilityhub.core.shared.application.CacheLoads.of(
+            Caffeine.newBuilder().maximumSize(1).expireAfterWrite(Duration.ofMinutes(1)).build());
     public ClubConfigService(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog, CountryProfileRegistry countries) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.countries = countries;
     }
@@ -43,7 +46,15 @@ public class ClubConfigService implements TimeZoneProvider {
     public ClubConfig current(String clubId) {
         try (var scope = TenantContext.open(clubId)) { return load(clubId); }
     }
-    public void invalidate(String clubId) { cache.invalidate(clubId); }
+    /**
+     * INC-67 round 2 (E11-T08): whether {@code clubId} names a club, from a snapshot of the ids that is at most a minute old,
+     * so a flood of made-up ids (the Stripe webhook's rate-limit key) costs no query each. A club created meanwhile counts
+     * as unknown until the next snapshot.
+     */
+    public boolean known(String clubId) {
+        return clubId != null && !clubId.isBlank() && clubIds.get(Boolean.TRUE, ignored -> clubs.ids()).contains(clubId);
+    }
+    public void invalidate(String clubId) { cache.invalidate(clubId); clubIds.invalidateAll(); }
     public void invalidateAfterCommit(String clubId) {
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
                 new org.springframework.transaction.support.TransactionSynchronization() {

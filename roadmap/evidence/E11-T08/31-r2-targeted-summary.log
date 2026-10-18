@@ -1,0 +1,17 @@
+# Round 2 (E11-T08): per-class totals of runs 28 (surefire), 29 and 30 (failsafe), read from target/*-reports.
+surefire-reports AnonymousRateLimitsTest tests 26 failures 0 errors 0 skipped 0
+surefire-reports RateLimitsTest tests 4 failures 0 errors 0 skipped 0
+surefire-reports ClubConfigServiceTest tests 5 failures 0 errors 0 skipped 0
+surefire-reports PriceDateConverterTest tests 11 failures 0 errors 0 skipped 0
+surefire-reports PlayoffPlannerDatesTest tests 5 failures 0 errors 0 skipped 0
+surefire-reports SentryPropertiesBindingTest tests 2 failures 0 errors 0 skipped 0
+surefire-reports SentryCaptureTest tests 3 failures 0 errors 0 skipped 0
+surefire-reports ArchitectureTest tests 22 failures 0 errors 0 skipped 0
+failsafe-reports PriceDatesIT tests 6 failures 0 errors 0 skipped 0
+failsafe-reports BillingCycleIT tests 22 failures 0 errors 0 skipped 0
+failsafe-reports RateLimitIT tests 10 failures 0 errors 0 skipped 0
+failsafe-reports StoredRepresentationIT tests 3 failures 0 errors 0 skipped 0
+failsafe-reports PlayoffMigrationIT tests 40 failures 0 errors 0 skipped 0
+failsafe-reports SecurityInventoryIT tests 3 failures 0 errors 0 skipped 0
+failsafe-reports PendingChargesIT tests 4 failures 0 errors 0 skipped 0
+# Note: run 29 is roadmap/evidence/E11-T08/29-r2-it-failed-attempt.log (exit 1, PlayoffMigrationIT only); the PlayoffMigrationIT line above is run 30.

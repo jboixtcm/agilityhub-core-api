@@ -30,12 +30,19 @@ public final class RateLimits {
             "signupPerDay", Route.SIGNUP_DAILY, "checkoutSessionsAnonymousPerHour", Route.SIGNUP_CHECKOUT, "townsPerHour", Route.SIGNUP_TOWNS,
             "notificationsPerRecipientPerHour", Route.SIGNUP_RECIPIENT);
     private record Key(Route route, String subject, Limit limit) { }
+    private static final long MAXIMUM_BUCKETS = 100_000;
     private final boolean enabled;
     private final Map<Route, Limit> limits;
     private final TimeMeter time;
-    private final Cache<Key, Bucket> buckets;
+    private final Map<Route, Cache<Key, Bucket>> buckets;
 
-    public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock) {
+    public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock) { this(enabled, limits, clock, MAXIMUM_BUCKETS); }
+
+    /**
+     * {@code maximumBuckets}: the cap of the buckets kept per route (tests use a small one). Maintenance runs on the caller's
+     * thread, so an eviction is never left to a background pool.
+     */
+    public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock, long maximumBuckets) {
         this.enabled = enabled;
         var policies = new EnumMap<Route,Limit>(Route.class); policies.putAll(limits);
         policies.putIfAbsent(Route.SIGNUP_IDENTITY,new Limit(10,Duration.ofHours(1)));
@@ -52,8 +59,16 @@ public final class RateLimits {
             @Override public boolean isWallClockBased() { return true; }
         };
         Duration longest = this.limits.values().stream().map(Limit::period).max(Duration::compareTo).orElseThrow();
-        this.buckets = Caffeine.newBuilder().maximumSize(100_000).expireAfterAccess(longest)
-                .ticker(time::currentTimeNanos).build();
+        // INC-67 round 2 (E11-T08): one cache per route, so a flood of new keys on one route (made-up webhook clubs, rotating
+        // addresses) evicts only that route's buckets and never resets another route's count (TOKEN, SIGNUP_*).
+        var caches = new EnumMap<Route, Cache<Key, Bucket>>(Route.class);
+        for (var route : Route.values()) {
+            // A bucket idle for its whole period is full again: dropping it then changes nothing (a club's signup limit keeps the period).
+            Duration idle = this.limits.containsKey(route) ? this.limits.get(route).period() : longest;
+            caches.put(route, Caffeine.newBuilder().maximumSize(maximumBuckets).expireAfterAccess(idle)
+                    .ticker(time::currentTimeNanos).executor(Runnable::run).build());
+        }
+        this.buckets = caches;
     }
 
     /** Zero means allowed; otherwise return a rounded-up Retry-After in seconds. */
@@ -85,7 +100,7 @@ public final class RateLimits {
     }
 
     private Bucket bucket(Route route, String subject, Limit limit) {
-        return buckets.get(new Key(route, subject, limit), key -> Bucket.builder().withCustomTimePrecision(time)
+        return buckets.get(route).get(new Key(route, subject, limit), key -> Bucket.builder().withCustomTimePrecision(time)
                 .addLimit(bandwidth -> bandwidth.capacity(key.limit().capacity()).refillIntervally(key.limit().capacity(), key.limit().period())).build());
     }
 

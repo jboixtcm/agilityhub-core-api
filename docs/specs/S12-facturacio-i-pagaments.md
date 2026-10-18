@@ -158,8 +158,8 @@ Base `/api/v1`, mòdul `BILLING` a tot (`404 MODULE_DISABLED`), rol ADMIN llevat
 | Mètode | Ruta | Rol | Idem. | Descripció | Cos / paràmetres | Respostes i errors |
 |---|---|---|---|---|---|---|
 | GET | `/billing/periods/{period}` | ADMIN | — | Estat del mes per a D6 | — | `200 {period, simulation?: {id, at, kpis, incidents[], cashMembers[]}, run?: {id, status, byProvider, rollbackable, rollbackBlockers[]}, remittance?: {id, status, fileAvailable}, counts {all, pending, remitted, paid, failed}}` |
-| POST | `/billing/simulations` | ADMIN | — | R-12-07 | `{period}` | `201 BillingSimulation` · `400` (mes > 3 mesos endavant, §13) · `409 BILLING_BUSY` |
-| POST | `/billing/runs` | ADMIN | sí | R-12-11/12 | `{period, simulationId, collectionDate?}` | `201 {run, remittance?, skipped[]}` · `409 RUN_EXISTS` / `SIMULATION_STALE` / `BILLING_BUSY` · `422 COLLECTION_DATE_TOO_SOON` / `NO_INVOICES` / `SEPA_NOT_CONFIGURED` |
+| POST | `/billing/simulations` | ADMIN | — | R-12-07 | `{period}` | `201 BillingSimulation` · `400` (mes > 3 mesos endavant, §13) · `409 BILLING_BUSY` / `PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` (dos preus vigents del mateix concepte, INC-68) |
+| POST | `/billing/runs` | ADMIN | sí | R-12-11/12 | `{period, simulationId, collectionDate?}` | `201 {run, remittance?, skipped[]}` · `409 RUN_EXISTS` / `SIMULATION_STALE` / `BILLING_BUSY` / `PRICE_OVERLAP` (com la simulació) · `422 COLLECTION_DATE_TOO_SOON` / `NO_INVOICES` / `SEPA_NOT_CONFIGURED` |
 | GET | `/billing/runs/{id}` | ADMIN | — | detall | — | `200` |
 | POST | `/billing/runs/{id}/card-charges` | ADMIN | sí | R-12-13 | — | `202 {submitted, skipped[]}` · `409 INVALID_STATE` · `422 PAYMENT_PROVIDER_NOT_ENABLED` |
 | POST | `/billing/runs/{id}/rollback` | ADMIN | sí | R-12-14 | `{reason, confirmation: "RETROCEDIR"}` | `200 {cancelledInvoices, restoredMembers}` · `409 RUN_NOT_ROLLBACKABLE{reasons[]}` |
@@ -335,3 +335,4 @@ Ordre: A → B ∥ E → C ∥ D ∥ F → G ∥ H → E2E. Fils: (1) B+C, (2) D
 - 01-10-2026 · ronda 2 d'E8-T02 (decisió E89): R-12-14, el retrocés inclou els rebuts del run anul·lats per l'admin i reemet els mateixos números; R-12-19, `includeInNextRun` només amb un total positiu.
 - 01-10-2026 · verificació d'E8-T02 (decisió E87): §3, la numeració única entre els rebuts no anul·lats; §5 i R-12-15, una remesa enviada es dona per cobrada el dia de cobrament (P5 pas i, S15), i marcar cobrat a mà (R-12-16) continua sent només per a `PENDING` i `FAILED`.
 - 27-09-2026 · revisió global del 26-09 (decisió E44): R-12-05 i T-12-03, la primera fracció en efectiu comença al mes de `nextInvoiceDate` (alta el 17-08 → 4 línies); §6, el PDF del rebut és d'E8-T02 i `POST /members/{id}/plan-change` en proposta (E8-T05).
+- 18-10-2026 · ronda 2 d'E11-T08 (decisió E132, INC-68): §6, la simulació i el run responen `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` si dos preus del mateix concepte són vigents el dia d'emissió (un bessó antic que la conversió de dates no pot resoldre sola); mai se'n tria un. Pendent de sincronitzar a la font (E109).

@@ -178,4 +178,15 @@ class RateLimitIT extends IdentityIntegrationSupport {
         assertThat(mongo.findAll(SecurityEvent.class)).anySatisfy(e->{assertThat(e.accountId()).isEqualTo("console-rate");assertThat(e.route()).isEqualTo("/api/v1/platform/**");});
     }
 
+    /** INC-67 round 2 (E11-T08): made-up Stripe webhook clubs from one address share its 600/min `unknown` bucket; a club keeps its own. */
+    @Test void INC_67_round2_madeUpWebhookClubsFromOneAddressShareOneQuota() throws Exception {
+        for (int index = 0; index < 600; index++) {
+            mvc.perform(post("/webhooks/stripe/made-up-" + index).with(request -> { request.setRemoteAddr("203.0.113.61"); return request; }))
+                    .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+        }
+        mvc.perform(post("/webhooks/stripe/made-up-600").with(request -> { request.setRemoteAddr("203.0.113.61"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        mvc.perform(post("/webhooks/stripe/club-a").with(request -> { request.setRemoteAddr("203.0.113.61"); return request; }))
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(429));
+    }
 }

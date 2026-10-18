@@ -1,0 +1,116 @@
+E10 smoke started 2026-10-18T10:40:23Z
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  402 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {platformAccounts=1, templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10, messagingContacts=2, messagingProfiles=3, messagingBounces=1, pushSubscriptions=1, customTemplates=1, obstacleInventories=1, ringGeometries=2, courses=3, placements=2, ringSetups=3, buildSessions=1, billingProviders=1, pendingInactivity=1, activeInactivity=1, plannedLeave=1, expiredPacks=1}
+  0 changes (demo planning, week start 2026-10-26)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-26 run 2: 0 changes
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  7 changes (applied)
+PASS club:apply seeds/club-template-default.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-template-default.yaml run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, template club; x2): second runs 0 changes · week start 2026-10-26 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+PASS seed:demo platform account (E118): AGILITYHUB_ADMIN, no club · platform@example.test: ID token with platform roles and no club; on the Cànic's host → 403 NO_MEMBERSHIP (T-17-10)
+curl POST /api/v1/platform/clubs -> 409 SLUG_TAKEN
+curl POST /api/v1/platform/clubs -> 201
+PASS POST /platform/clubs (definition): 201 · «Club Fictici del Smoke E10» e10-smoke, ONBOARDING, ca/es, Europe/Madrid, EUR, ES; the Cànic's slug → 409 SLUG_TAKEN; checklist 3/7
+curl PUT /api/v1/platform/clubs/<id>/theme -> 422 THEME_CONTRAST
+curl PUT /api/v1/platform/clubs/<id>/theme -> 200
+PASS PUT /platform/clubs/{id}/theme: 200 · primary #1D4ED8, light; a low-contrast onPrimary → 422 THEME_CONTRAST
+curl PUT /api/v1/platform/clubs/<id>/modules -> 422 MODULE_DEPENDENCY
+curl PUT /api/v1/platform/clubs/<id>/modules -> 200
+PASS PUT /platform/clubs/{id}/modules: 200 · preset CANIC → 13 modules; PACKS alone → 422 MODULE_DEPENDENCY
+curl POST /api/v1/platform/clubs/<id>/catalog-clone -> 200
+PASS POST /platform/clubs/{id}/catalog-clone (template club): 200 · copied {'LEVELS': 0, 'RINGS': 0, 'PLANS': 0, 'FAQ': 0, 'MESSAGE_TEMPLATES': 0} from «AgilityHub template»; 0 coded warning(s); a second clone → 200
+curl PUT /api/v1/platform/clubs/<id>/payment-providers/SEPA_XML -> 200
+PASS PUT /platform/clubs/{id}/payment-providers/SEPA_XML: 200 · fictional creditor; configured, IBAN encrypted at rest (never in clear in Mongo)
+curl POST /api/v1/platform/clubs/<id>/domains -> 201
+curl POST /api/v1/platform/clubs/<id>/domains -> 201
+curl POST /api/v1/platform/clubs/<id>/domains -> 422 HOST_RESERVED
+curl GET /api/v1/branding -> 404 UNKNOWN_HOST
+curl GET /internal/domains/allowed -> 404
+curl POST /api/v1/platform/clubs/<id>/domains/app.e10-smoke.example.test/verification -> 422 HOST_NOT_VERIFIED
+curl POST /api/v1/platform/clubs/<id>/domains/app.e10-smoke.example.test/verification -> 200
+curl POST /api/v1/platform/clubs/<id>/domains/admin.e10-smoke.example.test/verification -> 200
+curl GET /internal/domains/allowed -> 200
+PASS POST /platform/clubs/{id}/domains ×2 + verification (fake DNS): 201 · 422 · 200 · 200 · app.e10-smoke.example.test by CNAME → clubs.agilitydoghub.com, admin.e10-smoke.example.test by the TXT challenge; before the record → 422 HOST_NOT_VERIFIED and GET /branding → 404 UNKNOWN_HOST; a product prefix → 422 HOST_RESERVED; Caddy's ask 404 → 200; both primary
+curl POST /api/v1/platform/clubs/<id>/admins -> 201
+PASS POST /platform/clubs/{id}/admins (first administrator): 201 · membership ACTIVE; N-53 «Invitació per administrar Club Fictici del Smoke E10» in the local mailbox (ca), link=[truncated]
+curl PUT /api/v1/platform/clubs/<id>/status -> 200
+PASS PUT /platform/clubs/{id}/status ACTIVE: 200 · checklist 3/7 before activating (dns, legal, sepa)
+curl GET /api/v1/branding -> 200
+curl POST /oauth2/token (magic-link, id-web) -> 200
+curl PUT /api/v1/me/password -> 200
+curl POST /oauth2/token (password, clubs-admin, the club's back-office host) -> 200
+curl GET /api/v1/me -> 200
+curl GET /api/v1/levels -> 200
+curl GET /api/v1/members -> 200
+curl GET /api/v1/levels -> 403 NO_MEMBERSHIP
+Checklist after the admin's first sign-in (R-17-06): dns ✓, sepa ✓, branding ·, templates ·, faq ·, legal ✓, firstAdmin ✓
+PASS The second club in use: 200 · 200 · 200 · 200 · GET /branding on app.e10-smoke.example.test: ACTIVE, own theme and modules; the invited admin redeems N-53, sets a password and signs in on admin.e10-smoke.example.test as ADMIN; 0 cloned levels, /members answers; the platform token on the club → 403 NO_MEMBERSHIP
+PASS Second club usable (S17 §1): 15.1 s · from POST /platform/clubs to the admin's first back-office call; target < 3600 s
+PASS second club «e10-smoke» usable in 15.1 s (target < 1 hour)
+curl PUT /api/v1/platform/clubs/<id>/parameters/jobs.cleanup.enabled -> 200
+POST /test/clock -> 200 (7 days after the verifications; server now 2026-10-25T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 1: admin.e10-smoke.example.test CONFIRMED, app.e10-smoke.example.test CONFIRMED)
+PASS P9 re-check, week 1 (POST …/jobs/cleanup/trigger): 200 SUCCEEDED · platform.domainRecheckDays 7; app.e10-smoke.example.test CONFIRMED by CNAME, admin.e10-smoke.example.test (TXT-verified, no challenge left) CONFIRMED by ADDRESS; domainsRechecked 2
+POST /test/clock -> 200 (week 2; server now 2026-11-01T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 2: admin.e10-smoke.example.test SKIPPED, app.e10-smoke.example.test SKIPPED)
+curl GET /internal/domains/allowed -> 200
+PASS P9 re-check, week 2 (no DNS answer): SKIPPED · SKIPPED · app.e10-smoke.example.test reason LOOKUP_FAILED, admin.e10-smoke.example.test reason PRODUCT_HOST_UNRESOLVED; domainsRechecked 0, failedChecks and checkedAt unchanged, Caddy's ask still 200
+POST /test/clock -> 200 (week 3; server now 2026-11-08T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 3: admin.e10-smoke.example.test CONFIRMED, app.e10-smoke.example.test FAILED)
+POST /test/clock -> 200 (week 4; server now 2026-11-15T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 4: admin.e10-smoke.example.test CONFIRMED, app.e10-smoke.example.test FAILED)
+curl GET /internal/domains/allowed -> 200
+POST /test/clock -> 200 (week 5; server now 2026-11-22T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 5: admin.e10-smoke.example.test CONFIRMED, app.e10-smoke.example.test BROKEN)
+curl GET /internal/domains/allowed -> 404
+curl GET /api/v1/branding -> 404 UNKNOWN_HOST
+PASS P9 re-check, weeks 3–5 (record lost): FAILED · FAILED · BROKEN · app.e10-smoke.example.test: failedChecks 3 → BROKEN; Caddy's ask 200 → 404, GET /branding → 404 UNKNOWN_HOST; audit CLUB_DOMAIN_CHANGED origin SYSTEM, job cleanup; N-43 «El domini del club no funciona» to platform@example.test (ca, platform e-mail, no club)
+POST /test/clock -> 200 (week 6; server now 2026-11-29T10:46Z)
+curl POST /api/v1/platform/clubs/<id>/jobs/cleanup/trigger -> 200 (week 6: admin.e10-smoke.example.test CONFIRMED, app.e10-smoke.example.test RESTORED)
+curl GET /internal/domains/allowed -> 200
+curl GET /api/v1/branding -> 200
+PASS P9 re-check, week 6 (record back): RESTORED · app.e10-smoke.example.test VERIFIED again, Caddy's ask 200, /branding resolves; the club's 0 scheduled P9 run(s) meanwhile SKIPPED{DISABLED} (the switch), the console's runs ran anyway (R-15-09)
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic, template club; x2) · second runs 0 changes · week start 2026-10-26 (8+ days ahead)
+  seed:demo platform account (E118)                                        · AGILITYHUB_ADMIN, no club · platform@example.test: ID token with platform roles and no club; on the Cànic's host → 403 NO_MEMBERSHIP (T-17-10)
+  POST /platform/clubs (definition)                                        · 201 · «Club Fictici del Smoke E10» e10-smoke, ONBOARDING, ca/es, Europe/Madrid, EUR, ES; the Cànic's slug → 409 SLUG_TAKEN; checklist 3/7
+  PUT /platform/clubs/{id}/theme                                           · 200 · primary #1D4ED8, light; a low-contrast onPrimary → 422 THEME_CONTRAST
+  PUT /platform/clubs/{id}/modules                                         · 200 · preset CANIC → 13 modules; PACKS alone → 422 MODULE_DEPENDENCY
+  POST /platform/clubs/{id}/catalog-clone (template club)                  · 200 · copied {'LEVELS': 0, 'RINGS': 0, 'PLANS': 0, 'FAQ': 0, 'MESSAGE_TEMPLATES': 0} from «AgilityHub template»; 0 coded warning(s); a second clone → 200
+  PUT /platform/clubs/{id}/payment-providers/SEPA_XML                      · 200 · fictional creditor; configured, IBAN encrypted at rest (never in clear in Mongo)
+  POST /platform/clubs/{id}/domains ×2 + verification (fake DNS)           · 201 · 422 · 200 · 200 · app.e10-smoke.example.test by CNAME → clubs.agilitydoghub.com, admin.e10-smoke.example.test by the TXT challenge; before the record → 422 HOST_NOT_VERIFIED and GET /branding → 404 UNKNOWN_HOST; a product prefix → 422 HOST_RESERVED; Caddy's ask 404 → 200; both primary
+  POST /platform/clubs/{id}/admins (first administrator)                   · 201 · membership ACTIVE; N-53 «Invitació per administrar Club Fictici del Smoke E10» in the local mailbox (ca), link=[truncated]
+  PUT /platform/clubs/{id}/status ACTIVE                                   · 200 · checklist 3/7 before activating (dns, legal, sepa)
+  The second club in use                                                   · 200 · 200 · 200 · 200 · GET /branding on app.e10-smoke.example.test: ACTIVE, own theme and modules; the invited admin redeems N-53, sets a password and signs in on admin.e10-smoke.example.test as ADMIN; 0 cloned levels, /members answers; the platform token on the club → 403 NO_MEMBERSHIP
+  Second club usable (S17 §1)                                              · 15.1 s · from POST /platform/clubs to the admin's first back-office call; target < 3600 s
+  P9 re-check, week 1 (POST …/jobs/cleanup/trigger)                        · 200 SUCCEEDED · platform.domainRecheckDays 7; app.e10-smoke.example.test CONFIRMED by CNAME, admin.e10-smoke.example.test (TXT-verified, no challenge left) CONFIRMED by ADDRESS; domainsRechecked 2
+  P9 re-check, week 2 (no DNS answer)                                      · SKIPPED · SKIPPED · app.e10-smoke.example.test reason LOOKUP_FAILED, admin.e10-smoke.example.test reason PRODUCT_HOST_UNRESOLVED; domainsRechecked 0, failedChecks and checkedAt unchanged, Caddy's ask still 200
+  P9 re-check, weeks 3–5 (record lost)                                     · FAILED · FAILED · BROKEN · app.e10-smoke.example.test: failedChecks 3 → BROKEN; Caddy's ask 200 → 404, GET /branding → 404 UNKNOWN_HOST; audit CLUB_DOMAIN_CHANGED origin SYSTEM, job cleanup; N-43 «El domini del club no funciona» to platform@example.test (ca, platform e-mail, no club)
+  P9 re-check, week 6 (record back)                                        · RESTORED · app.e10-smoke.example.test VERIFIED again, Caddy's ask 200, /branding resolves; the club's 0 scheduled P9 run(s) meanwhile SKIPPED{DISABLED} (the switch), the console's runs ran anyway (R-15-09)
+PASS E10 backend gate: a second club through the console API, usable in 15.1 s (definition, theme, modules, catalogs, SEPA_XML, two domains over the fake DNS, the first admin, activation), and S15 P9's domain re-check (confirmed → no DNS answer, skipped → three failures → BROKEN with N-43 → RESTORED)
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

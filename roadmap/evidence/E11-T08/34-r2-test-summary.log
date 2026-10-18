@@ -1,0 +1,21 @@
+# Round 2 (E11-T08): totals of the clean verify of log 33 (exit 0), read from target/surefire-reports and target/failsafe-reports.
+surefire tests 4787 failures 0 errors 0 skipped 0
+failsafe tests 2130 failures 0 errors 0 skipped 0
+AnonymousRateLimitsTest tests 26 failures 0 errors 0 skipped 0
+RateLimitsTest tests 4 failures 0 errors 0 skipped 0
+ClubConfigServiceTest tests 5 failures 0 errors 0 skipped 0
+PriceDateConverterTest tests 11 failures 0 errors 0 skipped 0
+PlayoffPlannerDatesTest tests 5 failures 0 errors 0 skipped 0
+SentryPropertiesBindingTest tests 2 failures 0 errors 0 skipped 0
+SentryCaptureTest tests 3 failures 0 errors 0 skipped 0
+ArchitectureTest tests 22 failures 0 errors 0 skipped 0
+JndiDomainDnsTest tests 3 failures 0 errors 0 skipped 0
+PriceDatesIT tests 6 failures 0 errors 0 skipped 0
+BillingCycleIT tests 22 failures 0 errors 0 skipped 0
+RateLimitIT tests 10 failures 0 errors 0 skipped 0
+StoredRepresentationIT tests 3 failures 0 errors 0 skipped 0
+PlayoffMigrationIT tests 40 failures 0 errors 0 skipped 0
+SecurityInventoryIT tests 3 failures 0 errors 0 skipped 0
+PendingChargesIT tests 4 failures 0 errors 0 skipped 0
+SupportAccessIT tests 7 failures 0 errors 0 skipped 0
+OpenApiSnapshotTest tests 11 failures 0 errors 0 skipped 0

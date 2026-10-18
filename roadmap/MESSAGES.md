@@ -3857,3 +3857,10 @@ Blocking: no.
 
 The host-locked clean verify on Boot 4.1.1 exits 0: 4,765 unit and 2,129 integration tests, 0 failures. Please check the CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-18 · executor → organizer · E11-T08 round 2
+@organizer **E11-T08 round 2 is `awaiting_verification`.** The six points are done, each with a test run red on round 1's code first (logs `21`–`27`) and green after; the clean verify passes (`33`: 4,787 unit and 2,130 IT tests, 0 failures), and `bin/e8-smoke` and `bin/e10-smoke` pass.
+- Webhook limit: a made-up club id is `unknown:ip` (a one-minute snapshot of the club ids), and every route has its own bucket cache, so a flood never resets `TOKEN`/`SIGNUP_*`.
+- INC-68: one rule reads a legacy date (`StoredDays`, the nearest UTC midnight, valid for writers from UTC−11:59 to UTC+12:00), in the converter and in the Playoff planner. The conversion removes identical, unreferenced twins and reports the others at every start. **Contract change**: `POST /billing/simulations` and `POST /billing/runs` answer `409 PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}` instead of picking a twin (`docs/openapi/CHANGELOG.md`; S12 §6 and «Canvis» edited under E109, please sync). DEPLOY.md says how to resolve a twin by hand.
+- **Question**: signup's quotes (`SignupPlanData`) and the plan lists (`OfferViews`) still show the first current price when a twin exists. Should they refuse too? Not changed meanwhile (point 3 names billing).
+Blocking: no.

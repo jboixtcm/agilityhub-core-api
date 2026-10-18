@@ -150,6 +150,32 @@ class BillingCycleIT extends BillingItSupport {
         assertThat(member("puig", "nextInvoiceDate")).isEqualTo("2026-09-01");
     }
 
+    /**
+     * INC-68 round 2 (E11-T08): a price stored as a date before the fix that starts on the same day as a string price of the
+     * same plan and concept (a twin the startup conversion keeps because it differs) is never chosen silently: the simulation
+     * and the run answer `409 PRICE_OVERLAP` naming the plan, and nothing is billed.
+     */
+    @Test void INC_68_round2_twoPricesStartingTheSameDayStopTheMonthWithPriceOverlap() throws Exception {
+        String simulation = simulate("2026-09").path("id").asText();
+        var midnight = Date.from(java.time.LocalDate.of(2026, 1, 1).atStartOfDay(java.time.ZoneId.of("Europe/Madrid")).toInstant());
+        var stamp = Date.from(NOW.minusSeconds(86_400 * 30L));
+        mongo.insert(new Document("_id", "bill-price-abonat-legacy").append("clubId", CLUB).append("planId", "bill-plan-abonat")
+                .append("concept", "MONTHLY_FEE").append("amount", new Document("amountMinor", 6500L).append("currency", "EUR"))
+                .append("taxPercent", "0").append("validFrom", midnight).append("validTo", null).append("version", 0L)
+                .append("createdAt", stamp).append("updatedAt", stamp), "prices");
+        var response = call(admin(keyed(post("/api/v1/billing/runs"), Map.of("period", "2026-09", "simulationId", simulation))));
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(409);
+        var body = json(response);
+        assertThat(body.path("code").asText()).isEqualTo("PRICE_OVERLAP");
+        assertThat(body.path("details").path("planId").asText()).isEqualTo("bill-plan-abonat");
+        assertThat(body.path("details").path("concept").asText()).isEqualTo("MONTHLY_FEE");
+        assertThat(List.of(body.path("details").path("priceId").asText(), body.path("details").path("conflictingPriceId").asText()))
+                .containsExactlyInAnyOrder("bill-price-abonat-monthly_fee", "bill-price-abonat-legacy");
+        error(admin(post("/api/v1/billing/simulations").contentType("application/json").content("{\"period\":\"2026-09\"}")), 409, "PRICE_OVERLAP");
+        assertThat(invoices()).isEmpty();
+        assertThat(member("puig", "nextInvoiceDate")).isEqualTo("2026-09-01");
+    }
+
     /** Round 2 (review #7, ruling E87): the club's own configuration — payment providers, modules — counts as a relevant change. */
     @Test void T_12_09_R_12_07_aChangeOfTheClubsProvidersOrModulesMakesTheSimulationStale() throws Exception {
         admin("bill-admin-1", CLUB);

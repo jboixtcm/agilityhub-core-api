@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - INC-66: `JndiDomainDns` returns the `A` records its JNDI retry finds instead of «no address»; DEPLOY.md's trusted-domain options say to check the records with `dig` and how a `BROKEN` trusted domain comes back; `ClubRepository.save` documents that it relies on the caller's transaction.
   - INC-65: a support token's `HEAD` is restricted like its `GET`; the console's idempotency club check with another club's `Host` is documented and tested.
   - Sentry: `sentry.logs.enabled: false` replaces `sentry.enable-logs`, which bound to nothing.
+- E11-T08 round 2 (ruling E132). Contract: `POST /billing/simulations` and `POST /billing/runs` can answer `409 PRICE_OVERLAP`.
+  - INC-67: the `STRIPE_WEBHOOK` bucket keys on the path's club only when it is a club (a one-minute snapshot of the club ids, `ClubConfigService.known`); a made-up id is `unknown:ip`. `RateLimits` keeps one bucket cache per route, so a flood of new keys on one route never resets another route's count.
+  - INC-68: one rule reads a legacy BSON date (`StoredDays`, the nearest UTC midnight), in the price converter and in the Playoff planner. The startup conversion removes a legacy twin identical to the price it keeps when nothing names it, and reports the others at every start (`PriceStartTwins count ids`). Billing refuses two prices valid on the same day (`PRICE_OVERLAP {planId, concept, priceId, conflictingPriceId}`). DEPLOY.md documents the time-zone rule and how to resolve a twin by hand.
+  - Sentry: the binding test reads every `application*.yml|yaml|properties` on the classpath, each profile document on its own.
 
 - E11-T07: Spring Boot 4.1 and Spring Framework 7 (ruling E129). The HTTP contract, the stored data and the gates are unchanged.
   - Spring Boot 3.5.16 → 4.1.1: Spring Framework 7.0.9, Spring Security 7.1.1 (with the authorization server), Tomcat 11.0.27 (pinned above the managed 11.0.24 for three fixable CRITICAL findings), Netty 4.2, Mongo driver 5.8, Spring Data MongoDB 5.1, JUnit 6, Testcontainers 2.0.5. E11-T03's `tomcat.version` 10.1.x and `netty.version` 4.1.x pins are gone.

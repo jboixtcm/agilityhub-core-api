@@ -92,4 +92,13 @@ class ClubConfigServiceTest {
         assertThat(resolver.resolve(null)).isEmpty();
         resolver.invalidate(); resolver.resolve("a.example.test"); verify(clubs, times(2)).findByHost("a.example.test");
     }
+    /** INC-67 round 2 (E11-T08): made-up club ids are answered from one snapshot of the ids, never one query each. */
+    @Test void INC_67_round2_knownClubsComeFromOneSnapshotOfTheIds() {
+        when(clubs.ids()).thenReturn(java.util.Set.of("club-a"));
+        assertThat(service.known("club-a")).isTrue();
+        for (int i = 0; i < 100; i++) { assertThat(service.known("made-up-" + i)).isFalse(); }
+        assertThat(service.known(null)).isFalse();
+        assertThat(service.known(" ")).isFalse();
+        verify(clubs, times(1)).ids();
+    }
 }
