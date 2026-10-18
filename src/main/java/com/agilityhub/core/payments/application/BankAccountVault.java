@@ -1,6 +1,8 @@
 package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.shared.application.BankAccounts;
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,7 +16,8 @@ import org.springframework.stereotype.Component;
  * The cipher is {@link AesGcmCipher} with the associated data `"{clubId}:{memberId}"`. {@link #resolve} is the only way to the
  * full IBAN and only the SEPA writer calls it (E8-T03, R-12-12): every other reader keeps `maskedAccount` or `ibanLast4`.
  * `census:seal-ibans` (E11-T02) seals the clear ones stored before. A missing or malformed key, or a value that does not decrypt under
- * it, is a server misconfiguration ({@link IllegalStateException}), never a business error.
+ * it, is a server misconfiguration (an {@link IllegalStateException}; {@link #seal}'s refusal is `500 INTERNAL_ERROR`), never a
+ * business error.
  */
 @Component
 public class BankAccountVault implements BankAccounts {
@@ -23,12 +26,18 @@ public class BankAccountVault implements BankAccounts {
     static final org.springframework.core.env.Profiles CLEAR_ALLOWED = org.springframework.core.env.Profiles.of("local", "test");
     private final AesGcmCipher cipher;
     private final boolean clearAllowed;
-    /** A vault of the local stack or a test: without a key, {@link #seal} keeps the IBAN in clear (with a WARN). */
-    public BankAccountVault(String key) { this(key, true); }
+    /**
+     * The application's vault. E11-T11 (review #4 of E11-T02 round 2): outside `local` and `test` a missing or unusable
+     * `BILLING_BANK_KEY` stops the application at startup, before any member types an IBAN that could not be stored.
+     */
     @org.springframework.beans.factory.annotation.Autowired
     public BankAccountVault(@Value("${core.billing.bank-key:}") String key, org.springframework.core.env.Environment environment) {
         this(key, environment.acceptsProfiles(CLEAR_ALLOWED));
+        if (!clearAllowed && !configured()) {
+            throw new IllegalStateException("BILLING_BANK_KEY (Base64 of 32 bytes) is required outside the local and test profiles");
+        }
     }
+    /** Tests only (their fixture `TestBankVaults`): `clearAllowed` keeps an IBAN in clear without a key, as the local stack does. */
     BankAccountVault(String key, boolean clearAllowed) {
         this.cipher = new AesGcmCipher(key, "BILLING_BANK_KEY", "Bank account"); this.clearAllowed = clearAllowed;
     }
@@ -55,13 +64,16 @@ public class BankAccountVault implements BankAccounts {
 
     /**
      * {@link BankAccounts#seal}: `{ibanEncrypted, ibanLast4}`. Without `BILLING_BANK_KEY`, E11-T02 round 2 (review #8): the local
-     * stack and the tests keep `{iban}` in clear with a WARN; any other profile (staging, prod, none) refuses, a server
-     * misconfiguration, so that a deployment without the key never quietly undoes INC-31.
+     * stack and the tests keep `{iban}` in clear with a WARN; any other profile (staging, prod, none) does not start without it,
+     * and a vault that still has no key refuses with `500 INTERNAL_ERROR` (AGENTS rule 9, E11-T11), a server misconfiguration,
+     * so that a deployment without the key never quietly undoes INC-31.
      */
     @Override public Map<String, Object> seal(String iban, String clubId, String memberId) {
         var stored = new LinkedHashMap<String, Object>();
         if (!configured()) {
-            if (!clearAllowed) { throw new IllegalStateException("BILLING_BANK_KEY is required to store a bank account outside the local profile"); }
+            if (!clearAllowed) {
+                throw new ApiException(ErrorCode.INTERNAL_ERROR, new IllegalStateException("BILLING_BANK_KEY is required to store a bank account outside the local profile"));
+            }
             LOG.warn("BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId={}", clubId);
             stored.put("iban", iban); return stored;
         }

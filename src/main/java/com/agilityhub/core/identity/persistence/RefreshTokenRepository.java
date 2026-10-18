@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -41,10 +42,16 @@ public class RefreshTokenRepository extends TenantRepository<RefreshToken> {
         return mongo.updateFirst(contextQuery().addCriteria(Criteria.where("_id").is(id).and("replacedByHash").ne(null)
                 .and("revokedAt").is(null).and("graceUsedAt").is(null)), new Update().set("graceUsedAt", now), RefreshToken.class).getModifiedCount() == 1;
     }
-    /** INC-36 (S01 R-01-06): the live child a rotated token was replaced by, if nobody has rotated or revoked it since. */
-    public Optional<RefreshToken> liveChild(RefreshToken rotated, Instant now) {
-        return Optional.ofNullable(mongo.findOne(contextQuery().addCriteria(active(rotated.accountId(), now)
-                .and("familyId").is(rotated.familyId()).and("tokenHash").is(rotated.replacedByHash())), RefreshToken.class));
+    /**
+     * INC-36 (S01 R-01-06): the live child a rotated token was replaced by, if nobody has rotated or revoked it since, claimed for a
+     * grace sibling. The check is a conditional write on the child (`replacedByHash: null` → `graceSiblingAt`, E11-T11), not a
+     * read: inside the grace's transaction, a concurrent rotation of the child is a write conflict, so it cannot slip between the
+     * check and the sibling.
+     */
+    public Optional<RefreshToken> claimLiveChild(RefreshToken rotated, Instant now) {
+        return Optional.ofNullable(mongo.findAndModify(contextQuery().addCriteria(active(rotated.accountId(), now)
+                        .and("familyId").is(rotated.familyId()).and("tokenHash").is(rotated.replacedByHash())),
+                new Update().set("graceSiblingAt", now), FindAndModifyOptions.options().returnNew(true), RefreshToken.class));
     }
     /**
      * INC-36 (S01 R-01-06): before a grace issues its sibling, the family keeps only the presented token's live child; any other

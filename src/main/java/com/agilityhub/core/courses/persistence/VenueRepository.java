@@ -23,16 +23,18 @@ public class VenueRepository extends CourseTenantRepository<Venue> {
      * ring at the same instant can still pick the same one, and the later insert is then a duplicate key. That duplicate key is
      * caught here and the write retried with the next suffix (or, when it was this club's venue that a concurrent request created
      * meanwhile, nothing more is done). A duplicate key aborts a Mongo transaction, so the caller runs this outside its own.
-     * @return the slug of the club's venue
+     * @return the slug the club's venue really has, read back after the write (E11-T11, review #5: when the club's own venue was
+     *     created by a concurrent first ring, the upsert matched it and the candidate tried here is not its slug); empty only when
+     *     the club still has no venue
      */
-    public String freeSlug(String slug, java.util.function.Function<String, Venue> venue) {
+    public java.util.Optional<String> freeSlug(String slug, java.util.function.Function<String, Venue> venue) {
         String candidate = slug;
         for (int n = 2, collisions = 0; ; n++) {
             if (!mongo.exists(org.springframework.data.mongodb.core.query.Query.query(Criteria.where("slug").is(candidate)), Venue.class)) {
-                try { ensure(venue.apply(candidate)); return candidate; }
+                try { ensure(venue.apply(candidate)); return club().map(Venue::slug); }
                 catch (org.springframework.dao.DuplicateKeyException taken) {
                     var created = club();
-                    if (created.isPresent()) { return created.get().slug(); }
+                    if (created.isPresent()) { return created.map(Venue::slug); }
                     if (++collisions == MAX_SLUG_COLLISIONS) { throw taken; }
                 }
             }

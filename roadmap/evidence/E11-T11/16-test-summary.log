@@ -1,0 +1,23 @@
+surefire totals: tests=4798 failures=0 errors=0 skipped=0 classes=444
+  ErasureFilesCleanupTest: tests=3 failures=0 errors=0 skipped=0
+  ErasureExecutorTest: tests=9 failures=0 errors=0 skipped=0
+  ErasureServiceTest: tests=8 failures=0 errors=0 skipped=0
+  PrivacyJobsTest: tests=3 failures=0 errors=0 skipped=0
+  MemberDataPackageTest: tests=4 failures=0 errors=0 skipped=0
+  TokenServiceSurvivorsTest: tests=20 failures=0 errors=0 skipped=0
+  BankAccountVaultTest: tests=6 failures=0 errors=0 skipped=0
+  SepaRemittanceWriterTest: tests=24 failures=0 errors=0 skipped=0
+  PlayoffAdapterTest: tests=7 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=22 failures=0 errors=0 skipped=0
+  EventCatalogContractTest: tests=3 failures=0 errors=0 skipped=0
+failsafe totals: tests=2146 failures=0 errors=0 skipped=0 classes=165
+  ErasureIT: tests=12 failures=0 errors=0 skipped=0
+  RefreshGraceChainGuardIT: tests=1 failures=0 errors=0 skipped=0
+  VenueSlugRaceIT: tests=2 failures=0 errors=0 skipped=0
+  PasswordGrantIT: tests=14 failures=0 errors=0 skipped=0
+  IdentityCoreIT: tests=32 failures=0 errors=0 skipped=0
+  CookieRefreshIT: tests=4 failures=0 errors=0 skipped=0
+  MemberDataExportIT: tests=2 failures=0 errors=0 skipped=0
+  SealIbansCommandIT: tests=3 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=12 failures=0 errors=0 skipped=0
+verify exit=0 (15-clean-verify.log)

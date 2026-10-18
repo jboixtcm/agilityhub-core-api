@@ -26,7 +26,7 @@ class ErasureFilesCleanupTest {
     }
 
     @Test void T_14_19_everyPendingFileIsDeletedFromItsStoreAndTheRequestCloses() {
-        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments"), store("exports")), new MockClock(NOW));
+        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments"), store("exports")), new MockClock(NOW), mock(org.springframework.transaction.PlatformTransactionManager.class));
         var request = new com.agilityhub.core.platform.persistence.privacy.ErasureRequest("r", "club-a", "MEMBER", null, List.of("m"), List.of("club-a"), "ADMIN",
                 null, NOW, null, "ERASING", NOW, List.of(), null, null, null, List.of("attachments:dogs/photo.jpg", "exports:exports/club-a/x.zip"), List.of("club-a"),
                 false, true, null, 4);
@@ -39,7 +39,7 @@ class ErasureFilesCleanupTest {
     }
 
     @Test void T_14_19_anUnknownStoreFailsForTheOutboxToRetryAndOtherStatesAreLeftAlone() {
-        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments")), new MockClock(NOW));
+        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments")), new MockClock(NOW), mock(org.springframework.transaction.PlatformTransactionManager.class));
         var request = new com.agilityhub.core.platform.persistence.privacy.ErasureRequest("r", "club-a", "MEMBER", null, List.of("m"), List.of("club-a"), "ADMIN",
                 null, NOW, null, "ERASING", NOW, List.of(), null, null, null, List.of("nowhere:key"), List.of("club-a"), false, true, null, 4);
         when(requests.findById("r")).thenReturn(Optional.of(request));
@@ -47,7 +47,34 @@ class ErasureFilesCleanupTest {
         verify(requests, never()).close(any(), any());
         when(requests.findById("s")).thenReturn(Optional.of(PrivacyFixtures.request("s", "MEMBER", "SCHEDULED", List.of("m"), List.of("club-a"), List.of(), null)));
         assertThat(cleanup.clean("s")).isFalse();
+        verify(requests, never()).fileDeleted(eq("s"), any(), any());
         when(requests.findById("missing")).thenReturn(Optional.empty());
         assertThat(cleanup.clean("missing")).isFalse();
+    }
+
+    /**
+     * E11-T11: an erased club's files leave the store although the request does not complete (it waits, is `BLOCKED` between
+     * clubs or was cancelled), and the request keeps its status: only an `ERASING` one closes.
+     */
+    @Test void R_14_15_theFilesOfAClubErasedHalfwayLeaveTheStoreAndTheRequestKeepsItsStatus() {
+        var cleanup = new ErasureFilesCleanup(requests, List.of(store("attachments")), new MockClock(NOW), mock(org.springframework.transaction.PlatformTransactionManager.class));
+        for (String status : List.of("SCHEDULED", "BLOCKED", "CANCELLED")) {
+            deleted.clear(); reset(requests);
+            var request = new com.agilityhub.core.platform.persistence.privacy.ErasureRequest("r", null, "ACCOUNT", "montse-account", List.of("m", "n"),
+                    List.of("club-a", "club-b"), "PLATFORM", null, NOW, null, status, NOW, List.of(), null, null, null, List.of("attachments:dogs/photo.jpg"),
+                    List.of("club-a"), false, "CANCELLED".equals(status) ? null : true, null, 4);
+            when(requests.findById("r")).thenReturn(Optional.of(request));
+            assertThat(cleanup.clean("r")).as(status).isTrue();
+            assertThat(deleted).as(status).containsExactly("attachments:dogs/photo.jpg");
+            verify(requests).fileDeleted("r", "attachments:dogs/photo.jpg", NOW);
+            verify(requests, never()).close(any(), any());
+        }
+        // After the club's part commits; without a transaction (here), at once. A store failure is left for the daily retry.
+        reset(requests); deleted.clear();
+        when(requests.findById("r")).thenReturn(Optional.of(PrivacyFixtures.request("r", "ACCOUNT", "SCHEDULED", List.of("m"), List.of("club-a"), List.of("club-a"), null)));
+        cleanup.cleanAfterCommit("r");
+        verify(requests).findById("r");
+        when(requests.findById("broken")).thenThrow(new IllegalStateException("store down"));
+        assertThatCode(() -> cleanup.cleanAfterCommit("broken")).doesNotThrowAnyException();
     }
 }

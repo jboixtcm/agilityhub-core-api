@@ -27,10 +27,32 @@ class MemberDataPackageTest {
 
     @Test void T_14_17_theMembersOwnNamesAndTheNamesOfThingsStay() {
         var row = MemberDataPackage.row(map("firstName", "Laura", "memberSnapshot", map("fullName", "Laura Example"), "name", "Duna",
-                "handlerName", "Laura Example", "paymentMethod", map("holderName", "Laura Example"), "familyGroupClaim", map("dogName", "Duna"),
+                "handlerName", "Laura Example", "paymentMethod", map("holderName", "Laura Example"), "dogName", "Duna",
                 "files", List.of(map("name", "cartilla.pdf", "fileName", "cartilla.pdf")), "levelName", "Grau 1", "ringName", "Pista 1"));
         assertThat(row).containsEntry("firstName", "Laura").containsEntry("name", "Duna").containsEntry("handlerName", "Laura Example")
-                .containsEntry("levelName", "Grau 1").containsEntry("ringName", "Pista 1");
-        assertThat(row.toString()).contains("fullName=Laura Example", "holderName=Laura Example", "dogName=Duna", "name=cartilla.pdf", "fileName=cartilla.pdf");
+                .containsEntry("levelName", "Grau 1").containsEntry("ringName", "Pista 1").containsEntry("dogName", "Duna");
+        assertThat(row.toString()).contains("fullName=Laura Example", "holderName=Laura Example", "name=cartilla.pdf", "fileName=cartilla.pdf");
+    }
+
+    /**
+     * R-14-13 `familyGroup` «sense dades d'altres membres» (E11-T11): S04's `familyGroupClaim` names the group's holder and the
+     * holder's dog, another member's data; only its status and the holder's id stay.
+     */
+    @Test void T_14_17_theFamilyGroupClaimKeepsNoNameOfTheHolder() {
+        var row = MemberDataPackage.row(map("firstName", "Laura", "familyGroupClaim", map("status", "FOUND", "holderName", "Holder Example",
+                "dogName", "Holder Dog", "holderMemberId", "member-holder", "leavePending", false)));
+        assertThat(row.get("familyGroupClaim")).isEqualTo(map("status", "FOUND", "holderMemberId", "member-holder"));
+        assertThat(row.toString()).doesNotContain("Holder Example", "Holder Dog");
+    }
+
+    /** The fail-closed filter (E11-T11): a plural `…Names` key is a name key, and an actor stays an actor however deep its maps go. */
+    @Test void T_14_17_pluralNameKeysAndMapsNestedInAnActorKeepNoName() {
+        var row = MemberDataPackage.row(map("instructorNames", List.of("Staff One", "Staff Two"), "helper_names", "Staff Three",
+                "cancelledBy", map("accountId", "staff-account", "profile", map("name", "Staff Four", "contact", map("email", "staff@example.test", "role", "ADMIN")),
+                        "history", List.of(map("name", "Staff Five", "at", "2026-07-01")))));
+        assertThat(row.toString()).doesNotContain("Staff", "staff@example.test");
+        assertThat(row).doesNotContainKeys("instructorNames", "helper_names");
+        assertThat(row.get("cancelledBy")).isEqualTo(map("accountId", "staff-account", "profile", map("contact", map("role", "ADMIN")),
+                "history", List.of(map("at", "2026-07-01"))));
     }
 }

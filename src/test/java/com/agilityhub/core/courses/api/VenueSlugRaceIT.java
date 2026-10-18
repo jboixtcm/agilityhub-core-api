@@ -1,5 +1,6 @@
 package com.agilityhub.core.courses.api;
 
+import com.agilityhub.core.courses.domain.CourseTypes;
 import com.agilityhub.core.courses.persistence.Venue;
 import com.agilityhub.core.courses.persistence.VenueRepository;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,23 @@ class VenueSlugRaceIT extends CourseItSupport {
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "venues"))
                 .singleElement().satisfies(venue -> assertThat(venue.getString("slug")).isEqualTo(CLUB + "-2"));
         assertThat(mongo.findOne(Query.query(Criteria.where("_id").is("e9t2-inc61-race-venue")), Document.class, "venues").getString("slug")).isEqualTo(CLUB);
+    }
+
+    /**
+     * E11-T11 (review #5 of E11-T02 round 2): two first rings of the same club. The later one saw the slug taken (by the venue the
+     * earlier one just created), tried `{slug}-2`, and its upsert matched the club's existing venue: it answered `{slug}-2`, which
+     * the venue does not have. It answers the slug the club's venue really has.
+     */
+    @Test void T_16_06_INC_61_freeSlugAnswersTheSlugOfTheClubsVenueEvenWhenAConcurrentFirstRingCreatedIt() {
+        java.util.function.Function<String, Venue> venue = slug -> new Venue(java.util.UUID.randomUUID().toString(), CLUB, slug, "Fictional Club", null,
+                null, null, null, CourseTypes.IndoorOutdoor.MIXED, null, null, null,
+                CourseTypes.VenueVisibility.MEMBERS_ONLY, CourseTypes.PartnerStatus.INACTIVE, null, null, CourseTypes.PaperSize.A4, java.time.Instant.EPOCH, "e9t2-admin", java.time.Instant.EPOCH, "e9t2-admin");
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            assertThat(venues.freeSlug(CLUB, venue)).contains(CLUB);
+            assertThat(venues.freeSlug(CLUB, venue)).as("the concurrent first ring").contains(CLUB);
+        }
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "venues"))
+                .singleElement().satisfies(stored -> assertThat(stored.getString("slug")).isEqualTo(CLUB));
     }
 
     static final String RING_A1 = RingGeometryIT.RING;

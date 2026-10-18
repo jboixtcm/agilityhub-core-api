@@ -282,7 +282,9 @@ retention. Verify that escrow on D0/D+7; this script does not implement it. An a
   `--apply` reports `0` (idempotent). No online
   re-encryption tool is provided here: keep it for every retained record and
   backup, and rotate it only with a reviewed re-encryption. Never rotate it by
-  just editing env.
+  just editing env. Since E11-T11, Core does not start outside the `local` and
+  `test` profiles when the key is missing or is not Base64 of 32 bytes (staging,
+  `prod` and a run with no profile included).
 - `MIGRATION_BANK_KEY` is retired (ruling E85): Core no longer reads it. No
   release imported bank data with it; a local database imported before needs a
   new `migration:apply` with `BILLING_BANK_KEY`. The production Compose stops
@@ -496,7 +498,7 @@ and URIs are included because they must remain consistent across recovery.
 | `SIGNUP_CAPABILITY_KEY` | Base64 32 random bytes for signup capabilities and encrypted idempotency replays; rotation invalidates both. |
 | `BOOKING_CALENDAR_KEY` | Base64 32 random bytes for booking calendar links; rotation invalidates previously sent links. |
 | `MIGRATION_BANK_KEY` | Retired (ruling E85): Core no longer reads it, and `migration:apply` encrypts with `BILLING_BANK_KEY`. Leave it empty; E11-T04 removes it from the production Compose. |
-| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); preserve and re-encrypt before rotation. |
+| `BILLING_BANK_KEY` | Base64 32 random bytes, the only bank key (E43, E85): `BankAccountVault` encrypts the members' IBANs with it, the migration's included; required by production Compose and forwarded to Core (also the local seed); Core refuses to start without a usable one outside `local`/`test` (E11-T11); preserve and re-encrypt before rotation. |
 | `BILLING_SECRETS_KEY` | Operator-generated, escrowed base64 32 random bytes, `ProviderSecretVault`'s key for the clubs' encrypted Stripe secrets (ADR-009); without it every Stripe webhook answers 401. Required and forwarded by production Compose and the local rehearsal; rotation means re-entering every club's secrets. |
 | `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`, `EXPORT_S3_ENDPOINT` | Private export bucket/region from S3 provisioning; optional HTTPS endpoint (blank = AWS). Moving requires object migration. |
 | `EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` | Restricted export IAM/provider key pair, Get/Put/Delete on `exports/`; overlap/revoke after a verified export. |

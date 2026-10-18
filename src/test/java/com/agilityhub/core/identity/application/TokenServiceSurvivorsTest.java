@@ -189,7 +189,7 @@ class TokenServiceSurvivorsTest {
         var child = new RefreshToken("rt-2", "hash-child", "acc-1", null, "id-web", "fam-1", 0, NOW.minus(Duration.ofDays(2)),
                 NOW.plus(Duration.ofDays(30)), NOW.minusSeconds(20), null, null, Role.MEMBER, "Safari / iOS", RefreshToken.Status.ACTIVE,
                 Set.of("openid"), true, "nonce-1", NOW.minus(Duration.ofDays(2)), null);
-        when(refreshTokens.liveChild(argThat(token -> token != null && token.id().equals("rt-1")), eq(NOW))).thenReturn(Optional.of(child));
+        when(refreshTokens.claimLiveChild(argThat(token -> token != null && token.id().equals("rt-1")), eq(NOW))).thenReturn(Optional.of(child));
         return child;
     }
 
@@ -239,7 +239,7 @@ class TokenServiceSurvivorsTest {
     /** INC-36 round 2: the chain guard. A token whose child has already been rotated (or retired) gets no grace: the family goes. */
     @Test void INC_36_R_01_06_aRotatedTokenWhoseChildHasMovedOnIsAReuseEvenInsideTheGrace() {
         rotatedRow(NOW.minusSeconds(5));
-        when(refreshTokens.liveChild(any(), eq(NOW))).thenReturn(Optional.empty());
+        when(refreshTokens.claimLiveChild(any(), eq(NOW))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
         verify(refreshTokens, never()).useGrace(any(), any());
@@ -259,6 +259,27 @@ class TokenServiceSurvivorsTest {
         assertThat(tokens.refresh("refresh-value-example", "id-web", null)).isNotNull();
         verify(refreshTokens, never()).revokeFamily(any(), any());
         verify(refreshTokens).insert(argThat(token -> token.familyId().equals("fam-1")));
+    }
+
+    /**
+     * E11-T11 (review #2 of E11-T02 round 2): `GET /me/sessions` shows each family's most recently used token. A child and its
+     * sibling share `createdAt`, so the store's order (`createdAt`, then a random `_id`) may put an earlier race's leftover first.
+     */
+    @Test void R_01_06_theSessionsListShowsTheFamilysMostRecentlyUsedToken() {
+        when(identities.current("acc-1")).thenReturn(session(false));
+        Instant created = NOW.minus(Duration.ofDays(2));
+        var leftover = new RefreshToken("rt-2", "hash-leftover", "acc-1", null, "id-web", "fam-1", 0, created, NOW.plus(Duration.ofDays(30)),
+                NOW.minus(Duration.ofHours(3)), null, null, Role.MEMBER, "Firefox / Linux", RefreshToken.Status.ACTIVE);
+        var sibling = new RefreshToken("rt-3", "hash-sibling", "acc-1", null, "id-web", "fam-1", 0, created, NOW.plus(Duration.ofDays(30)),
+                NOW.minusSeconds(10), null, null, Role.MEMBER, "Safari / iOS", RefreshToken.Status.ACTIVE);
+        var child = new RefreshToken("rt-4", "hash-child", "acc-1", null, "id-web", "fam-1", 0, created, NOW.plus(Duration.ofDays(30)),
+                NOW.minus(Duration.ofMinutes(1)), null, null, Role.MEMBER, "Safari / iOS", RefreshToken.Status.ACTIVE);
+        var other = new RefreshToken("rt-5", "hash-other", "acc-1", null, "id-web", "fam-2", 0, NOW.minus(Duration.ofDays(1)), NOW.plus(Duration.ofDays(29)),
+                null, null, null, null, "Chrome / Windows", RefreshToken.Status.ACTIVE);
+        for (var order : List.of(List.of(leftover, sibling, child, other), List.of(child, sibling, leftover, other), List.of(sibling, leftover, child, other))) {
+            when(accountSessions.active("acc-1", 0, NOW)).thenReturn(order);
+            assertThat(tokens.sessions("acc-1")).as(order.toString()).extracting(RefreshToken::id).containsExactly("rt-3", "rt-5");
+        }
     }
 
     /** INC-36 round 2: a family with a child and a sibling is one session, in the list and against `auth.maxSessions`. */

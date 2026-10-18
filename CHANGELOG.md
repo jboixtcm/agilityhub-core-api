@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T11: api correction pass, part 5 (the follow-ups of the second rounds of E11-T01 and E11-T02; ruling E134). No contract change.
+  - S14 R-14-15: the files of a club erased for an `ACCOUNT` request leave the store once that club's part commits (`ErasureFilesCleanup.cleanAfterCommit`), while the request waits, is `BLOCKED` or is cancelled; `clean` and the daily `erasures` retry process pending files in any status and close only an `ERASING` request.
+  - S14 R-14-13: `data.json` keeps only `status` and `holderMemberId` of `familyGroupClaim`; the fail-closed name filter covers `…Names` keys and keeps the actor flag in maps nested under a `…By` key.
+  - S14 R-14-15: the erasure also deletes the processed `InstructorChanged` records of the renamed instructor (their diffs carried the old short name).
+  - S14 §6: the «Idempotent» column of `DELETE /members/{id}/erasure` and `DELETE /platform/erasure-requests/{id}` says «per estat».
+  - S01 R-01-06: the grace's accepted trade-off is written down; `GET /me/sessions` shows each family's most recently used token; the chain guard is a conditional write on the child (`refresh_tokens.graceSiblingAt`).
+  - `BankAccountVault`: outside `local`/`test` the application does not start without a usable `BILLING_BANK_KEY`; a keyless vault's refusal is `500 INTERNAL_ERROR` with its cause; the permissive constructor is test-only (`TestBankVaults`).
+  - `VenueRepository.freeSlug` answers the slug the club's venue really has.
+
 - E11-T09: api correction pass, part 3 (INC-37, INC-64, INC-69, INC-70, INC-71; ruling E132). Contract changes (descriptions, `PATCH /me` under impersonation) in `docs/openapi/CHANGELOG.md` (2026-10-18 · E11-T09).
   - INC-64: Caddy asks the Core which SPA a verified club host serves (`forward_auth` to the internal `GET /internal/domains/app?host=`, `X-Club-App: clubs | clubs-admin`); `CLUB_ADMIN_HOSTS` and DEPLOY.md's manual step are gone. `bin/deploy-smoke` verifies a back-office host while Caddy runs and checks it serves the back office with no reload.
   - INC-37: `ImpersonationEnded{grantId, reason: LOGOUT·EXPIRED}`, also when a grant runs out (`ImpersonationExpiry`, every minute; grants kept a day after they end); every password check lasts as long as the slowest (T-01-02, ± 20 %); the Learn import takes bcrypt `$2y$/$2a$/$2b$` up to 12 rounds and no longer re-asks a merged account's onboarding; `PATCH /me` refuses an impersonation token; a key rotation waits for the impersonation and support JWTs of the previous key; `magic_link_tokens.ipHash` is a keyed HMAC; N-26 names the device; an admin's rename of a member renames the account of its only club (R-01-14, T-01-23).

@@ -39,6 +39,7 @@ class ErasureExecutorTest {
     final ClubConfigService configs = mock(ClubConfigService.class);
     final EventPublisher events = mock(EventPublisher.class);
     final AuditWriter audit = mock(AuditWriter.class);
+    final ErasureFilesCleanup cleanup = mock(ErasureFilesCleanup.class);
     final ErasurePseudonyms pseudonyms = new ErasurePseudonyms(new SignupCapabilities(new MockEnvironment(), new MockClock(NOW)));
     ErasureExecutor executor;
     TenantContext.Scope tenant;
@@ -48,7 +49,7 @@ class ErasureExecutorTest {
     }
     @BeforeEach void open() throws Exception {
         executor = new ErasureExecutor(requests, directory, accounts, new ErasureEligibility(List.of(checks), accounts), List.of(step), List.of(accountStep),
-                pseudonyms, configs, new IcuMessageSource(), events, audit, PrivacyFixtures.transactions(), new MockClock(NOW));
+                pseudonyms, configs, new IcuMessageSource(), events, audit, PrivacyFixtures.transactions(), cleanup, new MockClock(NOW));
         tenant = TenantContext.open("club-a");
         when(configs.get(anyString())).thenAnswer(call -> PrivacyFixtures.config(call.getArgument(0)));
         when(checks.blockReasons(any(), any())).thenReturn(EnumSet.noneOf(ErasureBlockReason.class));
@@ -155,7 +156,9 @@ class ErasureExecutorTest {
         verifyNoInteractions(accountStep, events);
         var update = ArgumentCaptor.forClass(Update.class);
         verify(requests).update(any(), update.capture());
-        assertThat(update.getValue().getUpdateObject().toString()).contains("SCHEDULED", "erasedClubIds").doesNotContain("ERASING");
+        assertThat(update.getValue().getUpdateObject().toString()).contains("SCHEDULED", "erasedClubIds", "attachments:photo-key").doesNotContain("ERASING");
+        // E11-T11: club A's files leave the store once its part commits, not when the request completes.
+        verify(cleanup).cleanAfterCommit("r");
         // The other club completes it: the account goes.
         tenant.close(); tenant = TenantContext.open("club-b"); reset(requests); when(requests.update(any(), any())).thenReturn(true);
         when(directory.member("montse")).thenReturn(Optional.empty());
@@ -165,6 +168,8 @@ class ErasureExecutorTest {
         assertThat(executor.execute("r")).isEqualTo(ErasureExecutor.Outcome.ERASED);
         verify(accountStep).eraseAccount(eq("montse-account"), anyString(), any(), eq(NOW));
         verify(events).publish(argThat(event -> "montse-account".equals(event.payload().get("accountId")) && event.clubId().equals("club-b")));
+        // The completing club's files are AccountErased's consumer's (through the outbox).
+        verifyNoMoreInteractions(cleanup);
     }
 
     @Test void R_14_15_anAccountRequestIsBlockedByAnActiveMembership() {

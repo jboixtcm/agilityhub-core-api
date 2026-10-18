@@ -1,0 +1,56 @@
+# E11-T11 red runs: revert only each step's behaviour (signatures kept), marking every change with MUTATION-CHECK.
+import sys
+B = 'src/main/java/com/agilityhub/core/'
+def sub(path, old, new):
+    p = B + path
+    s = open(p).read()
+    assert s.count(old) == 1, (path, old[:60])
+    open(p, 'w').write(s.replace(old, new))
+
+# Step 1: no cleanup after a club's part or a cancel; clean() and the daily retry only for ERASING.
+sub('platform/application/privacy/ErasureExecutor.java',
+    'else if (!effect.files().isEmpty()) { cleanup.cleanAfterCommit(request.id()); }',
+    '/* MUTATION-CHECK step 1 */')
+sub('platform/application/privacy/ErasureService.java',
+    'if (!request.filesPending().isEmpty()) { cleanup.cleanAfterCommit(request.id()); }',
+    '/* MUTATION-CHECK step 1 */')
+sub('platform/application/privacy/ErasureFilesCleanup.java',
+    'if (request == null) { return false; }',
+    'if (request == null || !"ERASING".equals(request.status())) { return false; } // MUTATION-CHECK step 1')
+sub('platform/persistence/privacy/ErasureRequestRepository.java',
+    'new Criteria().orOperator(Criteria.where("status").is("ERASING"), Criteria.where("filesPending.0").exists(true))',
+    'Criteria.where("status").is("ERASING") /* MUTATION-CHECK step 1 */')
+# Steps 2 and 4: the claim's names kept; plural keys pass; the actor flag resets one level down.
+sub('platform/application/privacy/MemberDataPackage.java',
+    'if (OTHER_MEMBERS.containsKey(name) && item instanceof Map<?, ?> other) {',
+    'if (false /* MUTATION-CHECK step 2 */ && OTHER_MEMBERS.containsKey(name) && item instanceof Map<?, ?> other) {')
+sub('platform/application/privacy/MemberDataPackage.java',
+    'result.put(name, clean(kept, actor || name.endsWith("By")));',
+    'result.put(name, clean(kept, name.endsWith("By"))); // MUTATION-CHECK step 4')
+sub('platform/application/privacy/MemberDataPackage.java',
+    'boolean names = lower.endsWith("name") || lower.endsWith("names");',
+    'boolean names = lower.endsWith("name"); // MUTATION-CHECK step 4')
+# Step 3: the processed InstructorChanged records stay.
+sub('clubs/catalogs/application/CatalogsErasure.java',
+    'effect.count("domain_events", traces.forgetProcessedEvents("InstructorChanged", instructor.id()));',
+    '// MUTATION-CHECK step 3')
+# Step 7: the first token of a family is listed.
+sub('identity/application/TokenService.java',
+    'live.forEach(token -> latest.merge(token.familyId(), token, (kept, other) -> usedLater(other, kept) ? other : kept));',
+    'live.forEach(token -> latest.putIfAbsent(token.familyId(), token)); // MUTATION-CHECK step 7')
+# Step 8: the chain guard is a plain read again.
+sub('identity/persistence/RefreshTokenRepository.java',
+    'return Optional.ofNullable(mongo.findAndModify(contextQuery().addCriteria(active(rotated.accountId(), now)\n                        .and("familyId").is(rotated.familyId()).and("tokenHash").is(rotated.replacedByHash())),\n                new Update().set("graceSiblingAt", now), FindAndModifyOptions.options().returnNew(true), RefreshToken.class));',
+    'return Optional.ofNullable(mongo.findOne(contextQuery().addCriteria(active(rotated.accountId(), now) // MUTATION-CHECK step 8\n                        .and("familyId").is(rotated.familyId()).and("tokenHash").is(rotated.replacedByHash())), RefreshToken.class));')
+# Step 9: no startup check; the refusal is a bare IllegalStateException.
+sub('payments/application/BankAccountVault.java',
+    'if (!clearAllowed && !configured()) {\n            throw new IllegalStateException',
+    'if (false /* MUTATION-CHECK step 9 */) {\n            throw new IllegalStateException')
+sub('payments/application/BankAccountVault.java',
+    'throw new ApiException(ErrorCode.INTERNAL_ERROR, new IllegalStateException("BILLING_BANK_KEY is required to store a bank account outside the local profile"));',
+    'throw new IllegalStateException("BILLING_BANK_KEY is required to store a bank account outside the local profile"); // MUTATION-CHECK step 9')
+# Step 10: the candidate is answered, not the venue's slug.
+sub('courses/persistence/VenueRepository.java',
+    'try { ensure(venue.apply(candidate)); return club().map(Venue::slug); }',
+    'try { ensure(venue.apply(candidate)); return java.util.Optional.of(candidate); } // MUTATION-CHECK step 10')
+print('mutations applied')

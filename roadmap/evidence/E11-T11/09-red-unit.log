@@ -1,0 +1,126 @@
+15:16:49.328 [main] WARN com.agilityhub.core.payments.application.BankAccountVault -- BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.186 s <<< FAILURE! -- in com.agilityhub.core.payments.application.BankAccountVaultTest
+[ERROR] com.agilityhub.core.payments.application.BankAccountVaultTest.INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(CapturedOutput) -- Time elapsed: 0.044 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.payments.application.BankAccountVaultTest.INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(BankAccountVaultTest.java:66)
+
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 20, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.919 s <<< FAILURE! -- in com.agilityhub.core.identity.application.TokenServiceSurvivorsTest
+[ERROR] com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.R_01_06_theSessionsListShowsTheFamilysMostRecentlyUsedToken -- Time elapsed: 0.019 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[[RefreshToken[redacted], RefreshToken[redacted], RefreshToken[redacted], RefreshToken[redacted]]] 
+Expecting actual:
+  ["rt-2", "rt-5"]
+to contain exactly (and in same order):
+  ["rt-3", "rt-5"]
+but some elements were not found:
+  ["rt-3"]
+and others were not expected:
+  ["rt-2"]
+
+	at com.agilityhub.core.identity.application.TokenServiceSurvivorsTest.R_01_06_theSessionsListShowsTheFamilysMostRecentlyUsedToken(TokenServiceSurvivorsTest.java:281)
+
+[ERROR] Tests run: 8, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.216 s <<< FAILURE! -- in com.agilityhub.core.platform.application.privacy.ErasureServiceTest
+[ERROR] com.agilityhub.core.platform.application.privacy.ErasureServiceTest.R_14_14_thePlatformCancelsAScheduledOrBlockedAccountRequestOnly -- Time elapsed: 0.033 s <<< FAILURE!
+Wanted but not invoked:
+erasureFilesCleanup.cleanAfterCommit("p");
+-> at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+Actually, there were zero interactions with this mock.
+
+	at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+	at com.agilityhub.core.platform.application.privacy.ErasureServiceTest.R_14_14_thePlatformCancelsAScheduledOrBlockedAccountRequestOnly(ErasureServiceTest.java:187)
+
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.023 s <<< FAILURE! -- in com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest
+[ERROR] com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest.R_14_15_theFilesOfAClubErasedHalfwayLeaveTheStoreAndTheRequestKeepsItsStatus -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[SCHEDULED] 
+Expecting value to be true but was false
+	at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanupTest.R_14_15_theFilesOfAClubErasedHalfwayLeaveTheStoreAndTheRequestKeepsItsStatus(ErasureFilesCleanupTest.java:67)
+
+[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.130 s <<< FAILURE! -- in com.agilityhub.core.platform.application.privacy.ErasureExecutorTest
+[ERROR] com.agilityhub.core.platform.application.privacy.ErasureExecutorTest.R_14_15_anAccountRequestErasesClubByClubAndTheLastClubErasesTheAccount -- Time elapsed: 0.005 s <<< FAILURE!
+Wanted but not invoked:
+erasureFilesCleanup.cleanAfterCommit("r");
+-> at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+Actually, there were zero interactions with this mock.
+
+	at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+	at com.agilityhub.core.platform.application.privacy.ErasureExecutorTest.R_14_15_anAccountRequestErasesClubByClubAndTheLastClubErasesTheAccount(ErasureExecutorTest.java:161)
+
+[ERROR] Tests run: 4, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.007 s <<< FAILURE! -- in com.agilityhub.core.platform.application.privacy.MemberDataPackageTest
+[ERROR] com.agilityhub.core.platform.application.privacy.MemberDataPackageTest.T_14_17_pluralNameKeysAndMapsNestedInAnActorKeepNoName -- Time elapsed: 0.004 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "{instructorNames=[Staff One, Staff Two], helper_names=Staff Three, cancelledBy={accountId=staff-account, profile={name=Staff Four, contact={email=staff@example.test, role=ADMIN}}, history=[{name=Staff Five, at=2026-07-01}]}}"
+not to contain:
+  ["Staff", "staff@example.test"]
+but found:
+  ["Staff", "staff@example.test"]
+
+	at com.agilityhub.core.platform.application.privacy.MemberDataPackageTest.T_14_17_pluralNameKeysAndMapsNestedInAnActorKeepNoName(MemberDataPackageTest.java:53)
+
+[ERROR] com.agilityhub.core.platform.application.privacy.MemberDataPackageTest.T_14_17_theFamilyGroupClaimKeepsNoNameOfTheHolder -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: {"holderMemberId"="member-holder", "status"="FOUND"}
+ but was: {"dogName"="Holder Dog", "holderMemberId"="member-holder", "holderName"="Holder Example", "leavePending"=false, "status"="FOUND"}
+	at com.agilityhub.core.platform.application.privacy.MemberDataPackageTest.T_14_17_theFamilyGroupClaimKeepsNoNameOfTheHolder(MemberDataPackageTest.java:44)
+
+[ERROR] Failures: 
+[ERROR]   TokenServiceSurvivorsTest.R_01_06_theSessionsListShowsTheFamilysMostRecentlyUsedToken:281 [[RefreshToken[redacted], RefreshToken[redacted], RefreshToken[redacted], RefreshToken[redacted]]] 
+Expecting actual:
+  ["rt-2", "rt-5"]
+to contain exactly (and in same order):
+  ["rt-3", "rt-5"]
+but some elements were not found:
+  ["rt-3"]
+and others were not expected:
+  ["rt-2"]
+
+[ERROR]   BankAccountVaultTest.INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns:66 
+Expecting code to raise a throwable.
+[ERROR]   ErasureExecutorTest.R_14_15_anAccountRequestErasesClubByClubAndTheLastClubErasesTheAccount:161 
+Wanted but not invoked:
+erasureFilesCleanup.cleanAfterCommit("r");
+-> at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+Actually, there were zero interactions with this mock.
+
+[ERROR]   ErasureFilesCleanupTest.R_14_15_theFilesOfAClubErasedHalfwayLeaveTheStoreAndTheRequestKeepsItsStatus:67 [SCHEDULED] 
+Expecting value to be true but was false
+[ERROR]   ErasureServiceTest.R_14_14_thePlatformCancelsAScheduledOrBlockedAccountRequestOnly:187 
+Wanted but not invoked:
+erasureFilesCleanup.cleanAfterCommit("p");
+-> at com.agilityhub.core.platform.application.privacy.ErasureFilesCleanup.cleanAfterCommit(ErasureFilesCleanup.java:65)
+Actually, there were zero interactions with this mock.
+
+[ERROR]   MemberDataPackageTest.T_14_17_pluralNameKeysAndMapsNestedInAnActorKeepNoName:53 
+Expecting actual:
+  "{instructorNames=[Staff One, Staff Two], helper_names=Staff Three, cancelledBy={accountId=staff-account, profile={name=Staff Four, contact={email=staff@example.test, role=ADMIN}}, history=[{name=Staff Five, at=2026-07-01}]}}"
+not to contain:
+  ["Staff", "staff@example.test"]
+but found:
+  ["Staff", "staff@example.test"]
+
+[ERROR]   MemberDataPackageTest.T_14_17_theFamilyGroupClaimKeepsNoNameOfTheHolder:44 
+expected: {"holderMemberId"="member-holder", "status"="FOUND"}
+ but was: {"dogName"="Holder Dog", "holderMemberId"="member-holder", "holderName"="Holder Example", "leavePending"=false, "status"="FOUND"}
+[ERROR] Tests run: 50, Failures: 7, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

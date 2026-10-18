@@ -200,8 +200,8 @@ class PlayoffAdapterTest {
         for(String[] args:List.of(new String[]{},new String[]{"in","out","--bad"},new String[]{"in","out","--mapping"},new String[]{"in","out","--mapping="})) {
             assertThatThrownBy(() -> AnonymizeCommand.run(new DefaultApplicationArguments(args),key)).isInstanceOf(IllegalArgumentException.class);
         }
-        assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("")).requireKey()).isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> new MigrationBankVault(new com.agilityhub.core.payments.application.BankAccountVault("not-base64")).requireKey()).isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> new MigrationBankVault(com.agilityhub.core.payments.application.TestBankVaults.of("")).requireKey()).isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> new MigrationBankVault(com.agilityhub.core.payments.application.TestBankVaults.of("not-base64")).requireKey()).isInstanceOf(ApiException.class);
     }
     /** T-18-16 (R-18-14) and R-18-08/13: `--reset` reads the slug twice from the console and is refused on prod; `--cut-over` reaches the load. */
     @Test void T_18_16_resetAsksForTheSlugTwiceAndCutOverIsPassedThrough() throws Exception {

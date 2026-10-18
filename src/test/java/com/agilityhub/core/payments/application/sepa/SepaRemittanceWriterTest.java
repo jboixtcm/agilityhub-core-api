@@ -49,7 +49,7 @@ class SepaRemittanceWriterTest {
     final ClubConfig.ClubView club = mock(ClubConfig.ClubView.class);
     final BillingProviderSettings providers = mock(BillingProviderSettings.class);
     final BillingCensusAccess census = mock(BillingCensusAccess.class);
-    final BankAccountVault vault = new BankAccountVault(KEY);
+    final BankAccountVault vault = com.agilityhub.core.payments.application.TestBankVaults.of(KEY);
     final ExportFileStore files = mock(ExportFileStore.class);
     final Map<String, String> stored = new LinkedHashMap<>();
     final Map<String, Invoice> issued = new LinkedHashMap<>();

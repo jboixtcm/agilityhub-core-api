@@ -70,9 +70,13 @@ public class ErasureRequestRepository extends GlobalRepository<ErasureRequest> {
                 new Update().set("status", "ERASED").set("erasedAt", now).unset("live").inc("version", 1),
                 FindAndModifyOptions.options().returnNew(true), ErasureRequest.class) != null;
     }
-    /** The club's requests stuck in `ERASING` (the daily run retries their files). */
-    public List<ErasureRequest> erasing(String clubId) {
-        return mongo.find(Query.query(Criteria.where("status").is("ERASING").and("clubIds").is(clubId)).with(Sort.by("executeAt", "_id")), ErasureRequest.class);
+    /**
+     * The club's requests whose files the daily run retries: stuck in `ERASING`, or in any other status with files still pending
+     * (an erased club's part of a request that waits, is `BLOCKED` or was cancelled, E11-T11).
+     */
+    public List<ErasureRequest> toClean(String clubId) {
+        return mongo.find(Query.query(new Criteria().orOperator(Criteria.where("status").is("ERASING"), Criteria.where("filesPending.0").exists(true))
+                .and("clubIds").is(clubId)).with(Sort.by("executeAt", "_id")), ErasureRequest.class);
     }
     public List<ErasureRequest> ofMembers(Collection<String> memberIds) {
         return mongo.find(Query.query(Criteria.where("memberIds").in(memberIds)).with(Sort.by(Sort.Direction.DESC, "requestedAt")), ErasureRequest.class);

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * S14 R-14-15 through S15 (E11-T01, route `erasures`, daily at `jobs.dailyTime`): every request of the club whose `executeAt` has
- * come (`SCHEDULED`, or `BLOCKED` for the daily retry) is executed by {@link ErasureExecutor}; a request still `ERASING` (its files
- * not yet deleted) gets its files cleaned again. The dry run lists both.
+ * come (`SCHEDULED`, or `BLOCKED` for the daily retry) is executed by {@link ErasureExecutor}; a request still `ERASING`, or any
+ * request with files still pending (a failed cleanup, E11-T11), gets its files cleaned again. The dry run lists both.
  */
 @Component
 public class ErasuresJob implements Job {
@@ -30,7 +30,7 @@ public class ErasuresJob implements Job {
         for (String counter : List.of("erased", "partial", "blocked", "skipped", "filesCleaned")) { context.recorder().count(counter, 0); }
         var items = new ArrayList<JobItem>();
         requests.due(context.clubId(), context.scheduledFor()).forEach(request -> items.add(new JobItem("ErasureRequest", request.id(), "ERASE")));
-        requests.erasing(context.clubId()).forEach(request -> items.add(new JobItem("ErasureRequest", request.id(), "DELETE_FILES")));
+        requests.toClean(context.clubId()).forEach(request -> items.add(new JobItem("ErasureRequest", request.id(), "DELETE_FILES")));
         return items;
     }
     @Override public JobEffect apply(JobContext context, JobItem item) {

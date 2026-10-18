@@ -74,7 +74,7 @@ class SealIbansCommandIT extends AbstractIntegrationTest {
     }
 
     @Test void INC_31_A37_withoutTheKeyOrWithBadArgumentsTheCommandRefusesAndWritesNothing() {
-        var keyless = new SealIbansCommand(rows, new BankAccountVault(""));
+        var keyless = new SealIbansCommand(rows, com.agilityhub.core.payments.application.TestBankVaults.of(""));
         assertThatThrownBy(() -> run(keyless, "--apply")).isInstanceOf(IllegalStateException.class).hasMessage("BILLING_BANK_KEY is required to seal the IBANs");
         assertThat(run(keyless)).contains("Members with an IBAN in clear: 3 (dry run");
         assertThatThrownBy(() -> run(command, "--apply", "--dry-run")).hasMessage(SealIbansCommand.USAGE);

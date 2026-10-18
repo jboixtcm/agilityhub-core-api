@@ -155,7 +155,7 @@ public class TokenService {
     private Outcome reuse(RefreshToken old, String clientId, java.util.Set<String> requestedScopes, Instant now) {
         int grace = settings.integer("auth.refreshReuseGraceSeconds");
         if (old.revokedAt() == null && old.lastUsedAt() != null && now.isBefore(old.lastUsedAt().plusSeconds(grace))) {
-            var child = refreshTokens.liveChild(old, now);
+            var child = refreshTokens.claimLiveChild(old, now);
             if (child.isPresent() && refreshTokens.useGrace(old.id(), now)) {
                 var session = identities.current(old.accountId());
                 if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
@@ -192,11 +192,20 @@ public class TokenService {
         return families(TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
                 : refreshTokens.sessions(accountId, clock.instant(), session.account().familyVersion()));
     }
-    /** INC-36: a family holds up to two live tokens after a grace (R-01-06); a session is its family, listed and counted once. */
+    /**
+     * INC-36: a family holds up to two live tokens after a grace (R-01-06); a session is its family, listed and counted once, in
+     * the order the families first appear. It shows the family's most recently used token (E11-T11): a child and its sibling share
+     * `createdAt`, so the first one would be a random pick, maybe an earlier race's leftover with a stale `lastUsedAt` and device.
+     */
     private static List<RefreshToken> families(List<RefreshToken> live) {
-        var first = new java.util.LinkedHashMap<String, RefreshToken>();
-        live.forEach(token -> first.putIfAbsent(token.familyId(), token));
-        return List.copyOf(first.values());
+        var latest = new java.util.LinkedHashMap<String, RefreshToken>();
+        live.forEach(token -> latest.merge(token.familyId(), token, (kept, other) -> usedLater(other, kept) ? other : kept));
+        return List.copyOf(latest.values());
+    }
+    private static boolean usedLater(RefreshToken token, RefreshToken than) {
+        Instant used = token.lastUsedAt() == null ? token.createdAt() : token.lastUsedAt();
+        Instant other = than.lastUsedAt() == null ? than.createdAt() : than.lastUsedAt();
+        return used != null && (other == null || used.isAfter(other));
     }
     public void revoke(String accountId, String value) {
         transactions.run(() -> {

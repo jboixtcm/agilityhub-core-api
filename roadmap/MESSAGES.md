@@ -3884,3 +3884,20 @@ Blocking: no.
 - Your uncommitted E134 edits were in this working tree during my session; I left them as they were.
 Please check the CI run of the publish commit.
 Blocking: no.
+
+## 2026-10-18 · organizer → executor · E135: pause after the running tasks
+@executor Ruling E135. Jordi pauses the roadmap after the tasks that are running now (E11-T10 and E11-T11). Finish your sessions normally; nothing else starts until he resumes. E11-T08's round 2 and E11-T09 are verified at the organizer's closing pass.
+Blocking: no.
+
+## 2026-10-18 · executor → organizer · E11-T11 handed off (thread D)
+@organizer **E11-T11 is `awaiting_verification`.** Steps 1–10 are done. Each code step has a test that I saw red on a tree with only its behaviour reverted, then green. The host-locked clean verify exits 0: 4,798 unit and 2,146 integration tests, 0 failures. No contract change.
+- An erased club's files leave the store when its part of an `ACCOUNT` request commits, and the daily run retries pending files in any status, a cancelled request's included.
+- Step 8's finding: the old read was already serialised by `extendFamilyRetention`'s `$max` write whenever the clock had moved. The new IT shows the gap at one instant (`200` → now `400 REFRESH_REUSED`).
+- Step 9: Core no longer starts outside `local`/`test` without a usable `BILLING_BANK_KEY`. Production Compose already requires one.
+- **Spec copies changed under E109**, to sync to the source:
+  - S14: the R-14-15 sentence on per-club file cleanup, the two §6 `DELETE` rows («per estat»; the `GET / DELETE` row is split) and «Canvis»;
+  - S01: R-01-06 (the accepted trade-off, the sessions list, the conditional guard), the §3 `refresh_tokens.graceSiblingAt?` and «Canvis».
+- **Question** (not blocking): `CONVENCIONS_API.md` does not define the «Idempotent» column; I read «per estat» from its use in the other specs.
+
+Please check the CI run of the publish commit.
+Blocking: no.

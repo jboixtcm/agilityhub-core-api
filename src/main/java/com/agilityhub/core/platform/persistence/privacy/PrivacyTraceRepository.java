@@ -23,6 +23,11 @@ public class PrivacyTraceRepository {
         return mongo.remove(Query.query(Criteria.where("clubId").is(TenantContext.require()).and("status").is("PUBLISHED")).addCriteria(about),
                 "domain_events").getDeletedCount();
     }
+    /** The processed records of one event type about these aggregates of the club (an erased instructor's `InstructorChanged`). */
+    public long deleteProcessedEvents(String type, Collection<String> aggregateIds) {
+        return mongo.remove(Query.query(Criteria.where("clubId").is(TenantContext.require()).and("status").is("PUBLISHED").and("type").is(type)
+                .and("aggregateId").in(aggregateIds)), "domain_events").getDeletedCount();
+    }
     public long deleteReplays(String accountId) {
         return mongo.remove(Query.query(Criteria.where("accountId").is(accountId)), "idempotency_records").getDeletedCount();
     }

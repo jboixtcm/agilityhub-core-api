@@ -1,0 +1,63 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[53,74] cannot find symbol
+  symbol:   class IndoorOutdoor
+  location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[54,56] cannot find symbol
+  symbol:   class VenueVisibility
+  location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[54,126] cannot find symbol
+  symbol:   class PartnerStatus
+  location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[55,56] cannot find symbol
+  symbol:   class PaperSize
+  location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/identity/api/RefreshGraceChainGuardIT.java:[45,25] reference to assertThat is ambiguous
+  both method assertThat(java.util.function.IntPredicate) in org.assertj.core.api.Assertions and method <T>assertThat(java.util.function.Predicate<T>) in org.assertj.core.api.Assertions match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/identity/api/RefreshGraceChainGuardIT.java:[45,76] incompatible types: inference variable T has incompatible bounds
+    upper bounds: java.util.function.IntPredicate,java.lang.Object
+    lower bounds: java.lang.Boolean
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/migration/PlayoffAdapterTest.java:[203,57] no suitable constructor found for BankAccountVault(java.lang.String)
+    constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,org.springframework.core.env.Environment) is not applicable
+      (actual and formal argument lists differ in length)
+    constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,boolean) is not applicable
+      (actual and formal argument lists differ in length)
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/migration/PlayoffAdapterTest.java:[204,57] no suitable constructor found for BankAccountVault(java.lang.String)
+    constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,org.springframework.core.env.Environment) is not applicable
+      (actual and formal argument lists differ in length)
+    constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,boolean) is not applicable
+      (actual and formal argument lists differ in length)
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[53,74] cannot find symbol
+[ERROR]   symbol:   class IndoorOutdoor
+[ERROR]   location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[54,56] cannot find symbol
+[ERROR]   symbol:   class VenueVisibility
+[ERROR]   location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[54,126] cannot find symbol
+[ERROR]   symbol:   class PartnerStatus
+[ERROR]   location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/courses/api/VenueSlugRaceIT.java:[55,56] cannot find symbol
+[ERROR]   symbol:   class PaperSize
+[ERROR]   location: package com.agilityhub.core.courses.persistence
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/identity/api/RefreshGraceChainGuardIT.java:[45,25] reference to assertThat is ambiguous
+[ERROR]   both method assertThat(java.util.function.IntPredicate) in org.assertj.core.api.Assertions and method <T>assertThat(java.util.function.Predicate<T>) in org.assertj.core.api.Assertions match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/identity/api/RefreshGraceChainGuardIT.java:[45,76] incompatible types: inference variable T has incompatible bounds
+[ERROR]     upper bounds: java.util.function.IntPredicate,java.lang.Object
+[ERROR]     lower bounds: java.lang.Boolean
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/migration/PlayoffAdapterTest.java:[203,57] no suitable constructor found for BankAccountVault(java.lang.String)
+[ERROR]     constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,org.springframework.core.env.Environment) is not applicable
+[ERROR]       (actual and formal argument lists differ in length)
+[ERROR]     constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,boolean) is not applicable
+[ERROR]       (actual and formal argument lists differ in length)
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api-c/src/test/java/com/agilityhub/core/migration/PlayoffAdapterTest.java:[204,57] no suitable constructor found for BankAccountVault(java.lang.String)
+[ERROR]     constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,org.springframework.core.env.Environment) is not applicable
+[ERROR]       (actual and formal argument lists differ in length)
+[ERROR]     constructor com.agilityhub.core.payments.application.BankAccountVault.BankAccountVault(java.lang.String,boolean) is not applicable
+[ERROR]       (actual and formal argument lists differ in length)
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

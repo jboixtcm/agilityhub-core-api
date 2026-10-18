@@ -46,12 +46,15 @@ public class ErasureService {
     private final AuditWriter audit;
     private final ConsoleTransactions transactions;
     private final ErasureExecutor executor;
+    private final ErasureFilesCleanup cleanup;
     private final Clock clock;
 
     public ErasureService(ErasureRequestRepository requests, ErasureDirectory directory, ErasureAccounts accounts, ErasureEligibility eligibility,
-            ClubConfigService configs, EventPublisher events, AuditWriter audit, ConsoleTransactions transactions, ErasureExecutor executor, Clock clock) {
+            ClubConfigService configs, EventPublisher events, AuditWriter audit, ConsoleTransactions transactions, ErasureExecutor executor,
+            ErasureFilesCleanup cleanup, Clock clock) {
         this.requests = requests; this.directory = directory; this.accounts = accounts; this.eligibility = eligibility;
-        this.configs = configs; this.events = events; this.audit = audit; this.transactions = transactions; this.executor = executor; this.clock = clock;
+        this.configs = configs; this.events = events; this.audit = audit; this.transactions = transactions; this.executor = executor;
+        this.cleanup = cleanup; this.clock = clock;
     }
 
     /** `POST /members/{id}/erasure` (ADMIN): `scope = MEMBER`, `source = ADMIN`. */
@@ -168,6 +171,7 @@ public class ErasureService {
             }
             close(request);
             audit.write(new AuditCommand(AuditAction.ERASURE_CANCELLED, "ErasureRequest", request.id(), null, null, null, null));
+            if (!request.filesPending().isEmpty()) { cleanup.cleanAfterCommit(request.id()); }
             return null;
         });
     }

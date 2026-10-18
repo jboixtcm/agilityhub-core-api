@@ -1,5 +1,6 @@
 package com.agilityhub.core.platform.privacy;
 
+import com.agilityhub.core.clubs.catalogs.application.InstructorWriter;
 import com.agilityhub.core.clubs.catalogs.persistence.Instructor;
 import com.agilityhub.core.clubs.catalogs.persistence.Plan;
 import com.agilityhub.core.clubs.catalogs.persistence.Price;
@@ -49,7 +50,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class ErasureIT extends PrivacyItFixtures {
     static final Instant REQUESTED = Instant.parse("2026-09-05T08:00:00Z"), DUE = Instant.parse("2026-09-30T05:00:00Z");
     @Autowired JobRunner runner; @Autowired OutboxDispatcher dispatcher; @Autowired AttachmentStorage storage;
-    @Autowired ErasureExecutor executor; @Autowired List<ErasureStep> steps;
+    @Autowired ErasureExecutor executor; @Autowired List<ErasureStep> steps; @Autowired InstructorWriter instructors;
     /** The stored objects of T-14-08 (fresh keys each run: the local store never overwrites an object). */
     final String photo = java.util.UUID.randomUUID().toString(), card = java.util.UUID.randomUUID().toString(), taskFile = java.util.UUID.randomUUID().toString();
 
@@ -153,16 +154,27 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(count("domain_events", Criteria.where("type").is("AccountErased"))).isEqualTo(1);
     }
 
-    /** T-14-08's seed: Montse with two dogs, invoices, bookings, tasks, notices and audit, in every collection R-14-15 lists. */
-    void seedEverything() throws Exception {
+    /** Montse's three stored files in the club: Kiwi's photo, its vaccination card and a task's attachment. */
+    void seedFiles() throws Exception {
         storage.put(photo, "image/jpeg", 3, new ByteArrayInputStream(new byte[] {1, 2, 3}));
         storage.put(card, "application/pdf", 3, new ByteArrayInputStream(new byte[] {4, 5, 6}));
         storage.put(taskFile, "image/png", 3, new ByteArrayInputStream(new byte[] {7, 8, 9}));
         dog(CLUB, "kiwi", "montse", "941000000100001", photo);
-        dog(CLUB, "blat", "montse", "941000000100002", null);
-        dog(CLUB, "other-dog", "active", "941000000100003", null);
         raw("dog_documents", "_id", "doc-kiwi", "clubId", CLUB, "dogId", "kiwi", "type", "VACCINATION", "state", "VALID", "version", 0,
                 "files", List.of(map("id", "f1", "fileKey", card, "name", "cartilla-kiwi.pdf", "mimeType", "application/pdf")));
+        raw("tasks", "_id", "task-1", "clubId", CLUB, "memberId", "montse", "dogId", "kiwi", "text", "practise the weaves", "state", "OPEN",
+                "createdBy", map("accountId", "instructor-account", "displayName", "Fictional Instructor"), "doneBy", map("accountId", "montse-account", "displayName", "Fictional Montse"));
+        raw("attachments", "_id", "attachment-1", "clubId", CLUB, "entityType", "TASK", "entityId", "task-1", "fileKey", taskFile, "name", "kiwi.png", "version", 0L);
+    }
+    boolean stored(String key) {
+        try { storage.read(key); return true; } catch (Exception missing) { return false; }
+    }
+
+    /** T-14-08's seed: Montse with two dogs, invoices, bookings, tasks, notices and audit, in every collection R-14-15 lists. */
+    void seedEverything() throws Exception {
+        seedFiles();
+        dog(CLUB, "blat", "montse", "941000000100002", null);
+        dog(CLUB, "other-dog", "active", "941000000100003", null);
         raw("inactivity_periods", "_id", "inactivity-1", "clubId", CLUB, "memberId", "montse", "fromMonth", "2026-03", "toMonth", "2026-04", "comments", "a personal comment",
                 "decision", map("at", Instant.parse("2026-02-20T10:00:00Z"), "byAccountId", "admin-account", "decision", "APPROVED", "note", "admin note", "deadlineOverridden", false),
                 "state", "FINISHED");
@@ -178,9 +190,6 @@ class ErasureIT extends PrivacyItFixtures {
                 "markedBy", map("accountId", "admin-account", "role", "ADMIN", "displayName", "Fictional Admin"));
         raw("activity_registrations", "_id", "registration-1", "clubId", CLUB, "memberId", "montse", "state", "CANCELLED",
                 "registeredBy", map("accountId", "montse-account", "displayName", "Fictional Montse"));
-        raw("tasks", "_id", "task-1", "clubId", CLUB, "memberId", "montse", "dogId", "kiwi", "text", "practise the weaves", "state", "OPEN",
-                "createdBy", map("accountId", "instructor-account", "displayName", "Fictional Instructor"), "doneBy", map("accountId", "montse-account", "displayName", "Fictional Montse"));
-        raw("attachments", "_id", "attachment-1", "clubId", CLUB, "entityType", "TASK", "entityId", "task-1", "fileKey", taskFile, "name", "kiwi.png", "version", 0L);
         raw("followup_items", "_id", "item-1", "clubId", CLUB, "memberId", "montse", "dogId", "kiwi", "taskId", "task-1", "textExcerpt", "practise the weaves",
                 "authorAccountId", "montse-account", "authorName", "Fictional Montse");
         // The invoice and its collection as S12 writes them, so that `GET /invoices/{id}` reads them back (T-14-19).
@@ -435,17 +444,24 @@ class ErasureIT extends PrivacyItFixtures {
 
     /**
      * S14 §5 «plataforma» (E11-T01 round 2): an account request blocked halfway is cancelled from the console. The club it already
-     * erased stays erased; the blocked club's member is left as it is, and no daily run touches it again.
+     * erased stays erased; the blocked club's member is left as it is, and no daily run touches it again. E11-T11: the erased club's
+     * files (a dog photo, a document and a task attachment) leave the store when its part runs, not when the request completes, and
+     * a file a failed cleanup left pending on the cancelled request goes at the next daily run.
      */
     @Test @AuditCovers(AuditAction.ERASURE_CANCELLED)
     void R_14_14_thePlatformCancelsAnAccountRequestBlockedHalfway() throws Exception {
+        seedFiles();
         member(OTHER, "montse-b", 3, "87654321X", LocalDate.of(2026, 8, 1));
         mongo.remove(Query.query(Criteria.where("accountId").is("montse-b-account")), "memberships");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("montse-b")), new org.springframework.data.mongodb.core.query.Update().set("accountId", "montse-account"), "members");
         membership("montse-account", OTHER, "montse-b", Membership.Status.SUSPENDED);
         String id = json(platform(body(post("/api/v1/accounts/montse-account/erasure"), Map.of())), 201).path("id").asText();
+        assertThat(List.of(photo, card, taskFile)).allSatisfy(key -> assertThat(stored(key)).as("before: " + key).isTrue());
         clock.setInstant(DUE);
         runner.manual(CLUB, JobName.ERASURES, false, "admin-account");
+        assertThat(request(id).status()).isEqualTo("SCHEDULED");
+        assertThat(request(id).filesPending()).isEmpty();
+        assertThat(List.of(photo, card, taskFile)).allSatisfy(key -> assertThat(stored(key)).as("after club A's part: " + key).isFalse());
         raw("invoices", "_id", "invoice-open-b", "clubId", OTHER, "memberId", "montse-b", "status", "FAILED");
         runner.manual(OTHER, JobName.ERASURES, false, "other-admin-account");
         assertThat(request(id).status()).isEqualTo("BLOCKED");
@@ -469,11 +485,18 @@ class ErasureIT extends PrivacyItFixtures {
         assertThat(document("members", "montse").getString("firstName")).isEqualTo("Abonat suprimit");
         assertThat(document("members", "montse-b").getString("firstName")).isEqualTo("Fictional");
         assertThat(document("accounts", "montse-account").getString("status")).isEqualTo("ACTIVE");
+        assertThat(List.of(photo, card, taskFile)).allSatisfy(key -> assertThat(stored(key)).as("after the cancel: " + key).isFalse());
         // Closed: a second cancel, an unknown id and a club's member request are refused; the daily run leaves the request alone.
         assertThat(json(platform(delete("/api/v1/platform/erasure-requests/" + id)), 409).path("details").path("status").asText()).isEqualTo("CANCELLED");
         assertThat(json(platform(delete("/api/v1/platform/erasure-requests/nobody")), 404).path("code").asText()).isEqualTo("NOT_FOUND");
         mongo.remove(Query.query(Criteria.where("_id").is("invoice-open-b")), "invoices");
+        // A file whose cleanup failed stays pending on the cancelled request: the next daily run deletes it, and the status stays.
+        String left = UUID.randomUUID().toString();
+        storage.put(left, "image/jpeg", 3, new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new org.springframework.data.mongodb.core.query.Update().push("filesPending", "attachments:" + left), ErasureRequest.class);
         runner.manual(OTHER, JobName.ERASURES, false, "other-admin-account");
+        assertThat(stored(left)).isFalse();
+        assertThat(request(id).filesPending()).isEmpty();
         assertThat(request(id).status()).isEqualTo("CANCELLED");
         assertThat(document("members", "montse-b").getString("firstName")).isEqualTo("Fictional");
         String member = json(call(body(post("/api/v1/members/montse-b/erasure"), Map.of()), OTHER, "other-admin-account", "ADMIN"), 201).path("id").asText();
@@ -489,8 +512,18 @@ class ErasureIT extends PrivacyItFixtures {
      */
     @Test void R_14_15_anErasedInstructorsNameLeavesTheCatalogAndTheAttendanceSummaries() throws Exception {
         Instant created = Instant.parse("2025-01-01T00:00:00Z");
-        mongo.insert(new Instructor("instructor-montse", CLUB, "montse", "Montse", "#ff7a00", false, 3L, created, created, "admin-account", "admin-account"));
-        mongo.insert(new Instructor("instructor-neus", CLUB, "active", "Neus", "#0057b8", true, 1L, created, created, "admin-account", "admin-account"));
+        // Written as S05 writes them (E11-T11): each write leaves an InstructorChanged whose diff carries the short name.
+        try (var tenant = TenantContext.open(CLUB)) {
+            var first = new Instructor("instructor-montse", CLUB, "montse", "Montse R", "#ff7a00", true, 2L, created, created, "admin-account", "admin-account");
+            instructors.save(first.id(), first.memberId(), Map.of(), first);
+            instructors.save(first.id(), first.memberId(), instructors.fields(first),
+                    new Instructor("instructor-montse", CLUB, "montse", "Montse", "#ff7a00", false, 3L, created, created, "admin-account", "admin-account"));
+            var neus = new Instructor("instructor-neus", CLUB, "active", "Neus", "#0057b8", true, 1L, created, created, "admin-account", "admin-account");
+            instructors.save(neus.id(), neus.memberId(), Map.of(), neus);
+        }
+        dispatcher.dispatch(); dispatcher.dispatch();
+        assertThat(count("domain_events", Criteria.where("type").is("InstructorChanged").and("aggregateId").is("instructor-montse").and("status").is("PUBLISHED")))
+                .isEqualTo(2);
         for (var row : List.of(List.of("class-montse", "Montse", "montse-account"), List.of("class-neus", "Neus", "active-account"))) {
             raw("class_sessions", "_id", row.get(0), "clubId", CLUB, "state", "FINISHED", "instructorIds", List.of("instructor-montse"),
                     "attendanceSummary", map("version", 2, "marked", 3, "present", 2, "notified", 0, "noShow", 1, "notifiedAfterEnd", 0,
@@ -508,12 +541,14 @@ class ErasureIT extends PrivacyItFixtures {
                 .containsEntry("savedByAccountId", "montse-account").containsEntry("marked", 3);
         assertThat(document("class_sessions", "class-neus").get("attendanceSummary", Document.class)).containsEntry("savedByName", "Neus");
         assertThat(document("class_sessions", "class-before").get("attendanceSummary", Document.class)).containsEntry("savedByName", "Montse");
-        // The catalog's caches hear of it through the outbox, whose event carries the new name only.
-        var changed = documents("domain_events", "type", "InstructorChanged");
+        // The catalog's caches hear of it through the outbox, whose event carries the new name only; the processed records of the
+        // earlier writes, which carried the old name, are gone (E11-T11), and the other instructor's stay.
+        var changed = mongo.find(Query.query(Criteria.where("type").is("InstructorChanged").and("aggregateId").is("instructor-montse")), Document.class, "domain_events");
         assertThat(changed).singleElement().satisfies(event -> {
-            assertThat(event).containsEntry("aggregateId", "instructor-montse");
+            assertThat(event).containsEntry("status", "PENDING");
             assertThat(event.toJson()).contains("Abonat suprimit #87").doesNotContain("Montse");
         });
+        assertThat(count("domain_events", Criteria.where("type").is("InstructorChanged").and("aggregateId").is("instructor-neus"))).isEqualTo(1);
         dispatcher.dispatch(); dispatcher.dispatch();
         var team = json(admin(get("/api/v1/instructors").param("includeInactive", "true")), 200);
         assertThat(team.path("items").findValuesAsText("shortName")).containsExactlyInAnyOrder("Abonat suprimit #87", "Neus");

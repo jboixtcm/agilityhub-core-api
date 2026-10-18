@@ -33,7 +33,8 @@ import org.springframework.stereotype.Service;
  * the next daily run retries it. Otherwise every context's {@link ErasureStep} pseudonymises its documents of the club's members,
  * `MEMBER_ERASED` is audited per member, and the club joins `erasedClubIds`. The club that completes the request also erases the
  * account when it goes ({@link AccountErasureStep}, `ACCOUNT_ERASED`), moves it to `ERASING` and publishes `AccountErased`, whose
- * consumer ({@link ErasureFilesCleanup}) deletes `filesPending[]` and closes it at `ERASED`. Idempotent: an erased member
+ * consumer ({@link ErasureFilesCleanup}) deletes `filesPending[]` and closes it at `ERASED`; a club's part that does not complete the
+ * request has its files deleted once it commits. Idempotent: an erased member
  * (`erasedAt`) is not touched again, and each transition is a compare-and-set on `version` (T-14-24: two runs at once execute once).
  */
 @Service
@@ -51,14 +52,15 @@ public class ErasureExecutor {
     private final EventPublisher events;
     private final AuditWriter audit;
     private final ConsoleTransactions transactions;
+    private final ErasureFilesCleanup cleanup;
     private final Clock clock;
 
     public ErasureExecutor(ErasureRequestRepository requests, ErasureDirectory directory, ErasureAccounts accounts, ErasureEligibility eligibility,
             List<ErasureStep> steps, List<AccountErasureStep> accountSteps, ErasurePseudonyms pseudonyms, ClubConfigService configs,
-            IcuMessageSource messages, EventPublisher events, AuditWriter audit, ConsoleTransactions transactions, Clock clock) {
+            IcuMessageSource messages, EventPublisher events, AuditWriter audit, ConsoleTransactions transactions, ErasureFilesCleanup cleanup, Clock clock) {
         this.requests = requests; this.directory = directory; this.accounts = accounts; this.eligibility = eligibility;
         this.steps = List.copyOf(steps); this.accountSteps = List.copyOf(accountSteps); this.pseudonyms = pseudonyms; this.configs = configs;
-        this.messages = messages; this.events = events; this.audit = audit; this.transactions = transactions; this.clock = clock;
+        this.messages = messages; this.events = events; this.audit = audit; this.transactions = transactions; this.cleanup = cleanup; this.clock = clock;
     }
 
     /** One request's part in the current club, in its own transaction (or the caller's: a job item's). */
@@ -99,6 +101,8 @@ public class ErasureExecutor {
             else { update.set("status", "SCHEDULED"); }
             compareAndSet(request, update);
             if (completes) { events.publish(erased(request, clubId, !erasedAccounts.isEmpty(), now)); }
+            // E11-T11: an erased club's files leave the store now, not when (or if) the whole request completes.
+            else if (!effect.files().isEmpty()) { cleanup.cleanAfterCommit(request.id()); }
             return completes ? Outcome.ERASED : Outcome.PARTIAL;
         });
     }

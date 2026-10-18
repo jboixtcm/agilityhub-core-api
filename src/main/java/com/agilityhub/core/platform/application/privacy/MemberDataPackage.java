@@ -30,12 +30,19 @@ public final class MemberDataPackage {
     public record File(String store, String key, String path) { }
 
     /**
-     * S14 R-14-13 «mai el nom d'un tercer», fail-closed (E11-T01 round 2): every key that holds a name (`…Name`, `…_name`, any
-     * case) is left out, unless it is one of these, which name the member, its own dogs and files, or things rather than people.
-     * A staff name under a new key therefore never enters the package. `name` alone is a dog's, a file's or a catalog item's.
+     * S14 R-14-13 «mai el nom d'un tercer», fail-closed (E11-T01 round 2): every key that holds a name (`…Name`, `…_name`,
+     * `…Names`, any case) is left out, unless it is one of these, which name the member, its own dogs and files, or things rather
+     * than people. A staff name under a new key therefore never enters the package. `name` alone is a dog's, a file's or a catalog
+     * item's.
      */
     static final java.util.Set<String> KEPT_NAMES = java.util.Set.of("firstname", "fullname", "membername", "holdername", "dogname", "handlername",
             "filename", "clubname", "legalname", "levelname", "ringname", "planname", "activityname", "eventname", "locationname");
+    /**
+     * Maps that describe another member, of which only these keys stay (R-14-13 `familyGroup` «sense dades d'altres membres»,
+     * E11-T11): S04's `familyGroupClaim{status, holderName, dogName, holderMemberId?}` names the group's holder and the holder's
+     * dog, so only its status and the holder's id are the member's.
+     */
+    static final Map<String, java.util.Set<String>> OTHER_MEMBERS = Map.of("familyGroupClaim", java.util.Set.of("status", "holderMemberId"));
     /** Technical keys left out: the tenant, versions, leases and hashes of other systems. */
     static final java.util.Set<String> TECHNICAL = java.util.Set.of("_class", "clubId", "version", "claimToken", "leaseUntil", "heartbeatSequence",
             "ibanEncrypted", "nameKey", "lastEventId");
@@ -43,7 +50,7 @@ public final class MemberDataPackage {
     /**
      * A stored document as a package row: `_id` → `id`, dates as ISO strings, without the technical keys or third parties' names;
      * nested maps and lists likewise. Inside an actor (a map under a `…By` key: `bookedBy`, `cancelledBy`, `markedBy`, `createdBy`…),
-     * which may be a member of staff, no name or address is kept at all, only its ids and role.
+     * which may be a member of staff, no name or address is kept at all, only its ids and role, however deep it is nested.
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> row(Map<String, ?> document) { return (Map<String, Object>) clean(document, false); }
@@ -52,7 +59,12 @@ public final class MemberDataPackage {
             var result = new LinkedHashMap<String, Object>();
             map.forEach((key, item) -> {
                 String name = "_id".equals(key) ? "id" : String.valueOf(key);
-                if (!TECHNICAL.contains(name) && !thirdParty(name, actor)) { result.put(name, clean(item, name.endsWith("By"))); }
+                if (TECHNICAL.contains(name) || thirdParty(name, actor)) { return; }
+                Object kept = item;
+                if (OTHER_MEMBERS.containsKey(name) && item instanceof Map<?, ?> other) {
+                    var own = new LinkedHashMap<Object, Object>(other); own.keySet().retainAll(OTHER_MEMBERS.get(name)); kept = own;
+                }
+                result.put(name, clean(kept, actor || name.endsWith("By")));
             });
             return result;
         }
@@ -65,8 +77,9 @@ public final class MemberDataPackage {
     /** Whether a key may name somebody else: a name key not kept, or, inside an actor, any name or e-mail. */
     static boolean thirdParty(String key, boolean actor) {
         String lower = key.toLowerCase(java.util.Locale.ROOT);
-        boolean nameKey = lower.endsWith("name") && !lower.equals("name");
-        if (actor) { return lower.endsWith("name") || lower.contains("email"); }
+        boolean names = lower.endsWith("name") || lower.endsWith("names");
+        boolean nameKey = names && !lower.equals("name");
+        if (actor) { return names || lower.contains("email"); }
         return nameKey && !KEPT_NAMES.contains(lower.replace("_", ""));
     }
     /** «···· 2231»: the IBAN of the package is masked (S14 §13-5); the encrypted copy never leaves. */

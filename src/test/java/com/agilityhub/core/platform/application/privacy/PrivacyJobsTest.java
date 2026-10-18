@@ -42,7 +42,7 @@ class PrivacyJobsTest {
         var job = new ErasuresJob(requests, executor, cleanup);
         assertThat(job.name()).isEqualTo(JobName.ERASURES);
         when(requests.due("club-a", AT)).thenReturn(List.of(PrivacyFixtures.request("due", "MEMBER", "SCHEDULED", List.of("m"), List.of("club-a"), List.of(), null)));
-        when(requests.erasing("club-a")).thenReturn(List.of(PrivacyFixtures.request("stuck", "MEMBER", "ERASING", List.of("n"), List.of("club-a"), List.of(), null)));
+        when(requests.toClean("club-a")).thenReturn(List.of(PrivacyFixtures.request("stuck", "MEMBER", "ERASING", List.of("n"), List.of("club-a"), List.of(), null)));
         var items = job.plan(context(false));
         assertThat(items).extracting(JobItem::entityId, JobItem::action).containsExactly(tuple("due", "ERASE"), tuple("stuck", "DELETE_FILES"));
         verify(recorder).count("erased", 0); verify(recorder).count("blocked", 0);

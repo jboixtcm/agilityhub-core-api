@@ -39,8 +39,9 @@ class ErasureServiceTest {
     final EventPublisher events = mock(EventPublisher.class);
     final AuditWriter audit = mock(AuditWriter.class);
     final ErasureExecutor executor = mock(ErasureExecutor.class);
+    final ErasureFilesCleanup cleanup = mock(ErasureFilesCleanup.class);
     final ErasureService service = new ErasureService(requests, directory, accounts, new ErasureEligibility(List.of(checks), accounts), configs, events, audit,
-            PrivacyFixtures.transactions(), executor, new MockClock(NOW));
+            PrivacyFixtures.transactions(), executor, cleanup, new MockClock(NOW));
     TenantContext.Scope tenant; CurrentUser.Scope user;
 
     static ErasureMember montse(String status, Instant erasedAt) {
@@ -175,6 +176,15 @@ class ErasureServiceTest {
                     .doesNotContain("erasedClubIds");
             verify(audit).write(argThat((AuditCommand command) -> command.action() == AuditAction.ERASURE_CANCELLED && "r".equals(command.entityId())
                     && command.memberId() == null));
+            verifyNoInteractions(cleanup);
+            // E11-T11: files the erased club still has pending leave the store after the cancel commits.
+            var withFiles = new ErasureRequest("p", null, "ACCOUNT", "montse-account", List.of("montse", "montse-b"), List.of("club-a", "club-b"), "PLATFORM",
+                    "platform-account", NOW, null, "BLOCKED", NOW, List.of("INVOICES_OPEN"), null, null, null, List.of("attachments:photo-key"), List.of("club-a"),
+                    false, true, null, 5);
+            when(requests.findById("p")).thenReturn(Optional.of(withFiles));
+            when(requests.update(eq(withFiles), any(Update.class))).thenReturn(true);
+            service.cancelAccountRequest("p");
+            verify(cleanup).cleanAfterCommit("p");
             for (var refused : List.of(PrivacyFixtures.request("m", "MEMBER", "SCHEDULED", List.of("montse"), List.of("club-a"), List.of(), null),
                     PrivacyFixtures.request("m", "ACCOUNT", "ERASING", List.of("montse"), List.of("club-a"), List.of("club-a"), "montse-account"),
                     PrivacyFixtures.request("m", "ACCOUNT", "CANCELLED", List.of("montse"), List.of("club-a"), List.of(), "montse-account"))) {
@@ -188,7 +198,7 @@ class ErasureServiceTest {
             assertThatThrownBy(() -> service.cancelAccountRequest("ghost")).hasMessage("NOT_FOUND");
             when(requests.update(eq(blocked), any(Update.class))).thenReturn(false);
             assertThatThrownBy(() -> service.cancelAccountRequest("r")).hasMessage("STALE_VERSION");
-            verify(audit, times(1)).write(any());
+            verify(audit, times(2)).write(any());
         } finally { tenant = TenantContext.open("club-a"); }
     }
 
