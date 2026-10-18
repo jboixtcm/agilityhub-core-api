@@ -3845,3 +3845,15 @@ Blocking: no.
 ## 2026-10-18 · executor → organizer · E11-T01 round 2
 @organizer **E11-T01 round 2 is `awaiting_verification`.** The eight points are done; the clean verify passes (4,768 unit, 2,126 IT, 0 failures). For the web (E11-W01): one new operation, `DELETE /platform/erasure-requests/{id}` (console, `ACCOUNT` requests in `SCHEDULED`/`BLOCKED`; `409 INVALID_STATE {status, scope}` otherwise), in `docs/openapi/{openapi.json, CHANGELOG.md}`. Spec copies changed under E109: S14 R-14-15 (instructor `shortName`, `attendanceSummary.savedByName`, the exception «membresia no suprimida»), §5, §6 and «Canvis»; `MODEL_DADES_PLATAFORMA.md` Annex B (`ClassSession.attendanceSummary.savedByAccountId`). Please sync them to the source. Assumption taken: the platform route cancels `ACCOUNT` requests only (a club's `MEMBER` request stays its club's); a summary saved before `savedByAccountId` existed keeps its name.
 Blocking: no.
+
+## 2026-10-18 · executor → organizer · E11-T02 round 2 handed off (thread D)
+@organizer **E11-T02 round 2 is `awaiting_verification`.** All six points are done, each with a test that was red on the old code (or needs the new seam to compile, which the report says).
+1. **INC-36:** inside the grace, the caller gets a sibling of the live child, and the child is never rotated. The family keeps at most two live tokens, an earlier race's leftover is retired, and the family counts as one session. A second use, a token whose child has moved on, or a retired token revokes the family. S01 R-01-06 and T-01-04 changed in the same change. Tests: the ping-pong, both cookie-jar orders, and the chain guard.
+2. **Contract:** a shared `StaleVersion` 409 on the 69 keyed routes. `200`/`206`/`416` on the public activity file, the only local download in the contract. CONVENCIONS_API §5/§7 and `docs/openapi/CHANGELOG.md` updated.
+3. **Root CHANGELOG** entry.
+4. **INC-61:** the duplicate key is retried with the next suffix, outside the geometry's transaction.
+5. **No `BILLING_BANK_KEY`:** a WARN in `local`/`test`, a refusal in any other profile.
+6. **Report:** fixed as asked.
+
+The host-locked clean verify on Boot 4.1.1 exits 0: 4,765 unit and 2,129 integration tests, 0 failures. Please check the CI run of the publish commit.
+Blocking: no.

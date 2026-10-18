@@ -41,6 +41,22 @@ public class RefreshTokenRepository extends TenantRepository<RefreshToken> {
         return mongo.updateFirst(contextQuery().addCriteria(Criteria.where("_id").is(id).and("replacedByHash").ne(null)
                 .and("revokedAt").is(null).and("graceUsedAt").is(null)), new Update().set("graceUsedAt", now), RefreshToken.class).getModifiedCount() == 1;
     }
+    /** INC-36 (S01 R-01-06): the live child a rotated token was replaced by, if nobody has rotated or revoked it since. */
+    public Optional<RefreshToken> liveChild(RefreshToken rotated, Instant now) {
+        return Optional.ofNullable(mongo.findOne(contextQuery().addCriteria(active(rotated.accountId(), now)
+                .and("familyId").is(rotated.familyId()).and("tokenHash").is(rotated.replacedByHash())), RefreshToken.class));
+    }
+    /**
+     * INC-36 (S01 R-01-06): before a grace issues its sibling, the family keeps only the presented token's live child; any other
+     * live token (the leftover of an earlier race, which a cookie jar no longer holds) is retired as rotated, by the sibling, with
+     * its grace already spent, so presenting it later is a reuse that revokes the family. A family never holds more than two
+     * live tokens.
+     */
+    public void retireOtherLiveTokens(String familyId, String keepId, String siblingHash, Instant now) {
+        mongo.updateMulti(contextQuery().addCriteria(Criteria.where("familyId").is(familyId).and("_id").ne(keepId)
+                        .and("replacedByHash").is(null).and("revokedAt").is(null)),
+                new Update().set("replacedByHash", siblingHash).set("graceUsedAt", now).set("status", RefreshToken.Status.ROTATED), RefreshToken.class);
+    }
     public void revokeFamily(String familyId, Instant now) {
         mongo.updateMulti(contextQuery().addCriteria(Criteria.where("familyId").is(familyId)), revoked(now), RefreshToken.class);
     }

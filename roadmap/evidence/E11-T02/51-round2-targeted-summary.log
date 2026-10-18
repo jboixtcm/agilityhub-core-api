@@ -1,0 +1,11 @@
+target/surefire-reports: classes=40 tests=193 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=12 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.application.TokenServiceSurvivorsTest: tests=19 failures=0 errors=0 skipped=0
+  com.agilityhub.core.payments.application.BankAccountVaultTest: tests=6 failures=0 errors=0 skipped=0
+target/failsafe-reports: classes=32 tests=631 failures=0 errors=0 skipped=0
+  com.agilityhub.core.courses.api.RingGeometryIT: tests=7 failures=0 errors=0 skipped=0
+  com.agilityhub.core.courses.api.VenueSlugRaceIT: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.IdentityCoreIT: tests=31 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.OidcIT: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.PasswordGrantIT: tests=14 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.SecurityEventIT: tests=4 failures=0 errors=0 skipped=0

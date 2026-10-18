@@ -187,24 +187,32 @@ class TokenServiceSurvivorsTest {
     }
     private RefreshToken liveChild() {
         var child = new RefreshToken("rt-2", "hash-child", "acc-1", null, "id-web", "fam-1", 0, NOW.minus(Duration.ofDays(2)),
-                NOW.plus(Duration.ofDays(30)), NOW.minusSeconds(20), null, null, null, "Firefox / Linux", RefreshToken.Status.ACTIVE,
+                NOW.plus(Duration.ofDays(30)), NOW.minusSeconds(20), null, null, Role.MEMBER, "Safari / iOS", RefreshToken.Status.ACTIVE,
                 Set.of("openid"), true, "nonce-1", NOW.minus(Duration.ofDays(2)), null);
-        when(refreshTokens.activeFamily("acc-1", "fam-1", NOW)).thenReturn(Optional.of(child));
+        when(refreshTokens.liveChild(argThat(token -> token != null && token.id().equals("rt-1")), eq(NOW))).thenReturn(Optional.of(child));
         return child;
     }
 
-    @Test void INC_36_R_01_06_aRotatedTokenInsideTheGraceRotatesTheFamilysLiveTokenInsteadOfRevokingIt() {
+    /**
+     * INC-36 round 2 (S01 R-01-06, T-01-04): inside the grace the caller gets a sibling of the live child; the child is never
+     * rotated (its holder keeps its session) and every other live token of the family is retired, so the family keeps two.
+     */
+    @Test void INC_36_R_01_06_aRotatedTokenInsideTheGraceGetsASiblingAndLeavesTheLiveChildAlone() {
         rotatedRow(NOW.minusSeconds(29));
         liveChild();
         when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(true);
-        when(refreshTokens.rotate(eq("rt-2"), anyString(), eq(NOW))).thenReturn(true);
 
         var issued = tokens.refresh("refresh-value-example", "id-web", null);
 
         assertThat(issued.refresh().getTokenValue()).isNotBlank();
         assertThat(issued.scopes()).isEqualTo(Set.of("openid"));
+        String sibling = TokenService.digest(issued.refresh().getTokenValue());
+        verify(refreshTokens, never()).rotate(any(), any(), any());
         verify(refreshTokens, never()).revokeFamily(any(), any());
-        verify(refreshTokens).insert(argThat(token -> token.familyId().equals("fam-1") && token.status() == RefreshToken.Status.ACTIVE));
+        InOrder order = inOrder(refreshTokens);
+        order.verify(refreshTokens).retireOtherLiveTokens("fam-1", "rt-2", sibling, NOW);
+        order.verify(refreshTokens).insert(argThat(token -> token.familyId().equals("fam-1") && token.status() == RefreshToken.Status.ACTIVE
+                && token.tokenHash().equals(sibling) && token.deviceLabel().equals("Safari / iOS")));
         verify(securityEvents, never()).record(any(), any(), any());
     }
 
@@ -215,6 +223,7 @@ class TokenServiceSurvivorsTest {
         verify(refreshTokens, never()).useGrace(any(), any());
         // Inside it, but another reuse already took the one extra use.
         rotatedRow(NOW.minusSeconds(5));
+        liveChild();
         when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(false);
         assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
         // A club that set the grace to 0 keeps the strict rotation.
@@ -223,6 +232,18 @@ class TokenServiceSurvivorsTest {
         assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
         verify(refreshTokens, times(3)).revokeFamily("fam-1", NOW);
         verify(securityEvents, times(3)).record(SecurityEvents.Type.REFRESH_TOKEN_REUSED, "acc-1", null);
+        verify(refreshTokens, never()).insert(any());
+        verify(refreshTokens, never()).retireOtherLiveTokens(any(), any(), any(), any());
+    }
+
+    /** INC-36 round 2: the chain guard. A token whose child has already been rotated (or retired) gets no grace: the family goes. */
+    @Test void INC_36_R_01_06_aRotatedTokenWhoseChildHasMovedOnIsAReuseEvenInsideTheGrace() {
+        rotatedRow(NOW.minusSeconds(5));
+        when(refreshTokens.liveChild(any(), eq(NOW))).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> tokens.refresh("refresh-value-example", "id-web", null)).hasMessage("REFRESH_REUSED");
+        verify(refreshTokens, never()).useGrace(any(), any());
+        verify(refreshTokens).revokeFamily("fam-1", NOW);
         verify(refreshTokens, never()).insert(any());
     }
 
@@ -234,10 +255,33 @@ class TokenServiceSurvivorsTest {
         when(refreshTokens.rotate(eq("rt-1"), anyString(), eq(NOW))).thenReturn(false);
         liveChild();
         when(refreshTokens.useGrace("rt-1", NOW)).thenReturn(true);
-        when(refreshTokens.rotate(eq("rt-2"), anyString(), eq(NOW))).thenReturn(true);
 
         assertThat(tokens.refresh("refresh-value-example", "id-web", null)).isNotNull();
         verify(refreshTokens, never()).revokeFamily(any(), any());
+        verify(refreshTokens).insert(argThat(token -> token.familyId().equals("fam-1")));
+    }
+
+    /** INC-36 round 2: a family with a child and a sibling is one session, in the list and against `auth.maxSessions`. */
+    @Test void INC_36_R_01_06_aFamilyWithTwoLiveTokensIsListedAndCountedAsOneSession() {
+        when(identities.current("acc-1")).thenReturn(session(false));
+        var child = new RefreshToken("rt-2", "hash-child", "acc-1", null, "id-web", "fam-1", 0, NOW.minus(Duration.ofDays(2)),
+                NOW.plus(Duration.ofDays(30)), NOW, null, null);
+        var sibling = new RefreshToken("rt-3", "hash-sibling", "acc-1", null, "id-web", "fam-1", 0, NOW.minus(Duration.ofDays(2)),
+                NOW.plus(Duration.ofDays(30)), NOW, null, null);
+        var other = new RefreshToken("rt-4", "hash-other", "acc-1", null, "id-web", "fam-2", 0, NOW.minus(Duration.ofDays(1)),
+                NOW.plus(Duration.ofDays(29)), NOW, null, null);
+        when(accountSessions.active("acc-1", 0, NOW)).thenReturn(List.of(child, sibling, other));
+
+        assertThat(tokens.sessions("acc-1")).extracting(RefreshToken::familyId).containsExactly("fam-1", "fam-2");
+
+        when(settings.integer("auth.maxSessions")).thenReturn(3);
+        when(identities.authenticate("laura@example.test", "Correct-horse-1")).thenReturn(session(false));
+        tokens.password("laura@example.test", "Correct-horse-1", "id-web");
+        verify(accountSessions, never()).revokeFamily(any(), any(), any());
+        when(settings.integer("auth.maxSessions")).thenReturn(2);
+        tokens.password("laura@example.test", "Correct-horse-1", "id-web");
+        verify(accountSessions).revokeFamily("acc-1", "fam-1", NOW);
+        verify(accountSessions, never()).revokeFamily("acc-1", "fam-2", NOW);
     }
 
     @Test void T_01_05_switchingTheProfileTouchesTheAccountSessions() {

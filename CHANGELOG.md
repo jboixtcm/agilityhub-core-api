@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - R-14-13: the package's third-party filter is fail-closed (every `…Name`/`…_name` key except the member's own names and the names of things; no name or address inside a `…By` actor).
   - Test names cite the right spec ids (T-14-14/15/16 were other tests).
 
+- E11-T02: the api correction pass (INC-08 … INC-63; rulings E109, E116, E118–E120, E123, E132). Contract changes in `docs/openapi/CHANGELOG.md` (2026-10-17 and 2026-10-18 entries).
+  - INC-36 (S01 R-01-06, `auth.refreshReuseGraceSeconds` = 30): a rotated refresh token that comes back inside the grace, while its child is still live, gets a sibling of that child once; the child is never rotated behind its holder, so two tabs or two holders keep their session in whichever order their answers arrive. A family keeps at most two live tokens (an earlier race's leftover is retired with its grace spent) and counts as one session. A second use, a use after the grace, a token whose child has moved on, or a retired token revokes the family (round 2: the first version rotated the live token and could be chained).
+  - INC-31: `census:seal-ibans` seals the IBANs stored in clear (dry run, idempotent); D10 and the readmission compare sealed accounts in the vault. Round 2: without `BILLING_BANK_KEY` only the `local` and `test` profiles keep an IBAN in clear, with a WARN; any other profile refuses.
+  - INC-47: a transient transaction failure is `409 STALE_VERSION` (never a 500) and releases the key; round 2 declares it on every keyed route through `#/components/responses/StaleVersion`. INC-43: local downloads answer byte ranges (`206`/`416`), declared on the public activity file.
+  - INC-61: the club's venue takes the first free slug; round 2 retries a duplicate key from a concurrent first ring with the next suffix, outside the geometry's transaction.
+  - INC-08, 09, 12, 13, 14, 42, 44 (api), 46, 48, 50, 51, 52, 53, 54, 57, 58, 62, 63: see the task report (`roadmap/tasks/E11-T02.md`).
+
 - E11-T08: api correction pass, part 2 (INC-65 … INC-68 and the Sentry setting, ruling E131). No contract change.
   - INC-68: a `Price`'s `validFrom`/`validTo` are stored as `YYYY-MM-DD` strings on every write path (`PriceDateConverter` replaces the `@Field(targetType = STRING)` that whole-document writes ignored); a startup runner (`CatalogPersistence`) converts the BSON dates earlier inserts left, idempotently.
   - INC-67: `SecurityInventoryIT` checks that every published anonymous non-`GET` operation has a `RateLimits.Route`; the `STRIPE_WEBHOOK` quota is keyed by `clubId:ip`; an authenticated `CHECKOUT_STATUS` poll counts per account.

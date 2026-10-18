@@ -94,9 +94,10 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
     }
     /**
-     * INC-36 (S01 R-01-06, `auth.refreshReuseGraceSeconds` = 30): a client whose refresh answer was lost (an aborted request, a
-     * closed tab) sends the rotated token again. Inside the grace it is accepted once more: it rotates the family's live token to a
-     * new child and nothing is revoked. A second reuse, or one after the grace, still revokes the family.
+     * INC-36 (S01 R-01-06, T-01-04, `auth.refreshReuseGraceSeconds` = 30): a client whose refresh answer was lost (an aborted
+     * request, a closed tab) sends the rotated token again. Inside the grace it is accepted once more (round 2): it gets a sibling
+     * of the live child, the child itself is not rotated, and nothing is revoked. A second reuse, or one after the grace, still
+     * revokes the family.
      */
     @Test void INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily() throws Exception {
         var first = login();
@@ -105,18 +106,127 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         clock.advance(Duration.ofSeconds(29));
         var again = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
         assertThat(refreshValue(again)).isNotIn(refreshValue(first), refreshValue(lost));
-        assertThat(SignedJWT.parse(again.get("access_token").asText()).getJWTClaimsSet().getStringClaim("sid"))
-                .isEqualTo(SignedJWT.parse(lost.get("access_token").asText()).getJWTClaimsSet().getStringClaim("sid"));
+        assertThat(sid(again)).isEqualTo(sid(lost));
         var family = mongo.findAll(RefreshToken.class);
         assertThat(family).hasSize(3).noneMatch(token -> token.revokedAt() != null);
-        assertThat(family).filteredOn(token -> token.status() == RefreshToken.Status.ACTIVE).singleElement()
-                .satisfies(token -> assertThat(token.tokenHash()).isEqualTo(TokenService.digest(refreshValue(again))));
+        assertThat(liveHashes()).containsExactlyInAnyOrder(TokenService.digest(refreshValue(lost)), TokenService.digest(refreshValue(again)));
         assertThat(mongo.findAll(com.agilityhub.core.platform.persistence.SecurityEvent.class)).noneMatch(event -> event.type().name().equals("REFRESH_TOKEN_REUSED"));
-        // The new child works; the grace is spent: the first token a third time is a reuse, and the whole family goes.
+        // The new sibling works; the grace is spent: the first token a third time is a reuse, and the whole family goes.
         var next = readTokens(refresh(refreshValue(again), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
         refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
         refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+    }
+    /**
+     * INC-36 round 2, review #2 (a): the A/B/C ping-pong of a stolen token. The victim rotates A to B; the thief presents A inside
+     * the grace. Before, that rotated the victim's B behind its back, B came back inside its own grace, and so on for ever. Now
+     * the thief gets a sibling and B is left alone, so nothing is rotated behind a holder's back and there is no chain to follow:
+     * the first chained reuse (A again, its grace spent) revokes the family, the thief's token and the victim's.
+     */
+    @Test void INC_36_R_01_06_T_01_04_thePingPongOfAStolenTokenIsRevokedAtTheFirstChainedReuse() throws Exception {
+        var a = login();
+        clock.advance(Duration.ofMinutes(1));
+        var b = readTokens(refresh(refreshValue(a), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofSeconds(5));
+        var thief = readTokens(refresh(refreshValue(a), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(token(b).status()).as("the thief's grace does not rotate the victim's token").isEqualTo(RefreshToken.Status.ACTIVE);
+        clock.advance(Duration.ofSeconds(5));
+        // The victim's B is its own live token: a plain rotation, not a reuse that a grace would have to cover.
+        var victim = readTokens(refresh(refreshValue(b), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(token(b).replacedByHash()).isEqualTo(TokenService.digest(refreshValue(victim)));
+        clock.advance(Duration.ofSeconds(5));
+        refresh(refreshValue(a), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        assertThat(mongo.findAll(RefreshToken.class)).hasSize(4).allMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+        refresh(refreshValue(thief), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+        refresh(refreshValue(victim), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+    }
+    /**
+     * INC-36 round 2, the chain guard: a rotated token is graced only while the child it was replaced by is still live. Once that
+     * child has been rotated in turn, the old token coming back, even inside its grace, is a reuse (before, the grace rotated the
+     * family's newest token to the caller and the chain went on).
+     */
+    @Test void INC_36_R_01_06_T_01_04_aTokenWhoseChildHasMovedOnGetsNoGrace() throws Exception {
+        var a = login();
+        clock.advance(Duration.ofMinutes(1));
+        var b = readTokens(refresh(refreshValue(a), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofSeconds(5));
+        refresh(refreshValue(b), HOST, "clubs-app").andExpect(status().isOk());
+        clock.advance(Duration.ofSeconds(5));
+        refresh(refreshValue(a), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        assertThat(mongo.findAll(RefreshToken.class)).hasSize(3).allMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+    }
+    /**
+     * INC-36 round 2, review #2 (b): two holders of one token (two tabs sharing the cookie, or two clients of one session) refresh
+     * it at once and their answers arrive in either order. Whichever token the shared cookie jar keeps (the answer that arrived
+     * last), the next refresh does not revoke the session, even when both tabs refresh at once again; and two holders that each
+     * keep their own token both refresh later, in either order.
+     */
+    @Test void INC_36_R_01_06_T_01_04_twoHoldersOfOneTokenKeepTheirSessionWhicheverAnswerArrivesLast() throws Exception {
+        for (boolean childArrivesLast : new boolean[]{true, false}) {
+            var shared = login();
+            clock.advance(Duration.ofMinutes(1));
+            var child = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+            clock.advance(Duration.ofMillis(300));
+            var sibling = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+            String jar = refreshValue(childArrivesLast ? child : sibling);
+            // 15 minutes later both tabs refresh with the jar's token at once: one rotation and one grace, both 200.
+            clock.advance(Duration.ofMinutes(15));
+            var tab1 = readTokens(refresh(jar, HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+            clock.advance(Duration.ofMillis(300));
+            var tab2 = readTokens(refresh(jar, HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+            // And again: the session survives every round of simultaneous refreshes, whichever answer the jar keeps.
+            clock.advance(Duration.ofMinutes(15));
+            String jar2 = refreshValue(childArrivesLast ? tab2 : tab1);
+            refresh(jar2, HOST, "clubs-app").andExpect(status().isOk());
+            clock.advance(Duration.ofMillis(300));
+            refresh(jar2, HOST, "clubs-app").andExpect(status().isOk());
+            assertThat(familyOf(shared)).noneMatch(t -> t.status() == RefreshToken.Status.REVOKED)
+                    .as("a family never holds more than two live tokens").filteredOn(t -> t.status() == RefreshToken.Status.ACTIVE).hasSize(2);
+        }
+        var shared = login();
+        clock.advance(Duration.ofMinutes(1));
+        var first = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        var second = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofMinutes(15));
+        var secondNext = readTokens(refresh(refreshValue(second), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofMinutes(1));
+        var firstNext = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofMinutes(15));
+        refresh(refreshValue(firstNext), HOST, "clubs-app").andExpect(status().isOk());
+        refresh(refreshValue(secondNext), HOST, "clubs-app").andExpect(status().isOk());
+        assertThat(familyOf(shared)).noneMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+        assertThat(mongo.findAll(com.agilityhub.core.platform.persistence.SecurityEvent.class)).noneMatch(event -> event.type().name().equals("REFRESH_TOKEN_REUSED"));
+    }
+    /**
+     * INC-36 round 2, the cap: a grace leaves the family with only the presented token's child and the new sibling. The leftover
+     * of an earlier race (a token the jar no longer holds) is retired with its grace spent, so presenting it later is a reuse.
+     */
+    @Test void INC_36_R_01_06_T_01_04_aGraceRetiresTheLeftoverOfAnEarlierRaceAndItsReuseRevokesTheFamily() throws Exception {
+        var shared = login();
+        clock.advance(Duration.ofMinutes(1));
+        var leftover = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        var kept = readTokens(refresh(refreshValue(shared), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(Duration.ofMinutes(15));
+        var child = readTokens(refresh(refreshValue(kept), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(liveHashes()).hasSize(2);
+        var sibling = readTokens(refresh(refreshValue(kept), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(liveHashes()).containsExactlyInAnyOrder(TokenService.digest(refreshValue(child)), TokenService.digest(refreshValue(sibling)));
+        assertThat(token(leftover).status()).isEqualTo(RefreshToken.Status.ROTATED);
+        clock.advance(Duration.ofSeconds(1));
+        refresh(refreshValue(leftover), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        assertThat(mongo.findAll(RefreshToken.class)).allMatch(t -> t.status() == RefreshToken.Status.REVOKED);
+    }
+    private RefreshToken token(com.fasterxml.jackson.databind.JsonNode response) {
+        return mongo.findOne(Query.query(Criteria.where("tokenHash").is(TokenService.digest(refreshValue(response)))), RefreshToken.class);
+    }
+    private java.util.List<RefreshToken> familyOf(com.fasterxml.jackson.databind.JsonNode response) {
+        return mongo.find(Query.query(Criteria.where("familyId").is(token(response).familyId())), RefreshToken.class);
+    }
+    private java.util.List<String> liveHashes() {
+        return mongo.findAll(RefreshToken.class).stream().filter(t -> t.status() == RefreshToken.Status.ACTIVE).map(RefreshToken::tokenHash).toList();
+    }
+    private static String sid(com.fasterxml.jackson.databind.JsonNode response) throws Exception {
+        return SignedJWT.parse(response.get("access_token").asText()).getJWTClaimsSet().getStringClaim("sid");
     }
     @Test void INC_36_R_01_06_aReuseAfterTheGraceRevokesTheFamily() throws Exception {
         var first = login();

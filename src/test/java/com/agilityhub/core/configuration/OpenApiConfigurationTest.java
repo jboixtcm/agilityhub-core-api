@@ -42,6 +42,29 @@ class OpenApiConfigurationTest {
                 java.util.Map.entry("4XX", "Client error"), java.util.Map.entry("5XX", "Server error"));
     }
 
+    /**
+     * E11-T02 round 2 (review #4, INC-47): a keyed route's 409 references the shared StaleVersion response; the route's own codes
+     * stay in the description, STALE_VERSION is added once, and the generic «Conflict» becomes STALE_VERSION alone. INC-43: a 416
+     * keeps no body.
+     */
+    @Test void INC_47_aKeyedRoutesConflictReferencesTheSharedStaleVersionResponseWithItsOwnCodes() {
+        for (var expected : java.util.Map.of("Conflict", "STALE_VERSION", "INVALID_STATE, IDEMPOTENCY_KEY_REUSED", "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION",
+                "STALE_VERSION, INVALID_STATE", "STALE_VERSION, INVALID_STATE").entrySet()) {
+            var operation = new Operation().responses(new ApiResponses().addApiResponse("409", new ApiResponse().description(expected.getKey())));
+            OpenApiConfiguration.declareKeyedConflict(operation);
+            var conflict = operation.getResponses().get("409");
+            assertThat(conflict.get$ref()).isEqualTo("#/components/responses/StaleVersion");
+            assertThat(conflict.getDescription()).isEqualTo(expected.getValue());
+            assertThat(conflict.getContent()).isNull();
+        }
+        var none = new Operation().responses(new ApiResponses());
+        OpenApiConfiguration.declareKeyedConflict(none);
+        assertThat(none.getResponses().get("409").getDescription()).isEqualTo("STALE_VERSION");
+        var download = OpenApiConfiguration.withErrors(new Operation().responses(new ApiResponses().addApiResponse("416", new ApiResponse().description("no body"))));
+        assertThat(download.getResponses().get("416").getContent()).isNull();
+        assertThat(download.getResponses().get("409").getContent()).containsOnlyKeys("application/json");
+    }
+
     /** E5-T27 step 5 (INC-01, A7-07): the health's 503 DOWN keeps the health envelope; its other errors stay ApiError. */
     @Test void E5_T27_theHealthRoutes503IsItsOwnEnvelope() throws Exception {
         var health = new OpenApiConfiguration().contextAndErrors().customize(new Operation().responses(new ApiResponses().addApiResponse("200", new ApiResponse())),

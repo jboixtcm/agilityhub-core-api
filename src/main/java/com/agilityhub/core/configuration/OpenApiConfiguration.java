@@ -101,7 +101,10 @@ public class OpenApiConfiguration {
     @Bean OpenAPI coreOpenApi(ModelConverterRegistrar converters) {
         var components = new Components().schemas(ModelConverters.getInstance(true).read(ApiError.class))
                 .addSecuritySchemes("bearer", new SecurityScheme().type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer").bearerFormat("JWT"));
+                        .scheme("bearer").bearerFormat("JWT"))
+                .addResponses(KEYED_CONFLICT, new ApiResponse().description("STALE_VERSION: the keyed write met a transient transaction "
+                        + "conflict; its effects were rolled back and the key released. Read again and retry (CONVENCIONS_API §7, INC-47).")
+                        .content(json(new Schema<>().$ref("#/components/schemas/ApiError"))));
         var api = new OpenAPI().openapi("3.1.0")
                 .info(new Info().title("AgilityHub Core API").version("v1"))
                 .servers(List.of(new Server().url("https://core.agilitydoghub.com"),
@@ -164,6 +167,7 @@ public class OpenApiConfiguration {
                     }
                 }
             }
+            if (com.agilityhub.core.shared.api.KeyedRoutes.keyed(handler)) { declareKeyedConflict(result); }
             if (result.getResponses().containsKey("429")) {
                 result.getResponses().get("429").addHeaderObject("Retry-After",
                         new io.swagger.v3.oas.models.headers.Header().description("Seconds before retrying")
@@ -171,6 +175,23 @@ public class OpenApiConfiguration {
             }
             return result;
         };
+    }
+
+    /** The shared 409 of the keyed routes (`#/components/responses/StaleVersion`). */
+    static final String KEYED_CONFLICT = "StaleVersion";
+
+    /**
+     * E11-T02 round 2 (review #4, INC-47): a keyed write answers `409 STALE_VERSION` when a transient transaction conflict rolls it
+     * back and releases its key. Its 409 is the shared component, with the route's own codes, and STALE_VERSION, as the reference's
+     * description (OpenAPI 3.1 lets a reference override it).
+     */
+    static void declareKeyedConflict(Operation operation) {
+        var current = operation.getResponses().get("409");
+        String codes = current == null || current.getDescription() == null || current.getDescription().equals("Conflict") ? "" : current.getDescription();
+        if (!List.of(codes.split(", ")).contains("STALE_VERSION")) { codes = codes.isEmpty() ? "STALE_VERSION" : codes + ", STALE_VERSION"; }
+        var reference = new ApiResponse().description(codes);
+        reference.set$ref("#/components/responses/" + KEYED_CONFLICT);
+        operation.getResponses().addApiResponse("409", reference);
     }
 
     private static void addListParameters(Operation operation, boolean fields, boolean searchable, int maxSize) {
@@ -226,7 +247,8 @@ public class OpenApiConfiguration {
         operation.getResponses().putIfAbsent("4XX", new ApiResponse().description("Client error"));
         operation.getResponses().putIfAbsent("5XX", new ApiResponse().description("Server error"));
         operation.getResponses().forEach((status, response) -> {
-            if (status.matches("[45](?:[0-9]{2}|XX)")) {
+            // INC-43: a download's 416 has no body, only `Content-Range: bytes */size` (ByteRanges).
+            if (status.matches("[45](?:[0-9]{2}|XX)") && !status.equals("416")) {
                 response.setContent(json(new Schema<>().$ref("#/components/schemas/ApiError")));
             }
         });

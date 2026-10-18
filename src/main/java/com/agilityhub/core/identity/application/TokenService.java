@@ -105,7 +105,7 @@ public class TokenService {
                          Instant authTime, Instant passwordResetUntil) {
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();
-        var live = accountSessions.active(session.account().id(), session.account().familyVersion(), now);
+        var live = families(accountSessions.active(session.account().id(), session.account().familyVersion(), now));
         int max = settings.integer("auth.maxSessions");
         for (int i = 0; i <= live.size() - max; i++) {
             var old = live.get(i);
@@ -145,22 +145,24 @@ public class TokenService {
         return outcome.tokens();
     }
     /**
-     * S01 R-01-06 and INC-36: a token already rotated. Inside `auth.refreshReuseGraceSeconds` of its rotation (a refresh whose
-     * answer never reached the client: an aborted request, a closed tab, two tabs at once) it is accepted once more: the family's
-     * live token is rotated to a new child, which goes to this caller, and nothing is revoked. Otherwise (the grace is over or was
-     * already used, or the family has no live token) it is a reuse: the whole family is revoked (`REFRESH_TOKEN_REUSED`).
+     * S01 R-01-06 and INC-36 (round 2): a token already rotated. Inside `auth.refreshReuseGraceSeconds` of its rotation (a refresh
+     * whose answer never reached the client: an aborted request, a closed tab, two tabs at once), while the child it was replaced
+     * by is still live, it is accepted once more: this caller gets a sibling of that child, and the child itself is left alone, so
+     * whoever holds it keeps a working session and nothing is rotated behind anyone's back. The family then keeps only those two
+     * live tokens. Otherwise (the grace is over or was already used, the child has moved on, or the token was retired by an
+     * earlier grace) it is a reuse: the whole family is revoked (`REFRESH_TOKEN_REUSED`).
      */
     private Outcome reuse(RefreshToken old, String clientId, java.util.Set<String> requestedScopes, Instant now) {
         int grace = settings.integer("auth.refreshReuseGraceSeconds");
-        if (old.revokedAt() == null && old.lastUsedAt() != null && now.isBefore(old.lastUsedAt().plusSeconds(grace))
-                && refreshTokens.useGrace(old.id(), now)) {
-            var session = identities.current(old.accountId());
-            if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
-            if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
-            var live = refreshTokens.activeFamily(old.accountId(), old.familyId(), now);
-            String next = opaque();
-            if (live.isPresent() && refreshTokens.rotate(live.get().id(), digest(next), now)) {
-                var current = live.get();
+        if (old.revokedAt() == null && old.lastUsedAt() != null && now.isBefore(old.lastUsedAt().plusSeconds(grace))) {
+            var child = refreshTokens.liveChild(old, now);
+            if (child.isPresent() && refreshTokens.useGrace(old.id(), now)) {
+                var session = identities.current(old.accountId());
+                if (session.account().familyVersion() != old.tokenFamilyVersion() || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
+                if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
+                var current = child.get();
+                String next = opaque();
+                refreshTokens.retireOtherLiveTokens(old.familyId(), current.id(), digest(next), now);
                 return new Outcome(issue(session, clientId, old.familyId(), next, current.activeProfile(), current.deviceLabel(), old.createdAt(), now,
                         requestedScopes == null ? current.scopes() : requestedScopes, old.oidc(), old.nonce(), old.authTime(), null), null, old.accountId());
             }
@@ -187,8 +189,14 @@ public class TokenService {
     }
     public List<RefreshToken> sessions(String accountId) {
         var session = identities.current(accountId);
-        return TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
-                : refreshTokens.sessions(accountId, clock.instant(), session.account().familyVersion());
+        return families(TenantContext.current() == null ? accountSessions.active(accountId, session.account().familyVersion(), clock.instant())
+                : refreshTokens.sessions(accountId, clock.instant(), session.account().familyVersion()));
+    }
+    /** INC-36: a family holds up to two live tokens after a grace (R-01-06); a session is its family, listed and counted once. */
+    private static List<RefreshToken> families(List<RefreshToken> live) {
+        var first = new java.util.LinkedHashMap<String, RefreshToken>();
+        live.forEach(token -> first.putIfAbsent(token.familyId(), token));
+        return List.copyOf(first.values());
     }
     public void revoke(String accountId, String value) {
         transactions.run(() -> {

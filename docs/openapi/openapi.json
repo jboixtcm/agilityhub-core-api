@@ -1,5 +1,17 @@
 {
   "components" : {
+    "responses" : {
+      "StaleVersion" : {
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/ApiError"
+            }
+          }
+        },
+        "description" : "STALE_VERSION: the keyed write met a transient transaction conflict; its effects were rolled back and the key released. Read again and retry (CONVENCIONS_API §7, INC-47)."
+      }
+    },
     "schemas" : {
       "AccessResendResponse" : {
         "properties" : {
@@ -26932,14 +26944,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -27988,14 +27994,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, RING_BLOCK_CONFLICT, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, RING_BLOCK_CONFLICT, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -28504,14 +28504,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "ACTIVITY_FULL, ALREADY_REGISTERED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "ACTIVITY_FULL, ALREADY_REGISTERED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -29998,14 +29992,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -30295,14 +30283,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -32378,13 +32360,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "RUN_EXISTS, SIMULATION_STALE, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -32680,14 +32656,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -32845,13 +32815,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "RUN_NOT_ROLLBACKABLE, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -33372,14 +33336,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "SEAT_HOLD_EXPIRED, CLASS_FULL, BOOKING_LIMIT_REACHED, ALREADY_BOOKED, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "SEAT_HOLD_EXPIRED, CLASS_FULL, BOOKING_LIMIT_REACHED, ALREADY_BOOKED, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -34291,13 +34249,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -34448,13 +34400,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -35048,13 +34994,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -35665,14 +35605,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -35823,13 +35757,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -36945,13 +36873,7 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION, INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -37257,14 +37179,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -40021,14 +39937,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -40783,14 +40693,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -40947,14 +40851,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -44274,13 +44172,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION, INVALID_STATE, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -47443,14 +47335,8 @@
             "description" : "MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -47730,14 +47616,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -50519,13 +50399,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "MEMBER_ERASED, BILLING_BUSY, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -50913,13 +50787,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -51225,13 +51093,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -51546,13 +51408,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -51711,13 +51567,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -51876,14 +51726,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -52041,13 +51885,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION, MAX_ATTEMPTS, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
@@ -52848,14 +52686,8 @@
             "description" : "JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "429" : {
             "content" : {
@@ -55481,14 +55313,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -56087,13 +55913,7 @@
             "description" : "Not Found"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "MEMBER_ERASED, CHIP_ALREADY_EXISTS, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -57297,14 +57117,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, LEAVE_ALREADY_SCHEDULED, INACTIVITY_OVERLAP, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -58516,14 +58330,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, LEAVE_ALREADY_REQUESTED, LEAVE_ALREADY_SCHEDULED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -63558,14 +63366,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -65556,14 +65358,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -65704,14 +65500,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -67719,14 +67509,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -69109,14 +68893,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -69274,14 +69052,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -70404,13 +70176,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -73115,14 +72881,8 @@
             "description" : "Not Found"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "SLUG_TAKEN, HOST_ALREADY_USED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "SLUG_TAKEN, HOST_ALREADY_USED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -73288,14 +73048,8 @@
             "description" : "NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "429" : {
             "content" : {
@@ -73892,14 +73646,8 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "LAST_ADMIN, MEMBERSHIP_EXISTS, INVALID_STATE"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "LAST_ADMIN, MEMBERSHIP_EXISTS, INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -74046,14 +73794,8 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "LAST_ADMIN"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "LAST_ADMIN, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -74210,14 +73952,8 @@
             "description" : "CLUB_NOT_FOUND, TEMPLATE_CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "CATALOG_NOT_EMPTY"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "CATALOG_NOT_EMPTY, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -74668,13 +74404,7 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "HOST_ALREADY_USED, STALE_VERSION"
           },
           "422" : {
@@ -74822,13 +74552,7 @@
             "description" : "CLUB_NOT_FOUND, NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION, INVALID_STATE"
           },
           "422" : {
@@ -75140,13 +74864,7 @@
             "description" : "CLUB_NOT_FOUND, NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION, INVALID_STATE"
           },
           "422" : {
@@ -76243,13 +75961,7 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -76407,14 +76119,8 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -76571,14 +76277,8 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -76892,14 +76592,8 @@
             "description" : "CLUB_NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -77433,14 +77127,8 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -79553,7 +79241,7 @@
     },
     "/api/v1/public/{clubSlug}/activities/{slug}/files/{fileId}" : {
       "get" : {
-        "description" : "Roles: ANON, MEMBER, INSTRUCTOR, ADMIN, AGILITYHUB_ADMIN. Public states: PUBLISHED, FINISHED and CANCELLED; DRAFT hidden. No names, member data or registrations. No API key. Redirect to a short-lived signed URL.",
+        "description" : "Roles: ANON, MEMBER, INSTRUCTOR, ADMIN, AGILITYHUB_ADMIN. Public states: PUBLISHED, FINISHED and CANCELLED; DRAFT hidden. No names, member data or registrations. No API key. Redirect to a short-lived signed URL. The signed URL of the local storage (`expires` and `signature`) answers the file itself, with byte ranges (INC-43, CONVENCIONS_API §5).",
         "operationId" : "publicFile",
         "parameters" : [ {
           "in" : "path",
@@ -79600,6 +79288,53 @@
           }
         } ],
         "responses" : {
+          "200" : {
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "The whole file (signed URL): no Range, several ranges, a malformed one or an If-Range",
+            "headers" : {
+              "Accept-Ranges" : {
+                "schema" : {
+                  "enum" : [ "bytes" ],
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "206" : {
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "The one byte range asked for (signed URL, Range: bytes=a-b, a- or -n)",
+            "headers" : {
+              "Accept-Ranges" : {
+                "schema" : {
+                  "enum" : [ "bytes" ],
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "Content-Range" : {
+                "description" : "bytes start-end/size",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
           "302" : {
             "description" : "void",
             "headers" : {
@@ -79660,6 +79395,18 @@
               }
             },
             "description" : "Conflict"
+          },
+          "416" : {
+            "description" : "The range starts past the file (signed URL); no body",
+            "headers" : {
+              "Content-Range" : {
+                "description" : "bytes */size",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
           },
           "422" : {
             "content" : {
@@ -81123,13 +80870,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -81483,14 +81224,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "RING_BLOCK_CONFLICT, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "RING_BLOCK_CONFLICT, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -82274,13 +82009,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, COURSE_NOT_VISIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "STALE_VERSION"
           },
           "422" : {
@@ -82586,13 +82315,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION"
           },
           "422" : {
@@ -82750,13 +82473,7 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "INVALID_STATE, STALE_VERSION"
           },
           "422" : {
@@ -86141,13 +85858,7 @@
             "description" : "Not Found"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "MEMBER_ALREADY_EXISTS, MEMBER_ERASED, ID_DOCUMENT_ALREADY_EXISTS, CHIP_ALREADY_EXISTS, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
@@ -87230,14 +86941,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -87378,14 +87083,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -88365,14 +88064,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED, DOG_NOT_ACCESSIBLE"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "SLOT_TAKEN, TRAINING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "SLOT_TAKEN, TRAINING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -89116,14 +88809,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -89597,14 +89284,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -89762,14 +89443,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -89920,14 +89595,8 @@
             "description" : "NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT, BOOKING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT, BOOKING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -90379,14 +90048,8 @@
             "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "SEAT_TAKEN, SEAT_HOLD_EXPIRED, BOOKING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED"
+            "$ref" : "#/components/responses/StaleVersion",
+            "description" : "SEAT_TAKEN, SEAT_HOLD_EXPIRED, BOOKING_LIMIT_REACHED, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -92876,13 +92539,7 @@
             "description" : "NOT_FOUND"
           },
           "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
+            "$ref" : "#/components/responses/StaleVersion",
             "description" : "WEEK_ALREADY_GENERATED, INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {

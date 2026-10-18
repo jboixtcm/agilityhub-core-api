@@ -77,8 +77,48 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         }
         assertThat(operations).isEqualTo(6);
         // INC-53 point 11 (E11-T02): the trigger declares its optional Idempotency-Key, and with it IDEMPOTENCY_KEY_REUSED.
-        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED");
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
         assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1runs/get/responses/404/description").asText()).isEqualTo("JOB_UNKNOWN, MODULE_DISABLED");
+    }
+
+    /**
+     * E11-T02 round 2 (review #4): INC-47 lets every keyed write answer `409 STALE_VERSION`, so every route that declares
+     * `Idempotency-Key` references the one shared response, with its own codes and STALE_VERSION; no other route does. INC-43
+     * lets the local downloads answer byte ranges: the public activity file, the only one in the contract, declares 200, 206
+     * (Content-Range) and a bodiless 416.
+     */
+    @Test void INC_47_INC_43_keyedRoutesShareTheStaleVersionConflictAndDownloadsDeclareTheirRanges() throws Exception {
+        var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var component = document.at("/components/responses/StaleVersion");
+        assertThat(component.path("description").asText()).startsWith("STALE_VERSION");
+        assertThat(component.at("/content/application~1json/schema/$ref").asText()).isEqualTo("#/components/schemas/ApiError");
+        int keyed = 0;
+        for (var path : (Iterable<java.util.Map.Entry<String, JsonNode>>) document.path("paths")::fields) {
+            for (var operation : (Iterable<java.util.Map.Entry<String, JsonNode>>) path.getValue()::fields) {
+                var conflict = operation.getValue().at("/responses/409");
+                String route = operation.getKey() + " " + path.getKey();
+                if (operation.getValue().path("parameters").findValuesAsText("name").contains("Idempotency-Key")) {
+                    keyed++;
+                    assertThat(conflict.path("$ref").asText()).as(route).isEqualTo("#/components/responses/StaleVersion");
+                    assertThat(List.of(conflict.path("description").asText().split(", "))).as(route).contains("STALE_VERSION").doesNotHaveDuplicates()
+                            .allMatch(code -> com.agilityhub.core.shared.domain.ErrorCode.valueOf(code).httpStatus() == 409);
+                    assertThat(conflict.has("content")).as(route).isFalse();
+                } else {
+                    assertThat(conflict.has("$ref")).as(route).isFalse();
+                }
+            }
+        }
+        assertThat(keyed).isGreaterThan(60);
+        // A keyed route keeps its own 409 codes next to STALE_VERSION.
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText())
+                .isEqualTo("JOB_ALREADY_RUNNING, IDEMPOTENCY_KEY_REUSED, STALE_VERSION");
+        var file = document.at("/paths/~1api~1v1~1public~1{clubSlug}~1activities~1{slug}~1files~1{fileId}/get/responses");
+        assertThat(names(file)).contains("200", "206", "302", "416");
+        assertThat(file.at("/206/headers/Content-Range").isMissingNode()).isFalse();
+        assertThat(strings(file.at("/206/headers/Accept-Ranges/schema/enum"))).containsExactly("bytes");
+        assertThat(file.at("/206/content/application~1octet-stream/schema/format").asText()).isEqualTo("binary");
+        assertThat(file.at("/416/headers/Content-Range/description").asText()).isEqualTo("bytes */size");
+        assertThat(file.path("416").has("content")).isFalse();
     }
 
     @Test void T_14_13_auditReadAndExportSchemasRetainTypedUniversalContracts() throws Exception {
@@ -128,7 +168,10 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
             assertThat(names(operation.path("responses"))).anyMatch(code -> code.matches("[23][0-9]{2}"));
             operation.path("responses").fields().forEachRemaining(entry -> {
                 // E5-T27 step 5 (INC-01, A7-07): the health's 503 is its own envelope, asserted below.
-                if (entry.getKey().matches("[45](?:[0-9]{2}|XX)") && !(path.getKey().equals("/api/v1/health") && entry.getKey().equals("503"))) {
+                // E11-T02 round 2: a keyed route's 409 is the shared component (its ApiError asserted in the INC-47 test), and a
+                // download's 416 has no body.
+                boolean shared = entry.getValue().has("$ref") || entry.getKey().equals("416");
+                if (!shared && entry.getKey().matches("[45](?:[0-9]{2}|XX)") && !(path.getKey().equals("/api/v1/health") && entry.getKey().equals("503"))) {
                     assertThat(names(entry.getValue().path("content"))).containsExactly("application/json");
                     assertThat(entry.getValue().at("/content/application~1json/schema/$ref").asText())
                             .isEqualTo("#/components/schemas/ApiError");

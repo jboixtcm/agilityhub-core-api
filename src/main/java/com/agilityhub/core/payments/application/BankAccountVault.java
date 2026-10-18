@@ -18,8 +18,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class BankAccountVault implements BankAccounts {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(BankAccountVault.class);
+    /** The profiles where an IBAN may still be stored in clear without `BILLING_BANK_KEY`: the local stack and the tests. */
+    static final org.springframework.core.env.Profiles CLEAR_ALLOWED = org.springframework.core.env.Profiles.of("local", "test");
     private final AesGcmCipher cipher;
-    public BankAccountVault(@Value("${core.billing.bank-key:}") String key) { this.cipher = new AesGcmCipher(key, "BILLING_BANK_KEY", "Bank account"); }
+    private final boolean clearAllowed;
+    /** A vault of the local stack or a test: without a key, {@link #seal} keeps the IBAN in clear (with a WARN). */
+    public BankAccountVault(String key) { this(key, true); }
+    @org.springframework.beans.factory.annotation.Autowired
+    public BankAccountVault(@Value("${core.billing.bank-key:}") String key, org.springframework.core.env.Environment environment) {
+        this(key, environment.acceptsProfiles(CLEAR_ALLOWED));
+    }
+    BankAccountVault(String key, boolean clearAllowed) {
+        this.cipher = new AesGcmCipher(key, "BILLING_BANK_KEY", "Bank account"); this.clearAllowed = clearAllowed;
+    }
 
     /** Whether `BILLING_BANK_KEY` is usable (the migration refuses to import bank data without it, E85). */
     @Override public boolean configured() { return cipher.configured(); }
@@ -41,10 +53,18 @@ public class BankAccountVault implements BankAccounts {
 
     public String encrypt(String iban, String clubId, String memberId) { return cipher.encrypt(iban, clubId + ":" + memberId); }
 
-    /** {@link BankAccounts#seal}: `{ibanEncrypted, ibanLast4}`, or `{iban}` only where `BILLING_BANK_KEY` is not set. */
+    /**
+     * {@link BankAccounts#seal}: `{ibanEncrypted, ibanLast4}`. Without `BILLING_BANK_KEY`, E11-T02 round 2 (review #8): the local
+     * stack and the tests keep `{iban}` in clear with a WARN; any other profile (staging, prod, none) refuses, a server
+     * misconfiguration, so that a deployment without the key never quietly undoes INC-31.
+     */
     @Override public Map<String, Object> seal(String iban, String clubId, String memberId) {
         var stored = new LinkedHashMap<String, Object>();
-        if (!configured()) { stored.put("iban", iban); return stored; }
+        if (!configured()) {
+            if (!clearAllowed) { throw new IllegalStateException("BILLING_BANK_KEY is required to store a bank account outside the local profile"); }
+            LOG.warn("BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId={}", clubId);
+            stored.put("iban", iban); return stored;
+        }
         stored.put("ibanEncrypted", encrypt(iban, clubId, memberId));
         stored.put("ibanLast4", iban.substring(Math.max(0, iban.length() - 4)));
         return stored;

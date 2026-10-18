@@ -193,26 +193,32 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
 
     /**
      * INC-36 (S01 R-01-06): two refreshes of one token at once (two tabs of one browser) both succeed. The loser of the rotation
-     * retries its transaction, finds the token just rotated inside `auth.refreshReuseGraceSeconds` and takes the grace: the
-     * family keeps exactly one live token and nothing is revoked (before: one `REFRESH_REUSED` and the whole session lost).
+     * retries its transaction, finds the token just rotated inside `auth.refreshReuseGraceSeconds` and takes the grace: it gets a
+     * sibling of the winner's child (round 2), nothing is revoked (before: one `REFRESH_REUSED` and the whole session lost), and
+     * each caller's own token works on its next refresh.
      */
-    @Test void T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndKeepOneLiveToken() throws Exception {
+    @Test void T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndBothKeepTheirSession() throws Exception {
         String value = refreshValue(login());
+        List<String> issued;
         try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
             var gate = new java.util.concurrent.CyclicBarrier(2);
             Callable<String> attempt = () -> {
                 try (var scope = TenantContext.open("club-a")) {
                     gate.await();
-                    try { tokens.refresh(value, "clubs-app"); return "OK"; }
+                    try { return tokens.refresh(value, "clubs-app").refresh().getTokenValue(); }
                     catch (ApiException e) { return e.code().name(); }
                 }
             };
             var results = pool.invokeAll(List.of(attempt, attempt));
-            assertThat(List.of(results.get(0).get(), results.get(1).get())).containsExactly("OK", "OK");
+            issued = List.of(results.get(0).get(), results.get(1).get());
         }
+        assertThat(issued).doesNotHaveDuplicates().allMatch(token -> token.length() == 43);
         var family = mongo.findAll(RefreshToken.class);
         assertThat(family).hasSize(3).noneMatch(t -> t.status() == RefreshToken.Status.REVOKED);
-        assertThat(family).filteredOn(t -> t.status() == RefreshToken.Status.ACTIVE).hasSize(1);
+        assertThat(family).filteredOn(t -> t.status() == RefreshToken.Status.ACTIVE).extracting(RefreshToken::tokenHash)
+                .containsExactlyInAnyOrder(TokenService.digest(issued.get(0)), TokenService.digest(issued.get(1)));
+        clock.advance(Duration.ofMinutes(15));
+        for (String token : issued) { refresh(token, HOST, "clubs-app").andExpect(status().isOk()); }
     }
 
     @Test void T_01_09_passwordChangePreservesCurrentFamilyRevokesOtherDevicesAndSendsN26() throws Exception {

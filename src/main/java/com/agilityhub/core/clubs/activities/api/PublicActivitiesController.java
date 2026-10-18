@@ -55,7 +55,18 @@ public class PublicActivitiesController {
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     @ResponseStatus(HttpStatus.FOUND)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, MODULE_DISABLED, CLUB_NOT_FOUND})
-    @Operation(summary = "publicFile", description = "Roles: ANON, MEMBER, INSTRUCTOR, ADMIN, AGILITYHUB_ADMIN. Public states: PUBLISHED, FINISHED and CANCELLED; DRAFT hidden. No names, member data or registrations. No API key. Redirect to a short-lived signed URL.", responses = @ApiResponse(responseCode = "302", description = "void", headers = {@io.swagger.v3.oas.annotations.headers.Header(name = "Location", schema = @Schema(type = "string"))}, content = @Content))
+    @Operation(summary = "publicFile", description = "Roles: ANON, MEMBER, INSTRUCTOR, ADMIN, AGILITYHUB_ADMIN. Public states: PUBLISHED, FINISHED and CANCELLED; DRAFT hidden. No names, member data or registrations. No API key. Redirect to a short-lived signed URL. The signed URL of the local storage (`expires` and `signature`) answers the file itself, with byte ranges (INC-43, CONVENCIONS_API §5).", responses = {
+            @ApiResponse(responseCode = "302", description = "void", headers = {@io.swagger.v3.oas.annotations.headers.Header(name = "Location", schema = @Schema(type = "string"))}, content = @Content),
+            @ApiResponse(responseCode = "200", description = "The whole file (signed URL): no Range, several ranges, a malformed one or an If-Range", headers = {
+                    @io.swagger.v3.oas.annotations.headers.Header(name = "Accept-Ranges", schema = @Schema(type = "string", allowableValues = "bytes"))},
+                    content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "206", description = "The one byte range asked for (signed URL, Range: bytes=a-b, a- or -n)", headers = {
+                    @io.swagger.v3.oas.annotations.headers.Header(name = "Accept-Ranges", schema = @Schema(type = "string", allowableValues = "bytes")),
+                    @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Range", description = "bytes start-end/size", schema = @Schema(type = "string"))},
+                    content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "416", description = "The range starts past the file (signed URL); no body", headers = {
+                    @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Range", description = "bytes */size", schema = @Schema(type = "string"))},
+                    content = @Content)})
     public org.springframework.http.ResponseEntity<?> publicFile(@PathVariable String clubSlug, @PathVariable String slug, @PathVariable String fileId, @RequestHeader(value = "Accept-Language", required = false) String language, @RequestParam(required=false) Long expires, @RequestParam(required=false) String signature, jakarta.servlet.http.HttpServletRequest request) throws java.io.IOException {
         var file=service.file(clubSlug,slug,fileId);
         if(expires==null && signature==null) return org.springframework.http.ResponseEntity.status(302).location(java.net.URI.create(file.signedUrl())).build();

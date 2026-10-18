@@ -53,7 +53,8 @@ public final class KeyedRoutes {
         return known;
     }
 
-    private static boolean keyed(HandlerMethod handler) {
+    /** Whether the handler declares the header: what makes its route keyed (and what the contract lists, OpenApiConfiguration). */
+    public static boolean keyed(HandlerMethod handler) {
         for (var parameter : handler.getMethodParameters()) {
             var header = parameter.getParameterAnnotation(RequestHeader.class);
             if (header != null && (HEADER.equalsIgnoreCase(header.value()) || HEADER.equalsIgnoreCase(header.name()))) { return true; }

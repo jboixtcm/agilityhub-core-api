@@ -1,0 +1,180 @@
+12:01:43.735 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.PasswordGrantIT]: PasswordGrantIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:01:43.831 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.PasswordGrantIT
+12:01:43.858 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.PasswordGrantIT]: PasswordGrantIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:01:43.859 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:01:43.859 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:01:43.861 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.PasswordGrantIT
+12:01:43.889 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+12:01:43.889 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+12:01:43.893 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+12:01:43.976 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+12:01:44.142 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+12:01:44.142 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+12:01:44.153 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.8.2
+  API Version: 1.56
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+12:01:44.484 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+12:01:44.541 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+12:01:44.591 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 469bea5b3d57601634c29af4036a9c015ed33f57c121c3000479944c6b271890
+12:01:44.763 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.279674S
+12:01:44.766 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:01:44.766 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:01:44.766 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:01:44.767 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+12:01:44.822 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 020cf379e83ae39cc2d03eacd1407bf45d0ca2caa93a1365d2238f8acfe6c01d
+12:01:45.314 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.547551S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T12:01:45.963+03:00 INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : Starting PasswordGrantIT using Java [redacted] with PID 30035 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-18T12:01:45.964+03:00 INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T12:01:46.676+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T12:01:46.721+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 41 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T12:01:47.053+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5b6637f3], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5dc218e2, com.mongodb.Jep395RecordCodecProvider@11d474a, com.mongodb.KotlinCodecProvider@4be6531a, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60436], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@21553c3a], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T12:01:47.059+03:00 INFO  [cluster-6ad48afb485f865b6822e5f8-localhost:60436] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60436, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8008500, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=020cf379e83a:27017, hosts=[020cf379e83a:27017], passives=[], arbiters=[], primary='020cf379e83a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad48af8424e27f9d1ba2600, counter=6}, lastWriteDate=Sun Oct 18 12:01:45 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T12:01:47.991+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.010+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.031+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.545+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.558+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.573+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:48.641+03:00 WARN  [main] o.s.aop.framework.CglibAopProxy traceId= clubId= accountId= : Public final method [public final boolean com.agilityhub.core.courses.persistence.CourseTenantRepository.deleteById(java.lang.String)] cannot get proxied via CGLIB, consider removing the final marker or using interface-based JDK proxies.
+2026-10-18T12:01:50.144+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T12:01:50.144+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T12:01:50.148+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 4 ms
+2026-10-18T12:01:50.202+03:00 INFO  [main] c.a.core.identity.api.PasswordGrantIT traceId= clubId= accountId= : Started PasswordGrantIT in 4.383 seconds (process running for 6.795)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 14, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 9.168 s <<< FAILURE! -- in com.agilityhub.core.identity.api.PasswordGrantIT
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily -- Time elapsed: 0.174 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["l8afRjSpqHIOHrWBKUh4JsloY-jGBWoxVw3OsO74_ls"]
+to contain exactly in any order:
+  ["9tCfeq8BHfiKqNq4Alx-rYcH-i5mhw7BJLMMB0B1xjQ",
+    "l8afRjSpqHIOHrWBKUh4JsloY-jGBWoxVw3OsO74_ls"]
+but could not find the following elements:
+  ["9tCfeq8BHfiKqNq4Alx-rYcH-i5mhw7BJLMMB0B1xjQ"]
+
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily(PasswordGrantIT.java:112)
+
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_thePingPongOfAStolenTokenIsRevokedAtTheFirstChainedReuse -- Time elapsed: 0.120 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the thief's grace does not rotate the victim's token] 
+expected: ACTIVE
+ but was: ROTATED
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_thePingPongOfAStolenTokenIsRevokedAtTheFirstChainedReuse(PasswordGrantIT.java:132)
+
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_aTokenWhoseChildHasMovedOnGetsNoGrace -- Time elapsed: 0.115 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<400> but was:<200>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_aTokenWhoseChildHasMovedOnGetsNoGrace(PasswordGrantIT.java:155)
+
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_aGraceRetiresTheLeftoverOfAnEarlierRaceAndItsReuseRevokesTheFamily -- Time elapsed: 0.121 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 2 but was: 1 in:
+["9ZdOzUhW7A7xFqX_rlw-2mtIbWbVrXTH1WhP8R9dVT4"]
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_aGraceRetiresTheLeftoverOfAnEarlierRaceAndItsReuseRevokesTheFamily(PasswordGrantIT.java:211)
+
+[ERROR] com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_twoHoldersOfOneTokenKeepTheirSessionWhicheverAnswerArrivesLast -- Time elapsed: 0.106 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.agilityhub.core.identity.api.PasswordGrantIT.INC_36_R_01_06_T_01_04_twoHoldersOfOneTokenKeepTheirSessionWhicheverAnswerArrivesLast(PasswordGrantIT.java:174)
+
+2026-10-18T12:01:52.859+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T12:01:52.861+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+2026-10-18T12:01:52.862+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T12:01:52.862+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityIntegrationSupport]: IdentityIntegrationSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T12:01:52.862+03:00 INFO  [main] o.s.t.c.s.AnnotationConfigContextLoaderUtils traceId= clubId= accountId= : Could not detect default configuration classes for test class [com.agilityhub.core.support.AbstractIntegrationTest]: AbstractIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-18T12:01:52.863+03:00 INFO  [main] o.s.b.t.c.SpringBootTestContextBootstrapper traceId= clubId= accountId= : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-10-18T12:01:52.882+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Starting IdentityCoreIT using Java [redacted] with PID 30035 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api-c)
+2026-10-18T12:01:52.882+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : The following 1 profile is active: "test"
+2026-10-18T12:01:53.136+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-18T12:01:53.164+03:00 INFO  [main] o.s.d.r.c.RepositoryConfigurationDelegate traceId= clubId= accountId= : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-10-18T12:01:53.420+03:00 INFO  [cluster-6ad48b01485f865b6822e5f9-localhost:60436] org.mongodb.driver.cluster traceId= clubId= accountId= : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60436, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2335000, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=020cf379e83a:27017, hosts=[020cf379e83a:27017], passives=[], arbiters=[], primary='020cf379e83a:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ad48af8424e27f9d1ba2600, counter=6}, lastWriteDate=Sun Oct 18 12:01:52 EEST 2026, lastUpdateTimeNanos=[redacted]}
+2026-10-18T12:01:53.418+03:00 INFO  [main] org.mongodb.driver.client traceId= clubId= accountId= : MongoClient with metadata {"driver": {"name": "mongo-java-driver|spring-boot|sync", "version": "5.8.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/[redacted]"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@39c9272], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5dc218e2, com.mongodb.Jep395RecordCodecProvider@11d474a, com.mongodb.KotlinCodecProvider@4be6531a, EnumCodecProvider{}]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60436], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='2000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], heartbeatSocketSettings=SocketSettings{connectTimeoutMS=2000, readTimeoutMS=2000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, [redacted], connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=2000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5cba45e8], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-18T12:01:54.879+03:00 INFO  [main] o.s.b.t.m.w.SpringBootMockServletContext traceId= clubId= accountId= : Initializing Spring TestDispatcherServlet ''
+2026-10-18T12:01:54.879+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Initializing Servlet ''
+2026-10-18T12:01:54.881+03:00 INFO  [main] o.s.t.web.servlet.TestDispatcherServlet traceId= clubId= accountId= : Completed initialization in 2 ms
+2026-10-18T12:01:54.908+03:00 INFO  [main] c.a.core.identity.api.IdentityCoreIT traceId= clubId= accountId= : Started IdentityCoreIT in 2.043 seconds (process running for 11.501)
+[ERROR] Tests run: 31, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 7.671 s <<< FAILURE! -- in com.agilityhub.core.identity.api.IdentityCoreIT
+[ERROR] com.agilityhub.core.identity.api.IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndBothKeepTheirSession -- Time elapsed: 0.154 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["O-P43TTHHO6QGOZ7B9LZhPpcd2BoPYcRKA9EmmgposI"]
+to contain exactly in any order:
+  ["O-P43TTHHO6QGOZ7B9LZhPpcd2BoPYcRKA9EmmgposI",
+    "wylke1VJrgN9PVbBzQtiCmMILtjdXP9h-DrxbTjIens"]
+but could not find the following elements:
+  ["wylke1VJrgN9PVbBzQtiCmMILtjdXP9h-DrxbTjIens"]
+
+	at com.agilityhub.core.identity.api.IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndBothKeepTheirSession(IdentityCoreIT.java:219)
+
+[ERROR] Failures: 
+[ERROR]   IdentityCoreIT.T_01_04_INC_36_simultaneousRefreshesOfOneTokenBothSucceedAndBothKeepTheirSession:219 
+Expecting actual:
+  ["O-P43TTHHO6QGOZ7B9LZhPpcd2BoPYcRKA9EmmgposI"]
+to contain exactly in any order:
+  ["O-P43TTHHO6QGOZ7B9LZhPpcd2BoPYcRKA9EmmgposI",
+    "wylke1VJrgN9PVbBzQtiCmMILtjdXP9h-DrxbTjIens"]
+but could not find the following elements:
+  ["wylke1VJrgN9PVbBzQtiCmMILtjdXP9h-DrxbTjIens"]
+
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_T_01_04_aGraceRetiresTheLeftoverOfAnEarlierRaceAndItsReuseRevokesTheFamily:211 
+Expected size: 2 but was: 1 in:
+["9ZdOzUhW7A7xFqX_rlw-2mtIbWbVrXTH1WhP8R9dVT4"]
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_T_01_04_aTokenWhoseChildHasMovedOnGetsNoGrace:155 Status expected:<400> but was:<200>
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_T_01_04_thePingPongOfAStolenTokenIsRevokedAtTheFirstChainedReuse:132 [the thief's grace does not rotate the victim's token] 
+expected: ACTIVE
+ but was: ROTATED
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_T_01_04_twoHoldersOfOneTokenKeepTheirSessionWhicheverAnswerArrivesLast:174 Status expected:<200> but was:<400>
+[ERROR]   PasswordGrantIT.INC_36_R_01_06_aRotatedTokenReusedInsideTheGraceIsAcceptedOnceAndKeepsTheFamily:112 
+Expecting actual:
+  ["l8afRjSpqHIOHrWBKUh4JsloY-jGBWoxVw3OsO74_ls"]
+to contain exactly in any order:
+  ["9tCfeq8BHfiKqNq4Alx-rYcH-i5mhw7BJLMMB0B1xjQ",
+    "l8afRjSpqHIOHrWBKUh4JsloY-jGBWoxVw3OsO74_ls"]
+but could not find the following elements:
+  ["9tCfeq8BHfiKqNq4Alx-rYcH-i5mhw7BJLMMB0B1xjQ"]
+
+[ERROR] Tests run: 45, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api-c/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+exit=0 (-Dmaven.test.failure.ignore=true: the 6 failures above are the red result)

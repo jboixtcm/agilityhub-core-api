@@ -42,10 +42,14 @@ public class RingGeometryService {
     private final ClubConfigService configs;
     private final EventPublisher events;
     private final Clock clock;
+    private final org.springframework.transaction.support.TransactionTemplate outside;
     public RingGeometryService(RingGeometryRepository rings, PlacementRepository placements, RingSetupRepository setups,
-            CalibrationLogRepository calibrations, VenueRepository venues, ClubConfigService configs, EventPublisher events, Clock clock) {
+            CalibrationLogRepository calibrations, VenueRepository venues, ClubConfigService configs, EventPublisher events, Clock clock,
+            org.springframework.transaction.PlatformTransactionManager transactions) {
         this.rings = rings; this.placements = placements; this.setups = setups; this.calibrations = calibrations; this.venues = venues;
         this.configs = configs; this.events = events; this.clock = clock;
+        this.outside = new org.springframework.transaction.support.TransactionTemplate(transactions);
+        this.outside.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
     private RingGeometryRepository.GeometryRecord ring(String id) { return rings.findById(id).orElseThrow(() -> new ApiException(NOT_FOUND)); }
@@ -105,14 +109,18 @@ public class RingGeometryService {
 
     /**
      * S16 §14.2: the club's venue, created with the club's name and slug the first time the club draws a ring. INC-61
-     * (E11-T02): a slug another venue already holds takes the first free suffix, never a duplicate key.
+     * (E11-T02): a slug another venue already holds takes the first free suffix. Round 2 (review #7): a slug taken by a concurrent
+     * first ring of another club is a duplicate key, which {@link VenueRepository#freeSlug} retries with the next suffix; it runs
+     * outside the geometry's transaction, which a duplicate key would abort. The venue is one per club and idempotent, so a
+     * geometry that rolls back later leaves a venue that the club's next geometry finds.
      */
     private void ensureVenue() {
         if (venues.club().isPresent()) { return; }
         var club = configs.get(TenantContext.require()).club();
         var now = clock.instant(); String actor = CourseAccess.accountId();
-        venues.ensure(new Venue(UUID.randomUUID().toString(), club.id(), venues.freeSlug(club.slug()), club.name(), null, club.city(), null, null, IndoorOutdoor.MIXED,
-                null, null, null, VenueVisibility.MEMBERS_ONLY, PartnerStatus.INACTIVE, null, null, PaperSize.A4, now, actor, now, actor));
+        outside.executeWithoutResult(status -> venues.freeSlug(club.slug(), slug -> new Venue(UUID.randomUUID().toString(), club.id(), slug, club.name(), null,
+                club.city(), null, null, IndoorOutdoor.MIXED, null, null, null, VenueVisibility.MEMBERS_ONLY, PartnerStatus.INACTIVE, null, null, PaperSize.A4,
+                now, actor, now, actor)));
     }
 
     @Transactional

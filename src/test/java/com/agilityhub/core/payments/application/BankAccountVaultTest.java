@@ -52,6 +52,29 @@ class BankAccountVaultTest {
         assertThat(local.seal(IBAN, "club-a", "member-a")).containsExactly(Map.entry("iban", IBAN));
     }
 
+    /**
+     * INC-31, E11-T02 round 2 (review #8): without `BILLING_BANK_KEY` only the local stack and the tests store an IBAN in clear,
+     * with a WARN that names no account; staging, prod or no profile refuse it as a misconfiguration, never undoing INC-31.
+     */
+    @Test @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void INC_31_E43_withoutTheKeyOnlyTheLocalProfileStoresAClearIbanAndItWarns(org.springframework.boot.test.system.CapturedOutput output) {
+        for (var profiles : java.util.List.of(new String[]{"prod"}, new String[]{"staging"}, new String[]{})) {
+            var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profiles);
+            var vault = new BankAccountVault("", environment);
+            assertThatThrownBy(() -> vault.seal(IBAN, "club-a", "member-a")).as(String.join(",", profiles)).isInstanceOf(IllegalStateException.class)
+                    .hasMessage("BILLING_BANK_KEY is required to store a bank account outside the local profile");
+            // With the key, a production vault seals as usual.
+            assertThat(new BankAccountVault(KEY, environment).seal(IBAN, "club-a", "member-a")).containsOnlyKeys("ibanEncrypted", "ibanLast4");
+        }
+        assertThat(output.getAll()).doesNotContain("stored in clear");
+        for (String profile : new String[]{"local", "test"}) {
+            var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile);
+            assertThat(new BankAccountVault("", environment).seal(IBAN, "club-a", "member-a")).containsExactly(Map.entry("iban", IBAN));
+        }
+        assertThat(output.getAll()).contains("BILLING_BANK_KEY is not set: a bank account is stored in clear (local profile only) clubId=club-a")
+                .doesNotContain(IBAN).doesNotContain("member-a");
+    }
+
     /** INC-31: two stored accounts of a member are compared in the vault, across both shapes and two seals of one IBAN. */
     @Test void INC_31_E43_sameAnswersWhetherTwoStoredAccountsHoldOneIban() {
         var vault = new BankAccountVault(KEY);
