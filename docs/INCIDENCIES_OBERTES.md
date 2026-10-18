@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v4.0 · 17-10-2026** (v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v4.1 · 18-10-2026** (v4.0 17-10 · v3.9 17-10 · v3.8 17-10 · v3.7 16-10 · v3.6 16-10 · v3.5 16-10 · v3.4 16-10 · v3.3 15-10 · v3.2 15-10 · v3.1 15-10 · v3.0 05-10 · v2.9 01-10 · v2.8 01-10 · v2.7 01-10 · v2.6 01-10 · v2.5 01-10 · v2.4 01-10 · v2.3 30-09 · v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -45,15 +45,15 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-33 | 26-09 | api (alta) | D1 i el llistat d'abonats jutgen una readmissió pendent per la fitxa de baixa, no per la sol·licitud (E38) | Baixa | **resolta 30-09 (E5-T28 ✅, pas 7)** |
 | INC-34 | 26-09 | api (planificació) | Es pot crear una classe `DRAFT` solta mentre es valida la setmana; `409` no declarats a les rutes de validació i de classe | Baixa | **resolta 30-09 (E5-T28 ✅, pas 5)** |
 | INC-35 | 26-09 | api (cens) | El `PATCH` d'un gos actiu desa el xip sense normalitzar | Baixa | **resolta 30-09 (E5-T28 ✅, pas 6)** |
-| INC-36 | 26-09 | api (autenticació) | Causa d'INC-07: reutilitzar un refresh token ja rotat revoca el fill viu, sense cap gràcia, i dues renovacions concurrents competeixen a `Account.sessionSequence` | **Alta** (= INC-07) | oberta — E11-T02 (`auth.refreshReuseGraceSeconds` = 30) |
-| INC-37 | 26-09 | api (identitat, menors) | Menors d'identitat: esdeveniments, auditoria, temps de resposta, importació de Learn, rotació de claus | Baixa | oberta — E11-T02 |
-| INC-38 | 26-09 | api (cens i catàlegs, menors) | Menors de cens i catàlegs: emmascarament de les exportacions, exportació asíncrona amb filtre numèric, auditoria sense `entityLabel`, … | Baixa | oberta — E11-T02 (la regla del grup familiar, a E8-T02) |
-| INC-39 | 26-09 | api (alta, menors) | Menors d'alta: rutes de D10 no congelades durant una readmissió, codi mort, … | Baixa | oberta — E11-T02 (part a E8-T04) |
-| INC-40 | 26-09 | api (planificació, reserves i processos, menors) | Menors: text del risc, finestra de bloqueig no alineada, `instructorIds` buit, nivell inactiu, cursa de l'slug, … | Baixa | oberta — E11-T02 · E11-T03 |
-| INC-41 | 26-09 | web (fonaments i pantalles, menors) | Menors del web: `apps/id` en fallar la renovació, logout amb bearer refusat, pàgina en blanc si `/branding` falla, esquemes de `pending.json` ja publicats, tema `auto`, … | Baixa (la llista de traspàs, un botó mort i el router: Mitjana) | oberta — E4-W16 pas 12 · E8-W03 · E11-W02 (el router, A38 ✓ Jordi 27-09) |
+| INC-36 | 26-09 | api (autenticació) | Causa d'INC-07: reutilitzar un refresh token ja rotat revoca el fill viu, sense cap gràcia, i dues renovacions concurrents competeixen a `Account.sessionSequence` | **Alta** (= INC-07) | oberta — E11-T02, ronda 2: el marge no s'ha de poder encadenar (E132) |
+| INC-37 | 26-09 | api (identitat, menors) | Menors d'identitat: esdeveniments, auditoria, temps de resposta, importació de Learn, rotació de claus | Baixa | oberta — E11-T09 (E132) |
+| INC-38 | 26-09 | api (cens i catàlegs, menors) | Menors de cens i catàlegs: emmascarament de les exportacions, exportació asíncrona amb filtre numèric, auditoria sense `entityLabel`, … | Baixa | oberta — E11-T10 (E132; la regla del grup familiar, a E8-T02) |
+| INC-39 | 26-09 | api (alta, menors) | Menors d'alta: rutes de D10 no congelades durant una readmissió, codi mort, … | Baixa | oberta — E11-T10 (E132; part a E8-T04) |
+| INC-40 | 26-09 | api (planificació, reserves i processos, menors) | Menors: text del risc, finestra de bloqueig no alineada, `instructorIds` buit, nivell inactiu, cursa de l'slug, … | Baixa | oberta — E11-T10 (E132) · E11-T03 |
+| INC-41 | 26-09 | web (fonaments i pantalles, menors) | Menors del web: `apps/id` en fallar la renovació, logout amb bearer refusat, pàgina en blanc si `/branding` falla, esquemes de `pending.json` ja publicats, tema `auto`, … | Baixa (la llista de traspàs, un botó mort i el router: Mitjana) | oberta — E4-W16 pas 12 · E8-W03 · E11-W02 (el router, A38 ✓ Jordi 27-09; la llista completa, a la ronda 2, E132) |
 | INC-42 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
 | INC-43 | 27-09 | api · fitxers | Revisió d'E5-T26: l'IT de les descàrregues locals no descarrega cap `DOG_PHOTO` ni `ACTIVITY_IMAGE` i els seus camins de reserva no tenen test; les descàrregues locals no admeten `Range` | Baixa | oberta — passada de correccions |
-| INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
+| INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — E11-T10, la part de l'api (ítems 1–2, E132); la del web, després |
 | INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — E11-T03 (pas 1) |
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
 | INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, **fetes a la seva ronda 5 (30-09, E6-T03 ✅)**; les de les sessions de muntatge amb clau (revisió d'E9-T04), a E9-T06 (16-10, E118) |
@@ -73,11 +73,14 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-61 | 15-10 | api (recorreguts, menors) | Menors d'E9-T02: el llistat de `GET /courses` es fa en memòria (límit conegut a R1), el `slug` del recinte pot xocar i donar un 500 (i A4 hauria de venir del perfil de país), noms de proves | Baixa | oberta — passada de correccions |
 | INC-62 | 16-10 | api · web (recorreguts) | Menors d'E9-T05 i dues peticions d'api d'E9-W03: la projecció del soci porta el nom d'un recorregut privat previst (R-16-16), la prova de `COURSE_NOT_VISIBLE` en registrar un muntatge, el full de muntatge anterior orfe i el d'una col·locació moguda, el nivell d'AgilityHub sense traduir a N-31, `S3AttachmentStorage.read` sense prova, `CourseListItem.updatedAt` i `dismantledReason` (i, al web, la data de D18 i «Substituït») | Mitjana | oberta — passada de correccions (E11-T02; la part del web, E11-W02) |
 | INC-63 | 16-10 | api (sessions de muntatge, menors) | Menors de la ronda 2 d'E9-T06: el límit d'enviadors refusa fluxos sans per sobre d'uns 64 subscriptors per instància, la prova del temps d'escriptura només llegeix la configuració, el `connection-timeout` de 20 s és global (també per a les pujades), l'estil del ganxo de proves, la prova dels dos `finish` només cobreix un camí | Baixa | oberta — passada de correccions (E11-T02) |
-| INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — passada de correccions (E11-T02); el pas manual es documenta a la ronda 2 d'E10-T04 |
+| INC-64 | 16-10 | api · infra (consola, dominis) | Un domini `clubs-admin` verificat rep el certificat, però Caddy hi serveix l'app `clubs` fins que s'afegeix a `CLUB_ADMIN_HOSTS` i es recarrega Caddy | Baixa | oberta — E11-T09 (E132); fins llavors, el pas manual de la ronda 2 d'E10-T04 |
 | INC-65 | 17-10 | api (consola, menors) | Menors de la ronda 2 d'E10-T04: el patró del filtre de suport no inclou `HEAD` (l'interceptor ho para, però cap prova ho cobreix), la comprovació del club d'`IdempotencyFilter` pot respondre `TENANT_MISMATCH` si ja hi ha un altre tenant obert, i `@SupportRestricted` escrita amb el nom complet a 22 handlers | Baixa | oberta — E11-T08 (E131) |
 | INC-66 | 17-10 | api (consola i dominis, menors) | Menors de la ronda 2 d'E10-T03: el reintent per JNDI llença els registres `A` que troba (una fallada de consulta que compta com a absència), el pas a pas de `DEPLOY.md` per als dominis de confiança (la primera opció no funciona i falta com recuperar-ne un de `BROKEN`) i `ClubRepository.save`, que depèn de la transacció de qui el crida | Mitjana | oberta — E11-T08 (E131) |
-| INC-67 | 17-10 | api (seguretat i límits de peticions, menors) | Menors d'E11-T06: cap prova garanteix que cada operació anònima d'escriptura tingui una ruta de límit; el compte de `STRIPE_WEBHOOK` només fa servir la IP (la ràfega d'un club pot endarrerir els esdeveniments de pagament d'un altre, que Stripe reintenta); `CHECKOUT_STATUS` compta per IP i no per compte | Mitjana | oberta — E11-T08 (E131) |
-| INC-68 | 17-10 | api (preus, dades) | Les dates de vigència d'un `Price` es desen com a dates BSON quan s'escriu sencer i com a cadenes quan s'actualitza (informe d'E11-T07); una consulta per data podria no trobar el preu vigent | Alta | oberta — E11-T08 (E131) |
+| INC-67 | 17-10 | api (seguretat i límits de peticions, menors) | Menors d'E11-T06: cap prova garanteix que cada operació anònima d'escriptura tingui una ruta de límit; el compte de `STRIPE_WEBHOOK` només fa servir la IP (la ràfega d'un club pot endarrerir els esdeveniments de pagament d'un altre, que Stripe reintenta); `CHECKOUT_STATUS` compta per IP i no per compte | Mitjana | oberta — E11-T08, ronda 2: la clau del límit dels webhooks (E132) |
+| INC-68 | 17-10 | api (preus, dades) | Les dates de vigència d'un `Price` es desen com a dates BSON quan s'escriu sencer i com a cadenes quan s'actualitza (informe d'E11-T07); una consulta per data podria no trobar el preu vigent | Alta | oberta — E11-T08, ronda 2: els preus bessons i la zona horària (E132) |
+| INC-69 | 18-10 | api (recorreguts, menors) | Menors d'E9-T07: la regla de quin recorregut mostra un muntatge és escrita tres vegades, la col·locació del soci quan el recorregut s'ha esborrat, el nom d'una prova i el diagrama de les sessions de muntatge d'S16 §5 | Baixa | oberta — E11-T09 (E132) |
+| INC-70 | 18-10 | api (Spring Boot 4, menors) | Menors d'E11-T07: la prova de l'escaneig exigeix que no hi hagi cap excepció, els pedaços de Jackson de la mateixa línia (2.21.7 i 3.1.7), una línia de `DEPLOY.md` sobre els fitxers de Compose i una sobre Micrometer | Baixa | oberta — E11-T09 (E132) |
+| INC-71 | 18-10 | api (proves) | `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream` falla de tant en tant: llegeix el `Content-Type` de l'SSE abans que estigui fixat quan diverses compilacions comparteixen el contenidor | Baixa | oberta — E11-T09 (E132) |
 
 ---
 
@@ -393,6 +396,50 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 **On mirar**: `PriceRepository`, la classe `Price` i les consultes del preu vigent a la facturació.
 
 ---
+
+## INC-69 · Menors d'E9-T07 (api, recorreguts)
+
+**Gravetat**: baixa. Avui les tres còpies de la regla coincideixen; el risc és que se separin més endavant.
+
+**Origen**: `roadmap/reviews/E9-T07-20261018-0815-claude.md` (api), troballes #2, #5, #6 i #8 (i la pregunta 2 de l'executor); verificació de l'organitzador del 18-10 (decisió E132).
+
+**El problema**:
+1. `RingSetupService.shown()` repeteix la regla de `shownCourse()` («el recorregut de la col·locació; si no, el del muntatge»), i `CourseAccess.shownBySetup` i `RingSetupRepository.showsCourse` la decideixen per separat. El límit d'R-16-16 depèn que les tres còpies no se separin.
+2. Quan el recorregut de la col·locació s'ha esborrat, `courseId` és `null` i `hasViewer` és `false`, però `placement` encara porta la transformació i els `resolvedObstacles` d'un recorregut que el soci ja no pot llegir.
+3. `RingGeometryIT.T_16_06_anInstructorReadsTheRingAndOnlyAnAdminWritesIt` cita T-16-06, que prova una altra regla.
+4. El diagrama de la sessió de muntatge d'S16 §5 encara diu `OPEN · FINISHED`, i els estats de sessió del codi són uns altres.
+
+**S'espera**: (1) `shown()` crida `shownCourse()`, i una prova lliga les altres dues a la mateixa regla; (2) `placement = null` quan el recorregut mostrat és `null`; (3) un nom de prova que no citi T-16-06; (4) el diagrama amb els estats del codi (E109).
+
+**On mirar**: `courses/application/RingSetupService.java:200-241`, `CourseAccess`, `RingSetupRepository`, `RingGeometryIT.java:164`, S16 §5.
+
+## INC-70 · Menors d'E11-T07 (api, Spring Boot 4)
+
+**Gravetat**: baixa. Cap d'aquestes troballes no bloqueja: l'escaneig no té cap CRITICAL corregible.
+
+**Origen**: `roadmap/reviews/E11-T07-20261018-0814-claude.md` (api), troballes #3, #4, #5 i #6, i la pregunta 5c de l'executor; verificació de l'organitzador del 18-10 (decisió E132).
+
+**El problema**:
+1. `bin/security-scan-test.py` exigeix que la llista d'excepcions actives sigui exactament `[]`: una excepció futura que compleixi la política no es podria afegir sense esborrar la prova, i la prova de validesa de les excepcions ja no comprova res.
+2. Jackson 3 (3.1.5) arriba amb `spring-boot-starter-webmvc`, i Jackson 2.21.5 i 3.1.5 tenen troballes HIGH corregides a 2.21.7 i 3.1.7.
+3. `docs/DEPLOY.md` diu que els dos fitxers de Compose no canvien, però `deploy/compose.prod.local.yaml` ha canviat (`SPRING_MONGODB_URI`).
+4. El pas 3 d'E11-T07 parlava de l'*starter* de Micrometer; les mètriques arriben amb `spring-boot-starter-actuator`, i l'informe no ho diu.
+
+**S'espera**: (1) la prova comprova només que cap excepció activa nomena `spring-webmvc` 6.2.19, CVE-2026-47884 o CVE-2026-47890; (2) les dues línies de Jackson fixades als pedaços, i l'escaneig de la imatge sense aquestes troballes; (3) i (4) una línia a `DEPLOY.md` per a cadascuna.
+
+**On mirar**: `bin/security-scan-test.py:69-79`, `pom.xml`, `docs/DEPLOY.md:571-572`.
+
+## INC-71 · Una prova inestable de les sessions de muntatge (api, proves)
+
+**Gravetat**: baixa. Només fa fallar una execució de tant en tant, però pot tornar vermella la CI.
+
+**Origen**: la pregunta 7 de l'informe d'E11-T01 (els seus registres `10` i `11`); verificació de l'organitzador del 18-10 (decisió E132).
+
+**El problema**: `BuildSessionsIT.T_16_10_theQueryTokenIsAcceptedOnlyByTheEventStream:328` va fallar un cop: va llegir el `Content-Type` de l'SSE abans que estigués fixat, mentre tres compilacions compartien el contenidor. Sola, passa.
+
+**S'espera**: la prova espera les capçaleres del flux, i 20 execucions seguides passen.
+
+**On mirar**: `BuildSessionsIT.java:328`.
 
 ## INC-01 · `GET /api/v1/health` retorna `500` amb el `main` actual
 

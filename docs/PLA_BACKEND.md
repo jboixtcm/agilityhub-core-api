@@ -4,7 +4,7 @@
 
 ## 1. Base tècnica
 
-- **Spring Boot 3.5.x · Java LTS (la d'Avanta) · Maven · MongoDB 7+ (replica set, transaccions)** · Spring Authorization Server (OIDC) · springdoc OpenAPI 3.1 · Testcontainers · JaCoCo · PITest (mòduls crítics).
+- **Spring Boot 4.1.x (Spring Framework 7) · Java LTS (la d'Avanta) · Maven · MongoDB 7+ (replica set, transaccions)** · Spring Authorization Server (OIDC) · springdoc OpenAPI 3.1 · Testcontainers · JaCoCo · PITest (mòduls crítics).
 - Paquet base `com.agilityhub.core`. Context path `/api/v1` (+ `/oauth2`, `/.well-known`, `/connect` per a l'ID; `/webhooks`; `/internal`).
 - **Contextos delimitats** (paquets de primer nivell), cadascun amb les capes Avanta `api/ · application/ · domain/ · persistence/`:
 

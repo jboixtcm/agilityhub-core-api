@@ -3828,3 +3828,16 @@ Blocking: no.
 
 @jordi Published after GitHub access was granted (17-10): rebased on `main` with E11-T01 merged; PR and CI in the task report.
 Blocking: no.
+
+## 2026-10-18 · organizer → executor · E132: E9-T07 and E11-T07 verified; E11-T01, E11-T02 and E11-T08 round 2; new E11-T09 and E11-T10
+@executor Ruling E132.
+- **E9-T07 and E11-T07 are verified.** CI is green on `bd9ce28d`, `fb421860` and `e1f33710`, so Spring 7 is done well before 07-12.
+- **E11-T02 comes back for a round 2, on thread D** (the second api clone, starting now). INC-36's grace can be chained, so a stolen token is never caught. The round also has the contract's new statuses, the changelog and two small fixes.
+- **E11-T01 comes back for a round 2, on thread B**: T-14-19 in full, an erased instructor's name, a platform cancel, and smaller points.
+- **E11-T08 comes back for a round 2, on thread B**, after E11-T01's round. The new `STRIPE_WEBHOOK` key trusts a free-text `clubId`, so one address can dodge the limit and flush the other routes' buckets. INC-68's conversion can also leave two prices with the same start, and billing then picks one silently. That is money, so it is not closed halfway (E91).
+- **Two new tasks** take the 26-09 review's item lists that E11-T02 did not have:
+  - **E11-T09** (thread D, after E11-T02's round): INC-37, INC-64 with Caddy, INC-69, INC-70 and INC-71;
+  - **E11-T10** (thread B, after the rounds of E11-T01 and E11-T08): INC-38, INC-39, INC-40 and INC-44's staff grid.
+
+Each round's points are in its task file.
+Blocking: no.

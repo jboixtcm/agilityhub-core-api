@@ -187,7 +187,7 @@ Base `CONVENCIONS_API` §1–§2; `clubId` sempre del JWT. Llistats de catàleg:
 | PATCH | `/levels/{id}` | ADMIN | — | no | edita (parcial) | camps §3 + `version` | 200 (+`warnings`) · 409 `STALE_VERSION`, `DUPLICATE_NAME` |
 | DELETE | `/levels/{id}` | ADMIN | — | sí | elimina si `usage = 0` | | 204 · 409 `LEVEL_IN_USE` |
 | PUT | `/levels/order` | ADMIN | — | sí | reordena | `{levelIds[]}` | 200 · 422 `ORDER_INCOMPLETE` |
-| GET/POST | `/rings` · GET/PATCH/DELETE `/rings/{id}` · PUT `/rings/order` | com `/levels` | `FREE_TRAINING` només per als camps `allowsFreeTraining`/`trainingCapacity` | — | ídem; lectura inclou `effectiveTrainingCapacity` | `{ringIds[]}` | 409 `RING_IN_USE`, `DUPLICATE_NAME` |
+| GET/POST | `/rings` · GET/PATCH/DELETE `/rings/{id}` · PUT `/rings/order` | com `/levels`; `GET /rings/{id}` també l'INSTRUCTOR, amb la projecció reduïda de lectura (S16 §6, E9-T07) | `FREE_TRAINING` només per als camps `allowsFreeTraining`/`trainingCapacity` | — | ídem; lectura inclou `effectiveTrainingCapacity` | `{ringIds[]}` | 409 `RING_IN_USE`, `DUPLICATE_NAME` |
 | GET | `/rings/{id}/geometry` | — | `COURSES` | — | **S16** (només l'enllaç des de D16) | | |
 | GET | `/instructors` | MEMBER, INSTRUCTOR, ADMIN | — | sí | actius (admin: `includeInactive`) | | 200 |
 | POST | `/instructors` | ADMIN | — | no | alta o reactivació (R-05-10) | `{memberId, shortName, color}` | 201 / 200 · 422 `MEMBER_NOT_ACTIVE` · 404 abonat d'un altre club |
@@ -418,3 +418,4 @@ Instructors i administradors van al **`demo-seed`** (necessiten abonats ficticis
 - 24-09-2026 · verificació d'E5-T09 i E5-T11: `RING_HAS_BOOKINGS` és **422** (regla 0 del catàleg; R-05-07, R-05-08, T-05-12, T-05-28) i l'API pública amb clau respon **403** `INVALID_API_KEY` abans de mirar el club (R-05-21, files §6 de plans i pàgines, T-05-18).
 - 24-09-2026 · B34 (Jordi): modalitat `COMPETICIO_1` «Competició 1 gos», 40 €/mes; «Instructors» no és cap modalitat (els instructors es migren sense modalitat).
 - 26-09-2026 · verificació d'E4-W06: l'ajuda de l'interruptor «Progressió» no anomena cap nivell del club (la d'abans deia «Teràpia» i «D»).
+- 18-10-2026 · verificació d'E9-T07 (E132, E109): §6, `GET /rings/{id}` també per a l'INSTRUCTOR, amb la projecció reduïda de lectura, com diu S16 §6.

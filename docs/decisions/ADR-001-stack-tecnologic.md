@@ -19,7 +19,7 @@ Comença la fase de desenvolupament del SAAS del club (model de dades v1.6, mock
 **Opció 1 — replicar Avanta**, amb aquests components:
 
 ### Backend (`agilityhub-core-api`, abans `agilityhub-club-api`)
-- **Spring Boot 3.5.x · Java LTS (mateixa versió que Avanta) · Maven**
+- **Spring Boot 4.1.x (Spring Framework 7) · Java LTS (mateixa versió que Avanta) · Maven** — de la 3.5 a la 4.1 el 17-10-2026 (E11-T07, verificada a E132); el JSON HTTP continua amb Jackson 2 fins al pas a Jackson 3
 - Arquitectura per capes amb dependències només cap avall: `api/` (controllers, autorització, OpenAPI) → `application/` (services, DTOs record, integracions) → `domain/` (entitats amb validació al constructor + `toDTO()`, màquines d'estat, enums) → `persistence/` (repositoris two-tier: façana + interfície Spring Data MongoDB) · `configuration/` · `utilities/`
 - **Contextos delimitats** (paquets de primer nivell, cadascun amb les seves capes): `identity` (AgilityHub ID, ADR-010) · `clubs` (tot el domini del club, subdividit per mòduls funcionals) · `courses` (recorreguts, rings, muntatge, ADR-013) · `payments` (proveïdors de cobrament, ADR-009) · `platform` (consola de clubs, perfils de país, i18n). Regla: `clubs` pot dependre d'`identity`, `courses` i `payments` per interfície; cap context depèn de `clubs`.
 - **Auth**: OAuth2 Authorization Server amb JWT — password grant opcional + **magic links** + refresh tokens; sessió persistent 30 dies lliscants (model §USUARI). Rols alumne/instructor/administrador com a claims.

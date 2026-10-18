@@ -26,7 +26,7 @@ Fora de R1 (dissenyat, no construït): estadístiques i lliga social (27/27b), T
 
 ## 3. Arquitectura decidida (resum)
 
-- **`agilityhub-core-api`**: Spring Boot 3.5 · Java LTS · MongoDB replica set · monòlit modular amb contextos `identity` · `clubs` · `courses` · `payments` · `platform`, capes Avanta dins de cada context · outbox d'esdeveniments · schedulers per club en hora local · OpenAPI publicat (ADR-001/002).
+- **`agilityhub-core-api`**: Spring Boot 4.1 (Spring Framework 7) · Java LTS · MongoDB replica set · monòlit modular amb contextos `identity` · `clubs` · `courses` · `payments` · `platform`, capes Avanta dins de cada context · outbox d'esdeveniments · schedulers per club en hora local · OpenAPI publicat (ADR-001/002).
 - **`agilityhub-core-web`**: pnpm + Turborepo · React 19 + TS + Vite + Tailwind 4 · `apps/clubs` (PWA), `apps/clubs-admin` (backoffice + consola), `apps/id` · `packages/ui` (tokens per club), `i18n` (ca/es/en), `api-client` (tipus generats), `auth`, `course-core`, `course-ui` (ADR-001/011/013).
 - **Hosts**: `id.` · `clubs.` · `clubsadmin.` · `core.agilitydoghub.com` + àlies per club (`app/admin.agilitycanic.cat`); droplet DO + Docker Compose + Caddy (on-demand TLS) + S3; staging al mateix droplet amb dades fictícies (ADR-003).
 - **Pagaments**: rebut neutre + cobrament per `SEPA_XML` / `STRIPE` (compte del club) / `MANUAL` (ADR-009). **Identitat**: compte global + membresies, OIDC, Learn federat sense canviar contrasenyes (ADR-010). **Mòduls i regles** per club (ADR-012). **i18n** total + perfil de país (ADR-011).

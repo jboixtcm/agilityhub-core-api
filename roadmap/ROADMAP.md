@@ -162,6 +162,8 @@ Pattern per stage: contract → domain → endpoints and integrations → proces
 - **E11-T06** · The E11 gate run: clean verify, traceability in CI, every smoke, seeds twice, snapshot drift, PITest on `payments` and E8's routes in E11-T03's security inventory · E11-T01…T05 · M
 - **E11-T07** (thread B) · Spring Boot 4.1 and Spring Framework 7: the upgrade that removes CVE-2026-47890's exception before 07-12 (E97), with the contract, the stored data and the gates unchanged; Jackson stays on 2 (`spring-boot-jackson2`) · E11-T03 · L · **thread B, installed 17-10 (`ready`, E129)**
 - **E11-T08** (thread B) · The api correction pass, part 2: INC-68 (the price validity dates) first, then INC-65, INC-66, INC-67 and the Sentry setting · E10-T03, E10-T04, E11-T06 · M · **thread B, installed 17-10 (`ready`, E131)**
+- **E11-T09** (thread D) · The api correction pass, part 3: INC-37 (the identity minors of the 26-09 review), INC-64 (a verified admin host serves the admin app, proven with Caddy), INC-69, INC-70 and INC-71 · E11-T07 · M · **thread D, installed 18-10 (`ready`, E132)**
+- **E11-T10** (thread B) · The api correction pass, part 4: INC-38, INC-39 and INC-40 (the census, signup and planning minors of the 26-09 review) and INC-44's staff grid · E11-T07 · L · **thread B, installed 18-10 (`ready`, E132)**
 
 **E12 · Migration and go-live (S18 WP-E).**
 - **E12-T01** · Release deployment: droplet, Caddy, real secrets, SendGrid, Twilio, VAPID, the Stripe test webhook, the backup cron and one restore on the server, the k6 re-measure. Needs SSH and DNS by 21-10 · E11-T04, E11-T06 · L
