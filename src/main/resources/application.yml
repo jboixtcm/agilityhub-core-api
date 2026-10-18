@@ -4,7 +4,8 @@ sentry:
   send-default-pii: false
   max-request-body-size: none
   traces-sample-rate: 0.0
-  enable-logs: false
+  logs:
+    enabled: false
 
 app:
   dashboard:

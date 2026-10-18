@@ -3,14 +3,12 @@ package com.agilityhub.core.clubs.catalogs.persistence;
 import com.agilityhub.core.shared.domain.*;
 import com.agilityhub.core.shared.persistence.TenantRepository;
 import com.agilityhub.core.clubs.catalogs.domain.OfferTerms.PriceConcept;
-import com.mongodb.ErrorCategory;
-import com.mongodb.MongoWriteException;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 import java.time.LocalDate;
 import java.util.*;
 import org.bson.BsonType;
+import org.bson.Document;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.*;
 import org.springframework.data.mongodb.core.query.*;
@@ -45,19 +43,22 @@ public class PriceRepository extends TenantRepository<Price> {
 
     /**
      * INC-68: converts the validity days that a whole-document write stored as BSON dates (every club, before the fix) to the
-     * `YYYY-MM-DD` strings every write stores now; idempotent. The filter repeats the old values, so a concurrent edit wins. A
-     * converted start that would duplicate another price's (unique `price_start`) stays a date, which reads the same, and is
-     * logged by id.
+     * `YYYY-MM-DD` strings every write stores now; idempotent. The template writes with the price's `clubId`, so reset's write
+     * fence sees them (R-18-17). The filter repeats the old values, so a concurrent edit wins. A converted start that would
+     * duplicate another price's (unique `price_start`) stays a date, which reads the same, and is logged by id.
      */
     public long normaliseValidityDates() {
-        var collection = mongo.getCollection(mongo.getCollectionName(Price.class));
+        String collection = mongo.getCollectionName(Price.class);
+        int date = BsonType.DATE_TIME.getValue();
+        var legacy = Query.query(new Criteria().orOperator(Criteria.where("validFrom").type(date), Criteria.where("validTo").type(date)));
         long converted = 0;
-        for (var stored : collection.find(Filters.or(Filters.type("validFrom", BsonType.DATE_TIME), Filters.type("validTo", BsonType.DATE_TIME)))) {
-            var filter = Filters.and(Filters.eq("_id", stored.get("_id")), Filters.eq("validFrom", stored.get("validFrom")), Filters.eq("validTo", stored.get("validTo")));
-            var days = Updates.combine(Updates.set("validFrom", day(stored.get("validFrom"))), Updates.set("validTo", day(stored.get("validTo"))));
-            try { converted += collection.updateOne(filter, days).getModifiedCount(); }
-            catch (MongoWriteException duplicate) {
-                if (duplicate.getError().getCategory() != ErrorCategory.DUPLICATE_KEY) { throw duplicate; }
+        for (var stored : mongo.find(legacy, Document.class, collection)) {
+            var unchanged = Query.query(Criteria.where("_id").is(stored.get("_id")).and("clubId").is(stored.get("clubId"))
+                    .and("validFrom").is(stored.get("validFrom")).and("validTo").is(stored.get("validTo")));
+            var days = new Update().set("validFrom", day(stored.get("validFrom")));
+            if (stored.get("validTo") != null) { days.set("validTo", day(stored.get("validTo"))); }
+            try { converted += mongo.updateFirst(unchanged, days, collection).getModifiedCount(); }
+            catch (DuplicateKeyException duplicate) {
                 LoggerFactory.getLogger(PriceRepository.class).warn("Price {} keeps a date validFrom: its day duplicates another price's start", stored.get("_id"));
             }
         }

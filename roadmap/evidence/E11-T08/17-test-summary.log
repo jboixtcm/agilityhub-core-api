@@ -1,0 +1,13 @@
+surefire tests 4761 failures 0 errors 0 skipped 0
+failsafe tests 2123 failures 0 errors 0 skipped 0
+SentryPropertiesBindingTest [('tests', '2'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+SentryCaptureTest [('tests', '3'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+JndiDomainDnsTest [('tests', '3'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+AnonymousRateLimitsTest [('tests', '24'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+ArchitectureTest [('tests', '22'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+PriceDatesIT [('tests', '4'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+StoredRepresentationIT [('tests', '3'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+SecurityInventoryIT [('tests', '3'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+SupportAccessIT [('tests', '7'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+PlatformDomainsIT [('tests', '5'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]
+RateLimitIT [('tests', '9'), ('errors', '0'), ('skipped', '0'), ('failures', '0')]

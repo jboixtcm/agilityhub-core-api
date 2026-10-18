@@ -35,7 +35,7 @@ class SentryCaptureTest {
                         WebMvcAutoConfiguration.class, SentryAutoConfiguration.class))
                 .withUserConfiguration(Fixture.class)
                 .withPropertyValues("sentry.dsn=https://fictional@localhost/1", "sentry.traces-sample-rate=0",
-                        "sentry.enable-logs=false", "sentry.send-default-pii=false")
+                        "sentry.logs.enabled=false", "sentry.send-default-pii=false")
                 .withBean(ITransportFactory.class, () -> (options, details) -> new ITransport() {
                     public void send(SentryEnvelope envelope, Hint hint) throws java.io.IOException {
                         for (var item : envelope.getItems()) {

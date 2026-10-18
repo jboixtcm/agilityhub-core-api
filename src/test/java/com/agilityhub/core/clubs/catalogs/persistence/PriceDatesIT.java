@@ -85,6 +85,16 @@ class PriceDatesIT extends AbstractIntegrationTest {
         }
     }
 
+    @Test void INC_68_aStoredDateStartThatWouldDuplicateAStringStartStaysADate() {
+        // Before the fix the unique `price_start` index saw a date and a string as two starts of the same day.
+        mongo.getCollection("prices").insertOne(legacy("inc68-legacy-twin", "2026-01-01", null));
+        try (var tenant = TenantContext.open(CLUB)) { prices.insert(price("inc68-string", "2026-01-01", null, 0)); }
+
+        assertThat(prices.normaliseValidityDates()).isZero();
+        assertThat(raw("inc68-legacy-twin").get("validFrom")).isInstanceOf(Date.class);
+        assertThat(raw("inc68-string")).containsEntry("validFrom", "2026-01-01");
+    }
+
     private static Price price(String id, String from, String to, long version) {
         return new Price(id, CLUB, PLAN, PriceConcept.MONTHLY_FEE, new Money(4500, "EUR"), new BigDecimal("21"), LocalDate.parse(from),
                 to == null ? null : LocalDate.parse(to), version, WRITTEN, WRITTEN, "account-inc-68", "account-inc-68");

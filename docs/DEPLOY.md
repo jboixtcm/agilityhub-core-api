@@ -1421,7 +1421,7 @@ only when its DSN is configured.
 | `sentry.send-default-pii` | `false` in every profile |
 | `sentry.max-request-body-size` | `none` in every profile |
 | `sentry.traces-sample-rate` | `0.0` (no transaction tracing) |
-| `sentry.enable-logs` | `false` (no separate log streaming) |
+| `sentry.logs.enabled` | `false` (no separate log streaming) |
 | `logging.structured.format.console` | `com.agilityhub.core.configuration.PrivacyLogFormatter` in `prod` / `staging`; unset locally |
 
 CI audits packaged dependencies with pinned Trivy `rootfs`, which inspects nested

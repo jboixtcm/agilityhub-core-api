@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- E11-T08: api correction pass, part 2 (INC-65 … INC-68 and the Sentry setting, ruling E131). No contract change.
+  - INC-68: a `Price`'s `validFrom`/`validTo` are stored as `YYYY-MM-DD` strings on every write path (`PriceDateConverter` replaces the `@Field(targetType = STRING)` that whole-document writes ignored); a startup runner (`CatalogPersistence`) converts the BSON dates earlier inserts left, idempotently.
+  - INC-67: `SecurityInventoryIT` checks that every published anonymous non-`GET` operation has a `RateLimits.Route`; the `STRIPE_WEBHOOK` quota is keyed by `clubId:ip`; an authenticated `CHECKOUT_STATUS` poll counts per account.
+  - INC-66: `JndiDomainDns` returns the `A` records its JNDI retry finds instead of «no address»; DEPLOY.md's trusted-domain options say to check the records with `dig` and how a `BROKEN` trusted domain comes back; `ClubRepository.save` documents that it relies on the caller's transaction.
+  - INC-65: a support token's `HEAD` is restricted like its `GET`; the console's idempotency club check with another club's `Host` is documented and tested.
+  - Sentry: `sentry.logs.enabled: false` replaces `sentry.enable-logs`, which bound to nothing.
+
 - E11-T07: Spring Boot 4.1 and Spring Framework 7 (ruling E129). The HTTP contract, the stored data and the gates are unchanged.
   - Spring Boot 3.5.16 → 4.1.1: Spring Framework 7.0.9, Spring Security 7.1.1 (with the authorization server), Tomcat 11.0.27 (pinned above the managed 11.0.24 for three fixable CRITICAL findings), Netty 4.2, Mongo driver 5.8, Spring Data MongoDB 5.1, JUnit 6, Testcontainers 2.0.5. E11-T03's `tomcat.version` 10.1.x and `netty.version` 4.1.x pins are gone.
   - Boot 4 starters: `spring-boot-starter-webmvc`, `-security-oauth2-resource-server`, `-security-oauth2-authorization-server`, `-aspectj`, and the test starters `-webmvc-test`, `-security-test`, `-data-mongodb-test`, `-actuator-test`. Sentry moves to `sentry-spring-boot-4-starter`, springdoc to 3.0.3 (its 3.0 line keeps swagger-core 2.2.47, so the contract is byte-identical).
